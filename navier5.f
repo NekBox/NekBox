@@ -45,6 +45,7 @@ c     outpost arrays
       save    icalld
       data    icalld /0/
 
+      logical if_fltv
 
       imax = nid
       imax = iglmax(imax,1)
@@ -70,26 +71,27 @@ c
 c
 c        Weight the filter to make it a smooth (as opposed to truncated)
 c        decay in wave space
-c
+
          w0 = 1.-wght
          call ident(intup,nx2)
          call add2sxy(intp,wght,intup,w0,nx2*nx2)
-c
+
          call ident   (intuv,nx1)
          call add2sxy (intv ,wght,intuv,w0,nx1*nx1)
-c
-c        if (nid.eq.0) call outmatx(intp,nx2,nx2,21,'flt2')
-c        if (nid.eq.0) call outmatx(zgm2 ,nx2,1  ,22,'zgm2')
-c        if (nid.eq.0) call outmatx(intv,nx1,nx1,11,'flt1')
-c        if (nid.eq.0) call outmatx(zgm1 ,nx1,1  ,12,'zgm1')
-c
+
       endif
 
       ifldt  = ifield
 c     ifield = 1
 
-      if ( (ifflow.and. .not. ifmhd)  .or.
-     $     (ifield.eq.1 .and. ifmhd)      ) then
+      if_fltv = .false.
+      if ( ifflow .and. .not. ifmhd ) if_fltv = .true.
+      if ( ifield.eq.1  .and. ifmhd ) if_fltv = .true.
+
+c     Adam Peplinski; to take into account freezing of base flow
+      if ( .not.ifbase             ) if_fltv = .false. ! base-flow frozen
+
+      if ( if_fltv ) then
          call filterq(vx,intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
          call filterq(vy,intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
          if (if3d)
@@ -826,131 +828,73 @@ c
       return
       end
 c-----------------------------------------------------------------------
-      subroutine surface_int(sint,sarea,a,ie,iface1)
+      subroutine surface_int(sint,sarea,a,e,f)
 C
       include 'SIZE'
       include 'GEOM'
       include 'PARALLEL'
       include 'TOPOL'
       real a(lx1,ly1,lz1,1)
-c
-      integer icalld
-      save    icalld
-      data    icalld/0/
-      logical ifpf
-      save    ifpf
-c
-      if (icalld.eq.0) then
-         icalld=icalld+1
-         if (skpdat(1,2).eq.nx1) then
-c           write(6,*) 'In surface_int, using pf version of skpdat.'
-            ifpf = .true.
-         else
-c           write(6,*) 'In surface_int, using std version of skpdat.'
-            ifpf = .false.
-         endif
-      endif
-C
+
+      integer e,f
+
+      call dsset(nx1,ny1,nz1)
+
+      iface  = eface1(f)
+      js1    = skpdat(1,iface)
+      jf1    = skpdat(2,iface)
+      jskip1 = skpdat(3,iface)
+      js2    = skpdat(4,iface)
+      jf2    = skpdat(5,iface)
+      jskip2 = skpdat(6,iface)
+
       sarea = 0.
       sint  = 0.
-C
-      call dsset(nx1,ny1,nz1)
-      iface  = eface1(iface1)
-c
-c     Check skpdat (because of difference in pf vs. commercial version...arrghh)
-c
-      if (ifpf) then
-c        pf version
-         js1    = skpdat(1,iface)
-         jf1    = skpdat(2,iface)
-         jskip1 = skpdat(3,iface)
-         js2    = skpdat(4,iface)
-         jf2    = skpdat(5,iface)
-         jskip2 = skpdat(6,iface)
-      else
-c        std version
-         js1    = skpdat(iface,1)
-         jf1    = skpdat(iface,2)
-         jskip1 = skpdat(iface,3)
-         js2    = skpdat(iface,4)
-         jf2    = skpdat(iface,5)
-         jskip2 = skpdat(iface,6)
-      endif
-C
-      I = 0
+      i     = 0
+
       do 100 j2=js2,jf2,jskip2
       do 100 j1=js1,jf1,jskip1
-         I = I+1
-         sarea = sarea+area(i,1,iface1,ie)
-         sint  = sint +area(i,1,iface1,ie)*a(j1,j2,1,ie)
+         i = i+1
+         sarea = sarea+area(i,1,f,e)
+         sint  = sint +area(i,1,f,e)*a(j1,j2,1,e)
   100 continue
-C
+
       return
       end
 c-----------------------------------------------------------------------
-      subroutine surface_flux(dq,qx,qy,qz,ie,iface,w)
-C
+      subroutine surface_flux(dq,qx,qy,qz,e,f,w)
+
       include 'SIZE'
       include 'GEOM'
       include 'INPUT'
       include 'PARALLEL'
       include 'TOPOL'
       parameter (l=lx1*ly1*lz1)
-      real w(lx1,ly1,lz1),qx(l,1),qy(l,1),qz(l,1)
-c
-      integer icalld
-      save    icalld
-      data    icalld/0/
-      logical ifpf
-      save    ifpf
-c
+
+      real qx(l,1),qy(l,1),qz(l,1),w(lx1,ly1,lz1)
+      integer e,f
+
+      call           faccl3  (w,qx(1,e),unx(1,1,f,e),f)
+      call           faddcl3 (w,qy(1,e),uny(1,1,f,e),f)
+      if (if3d) call faddcl3 (w,qz(1,e),unz(1,1,f,e),f)
+
       call dsset(nx1,ny1,nz1)
-      if (icalld.eq.0) then
-         icalld=icalld+1
-         if (skpdat(1,2).eq.nx1) then
-c           write(6,*) 'In surface_flux, using pf version of skpdat.'
-            ifpf = .true.
-         else
-c           write(6,*) 'In surface_flux, using std version of skpdat.'
-            ifpf = .false.
-         endif
-      endif
-C
-      ifacepf  = eface1(iface)
-c
-c     Check skpdat (because of difference in pf vs. commercial version...arrghh)
-c
-      if (ifpf) then
-c        pf version
-         js1    = skpdat(1,ifacepf)
-         jf1    = skpdat(2,ifacepf)
-         jskip1 = skpdat(3,ifacepf)
-         js2    = skpdat(4,ifacepf)
-         jf2    = skpdat(5,ifacepf)
-         jskip2 = skpdat(6,ifacepf)
-      else
-c        std version
-         js1    = skpdat(ifacepf,1)
-         jf1    = skpdat(ifacepf,2)
-         jskip1 = skpdat(ifacepf,3)
-         js2    = skpdat(ifacepf,4)
-         jf2    = skpdat(ifacepf,5)
-         jskip2 = skpdat(ifacepf,6)
-      endif
-C
-      call faccl3 (w,qx(1,ie),unx(1,1,iface,ie),iface)
-      call faddcl3(w,qy(1,ie),uny(1,1,iface,ie),iface)
-      if (if3d)
-     $call faddcl3(w,qz(1,ie),unz(1,1,iface,ie),iface)
-c
+      iface  = eface1(f)
+      js1    = skpdat(1,iface)
+      jf1    = skpdat(2,iface)
+      jskip1 = skpdat(3,iface)
+      js2    = skpdat(4,iface)
+      jf2    = skpdat(5,iface)
+      jskip2 = skpdat(6,iface)
+
       dq = 0
       i  = 0
       do 100 j2=js2,jf2,jskip2
       do 100 j1=js1,jf1,jskip1
          i = i+1
-         dq    = dq   +area(i,1,iface,ie)*w(j1,j2,1)
+         dq    = dq + area(i,1,f,e)*w(j1,j2,1)
   100 continue
-C
+
       return
       end
 c-----------------------------------------------------------------------
@@ -2326,6 +2270,230 @@ c
             enddo
          enddo
       endif
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine auto_averager(fname127) ! simple average of files
+
+c     This routine reads files specificed of file.list and averages
+c     them with uniform weight
+c
+c     Note that it relies on scrns and scruz common blocks. pff 11/12/13
+c
+
+      include 'SIZE'
+      include 'TOTAL'
+      include 'ZPER'
+
+      character*127 fname127
+      character*1   f1(127)
+
+      parameter (lt=lx1*ly1*lz1*lelt)
+      common /scruz/ ua(lt),va(lt),wa(lt),pa(lt)
+      common /scrns/ ta(lt,ldimt)
+
+      character*1 s1(127)
+      equivalence (s1,initc) ! equivalence to initial condition
+
+      if (nid.eq.0) then
+         ib=indx1(fname127,' ',1)-1
+         call chcopy(f1,fname127,ib)
+         write(6,2) (f1(k),k=1,ib)
+    2    format('Open file: ',127a1)
+      endif
+
+      ierr = 0
+      if (nid.eq.0) open(77,file=fname127,status='old',err=199)
+      ierr = iglmax(ierr,1)
+      if (ierr.gt.0) goto 199
+      n = nx1*ny1*nz1*nelt
+      n2= nx2*ny2*nz2*nelt
+
+      call rzero (ua,n)
+      call rzero (va,n)
+      call rzero (wa,n)
+      call rzero (pa,n2)
+      do k=1,npscal+1
+         call rzero (ta(1,k),n)
+      enddo
+
+      icount = 0
+      do ipass=1,9999999
+
+         call blank(initc,127)
+         initc(1) = 'done '
+         if (nid.eq.0) read(77,127,end=998) initc(1)
+  998    call bcast(initc,127)
+  127    format(a127)
+
+         iblank = indx1(initc,' ',1)-1
+         if (nid.eq.0) write(6,1) ipass,(s1(k),k=1,iblank)
+    1    format(i8,'Reading: ',127a1)
+
+         if (indx1(initc,'done ',5).eq.0) then ! We're not done
+
+            nfiles = 1
+            call restart(nfiles)  ! Note -- time is reset.
+
+            call opadd2 (ua,va,wa,vx,vy,vz)
+            call add2   (pa,pr,n2)
+            do k=1,npscal+1
+               call add2(ta(1,k),t(1,1,1,1,k),n)
+            enddo
+            icount = icount+1
+
+         else
+            goto 999
+         endif
+
+      enddo
+
+  999 continue  ! clean up averages
+      if (nid.eq.0) close(77)
+
+      scale = 1./icount
+      call cmult2(vx,ua,scale,n)
+      call cmult2(vy,va,scale,n)
+      call cmult2(vz,wa,scale,n)
+      call cmult2(pr,pa,scale,n2)
+      do k=1,npscal+1
+         call cmult2(t(1,1,1,1,k),ta(1,k),scale,n)
+      enddo
+      return
+
+  199 continue ! exception handle for file not found
+      ierr = 1
+      if (nid.eq.0) ierr = iglmax(ierr,1)
+      call exitti('Auto averager did not find list file.$',ierr)
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine x_average(ua,u,w1,w2)
+c
+c     Compute the x average of quantity u() - assumes global tens.prod.
+c
+      include 'SIZE'
+      include 'GEOM'
+      include 'PARALLEL'
+      include 'WZ'
+      include 'ZPER'
+
+      real ua(ny1,nz1,nely,nelz),u (nx1,ny1,nz1,nelv)
+     $    ,w1(ny1,nz1,nely,nelz),w2(ny1,nz1,nely,nelz)
+      integer e,eg,ex,ey,ez
+      real dy2
+
+      nelyz = nely*nelz
+      if (nelyz.gt.lely*lelz) call exitti
+     $  ('ABORT IN x_average. Increase lely*lelz in SIZE:$',nelyz)
+
+      myz = nely*nelz*ny1*nz1
+      call rzero(ua,myz)
+      call rzero(w1,myz)
+
+      do e=1,nelt
+
+         eg = lglel(e)
+         call get_exyz(ex,ey,ez,eg,nelx,nely,nelz)
+
+         do k=1,nz1
+         do j=1,ny1
+            do i=1,nx1
+               dx2 = 1.0  !  Assuming uniform element size in "x" direction
+               ua(j,k,ey,ez) = ua(j,k,ey,ez)+dx2*wzm1(i)*u(i,j,k,e)
+               w1(j,k,ey,ez) = w1(j,k,ey,ez)+dx2*wzm1(i) ! redundant but clear
+            enddo
+         enddo
+         enddo
+      enddo
+
+      call gop(ua,w2,'+  ',myz)
+      call gop(w1,w2,'+  ',myz)
+
+      do i=1,myz
+         ua(i,1,1,1) = ua(i,1,1,1) / w1(i,1,1,1)   ! Normalize
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine x_average_transpose(u,ua) ! distribute ua to each z-plane
+
+      include 'SIZE'
+      include 'GEOM'
+      include 'PARALLEL'
+      include 'WZ'
+      include 'ZPER'
+
+      real u(nx1,ny1,nz1,nelv),ua(ny1,nz1,nely,nelz)
+
+      integer e,eg,ex,ey,ez
+
+
+      do e=1,nelt
+
+         eg = lglel(e)
+         call get_exyz(ex,ey,ez,eg,nelx,nely,nelz)
+
+         do k=1,nz1
+         do j=1,ny1
+            do i=1,nx1
+               u(i,j,k,e) = ua(j,k,ey,ez)
+            enddo
+         enddo
+         enddo
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine x_distribute(u)
+c
+c     Compute the x average of quantity u() and redistribute
+c
+c     Assumes you have nelx*nely elements, in the same order,
+c     within each x plane
+c
+c
+      include 'SIZE'
+      include 'TOTAL'
+      include 'ZPER'
+
+      real u(1)
+
+      parameter (lyavg = ly1*lz1*lely*lelz)
+      common /scravg/ ua(lyavg)
+     $              , w1(lyavg)
+     $              , w2(lyavg)
+
+      call x_average          (ua,u,w1,w2)
+      call x_average_transpose(u,ua) ! distribute ua to each z-plane
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine x_distribute2(ua,u)
+c
+c     Compute the x average of quantity u() and redistribute
+c
+c     Assumes you have nelx*nely elements, in the same order,
+c     within each x plane
+c
+c
+      include 'SIZE'
+      include 'TOTAL'
+      include 'ZPER'
+
+      real ua(1),u(1)
+
+      parameter (lyavg = ly1*lz1*lely*lelz)
+      common /scravg/ w1(lyavg)
+     $              , w2(lyavg)
+
+      call x_average          (ua,u,w1,w2)
+      call x_average_transpose(u,ua) ! distribute ua to each z-plane
+
       return
       end
 c-----------------------------------------------------------------------
@@ -4137,8 +4305,8 @@ c     will not.
          call gs_op(gsh_fld(ifld),d,1,3,0) ! min over all elements
          nchange = iglsum(nchange,1)
          dmax = glmax(dmax,1)
-         if (nid.eq.0) write(6,1) ipass,nchange,dmax
-    1    format(i9,i12,1pe12.4,' max wall distance 1')
+         if (nid.eq.0) write(6,1) ipass,nchange,dmax,b
+    1    format(i9,i12,1pe12.4,' max distance b: ',a3)
          if (nchange.eq.0) goto 1000
       enddo
  1000 return
@@ -4285,6 +4453,178 @@ c     Work arrays:  dmin,emin,xn,yn,zn
 
 c     wgt = 0.3
 c     call filter_d2(d,nx1,nz1,wgt,.true.)
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine turb_outflow(d,m1,rq,uin)
+
+c     . Set div U > 0 in elements with 'O  ' bc.
+c
+c     . rq is nominally the ratio of Qout/Qin and is typically 1.5
+c
+c     . d and m1 are work arrays of size (lx1,ly1,lz1,lelt), assumed persistant
+
+c
+c     This routine may or may not work with multiple outlets --- it has
+c     not been tested for this case.
+c
+
+      include 'SIZE'
+      include 'TOTAL'
+
+      real d(lx2,ly2,lz2,lelt),m1(lx1*ly1*lz1,lelt)
+
+      parameter (lw = 3*lx1*ly1*lz1)
+      common /ctmp1/ w(lw)
+
+      integer icalld,noutf,e,f
+      save    icalld,noutf
+      data    icalld,noutf /0,0/
+
+      real ddmax,cso
+      save ddmax,cso
+      logical ifout
+
+      character*3 b
+
+      n     = nx1*ny1*nz1*nelv
+      n2    = nx2*ny2*nz2*nelv
+      nxyz  = nx1*ny1*nz1
+      nxyz2 = nx2*ny2*nz2
+
+      if (icalld.eq.0) then
+         icalld = 1
+
+         b = 'O  '
+         call cheap_dist(m1,1,b)
+
+         call rzero (d,n2)
+
+         ddmax = 0.
+         noutf = 0
+
+         do e=1,nelv
+           ifout = .false.
+           do f=1,2*ndim
+             if (cbc(f,e,1).eq.b) ifout = .true. ! outflow
+             if (cbc(f,e,1).eq.b) noutf = noutf+1
+           enddo
+           if (ifout) then
+            if (lx2.lt.lx1) then ! Map distance function to Gauss
+             call maph1_to_l2(d(1,1,1,e),nx2,m1(1,e),nx1,if3d,w,lw)
+            else
+             call copy(d(1,1,1,e),m1(1,e),nxyz)
+            endif
+            dmax  = vlmax(m1(1,e),nxyz)
+            ddmax = max(ddmax,dmax)
+            call rzero(m1(1,e),nxyz) ! mask points at outflow
+           else
+             call rone (m1(1,e),nxyz)
+           endif
+         enddo
+
+         ddmax = glamax(ddmax,1)
+
+         do e=1,nelv
+           ifout = .false.
+           do f=1,2*ndim
+             if (cbc(f,e,1).eq.b) ifout = .true. ! outflow
+           enddo
+           if (ifout) then
+              do i=1,nxyz2
+                d(i,1,1,e) = (ddmax - d(i,1,1,e))/ddmax
+              enddo
+           endif
+         enddo
+         noutf = iglsum(noutf,1)
+      endif
+
+      if (noutf.eq.0) return
+
+      if (uin.ne.0) then ! Use user-supplied characteristic velocity
+         ubar = uin
+      else
+         ubar = glsc3(vx,bm1,m1,n)   ! Masked average
+         vbar = glsc3(vy,bm1,m1,n)
+         wbar = glsc3(vz,bm1,m1,n)
+         volu = glsc2(bm1,m1,n)
+         ubar = abs(ubar)+abs(vbar)
+         if (if3d) ubar = abs(ubar)+abs(wbar)
+      endif
+
+      cs = 3*(rq-1.)*(ubar/ddmax)
+      if (istep.gt.1) cs=cso
+      do i=1,n2
+         usrdiv(i,1,1,1) = cs*(d(i,1,1,1)**2)
+      enddo
+      cso = cs
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine add_temp(f2tbc,nbc)
+
+c
+c     TYPICAL USAGE:  Add the below to usrdat().
+c
+c     parameter (lbc=10) ! Maximum number of bc types
+c     character*3 f2tbc(2,lbc)
+c
+c     f2tbc(1,1) = 'W  '   ! Any 'W  ' bc is swapped to ft2bc(2,1)
+c     f2tbc(2,1) = 'I  '
+c
+c     f2tbc(1,2) = 'v  '   ! Any 'v  ' bc is swapped to ft2bc(2,2)
+c     f2tbc(2,2) = 't  '
+c
+c     nbc = 2      ! Number of boundary condition pairings (e.g., W-->t)
+c     do i=1,ldimt-1
+c        call add_temp(f2tbc,nbc)
+c     enddo
+
+      include 'SIZE'
+      include 'TOTAL'
+      character*3 f2tbc(2,nbc)
+
+      integer e,f
+
+      nfld=nfield+1
+
+      write(6,*) 'add temp: ',nfld,nfield,istep
+
+      nelfld(nfld) = nelfld(nfield)
+      nel = nelfld(nfield)
+      call copy  (bc(1,1,1,nfld),bc(1,1,1,nfield),30*nel)
+      call chcopy(cbc(1,1,nfld),cbc(1,1,nfield),3*6*nel)
+
+      do k=1,3
+         cpfld(nfld,k)=cpfld(nfield,k)
+         call copy (cpgrp(-5,nfld,k),cpgrp(-5,nfield,k),16)
+      enddo
+      call icopy(matype(-5,nfld),matype(-5,nfield),16)
+
+      param(7) = param(1)  ! rhoCP   = rho
+      param(8) = param(2)  ! conduct = dyn. visc
+
+      ifheat       = .true.
+      ifadvc(nfld) = .true.
+      iftmsh(nfld) = .true.
+      ifvarp(nfld) = ifvarp(nfield)
+      if (nfld.eq.2) ifto = .true.
+      if (nfld.gt.2) ifpsco(nfld-2) = .true.
+      if (nfld.gt.2) npscal = npscal+1
+
+
+      nfield = nfld
+
+      nface = 2*ndim
+      do k=1,nbc               ! BC conversion
+        do e=1,nelfld(nfld)
+        do f=1,nface
+          if (cbc(f,e,nfld).eq.f2tbc(1,k)) cbc(f,e,nfld)=f2tbc(2,k)
+        enddo
+        enddo
+      enddo
 
       return
       end

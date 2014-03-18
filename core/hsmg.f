@@ -1103,6 +1103,7 @@ c     init everything to 1
 c     set dirichlet nodes to zero
       two  = 2
       ierr = 0
+      two  = 2
       do ie=1,nelv
          call get_fast_bc(lbr,rbr,lbs,rbs,lbt,rbt,ie,two,ierr)
          if (ierr.ne.0) then
@@ -1663,6 +1664,7 @@ c     if (lx1.eq.6)  mgnx2 = 3
       if (lx1.eq.8)  mgnx2 = 3
 
 c     mgnx2 = min(3,mgnx2)  
+      
 
       mg_nx(2) = mgnx2
       mg_ny(2) = mgnx2

@@ -131,6 +131,8 @@ C
         if (ifaxis) call setaxdy ( ifrzer(e) )
 C
         IF (NDIM.EQ.2) THEN
+          write(*,*) "Whoops! axhelm"
+#if 0
 C
 C       2-d case ...............
 C
@@ -167,6 +169,7 @@ C
 
         endif
 C
+#endif
         else
 C
 C       3-d case ...............
@@ -176,19 +179,34 @@ C
 C          Fast 3-d mode: constant properties and undeformed element
 C
            h1 = helm1(1,1,1,e)
+
            call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
            do 5 iz=1,nz1
            call mxm   (u(1,1,iz,e),nx1,wddyt,ny1,tm2(1,1,iz),ny1)
  5         continue
            call mxm   (u(1,1,1,e),nxy,wddzt,nz1,tm3,nz1)
+#if 0
            call col2  (tm1,g4m1(1,1,1,e),nxyz)
            call col2  (tm2,g5m1(1,1,1,e),nxyz)
            call col2  (tm3,g6m1(1,1,1,e),nxyz)
+
            call add3  (au(1,1,1,e),tm1,tm2,nxyz)
            call add2  (au(1,1,1,e),tm3,nxyz)
+
            call cmult (au(1,1,1,e),h1,nxyz)
+#else
+ 
+             au(:,:,:,e) = 
+     +         h1 * (
+     +              au(:,:,:,e) + tm1*g4m1(:,:,:,e)
+     +              + tm2*g5m1(:,:,:,e) + tm3*g6m1(:,:,:,e)
+     +             ) 
+#endif
+
 C
            else
+             write(*,*) "Woops! axhelm"
+#if 0
 C
 C          General case, speed-up for undeformed elements
 C
@@ -220,17 +238,20 @@ C
            call add2 (au(1,1,1,e),tm2,nxyz)
            call add2 (au(1,1,1,e),tm3,nxyz)
 C
+#endif
            endif
 c
         endif
 C
  100  continue
 C
-      if (ifh2) call addcol4 (au,helm2,bm1,u,ntot)
+      call addcol4 (au,helm2,bm1,u,ntot)
 C
 C     If axisymmetric, add a diagonal term in the radial direction (ISD=2)
 C
       if (ifaxis.and.(isd.eq.2)) then
+         write(*,*) "Whoops! axhelm 3"
+#if 0
          do 200 e=1,nel
 C
             if (ifrzer(e)) then
@@ -256,6 +277,7 @@ C               if (ym1(i,j,1,e).ne.0.) then
 C               endif
   190       continue
   200    continue
+#endif
       endif
 
       taxhm=taxhm+(dnekclock()-etime1)
@@ -291,6 +313,7 @@ C
          IFFAST(ie) = .FALSE.
          IF (IFDFRM(ie).OR.IFAXIS .OR. IFMODEL ) THEN
             IFFAST(ie) = .FALSE.
+C            write(*,*) IFDFRM(ie), IFAXIS, IFMODEL
          ELSE
            H1MIN  = VLMIN(HELM1(1,1,1,ie),NXYZ)
            H1MAX  = VLMAX(HELM1(1,1,1,ie),NXYZ)
@@ -430,7 +453,8 @@ c     return
            DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + 
      $                          G2M1(IX,IQ,IZ,IE) * DYTM1(IY,IQ)**2
   340      CONTINUE
-        IF (NDIM.EQ.3) THEN
+
+      IF (NDIM.EQ.3) THEN
            DO 360 IQ=1,NZ1
            DO 360 IZ=1,NZ1
            DO 360 IY=1,NY1
@@ -442,6 +466,8 @@ C
 C       Add cross terms if element is deformed.
 C
         IF (IFDFRM(IE)) THEN
+          write(*,*) "Whoops!"
+#if 0
            DO 600 IY=1,NY1
            DO 600 IZ=1,NZ1
            DPCM1(1,IY,IZ,IE) = DPCM1(1,IY,IZ,IE)
@@ -469,10 +495,13 @@ C
      $            + G5M1(IX,IY,NZ1,IE) * DZTM1(NZ1,NZ1)*DXTM1(IX,IX)
      $            + G6M1(IX,IY,NZ1,IE) * DZTM1(NZ1,NZ1)*DYTM1(IY,IY)
   800      CONTINUE
+#endif
         ENDIF
       ELSE
 C
        IF (IFDFRM(IE)) THEN
+         write(*,*) "Whoops!"
+#if 0
            IZ=1
            DO 602 IY=1,NY1
              DPCM1(1,IY,IZ,IE) = DPCM1(1,IY,IZ,IE)
@@ -487,6 +516,7 @@ C
              DPCM1(IX,NY1,IZ,IE) = DPCM1(IX,NY1,IZ,IE)
      $            + G4M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DXTM1(IX,IX)
   702      CONTINUE
+#endif
          ENDIF
       ENDIF
  1000 CONTINUE

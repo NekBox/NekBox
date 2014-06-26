@@ -134,7 +134,7 @@ c     Calculate Divergence difference norms
 c-----------------------------------------------------------------------
       subroutine crespsp (respr)
 
-C     Compute startresidual/right-hand-side in the pressure
+C     Compute start residual/right-hand-side in the pressure
 
       INCLUDE 'SIZE'
       INCLUDE 'TOTAL'

@@ -376,7 +376,7 @@ C               5+-----+6    Z
 C                
 C
       DO 10 IE=1,NELT
-         IFDFRM(IE)=.TRUE.
+         IFDFRM(IE)=.FALSE.
    10 CONTINUE
 C
       IF (IFMVBD) return

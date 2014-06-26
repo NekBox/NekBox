@@ -25,7 +25,7 @@ c
       dcount      =      dcount + (isbcnt)
 #endif
 
-#define BLAS_MXM
+c#define BLAS_MXM
 #ifdef BLAS_MXM
       call dgemm('N','N',n1,n3,n2,1.0,a,n1,b,n2,0.0,c,n1)
       return

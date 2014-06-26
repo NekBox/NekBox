@@ -422,6 +422,8 @@ C
        endif
 C
        if (ndim.eq.2) then
+         write(*,*) "Whoops! cdtp"
+#if 0
          if (.not.ifdfrm(e) .and. ifalgn(e)) then
 C
             if (      ifrsxy(e).and.isd.eq.1  .or. 
@@ -446,10 +448,9 @@ C
 
             call add2 (dtx(1,e),ta1,nxyz1)
          endif
-
+#endif
        else
          if (ifsplit) then
-
             call col3 (ta1,wx,rm2(1,e),nxyz2)
             call mxm  (dxtm12,nx1,ta1,nx2,dtx(1,e),nyz2)
             call col3 (ta1,wx,sm2(1,e),nxyz2)
@@ -464,9 +465,9 @@ C
             call col3 (ta1,wx,tm2(1,e),nxyz2)
             call mxm  (ta1,nxy1,dzm12,nz2,ta2,nz1)
             call add2 (dtx(1,e),ta2,nxyz1)
-
          else
-
+           write(*,*) "Whoops! cdtp"
+#if 0
             call col3 (ta1,wx,rm2(1,e),nxyz2)
             call mxm  (dxtm12,nx1,ta1,nx2,ta2,nyz2)
             i1 = 1
@@ -501,7 +502,7 @@ C
             enddo
             call mxm  (ta1,nxy1,dzm12,nz2,ta2,nz1)
             call add2 (dtx(1,e),ta2,nxyz1)
-
+#endif
          endif
 
        endif         
@@ -617,6 +618,8 @@ c        the y-direction (= radial direction if axisymmetric).
          endif
 
          if (ndim.eq.2) then
+            write(*,*) "Whoops! multd"
+#if 0
             if (.not.ifdfrm(e) .and. ifalgn(e)) then
 c
                if (      ifrsxy(e).and.isd.eq.1  .or. 
@@ -637,7 +640,7 @@ c
                call mxm     (ta1,nx2,dytm12,ny1,ta3,ny2)
                call addcol3 (dx(1,e),ta3,sm2(1,e),nxyz2)
             endif
-
+#endif
          else  ! 3D
 
 c           if (ifsplit) then
@@ -699,6 +702,8 @@ C        Collocate with the weights on the pressure mesh
          call col2   (dx(1,e),bm1(1,1,1,e),nxyz1)
          call invcol2(dx(1,e),jacm1(1,1,1,e),nxyz1)
        else
+         write(*,*) "Whoops! multd"
+#if 0
          if (.not.ifaxis) call col2 (dx(1,e),w3m2,nxyz2)
          if (ifaxis) then
              if (ifrzer(e)) then
@@ -709,6 +714,7 @@ C        Collocate with the weights on the pressure mesh
                  call col2    (dx(1,e),ym2(1,1,1,e),nxyz2)
              endif
          endif
+#endif
        endif
 
 c        If axisymmetric, add an extra diagonal term in the radial 
@@ -718,6 +724,8 @@ c        NOTE: NZ1=NZ2=1
       if(ifsplit) then
 
        if (ifaxis.and.(isd.eq.2).and.iflg.eq.1) then
+        write(*,*) "Whoops! multd"
+#if 0
         call copy    (ta3,x(1,e),nxyz1)
         if (ifrzer(e)) then
            call rzero(ta3, nx1)
@@ -726,10 +734,12 @@ c        NOTE: NZ1=NZ2=1
         endif
         call col2    (ta3,baxm1(1,1,1,e),nxyz1)
         call add2    (dx(1,e),ta3,nxyz2)
+#endif
        endif
 
       else
-
+       write(*,*) "Whoops! multd"
+#if 0
        if (ifaxis.and.(isd.eq.2)) then
             call mxm     (ixm12,nx2,x(1,e),nx1,ta1,ny1)
             call mxm     (ta1,nx2,iytm12,ny1,ta2,ny2)
@@ -737,7 +747,7 @@ c        NOTE: NZ1=NZ2=1
             call invcol2 (ta3,ym2(1,1,1,e),nxyz2)
             call add2    (dx(1,e),ta3,nxyz2)
        endif
-
+#endif
       endif
 C
       enddo

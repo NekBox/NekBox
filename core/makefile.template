@@ -50,7 +50,7 @@ papi.o nek_in_situ.o
 MXM = mxm_std.o 
 ################################################################################
 # LAPACK
-LPACK = dsygv.o ssygv.o
+#LPACK = dsygv.o ssygv.o
 # JL Routines ###################################################################
 JO  = jl_
 
@@ -266,8 +266,8 @@ $(OBJDIR)/$(JO)findpts_el_3.o    :$(J)/findpts_el_3.c;    $(CC) -c $(cFL2) $(JL)
 $(OBJDIR)/$(JO)findpts_el_2.o    :$(J)/findpts_el_2.c;    $(CC) -c $(cFL2) $(JL) $< -o $@
 
 # 3rd party #######################################################################################
-$(OBJDIR)/dsygv.o     	:$S/3rd_party/dsygv.f;  	$(F77) -c $(FL2i4) $< -o $@
-$(OBJDIR)/ssygv.o     	:$S/3rd_party/ssygv.f;  	$(F77) -c $(FL2i4) $< -o $@
+#$(OBJDIR)/dsygv.o     	:$S/3rd_party/dsygv.f;  	$(F77) -c $(FL2i4) $< -o $@
+#$(OBJDIR)/ssygv.o     	:$S/3rd_party/ssygv.f;  	$(F77) -c $(FL2i4) $< -o $@
 # SYSTEM BLAS?
 #$(OBJDIR)/blas.o   	:$S/3rd_party/blas.f;		$(F77) -c $(FL2i4) $< -o $@
 $(OBJDIR)/moab.o        :$S/3rd_party/moab.f;           $(F77) -c $(FL2) $(IMESH_INCLUDES) $< -o $@

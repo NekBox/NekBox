@@ -14,8 +14,14 @@
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
-    INCLUDE 'ORTHOP'
+!max    INCLUDE 'ORTHOP'
     INCLUDE 'CTIMER'
+
+    parameter (ktot = lx1*ly1*lz1*lelt)
+    parameter (laxt = mxprev)
+
+    common /prthoi/ napprox(2)
+    common /orthov/ approx(ktot,0:laxt)
 
     COMMON /SCRNS/ RES1  (LX1,LY1,LZ1,LELV) &
     ,             RES2  (LX1,LY1,LZ1,LELV) &

@@ -47,7 +47,7 @@
     CALL LAGVEL
 
 ! split viscosity into explicit/implicit part
-    if (ifexplvis) call split_vis
+!    if (ifexplvis) call split_vis
 
 ! extrapolate velocity
 
@@ -82,7 +82,7 @@
     call ophinv  (dv1,dv2,dv3,res1,res2,res3,h1,h2,tolhv,nmxh)
     call opadd2  (vx,vy,vz,dv1,dv2,dv3)
 
-    if (ifexplvis) call redo_split_vis
+!    if (ifexplvis) call redo_split_vis
 
 ! Below is just for diagnostics...
 
@@ -417,6 +417,7 @@
     return
     end subroutine v_extrap
 !-----------------------------------------------------------------------
+#if 0
     subroutine split_vis
 
 !     Split viscosity into a constant implicit (VDIFF) and variable
@@ -445,4 +446,5 @@
 
     return
     end subroutine redo_split_vis
+#endif
 !-----------------------------------------------------------------------

@@ -1,3 +1,4 @@
+#if 0
     SUBROUTINE PLAN3 (IGEOM)
 !-----------------------------------------------------------------------
 
@@ -57,6 +58,7 @@
 
     RETURN
     END SUBROUTINE PLAN3
+#endif
 
     SUBROUTINE LAGPRES
 !--------------------------------------------------------------------
@@ -165,10 +167,12 @@
     IMESH = 1
 
     IF (IFSTRS) THEN
+#if 0
         MATMOD = 0
         CALL HMHZSF  ('NOMG',OT1,OT2,OT3,IN1,IN2,IN3,H1,H2, &
         V1MASK,V2MASK,V3MASK,VMULT, &
         TOLH,NMXi,MATMOD)
+#endif
     ELSE
         CALL hmzpf2 ('VELX',OT1,IN1,H1,H2,V1MASK,VMULT, &
         IMESH,TOLH,NMXi,1)

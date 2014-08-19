@@ -1026,9 +1026,18 @@
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
-    include 'ORTHOV'
+!max    include 'ORTHOV'
     include 'VPROJ'
     include 'TSTEP'
+
+    parameter (ktot = lx1*ly1*lz1*lelt)
+
+    common /vrthoi/ mprev,nprev(ldim)
+    common /vrthov/ vbar(ktot,ldim),vnew(ktot,ldim) &
+                 , sln (ktot*mxprev,ldim)
+    common /vrthos/ alpha(mxprev)
+    common /vrthol/ ifproj
+    logical         ifproj
 
     real :: o1 (lx1,ly1,lz1,1) , o2 (lx1,ly1,lz1,1) , o3 (lx1,ly1,lz1,1)
     real :: i1 (lx1,ly1,lz1,1) , i2 (lx1,ly1,lz1,1) , i3 (lx1,ly1,lz1,1)

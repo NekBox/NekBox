@@ -137,7 +137,7 @@ objdir:
 	@mkdir $(OBJDIR) 2>/dev/null; cat /dev/null 
 
 nek5000:	objdir $(NOBJS)
-	$(F77) -c $(FL2) $(CASEDIR)/${CASENAME}.f $(MOABNEK_INCLUDES) $(VISITNEK_INCLUDES) $(IMESH_INCLUDES) -o ${OBJDIR}/${CASENAME}.o 
+	$(F77) -c $(FL2) $(CASEDIR)/${CASENAME}.F90 $(MOABNEK_INCLUDES) $(VISITNEK_INCLUDES) $(IMESH_INCLUDES) -o ${OBJDIR}/${CASENAME}.o 
 	$(F77) -o ${BINNAME} $G ${OBJDIR}/${CASENAME}.o $(NOBJS) $(lFLAGS)
 	@if test -f ${BINNAME}; then \
 	echo "#############################################################"; \
@@ -167,72 +167,72 @@ endif
 $(NOBJS_F) : SIZE
 
 # NEK CORE     ##################################################################
-$(OBJDIR)/drive.o	:$S/drive.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/drive1.o	:$S/drive1.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/drive2.o	:$S/drive2.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/prepost.o	:$S/prepost.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/postpro.o	:$S/postpro.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/connect1.o	:$S/connect1.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/connect2.o	:$S/connect2.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/edgec.o	:$S/edgec.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/genxyz.o	:$S/genxyz.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/subs1.o	:$S/subs1.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/subs2.o	:$S/subs2.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/turb.o	:$S/turb.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/map2.o	:$S/map2.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/mvmesh.o	:$S/mvmesh.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/induct.o	:$S/induct.f;	      		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/convect.o	:$S/convect.f;	      		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/perturb.o	:$S/perturb.f;	      		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/genbox.o	:$S/genbox.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/hsmg.o	:$S/hsmg.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gmres.o	:$S/gmres.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/papi.o	:$S/papi.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/bdry.o	:$S/bdry.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/ic.o		:$S/ic.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/conduct.o	:$S/conduct.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier0.o	:$S/navier0.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier2.o	:$S/navier2.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier3.o	:$S/navier3.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier4.o	:$S/navier4.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier5.o	:$S/navier5.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier6.o	:$S/navier6.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier7.o	:$S/navier7.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier8.o	:$S/navier8.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/speclib.o	:$S/speclib.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/calcz.o	:$S/calcz.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/fast3d.o	:$S/fast3d.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/dssum.o	:$S/dssum.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/eigsolv.o	:$S/eigsolv.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gauss.o	:$S/gauss.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/planx.o	:$S/planx.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/ssolv.o	:$S/ssolv.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gfdm_par.o	:$S/gfdm_par.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gfdm_solve.o	:$S/gfdm_solve.f;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gfdm_op.o	:$S/gfdm_op.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/coef.o	:$S/coef.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/plan4.o	:$S/plan4.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/qthermal.o	:$S/qthermal.f;   		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/setprop.o	:$S/setprop.f;	   		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/init_plugin.o	:$S/init_plugin.f;	 	$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/cvode_driver.o :$S/cvode_driver.f;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/cvode_aux.o	:$S/cvode_aux.f;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/makeq.o      	:$S/makeq.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/makeq_aux.o  	:$S/makeq_aux.f;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/hmholtz.o	:$S/hmholtz.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier1.o	:$S/navier1.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/fasts.o	:$S/fasts.f;		        $(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/comm_mpi.o	:$S/comm_mpi.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/mpi_dummy.o	:$S/mpi_dummy.f;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/byte_mpi.o	:$S/byte_mpi.f;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/math.o	:$S/math.f;			$(F77) -c $(FL4) $< -o $@
-$(OBJDIR)/multimesh.o	:$S/multimesh.f;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/singlmesh.o	:$S/singlmesh.f;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/lb_setqvol.o	:$S/lb_setqvol.f;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/drive.o	:$S/drive.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/drive2.o	:$S/drive2.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/prepost.o	:$S/prepost.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/postpro.o	:$S/postpro.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/connect1.o	:$S/connect1.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/connect2.o	:$S/connect2.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/edgec.o	:$S/edgec.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/genxyz.o	:$S/genxyz.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/subs1.o	:$S/subs1.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/subs2.o	:$S/subs2.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/turb.o	:$S/turb.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/map2.o	:$S/map2.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/mvmesh.o	:$S/mvmesh.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/induct.o	:$S/induct.F90;	      		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/convect.o	:$S/convect.F90;	      		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/perturb.o	:$S/perturb.F90;	      		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/genbox.o	:$S/genbox.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/hsmg.o	:$S/hsmg.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/gmres.o	:$S/gmres.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/papi.o	:$S/papi.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/bdry.o	:$S/bdry.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/ic.o		:$S/ic.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/conduct.o	:$S/conduct.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier0.o	:$S/navier0.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier2.o	:$S/navier2.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier3.o	:$S/navier3.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier4.o	:$S/navier4.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier5.o	:$S/navier5.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier6.o	:$S/navier6.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier7.o	:$S/navier7.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier8.o	:$S/navier8.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/speclib.o	:$S/speclib.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/calcz.o	:$S/calcz.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/fast3d.o	:$S/fast3d.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/dssum.o	:$S/dssum.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/eigsolv.o	:$S/eigsolv.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/gauss.o	:$S/gauss.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/planx.o	:$S/planx.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/ssolv.o	:$S/ssolv.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/gfdm_par.o	:$S/gfdm_par.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/gfdm_solve.o	:$S/gfdm_solve.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/gfdm_op.o	:$S/gfdm_op.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/coef.o	:$S/coef.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/plan4.o	:$S/plan4.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/qthermal.o	:$S/qthermal.F90;   		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/setprop.o	:$S/setprop.F90;	   		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/init_plugin.o	:$S/init_plugin.F90;	 	$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/cvode_driver.o :$S/cvode_driver.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/cvode_aux.o	:$S/cvode_aux.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/makeq.o      	:$S/makeq.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/makeq_aux.o  	:$S/makeq_aux.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/hmholtz.o	:$S/hmholtz.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier1.o	:$S/navier1.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/fasts.o	:$S/fasts.F90;		        $(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/comm_mpi.o	:$S/comm_mpi.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/mpi_dummy.o	:$S/mpi_dummy.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/byte_mpi.o	:$S/byte_mpi.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/math.o	:$S/math.F90;			$(F77) -c $(FL4) $< -o $@
+$(OBJDIR)/multimesh.o	:$S/multimesh.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/singlmesh.o	:$S/singlmesh.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/lb_setqvol.o	:$S/lb_setqvol.F90;		$(F77) -c $(FL2) $< -o $@
 
 # MXM       ############################################################################
-$(OBJDIR)/mxm_wrapper.o	  :$S/mxm_wrapper.f;		$(F77) -c $(FL2) $< -o $@ 
-$(OBJDIR)/mxm_std.o	  :$S/mxm_std.f;		$(F77) -c $(FL4) $< -o $@
+$(OBJDIR)/mxm_wrapper.o	  :$S/mxm_wrapper.F90;		$(F77) -c $(FL2) $< -o $@ 
+$(OBJDIR)/mxm_std.o	  :$S/mxm_std.F90;		$(F77) -c $(FL4) $< -o $@
 $(OBJDIR)/k10_mxm.o	  :$S/k10_mxm.c;		$(CC)  -c $(cFL2) $(JL) $< -o $@
 $(OBJDIR)/bg_aligned3.o	  :$S/bg_aligned3.s;		$(CC) -c $< -o $@
 $(OBJDIR)/bg_mxm3.o	  :$S/bg_mxm3.s;		$(CC) -c $< -o $@
@@ -266,12 +266,12 @@ $(OBJDIR)/$(JO)findpts_el_3.o    :$(J)/findpts_el_3.c;    $(CC) -c $(cFL2) $(JL)
 $(OBJDIR)/$(JO)findpts_el_2.o    :$(J)/findpts_el_2.c;    $(CC) -c $(cFL2) $(JL) $< -o $@
 
 # 3rd party #######################################################################################
-#$(OBJDIR)/dsygv.o     	:$S/3rd_party/dsygv.f;  	$(F77) -c $(FL2i4) $< -o $@
-#$(OBJDIR)/ssygv.o     	:$S/3rd_party/ssygv.f;  	$(F77) -c $(FL2i4) $< -o $@
+#$(OBJDIR)/dsygv.o     	:$S/3rd_party/dsygv.F90;  	$(F77) -c $(FL2i4) $< -o $@
+#$(OBJDIR)/ssygv.o     	:$S/3rd_party/ssygv.F90;  	$(F77) -c $(FL2i4) $< -o $@
 # SYSTEM BLAS?
-#$(OBJDIR)/blas.o   	:$S/3rd_party/blas.f;		$(F77) -c $(FL2i4) $< -o $@
-$(OBJDIR)/moab.o        :$S/3rd_party/moab.f;           $(F77) -c $(FL2) $(IMESH_INCLUDES) $< -o $@
-$(OBJDIR)/imeshutil.o   :$S/3rd_party/imeshutil.f;  	$(F77) -c $(FL2) $(IMESH_INCLUDES) $< -o $@
+#$(OBJDIR)/blas.o   	:$S/3rd_party/blas.F90;		$(F77) -c $(FL2i4) $< -o $@
+$(OBJDIR)/moab.o        :$S/3rd_party/moab.F90;           $(F77) -c $(FL2) $(IMESH_INCLUDES) $< -o $@
+$(OBJDIR)/imeshutil.o   :$S/3rd_party/imeshutil.F90;  	$(F77) -c $(FL2) $(IMESH_INCLUDES) $< -o $@
 $(OBJDIR)/imeshcutil.o   :$S/3rd_party/imeshcutil.c;  	$(CC) -c $(cFL2) $< -o $@
-$(OBJDIR)/visit.o        :$S/3rd_party/visit.f;			$(F77) -c $(VISIT_IFLAGS) $(FL2) $< -o $@
-$(OBJDIR)/nek_in_situ.o  :$S/3rd_party/nek_in_situ.f;	$(F77) -c $(VISIT_IFLAGS) $(FL2) $< -o $@
+$(OBJDIR)/visit.o        :$S/3rd_party/visit.F90;			$(F77) -c $(VISIT_IFLAGS) $(FL2) $< -o $@
+$(OBJDIR)/nek_in_situ.o  :$S/3rd_party/nek_in_situ.F90;	$(F77) -c $(VISIT_IFLAGS) $(FL2) $< -o $@

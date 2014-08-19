@@ -554,13 +554,13 @@ else
 fi
 
 # tweak .usr (actually, .f ) file
-rm -f $CASENAME.f
-cp -p $CASENAME.usr $CASENAME.f
-cat $CASENAME.f | grep -i "subroutine.*usrsetvert" >/dev/null
+rm -f $CASENAME.F90
+cp -p $CASENAME.usr $CASENAME.F90
+cat $CASENAME.F90 | grep -i "subroutine.*usrsetvert" >/dev/null
 if [ $? -ne 0 ]; then
-cat >> $CASENAME.f << _ACEOF
-c
-c automatically added by makenek
+cat >> $CASENAME.F90 << _ACEOF
+!
+! automatically added by makenek
       subroutine usrsetvert(glo_num,nel,nx,ny,nz) ! to modify glo_num
       integer*8 glo_num(1)
       return

@@ -57,7 +57,7 @@
       integer SIX
       parameter (SIX = 6)
 
-c	  Removing the unused variables from NEMOAB interface
-c      iBase_EntityHandle hHexes(*), hParts(*)
-c      real prl, tl, vxl, vyl, vzl, xm1l, ym1l, zm1l
+!	  Removing the unused variables from NEMOAB interface
+!      iBase_EntityHandle hHexes(*), hParts(*)
+!      real prl, tl, vxl, vyl, vzl, xm1l, ym1l, zm1l
 

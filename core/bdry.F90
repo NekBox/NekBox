@@ -763,8 +763,10 @@
 
     DO 2100 ISWEEP=1,2
     
+#if 0
         IF (IFMODEL .AND. IFKEPS .AND. IFIELD >= NFLDT) &
         CALL TURBWBC (TMP,TMA,SMU)
+#endif
     
         DO 2010 IE=1,NEL
             DO 2010 IFACE=1,NFACES
@@ -2015,7 +2017,8 @@
         do f=1,nface
 
             if (cbc(f,e,ifield) == 'P  ' .OR. cbc(f,e,ifield) == 'p  ') then
-                call facind2 (js1,jf1,jskip1,js2,jf2,jskip2,f)
+                write(*,*) "Ooopps: cyclic"
+!                call facind2 (js1,jf1,jskip1,js2,jf2,jskip2,f)
                 k = 0
                 do j2=js2,jf2,jskip2
                     do j1=js1,jf1,jskip1

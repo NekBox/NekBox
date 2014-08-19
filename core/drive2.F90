@@ -182,8 +182,12 @@
         nfldtm = nfldtm + 1
     endif
 
+
+    IF (IFMODEL) write(*,*) "Oops: turb"
+#if 0
     IF (IFMODEL) CALL SETTMC
     IF (IFMODEL .AND. IFKEPS) THEN
+        write(*,*) "Oops: turb"
         NPSCAL = 1
         NFLDTM = NPSCAL + 1
         IF (LDIMT < NFLDTM) THEN
@@ -195,6 +199,7 @@
         NFIELD = NFIELD + 2
         CALL SETTURB
     ENDIF
+#endif
     MFIELD = 1
     IF (IFMVBD) MFIELD = 0
 
@@ -751,7 +756,9 @@
          
         call plan4
         igeom = 2
+#if 0
         call twalluz (igeom) ! Turbulence model
+#endif
         call chkptol         ! check pressure tolerance
         call vol_flow        ! check for fixed flow rate
 
@@ -761,8 +768,9 @@
 
         call plan3 (igeom)       !  Same as PLAN 1 w/o nested iteration
     !  Std. NEKTON time stepper  !
-
+#if 0
         if (ifmodel)    call twalluz (igeom) ! Turbulence model
+#endif
         if (igeom >= 2) call chkptol         ! check pressure tolerance
         if (igeom >= 2) call vol_flow        ! check for fixed flow rate
 
@@ -811,10 +819,11 @@
     write(*,'(13x,a)') 'Solving for heat'
 
     if (ifcvode) then
+#if 0
 
         call cdscal_cvode(igeom)
         igeom = 2
-
+#endif
     elseif (ifsplit) then
 
         do igeo=1,2

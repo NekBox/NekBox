@@ -1053,10 +1053,12 @@
     imesh = 1
 
     if (ifstrs) then
+#if 0
         matmod = 0
         call hmhzsf  ('nomg',o1,o2,o3,i1,i2,i3,h1,h2, &
         v1mask,v2mask,v3mask,vmult, &
         tolh,nmxhi,matmod)
+#endif
     else
         if (ifield == 1) then
             call hsolve ('velx',o1,i1,h1,h2,v1mask,vmult &
@@ -1102,9 +1104,11 @@
     imesh = 1
 
     if (ifstrs) then
+#if 0
         matmod = 0
         call hmhzsf  ('NOMG',o1,o2,o3,i1,i2,i3,h1,h2, &
         m1,m2,m3,vmult,tolh,nmxhi,matmod)
+#endif
     elseif (ifield == 1) then
         call hmholtz ('VELX',o1,i1,h1,h2,m1,vmult,imesh,tolh,nmxhi,1)
         call hmholtz ('VELY',o2,i2,h1,h2,m2,vmult,imesh,tolh,nmxhi,2)

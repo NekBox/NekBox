@@ -1,3 +1,4 @@
+#if 0
     subroutine plan1 (igeom)
 !-------------------------------------------------------------------------
 
@@ -83,6 +84,7 @@
 
     return
     end subroutine plan1
+#endif
 
     subroutine crespuz (respr,g1,g2,g3,h1,h2,h2inv,intype)
 !---------------------------------------------------------------------
@@ -783,6 +785,7 @@
     IMESH = 1
 
     if (ifstrs) then
+#if 0
         MATMOD = 0
         if (ifield == ifldmhd) then
             CALL HMHZSF  ('NOMG',OUT1,OUT2,OUT3,INP1,INP2,INP3,H1,H2, &
@@ -793,7 +796,9 @@
             V1MASK,V2MASK,V3MASK,VMULT, &
             TOLH,NMXI,MATMOD)
         endif
+#endif
     elseif (ifcyclic) then
+#if 0
         matmod = 0
         if (ifield == ifldmhd) then
             call hmhzsf  ('bxyz',out1,out2,out3,inp1,inp2,inp3,h1,h2, &
@@ -804,6 +809,7 @@
             v1mask,v2mask,v3mask,vmult, &
             tolh,nmxi,matmod)
         endif
+#endif
     else
         if (ifield == ifldmhd) then
             CALL HMHOLTZ ('BX  ',OUT1,INP1,H1,H2,B1MASK,VMULT, &

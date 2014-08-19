@@ -750,6 +750,8 @@
         !           call copy(z,r,n)
             call col3(z,r,d,n)
         else                                       ! Schwarz Preconditioner
+        write (*,*) "Oops: kfldfdm"
+#if 0
             if (name == 'PRES' .AND. param(100) == 2) then
                 call h1_overlap_2(z,r,mask)
                 call crs_solve_h1 (w,r)  ! Currently, crs grd only for P
@@ -761,6 +763,7 @@
                     call add2         (z,w,n)
                 endif
             endif
+#endif
         endif
     
         if (name == 'PRES') then
@@ -946,6 +949,7 @@
             return
             end subroutine calc
         !-----------------------------------------------------------------------
+#if 0
             subroutine fdm_h1(z,r,d,mask,mult,nel,kt,rr)
             include 'SIZE'
             include 'TOTAL'
@@ -1036,6 +1040,7 @@
         
             return
             end subroutine fdm_h1
+#endif
         !-----------------------------------------------------------------------
             subroutine set_fdm_prec_h1A_gen
         

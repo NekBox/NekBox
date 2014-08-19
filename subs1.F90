@@ -1328,6 +1328,7 @@
 !     New files from LH on stress formulation (SFSUBS.FOR)
 
 !-----------------------------------------------------------------------
+#if 0
     subroutine hmhzsf (name,u1,u2,u3,r1,r2,r3,h1,h2, &
     rmask1,rmask2,rmask3,rmult, &
     tol,maxit,matmod)
@@ -1412,6 +1413,8 @@
 
     return
     end subroutine hmhzsf
+#endif
+
     subroutine chktcgs (r1,r2,r3,rmask1,rmask2,rmask3,rmult,binv, &
     vol,tol,nel)
 !-------------------------------------------------------------------

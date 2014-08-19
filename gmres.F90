@@ -400,6 +400,8 @@
             if (ifmgrid) then
                 call h1mg_solve(z(1,j),w,if_hyb)   ! z  = M   w
             else                                  !  j
+                write(*,*) "Oops: ifmgrid"
+#if 0
                 kfldfdm = ndim+1
                 if (param(100) == 2) then
                     call h1_overlap_2 (z(1,j),w,pmask)
@@ -409,6 +411,7 @@
                 endif
                 call crs_solve_h1 (wk,w)           ! z  = M   w
                 call add2         (z(1,j),wk,n)    !  j
+#endif
             endif
 
 

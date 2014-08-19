@@ -63,8 +63,11 @@
         CALL MAKEG   (   G1,G2,G3,H1,H2,INTYPE)
         CALL CRESPUZ (WP,G1,G2,G3,H1,H2,H2INV,INTYPE)
         if (solver_type == 'fdm') then
+            write(*,*) "Oops, gfdm"
+#if 0
             call gfdm_pres_solv(dv1,wp,dv2,dv3, .TRUE. ,0.0)
             call copy (wp,dv1,ntot2)
+#endif
         else
             CALL UZAWA   (WP,H1,H2,H2INV,INTYPE,ICG)
         endif
@@ -1001,8 +1004,11 @@
 
 
     if (solver_type == 'pdm') then
+        write(*,*) "Oops, gfdm"
+#if 0
         call gfdm_pres_solv(rpcg,rcg,h1m2,h2m2, .TRUE. ,0.0)
         return
+#endif
     endif
 
     NTOT2 = NX2*NY2*NZ2*NELV
@@ -1531,7 +1537,9 @@
     if ((iftran .AND. .NOT. ifchar) .OR. &
     (iftran .AND. .NOT. ifnav .AND. ifchar))   call makebdf
     if (ifnav .AND. ifchar .AND. ( .NOT. ifmvbd))   call advchar
+#if 0
     if (ifmodel)                              call twallsh
+#endif
 
     return
     end subroutine makef
@@ -2924,8 +2932,8 @@
         do f=1,nface
 
             if(cbc(f,e,ifield) == 'P  ' .OR. cbc(f,e,ifield) == 'p  ')then
-
-                call facind2 (js1,jf1,jskip1,js2,jf2,jskip2,f)
+                write(*,*) "Oops: cyclic"
+!                call facind2 (js1,jf1,jskip1,js2,jf2,jskip2,f)
                 if (idir == 1) then
                     k=0
                     do j2=js2,jf2,jskip2

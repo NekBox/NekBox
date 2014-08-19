@@ -1264,7 +1264,8 @@
         DO 500 IFC=1,NFACE
             HMF = ABS( HFMASK(1,1,IFC,IEL) )
             IF (HMF < 1.9  .OR. HMF > 3.1) GOTO 500
-            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
+            write(*,*) "Oops cyclic"
+!            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
             DO 520 J2=JS2,JF2,JSKIP2
                 DO 520 J1=JS1,JF1,JSKIP1
                     IF (VNMAG(J1,J2,1,IEL) < EPSA) GOTO 520
@@ -1942,7 +1943,8 @@
     DO 100 IEL=1,NEL
         DO 100 IFC=1,NFACE
             IF ( .NOT. IFMSFC(IFC,IEL,IFIELD)) GO TO 100
-            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
+            write(*,*) "Oops: cyclic"
+!            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
             DO 120 J2=JS2,JF2,JSKIP2
                 DO 120 J1=JS1,JF1,JSKIP1
                     RNOR = ( S1(J1,J2,1,IEL)*VNX(J1,J2,1,IEL) + &
@@ -1980,7 +1982,8 @@
     DO 100 IEL=1,NEL
         DO 100 IFC=1,NFACE
             IF ( .NOT. IFMSFC(IFC,IEL,IFIELD)) GO TO 100
-            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
+            write(*,*) "Oops: cyclic"
+!            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
             DO 120 J2=JS2,JF2,JSKIP2
                 DO 120 J1=JS1,JF1,JSKIP1
                     RNOR = ( S1(J1,J2,1,IEL)*VNX(J1,J2,1,IEL) + &

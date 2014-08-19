@@ -27,10 +27,8 @@
     ntot   = nx1*ny1*nz1*nel
 
     if (igeom == 1) then   ! geometry at t^{n-1}
-
         call makeq
         call lagscal
-
     else                   ! geometry at t^n
 
         IF (IFPRINT) THEN

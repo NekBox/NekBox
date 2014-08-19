@@ -1,3 +1,4 @@
+
 !-----------------------------------------------------------------------
     subroutine get_session_info(intracomm)
     include 'mpif.h'
@@ -119,6 +120,7 @@
     return
     end subroutine get_session_info
 !-----------------------------------------------------------------------
+#if 0
     subroutine multimesh_create
 
     include 'SIZE'
@@ -827,4 +829,4 @@
 
     return
     end subroutine happy_check
-          
+#endif          

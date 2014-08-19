@@ -772,7 +772,6 @@
 !     call quickmv
 
     if (ifusermv) return  ! Compute wx,wy,wz in userchk.
-
     NTOT1  = NX1*NY1*NZ1*NEL
     MAXIT  = 1000
     MATMOD = -1
@@ -797,8 +796,8 @@
 
     CALL MESHTOL (AW1,TOLMSH,NEL,IMSOLV)
     IF (IMSOLV == 1) return
-
-
+    write(*,*) "Oops: imsolv"
+#if 0
     CALL AXHMSF  (AW1,AW2,AW3,WX,WY,WZ,H1,H2,MATMOD)
 
 !     if (istep.eq.2) then
@@ -836,7 +835,7 @@
 !        ifield = ifldx
 !        return
 !     endif
-
+#endif
     return
     end subroutine elasolv
 !-----------------------------------------------------------------------

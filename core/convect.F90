@@ -32,13 +32,13 @@
         ifnew = .TRUE. 
         if (igeom > 2) ifnew = .FALSE. 
 
-        call set_conv_char(ct_vx,c_vx,vx,vy,vz,nelc,time,ifnew)
+!max        call set_conv_char(ct_vx,c_vx,vx,vy,vz,nelc,time,ifnew)
 
     else
 
         if ( .NOT. ifpert) then
             if (ifcons) then
-                call set_convect_cons (vxd,vyd,vzd,vx,vy,vz)
+!                call set_convect_cons (vxd,vyd,vzd,vx,vy,vz)
             else
                 call set_convect_new  (vxd,vyd,vzd,vx,vy,vz)
             endif
@@ -570,6 +570,7 @@
     return
     end subroutine get_dgl_ptr
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_conv_char(ct,c,ux,uy,uz,nelc,tau,ifnew)
     include 'SIZE'
     include 'TSTEP'
@@ -601,6 +602,7 @@
 
     return
     end subroutine set_conv_char
+#endif
 !-----------------------------------------------------------------------
     subroutine set_ct_cvx(ct,c,m,u,v,w,tau,nc,mc,nelc,ifnew)
     include 'SIZE'
@@ -632,7 +634,7 @@
     iz = iy + nxd*nyd*nzd*nelc
 
     if (ifcons) then
-        call set_convect_cons(c(ix,1),c(iy,1),c(iz,1),u,v,w)
+!        call set_convect_cons(c(ix,1),c(iy,1),c(iz,1),u,v,w)
     else
         call set_convect_new (c(ix,1),c(iy,1),c(iz,1),u,v,w)
     endif
@@ -845,6 +847,7 @@
     return
     end subroutine convect_cons
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_convect_cons(cx,cy,cz,ux,uy,uz)
 
 !     Put vx,vy,vz on fine mesh (for conservation form)
@@ -872,6 +875,7 @@
 
     return
     end subroutine set_convect_cons
+#endif
 !-----------------------------------------------------------------------
     subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 

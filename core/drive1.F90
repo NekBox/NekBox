@@ -1,4 +1,9 @@
+
+
 !-----------------------------------------------------------------------
+!> Initialize nek
+!!
+!! This includes reading the input files
     subroutine nek_init(intracomm)
 
     include 'SIZE'
@@ -9,22 +14,6 @@
     include 'OPCTR'
     include 'CTIMER'
 
-!     used scratch arrays
-!     NOTE: no initial declaration needed. Linker will take
-!           care about the size of the CBs automatically
-
-!      COMMON /CTMP1/ DUMMY1(LCTMP1)
-!      COMMON /CTMP0/ DUMMY0(LCTMP0)
-
-!      COMMON /SCRNS/ DUMMY2(LX1,LY1,LZ1,LELT,7)
-!      COMMON /SCRUZ/ DUMMY3(LX1,LY1,LZ1,LELT,4)
-!      COMMON /SCREV/ DUMMY4(LX1,LY1,LZ1,LELT,2)
-!      COMMON /SCRVH/ DUMMY5(LX1,LY1,LZ1,LELT,2)
-!      COMMON /SCRMG/ DUMMY6(LX1,LY1,LZ1,LELT,4)
-!      COMMON /SCRCH/ DUMMY7(LX1,LY1,LZ1,LELT,2)
-!      COMMON /SCRSF/ DUMMY8(LX1,LY1,LZ1,LELT,3)
-!      COMMON /SCRCG/ DUMM10(LX1,LY1,LZ1,LELT,1)
-      
     real :: kwave2
     real*8 :: t0, tpp
 
@@ -148,7 +137,7 @@
 #endif
 
     call comment
-    call sstest (isss)
+!    call sstest (isss)
 
     call dofcnt
 
@@ -262,7 +251,8 @@
         call setup_convect (2) ! Save convective velocity _after_ filter
 
     else                ! PN-2/PN-2 formulation
-
+      write(*,*) "Oops! Pn-2/Pn-2"
+#if 0
         call setprop
         do igeom=1,ngeom
 
@@ -296,6 +286,7 @@
             call setup_convect (igeom) ! Save convective velocity _after_ filter
 
         enddo
+#endif
     endif
 
     return

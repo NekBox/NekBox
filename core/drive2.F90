@@ -155,14 +155,11 @@
     include 'TSTEP'
 
 !     Enforce splitting/Uzawa according to the way the code was compiled
-
-
     nxd = lxd
     nyd = lyd
     nzd = lzd
 
 !     Geometry on Mesh 3 or 1?
-
     IFGMSH3 = .TRUE. 
     IF ( IFSTRS )           IFGMSH3 = .FALSE. 
     IF ( .NOT. IFFLOW)        IFGMSH3 = .FALSE. 
@@ -763,26 +760,26 @@
         call vol_flow        ! check for fixed flow rate
 
     elseif (iftran) then
+#if 0
 
     !        call plan1 (igeom)       !  Orig. NEKTON time stepper
 
         call plan3 (igeom)       !  Same as PLAN 1 w/o nested iteration
     !  Std. NEKTON time stepper  !
-#if 0
         if (ifmodel)    call twalluz (igeom) ! Turbulence model
-#endif
         if (igeom >= 2) call chkptol         ! check pressure tolerance
         if (igeom >= 2) call vol_flow        ! check for fixed flow rate
 
+#endif
     else   !  steady Stokes, non-split
 
     !             - Steady/Unsteady Stokes/Navier-Stokes calculation.
     !             - Consistent approximation spaces for velocity and pressure.
     !             - Explicit treatment of the convection term.
     !             - Velocity/stress formulation.
-
+#if 0
         call plan1 (igeom) ! The NEKTON "Classic".
-
+#endif
     endif
 
     if(nid == 0 .AND. igeom >= 2) &
@@ -1941,13 +1938,13 @@
     if (icvflow == 3) call add2col2(resv3,v3mask,bm1,n)
 
 
-    if (ifexplvis) call split_vis ! split viscosity into exp/imp part
+!    if (ifexplvis) call split_vis ! split viscosity into exp/imp part
 
     intype = -1
     call sethlm   (h1,h2,intype)
     call ophinv   (vxc,vyc,vzc,resv1,resv2,resv3,h1,h2,tolhv,nmxh)
 
-    if (ifexplvis) call redo_split_vis ! restore vdiff
+!    if (ifexplvis) call redo_split_vis ! restore vdiff
 
     end subroutine plan4_vol
 !-----------------------------------------------------------------------

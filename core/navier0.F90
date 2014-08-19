@@ -27,10 +27,13 @@
 !     write(6,*) solver_type,' solver type',iesolv
     if (iesolv == 1) then
         if (solver_type == 'fdm') then
+            write(*,*) "Oops, gfdm"
+#if 0
             ntot2 = nx2*ny2*nz2*nelv
             kwave2 = 0.
             call gfdm_pres_solv  (wk1,res,wk2,wk3,kwave2)
             call copy            (res,wk1,ntot2)
+#endif
         else
             if (param(42) == 1 .OR. solver_type == 'pdm') then
                 CALL UZAWA (RES,H1,H2,H2INV,INTYPE,ICG)

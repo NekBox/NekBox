@@ -56,13 +56,6 @@
 !     Initialize some variables
     call setvar
 
-!     Map BCs
-    if (ifmoab) then
-#ifdef MOAB
-        call nekMOAB_bcs
-#endif
-    endif
-
 !     Check for zero steps
     instep=1
     if (nsteps == 0 .AND. fintim == 0.) instep=0
@@ -78,7 +71,9 @@
     call io_init
 
 !     Set size for CVODE solver
+#if 0
     if(ifcvode .AND. nsteps > 0) call cv_setsize(0,nfield)
+#endif
 
 !     USRDAT
     if(nid == 0) write(6,*) 'call usrdat'
@@ -116,17 +111,20 @@
         if (iftran .AND. solver_type == 'itr') then
             call set_overlap
         elseif (solver_type == 'fdm' .OR. solver_type == 'pdm')then
+            write(*,*) "Oops: gfdm"
+#if 0
             ifemati = .TRUE. 
             kwave2  = 0.0
             if (ifsplit) ifemati = .FALSE. 
             call gfdm_init(nx2,ny2,nz2,ifemati,kwave2)
+#endif
         elseif (solver_type == '25D') then
+            write(*,*) "Oops"
+#if 0
             call g25d_init
+#endif
         endif
     endif
-
-!     Initialize optional plugin
-    call init_plugin
 
 !     USRDAT3
     if(nid == 0) write(6,*) 'call usrdat3'
@@ -145,7 +143,9 @@
     endif
 
 !     Initialize CVODE
+#if 0
     if(ifcvode .AND. nsteps > 0) call cv_init
+#endif
 
     call comment
     call sstest (isss)
@@ -154,7 +154,7 @@
 
     jp = 0  ! Set perturbation field count to 0 for baseline flow
 
-    call in_situ_init()
+!    call in_situ_init()
 
 !     Initalize timers to ZERO
     call time00
@@ -209,7 +209,7 @@
         call nek__multi_advance(kstep,msteps)
         call userchk
         call prepost ( .FALSE. ,'his')
-        call in_situ_check()
+!        call in_situ_check()
         if (lastep == 1) goto 1001
     enddo
     1001 lastep=1
@@ -277,10 +277,13 @@
                 if (ifheat)      call heat     (igeom)
                 call induct   (igeom)
             elseif (ifpert) then
+                write(*,*) "Oops! ifpert"
+#if 0
                 if (ifbase .AND. ifheat)  call heat          (igeom)
                 if (ifbase .AND. ifflow)  call fluid         (igeom)
                 if (ifflow)             call fluidp        (igeom)
                 if (ifheat)             call heatp         (igeom)
+#endif
             else  ! std. nek case
                 if (ifheat)             call heat          (igeom)
                 if (ifflow)             call fluid         (igeom)
@@ -309,7 +312,7 @@
     if(xxth(1) > 0) call crs_stats(xxth(1))
 
        
-    call in_situ_end()
+!    call in_situ_end()
     return
     end subroutine nek_end
 !-----------------------------------------------------------------------

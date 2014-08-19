@@ -829,10 +829,13 @@
         NTOT1  = NX1*NY1*NZ1*NELV
     
         IF (IFSTRS) then
+            write(*,*) "Oops: strs"
+#if 0
             CALL OPCHSGN (BFX,BFY,BFZ)
             CALL BCNEUTR
             CALL TWALLSH
             CALL OPCHSGN (BFX,BFY,BFZ)
+#endif
         ENDIF
         CALL SETHLM  (H1,H2,INTYPE)
         CALL OPGRADT (TA1,TA2,TA3,PR)

@@ -543,8 +543,10 @@
     CALL COPY (R1,WT1,NXYZ1)
     CALL COPY (R2,WT2,NXYZ1)
     IF (NDIM == 3) CALL COPY (R3,WT3,NXYZ1)
-    CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
 
+    write(*,*) "Ooops: mvmesh"
+#if 0
+    CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
     IF (NDIM == 2) THEN
         DO 200 J2=JS2,JF2,JSKIP2
             DO 200 J1=JS1,JF1,JSKIP1
@@ -564,7 +566,7 @@
                 WT3(J1,J2,1) = WN *RNZ(J1,J2,1)
         300 END DO
     ENDIF
-
+#endif
     return
     end subroutine norcmp
 !-----------------------------------------------------------------------
@@ -582,6 +584,8 @@
     CALL COPY (R1,WT1,NXYZ1)
     CALL COPY (R2,WT2,NXYZ1)
     IF (NDIM == 3) CALL COPY (R3,WT3,NXYZ1)
+    write(*,*) "Ooops: mvmesh"
+#if 0
     CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
 
     IF (NDIM == 2) THEN
@@ -603,7 +607,7 @@
                 WT3(J1,J2,1) = WN *RNZ(J1,J2,1)
         300 END DO
     ENDIF
-
+#endif
     return
     end subroutine facemv
 !-----------------------------------------------------------------------
@@ -621,6 +625,8 @@
     CALL COPY (R2,WT2,NXYZ1)
     IF (NDIM == 3) CALL COPY (R3,WT3,NXYZ1)
 
+    write(*,*) "Ooops: mvmesh"
+#if 0
     CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
     I = 0
 
@@ -645,7 +651,7 @@
                 WT3(J1,J2,1) = W1 *T1Z(I,1,IFC,IEL)
         300 END DO
     ENDIF
-
+#endif
     return
     end subroutine faczqn
 !-----------------------------------------------------------------------
@@ -654,13 +660,15 @@
     include 'SIZE'
     DIMENSION SMT(LX1,LY1,LZ1)
 
+    write(*,*) "Ooops: mvmesh"
+#if 0
     CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
 
     DO 100 J2=JS2,JF2,JSKIP2
         DO 100 J1=JS1,JF1,JSKIP1
             SMT(J1,J2,1)=SMT(J1,J2,1) + 1.0
     100 END DO
-
+#endif
     return
     end subroutine facsmt
 !-----------------------------------------------------------------------
@@ -703,6 +711,8 @@
     ,  DSA(LX1,LY1,LZ1) &
     ,  SMT(LX1,LY1,LZ1)
 
+    write(*,*) "Oops: mvmesh"
+#if 0
     CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
 
     IF (NDIM == 2) THEN
@@ -721,7 +731,7 @@
                 W3(J1,J2,1) = RNZ(J1,J2,1) * AA
         300 END DO
     ENDIF
-
+#endif
     return
     end subroutine facemt
 !-----------------------------------------------------------------------
@@ -943,6 +953,8 @@
     , B2(LX1,LY1,LZ1) &
     , B3(LX1,LY1,LZ1)
 
+    write(*,*) "Ooops: mvmesh"
+#if 0
     CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
 
     DO 100 J2=JS2,JF2,JSKIP2
@@ -951,6 +963,7 @@
             A2(J1,J2,1)=B2(J1,J2,1)
             A3(J1,J2,1)=B3(J1,J2,1)
     100 END DO
+#endif
     return
     end subroutine facec3
 !-----------------------------------------------------------------------

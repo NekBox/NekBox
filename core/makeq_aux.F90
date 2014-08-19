@@ -11,8 +11,11 @@
 
     if(ifcvode .AND. ifield == 2) call setprop
 
+#if 0
     call whatfld (ifturb)
     if (ifturb) call maketq ! zero bq
+#endif
+
     if ( .NOT. ifturb .AND. if_conv_std)  call makeuq !zero bq
         
     return

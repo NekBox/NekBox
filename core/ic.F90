@@ -73,7 +73,9 @@
     call slogic (iffort,ifrest,ifprsl,nfiles)
 
 !     Set up proper initial values for turbulence model arrays
+#if 0
     IF (IFMODEL) CALL PRETMIC
+#endif
 
 !      ***** TEMPERATURE AND PASSIVE SCALARS ******
 
@@ -165,7 +167,9 @@
 
 !     Compute additional initial values for turbulence model arrays
 !     based on I.C.
+#if 0
     if (ifmodel) call postmic
+#endif
 
 !     If convection-diffusion of a passive scalar with a fixed velocity field,
 !     make sure to fill up lagged arrays since this will not be done in

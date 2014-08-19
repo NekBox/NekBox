@@ -1197,12 +1197,14 @@
 
 !     First, check for turbulence models
 
+#if 0
     IF (IFMODEL .AND. IFKEPS) THEN
         CALL TURBFLD (IFKFLD,IFEFLD)
         IF (IFKFLD)           CALL TPROPK
         IF (IFEFLD)           CALL TPROPE
         IF (IFKFLD .OR. IFEFLD) return
     endif
+#endif
 
 !...  No turbulence models, OR current field is not k or e.
 
@@ -1270,9 +1272,10 @@
     1000 END DO
 
 !     Turbulence models --- sum eddy viscosity/diffusivity
-
+#if 0
     IF (IFMODEL .AND. (IFIELD == 1 .OR. IFIELD == 2)) &
     CALL TVISCOS
+#endif
 
     return
     end subroutine vprops

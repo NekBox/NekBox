@@ -2631,6 +2631,7 @@
     return
     end function opnorm2w
 !-----------------------------------------------------------------------
+#if 0
     subroutine strs_project_a(b1,b2,b3,h1,h2,wt,ifld,ierr,matmod)
 
 !     Assumes if uservp is true and thus reorthogonalizes every step
@@ -2818,4 +2819,5 @@
 
     return
     end subroutine strs_ortho_all
+#endif
 !-----------------------------------------------------------------------

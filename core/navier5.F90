@@ -240,6 +240,7 @@
     return
     end subroutine outmatx
 !-----------------------------------------------------------------------
+#if 0
     subroutine drag_calc(scale)
 
     INCLUDE 'SIZE'
@@ -694,6 +695,7 @@
 
     return
     end subroutine out_csrmats
+#endif
 !-----------------------------------------------------------------------
     subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
 !     Output: ur,us,ut         Input:u,N,e,D,Dt
@@ -729,6 +731,7 @@
     return
     end subroutine local_grad2
 !-----------------------------------------------------------------------
+#if 0
     subroutine gradm1(ux,uy,uz,u)
 
 !     Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)
@@ -897,6 +900,7 @@
 
     return
     end subroutine surface_flux
+#endif
 !-----------------------------------------------------------------------
     subroutine gaujordf(a,m,n,indr,indc,ipiv,ierr,rmult)
 
@@ -1113,6 +1117,7 @@
     return
     end subroutine build_new_filter
 !-----------------------------------------------------------------------
+#if 0
     subroutine avg_all
 
 !     This routine computes running averages E(X),E(X^2),E(X*Y)
@@ -1490,6 +1495,7 @@
     enddo
     return
     end subroutine transpose1
+#endif
 !-----------------------------------------------------------------------
     subroutine get_exyz(ex,ey,ez,eg,nelx,nely,nelz)
     integer :: ex,ey,ez,eg
@@ -1504,6 +1510,7 @@
     return
     end subroutine get_exyz
 !-----------------------------------------------------------------------
+#if 0
     subroutine dump_header2d(excode,nx,ny,nlx,nly,ierr)
 
     include 'SIZE'
@@ -3365,6 +3372,7 @@
           
     return
     end subroutine fix_geom
+#endif
 !-----------------------------------------------------------------------
     subroutine gh_face_extend(x,zg,n,gh_type,e,v)
     include 'SIZE'
@@ -3646,6 +3654,7 @@
     return
     end subroutine rand_fld_h1
 !-----------------------------------------------------------------------
+#if 0
     subroutine rescale_x (x,x0,x1)
     include 'SIZE'
     real :: x(1)
@@ -4629,3 +4638,4 @@
     return
     end subroutine add_temp
 !-----------------------------------------------------------------------
+#endif

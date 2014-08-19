@@ -19,7 +19,15 @@
     COMMON /SCRVH/ H1(LX1,LY1,LZ1,LELT) &
     ,H2(LX1,LY1,LZ1,LELT)
 
-    include 'ORTHOT'
+    parameter (ktot = lx1*ly1*lz1*lelt)
+    parameter (laxt = mxprev)
+
+    common /trthoi/ napprox(2)
+    common /trthov/ approx(ktot,0:laxt)
+    common /trthoc/ name4
+    character(4) ::     name4
+
+!max    include 'ORTHOT'
 
     napprox(1) = laxt
 

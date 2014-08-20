@@ -1,7 +1,7 @@
 !=======================================================================
     subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
-    INCLUDE 'CTIMER'
-    INCLUDE 'SIZE'
+    use ctimer
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
@@ -76,8 +76,8 @@
 !     AU = helm1*[A]u + helm2*[B]u, for NEL elements.
 
 !------------------------------------------------------------------
-    INCLUDE 'CTIMER'
-    INCLUDE 'SIZE'
+    use ctimer
+    use size_m
     INCLUDE 'WZ'
     INCLUDE 'DXYZ'
     INCLUDE 'GEOM'
@@ -291,7 +291,7 @@
 !     Set logicals for fast evaluation of A*x
 
 !-------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
@@ -341,7 +341,7 @@
 !     and geometric factors for fast evaluation of Ax.
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'WZ'
     INCLUDE 'DXYZ'
     INCLUDE 'GEOM'
@@ -410,7 +410,7 @@
 !     Generate diagonal preconditioner for the Helmholtz operator.
 
 !-------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'WZ'
     INCLUDE 'DXYZ'
     INCLUDE 'GEOM'
@@ -565,7 +565,7 @@
 !     zero Neumann b.c.
 
 !-------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
     INCLUDE 'EIGEN'
@@ -649,7 +649,7 @@
 !     Preconditioner: diag(H).
 
 !------------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'

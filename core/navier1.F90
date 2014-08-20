@@ -3538,7 +3538,7 @@
 !     Interpolate from mesh "1" to "d" if mflg = 1
 
     use size_m
-    include 'DEALIAS'
+    use dealias
 
     real :: w(lxd*lxd*lx1)
     real :: md(lxd,lyd,lzd,lelv),m1(lx1,ly1,lz1,lelv)
@@ -3570,7 +3570,7 @@
 !     Project from "d" to 1
 
     use size_m
-    include 'DEALIAS'
+    use dealias
 
     real :: w(lxd*lxd*lx1)
     real :: md(lxd,lyd,lzd,lelv),m1(lx1,ly1,lz1,lelv)
@@ -3625,7 +3625,7 @@
     subroutine setmap(n1,nd)
 
     use size_m
-    include 'DEALIAS'
+    use dealias
 
     parameter(lx=80)
     real :: z1(lx),zd(lx),w(lx)
@@ -4683,7 +4683,7 @@
     subroutine setproj(n1,nd)
 
     use size_m
-    include 'DEALIAS'
+    use dealias
     include 'INPUT'
 
     parameter(lx=80)
@@ -4811,7 +4811,7 @@
 !                    viscous term to the RHS!
      
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
@@ -4886,7 +4886,7 @@
 
 !     CAUTION : CB SCRNS is used for data change
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'GEOM'
 

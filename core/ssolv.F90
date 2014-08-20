@@ -4,7 +4,7 @@
 !     Test if Steady State Solver should be activated.
 
 !------------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     ISSS = 0
@@ -29,7 +29,7 @@
 !     Initialize steady state solver
 
 !-----------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'EIGEN'
     INCLUDE 'TSTEP'
@@ -87,7 +87,7 @@
 !     Accept extrapolation?
 
 !------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     INCLUDE 'INPUT'
     INCLUDE 'STEADY'
@@ -159,7 +159,7 @@
     END SUBROUTINE CHKEXT
 
     SUBROUTINE FILLLAG
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
@@ -183,7 +183,7 @@
 !     Do N steps; return if steady state
 
 !----------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'STEADY'
     EXTERNAL GOSTEP
@@ -204,7 +204,7 @@
 !     Advance one (or more) time step(s)
 
 !----------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
     real*8 :: X(1), Y(1)
 
@@ -246,7 +246,7 @@
 !     Advance one (or more) time step(s)
 
 !----------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
     IF ( .NOT. IFSKIP) NJSTEP=1
@@ -285,7 +285,7 @@
 !     Modify the properties
 
 !------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
@@ -311,7 +311,7 @@
 !     Fill up the vector X with VX, VY, ....
 
 !-------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
@@ -354,7 +354,7 @@
 !     Split the vector X into VX, VY, .....
 
 !------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'INPUT'
@@ -397,7 +397,7 @@
 !     Set steady state parameters
 
 !------------------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     INCLUDE 'INPUT'
     INCLUDE 'STEADY'
@@ -455,7 +455,7 @@
 !     Check for global steady state (velocity and temp/passive scalar)
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
@@ -491,7 +491,7 @@
 !     Check steady state for velocity
 
 !--------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'MASS'
     INCLUDE 'INPUT'
@@ -581,7 +581,7 @@
 !     Check for steady state for temperature/passive scalar
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
@@ -635,7 +635,7 @@
     END SUBROUTINE CHKSST
 
     SUBROUTINE SSNORMD (DV1,DV2,DV3)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
@@ -645,7 +645,7 @@
     END SUBROUTINE SSNORMD
 
     SUBROUTINE SSNORMP (DV1,DV2,DV3)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
     REAL :: DV1(1),DV2(1),DV3(1)
@@ -659,7 +659,7 @@
 !     Set tolerances for velocity solver
 
 !-------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'EIGEN'
     INCLUDE 'MASS'
@@ -704,7 +704,7 @@
 !     Set tolerances for temerature/passive scalar solver
 
 !-------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'EIGEN'
     INCLUDE 'MASS'
@@ -730,7 +730,7 @@
     END SUBROUTINE SETTOLT
 
     SUBROUTINE CHKTOLP (TOLMIN)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
@@ -758,7 +758,7 @@
 !     check user-defined Courant number.
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
 
@@ -791,7 +791,7 @@
 !     Project current solution onto the closest incompressible field
 
 !--------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
     COMMON /SCRNS/ W1    (LX1,LY1,LZ1,LELV) &
     ,             W2    (LX1,LY1,LZ1,LELV) &

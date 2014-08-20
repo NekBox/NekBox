@@ -5,8 +5,8 @@
 !     Set initial conditions.
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
-    INCLUDE 'DEALIAS'
+    use size_m
+    use dealias
     INCLUDE 'INPUT'
     INCLUDE 'IXYZ'
     INCLUDE 'GEOM'
@@ -384,7 +384,7 @@
 !     Set up logicals for initial conditions.
 
 !---------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'RESTART'
 
@@ -526,7 +526,7 @@
 
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
     INCLUDE 'RESTART'
 
@@ -1052,7 +1052,7 @@
 
 !     Set IO flags according to Restart Options File, RSOPTS
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'RESTART'
     INCLUDE 'TSTEP'
@@ -1201,7 +1201,7 @@
 !----------------------------------------------------------------------
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'PARALLEL'
 
     PARAMETER (LXYZ1=LX1*LY1*LZ1)
@@ -1279,7 +1279,7 @@
 !     (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
 !---------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'IXYZ'
     INCLUDE 'WZ'
 
@@ -1340,7 +1340,7 @@
 
 !---------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'IXYZ'
     INCLUDE 'WZ'
 
@@ -1528,7 +1528,7 @@
 !     Check if trivial user specified initial conditions
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     LOGICAL :: IFZERO
@@ -1562,7 +1562,7 @@
 !     for temperatur/passive scalar
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     LOGICAL ::  IFSAV1,IFSAV2(LDIMT1)
@@ -1609,7 +1609,7 @@
 !     for flow problem
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -1674,7 +1674,7 @@
 !     User specified fortran function (=0 if not specified)
 
 !------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -1907,7 +1907,7 @@
 
 !     Generate geometry data
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'GEOM'
     INCLUDE 'SOLN'

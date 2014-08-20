@@ -572,7 +572,7 @@
     end subroutine lagscal
 !-----------------------------------------------------------------------
     subroutine outfldrq (x,txt10,ichk)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(nx1,ny1,nz1,lelt)
     character(10) :: txt10

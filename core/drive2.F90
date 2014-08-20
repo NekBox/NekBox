@@ -94,8 +94,8 @@
 !---------------------------------------------------------------------
     use ctimer
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'TSTEP'
 
     LOGICAL ::  IFCOUR
@@ -150,8 +150,8 @@
 !------------------------------------------------------------------------
     use size_m
     use dealias
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'TSTEP'
 
 !     Enforce splitting/Uzawa according to the way the code was compiled
@@ -409,9 +409,9 @@
 
 !----------------------------------------------------------------------
     use size_m
+    use geom
     include 'INPUT'
     include 'TSTEP'
-    include 'GEOM'
     include 'WZ'
 
     COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
@@ -609,7 +609,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'TSTEP'
     COMMON  /CPRINT/ IFPRINT
@@ -672,7 +672,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'EIGEN'
+    use eigen
     include 'INPUT'
     include 'TSTEP'
 

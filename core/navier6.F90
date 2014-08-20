@@ -32,8 +32,8 @@
 !     Set up arrays for overlapping Schwartz algorithm *for pressure solver*
 
     use size_m
-    include 'DOMAIN'
-    include 'ESOLV'
+    use domain
+    use esolv
     include 'INPUT'
     include 'TSTEP'
 
@@ -151,7 +151,7 @@
 #if 0
     subroutine set_fem_data_l2(nep,nd,no,x,y,z,p)
     use size_m
-    include 'DOMAIN'
+    use domain
     include 'NONCON'
     include 'TOTAL'
 

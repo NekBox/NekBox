@@ -16,8 +16,8 @@
 
     use ctimer
     use size_m
+    use domain
     include 'INPUT'
-    include 'DOMAIN'
     include 'PARALLEL'
 
     include 'TSTEP'

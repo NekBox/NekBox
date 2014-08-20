@@ -37,9 +37,9 @@
 !     Given an input vector v, this generates the H1 coarse-grid solution
 
     use size_m
-    include 'DOMAIN'
-    include 'ESOLV'
-    include 'GEOM'
+    use domain
+    use esolv
+    use geom
     include 'PARALLEL'
     include 'SOLN'
     include 'INPUT'
@@ -59,7 +59,7 @@
 !-----------------------------------------------------------------------
 !      subroutine test_h1_crs
 !      use size_m
-!      include 'DOMAIN'
+!      use domain
 !      common /scrxxt/ x(lcr*lelv),b(lcr*lelv)
 !      common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
 !      real x,b
@@ -83,11 +83,12 @@
     subroutine set_up_h1_crs
 
     use size_m
-    include 'GEOM'
-    include 'DOMAIN'
+    use domain
+    use geom
     include 'INPUT'
     include 'PARALLEL'
     include 'TSTEP'
+
     common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
 
     common /ivrtx/ vertex ((2**ldim)*lelt)
@@ -493,10 +494,10 @@
 !     This routine generates Nelv submatrices of order nxc^ndim.
 
     use size_m
-    include 'GEOM'
+    use domain
+    use geom
     include 'INPUT'
     include 'TSTEP'
-    include 'DOMAIN'
     include 'PARALLEL'
 
 
@@ -809,10 +810,10 @@
     subroutine a_crs_2d(a,h1,h2,x,y,ie)
 
     use size_m
-    include 'GEOM'
+    use domain
+    use geom
     include 'INPUT'
     include 'TSTEP'
-    include 'DOMAIN'
     include 'PARALLEL'
 
 !     Generate local triangle-based stiffnes matrix for quad
@@ -1063,7 +1064,7 @@
 !     H1 Iterpolation operator:  linear --> spectral GLL mesh
 
     use size_m
-    include 'DOMAIN'
+    use domain
     include 'INPUT'
 
     parameter (lxyz = lx2*ly2*lz2)
@@ -1087,7 +1088,7 @@
 !                                 (linear --> spectral GLL mesh)
 
     use size_m
-    include 'DOMAIN'
+    use domain
     include 'INPUT'
 
     parameter (lxyz = lx2*ly2*lz2)
@@ -1325,11 +1326,11 @@
 
     use ctimer
     use size_m
-    include 'DOMAIN'
+    use domain
+    use geom
     include 'INPUT'
-    include 'GEOM'
-    include 'SOLN'
     include 'PARALLEL'
+    include 'SOLN'
     include 'TSTEP'
 
     real :: uf(1),vf(1)
@@ -1371,7 +1372,7 @@
     subroutine set_h1_basis_bilin
 
     use size_m
-    include 'DOMAIN'
+    use domain
     include 'WZ'
 
     do ix=1,nx1
@@ -1390,8 +1391,8 @@
 !     H1 Iterpolation operator:  linear --> spectral GLL mesh
 
     use size_m
+    use domain
     include 'INPUT'
-    include 'DOMAIN'
 
     parameter (lxyz = lx1*ly1*lz1)
     real :: uc(2,2,ldim-1,lelt),uf(lxyz,lelt)
@@ -1440,7 +1441,7 @@
 !                                 (linear --> spectral GLL mesh)
 
     use size_m
-    include 'DOMAIN'
+    use domain
     include 'INPUT'
 
     parameter (lxyz = lx1*ly1*lz1)
@@ -2004,9 +2005,9 @@
 
     use ctimer
     use size_m
+    use geom
     include 'PARALLEL'
     include 'TOPOL'
-    include 'GEOM'
 
     integer*8 :: glo_num(1),ngv
     integer :: vertex(0:1,0:1,0:1,1),nx
@@ -2359,9 +2360,9 @@
 
     use ctimer
     use size_m
+    use geom
     include 'PARALLEL'
     include 'TOPOL'
-    include 'GEOM'
 
     integer*8 :: glo_num(1),ngv
     integer :: vertex(0:1,0:1,1),nx

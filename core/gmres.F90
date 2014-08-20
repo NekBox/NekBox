@@ -304,8 +304,8 @@
 
          
     use size_m
+    use fdmh1
     include 'TOTAL'
-    include 'FDMH1'
     include 'GMRES'
     common  /ctolpr/ divex
     common  /cprint/ ifprint

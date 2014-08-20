@@ -254,7 +254,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    INCLUDE 'EIGEN'
+    use eigen
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
     INCLUDE 'MVGEOM'
@@ -476,7 +476,7 @@
     SUBROUTINE SOLVEL
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
 
@@ -510,7 +510,7 @@
     SUBROUTINE SOLPRES
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
 
@@ -735,7 +735,7 @@
     SUBROUTINE STSMASK (C1MASK,C2MASK,C3MASK)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     include 'INPUT'
     common /screv/ hfmask(lx1,lz1,6,lelt) &
@@ -770,7 +770,7 @@
     SUBROUTINE UPDMSYS (IFLD)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     common /screv/ hfmask(lx1,lz1,6,lelt) &
     , hvmask(lx1,ly1,lz1,lelt)
@@ -885,7 +885,7 @@
     SUBROUTINE SKIPCNR (NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
@@ -961,7 +961,7 @@
     SUBROUTINE SETMLOG (HVMASK,HFMASK,IFLD,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -1060,7 +1060,7 @@
     SUBROUTINE SETCSYS (HVMASK,HFMASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     DIMENSION HVMASK(LX1,LY1,LZ1,1) &
     , HFMASK(LX1,LZ1,6,1)
@@ -1091,7 +1091,7 @@
     SUBROUTINE COMAVN2 (HVMASK,HFMASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -1155,7 +1155,7 @@
     SUBROUTINE COMAVN3 (HVMASK,HFMASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     common /scrcg/  vnmag(lx1,ly1,lz1,lelt)
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
@@ -1269,7 +1269,6 @@
         DO 500 IFC=1,NFACE
             HMF = ABS( HFMASK(1,1,IFC,IEL) )
             IF (HMF < 1.9  .OR. HMF > 3.1) GOTO 500
-            write(*,*) "Oops cyclic"
 !            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
             DO 520 J2=JS2,JF2,JSKIP2
                 DO 520 J1=JS1,JF1,JSKIP1
@@ -1320,7 +1319,7 @@
     SUBROUTINE FXWMS2 (W2MASK,HVMASK,HFMASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -1367,7 +1366,7 @@
     SUBROUTINE FXWMS3 (W2MASK,W3MASK,HVMASK,HFMASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -1800,7 +1799,7 @@
     SUBROUTINE AMASK (VB1,VB2,VB3,V1,V2,V3,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -1877,7 +1876,7 @@
     SUBROUTINE QMASK (R1,R2,R3,R1MASK,R2MASK,R3MASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     common /ctmp1/ s1(lx1,ly1,lz1,lelt) &
     , s2(lx1,ly1,lz1,lelt) &
@@ -1934,7 +1933,7 @@
     SUBROUTINE FCMSK2 (R1,R2,S1,S2,R1MASK,R2MASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     DIMENSION R1(LX1,LY1,LZ1,1) &
     , R2(LX1,LY1,LZ1,1) &
@@ -1970,7 +1969,7 @@
     SUBROUTINE FCMSK3 (R1,R2,R3,S1,S2,S3,R1MASK,R2MASK,R3MASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     DIMENSION R1(LX1,LY1,LZ1,1) &
     , R2(LX1,LY1,LZ1,1) &
@@ -2020,7 +2019,7 @@
     SUBROUTINE EGMASK (R1,R2,R3,S1,S2,S3,R1MASK,R2MASK,R3MASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     DIMENSION R1(LX1,LY1,LZ1,1) &
     , R2(LX1,LY1,LZ1,1) &
@@ -2068,7 +2067,7 @@
     SUBROUTINE CRMSK2 (R1,R2,S1,S2,R1MASK,R2MASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
@@ -2113,7 +2112,7 @@
     SUBROUTINE CRMSK3 (R1,R2,R3,S1,S2,S3,R1MASK,R2MASK,R3MASK,NEL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TSTEP'
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
@@ -2175,7 +2174,7 @@
 !     calculate surface normal
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'TOPOL'
 
     real :: sn(3)

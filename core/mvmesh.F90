@@ -4,7 +4,7 @@
 !     Generate boundary conditions (CBC arrays) for mesh solver
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'TSTEP'
 
@@ -134,7 +134,7 @@
     subroutine divws (fms,sfv,phi,nel,idir)
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'MASS'
     include 'MVGEOM'
     include 'WZ'
@@ -182,8 +182,8 @@
     subroutine axifms (fms,sfv,phi,nel,idir)
 
     use size_m
-    include 'DXYZ'
-    include 'GEOM'
+    use dxyz
+    use geom
     include 'INPUT'
     include 'MASS'
     include 'MVGEOM'
@@ -253,7 +253,7 @@
 !     Evaluate mesh velocities at all moving boundaries
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'MVGEOM'
     include 'SOLN'
@@ -499,7 +499,7 @@
 !-----------------------------------------------------------------------
     subroutine norcmp2(wvx,wvy,wvz,e,f)
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
 
 
@@ -616,7 +616,7 @@
     subroutine faczqn (wt1,wt2,wt3,ifc,iel)
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'TOPOL'
     COMMON /SCRUZ/ R1(LX1,LY1,LZ1),R2(LX1,LY1,LZ1),R3(LX1,LY1,LZ1)
 
@@ -701,7 +701,7 @@
     subroutine facemt (w1,w2,w3,rnx,rny,rnz,qni,dsa,smt,rhola,ifc)
 
     use size_m
-    include 'GEOM'
+    use geom
 
     DIMENSION  W1 (LX1,LY1,LZ1) &
     ,  W2 (LX1,LY1,LZ1) &
@@ -742,7 +742,7 @@
 !     Elastostatic solver for mesh deformation
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'MVGEOM'
     include 'SOLN'
@@ -844,7 +844,7 @@
     subroutine meshtol (ta,tolmsh,nel,imsolv)
 
     use size_m
-    include 'EIGEN'
+    use eigen
     include 'MVGEOM'
     include 'TSTEP'
     DIMENSION TA(LX1,LY1,LZ1,1)
@@ -876,9 +876,9 @@
     subroutine updxyz (nel)
 
     use size_m
-    include 'TSTEP'
+    use geom
     include 'MVGEOM'
-    include 'GEOM'
+    include 'TSTEP'
     COMMON /SCRSF/ UX(LX1,LY1,LZ1,LELT) &
     , UY(LX1,LY1,LZ1,LELT) &
     , UZ(LX1,LY1,LZ1,LELT)
@@ -976,7 +976,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'MVGEOM'
     include 'SOLN'
     include 'TSTEP'
@@ -1014,7 +1014,7 @@
 !     Routine to evaluate mesh velocities at all moving boundaries
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'PARALLEL'
     include 'MVGEOM'

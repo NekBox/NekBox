@@ -30,8 +30,8 @@
 
 !-----------------------------------------------------------
     use size_m
+    use eigen
     INCLUDE 'INPUT'
-    INCLUDE 'EIGEN'
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
 
@@ -492,12 +492,12 @@
 
 !--------------------------------------------------------------------
     use size_m
-    INCLUDE 'SOLN'
-    INCLUDE 'MASS'
+    use eigen
     INCLUDE 'INPUT'
-    INCLUDE 'EIGEN'
-    INCLUDE 'TSTEP'
+    INCLUDE 'MASS'
+    INCLUDE 'SOLN'
     INCLUDE 'STEADY'
+    INCLUDE 'TSTEP'
     COMMON /CTOLPR/ DIVEX
     COMMON /CPRINT/ IFPRINT
     LOGICAL ::         IFPRINT
@@ -660,11 +660,11 @@
 
 !-------------------------------------------------------------------
     use size_m
+    use eigen
     INCLUDE 'INPUT'
-    INCLUDE 'EIGEN'
     INCLUDE 'MASS'
-    INCLUDE 'TSTEP'
     INCLUDE 'SOLN'
+    INCLUDE 'TSTEP'
     REAL :: LENGTH
 
     NTOT   = NX1*NY1*NZ1*NELFLD(IFIELD)
@@ -705,11 +705,11 @@
 
 !-------------------------------------------------------------------
     use size_m
+    use eigen
     INCLUDE 'INPUT'
-    INCLUDE 'EIGEN'
     INCLUDE 'MASS'
-    INCLUDE 'TSTEP'
     INCLUDE 'SOLN'
+    INCLUDE 'TSTEP'
     REAL :: LENGTH
 
     NTOT   = NX1*NY1*NZ1*NELFLD(IFIELD)

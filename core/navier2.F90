@@ -7,7 +7,7 @@
 !     conglomerate of a set of simplices defined by (tri,nt)
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'MASS'
 
@@ -148,8 +148,8 @@
     subroutine out_sem(iel)
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
 
 
     open(unit=33,file='v1')
@@ -179,8 +179,8 @@
 !     Single element case
 
     use size_m
-    include 'DXYZ'
-    include 'GEOM'
+    use dxyz
+    use geom
     include 'INPUT'
     include 'TSTEP'
 

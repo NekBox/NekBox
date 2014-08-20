@@ -745,9 +745,9 @@
     subroutine hmhzpf(name,u,r,h1,h2,mask,mult,imesh,tli,maxit,isd,bi)
     use ctimer
     use size_m
+    use fdmh1
     include 'INPUT'
     include 'MASS'
-    include 'FDMH1'
 
     CHARACTER(4) ::    NAME
     REAL ::           U    (LX1,LY1,LZ1,1)
@@ -794,10 +794,10 @@
 
     use ctimer
     use size_m
+    use fdmh1
     include 'INPUT'
     include 'MASS'
     include 'TSTEP'
-    include 'FDMH1'
 
     CHARACTER(4) ::    NAME
     REAL ::           U    (LX1,LY1,LZ1,1)

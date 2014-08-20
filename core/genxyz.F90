@@ -1,7 +1,7 @@
 !-----------------------------------------------------------------------
     subroutine arcsrf(xml,yml,zml,nxl,nyl,nzl,ie,isid)
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'TOPOL'
     include 'WZ'
@@ -102,8 +102,8 @@
 !-----------------------------------------------------------------------
     subroutine defsrf(xml,yml,zml,nxl,nyl,nzl,ie,iface1,ccv)
     use size_m
+    use geom
     include 'TOPOL'
-    include 'GEOM'
     include 'WZ'
     COMMON /CTMP1/ H(LX1,3,2),XCRVED(LX1),YCRVED(LY1),ZCRVED(LZ1) &
     , ZGML(LX1,3),WORK(3,LX1,LZ1)
@@ -539,7 +539,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     DIMENSION XM3(LX3,LY3,LZ3,1),YM3(LX3,LY3,LZ3,1),ZM3(LX3,LY3,LZ3,1)
 
@@ -557,11 +557,11 @@
     subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
 
     use size_m
-    include 'WZ'
-    include 'GEOM'
-    include 'TOPOL'
+    use geom
     include 'INPUT'
+    include 'TOPOL'
     include 'PARALLEL'
+    include 'WZ'
 
     real :: xml(nxl,nyl,nzl,1),yml(nxl,nyl,nzl,1),zml(nxl,nyl,nzl,1)
 
@@ -645,8 +645,8 @@
     subroutine setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
 
     use size_m
+    use geom
     include 'WZ'
-    include 'GEOM'
 
     real :: zgml(lx1,3)
     integer :: e
@@ -987,9 +987,9 @@
 
 !-----------------------------------------------------------------------
     use size_m
+    use esolv
+    use geom
     include 'INPUT'
-    include 'GEOM'
-    include 'ESOLV'
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
 
@@ -1239,11 +1239,11 @@
     subroutine linquad(xl,yl,zl,nxl,nyl,nzl)
 
     use size_m
-    include 'WZ'
-    include 'GEOM'
-    include 'TOPOL'
+    use geom
     include 'INPUT'
+    include 'TOPOL'
     include 'PARALLEL'
+    include 'WZ'
 
     real :: xl(nxl*nyl*nzl,1),yl(nxl*nyl*nzl,1),zl(nxl*nyl*nzl,1)
 

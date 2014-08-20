@@ -2,10 +2,10 @@
     subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
     use ctimer
     use size_m
+    use fdmh1
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
-    include 'FDMH1'
     include 'TSTEP'
 
     CHARACTER      NAME*4
@@ -78,12 +78,12 @@
 !------------------------------------------------------------------
     use ctimer
     use size_m
-    INCLUDE 'WZ'
-    INCLUDE 'DXYZ'
-    INCLUDE 'GEOM'
-    INCLUDE 'MASS'
+    use dxyz
+    use geom
     INCLUDE 'INPUT'
+    INCLUDE 'MASS'
     INCLUDE 'PARALLEL'
+    INCLUDE 'WZ'
 
     COMMON /FASTAX/ WDDX(LX1,LX1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1)
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
@@ -342,9 +342,9 @@
 
 !----------------------------------------------------------------------
     use size_m
+    use dxyz
+    use geom
     INCLUDE 'WZ'
-    INCLUDE 'DXYZ'
-    INCLUDE 'GEOM'
     COMMON /FASTAX/ WDDX(LX1,LY1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1)
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
@@ -411,12 +411,12 @@
 
 !-------------------------------------------------------------------
     use size_m
-    INCLUDE 'WZ'
-    INCLUDE 'DXYZ'
-    INCLUDE 'GEOM'
+    use dxyz
+    use geom
     INCLUDE 'INPUT'
-    INCLUDE 'TSTEP'
     INCLUDE 'MASS'
+    INCLUDE 'TSTEP'
+    INCLUDE 'WZ'
     REAL ::            DPCM1 (LX1,LY1,LZ1,1)
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
@@ -566,9 +566,9 @@
 
 !-------------------------------------------------------------------
     use size_m
+    use eigen
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
-    INCLUDE 'EIGEN'
     COMMON  /CPRINT/ IFPRINT
     LOGICAL ::          IFPRINT
     COMMON /CTMP0/ W1   (LX1,LY1,LZ1,LELT) &
@@ -650,12 +650,12 @@
 
 !------------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
+    use geom
+    use fdmh1
     INCLUDE 'INPUT'
+    INCLUDE 'MASS'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
-    include 'FDMH1'
-    include 'GEOM'
 
     COMMON  /CPRINT/ IFPRINT, IFHZPC
     LOGICAL ::          IFPRINT, IFHZPC
@@ -952,11 +952,11 @@
 #if 0
             subroutine fdm_h1(z,r,d,mask,mult,nel,kt,rr)
             use size_m
+            use fdmh1
             include 'TOTAL'
         
             common /ctmp0/ w(lx1,ly1,lz1)
         
-            include 'FDMH1'
         
         !     Overlapping Schwarz, FDM based
         
@@ -1045,12 +1045,12 @@
             subroutine set_fdm_prec_h1A_gen
         
             use size_m
-            include 'DXYZ'
+            use dxyz
+            use fdmh1
             include 'INPUT'
             include 'MASS'
             include 'WZ'
         
-            include 'FDMH1'
         
             COMMON /CTMP0/ W(LX1,LX1),aa(lx1,lx1),bb(lx1,lx1)
         
@@ -1137,9 +1137,9 @@
             subroutine set_fdm_prec_h1A_els
         
             use size_m
-            include 'DXYZ'
-            include 'FDMH1'
-            include 'GEOM'
+            use dxyz
+            use fdmh1
+            use geom
             include 'INPUT'
             include 'SOLN'
             include 'TOPOL'
@@ -1291,9 +1291,9 @@
         !-----------------------------------------------------------------------
             subroutine set_fdm_prec_h1b(d,h1,h2,nel)
             use size_m
-            include 'FDMH1'
+            use fdmh1
+            use geom
             include 'INPUT'
-            include 'GEOM'
             real :: d (nx1,ny1,nz1,1)
             real :: h1(nx1,ny1,nz1,1)
             real :: h2(nx1,ny1,nz1,1)

@@ -10,8 +10,8 @@
 
     use ctimer
     use size_m
+    use geom
     INCLUDE 'INPUT'
-    INCLUDE 'GEOM'
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'

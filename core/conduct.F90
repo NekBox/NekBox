@@ -4,11 +4,11 @@
 !     Solve the convection-diffusion equation for passive scalar IPSCAL
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
+    include 'MASS'
     include 'MVGEOM'
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
     COMMON  /CPRINT/ IFPRINT
     LOGICAL ::          IFPRINT
@@ -260,10 +260,10 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'SOLN'
-    include 'MASS'
-    include 'GEOM'
+    use geom
     include 'INPUT'
+    include 'MASS'
+    include 'SOLN'
     include 'TSTEP'
 
     COMMON /SCRNS/ TA (LX1,LY1,LZ1,LELT) &
@@ -492,8 +492,8 @@
 !     Generate mask-array for the hyperbolic system (passive scalar).
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'TSTEP'
     REAL ::           HTMASK(LX1,LY1,LZ1,1)
@@ -637,11 +637,11 @@
 !     explicit convection-diffusion equation for passive scalar
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
+    include 'MASS'
     include 'MVGEOM'
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
     common  /cprint/ ifprint
     logical ::          ifprint

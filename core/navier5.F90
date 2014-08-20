@@ -737,8 +737,8 @@
 !     Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)
 
     use size_m
-    include 'DXYZ'
-    include 'GEOM'
+    use dxyz
+    use geom
     include 'INPUT'
     include 'TSTEP'
 
@@ -834,7 +834,7 @@
     subroutine surface_int(sint,sarea,a,e,f)
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'TOPOL'
     real :: a(lx1,ly1,lz1,1)
@@ -868,7 +868,7 @@
     subroutine surface_flux(dq,qx,qy,qz,e,f,w)
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'PARALLEL'
     include 'TOPOL'
@@ -1741,7 +1741,7 @@
 !     Compute r-s planar average of quantity u()
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -1783,7 +1783,7 @@
     subroutine drgtrq(dgtq,xm0,ym0,zm0,sij,pm1,visc,f,e)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
@@ -2381,7 +2381,7 @@
 !     Compute the x average of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -2428,7 +2428,7 @@
     subroutine x_average_transpose(u,ua) ! distribute ua to each z-plane
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -2509,7 +2509,7 @@
 !     Extract a y slice of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -2560,7 +2560,7 @@
 !     nlxy:                   global number of elements in x-y plane.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
 
@@ -2592,7 +2592,7 @@
 !     Extract a z slice of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -2630,7 +2630,7 @@
 !     Compute the y average of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -3183,7 +3183,7 @@
     subroutine get_strsmax(strsmax,xm0,ym0,zm0,sij,pm1,visc,f,e)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
@@ -3704,7 +3704,7 @@
 !     Compute the z average of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -3751,7 +3751,7 @@
     subroutine z_average_transpose(u,ua) ! distribute ua to each z-plane
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -3812,7 +3812,7 @@
 !     Compute the z profile of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -3908,7 +3908,7 @@
 !     Compute the z profile of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'PARALLEL'
     include 'WZ'
     include 'ZPER'
@@ -4239,7 +4239,7 @@
 !     will not.
 
     use size_m
-    include 'GEOM'       ! Coordinates
+    use geom       ! Coordinates
     include 'INPUT'      ! cbc()
     include 'TSTEP'      ! nelfld
     include 'PARALLEL'   ! gather-scatter handle for field "ifld"
@@ -4335,7 +4335,7 @@
 !     Work arrays:  dmin,emin,xn,yn,zn
 
     use size_m
-    include 'GEOM'       ! Coordinates
+    use geom       ! Coordinates
     include 'INPUT'      ! cbc()
     include 'TSTEP'      ! nelfld
     include 'PARALLEL'   ! gather-scatter handle for field "ifld"

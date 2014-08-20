@@ -542,7 +542,7 @@
     call flush_io
 
     call mpi_finalize (ierr)
-#ifdef EXTBAR &
+#ifdef EXTBAR 
     all exit_(0)
 #else
     call exit(0)

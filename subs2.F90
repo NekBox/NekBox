@@ -1269,7 +1269,7 @@
         DO 500 IFC=1,NFACE
             HMF = ABS( HFMASK(1,1,IFC,IEL) )
             IF (HMF < 1.9  .OR. HMF > 3.1) GOTO 500
-!            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
+            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
             DO 520 J2=JS2,JF2,JSKIP2
                 DO 520 J1=JS1,JF1,JSKIP1
                     IF (VNMAG(J1,J2,1,IEL) < EPSA) GOTO 520
@@ -1947,8 +1947,7 @@
     DO 100 IEL=1,NEL
         DO 100 IFC=1,NFACE
             IF ( .NOT. IFMSFC(IFC,IEL,IFIELD)) GO TO 100
-            write(*,*) "Oops: cyclic"
-!            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
+            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
             DO 120 J2=JS2,JF2,JSKIP2
                 DO 120 J1=JS1,JF1,JSKIP1
                     RNOR = ( S1(J1,J2,1,IEL)*VNX(J1,J2,1,IEL) + &
@@ -1986,8 +1985,7 @@
     DO 100 IEL=1,NEL
         DO 100 IFC=1,NFACE
             IF ( .NOT. IFMSFC(IFC,IEL,IFIELD)) GO TO 100
-            write(*,*) "Oops: cyclic"
-!            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
+            CALL FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
             DO 120 J2=JS2,JF2,JSKIP2
                 DO 120 J1=JS1,JF1,JSKIP1
                     RNOR = ( S1(J1,J2,1,IEL)*VNX(J1,J2,1,IEL) + &
@@ -2314,4 +2312,21 @@
           
     return
     end function op_glsc2_wt
+!-----------------------------------------------------------------------
+      SUBROUTINE FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
+
+      use size_m
+      INCLUDE 'TOPOL'
+
+      CALL DSSET (NX1,NY1,NZ1)
+      IFACE  = EFACE1(IFC)
+      JS1    = SKPDAT(1,IFACE)
+      JF1    = SKPDAT(2,IFACE)
+      JSKIP1 = SKPDAT(3,IFACE)
+      JS2    = SKPDAT(4,IFACE)
+      JF2    = SKPDAT(5,IFACE)
+      JSKIP2 = SKPDAT(6,IFACE)
+
+      RETURN
+      END
 !-----------------------------------------------------------------------

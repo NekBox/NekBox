@@ -307,6 +307,7 @@
     return
     end subroutine dface_add1si
 !-----------------------------------------------------------------------
+#if 0
     subroutine init_weight_op
 
     include 'SIZE'
@@ -400,6 +401,7 @@
         enddo
     endif
     end subroutine init_weight_op
+#endif
 !-----------------------------------------------------------------------
     subroutine do_weight_op(x)
     include 'SIZE'

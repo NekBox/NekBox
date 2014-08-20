@@ -1,4 +1,5 @@
 !-----------------------------------------------------------------------
+#if 0
     subroutine genbox
 
     include 'SIZE'
@@ -63,6 +64,7 @@
     call exitt
 
     end subroutine genbox
+#endif
 !-----------------------------------------------------------------------
     subroutine gen_gtp_vertex (vertex,ncrnr)
 
@@ -138,6 +140,7 @@
     return
     end subroutine gen_gtp_vertex
 !-----------------------------------------------------------------------
+#if 0
     subroutine getbox(x,y,z,nfld)
 
     include 'SIZE'
@@ -885,6 +888,7 @@
     enddo
     return
     end function ilsum
+#endif
 !-----------------------------------------------------------------------
     subroutine jjnt(x,n)
     integer :: x(1)
@@ -894,6 +898,7 @@
     return
     end subroutine jjnt
 !-----------------------------------------------------------------------
+#if 0
     subroutine bcpbox(nfld)
 
     include 'SIZE'
@@ -948,4 +953,5 @@
 
     return
     end subroutine outbox_mesh
+#endif
 !-----------------------------------------------------------------------

@@ -820,7 +820,7 @@
     100 END DO
 
     IF (ITEMP > 0) then
-    
+#if 0    
         INTYPE = 0
         IF (IFTRAN) INTYPE = -1
         IFIELD = 1
@@ -852,7 +852,7 @@
             CALL RZERO (BFY,NTOT1)
         ENDIF
         CALL OPDSSUM (BFX,BFY,BFZ)
-    
+#endif 
     ENDIF
 
     return

@@ -1789,6 +1789,7 @@
     return
     end subroutine xfill
 !-----------------------------------------------------------------------
+#if 0
     subroutine setup_mesh_dssum ! Set up dssum for mesh
 
     include 'SIZE'
@@ -1904,4 +1905,5 @@
 
     return
     end subroutine setup_mesh_dssum
+#endif
 !-----------------------------------------------------------------------

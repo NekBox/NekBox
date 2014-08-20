@@ -1,6 +1,6 @@
     subroutine makeq_aux
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
 

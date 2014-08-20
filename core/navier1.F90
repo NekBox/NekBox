@@ -5,7 +5,7 @@
 !     Compute pressure and velocity using consistent approximation spaces.
 
 !-------------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'EIGEN'
     include 'SOLN'
@@ -92,7 +92,7 @@
 !     Compute startresidual/right-hand-side in the pressure equation
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     REAL ::           RESPR  (LX2,LY2,LZ2,LELV)
     REAL ::           G1     (LX1,LY1,LZ1,LELV)
@@ -127,7 +127,7 @@
 !     Compute the residual for the velocity - UZAWA SCHEME.
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'SOLN'
     REAL ::           RESV1 (LX1,LY1,LZ1,1)
@@ -160,7 +160,7 @@
 !     INTYPE = -1  implicit, Euler backward
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     REAL ::           OUT1  (LX1,LY1,LZ1,LELV)
     REAL ::           OUT2  (LX1,LY1,LZ1,LELV)
@@ -208,7 +208,7 @@
 
 !     Compute the pressure tolerance
 
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'TSTEP'
     REAL ::           RESPR (LX2,LY2,LZ2,LELV)
@@ -239,7 +239,7 @@
 !     Orthogonalize the residual in the pressure solver with respect
 !     to (1,1,...,1)T  (only if all Dirichlet b.c.).
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'PARALLEL'
@@ -275,7 +275,7 @@
 !     INTYPE= 1  Compute the matrix-vector product    D(B/DT)(-1)DT*p
 !     INTYPE=-1  Compute the matrix-vector product    D(A+B/DT)(-1)DT*p
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     REAL ::           AP    (LX2,LY2,LZ2,1)
     REAL ::           WP    (LX2,LY2,LZ2,1)
@@ -316,7 +316,7 @@
 !     Note: OUTi is defined on the pressure mesh !!!
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
 
@@ -347,7 +347,8 @@
 !     Compute DT*X (entire field)
 
 !-------------------------------------------------------------
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'WZ'
     include 'DXYZ'
     include 'IXYZ'
@@ -371,7 +372,6 @@
 
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-    include 'CTIMER'
 
     integer :: e
 
@@ -563,7 +563,8 @@
 !     IFLG: OPGRAD (iflg=0) or OPDIV (iflg=1)
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'WZ'
     include 'DXYZ'
     include 'IXYZ'
@@ -586,7 +587,6 @@
 
     common /fastmd/ ifdfrm(lelt), iffast(lelt), ifh2, ifsolv
     logical :: ifdfrm, iffast, ifh2, ifsolv
-    include 'CTIMER'
 
     integer :: e
 
@@ -769,7 +769,7 @@
 !     OUT = (H1*A+H2*B)-1 * INP  (implicit)
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -839,7 +839,7 @@
 !     OUT = (H1*A+H2*B) * INP
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     REAL :: OUT1 (LX1,LY1,LZ1,1)
@@ -874,7 +874,7 @@
 !     Compute OUT = (H2*B)-1 * INP   (explicit)
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -933,7 +933,7 @@
 !     Compute OUT = (B)-1 * INP   (explicit)
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -989,7 +989,7 @@
 !     Uzawa preconditioner
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'MASS'
@@ -1065,7 +1065,7 @@
 !     NOTE: SCRNS is used.
 
 !----------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'SOLN'
@@ -1138,7 +1138,7 @@
 !     Convergence test for the pressure step;  r z
 
 !-----------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
     REAL ::           RES  (1)
     REAL ::           Z    (1)
@@ -1166,7 +1166,7 @@
 !     Convergence test for the pressure step
 
 !-----------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
     REAL ::           RES  (LX2,LY2,LZ2,LELV)
     COMMON /SCRMG/ TA   (LX2,LY2,LZ2,LELV) &
@@ -1191,7 +1191,7 @@
 !     all Dirichlet velocity b.c. (zero Neumann for the pressure).
 
 !-------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'MASS'
@@ -1262,7 +1262,7 @@
 !     IMESH - topology: velocity (1) or temperature (2) mesh
 
 !--------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'GEOM'
     include 'INPUT'
@@ -1331,7 +1331,7 @@
 !     since there is no direct stiffness summation or Helmholtz-solves.
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 !     Use the common blocks CTMP0 and CTMP1 as work space.
@@ -1400,7 +1400,7 @@
 !     Compute DT*FI (part of the convection operator)
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     REAL ::           DTFI (LX1,LY1,LZ1,1)
     REAL ::           FI   (LX1,LY1,LZ1,1)
@@ -1497,7 +1497,7 @@
 !                =  1.0 at outflow
 
 !---------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
 
@@ -1532,7 +1532,7 @@
 !              current time step is completed.
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'INPUT'
@@ -1560,7 +1560,7 @@
 !     Compute and add: (1) user specified forcing function (FX,FY,FZ)
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -1574,7 +1574,7 @@
     end subroutine makeuf
 
     subroutine nekuf (f1,f2,f3)
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'NEKUSE'
     REAL :: F1 (LX1,LY1,LZ1,LELV)
@@ -1603,7 +1603,7 @@
 !     due to natural convection (Boussinesq approximation).
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -1635,7 +1635,7 @@
 !     Find reasonable Tbar in the buoyancy term, beta*(T-Tbar)...
 
 !----------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'INPUT'
     include 'PARALLEL'
@@ -1690,7 +1690,7 @@
 !     at current time step.
 
 !---------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -1719,7 +1719,7 @@
 
 !     Add contributions to F from lagged BD terms.
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'GEOM'
@@ -1767,7 +1767,7 @@
 
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
 
@@ -1807,7 +1807,7 @@
 !     Set coefficients for 3rd order Adams-Bashforth scheme
 !     (variable time step).
 
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
 
     IF (ISTEP <= 2) THEN
@@ -1978,7 +1978,7 @@
 !     operator-integrator-factor method (characteristics).
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'INPUT'
     include 'SOLN'
@@ -2019,7 +2019,7 @@
 !     Runge-Kutta scheme.
 
 !--------------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -2147,7 +2147,7 @@
 !     Adams-Bashforth.
 
 !--------------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -2249,7 +2249,7 @@
 !     Set initial time for subintegration
 
 !-------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
     TAU   = 0.
     DO 10 I=NBD,ILAG+1,-1
@@ -2264,7 +2264,7 @@
 !     Set initial conditions for subintegration
 
 !-------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     REAL :: VEL1 (LX1,LY1,LZ1,LELV)
     REAL :: VEL2 (LX1,LY1,LZ1,LELV)
@@ -2285,7 +2285,7 @@
 !     Compute convecting velocity field (linearization)
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
     REAL :: VXN (LX1,LY1,LZ1,LELV)
@@ -2305,7 +2305,7 @@
 !     pure convection.
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'TSTEP'
     REAL :: Y    (LX1,LY1,LZ1,1)
@@ -2331,7 +2331,7 @@
 !     Compute linearized velocity field.
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     REAL :: VEL  (LX1,LY1,LZ1,LELV)
     REAL :: VN   (LX1,LY1,LZ1,LELV)
     REAL :: VLAG (LX1,LY1,LZ1,LELV,9)
@@ -2371,7 +2371,7 @@
 !     Keep old velocity field(s)
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -2397,7 +2397,7 @@
 !     Generate mask-array for the hyperbolic system (velocity).
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'SOLN'
@@ -2444,7 +2444,7 @@
 !     Set up parameters for backward differentiation scheme.
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
 
@@ -2470,7 +2470,7 @@
 !     (except for Linf).
 
 !---------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
 
     REAL ::           X  (LX1,LY1,LZ1,1)
@@ -2527,7 +2527,7 @@
 !     (except for Linf).
 
 !---------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
 
     REAL ::           X1 (LX1,LY1,LZ1,1)
@@ -2602,7 +2602,7 @@
 !     search direction in the cg-iteration.
 
 !-----------------------------------------------------------------
-    include 'SIZE'
+    use size_m
 
     REAL ::   WP  (LX2,LY2,LZ2,LELV)
     REAL ::   P   (LX2,LY2,LZ2,LELV)
@@ -2622,7 +2622,7 @@
 !     Consistent approximation spaces.
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     LOGICAL ::        IFSTUZ
     COMMON /SCRNS/ RESV1 (LX1,LY1,LZ1,LELV) &
@@ -2716,7 +2716,7 @@
 !     Antimask the velocity arrays.
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -2755,7 +2755,7 @@
 !     Mask the residual arrays.
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -2786,7 +2786,7 @@
     end subroutine opmask
 
     subroutine opadd2 (a1,a2,a3,b1,b2,b3)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL ADD2(A1,B1,NTOT1)
@@ -2796,7 +2796,7 @@
     end subroutine opadd2
 
     subroutine opsub2 (a1,a2,a3,b1,b2,b3)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL SUB2(A1,B1,NTOT1)
@@ -2806,7 +2806,7 @@
     end subroutine opsub2
 
     subroutine opsub3 (a1,a2,a3,b1,b2,b3,c1,c2,c3)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1),C1(1),C2(1),C3(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL SUB3(A1,B1,C1,NTOT1)
@@ -2816,7 +2816,7 @@
     end subroutine opsub3
 
     subroutine opcolv3(a1,a2,a3,b1,b2,b3,c)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1),B3(1)
     REAL :: C (1)
@@ -2854,7 +2854,7 @@
     end subroutine opcolv3
 
     subroutine opcolv (a1,a2,a3,c)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1),C(1)
     include 'OPCTR'
 
@@ -2890,7 +2890,7 @@
     end subroutine opcolv
 
     subroutine opcol2 (a1,a2,a3,b1,b2,b3)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL COL2(A1,B1,NTOT1)
@@ -2900,7 +2900,7 @@
     end subroutine opcol2
 
     subroutine opchsgn (a,b,c)
-    include 'SIZE'
+    use size_m
     REAL :: A(1),B(1),C(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL CHSIGN(A,NTOT1)
@@ -2910,7 +2910,7 @@
     end subroutine opchsgn
 
     subroutine opcopy (a1,a2,a3,b1,b2,b3)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL COPY(A1,B1,NTOT1)
@@ -2922,7 +2922,7 @@
 !-----------------------------------------------------------------------
     subroutine rotate_cyc(r1,r2,r3,idir)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'PARALLEL'
@@ -3010,7 +3010,7 @@
 !-----------------------------------------------------------------------
     subroutine opdssum (a,b,c)! NOTE: opdssum works on FLUID/MHD arrays only!
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'TSTEP'
@@ -3031,7 +3031,7 @@
 !-----------------------------------------------------------------------
     subroutine opdsop (a,b,c,op)! opdsop works on FLUID/MHD arrays only!
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'TSTEP'
@@ -3060,7 +3060,7 @@
     end subroutine opdsop
 !-----------------------------------------------------------------------
     subroutine opicol2 (a1,a2,a3,b1,b2,b3)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL INVCOL2(A1,B1,NTOT1)
@@ -3070,7 +3070,7 @@
     end subroutine opicol2
 
     subroutine oprzero (a,b,c)
-    include 'SIZE'
+    use size_m
     REAL :: A(1),B(1),C(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL RZERO(A,NTOT1)
@@ -3080,7 +3080,7 @@
     end subroutine oprzero
 
     subroutine oprone (a,b,c)
-    include 'SIZE'
+    use size_m
     REAL :: A(1),B(1),C(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL RONE(A,NTOT1)
@@ -3090,7 +3090,7 @@
     end subroutine oprone
 
     subroutine opcmult (a,b,c,const)
-    include 'SIZE'
+    use size_m
     REAL :: A(1),B(1),C(1)
     NTOT1=NX1*NY1*NZ1*NELV
     CALL CMULT(A,CONST,NTOT1)
@@ -3100,7 +3100,7 @@
     end subroutine opcmult
 !-----------------------------------------------------------------------
     subroutine opcolv2c(a1,a2,a3,b1,b2,c)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1)
     include 'OPCTR'
@@ -3139,7 +3139,7 @@
     end subroutine opcolv2c
 !-----------------------------------------------------------------------
     subroutine opcolv2(a1,a2,a3,b1,b2)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1)
     include 'OPCTR'
@@ -3178,7 +3178,7 @@
     end subroutine opcolv2
 !-----------------------------------------------------------------------
     subroutine opadd2col(a1,a2,a3,b1,b2,b3,c)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1),B3(1),C(1)
     include 'OPCTR'
@@ -3215,7 +3215,7 @@
     end subroutine opadd2col
 !-----------------------------------------------------------------------
     subroutine opcolv3c(a1,a2,a3,b1,b2,b3,c,d)
-    include 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1),B3(1)
     REAL :: C (1)
@@ -3263,7 +3263,7 @@
 !     INTYPE = -1  (implicit)
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     COMMON  /CTOLPR/ DIVEX
     COMMON  /CPRINT/ IFPRINT
@@ -3388,6 +3388,13 @@
     end subroutine uzawa
 !-----------------------------------------------------------------------
     subroutine spbslpf(abd,lda,n,m,b)
+
+    use ctimer
+    use size_m
+    include 'PARALLEL'
+    include 'OPCTR'
+
+
     integer :: lda,n,m
     real :: abd(lda,1),b(1)
 
@@ -3395,11 +3402,6 @@
     integer :: k,kb,la,lb,lm
 
 !     Timing stuff, pff 1.14.92.
-
-    include 'SIZE'
-    include 'PARALLEL'
-    include 'CTIMER'
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -3468,7 +3470,7 @@
 !-----------------------------------------------------------------------
     subroutine spbfapf(abd,lda,n,m,info)
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
 
     integer :: lda,n,m,info
@@ -3535,7 +3537,7 @@
 
 !     Interpolate from mesh "1" to "d" if mflg = 1
 
-    include 'SIZE'
+    use size_m
     include 'DEALIAS'
 
     real :: w(lxd*lxd*lx1)
@@ -3567,7 +3569,7 @@
 
 !     Project from "d" to 1
 
-    include 'SIZE'
+    use size_m
     include 'DEALIAS'
 
     real :: w(lxd*lxd*lx1)
@@ -3595,7 +3597,7 @@
 !     -  scratch arrays: w(na*na*nb)
 
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: b(nb,nb,nb),a(na,na,na)
     real :: w(1)
@@ -3622,7 +3624,7 @@
 !-----------------------------------------------------------------------
     subroutine setmap(n1,nd)
 
-    include 'SIZE'
+    use size_m
     include 'DEALIAS'
 
     parameter(lx=80)
@@ -3732,9 +3734,9 @@
 !     The common-blocks CTMP0 and CTMP1 are also used as scratch-arrays
 !     since there is no direct stiffness summation or Helmholtz-solves.
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
 
 !     Use the common blocks CTMP0 and CTMP1 as work space.
 
@@ -3805,7 +3807,7 @@
 !     De-aliased version 3/11/97
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     REAL ::           DFI (LX1,LY1,LZ1,1)
     REAL ::           FI  (LX1,LY1,LZ1,1)
@@ -3858,7 +3860,7 @@
 !------------------------------------------------------------------------
     subroutine conv1(du,u)  ! used to be conv1n
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'INPUT'
     include 'GEOM'
@@ -3936,7 +3938,7 @@
 !-----------------------------------------------------------------------
     subroutine conv1no(du,u)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'INPUT'
     include 'GEOM'
@@ -4014,7 +4016,7 @@
 !-----------------------------------------------------------------------
     subroutine conv1rk(du,dv,dw,u,v,w)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'INPUT'
     include 'GEOM'
@@ -4101,7 +4103,7 @@
 
 !     Compute convecting velocity field (linearization)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'MASS'
     include 'SOLN'
@@ -4168,7 +4170,7 @@
 !-----------------------------------------------------------------------
     subroutine frkconvv (du,dv,dw,u,v,w,mu)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'INPUT'
     include 'GEOM'
@@ -4239,7 +4241,7 @@
 !-----------------------------------------------------------------------
     subroutine conv1rk2(du,dv,dw,u,v,w,cu,cv,cw,beta,wk)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'INPUT'
     include 'GEOM'
@@ -4357,7 +4359,7 @@
 !-----------------------------------------------------------------------
     subroutine frkconvv2(du,dv,dw,u,v,w,cu,cv,cw,beta,mu,wk)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'INPUT'
     include 'GEOM'
@@ -4435,7 +4437,7 @@
 !     Generate mask-array for the hyperbolic system (velocity).
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'SOLN'
@@ -4489,7 +4491,7 @@
 !     Runge-Kutta scheme.
 
 !--------------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -4633,7 +4635,7 @@
 !     the divergence of the vector field (INPX,INPY,INPZ)
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     real :: outfld (lx2,ly2,lz2,1)
     real :: inpx   (lx1,ly1,lz1,1)
@@ -4663,7 +4665,7 @@
 !     Compute DTx, DTy, DTz of an input field INPFLD
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     real :: outx   (lx1,ly1,lz1,1)
     real :: outy   (lx1,ly1,lz1,1)
@@ -4680,7 +4682,7 @@
 !-----------------------------------------------------------------------
     subroutine setproj(n1,nd)
 
-    include 'SIZE'
+    use size_m
     include 'DEALIAS'
     include 'INPUT'
 
@@ -4705,7 +4707,7 @@
 !-----------------------------------------------------------------------
     subroutine set_PNDoi(Pt,P,LkNt,N,D)
 
-    include 'SIZE'   ! for write stmt
+    use size_m   ! for write stmt
 
 
 !     Set up operators for overintegration and interpolation
@@ -4736,7 +4738,7 @@
 
 !     Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'GEOM'
     include 'INPUT'
@@ -4936,7 +4938,7 @@
 !     compute weak form of the laplacian operator including the boundary
 !     contribution
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: out(1),a(1),diff(1)
@@ -4964,7 +4966,7 @@
 #if 0
     subroutine explstrs ! Explicit stress tensor w/ variable viscosity
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     common /scruz/ u(lx1*ly1*lz1),v(lx1*ly1*lz1),w(lx1*ly1*lz1)
@@ -4991,7 +4993,7 @@
 #endif
 !-----------------------------------------------------------------------
     subroutine expl_strs(w1,w2,w3,u1,u2,u3)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: w1(1),w2(1),w3(1),u1(1),u2(1),u3(1)
@@ -5011,7 +5013,7 @@
     end subroutine expl_strs
 !-----------------------------------------------------------------------
     subroutine expl_strs_e(w1,w2,w3,u1,u2,u3,e)
-    include 'SIZE'
+    use size_m
     include 'INPUT'  ! if3d
     include 'SOLN'   ! nu_star
 
@@ -5043,16 +5045,16 @@
 !     \dxj/   \     dxj       dxi /
 
 
-    real :: w1(1),w2(1),w3(1),u1(1),u2(1),u3(1)
-    integer :: e
-
-    include 'SIZE'
+    use size_m
     include 'GEOM'    ! jacmi,rxm1, etc.
     include 'INPUT'   ! if3d
     include 'MASS'    ! bm1
     include 'SOLN'    ! vtrans,vdiff,nu_star
     include 'TSTEP'   ! dt
     include 'WZ'      ! w3m1
+
+    real :: w1(1),w2(1),w3(1),u1(1),u2(1),u3(1)
+    integer :: e
 
     real :: nu
 
@@ -5124,16 +5126,17 @@
 
 
 
-    real :: w1(1),w2(1),u1(1),u2(1)
-    integer :: e
-
-    include 'SIZE'
+    use size_m
     include 'GEOM'    ! jacmi,rxm1, etc.
     include 'INPUT'   ! if3d
     include 'MASS'    ! bm1
     include 'SOLN'    ! vtrans,vdiff,nu_star
     include 'TSTEP'   ! dt
     include 'WZ'      ! w3m1
+
+    real :: w1(1),w2(1),u1(1),u2(1)
+    integer :: e
+
 
     real :: nu
 
@@ -5182,7 +5185,7 @@
 !     Thus routine originally from fsi file: u5.usr (May 2010)
 
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
 
     real ::    u(1),ur(1),us(1),ut(1)
@@ -5208,7 +5211,7 @@
 !-----------------------------------------------------------------------
     subroutine gradl_rst(ur,us,ut,u,md,if3d)  ! GLL-based gradient
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
 
     real ::    ur(1),us(1),ut(1),u(1)
@@ -5279,7 +5282,7 @@
 
 !     Get pointer to GLL-GLL interpolation dgl() for pair (mx,md)
 
-    include 'SIZE'
+    use size_m
 
 !     dgradl holds GLL-based derivative / interpolation operators
 

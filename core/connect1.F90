@@ -18,7 +18,7 @@
 !     .Disperse/Receive BC and MULT temporary data read from preprocessor.
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'NONCON'
     include 'ZPER'
@@ -802,7 +802,7 @@
 !     .Verify element-to-element reciprocity of BC's
 !     .Verify correlation between E-E BC's and physical coincidence
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'INPUT'
     include 'SCRCT'
@@ -1094,7 +1094,7 @@
 !     Assign the value VAL to face(IFACE,IE) of array A.
 !     IFACE is the input in the pre-processor ordering scheme.
 
-    include 'SIZE'
+    use size_m
     integer :: a(nx,ny,nz,lelt),val
     call facind (kx1,kx2,ky1,ky2,kz1,kz2,nx,ny,nz,iface)
     do 100 iz=kz1,kz2
@@ -1555,7 +1555,7 @@
     end subroutine outfldrp
 !-----------------------------------------------------------------------
     subroutine outmatp(a,m,n,name6,ie)
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     real :: a(m,n)
     character(6) :: name6
@@ -1580,7 +1580,7 @@
     end subroutine outmatp
 !-----------------------------------------------------------------------
     subroutine gs_chkr(glo_num)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: glo_num(lx1,ly1,lz1,lelt)
@@ -1611,7 +1611,7 @@
     end subroutine gs_chkr
 !-----------------------------------------------------------------------
     subroutine gs_counter(glo_num,gsh_std)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: glo_num(lx1,ly1,lz1,lelt)
@@ -1692,7 +1692,7 @@
     end subroutine gs_counter
 !-----------------------------------------------------------------------
     subroutine gs_new_tstr(glo_num,x,c,gsh_std)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: gsh_std,gsh_pair,gsh_mlti
@@ -1792,7 +1792,7 @@
 #if 0
     subroutine setup_mesh_dssum ! Set up dssum for mesh
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'NONCON'
     include 'ZPER'

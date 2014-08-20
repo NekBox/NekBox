@@ -3,7 +3,7 @@
 
 !     filter vx,vy,vz, and p by simple interpolation
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 
@@ -171,7 +171,7 @@
 !-----------------------------------------------------------------------
     subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
 
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
 
     real :: v(nx*nx*nz,nelt),w1(1),w2(1)
@@ -546,7 +546,7 @@
 
 !     f  is in the preprocessor notation
 
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     real :: a(lx1,lz1,6,lelt),area(lx1,lz1,6,lelt)
 
@@ -569,7 +569,7 @@
 !        fd  is the dssum notation.
 !        27 June, 2012            PFF
 
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     real :: a(lx1,ly1,lz1,lelt),area(lx1,lz1,6,lelt)
 
@@ -638,7 +638,7 @@
     end function facint
 !-----------------------------------------------------------------------
     function facint2(a,b,c,area,ifc,ie)
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     dimension a    (lx1,ly1,lz1,lelv) &
     , b    (lx1,lz1,6,lelv) &
@@ -736,7 +736,7 @@
 
 !     Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'GEOM'
     include 'INPUT'
@@ -784,7 +784,7 @@
 !-----------------------------------------------------------------------
     subroutine comp_vort3(vort,work1,work2,u,v,w)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter(lt=lx1*ly1*lz1*lelv)
@@ -833,7 +833,7 @@
 !-----------------------------------------------------------------------
     subroutine surface_int(sint,sarea,a,e,f)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'TOPOL'
@@ -867,7 +867,7 @@
 !-----------------------------------------------------------------------
     subroutine surface_flux(dq,qx,qy,qz,e,f,w)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'PARALLEL'
@@ -1136,7 +1136,7 @@
 !           value is given by E(X) = 1/N * sum[ E(X)_i ], where E(X)_i
 !           is the expected value of the sub-ensemble i (i=1...N).
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'AVG'
 
@@ -1252,7 +1252,7 @@
     end subroutine avg_all
 !-----------------------------------------------------------------------
     subroutine avg1(avg,f,alpha,beta,n,name,ifverbose)
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
 
     real :: avg(n),f(n)
@@ -1275,7 +1275,7 @@
     end subroutine avg1
 !-----------------------------------------------------------------------
     subroutine avg2(avg,f,alpha,beta,n,name,ifverbose)
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
 
     real :: avg(n),f(n)
@@ -1298,7 +1298,7 @@
     end subroutine avg2
 !-----------------------------------------------------------------------
     subroutine avg3(avg,f,g,alpha,beta,n,name,ifverbose)
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
 
     real :: avg(n),f(n),g(n)
@@ -1352,7 +1352,7 @@
 
 !     Local error estimates for u_e
 
-    include 'SIZE'
+    use size_m
     real :: err(5,2),u(1),uh(nx,nx,nx),w(1),Lj(1),Ljt(1)
     logical :: if3d
 
@@ -1513,7 +1513,7 @@
 #if 0
     subroutine dump_header2d(excode,nx,ny,nlx,nly,ierr)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     character(2) :: excode(15)
@@ -1589,7 +1589,7 @@
 !-----------------------------------------------------------------------
     subroutine outfld2d_p(u,v,w,nx,ny,nlx,nly,name,ifld,jid,npido,ir)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: icalld
@@ -1670,7 +1670,7 @@
 !-----------------------------------------------------------------------
     subroutine outfld2d(u,v,w,nx,ny,nlx,nly,name,ifld)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: u(nx*ny*nlx*nly)
@@ -1740,7 +1740,7 @@
 
 !     Compute r-s planar average of quantity u()
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -2150,7 +2150,7 @@
 !     Compute the stress tensor S_ij := ----   +   ----
 !                                       du_j       du_i
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: e
@@ -2288,7 +2288,7 @@
 !     Note that it relies on scrns and scruz common blocks. pff 11/12/13
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -2380,7 +2380,7 @@
 
 !     Compute the x average of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -2427,7 +2427,7 @@
 !-----------------------------------------------------------------------
     subroutine x_average_transpose(u,ua) ! distribute ua to each z-plane
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -2463,7 +2463,7 @@
 !     within each x plane
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -2488,7 +2488,7 @@
 !     within each x plane
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -2508,7 +2508,7 @@
 
 !     Extract a y slice of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -2559,7 +2559,7 @@
 !     nx,ny,nz:               dimensions for 3D spectral element input
 !     nlxy:                   global number of elements in x-y plane.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -2591,7 +2591,7 @@
 
 !     Extract a z slice of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -2629,7 +2629,7 @@
 
 !     Compute the y average of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -2675,7 +2675,7 @@
 
 !     Compute the y average of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -2702,7 +2702,7 @@
 
 !     Compute the z average of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -2729,7 +2729,7 @@
 
 !     Compute the z average of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -2756,7 +2756,7 @@
 
 !     Compute the z average of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -2781,7 +2781,7 @@
 !-----------------------------------------------------------------------
     subroutine buff_2d_out(u,v,w,nx,ny,nex,ney,c2,name,ifld)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: u(1),v(1),w(1)
@@ -2836,7 +2836,7 @@
 !     Compute the y average of quantity u() - assumes global tens.prod.
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     real :: u(1),v(1),w(1),p(1)
     character(1) :: c1,c2(2)
@@ -2885,7 +2885,7 @@
 !     Compute the y average of quantity u() - assumes global tens.prod.
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     real :: u(1),v(1),w(1),p(1)
     character(1) :: c1,c2(2)
@@ -2926,7 +2926,7 @@
 !-----------------------------------------------------------------------
     subroutine anal_2d
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -2965,7 +2965,7 @@
 !-----------------------------------------------------------------------
     subroutine chkit(u,name4,n)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     character(4) :: name4
@@ -2990,7 +2990,7 @@
     end subroutine chkit
 !-----------------------------------------------------------------------
     subroutine outmesh
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     integer :: e,eg
 
@@ -3026,7 +3026,7 @@
     end subroutine outmesh
 !-----------------------------------------------------------------------
     subroutine out_el(xt,e)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: xt(2**ldim,ldim)
@@ -3047,7 +3047,7 @@
     end subroutine out_el
 !-----------------------------------------------------------------------
     subroutine get_el(xt,x,y,z)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: xt(2**ldim,ldim)
@@ -3277,7 +3277,7 @@
 !-----------------------------------------------------------------------
     subroutine fix_geom ! fix up geometry irregularities
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter (lt = lx1*ly1*lz1)
@@ -3375,7 +3375,7 @@
 #endif
 !-----------------------------------------------------------------------
     subroutine gh_face_extend(x,zg,n,gh_type,e,v)
-    include 'SIZE'
+    use size_m
 
     real :: x(1),zg(1),e(1),v(1)
     integer :: gh_type
@@ -3641,7 +3641,7 @@
 !-----------------------------------------------------------------------
     subroutine rand_fld_h1(x)
 
-    include 'SIZE'
+    use size_m
     real :: x(1)
 
     n=nx1*ny1*nz1*nelt
@@ -3656,7 +3656,7 @@
 !-----------------------------------------------------------------------
 #if 0
     subroutine rescale_x (x,x0,x1)
-    include 'SIZE'
+    use size_m
     real :: x(1)
 
     n = nx1*ny1*nz1*nelt
@@ -3681,7 +3681,7 @@
 !     within each z plane
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -3703,7 +3703,7 @@
 
 !     Compute the z average of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -3750,7 +3750,7 @@
 !-----------------------------------------------------------------------
     subroutine z_average_transpose(u,ua) ! distribute ua to each z-plane
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -3786,7 +3786,7 @@
 !     and that lelx,lely,lelz are defined to be >= nelx,nely,nelz
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'         ! nelx,nely,nelz
 
@@ -3811,7 +3811,7 @@
 
 !     Compute the z profile of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -3851,7 +3851,7 @@
 !-----------------------------------------------------------------------
     subroutine z_profile_transpose(u,ua) ! distribute ua to each z-plane
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'ZPER'
 
@@ -3882,7 +3882,7 @@
 !     and that lelx,lely,lelz are defined to be >= nelx,nely,nelz
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'         ! nelx,nely,nelz
 
@@ -3907,7 +3907,7 @@
 
 !     Compute the z profile of quantity u() - assumes global tens.prod.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'PARALLEL'
     include 'WZ'
@@ -3949,7 +3949,7 @@
 !-----------------------------------------------------------------------
     subroutine y_profile_transpose(u,ua) ! distribute ua to each z-plane
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'ZPER'
 
@@ -3975,7 +3975,7 @@
     end subroutine y_profile_transpose
 !-----------------------------------------------------------------------
     subroutine build_filter(f,diag,nx)
-    include 'SIZE'
+    use size_m
 
     real :: f(nx,nx),diag(nx),zpts(nx)
 
@@ -4036,7 +4036,7 @@
 
 !     Generalized filter: F(u) with F = J^T D J, where D=diag(diag)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: u(1),diag(1)
@@ -4059,7 +4059,7 @@
 
 !     Generalized filter: F(u) with F = J^T D J, where D=diag(diag)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: u(1)
@@ -4085,7 +4085,7 @@
 !-----------------------------------------------------------------------
     subroutine filter_d2(v,nx,nz,wgt,ifd4)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter (lt=lx1*ly1*lz1)
@@ -4204,7 +4204,7 @@
 !-----------------------------------------------------------------------
     subroutine domain_size(xmin,xmax,ymin,ymax,zmin,zmax)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     n = nx1*ny1*nz1*nelt
@@ -4238,7 +4238,7 @@
 !     periodict boundary conditions, whereas most other approaches
 !     will not.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'       ! Coordinates
     include 'INPUT'      ! cbc()
     include 'TSTEP'      ! nelfld
@@ -4334,7 +4334,7 @@
 
 !     Work arrays:  dmin,emin,xn,yn,zn
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'       ! Coordinates
     include 'INPUT'      ! cbc()
     include 'TSTEP'      ! nelfld
@@ -4479,7 +4479,7 @@
 !     not been tested for this case.
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: d(lx2,ly2,lz2,lelt),m1(lx1*ly1*lz1,lelt)
@@ -4591,7 +4591,7 @@
 !        call add_temp(f2tbc,nbc)
 !     enddo
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     character(3) :: f2tbc(2,nbc)
 

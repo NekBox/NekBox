@@ -6,7 +6,7 @@
 !     This routine returns the aspect ratio of a
 !     conglomerate of a set of simplices defined by (tri,nt)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'MASS'
@@ -147,7 +147,7 @@
 !-----------------------------------------------------------------------
     subroutine out_sem(iel)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
 
@@ -178,7 +178,7 @@
 
 !     Single element case
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'GEOM'
     include 'INPUT'
@@ -225,7 +225,7 @@
 
 !     Single element case
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: u(1),ux(1),uy(1),uz(1)

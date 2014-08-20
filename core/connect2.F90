@@ -213,10 +213,10 @@
 
 !     .Broadcast run parameters to all processors
 
+    INCLUDE 'CTIMER'
     INCLUDE 'SIZE'
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
-    INCLUDE 'CTIMER'
     INCLUDE 'ZPER'
 
     character(132) :: string(100)
@@ -704,7 +704,7 @@
 !     .Selectively read mesh (defined by element vertices, and group numbers)
 !      on each processor
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     character(1) :: adum
@@ -1062,7 +1062,7 @@
 
 !     .Broadcast ICFILE to all processors
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
 
@@ -2160,9 +2160,9 @@
 !-----------------------------------------------------------------------
     subroutine bin_rd1(ifbswap)  ! read mesh, curve, and bc info
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
 
     logical :: ifbswap
 
@@ -2208,7 +2208,7 @@
 !-----------------------------------------------------------------------
     subroutine buf_to_xyz(buf,e,ifbswap,ierr)! version 1 of binary reader
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     logical :: ifbswap
 
@@ -2250,7 +2250,7 @@
 !-----------------------------------------------------------------------
     subroutine buf_to_curve(buf)    ! version 1 of binary reader
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: e,eg,f,buf(30)
@@ -2280,7 +2280,7 @@
 !-----------------------------------------------------------------------
     subroutine buf_to_bc(cbl,bl,buf)    ! version 1 of binary reader
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     character(3) :: cbl(6,lelt)
@@ -2322,7 +2322,7 @@
 !-----------------------------------------------------------------------
     subroutine bin_rd1_mesh(ifbswap)    ! version 1 of binary reader
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     logical :: ifbswap
 
@@ -2390,7 +2390,7 @@
 !-----------------------------------------------------------------------
     subroutine bin_rd1_curve (ifbswap) ! v. 1 of curve side reader
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     logical :: ifbswap
 
@@ -2475,7 +2475,7 @@
 !-----------------------------------------------------------------------
     subroutine bin_rd1_bc (cbl,bl,ifbswap) ! v. 1 of bc reader
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     logical :: ifbswap
 
@@ -2586,7 +2586,7 @@
 !-----------------------------------------------------------------------
     subroutine buf_close_outv  ! this is the stupid O(P) formulation
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     integer*4 :: zero
     real ::      rzero
@@ -2608,7 +2608,7 @@
 !-----------------------------------------------------------------------
     subroutine buf_close_out  ! this is the stupid O(P) formulation
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     integer*4 :: zero
     real ::      rzero
@@ -2629,7 +2629,7 @@
 !-----------------------------------------------------------------------
     subroutine open_bin_file(ifbswap) ! open file & chk for byteswap
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     logical :: ifbswap,if_byte_swap_test
@@ -2682,7 +2682,7 @@
     end subroutine open_bin_file
 !-----------------------------------------------------------------------
     subroutine chk_xyz
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     integer :: e,f,eg
 
@@ -2696,7 +2696,7 @@
     end subroutine chk_xyz
 !-----------------------------------------------------------------------
     subroutine chk_nel
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     neltmx=np*lelt

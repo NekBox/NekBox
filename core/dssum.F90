@@ -1,5 +1,5 @@
     subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'NONCON'
@@ -31,8 +31,8 @@
     end subroutine setupds
 !-----------------------------------------------------------------------
     subroutine dssum(u,nx,ny,nz)
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'NONCON'
     include 'PARALLEL'
@@ -94,11 +94,11 @@
     end subroutine dssum
 !-----------------------------------------------------------------------
     subroutine dsop(u,op,nx,ny,nz)
-    include 'SIZE'
+    include  'CTIMER'
+    use size_m
     include 'PARALLEL'
     include 'INPUT'
     include 'TSTEP'
-    include  'CTIMER'
 
     real :: u(1)
     character(3) :: op
@@ -163,12 +163,12 @@
 !     Boundary condition data corresponds to component IFIELD of
 !     the CBC array.
 
+    use ctimer
     INCLUDE 'SIZE'
     INCLUDE 'TOPOL'
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
     INCLUDE 'TSTEP'
-    include 'CTIMER'
 
     REAL :: U(1),V(1),W(1)
 
@@ -211,12 +211,12 @@
 !     Boundary condition data corresponds to component IFIELD of
 !     the CBC array.
 
+    use ctimer
     INCLUDE 'SIZE'
     INCLUDE 'TOPOL'
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
     INCLUDE 'TSTEP'
-    include 'CTIMER'
 
     real :: u(1),v(1),w(1)
     character(3) :: op
@@ -257,8 +257,8 @@
 
 !     Direct stiffness summation of the array u for n fields
 
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
 
     real :: u(1)
     integer :: n,stride,gs_handle
@@ -285,7 +285,7 @@
 !----------------------------------------------------------------------
     subroutine matvec3(uout,Jmat,uin,iftrsp,n1,n2)
 
-    include 'SIZE'
+    use size_m
 
     real :: Jmat (n1,n1,2)
     real :: uin   (1)
@@ -311,7 +311,7 @@
 !-----------------------------------------------------------------------
     subroutine matvec3t(uout,Jmat,uin,iftrsp,n1,n2)
 
-    include 'SIZE'
+    use size_m
 
     real :: Jmat (n1,n1,2)
     real :: uin   (n1,n2)
@@ -346,7 +346,7 @@
     end subroutine matvect
 !-----------------------------------------------------------------------
 !      subroutine opq_in_place(a,b,c)
-!      include 'SIZE'
+!      use size_m
 !      real a(1),b(1),c(1)
 
 !      call q_in_place(a)
@@ -482,8 +482,8 @@
     end subroutine vectofi
 !-----------------------------------------------------------------------
     subroutine apply_Jt(u,nx,ny,nz,nel)
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'NONCON'
     include 'PARALLEL'
@@ -525,8 +525,8 @@
     end subroutine apply_Jt
 !-----------------------------------------------------------------------
     subroutine apply_J(u,nx,ny,nz,nel)
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'NONCON'
     include 'PARALLEL'
@@ -560,8 +560,8 @@
     end subroutine apply_J
 !-----------------------------------------------------------------------
     subroutine h1_proj(u,nx,ny,nz)
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'NONCON'
     include 'PARALLEL'
@@ -622,8 +622,8 @@
     end subroutine h1_proj
 !-----------------------------------------------------------------------
     subroutine dssum_msk(u,mask,nx,ny,nz)
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'NONCON'
     include 'PARALLEL'
@@ -687,8 +687,8 @@
     end subroutine dssum_msk
 !-----------------------------------------------------------------------
     subroutine dssum_msk2(u,mask,binv,nx,ny,nz)
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'NONCON'
     include 'PARALLEL'

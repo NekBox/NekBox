@@ -1,6 +1,6 @@
 !-----------------------------------------------------------------------
     subroutine arcsrf(xml,yml,zml,nxl,nyl,nzl,ie,isid)
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'TOPOL'
@@ -101,7 +101,7 @@
     end subroutine arcsrf
 !-----------------------------------------------------------------------
     subroutine defsrf(xml,yml,zml,nxl,nyl,nzl,ie,iface1,ccv)
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     include 'GEOM'
     include 'WZ'
@@ -322,7 +322,7 @@
     return
     END FUNCTION ZBRENT
     FUNCTION FNC(ETA)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     COMMON /SRFCEI/ IEL,IFCE
     COMMON /SRFCER/ X0(3),DX(3)
@@ -354,7 +354,7 @@
 !     Set up deformed element logical switches
 
 !-------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     DIMENSION XCC(8),YCC(8),ZCC(8)
     DIMENSION INDX(8)
@@ -538,7 +538,7 @@
 !        Stress   formulation : mesh 1 is used
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     DIMENSION XM3(LX3,LY3,LZ3,1),YM3(LX3,LY3,LZ3,1),ZM3(LX3,LY3,LZ3,1)
@@ -556,7 +556,7 @@
 !-----------------------------------------------------------------------
     subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
 
-    include 'SIZE'
+    use size_m
     include 'WZ'
     include 'GEOM'
     include 'TOPOL'
@@ -616,7 +616,7 @@
 !-----------------------------------------------------------------------
     subroutine sethmat(h,zgml,nxl,nyl,nzl)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'  ! if3d
 
     real :: h(lx1,3,2),zgml(lx1,3)
@@ -644,7 +644,7 @@
 !-----------------------------------------------------------------------
     subroutine setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
 
-    include 'SIZE'
+    use size_m
     include 'WZ'
     include 'GEOM'
 
@@ -685,7 +685,7 @@
 !     Program to generate spherical shell elements for NEKTON
 !     input.  Paul F. Fischer
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'WZ'
     include 'TOPOL'
@@ -849,7 +849,7 @@
 
 !     Generate XYZ vector along an edge of a surface.
 
-    include 'SIZE'
+    use size_m
     COMMON /CTMP1/ H(LX1,3,2),XCRVED(LX1),YCRVED(LY1),ZCRVED(LZ1) &
     , ZGML(LX1,3),WORK(3,LX1,LZ1)
 
@@ -931,7 +931,7 @@
     end subroutine norm3d
 !-----------------------------------------------------------------------
     subroutine crn3d(xcv,xc,yc,zc,curve,iface)
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     DIMENSION XCV(3,2,2),XC(8),YC(8),ZC(8),CURVE(4)
     DIMENSION INDVTX(4,6)
@@ -986,7 +986,7 @@
 !     Currently used for 2-d problems.
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'ESOLV'
@@ -1032,7 +1032,7 @@
 !     input.  Paul F. Fischer
 
 !     include 'basics.inc'
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'WZ'
     include 'TOPOL'
@@ -1238,7 +1238,7 @@
 !-----------------------------------------------------------------------
     subroutine linquad(xl,yl,zl,nxl,nyl,nzl)
 
-    include 'SIZE'
+    use size_m
     include 'WZ'
     include 'GEOM'
     include 'TOPOL'
@@ -1273,7 +1273,7 @@
     subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
 !     Generate bi- or trilinear mesh
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: xl(nxl,nyl,nzl),yl(nxl,nyl,nzl),zl(nxl,nyl,nzl)
@@ -1338,7 +1338,7 @@
     subroutine xyzquad(xl,yl,zl,nxl,nyl,nzl,e)
 !     Generate bi- or trilinear mesh
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: xl(nxl,nyl,nzl),yl(nxl,nyl,nzl),zl(nxl,nyl,nzl)

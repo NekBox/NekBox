@@ -34,6 +34,7 @@ PPS_C = $(patsubst %,-D%,$(PPS))
 
 # CORE##########################################################################
 CORE = \
+ctimer_mod.o size_mod.o \
 drive.o drive1.o drive2.o \
 plan4.o bdry.o coef.o conduct.o connect1.o connect2.o \
 dssum.o edgec.o eigsolv.o genxyz.o navier1.o  \
@@ -184,6 +185,8 @@ endif
 $(NOBJS_F) : SIZE
 
 # NEK CORE     ##################################################################
+$(OBJDIR)/ctimer_mod.o	:$S/ctimer_mod.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/size_mod.o	:size_mod.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/drive.o	:$S/drive.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/drive2.o	:$S/drive2.F90;			$(F77) -c $(FL2) $< -o $@
@@ -246,6 +249,8 @@ $(OBJDIR)/math.o	:$S/math.F90;			$(F77) -c $(FL4) $< -o $@
 $(OBJDIR)/multimesh.o	:$S/multimesh.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/singlmesh.o	:$S/singlmesh.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/lb_setqvol.o	:$S/lb_setqvol.F90;		$(F77) -c $(FL2) $< -o $@
+.F90.o:
+	$(F77) -c $(FL2) $*.F90
 
 # MXM       ############################################################################
 $(OBJDIR)/mxm_wrapper.o	  :$S/mxm_wrapper.F90;		$(F77) -c $(FL2) $< -o $@ 

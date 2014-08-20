@@ -5,7 +5,7 @@
 !     Given global array, vertex, pointing to hex vertices, set up
 !     a new array of global pointers for an nx^ndim set of elements.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     integer*8 :: glo_num(1),ngv
@@ -36,7 +36,7 @@
 
 !     Given an input vector v, this generates the H1 coarse-grid solution
 
-    include 'SIZE'
+    use size_m
     include 'DOMAIN'
     include 'ESOLV'
     include 'GEOM'
@@ -58,7 +58,7 @@
 
 !-----------------------------------------------------------------------
 !      subroutine test_h1_crs
-!      include 'SIZE'
+!      use size_m
 !      include 'DOMAIN'
 !      common /scrxxt/ x(lcr*lelv),b(lcr*lelv)
 !      common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
@@ -82,7 +82,7 @@
 
     subroutine set_up_h1_crs
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'DOMAIN'
     include 'INPUT'
@@ -492,7 +492,7 @@
 
 !     This routine generates Nelv submatrices of order nxc^ndim.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'TSTEP'
@@ -551,7 +551,7 @@
 
 
 
-    include 'SIZE'
+    use size_m
 
     real :: a(1),h1(1),h2(1)
     real :: x1(nxc,nxc,1),y1(nxc,nxc,1),z1(nxc,nxc,1)
@@ -808,7 +808,7 @@
 
     subroutine a_crs_2d(a,h1,h2,x,y,ie)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'TSTEP'
@@ -1046,7 +1046,7 @@
 !     Assign the value VAL to face(IFACE,IE) of array A.
 !     IFACE is the input in the pre-processor ordering scheme.
 
-    include 'SIZE'
+    use size_m
     integer :: a(nx,ny,nz,lelt),val
     call facind (kx1,kx2,ky1,ky2,kz1,kz2,nx,ny,nz,iface)
     do 100 iz=kz1,kz2
@@ -1062,7 +1062,7 @@
 
 !     H1 Iterpolation operator:  linear --> spectral GLL mesh
 
-    include 'SIZE'
+    use size_m
     include 'DOMAIN'
     include 'INPUT'
 
@@ -1086,7 +1086,7 @@
 !     TRANSPOSE of L2 Iterpolation operator:                    T
 !                                 (linear --> spectral GLL mesh)
 
-    include 'SIZE'
+    use size_m
     include 'DOMAIN'
     include 'INPUT'
 
@@ -1261,7 +1261,7 @@
 
     subroutine out_se1(se2crs,nx,name)
 
-    include 'SIZE'
+    use size_m
     integer :: se2crs(nx,nx,1)
     character(4) :: name
 
@@ -1291,7 +1291,7 @@
 
     subroutine out_se0(se2crs,nx,nel,name)
 
-    include 'SIZE'
+    use size_m
     integer :: se2crs(nx,nx,1)
     character(4) :: name
 
@@ -1323,13 +1323,13 @@
 
 !     Given an input vector v, this generates the H1 coarse-grid solution
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'DOMAIN'
     include 'INPUT'
     include 'GEOM'
     include 'SOLN'
     include 'PARALLEL'
-    include 'CTIMER'
     include 'TSTEP'
 
     real :: uf(1),vf(1)
@@ -1370,7 +1370,7 @@
 !-----------------------------------------------------------------------
     subroutine set_h1_basis_bilin
 
-    include 'SIZE'
+    use size_m
     include 'DOMAIN'
     include 'WZ'
 
@@ -1389,7 +1389,7 @@
 
 !     H1 Iterpolation operator:  linear --> spectral GLL mesh
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'DOMAIN'
 
@@ -1439,7 +1439,7 @@
 !     TRANSPOSE of H1 Iterpolation operator:                    T
 !                                 (linear --> spectral GLL mesh)
 
-    include 'SIZE'
+    use size_m
     include 'DOMAIN'
     include 'INPUT'
 
@@ -1482,7 +1482,7 @@
 !     This routine generates Nelv submatrices of order ncl using
 !     Galerkin projection
 
-    include 'SIZE'
+    use size_m
 
     real ::    a(ncl,ncl,1),h1(1),h2(1)
     real ::    w1(nx1*ny1*nz1,nelv),w2(nx1*ny1*nz1,nelv)
@@ -1520,7 +1520,7 @@
 !-----------------------------------------------------------------------
     subroutine gen_crs_basis(b,j) ! bi- tri-linear
 
-    include 'SIZE'
+    use size_m
     real :: b(nx1,ny1,nz1)
 
     real :: z0(lx1),z1(lx1)
@@ -1564,7 +1564,7 @@
 !-----------------------------------------------------------------------
     subroutine gen_crs_basis2(b,j) ! bi- tri-quadratic
 
-    include 'SIZE'
+    use size_m
     real :: b(nx1,ny1,nz1)
 
     real :: z0(lx1),z1(lx1),z2(lx1)
@@ -1608,7 +1608,7 @@
     end subroutine gen_crs_basis2
 !-----------------------------------------------------------------------
     subroutine get_vertex
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -1717,7 +1717,7 @@
     end subroutine assign_gllnid
 !-----------------------------------------------------------------------
     subroutine get_vert
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -1746,7 +1746,7 @@
     end subroutine get_vert
 !-----------------------------------------------------------------------
     subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     logical :: ifgfdm
@@ -2002,8 +2002,8 @@
 !     than 2**31 (integer-4 limit).
 !     if nelgt < 2**31/12 we're ok for sure (independent of N)!
 
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
     include 'PARALLEL'
     include 'TOPOL'
     include 'GEOM'
@@ -2357,8 +2357,8 @@
 
 !     setup unique ids for dssum
 
-    include 'SIZE'
-    include 'CTIMER'
+    use ctimer
+    use size_m
     include 'PARALLEL'
     include 'TOPOL'
     include 'GEOM'
@@ -2567,7 +2567,7 @@
 !-----------------------------------------------------------------------
     subroutine check_p_bc(glo_num,nx,ny,nz,nel)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer*8 :: glo_num(nx,ny,nz,nel)

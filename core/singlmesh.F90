@@ -1,9 +1,9 @@
 !-----------------------------------------------------------------------
     subroutine get_session_info(intracomm)
-    include 'mpif.h'
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'INPUT'
+    include 'mpif.h'
 
 !     Find out the session name:
 

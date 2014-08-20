@@ -6,7 +6,7 @@
 !     Operator splitting technique.
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'EIGEN'
     include 'SOLN'
@@ -65,7 +65,7 @@
 !     Keep old pressure values
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
 
@@ -84,7 +84,7 @@
 !     Compute startresidual/right-hand-side in the velocity solver
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     REAL ::           RESV1 (LX1,LY1,LZ1,1)
     REAL ::           RESV2 (LX1,LY1,LZ1,1)
@@ -118,7 +118,7 @@
 !     Pressure extrapolation
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
     COMMON /CTMP0/ DPR (LX2,LY2,LZ2,LELV)
@@ -147,7 +147,7 @@
 
 !     OT = (H1*A+H2*B)-1 * IN  (implicit)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'ORTHOV'
     include 'TSTEP'
@@ -186,7 +186,7 @@
     end subroutine ophinvpr
 !-----------------------------------------------------------------------
     subroutine hmzpf2(nm,u,rhs,h1,h2,mask,mult,imsh,tol,mxit,isd)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     character(4) :: nm
@@ -219,7 +219,7 @@
 !     Orthogonalize the rhs wrt previous rhs's for which we already
 !     know the soln.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -329,7 +329,7 @@
 !     Reconstruct the solution to the original problem by adding back
 !     the previous solutions
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -359,7 +359,7 @@
 !        . Other schemes are possible, e.g., let's save a bunch of
 !          old vectors, perhaps chosen wisely via P.O.D.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -393,7 +393,7 @@
 
 !     Orthonormalize the last saved vector against vector set
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -438,7 +438,7 @@
 
 !     Update rhs's if A-matrix has changed
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'ORTHOV'

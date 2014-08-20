@@ -12,7 +12,7 @@
 !     where rho*cp*DT/Dt represents the RHS of the
 !     energy equation expressed in terms of temperature.
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     COMMON /SCRNS/ w1(LX1,LY1,LZ1,LELT) &

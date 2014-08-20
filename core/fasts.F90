@@ -14,13 +14,13 @@
 
 !     The local solves are performed with the fast diagonalization method.
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'DOMAIN'
     include 'PARALLEL'
 
     include 'TSTEP'
-    include 'CTIMER'
 
     real :: u(lx2,ly2,lz2,lelv),v(lx2,ly2,lz2,lelv)
     common /scrpre/ v1(lx1,ly1,lz1,lelv) &
@@ -97,7 +97,7 @@
 
 !     Fast diagonalization solver for FEM on mesh 1
 
-    include 'SIZE'
+    use size_m
     parameter (lxx=lx1*lx1,lxyz=lx1*ly1*lz1)
 
     real :: r(1),df(1),sr(lxx,2),ss(lxx,2),st(lxx,2),w1(1),w2(1)
@@ -130,7 +130,7 @@
 !     -  scratch arrays: w(nu*nu*nv)
 
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: v(nv,nv,nv),u(nu,nu,nu)
     real :: A(1),Bt(1),Ct(1)
@@ -165,7 +165,7 @@
 
 !     Scale face and add to interior of element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: x(nx1,ny1,nz1,1)
 
@@ -212,7 +212,7 @@
     subroutine dface_ext(x)
 !     Extend interior to face of element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: x(nx1,ny1,nz1,1)
 
@@ -260,7 +260,7 @@
     subroutine dface_add1si(x,c)
 !     Scale interior and add to face of element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: x(nx1,ny1,nz1,1)
 
@@ -310,7 +310,7 @@
 #if 0
     subroutine init_weight_op
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
     parameter(levb=lelv+lbelv)
@@ -404,7 +404,7 @@
 #endif
 !-----------------------------------------------------------------------
     subroutine do_weight_op(x)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
     parameter(levb=lelv+lbelv)

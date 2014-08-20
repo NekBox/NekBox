@@ -1,6 +1,6 @@
 !---------------------------------------------------------------------
     subroutine iniproc(intracomm)
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'mpif.h'
 
@@ -95,7 +95,7 @@
 
 !     Global vector commutative operation
 
-    include 'CTIMER'
+    use ctimer
 
     include 'mpif.h'
     common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
@@ -285,7 +285,7 @@
 
 !     Broadcast logical variable to all processors.
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'mpif.h'
 
@@ -384,12 +384,13 @@
     end subroutine nekgsync
 !-----------------------------------------------------------------------
     subroutine exittr(stringi,rdata,idata)
+    use ctimer
+    use size_m
+    include 'TOTAL'
+
     character(1) :: stringi(132)
     character(1) :: stringo(132)
     character(25) :: s25
-    include 'SIZE'
-    include 'TOTAL'
-    include 'CTIMER'
 
     call blank(stringo,132)
     call chcopy(stringo,stringi,132)
@@ -407,12 +408,13 @@
     end subroutine exittr
 !-----------------------------------------------------------------------
     subroutine exitti(stringi,idata)
+    use ctimer
+    use size_m
+    include 'TOTAL'
+
     character(1) :: stringi(132)
     character(1) :: stringo(132)
     character(11) :: s11
-    include 'SIZE'
-    include 'TOTAL'
-    include 'CTIMER'
 
     call blank(stringo,132)
     call chcopy(stringo,stringi,132)
@@ -430,12 +432,12 @@
     end subroutine exitti
 !-----------------------------------------------------------------------
     subroutine err_chk(ierr,string)
+    use size_m
+!     include 'TOTAL'
+!     use ctimer
     character(1) :: string(132)
     character(1) :: ostring(132)
     character(10) :: s10
-    include 'SIZE'
-!     include 'TOTAL'
-!     include 'CTIMER'
 
     ierr = iglsum(ierr,1)
     if(ierr == 0) return
@@ -458,9 +460,9 @@
 
 !-----------------------------------------------------------------------
     subroutine exitt0
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
     include 'mpif.h'
 
     real*4 :: papi_mflops
@@ -483,9 +485,9 @@
     end subroutine exitt0
 !-----------------------------------------------------------------------
     subroutine exitt
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
     include 'mpif.h'
     common /happycallflag/ icall
 
@@ -574,7 +576,7 @@
 !-----------------------------------------------------------------------
     subroutine platform_timer(ivb) ! mxm, ping-pong, and all_reduce timer
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 
@@ -591,7 +593,7 @@
 ! ivb = 1 --> fully verbose
 ! ivb = 2 --> smaller sample set(shorter)
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
 
     call gop_test(ivb)   ! added, Jan. 8, 2008
@@ -614,7 +616,7 @@
 !-----------------------------------------------------------------------
     subroutine pingpong(alphas,betas,nodea,nodeb,dt,io,ivb)
 
-    include 'SIZE'
+    use size_m
     common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
 
     parameter  (lt=lx1*ly1*lz1*lelt)
@@ -689,7 +691,7 @@
 !-----------------------------------------------------------------------
     subroutine pingpongo(alphas,betas,nodea,nodeb,dt,io,ivb)
 
-    include 'SIZE'
+    use size_m
     common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
 
     parameter  (lt=lx1*ly1*lz1*lelt)
@@ -785,7 +787,7 @@
     end subroutine pingpongo
 !-----------------------------------------------------------------------
     subroutine get_msg_vol(msg_vol,dt,nodea,nodeb)
-    include 'SIZE'
+    use size_m
     common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
     parameter (lt=lx1*ly1*lz1*lelt)
     common /scrns/ x(3*lt),y(3*lt)
@@ -841,7 +843,7 @@
     end subroutine get_msg_vol
 !-----------------------------------------------------------------------
     subroutine gop_test(ivb)
-    include 'SIZE'
+    use size_m
     common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
     include 'mpif.h'
     integer :: status(mpi_status_size)
@@ -906,7 +908,7 @@
 !-----------------------------------------------------------------------
     subroutine gp2_test(ivb)
 
-    include 'SIZE'
+    use size_m
     include 'mpif.h'
 
     common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal

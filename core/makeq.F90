@@ -4,7 +4,7 @@
 !     Generate forcing function for the solution of a passive scalar.
 !     !! NOTE: Do not change the content of the array BQ until the current
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     logical ::  if_conv_std

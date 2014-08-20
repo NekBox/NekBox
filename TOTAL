@@ -1,8 +1,8 @@
   use dealias
-    include 'DXYZ'
-    include 'EIGEN'
-    include 'ESOLV'
-    include 'GEOM'
+  use dxyz
+  use eigen
+  use esolv
+  use geom
     include 'INPUT'
     include 'IXYZ'
     include 'MASS'

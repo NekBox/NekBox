@@ -7,9 +7,9 @@
 !     Helmholtz equations
 
     use size_m
+    use domain
+    use fdmh1
     include 'TOTAL'
-    include 'DOMAIN'
-    include 'FDMH1'
 
     common /screv/  dpc(lx1*ly1*lz1*lelt) &
     ,          p1 (lx1*ly1*lz1*lelt)
@@ -384,9 +384,9 @@
 
 !-------------------------------------------------------------------
     use size_m
+    use eigen
     include 'INPUT'
     include 'MASS'
-    include 'EIGEN'
 
     REAL :: RES  (LX1,LY1,LZ1,1)
     REAL :: W1   (LX1,LY1,LZ1,1)
@@ -451,7 +451,7 @@
 
 !--------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'MVGEOM'
     include 'MASS'
     include 'INPUT'
@@ -650,9 +650,9 @@
     subroutine cumax (v1,v2,v3,umax)
 
     use size_m
-    include 'WZ'
-    include 'GEOM'
+    use geom
     include 'INPUT'
+    include 'WZ'
 
     common /scrns/ xrm1 (lx1,ly1,lz1,lelv) &
     ,             xsm1 (lx1,ly1,lz1,lelv) &
@@ -767,9 +767,9 @@
     subroutine setdtfs (dtfs)
 
     use size_m
+    use geom
     include 'INPUT'
     include 'SOLN'
-    include 'GEOM'
     include 'TSTEP'
     common /ctmp0/  stc(lx1,ly1,lz1),sigst(lx1,ly1),dtst(lx1,ly1)
     character cb*3,cb2*2
@@ -840,8 +840,8 @@
     subroutine cdxmin2 (dtst,rhosig,iel,ifc,ifaxis)
 
     use size_m
-    include 'GEOM'
-    include 'DXYZ'
+    use dxyz
+    use geom
     common /delrst/ drst(lx1),drsti(lx1)
     common /ctmp0/  xfm1(lx1),yfm1(lx1),t1xf(lx1),t1yf(lx1)
     DIMENSION DTST(LX1,1)
@@ -886,8 +886,8 @@
     subroutine cdxmin3 (dtst,rhosig,iel,ifc)
 
     use size_m
-    include 'GEOM'
-    include 'DXYZ'
+    use dxyz
+    use geom
     common /delrst/ drst(lx1),drsti(lx1)
     common /ctmp0/  xfm1(lx1,ly1),yfm1(lx1,ly1),zfm1(lx1,ly1)
     common /ctmp1/  drm1(lx1,lx1),drtm1(lx1,ly1) &
@@ -966,7 +966,7 @@
 !         IFACE  is the dssum notation.
 !------------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'TOPOL'
     REAL :: A(LX1,LY1,LZ1,1)
 
@@ -1430,9 +1430,9 @@
 
 !-------------------------------------------------------------------
     use size_m
+    use eigen
     include 'INPUT'
     include 'MASS'
-    include 'EIGEN'
     common /cprint/ ifprint
     logical ::         ifprint
     common /ctmp0/ wa (lx1,ly1,lz1,lelt)
@@ -1512,8 +1512,8 @@
 
 !-----------------------------------------------------------------------
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'MASS'
     include 'TSTEP'
     common /fastmd/ ifdfrm(lelt), iffast(lelt), ifh2, ifsolv
@@ -1580,8 +1580,8 @@
 !     CAUTION : Stresses and strainrates share the same scratch commons
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'TSTEP'
 
     common /ctmp0/ exz(lx1*ly1*lz1*lelt) &
@@ -1715,7 +1715,7 @@
     subroutine uxyz (u,ex,ey,ez,nel)
 
     use size_m
-    include 'GEOM'
+    use geom
     common /scrsf/ ur(lx1,ly1,lz1,lelt) &
     , us(lx1,ly1,lz1,lelt) &
     , ut(lx1,ly1,lz1,lelt)
@@ -1747,7 +1747,7 @@
     subroutine urst (u,ur,us,ut,nel)
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
 
     DIMENSION U (LX1,LY1,LZ1,1) &
@@ -1766,7 +1766,7 @@
     subroutine ddrst (u,ur,us,ut)
 
     use size_m
-    include 'DXYZ'
+    use dxyz
 
     DIMENSION U (LX1,LY1,LZ1) &
     , UR(LX1,LY1,LZ1) &
@@ -1791,7 +1791,7 @@
     subroutine axiezz (u2,eyy,ezz,nel)
 
     use size_m
-    include 'GEOM'
+    use geom
 
     DIMENSION U2 (LX1,LY1,LZ1,1) &
     , EYY(LX1,LY1,LZ1,1) &
@@ -1831,7 +1831,7 @@
 
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'TOPOL'
     real :: x(lx1,ly1,lz1,1)
     integer :: e,f,fd
@@ -1899,11 +1899,11 @@
 !-----------------------------------------------------------------------
     subroutine fdm_h1a(z,r,d,nel,kt,rr)
     use size_m
+    use fdmh1
     include 'TOTAL'
 
     common /ctmp0/ w(lx1,ly1,lz1)
 
-    include 'FDMH1'
 
 !     Overlapping Schwarz, FDM based
 
@@ -2129,13 +2129,13 @@
 !-----------------------------------------------------------------------
     subroutine crs_strs(u1,u2,u3,v1,v2,v3)
 !     Given an input vector v, this generates the H1 coarse-grid solution
+    use ctimer
     use size_m
-    include 'DOMAIN'
+    use domain
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'PARALLEL'
-    use ctimer
     include 'TSTEP'
 
     real :: u1(1),u2(1),u3(1),v1(1),v2(1),v3(1)
@@ -2219,8 +2219,8 @@
     subroutine set_up_h1_crs_strs(h1,h2,ifld,matmod)
 
     use size_m
-    include 'GEOM'
-    include 'DOMAIN'
+    use geom
+    use domain
     include 'INPUT'
     include 'PARALLEL'
     include 'TSTEP'
@@ -2472,8 +2472,8 @@
     subroutine ttxyz (ff,tx,ty,tz,nel)
 
     use size_m
-    include 'DXYZ'
-    include 'GEOM'
+    use dxyz
+    use geom
     include 'INPUT'
     include 'TSTEP'
     include 'WZ'
@@ -2544,7 +2544,7 @@
     subroutine ttrst (ff,fr,fs,ft,ta)
 
     use size_m
-    include 'DXYZ'
+    use dxyz
     include 'TSTEP'
 
     DIMENSION FF(LX1,LY1,LZ1) &
@@ -2576,8 +2576,8 @@
     subroutine axitzz (vfy,tzz,nel)
 
     use size_m
-    include 'DXYZ'
-    include 'GEOM'
+    use dxyz
+    use geom
     include 'WZ'
     common /ctmp0/ phi(lx1,ly1)
 
@@ -2608,7 +2608,7 @@
     subroutine setaxdy (ifaxdy)
 
     use size_m
-    include 'DXYZ'
+    use dxyz
 
     LOGICAL :: IFAXDY
 

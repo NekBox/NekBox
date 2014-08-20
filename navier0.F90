@@ -6,7 +6,7 @@
 !--------------------------------------------------------------------
     use ctimer
     use size_m
-    INCLUDE 'ESOLV'
+    use esolv
     INCLUDE 'INPUT'
 
     REAL :: RES   (LX2,LY2,LZ2,LELV)
@@ -87,9 +87,9 @@
 
 !-----------------------------------------------------------------------------
     use size_m
+    use esolv
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
-    INCLUDE 'ESOLV'
     COMMON /SCRHI/  H2INV (LX1,LY1,LZ1,LELV)
     LOGICAL :: IFNEWP
 

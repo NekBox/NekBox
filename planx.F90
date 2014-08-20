@@ -8,7 +8,7 @@
 !-----------------------------------------------------------------------
     use size_m
     include 'INPUT'
-    include 'EIGEN'
+    use eigen
     include 'SOLN'
     include 'TSTEP'
 

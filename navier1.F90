@@ -7,7 +7,7 @@
 !-------------------------------------------------------------------------
     use size_m
     include 'INPUT'
-    include 'EIGEN'
+    use eigen
     include 'SOLN'
     include 'TSTEP'
 
@@ -128,7 +128,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'SOLN'
     REAL ::           RESV1 (LX1,LY1,LZ1,1)
     REAL ::           RESV2 (LX1,LY1,LZ1,1)
@@ -240,7 +240,7 @@
 !     to (1,1,...,1)T  (only if all Dirichlet b.c.).
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'PARALLEL'
     include 'SOLN'
@@ -317,7 +317,7 @@
 
 !---------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
 
     REAL :: OUT1 (LX2,LY2,LZ2,1)
@@ -349,13 +349,13 @@
 !-------------------------------------------------------------
     use ctimer
     use size_m
-    include 'WZ'
-    include 'DXYZ'
-    include 'IXYZ'
-    include 'GEOM'
-    include 'MASS'
+    use dxyz
+    use esolv
+    use geom
     include 'INPUT'
-    include 'ESOLV'
+    include 'IXYZ'
+    include 'MASS'
+    include 'WZ'
 
     real :: dtx  (lx1*ly1*lz1,lelv)
     real :: x    (lx2*ly2*lz2,lelv)
@@ -565,13 +565,13 @@
 !---------------------------------------------------------------------
     use ctimer
     use size_m
-    include 'WZ'
-    include 'DXYZ'
-    include 'IXYZ'
-    include 'GEOM'
-    include 'MASS'
+    use dxyz
+    use esolv
+    use geom
     include 'INPUT'
-    include 'ESOLV'
+    include 'IXYZ'
+    include 'MASS'
+    include 'WZ'
 
     real ::           dx   (lx2*ly2*lz2,lelv)
     real ::           x    (lx1*ly1*lz1,lelv)
@@ -990,7 +990,7 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'MASS'
     include 'TSTEP'
@@ -1066,11 +1066,11 @@
 
 !----------------------------------------------------------------
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
-    include 'SOLN'
     include 'MASS'
     include 'PARALLEL'
+    include 'SOLN'
     include 'TSTEP'
     REAL ::           Z2   (LX2,LY2,LZ2,LELV)
     REAL ::           R2   (LX2,LY2,LZ2,LELV)
@@ -1192,7 +1192,7 @@
 
 !-------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'MASS'
     include 'TSTEP'
@@ -1263,8 +1263,8 @@
 
 !--------------------------------------------------------------
     use size_m
-    include 'DXYZ'
-    include 'GEOM'
+    use dxyz
+    use geom
     include 'INPUT'
     include 'TSTEP'
 
@@ -1720,10 +1720,10 @@
 !     Add contributions to F from lagged BD terms.
 
     use size_m
-    include 'SOLN'
-    include 'MASS'
-    include 'GEOM'
+    use geom
     include 'INPUT'
+    include 'MASS'
+    include 'SOLN'
     include 'TSTEP'
 
     COMMON /SCRNS/ TA1(LX1,LY1,LZ1,LELV) &
@@ -2398,8 +2398,8 @@
 
 !---------------------------------------------------------------------
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'TSTEP'
     REAL ::           HV1MSK (LX1,LY1,LZ1,1)
@@ -2923,7 +2923,7 @@
     subroutine rotate_cyc(r1,r2,r3,idir)
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'PARALLEL'
     include 'TSTEP'
@@ -3011,10 +3011,10 @@
     subroutine opdssum (a,b,c)! NOTE: opdssum works on FLUID/MHD arrays only!
 
     use size_m
+    use geom
     include 'INPUT'
     include 'PARALLEL'
     include 'TSTEP'
-    include 'GEOM'
 
     real :: a(1),b(1),c(1)
 
@@ -3032,10 +3032,11 @@
     subroutine opdsop (a,b,c,op)! opdsop works on FLUID/MHD arrays only!
 
     use size_m
+    use geom
+    use geom
     include 'INPUT'
     include 'PARALLEL'
     include 'TSTEP'
-    include 'GEOM'
 
     real :: a(1),b(1),c(1)
     character(3) :: op
@@ -3861,9 +3862,9 @@
     subroutine conv1(du,u)  ! used to be conv1n
 
     use size_m
-    include 'DXYZ'
+    use dxyz
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'TSTEP'
 
@@ -3939,9 +3940,9 @@
     subroutine conv1no(du,u)
 
     use size_m
-    include 'DXYZ'
+    use dxyz
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'TSTEP'
 
@@ -4017,9 +4018,9 @@
     subroutine conv1rk(du,dv,dw,u,v,w)
 
     use size_m
-    include 'DXYZ'
+    use dxyz
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'TSTEP'
 
@@ -4104,7 +4105,7 @@
 !     Compute convecting velocity field (linearization)
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -4171,9 +4172,9 @@
     subroutine frkconvv (du,dv,dw,u,v,w,mu)
 
     use size_m
-    include 'DXYZ'
+    use dxyz
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -4242,9 +4243,9 @@
     subroutine conv1rk2(du,dv,dw,u,v,w,cu,cv,cw,beta,wk)
 
     use size_m
-    include 'DXYZ'
+    use dxyz
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'TSTEP'
 
@@ -4360,9 +4361,9 @@
     subroutine frkconvv2(du,dv,dw,u,v,w,cu,cv,cw,beta,mu,wk)
 
     use size_m
-    include 'DXYZ'
+    use dxyz
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -4438,8 +4439,8 @@
 
 !---------------------------------------------------------------------
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'TSTEP'
     integer :: msk(0:1)
@@ -4636,7 +4637,7 @@
 
 !---------------------------------------------------------------------
     use size_m
-    include 'GEOM'
+    use geom
     real :: outfld (lx2,ly2,lz2,1)
     real :: inpx   (lx1,ly1,lz1,1)
     real :: inpy   (lx1,ly1,lz1,1)
@@ -4739,8 +4740,8 @@
 !     Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)
 
     use size_m
-    include 'DXYZ'
-    include 'GEOM'
+    use dxyz
+    use geom
     include 'INPUT'
     include 'TSTEP'
     include 'WZ'
@@ -4887,8 +4888,8 @@
 !     CAUTION : CB SCRNS is used for data change
 
     use size_m
+    use geom
     INCLUDE 'INPUT'
-    INCLUDE 'GEOM'
 
     COMMON /SCRNS/ EXZ(LX1,LY1,LZ1,LELT) &
     , EYZ(LX1,LY1,LZ1,LELT) &
@@ -5046,7 +5047,7 @@
 
 
     use size_m
-    include 'GEOM'    ! jacmi,rxm1, etc.
+    use geom    ! jacmi,rxm1, etc.
     include 'INPUT'   ! if3d
     include 'MASS'    ! bm1
     include 'SOLN'    ! vtrans,vdiff,nu_star
@@ -5127,7 +5128,7 @@
 
 
     use size_m
-    include 'GEOM'    ! jacmi,rxm1, etc.
+    use geom    ! jacmi,rxm1, etc.
     include 'INPUT'   ! if3d
     include 'MASS'    ! bm1
     include 'SOLN'    ! vtrans,vdiff,nu_star
@@ -5186,7 +5187,7 @@
 
 
     use size_m
-    include 'DXYZ'
+    use dxyz
 
     real ::    u(1),ur(1),us(1),ut(1)
     logical :: if3d
@@ -5212,7 +5213,7 @@
     subroutine gradl_rst(ur,us,ut,u,md,if3d)  ! GLL-based gradient
 
     use size_m
-    include 'DXYZ'
+    use dxyz
 
     real ::    ur(1),us(1),ut(1),u(1)
     logical :: if3d

@@ -1542,8 +1542,8 @@
     subroutine swap_lengths
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'WZ'
     common /swaplengths/ l(lx1,ly1,lz1,lelv)
     common /ctmpf/  lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &

@@ -4,7 +4,7 @@
 !     needs to be compiled in a separate file.  Therefore, do not
 !     include any other modules in this file.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
     DATA    IEDGFC /  5,7,9,11,  6,8,10,12, &
     &                   1,3,9,10,  2,4,11,12, &

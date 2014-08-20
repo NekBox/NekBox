@@ -149,9 +149,9 @@
 
 !------------------------------------------------------------------------
     use size_m
+    use dealias
     include 'INPUT'
     include 'GEOM'
-    include 'DEALIAS'
     include 'TSTEP'
 
 !     Enforce splitting/Uzawa according to the way the code was compiled
@@ -727,7 +727,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'DEALIAS'
+    use dealias
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -803,10 +803,10 @@
 !     (5) A passive scalar has its own multiplicity (B.C.).
 
     use size_m
+    use dealias
     include 'INPUT'
     include 'TSTEP'
     include 'TURBO'
-    include 'DEALIAS'
 
     real*8 :: ts, dnekclock
 

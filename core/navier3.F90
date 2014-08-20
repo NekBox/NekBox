@@ -8,7 +8,7 @@
 !     NOTE: SCRNS is used.
 
 !----------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'GEOM'
     INCLUDE 'SOLN'

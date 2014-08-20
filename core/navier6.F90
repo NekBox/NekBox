@@ -391,7 +391,7 @@
 !     Scale face(IFACE,IE) of array A by s.
 !     IFACE is the input in the pre-processor ordering scheme.
 
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION A(NX,NY,NZ,LELT)
     CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX,NY,NZ,IFACE)
     DO 100 IZ=KZ1,KZ2

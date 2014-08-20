@@ -8,8 +8,8 @@
 !           divergence and has to be provided
 !           by an external subroutine e.g qthermal
 
-    INCLUDE 'CTIMER'
-    INCLUDE 'SIZE'
+    use ctimer
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'GEOM'
     INCLUDE 'MASS'
@@ -142,7 +142,7 @@
 
 !     Compute start residual/right-hand-side in the pressure
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
     REAL ::           RESPR (LX2*LY2*LZ2*LELV)
@@ -262,7 +262,7 @@
 
 !     Compute the residual for the velocity
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
     real :: resv1(lx1,ly1,lz1,lelv) &
@@ -371,7 +371,7 @@
 
 !-----------------------------------------------------------------------
     subroutine opadd2cm (a1,a2,a3,b1,b2,b3,c)
-    INCLUDE 'SIZE'
+    use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1),C
     NTOT1=NX1*NY1*NZ1*NELV
     if (ndim == 3) then

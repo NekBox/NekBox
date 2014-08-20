@@ -11,7 +11,7 @@
 !     Estimate eigenvalues
 
 !-------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'EIGEN'
@@ -103,7 +103,7 @@
 !     Method : Power method/Inverse iteration & Rayleigh quotient wo shift
 
 !-------------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'EIGEN'
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
@@ -206,7 +206,7 @@
 !     Compute minimum eigenvalue, ALPHA, of the discrete Helmholtz operator
 
 !---------------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
 
@@ -261,7 +261,7 @@
 !     Compute maximum eigenvalue of the discrete Helmholtz operator
 
 !---------------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
 
@@ -316,7 +316,7 @@
 !     INLOC = -1  : D(A+B/DT)-1DT
 
 !----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
 
@@ -361,7 +361,7 @@
 !     INLOC = -1  : D(A+B/DT)-1DT
 
 !-------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
 
@@ -398,7 +398,7 @@
 !     Compute startvector for finding an eigenvalue on mesh 1.
 !     Normalization: XT*B*X = 1
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
 
     REAL :: X1   (LX1,LY1,LZ1,1)
@@ -431,7 +431,7 @@
 !     Compute startvector for finding an eigenvalue on mesh 2.
 
 !------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
 
     REAL :: X2 (LX2,LY2,LZ2,LELV)

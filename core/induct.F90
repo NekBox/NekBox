@@ -307,7 +307,7 @@
     ,             dv1   (lx1,ly1,lz1,lelv) &
     ,             dv2   (lx1,ly1,lz1,lelv) &
     ,             dv3   (lx1,ly1,lz1,lelv) &
-    ,             dp    (lx2,ly2,lz2,lelv)
+    ,             dpp    (lx2,ly2,lz2,lelv)
     common /scrvh/ h1    (lx1,ly1,lz1,lelv) &
     ,             h2    (lx1,ly1,lz1,lelv)
     common /scrhi/ h2inv (lx1,ly1,lz1,lelv)
@@ -334,27 +334,27 @@
     call copy    (h2,vtrans(1,1,1,1,ifield),ntot1)
     call invers2 (h2inv,h2,ntot1)
 
-    call opdiv   (dp,ux,uy,uz)
+    call opdiv   (dpp,ux,uy,uz)
 
     bdti = -bd(1)/dt
-    call cmult   (dp,bdti,ntot2)
+    call cmult   (dpp,bdti,ntot2)
 
-    call add2col2(dp,bm2,usrdiv,ntot2) ! User-defined divergence.
+    call add2col2(dpp,bm2,usrdiv,ntot2) ! User-defined divergence.
 
-    call ortho   (dp)
+    call ortho   (dpp)
 
     i = 1 + ifield/ifldmhd
-    if (ifprjp)   call setrhsp  (dp,h1,h2,h2inv,pset(1,i),nprv(i))
+    if (ifprjp)   call setrhsp  (dpp,h1,h2,h2inv,pset(1,i),nprv(i))
     scaledt = dt/bd(1)
     scaledi = 1./scaledt
-    call cmult(dp,scaledt,ntot2)        ! scale for tol
-    call esolver  (dp,h1,h2,h2inv,intype)
-    call cmult(dp,scaledi,ntot2)
-    if (ifprjp)   call gensolnp (dp,h1,h2,h2inv,pset(1,i),nprv(i))
+    call cmult(dpp,scaledt,ntot2)        ! scale for tol
+    call esolver  (dpp,h1,h2,h2inv,intype)
+    call cmult(dpp,scaledi,ntot2)
+    if (ifprjp)   call gensolnp (dpp,h1,h2,h2inv,pset(1,i),nprv(i))
 
-    call add2(up,dp,ntot2)
+    call add2(up,dpp,ntot2)
 
-    call opgradt  (w1 ,w2 ,w3 ,dp)
+    call opgradt  (w1 ,w2 ,w3 ,dpp)
     call opbinv   (dv1,dv2,dv3,w1 ,w2 ,w3 ,h2inv)
     dtb  = dt/bd(1)
     call opadd2cm (ux ,uy ,uz ,dv1,dv2,dv3, dtb )
@@ -370,7 +370,7 @@
 
 !     Pressure extrapolation
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
 
@@ -606,7 +606,7 @@
 
 
     use size_m
-    include 'DEALIAS'
+    use dealias
     include 'GEOM'
     include 'WZ'
 

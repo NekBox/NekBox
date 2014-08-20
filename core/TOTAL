@@ -1,6 +1,7 @@
+  use dealias
     include 'DXYZ'
-    include 'DEALIAS'
     include 'EIGEN'
+    include 'ESOLV'
     include 'GEOM'
     include 'INPUT'
     include 'IXYZ'
@@ -12,6 +13,5 @@
     include 'TOPOL'
     include 'TSTEP'
     include 'TURBO'
-    include 'ESOLV'
     include 'WZ'
     include 'WZF'

@@ -1149,7 +1149,7 @@
     end subroutine s_face_to_int2_g
 !-----------------------------------------------------------------------
     subroutine outfldr_g(x,txt10,nx,nz,ichk)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(nx,nx,nz,lelt)
     character(10) :: txt10
@@ -1212,7 +1212,7 @@
     end subroutine outfldr_g
 !-----------------------------------------------------------------------
     subroutine outfldi_g(x,txt10,nx,nz,ichk)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     integer :: x(nx,nx,nz,lelt)
     character(10) :: txt10

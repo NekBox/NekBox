@@ -8,6 +8,8 @@
 
     use ctimer
     use size_m
+    use dealias, only : init_dealias
+
     include 'TOTAL'
     include 'DOMAIN'
     include 'ZPER'
@@ -31,6 +33,8 @@
     call opcount(1)
 
 !     Initialize and set default values.
+    call init_dealias
+
     call initdim
     call initdat
     call files

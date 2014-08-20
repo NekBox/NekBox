@@ -243,7 +243,7 @@
 #if 0
     subroutine drag_calc(scale)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
     common /scrns/         pm1(lx1,ly1,lz1,lelv) &
@@ -506,7 +506,7 @@
 !-----------------------------------------------------------------------
     subroutine mappr(pm1,pm2,pa,pb)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
     real :: pm1(lx1,ly1,lz1,lelv),pm2(lx2,ly2,lz2,lelv) &
     ,pa (lx1,ly2,lz2)     ,pb (lx1,ly1,lz2)
@@ -606,7 +606,7 @@
 !         IFACE  is the dssum notation.
 !         5 Jan 1989 15:12:22      PFF
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
     DIMENSION A    (LX1,LY1,LZ1,lelv) &
     ,B    (lx1,lz1,6,lelv) &
@@ -1782,7 +1782,7 @@
 !-----------------------------------------------------------------------
     subroutine drgtrq(dgtq,xm0,ym0,zm0,sij,pm1,visc,f,e)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'TOPOL'
@@ -1922,7 +1922,7 @@
 !     scaled to any convenient non-dimensionalization.
 
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
     common /cvflow_r/ flow_rate,base_flow,domain_length,xsec &
@@ -3076,7 +3076,7 @@
 !     scaled to any convenient non-dimensionalization.
 
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
     real ::    strsmx(maxobj),x0(3),w1(0:maxobj)
@@ -3182,7 +3182,7 @@
 !-----------------------------------------------------------------------
     subroutine get_strsmax(strsmax,xm0,ym0,zm0,sij,pm1,visc,f,e)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'TOPOL'

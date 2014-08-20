@@ -1,6 +1,6 @@
     SUBROUTINE SETAXW1 (IFAXWG)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'WZ'
 
     LOGICAL :: IFAXWG
@@ -15,7 +15,7 @@
     END SUBROUTINE SETAXW1
     SUBROUTINE SETAXW2 (IFAXWG)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'WZ'
 
     LOGICAL :: IFAXWG
@@ -32,7 +32,7 @@
 
 !     Calculate 2nd and 3rd strain-rate invariants
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     common /screv/ ei2(lx1,ly1,lz1,lelt) &
@@ -76,7 +76,7 @@
     END SUBROUTINE STNRINV
     SUBROUTINE OPDOT (DP,A1,A2,A3,B1,B2,B3,N)
 
-    INCLUDE 'SIZE'
+    use size_m
 
     DIMENSION DP(LX1,LY1,LZ1,1) &
     , A1(LX1,LY1,LZ1,1) &
@@ -96,7 +96,7 @@
     END SUBROUTINE OPDOT
     SUBROUTINE OPADDS (A1,A2,A3,B1,B2,B3,CONST,N,ISC)
 
-    INCLUDE 'SIZE'
+    use size_m
 
     DIMENSION A1(LX1,LY1,LZ1,1) &
     , A2(LX1,LY1,LZ1,1) &
@@ -130,7 +130,7 @@
 !     IFACE1 is in the preprocessor notation
 !     IFACE  is the dssum notation.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
 
     DIMENSION A(LX1,LY1),B(LX1,LY1,LZ1)
@@ -174,7 +174,7 @@
 !     IFACE1 is in the preprocessor notation
 !     IFACE  is the dssum notation.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
 
     DIMENSION A1(LX1,LY1),A2(LX1,LY1),A3(LX1,LY1), &
@@ -219,7 +219,7 @@
 !     IFACE1 is in the preprocessor notation
 !     IFACE  is the dssum notation.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
 
     DIMENSION A1(LX1,LY1,LZ1),A2(LX1,LY1,LZ1),A3(LX1,LY1,LZ1), &
@@ -253,7 +253,7 @@
 !     Compute lagrest eigenvalue of coupled Helmholtz operator
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'EIGEN'
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
@@ -350,7 +350,7 @@
     END SUBROUTINE ADD3S
     SUBROUTINE EMERXIT
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     INCLUDE 'PARALLEL'
@@ -392,7 +392,7 @@
 !         IFACE1 is in the preprocessor notation
 !         IFACE  is the dssum notation.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
     DIMENSION A1(LX1,LY1,LZ1),A2(LX1,LY1,LZ1),A3(LX1,LY1,LZ1), &
     B(LX1,LY1)
@@ -435,7 +435,7 @@
 !     Normalization: XT*B*X = 1
 
 !------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     common /scrmg/ ae1(lx1,ly1,lz1,lelv) &
@@ -475,7 +475,7 @@
 
     SUBROUTINE SOLVEL
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -509,7 +509,7 @@
     END SUBROUTINE VSOLN
     SUBROUTINE SOLPRES
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -542,7 +542,7 @@
 !     Store the results
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
     LOGICAL :: IFPREL(LELT)
 
@@ -614,7 +614,7 @@
     END SUBROUTINE STORE
     SUBROUTINE PRINTEL (TA,A,IEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION TA(LX1,LY1,LZ1,LELT)
     CHARACTER A*10
 
@@ -635,7 +635,7 @@
 !     Store the results
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION TA(LX1,LY1,LZ1,LELT)
     CHARACTER A*10
 
@@ -653,7 +653,7 @@
     RETURN
     END SUBROUTINE PRINTV
     SUBROUTINE OUTF1 (X,TXT,IEL,IFC)
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION X(LX1,LZ1,6,LELT)
     CHARACTER(10) :: TXT
 
@@ -680,7 +680,7 @@
     RETURN
     END SUBROUTINE OUTF1
     SUBROUTINE OUTM1 (X,TXT,NP,IEL,IP)
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION X(LX1,LY1,LZ1,LELT)
     CHARACTER(10) :: TXT
 
@@ -707,7 +707,7 @@
     RETURN
     END SUBROUTINE OUTM1
     SUBROUTINE OUTM2 (X,TXT,NP,IEL,IP)
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION X(LX2,LY2,LZ2,LELV)
     CHARACTER(10) :: TXT
 
@@ -734,7 +734,7 @@
     END SUBROUTINE OUTM2
     SUBROUTINE STSMASK (C1MASK,C2MASK,C3MASK)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     include 'INPUT'
@@ -769,7 +769,7 @@
     END SUBROUTINE STSMASK
     SUBROUTINE UPDMSYS (IFLD)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     common /screv/ hfmask(lx1,lz1,6,lelt) &
@@ -785,7 +785,7 @@
     END SUBROUTINE UPDMSYS
     SUBROUTINE SETHMSK (HVMASK,HFMASK,IFLD,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
 
@@ -884,7 +884,7 @@
     END SUBROUTINE SETHMSK
     SUBROUTINE SKIPCNR (NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     common /indxfc/ mcrfc(4,6) &
@@ -931,7 +931,7 @@
     END SUBROUTINE SKIPCNR
     SUBROUTINE SETMASK (C1MASK,C2MASK,C3MASK,HVMASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
 
     DIMENSION HVMASK (LX1,LY1,LZ1,1) &
     , C1MASK(LX1,LY1,LZ1,1) &
@@ -960,7 +960,7 @@
     END SUBROUTINE SETMASK
     SUBROUTINE SETMLOG (HVMASK,HFMASK,IFLD,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
@@ -1059,7 +1059,7 @@
     END SUBROUTINE SETMLOG
     SUBROUTINE SETCSYS (HVMASK,HFMASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     DIMENSION HVMASK(LX1,LY1,LZ1,1) &
@@ -1090,7 +1090,7 @@
     END SUBROUTINE SETCSYS
     SUBROUTINE COMAVN2 (HVMASK,HFMASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
@@ -1154,7 +1154,7 @@
     END SUBROUTINE COMAVN2
     SUBROUTINE COMAVN3 (HVMASK,HFMASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     common /scrcg/  vnmag(lx1,ly1,lz1,lelt)
     common /indxfc/ mcrfc(4,6) &
@@ -1299,7 +1299,7 @@
     END SUBROUTINE COMAVN3
     SUBROUTINE FIXWMSK (W2MASK,W3MASK,HVMASK,HFMASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION HVMASK(LX1,LY1,LZ1,1) &
     , HFMASK(LX1,LZ1,6,1)
 
@@ -1319,7 +1319,7 @@
     END SUBROUTINE FIXWMSK
     SUBROUTINE FXWMS2 (W2MASK,HVMASK,HFMASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
@@ -1366,7 +1366,7 @@
     END SUBROUTINE FXWMS2
     SUBROUTINE FXWMS3 (W2MASK,W3MASK,HVMASK,HFMASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
@@ -1448,7 +1448,7 @@
     END SUBROUTINE FXWMS3
     SUBROUTINE SETCDAT
 
-    INCLUDE 'SIZE'
+    use size_m
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -1726,7 +1726,7 @@
     END SUBROUTINE SETCDAT
     SUBROUTINE EDGINDF (LF1,LF2,LFSKIP,ISD,IFCN)
 
-    INCLUDE 'SIZE'
+    use size_m
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -1751,7 +1751,7 @@
     END SUBROUTINE EDGINDF
     SUBROUTINE EDGINDV (LV1,LV2,LVSKIP,ISD)
 
-    INCLUDE 'SIZE'
+    use size_m
     common /indxfc/ mcrfc(4,6) &
     , mfccr(3,8) &
     , MEGCR(3,8) &
@@ -1785,7 +1785,7 @@
     END SUBROUTINE EDGINDV
     SUBROUTINE SETCDOF
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
 
     NFACE = 2*NDIM
@@ -1799,7 +1799,7 @@
     END SUBROUTINE SETCDOF
     SUBROUTINE AMASK (VB1,VB2,VB3,V1,V2,V3,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
@@ -1842,7 +1842,7 @@
     END SUBROUTINE AMASK
     SUBROUTINE RMASK (R1,R2,R3,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -1876,7 +1876,7 @@
     END SUBROUTINE RMASK
     SUBROUTINE QMASK (R1,R2,R3,R1MASK,R2MASK,R3MASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     common /ctmp1/ s1(lx1,ly1,lz1,lelt) &
@@ -1933,7 +1933,7 @@
     END SUBROUTINE QMASK
     SUBROUTINE FCMSK2 (R1,R2,S1,S2,R1MASK,R2MASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     DIMENSION R1(LX1,LY1,LZ1,1) &
@@ -1969,7 +1969,7 @@
     END SUBROUTINE FCMSK2
     SUBROUTINE FCMSK3 (R1,R2,R3,S1,S2,S3,R1MASK,R2MASK,R3MASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     DIMENSION R1(LX1,LY1,LZ1,1) &
@@ -2019,7 +2019,7 @@
     END SUBROUTINE FCMSK3
     SUBROUTINE EGMASK (R1,R2,R3,S1,S2,S3,R1MASK,R2MASK,R3MASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     DIMENSION R1(LX1,LY1,LZ1,1) &
@@ -2067,7 +2067,7 @@
     END SUBROUTINE EGMASK
     SUBROUTINE CRMSK2 (R1,R2,S1,S2,R1MASK,R2MASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     common /indxfc/ mcrfc(4,6) &
@@ -2112,7 +2112,7 @@
     END SUBROUTINE CRMSK2
     SUBROUTINE CRMSK3 (R1,R2,R3,S1,S2,S3,R1MASK,R2MASK,R3MASK,NEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TSTEP'
     common /indxfc/ mcrfc(4,6) &

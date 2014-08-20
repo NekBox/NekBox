@@ -86,7 +86,7 @@
             call h1mg_setup
 
         elseif ( .NOT. ifsplit) then ! Pn-Pn-2
-
+#if 0
             if (ipass > 1) ifield = ifldmhd
 
             if (param(44) == 1) then !  Set up local overlapping solves
@@ -103,6 +103,7 @@
 
             call init_weight_op
             if (param(43) == 0) call hsmg_setup
+#endif
         endif
 
         call set_up_h1_crs
@@ -147,6 +148,7 @@
     return
     end subroutine iunswap
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_fem_data_l2(nep,nd,no,x,y,z,p)
     include 'SIZE'
     include 'DOMAIN'
@@ -242,6 +244,7 @@
     ifield  = ifielt
     return
     end subroutine set_fem_data_l2
+#endif
 !-----------------------------------------------------------------------
     subroutine map_face12(x2,x1,w1,w2)
     include 'SIZE'

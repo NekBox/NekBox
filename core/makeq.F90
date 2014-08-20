@@ -30,9 +30,11 @@
             endif
         else
             if (ifmvbd) then       ! ifchar is false
+#if 0
                 call admesht
                 call makeabq
                 call makebdq
+#endif
             elseif (ifchar .AND. ifadvc(ifield)) then
                 call makeabq
                 call convch

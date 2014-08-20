@@ -245,6 +245,8 @@
 
     RETURN
     END SUBROUTINE FACSUB2
+
+#if 0
     SUBROUTINE GAMMASF (H1,H2)
 !-----------------------------------------------------------------------
 
@@ -329,6 +331,9 @@
     call exitt
 
     END SUBROUTINE GAMMASF
+#endif
+
+
     SUBROUTINE CMULT2 (A,B,CONST,N)
     DIMENSION A(1),B(1)
     DO 100 I=1,N

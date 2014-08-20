@@ -854,8 +854,10 @@
     IMESH = 1
 
     IF (IFSTRS) THEN
+#if 0
         MATMOD = 0
         CALL AXHMSF (OUT1,OUT2,OUT3,INP1,INP2,INP3,H1,H2,MATMOD)
+#endif
     ELSE
         CALL AXHELM (OUT1,INP1,H1,H2,IMESH,1)
         CALL AXHELM (OUT2,INP2,H1,H2,IMESH,2)
@@ -1313,6 +1315,7 @@
     return
     end subroutine dudxyz
 
+#if 0
     subroutine convopo (conv,fi)
 !--------------------------------------------------------------------
 
@@ -1389,6 +1392,7 @@
 
     return
     end subroutine convopo
+#endif
 !-----------------------------------------------------------------------
     subroutine conv2 (dtfi,fi)
 !--------------------------------------------------------------------
@@ -1535,10 +1539,10 @@
     include 'TSTEP'
 
     call makeuf
-    if (ifnatc)                               call natconv
-    if (ifexplvis .AND. ifsplit)                call explstrs
+!    if (ifnatc)                               call natconv
+!    if (ifexplvis .AND. ifsplit)                call explstrs
     if (ifnav .AND. ( .NOT. ifchar))              call advab
-    if (ifmvbd)                               call admeshv
+!    if (ifmvbd)                               call admeshv
     if (iftran)                               call makeabf
     if ((iftran .AND. .NOT. ifchar) .OR. &
     (iftran .AND. .NOT. ifnav .AND. ifchar))   call makebdf
@@ -1591,6 +1595,7 @@
     return
     end subroutine nekuf
 
+#if 0
     subroutine natconv
 !-----------------------------------------------------------------------
 
@@ -1622,6 +1627,7 @@
 
     return
     end subroutine natconv
+#endif
 
     subroutine settbar (tbar)
 !----------------------------------------------------------------
@@ -3758,7 +3764,7 @@
     CALL RZERO  (CONV,NTOTZ)
 
     if (param(86) /= 0.0) then  ! skew-symmetric form
-        call convopo(conv,fi)
+!max        call convopo(conv,fi)
         goto 100
     endif
 
@@ -3767,7 +3773,7 @@
 !     if (istep.gt.5) call exitti(' CONVOP dbg: $',ip99)
 
     if (param(99) == 2 .OR. param(99) == 3) then
-        call conv1d(conv,fi)  !    use dealiased form
+!max        call conv1d(conv,fi)  !    use dealiased form
     elseif (param(99) == 4) then
         if (ifpert) then
             call convect_new (conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
@@ -3776,10 +3782,10 @@
         endif
         call invcol2     (conv,bm1,ntot1)  ! local mass inverse
     elseif (param(99) == 5) then
-        call convect_cons(conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
+!max        call convect_cons(conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
         call invcol2     (conv,bm1,ntot1)  ! local mass inverse
     else
-        call conv1 (conv,fi)  !    use the convective form
+!max        call conv1 (conv,fi)  !    use the convective form
     endif
 
     100 continue
@@ -3791,6 +3797,7 @@
     return
     end subroutine convop
 !-----------------------------------------------------------------------
+#if 0
     subroutine conv1d (dfi,fi)
 !--------------------------------------------------------------------
 
@@ -3925,6 +3932,7 @@
 
     return
     end subroutine conv1
+#endif
 !-----------------------------------------------------------------------
     subroutine conv1no(du,u)
 
@@ -4953,6 +4961,7 @@
     return
     end subroutine wlaplacian
 !-----------------------------------------------------------------------
+#if 0
     subroutine explstrs ! Explicit stress tensor w/ variable viscosity
 
     include 'SIZE'
@@ -4979,6 +4988,7 @@
 
     return
     end subroutine explstrs
+#endif
 !-----------------------------------------------------------------------
     subroutine expl_strs(w1,w2,w3,u1,u2,u3)
     include 'SIZE'

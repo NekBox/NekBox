@@ -1,4 +1,5 @@
 !-----------------------------------------------------------------------
+#if 0
     subroutine gen_fast(df,sr,ss,st,x,y,z)
 
 !     Generate fast diagonalization matrices for each element
@@ -138,6 +139,7 @@
 
     return
     end subroutine gen_fast
+#endif
 !-----------------------------------------------------------------------
     subroutine gen_fast_spacing(x,y,z)
 
@@ -819,7 +821,7 @@
         ied = eface(iface)
         ibc = -1
 
-        if (ifmhd) call mhd_bc_dn(ibc,iface,e) ! can be overwritten by 'mvn'
+!max        if (ifmhd) call mhd_bc_dn(ibc,iface,e) ! can be overwritten by 'mvn'
 
         if (cbc(ied,e,ifield) == '   ') ibc = 0
         if (cbc(ied,e,ifield) == 'E  ') ibc = 0
@@ -1622,6 +1624,7 @@
     return
     end subroutine row_zero
 !-----------------------------------------------------------------------
+#if 0
     subroutine mhd_bc_dn(ibc,face,e)
     integer ::                  face,e
 
@@ -1646,4 +1649,5 @@
 
     return
     end subroutine mhd_bc_dn
+#endif
 !-----------------------------------------------------------------------

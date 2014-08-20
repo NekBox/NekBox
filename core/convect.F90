@@ -761,6 +761,7 @@
     return
     end subroutine convect_new
 !-----------------------------------------------------------------------
+#if 0
     subroutine convect_cons(bdu,u,ifuf,cx,cy,cz,ifcf)
 
 !     Compute dealiased form:  J^T Bf *div. JC Ju w/ correct Jacobians
@@ -847,7 +848,6 @@
     return
     end subroutine convect_cons
 !-----------------------------------------------------------------------
-#if 0
     subroutine set_convect_cons(cx,cy,cz,ux,uy,uz)
 
 !     Put vx,vy,vz on fine mesh (for conservation form)

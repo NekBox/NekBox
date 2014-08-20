@@ -102,7 +102,7 @@
     enddo
 
 !     If any pre-solv, do pre-solv for all temperatur/passive scalar fields
-    if (ifanyp) call prsolvt
+!max    if (ifanyp) call prsolvt
 
     jp = 0 ! jp=0 --> base field, not perturbation field
     do 200 ifield=2,maxfld
@@ -234,15 +234,15 @@
 
     small=1.0E-20
     ifldsave = ifield
-    if (vxmax == 0.0) call perturb(vx,1,small)
-    if (vymax == 0.0) call perturb(vy,1,small)
-    if (vzmax == 0.0) call perturb(vz,1,small)
-    if (prmax == 0.0 .AND. ifsplit) call perturb(pr,1,small)
-    if (ttmax == 0.0) call perturb(t ,2,small)
+!    if (vxmax == 0.0) call perturb(vx,1,small)
+!    if (vymax == 0.0) call perturb(vy,1,small)
+!    if (vzmax == 0.0) call perturb(vz,1,small)
+!    if (prmax == 0.0 .AND. ifsplit) call perturb(pr,1,small)
+!    if (ttmax == 0.0) call perturb(t ,2,small)
 
     do i=1,npscal
         ntot = nxyz1*nelfld(i+2)
-        if(psmax(i) == 0) call perturb(t(1,1,1,1,1+i),i+2,small)
+!        if(psmax(i) == 0) call perturb(t(1,1,1,1,1+i),i+2,small)
     enddo
     ifield = ifldsave
         
@@ -1554,6 +1554,7 @@
     end subroutine chknorm
 
 !-----------------------------------------------------------------------
+#if 0
     subroutine prsolvt
 !----------------------------------------------------------------------
 
@@ -1599,7 +1600,7 @@
 
     return
     end subroutine prsolvt
-
+#endif
 !-----------------------------------------------------------------------
     subroutine prsolvv
 !----------------------------------------------------------------------
@@ -1829,6 +1830,7 @@
     return
     END FUNCTION IFGTIL
 !-----------------------------------------------------------------------
+#if 0
     subroutine perturb(tt,ifld,eps)
     include 'SIZE'
     include 'TOTAL'
@@ -1845,6 +1847,7 @@
 
     return
     end subroutine perturb
+#endif
 !-----------------------------------------------------------------------
     subroutine vcospf(x,y,n)
     real :: x(1),y(1)

@@ -1,3 +1,4 @@
+#if 0
 !-----------------------------------------------------------------------
     subroutine cggosf (u1,u2,u3,r1,r2,r3,h1,h2,rmult,binv, &
     vol,tin,maxit,matmod)
@@ -172,6 +173,7 @@
 
     return
     end subroutine cggosf
+#endif
 !-----------------------------------------------------------------------
     subroutine setdt
 
@@ -222,7 +224,7 @@
 
 !     Find DTFS based on surface tension (if applicable)
 
-    CALL SETDTFS (DTFS)
+!    CALL SETDTFS (DTFS)
 
 !     Select appropriate DT
 
@@ -761,6 +763,7 @@
     return
     end subroutine cumax
 
+#if 0
     subroutine setdtfs (dtfs)
 
     include 'SIZE'
@@ -832,6 +835,8 @@
 
     return
     end subroutine setdtfs
+#endif
+
     subroutine cdxmin2 (dtst,rhosig,iel,ifc,ifaxis)
 
     include 'SIZE'
@@ -1497,6 +1502,7 @@
     return
     end subroutine chktcgs
 !-----------------------------------------------------------------------
+#if 0
     subroutine axhmsf (au1,au2,au3,u1,u2,u3,h1,h2,matmod)
 
 !     Compute the coupled Helmholtz matrix-vector products
@@ -1565,6 +1571,7 @@
 
     return
     end subroutine axhmsf
+#endif
 !-----------------------------------------------------------------------
     subroutine stnrate (u1,u2,u3,nel,matmod)
 
@@ -2044,6 +2051,7 @@
     return
     end subroutine get_strs_mask
 !-----------------------------------------------------------------------
+#if 0
     subroutine axstrs(a1,a2,a3,p1,p2,p3,h1,h2,matmod,nel)
     real :: a1(1),a2(1),a3(1),p1(1),p2(1),p3(1)
 
@@ -2285,6 +2293,7 @@
 
     return
     end subroutine set_up_h1_crs_strs
+#endif
 !-----------------------------------------------------------------------
     subroutine axsf_e_3d(au,av,aw,u,v,w,h1,h2,ur,e)
 

@@ -164,7 +164,7 @@
                         read(9,*) string
                     endif
                     if (ifgtp) then
-                        call genbox
+!max                        call genbox
                     else
                         call rdmesh
                         call rdcurve !  Curved side data

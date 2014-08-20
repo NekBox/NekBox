@@ -3,7 +3,7 @@
 
 !     Generate boundary conditions (CBC arrays) for mesh solver
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'TSTEP'
@@ -82,7 +82,7 @@
 #if 0
     subroutine admeshv
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
 
@@ -111,7 +111,7 @@
 !-----------------------------------------------------------------------
     subroutine admesht
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
 
@@ -133,7 +133,7 @@
 !-----------------------------------------------------------------------
     subroutine divws (fms,sfv,phi,nel,idir)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'MASS'
     include 'MVGEOM'
@@ -181,7 +181,7 @@
 !-----------------------------------------------------------------------
     subroutine axifms (fms,sfv,phi,nel,idir)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'GEOM'
     include 'INPUT'
@@ -231,7 +231,7 @@
 !     Subroutine to update geometry for moving boundary problems
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
 
     IFIELD = 0
@@ -252,7 +252,7 @@
 
 !     Evaluate mesh velocities at all moving boundaries
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'MVGEOM'
@@ -498,7 +498,7 @@
     end subroutine mvbdry
 !-----------------------------------------------------------------------
     subroutine norcmp2(wvx,wvy,wvz,e,f)
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
 
@@ -534,7 +534,7 @@
 !-----------------------------------------------------------------------
     subroutine norcmp (wt1,wt2,wt3,rnx,rny,rnz,ifc)
 
-    include 'SIZE'
+    use size_m
     COMMON /SCRUZ/ R1(LX1,LY1,LZ1),R2(LX1,LY1,LZ1),R3(LX1,LY1,LZ1)
 
     DIMENSION WT1(LX1,LY1,LZ1),WT2(LX1,LY1,LZ1),WT3(LX1,LY1,LZ1) &
@@ -574,7 +574,7 @@
 !-----------------------------------------------------------------------
     subroutine facemv (wt1,wt2,wt3,rnx,rny,rnz,smt,ifc)
 
-    include 'SIZE'
+    use size_m
     COMMON /SCRUZ/ R1(LX1,LY1,LZ1),R2(LX1,LY1,LZ1),R3(LX1,LY1,LZ1)
 
     DIMENSION WT1(LX1,LY1,LZ1),WT2(LX1,LY1,LZ1),WT3(LX1,LY1,LZ1) &
@@ -615,7 +615,7 @@
 !-----------------------------------------------------------------------
     subroutine faczqn (wt1,wt2,wt3,ifc,iel)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'TOPOL'
     COMMON /SCRUZ/ R1(LX1,LY1,LZ1),R2(LX1,LY1,LZ1),R3(LX1,LY1,LZ1)
@@ -659,7 +659,7 @@
 !-----------------------------------------------------------------------
     subroutine facsmt (smt,ifc)
 
-    include 'SIZE'
+    use size_m
     DIMENSION SMT(LX1,LY1,LZ1)
 
     write(*,*) "Ooops: mvmesh"
@@ -676,7 +676,7 @@
 !-----------------------------------------------------------------------
     subroutine cqnet (qni,ta,nel)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -700,7 +700,7 @@
 !-----------------------------------------------------------------------
     subroutine facemt (w1,w2,w3,rnx,rny,rnz,qni,dsa,smt,rhola,ifc)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
 
     DIMENSION  W1 (LX1,LY1,LZ1) &
@@ -741,7 +741,7 @@
 
 !     Elastostatic solver for mesh deformation
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'MVGEOM'
@@ -843,7 +843,7 @@
 !-----------------------------------------------------------------------
     subroutine meshtol (ta,tolmsh,nel,imsolv)
 
-    include 'SIZE'
+    use size_m
     include 'EIGEN'
     include 'MVGEOM'
     include 'TSTEP'
@@ -875,7 +875,7 @@
 !-----------------------------------------------------------------------
     subroutine updxyz (nel)
 
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
     include 'MVGEOM'
     include 'GEOM'
@@ -919,7 +919,7 @@
 !     Keep old mesh velocity
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MVGEOM'
     include 'TSTEP'
@@ -946,7 +946,7 @@
 !     Copy the face (IFC) of B1,B2,B3 to A1,A2,A3.
 !     IFACE is the input in the pre-processor ordering scheme.
 
-    include 'SIZE'
+    use size_m
     DIMENSION A1(LX1,LY1,LZ1) &
     , A2(LX1,LY1,LZ1) &
     , A3(LX1,LY1,LZ1) &
@@ -975,7 +975,7 @@
 !     for moving boundary problems
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'MVGEOM'
     include 'SOLN'
@@ -1013,7 +1013,7 @@
 
 !     Routine to evaluate mesh velocities at all moving boundaries
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'PARALLEL'
@@ -1066,7 +1066,7 @@
 !-----------------------------------------------------------------------
     subroutine inigeom (ux,uy,uz,x,y,z,iside,iel)
 
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
 
     UX  =  0.0
@@ -1077,7 +1077,7 @@
     end subroutine inigeom
 !-----------------------------------------------------------------------
     subroutine quickmv
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -1090,7 +1090,7 @@
     end subroutine quickmv
 !-----------------------------------------------------------------------
     subroutine quickmv2d
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 
@@ -1157,7 +1157,7 @@
     end subroutine quickmv2d
 !-----------------------------------------------------------------------
     subroutine quickmv3d
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ZPER'
 

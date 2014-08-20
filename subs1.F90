@@ -6,7 +6,7 @@
 !     Conjugate gradient iteration for solution of coupled
 !     Helmholtz equations
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'DOMAIN'
     include 'FDMH1'
@@ -179,7 +179,7 @@
 
 !     Set the new time step. All cases covered.
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'INPUT'
     include 'TSTEP'
@@ -312,7 +312,7 @@
 !     Relevant for solving heat transport problems with radiation b.c.
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
     LOGICAL ::  IFCONV
@@ -339,7 +339,7 @@
 !     Norm calculation.
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
 
@@ -383,7 +383,7 @@
 !     Note: direct stiffness summation
 
 !-------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'EIGEN'
@@ -450,7 +450,7 @@
 !     Compute new timestep based on CFL-condition
 
 !--------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'MVGEOM'
     include 'MASS'
@@ -649,7 +649,7 @@
 
     subroutine cumax (v1,v2,v3,umax)
 
-    include 'SIZE'
+    use size_m
     include 'WZ'
     include 'GEOM'
     include 'INPUT'
@@ -766,7 +766,7 @@
 #if 0
     subroutine setdtfs (dtfs)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'GEOM'
@@ -839,7 +839,7 @@
 
     subroutine cdxmin2 (dtst,rhosig,iel,ifc,ifaxis)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'DXYZ'
     common /delrst/ drst(lx1),drsti(lx1)
@@ -885,7 +885,7 @@
     end subroutine cdxmin2
     subroutine cdxmin3 (dtst,rhosig,iel,ifc)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'DXYZ'
     common /delrst/ drst(lx1),drsti(lx1)
@@ -928,7 +928,7 @@
 !         IFACE  is the dssum notation.
 !         5 Jan 1989 15:12:22      PFF
 
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1)
 
@@ -965,7 +965,7 @@
 !         IFACE1 is in the preprocessor notation
 !         IFACE  is the dssum notation.
 !------------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'TOPOL'
     REAL :: A(LX1,LY1,LZ1,1)
@@ -1005,7 +1005,7 @@
 !         IFACE  is the dssum notation.
 !         5 Jan 1989 15:12:22      PFF
 
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1)
 
@@ -1040,7 +1040,7 @@
 !         IFACE  is the dssum notation.
 !         5 Jan 1989 15:12:22      PFF
 
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1,LZ1),C(LX1,LY1)
 
@@ -1075,7 +1075,7 @@
 !         IFACE  is the dssum notation.
 !         29 Jan 1990 18:00 PST   PFF
 
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1,LZ1),C(LX1,LY1)
 
@@ -1107,7 +1107,7 @@
 !     (associated with variable IFIELD)
 !     INTLOC =      integration type
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -1166,7 +1166,7 @@
 !                    2 for fortran function;
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -1291,7 +1291,7 @@
 !     Generate user-specified material properties
 
 !------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -1315,7 +1315,7 @@
     end subroutine diagnos
 
     subroutine setsolv
-    include 'SIZE'
+    use size_m
     common /fastmd/ ifdfrm(lelt), iffast(lelt), ifh2, ifsolv
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
     IFSOLV = .FALSE. 
@@ -1343,7 +1343,7 @@
 !     (stress formulation)
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'   ! For outpost diagnostic call
@@ -1429,7 +1429,7 @@
 !     zero Neumann b.c.
 
 !-------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'EIGEN'
@@ -1511,7 +1511,7 @@
 !     Solid (MATMOD .LT. 0) :  Hij Uj = Kij*Uj
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'MASS'
@@ -1579,7 +1579,7 @@
 
 !     CAUTION : Stresses and strainrates share the same scratch commons
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'TSTEP'
@@ -1626,7 +1626,7 @@
 
 !     CAUTION : Stresses and strainrates share the same scratch commons
 
-    include 'SIZE'
+    use size_m
     common /ctmp1/ txx(lx1,ly1,lz1,lelt) &
     , txy(lx1,ly1,lz1,lelt) &
     , tyy(lx1,ly1,lz1,lelt) &
@@ -1691,7 +1691,7 @@
 !-----------------------------------------------------------------------
     subroutine aijuj (au1,au2,au3,nel,ifaxis)
 
-    include 'SIZE'
+    use size_m
     common /ctmp1/ txx(lx1,ly1,lz1,lelt) &
     , txy(lx1,ly1,lz1,lelt) &
     , tyy(lx1,ly1,lz1,lelt) &
@@ -1714,7 +1714,7 @@
 !-----------------------------------------------------------------------
     subroutine uxyz (u,ex,ey,ez,nel)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     common /scrsf/ ur(lx1,ly1,lz1,lelt) &
     , us(lx1,ly1,lz1,lelt) &
@@ -1746,7 +1746,7 @@
     end subroutine uxyz
     subroutine urst (u,ur,us,ut,nel)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
 
@@ -1765,7 +1765,7 @@
     end subroutine urst
     subroutine ddrst (u,ur,us,ut)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
 
     DIMENSION U (LX1,LY1,LZ1) &
@@ -1790,7 +1790,7 @@
     end subroutine ddrst
     subroutine axiezz (u2,eyy,ezz,nel)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
 
     DIMENSION U2 (LX1,LY1,LZ1,1) &
@@ -1830,7 +1830,7 @@
 !     asum is sum (area)
 
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'TOPOL'
     real :: x(lx1,ly1,lz1,1)
@@ -1863,7 +1863,7 @@
 !-----------------------------------------------------------------------
     function surf_mean(u,ifld,bc_in,ierr)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: u(1)
@@ -1898,7 +1898,7 @@
     end function surf_mean
 !-----------------------------------------------------------------------
     subroutine fdm_h1a(z,r,d,nel,kt,rr)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     common /ctmp0/ w(lx1,ly1,lz1)
@@ -1981,7 +1981,7 @@
 !     Given global array, vertex, pointing to hex vertices, set up
 !     a new array of global pointers for an nx^ndim set of elements.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     integer*8 :: glo_num(1),ngv
@@ -2012,7 +2012,7 @@
     end subroutine set_vert_strs
 !-----------------------------------------------------------------------
     subroutine get_strs_mask(mask,nxc,nzc,nel)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
 
@@ -2078,7 +2078,7 @@
 !     This routine generates Nelv submatrices of order ncl using
 !     Galerkin projection
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real ::    a(ndim,ncl,ndim,ncl,1),h1(1),h2(1)
@@ -2129,13 +2129,13 @@
 !-----------------------------------------------------------------------
     subroutine crs_strs(u1,u2,u3,v1,v2,v3)
 !     Given an input vector v, this generates the H1 coarse-grid solution
-    include 'SIZE'
+    use size_m
     include 'DOMAIN'
     include 'INPUT'
     include 'GEOM'
     include 'SOLN'
     include 'PARALLEL'
-    include 'CTIMER'
+    use ctimer
     include 'TSTEP'
 
     real :: u1(1),u2(1),u3(1),v1(1),v2(1),v3(1)
@@ -2218,7 +2218,7 @@
 !-----------------------------------------------------------------------
     subroutine set_up_h1_crs_strs(h1,h2,ifld,matmod)
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'DOMAIN'
     include 'INPUT'
@@ -2301,7 +2301,7 @@
 !     Compute the gradient tensor G_ij := ----  ,  for element e
 !                                         du_j
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: au(1),av(1),aw(1),u(1),v(1),w(1),h1(1),h2(1)
@@ -2390,7 +2390,7 @@
 !     Compute the gradient tensor G_ij := ----  ,  for element e
 !                                         du_j
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: au(1),av(1),u(1),v(1),h1(1),h2(1)
@@ -2442,7 +2442,7 @@
     end subroutine axsf_e_2d
 !-----------------------------------------------------------------------
     subroutine axsf_fast(au,av,aw,u,v,w,h1,h2,ifld)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter (l=lx1*ly1*lz1)
@@ -2471,7 +2471,7 @@
 !-----------------------------------------------------------------------
     subroutine ttxyz (ff,tx,ty,tz,nel)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'GEOM'
     include 'INPUT'
@@ -2543,7 +2543,7 @@
 !-----------------------------------------------------------------------
     subroutine ttrst (ff,fr,fs,ft,ta)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'TSTEP'
 
@@ -2575,7 +2575,7 @@
 !-----------------------------------------------------------------------
     subroutine axitzz (vfy,tzz,nel)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
     include 'GEOM'
     include 'WZ'
@@ -2607,7 +2607,7 @@
 !-----------------------------------------------------------------------
     subroutine setaxdy (ifaxdy)
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
 
     LOGICAL :: IFAXDY
@@ -2624,7 +2624,7 @@
     end subroutine setaxdy
 !-----------------------------------------------------------------------
     function opnorm2w(v1,v2,v3,w)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: v1(1) , v2(1), v3(1), w(1)
@@ -2645,7 +2645,7 @@
 
 !     Assumes if uservp is true and thus reorthogonalizes every step
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ORTHOSTRS'  ! Storage of approximation space
 
@@ -2693,7 +2693,7 @@
 
 !     Reconstruct solution; don't bother to orthonomalize bases
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'ORTHOSTRS'  ! Storage of approximation space
 
@@ -2752,7 +2752,7 @@
 
 !     Orthonormalize the kth element of X against x_j, j < k.
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: x(n,ndim,k),b(n,ndim,k),h1(n),h2(n),wt(n),w(n,ndim)
@@ -2811,7 +2811,7 @@
 !-----------------------------------------------------------------------
     subroutine strs_ortho_all(x,b,n,k,h1,h2,wt,ifld,w,ierr,matmod)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: x(n,ndim,k),b(n,ndim,k),h1(n),h2(n),wt(n),w(n,ndim)

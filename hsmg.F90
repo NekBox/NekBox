@@ -37,7 +37,7 @@
 
 !----------------------------------------------------------------------
     subroutine hsmg_setup()
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'HSMG'
@@ -65,7 +65,7 @@
     end subroutine hsmg_setup
 !----------------------------------------------------------------------
     subroutine hsmg_setup_semhat
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
     include 'SEMHAT'
@@ -98,7 +98,7 @@
     end subroutine hsmg_setup_semhat
 !----------------------------------------------------------------------
     subroutine hsmg_setup_intp
-    include 'SIZE'
+    use size_m
     include 'HSMG'
     include 'SEMHAT'
     integer :: l,nf,nc
@@ -123,9 +123,10 @@
     end subroutine hsmg_setup_intp
 !----------------------------------------------------------------------
     subroutine hsmg_setup_intpm(jh,zf,zc,nf,nc)
+    use size_m
     integer :: nf,nc
     real :: jh(nf,nc),zf(1),zc(1)
-    include 'SIZE'
+
     real :: w(2*lx1+2)
     do i=1,nf
         call fd_weights_full(zf(i),zc,nc-1,1,w)
@@ -137,7 +138,7 @@
     end subroutine hsmg_setup_intpm
 !----------------------------------------------------------------------
     subroutine hsmg_setup_dssum
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'HSMG'
@@ -172,7 +173,7 @@
     end subroutine hsmg_setup_dssum
 !----------------------------------------------------------------------
     subroutine h1mg_setup_wtmask
-    include 'SIZE'
+    use size_m
     include 'HSMG'
     integer :: i,l
     i = mg_mask_index(mg_lmax,mg_fld-1)
@@ -196,7 +197,7 @@
     end subroutine h1mg_setup_wtmask
 !----------------------------------------------------------------------
     subroutine hsmg_setup_wtmask
-    include 'SIZE'
+    use size_m
     include 'HSMG'
     integer :: i,l
     i = mg_mask_index(mg_lmax,mg_fld-1)
@@ -220,19 +221,21 @@
     end subroutine hsmg_setup_wtmask
 !----------------------------------------------------------------------
     subroutine hsmg_intp(uf,uc,l) ! l is coarse level
+    use size_m
+    include 'HSMG'
     real :: uf(1),uc(1)
     integer :: l
-    include 'SIZE'
-    include 'HSMG'
+
     call hsmg_tnsr(uf,mg_nh(l+1),uc,mg_nh(l),mg_jh(1,l),mg_jht(1,l))
     return
     end subroutine hsmg_intp
 !----------------------------------------------------------------------
     subroutine hsmg_rstr(uc,uf,l) ! l is coarse level
+    use size_m
+    include 'HSMG'
     real :: uf(1),uc(1)
     integer :: l
-    include 'SIZE'
-    include 'HSMG'
+
     if(l /= mg_lmax-1) &
     call hsmg_do_wt(uf,mg_rstr_wt(mg_rstr_wt_index(l+1,mg_fld)) &
     ,mg_nh(l+1),mg_nh(l+1),mg_nhz(l+1))
@@ -242,10 +245,12 @@
     end subroutine hsmg_rstr
 !----------------------------------------------------------------------
     subroutine hsmg_rstr_no_dssum(uc,uf,l) ! l is coarse level
+    use size_m
+    include 'HSMG'
+
     real :: uf(1),uc(1)
     integer :: l
-    include 'SIZE'
-    include 'HSMG'
+
     if(l /= mg_lmax-1) &
     call hsmg_do_wt(uf,mg_rstr_wt(mg_rstr_wt_index(l+1,mg_fld)) &
     ,mg_nh(l+1),mg_nh(l+1),mg_nhz(l+1))
@@ -257,10 +262,13 @@
 !     v = [A (x) A] u      or
 !     v = [A (x) A (x) A] u
     subroutine hsmg_tnsr(v,nv,u,nu,A,At)
+    use size_m
+    include 'INPUT'
+
     integer :: nv,nu
     real :: v(1),u(1),A(1),At(1)
-    include 'SIZE'
-    include 'INPUT'
+
+
     if ( .NOT. if3d) then
         call hsmg_tnsr2d(v,nv,u,nu,A,At)
     else
@@ -273,9 +281,11 @@
 !              T
 !     v = A u B
     subroutine hsmg_tnsr2d(v,nv,u,nu,A,Bt)
+    use size_m
+
     integer :: nv,nu
     real :: v(nv*nv,nelv),u(nu*nu,nelv),A(1),Bt(1)
-    include 'SIZE'
+
     common /hsmgw/ work((lx1+2)*(lx1+2))
     integer :: ie
     do ie=1,nelv
@@ -289,9 +299,11 @@
 
 !     v = [C (x) B (x) A] u
     subroutine hsmg_tnsr3d(v,nv,u,nu,A,Bt,Ct)
+    use size_m
+
     integer :: nv,nu
     real :: v(nv*nv*nv,nelv),u(nu*nu*nu,nelv),A(1),Bt(1),Ct(1)
-    include 'SIZE'
+
     parameter (lwk=(lx1+2)*(ly1+2)*(lz1+2))
     common /hsmgw/ work(0:lwk-1),work2(0:lwk-1)
     integer :: ie, i
@@ -310,9 +322,11 @@
 !     v = A u B
 #if 0
     subroutine hsmg_tnsr2d_el(v,nv,u,nu,A,Bt)
+    use size_m
+
     integer :: nv,nu
     real :: v(nv*nv),u(nu*nu),A(1),Bt(1)
-    include 'SIZE'
+
     common /hsmgw/ work((lx1+2)*(lx1+2))
 
     call mxm(A,nv,u,nu,work,nu)
@@ -326,9 +340,11 @@
 
 !     v = [C (x) B (x) A] u
     subroutine hsmg_tnsr3d_el(v,nv,u,nu,A,Bt,Ct)
+    use size_m
+
     integer :: nv,nu
     real :: v(nv*nv*nv),u(nu*nu*nu),A(1),Bt(1),Ct(1)
-    include 'SIZE'
+
     parameter (lwk=(lx1+2)*(ly1+2)*(lz1+2))
     common /hsmgw/ work(0:lwk-1),work2(0:lwk-1)
     integer :: i
@@ -343,9 +359,9 @@
     end subroutine hsmg_tnsr3d_el
 !----------------------------------------------------------------------
     subroutine hsmg_dssum(u,l)
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'HSMG'
-    include 'CTIMER'
 
     if (ifsync) call nekgsync()
 #ifndef NOTIMER
@@ -360,9 +376,9 @@
     end subroutine hsmg_dssum
 !----------------------------------------------------------------------
     subroutine hsmg_dsprod(u,l)
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'HSMG'
-    include 'CTIMER'
     real :: u(1)
 
     if (ifsync) call nekgsync()
@@ -372,9 +388,9 @@
     end subroutine hsmg_dsprod
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_dssum(u,l)
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'HSMG'
-    include 'CTIMER'
 
     if (ifsync) call nekgsync()
 #ifndef NOTIMER
@@ -388,7 +404,7 @@
     end subroutine hsmg_schwarz_dssum
 !----------------------------------------------------------------------
     subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     integer :: l1,l2,nx,ny,nz
     real :: arr1(nx,ny,nz,nelv),arr2(nx,ny,nz,nelv)
@@ -445,7 +461,7 @@
     end subroutine hsmg_extrude
 !----------------------------------------------------------------------
     subroutine h1mg_schwarz(e,r,sigma,l)
-    include 'SIZE'
+    use size_m
     include 'HSMG'
 
     real :: e(1),r(1)
@@ -460,7 +476,7 @@
     end subroutine h1mg_schwarz
 !----------------------------------------------------------------------
     subroutine h1mg_schwarz_part1 (e,r,l)
-    include 'SIZE'
+    use size_m
     include 'INPUT'  ! if3d
     include 'TSTEP'  ! ifield
     include 'HSMG'
@@ -516,7 +532,7 @@
     end subroutine h1mg_schwarz_part1
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz(e,r,l)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
     real :: e(1),r(1)
@@ -575,7 +591,7 @@
     end subroutine hsmg_schwarz
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_toext2d(a,b,n)
-    include 'SIZE'
+    use size_m
     integer :: n
     real :: a(0:n+1,0:n+1,nelv),b(n,n,nelv)
           
@@ -600,7 +616,7 @@
     end subroutine hsmg_schwarz_toext2d
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_toext3d(a,b,n)
-    include 'SIZE'
+    use size_m
     integer :: n
     real :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
           
@@ -619,7 +635,7 @@
     end subroutine hsmg_schwarz_toext3d
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_toreg2d(b,a,n)
-    include 'SIZE'
+    use size_m
     integer :: n
     real :: a(0:n+1,0:n+1,nelv),b(n,n,nelv)
           
@@ -635,7 +651,7 @@
     end subroutine hsmg_schwarz_toreg2d
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_toreg3d(b,a,n)
-    include 'SIZE'
+    use size_m
     integer :: n
     real :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
           
@@ -653,7 +669,7 @@
     end subroutine hsmg_schwarz_toreg3d
 !----------------------------------------------------------------------
     subroutine h1mg_setup_fdm()
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
           
@@ -687,7 +703,7 @@
     end subroutine h1mg_setup_fdm
 !----------------------------------------------------------------------
     subroutine hsmg_setup_fdm()
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
           
@@ -721,7 +737,7 @@
     end subroutine hsmg_setup_fdm
 !----------------------------------------------------------------------
     subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
     real :: s(nl*nl,2,ndim,nelv)
@@ -803,11 +819,14 @@
     end subroutine hsmg_setup_fast
 !----------------------------------------------------------------------
     subroutine hsmg_setup_fast1d(s,lam,nl,lbc,rbc,ll,lm,lr,ah,bh,n,ie)
+          
+    use size_m
+
     integer :: nl,lbc,rbc,n
     real :: s(nl,nl,2),lam(nl),ll,lm,lr
     real :: ah(0:n,0:n),bh(0:n)
-          
-    include 'SIZE'
+
+
     parameter(lxm=lx1+2)
     common /ctmp0/ b(2*lxm*lxm),w(2*lxm*lxm)
           
@@ -905,7 +924,7 @@
 !----------------------------------------------------------------------
 !     clobbers r
     subroutine hsmg_fdm(e,r,l)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
     call hsmg_do_fast(e,r, &
@@ -917,7 +936,7 @@
 !----------------------------------------------------------------------
 !     clobbers r
     subroutine hsmg_do_fast(e,r,s,d,nl)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: e(nl**ndim,nelv)
     real :: r(nl**ndim,nelv)
@@ -954,7 +973,7 @@
 !----------------------------------------------------------------------
 !     u = wt .* u
     subroutine hsmg_do_wt(u,wt,nx,ny,nz)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     integer :: nx,ny,nz
     real :: u(nx,ny,nz,nelv)
@@ -1009,7 +1028,7 @@
     end subroutine hsmg_do_wt
 !----------------------------------------------------------------------
     subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     integer :: nx,ny,nz,l
     real :: w(nx,ny,nz,nelv)
@@ -1091,7 +1110,7 @@
     end subroutine hsmg_setup_rstr_wt
 !----------------------------------------------------------------------
     subroutine hsmg_setup_mask(wt,nx,ny,nz,l,w)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     integer :: nx,ny,nz,l
     real :: w(nx,ny,nz,nelv)
@@ -1210,10 +1229,10 @@
     end subroutine hsmg_setup_mask
 !----------------------------------------------------------------------
     subroutine hsmg_setup_schwarz_wt(ifsqrt)
-    logical :: ifsqrt
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
+    logical :: ifsqrt
           
     integer :: l,i,nl,nlz
 
@@ -1240,10 +1259,10 @@
     end subroutine hsmg_setup_schwarz_wt
 !----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt(ifsqrt)
-    logical :: ifsqrt
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
+    logical :: ifsqrt
           
     integer :: l,i,nl,nlz
 
@@ -1272,7 +1291,7 @@
     end subroutine h1mg_setup_schwarz_wt
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_wt(e,l)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
           
@@ -1287,7 +1306,7 @@
 !----------------------------------------------------------------------
 #if 0
     subroutine hsmg_schwarz_wt2d(e,wt,n)
-    include 'SIZE'
+    use size_m
     integer :: n
     real :: e(n,n,nelv)
     real :: wt(n,4,2,nelv)
@@ -1312,7 +1331,7 @@
 #endif
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_wt3d(e,wt,n)
-    include 'SIZE'
+    use size_m
     integer :: n
     real :: e(n,n,n,nelv)
     real :: wt(n,n,4,3,nelv)
@@ -1348,14 +1367,14 @@
     end subroutine hsmg_schwarz_wt3d
 !----------------------------------------------------------------------
     subroutine hsmg_coarse_solve(e,r)
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'DOMAIN'
     include 'ESOLV'
     include 'GEOM'
     include 'SOLN'
     include 'PARALLEL'
     include 'HSMG'
-    include 'CTIMER'
     include 'INPUT'
     include 'TSTEP'
     real :: e(1),r(1)
@@ -1387,7 +1406,7 @@
     end subroutine hsmg_coarse_solve
 !----------------------------------------------------------------------
     subroutine hsmg_setup_solve
-    include 'SIZE'
+    use size_m
     include 'HSMG'
           
     integer :: l,i,nl,nlz
@@ -1407,17 +1426,18 @@
     end subroutine hsmg_setup_solve
 !----------------------------------------------------------------------
     subroutine hsmg_solve(e,r)
-    real :: e(1),r(1)
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'HSMG'
     include 'GEOM'
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
-    include 'CTIMER'
     include 'PARALLEL'
           
+    real :: e(1),r(1)
+
     common /quick/ ecrs  (2)   & ! quick work array
     , ecrs2 (2)  ! quick work array
 !     common /quick/ ecrs  (lx2*ly2*lz2*lelv)  ! quick work array
@@ -1637,7 +1657,7 @@
     end subroutine hsmg_solve
 !----------------------------------------------------------------------
     subroutine hsmg_setup_mg_nx()
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'HSMG'
@@ -1696,7 +1716,7 @@
     end subroutine hsmg_setup_mg_nx
 !----------------------------------------------------------------------
     subroutine hsmg_index_0 ! initialize index sets
-    include 'SIZE'
+    use size_m
     include 'HSMG'
 
     n = lmgn*(lmgs+1)
@@ -1888,20 +1908,21 @@
     end subroutine outfldan
 !-----------------------------------------------------------------------
     subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
-    real :: z(1),rhs(1)
+    use ctimer
 
 !     Assumes that preprocessing has been completed via h1mg_setup()
 
 
-    include 'SIZE'
+    use size_m
     include 'HSMG'       ! Same array space as HSMG
     include 'GEOM'
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
-    include 'CTIMER'
     include 'PARALLEL'
+
+    real :: z(1),rhs(1)
           
     common /scrhi/ h2inv (lx1,ly1,lz1,lelv)
     common /scrvh/ h1    (lx1,ly1,lz1,lelv), &
@@ -1994,7 +2015,7 @@
 !     Here, we assume that pointers into g() and h1() and h2() have
 !     been established
 
-    include 'SIZE'
+    use size_m
     include 'HSMG'
     include 'TSTEP'  ! nelfld
 
@@ -2047,7 +2068,7 @@
 !        ~= h1 A u + h2 B u
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'HSMG'
 
@@ -2077,7 +2098,7 @@
     end subroutine h1mg_axml
 !-----------------------------------------------------------------------
     subroutine h1mg_mask(w,mask,nel)
-    include 'SIZE'
+    use size_m
 
     real ::    w   (1)
     integer :: mask(1)        ! Pointer to Dirichlet BCs
@@ -2092,7 +2113,7 @@
     end subroutine h1mg_mask
 !----------------------------------------------------------------------
     subroutine mg_mask_e(w,mask) ! Zero out Dirichlet conditions
-    include 'SIZE'
+    use size_m
     real :: w(1)
     integer :: mask(0:1)
 
@@ -2108,7 +2129,7 @@
     subroutine axe &
     (w,p,h1,h2,g,ng,b,nx,ny,nz,ur,us,ut,ifh2,ifrz,e)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'   ! if3d
     logical :: ifh2,ifrz
 
@@ -2171,10 +2192,12 @@
 !     v = [A (x) A] u      or
 !     v = [A (x) A (x) A] u
 
+    use size_m
+    include 'INPUT'
+
     integer :: nv,nu
     real :: v(1),A(1),At(1)
-    include 'SIZE'
-    include 'INPUT'
+
     if ( .NOT. if3d) then
         call hsmg_tnsr1_2d(v,nv,nu,A,At)
     else
@@ -2184,9 +2207,11 @@
     end subroutine hsmg_tnsr1
 !-------------------------------------------------------T--------------
     subroutine hsmg_tnsr1_2d(v,nv,nu,A,Bt) ! u = A u B
+    use size_m
+
     integer :: nv,nu
     real :: v(1),A(1),Bt(1)
-    include 'SIZE'
+
     common /hsmgw/ work(lx1*lx1)
     integer :: e
 
@@ -2215,9 +2240,11 @@
     end subroutine hsmg_tnsr1_2d
 !----------------------------------------------------------------------
     subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct) ! v = [C (x) B (x) A] u
+    use size_m
+
     integer :: nv,nu
     real :: v(1),A(1),Bt(1),Ct(1)
-    include 'SIZE'
+
     parameter (lwk=(lx1+2)*(ly1+2)*(lz1+2))
     common /hsmgw/ work(0:lwk-1),work2(0:lwk-1)
     integer :: e,e0,ee,es
@@ -2249,7 +2276,7 @@
     end subroutine hsmg_tnsr1_3d
 !------------------------------------------   T  -----------------------
     subroutine h1mg_rstr(r,l,ifdssum) ! r =J r,   l is coarse level
-    include 'SIZE'
+    use size_m
     include 'HSMG'
     logical :: ifdssum
 
@@ -2267,7 +2294,7 @@
     end subroutine h1mg_rstr
 !----------------------------------------------------------------------
     subroutine h1mg_setup()
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'HSMG'
 
@@ -2305,7 +2332,7 @@
     end subroutine h1mg_setup
 !-----------------------------------------------------------------------
     subroutine h1mg_setup_mg_nx()
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'HSMG'
@@ -2372,7 +2399,7 @@
     end subroutine h1mg_setup_mg_nx
 !----------------------------------------------------------------------
     subroutine h1mg_setup_semhat ! SEM hat matrices for each level
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'HSMG'
     include 'SEMHAT'
@@ -2393,7 +2420,7 @@
     end subroutine h1mg_setup_semhat
 !----------------------------------------------------------------------
     subroutine h1mg_setup_dssum
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'HSMG'
@@ -2428,7 +2455,7 @@
     end subroutine h1mg_setup_dssum
 !----------------------------------------------------------------------
     subroutine mg_set_msk(p_msk ,l0)
-    include 'SIZE'
+    use size_m
     include 'HSMG'
     include 'TSTEP'
     integer :: p_msk
@@ -2458,7 +2485,7 @@
     end subroutine mg_set_msk
 !----------------------------------------------------------------------
     subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
-    include 'SIZE'
+    use size_m
     include 'INPUT'        ! if3d
 
     integer :: mask(1)        ! Pointer to Dirichlet BCs
@@ -2542,7 +2569,7 @@
     end subroutine h1mg_setup_mask
 !----------------------------------------------------------------------
     subroutine mg_set_h1  (p_h1 ,l0)
-    include 'SIZE'
+    use size_m
     include 'HSMG'
     integer :: pf,pc
 
@@ -2582,7 +2609,7 @@
     end subroutine mg_set_h1
 !-----------------------------------------------------------------------
     subroutine mg_set_h2  (p_h2 ,l0)
-    include 'SIZE'
+    use size_m
     include 'HSMG'
 
 !     As a first pass, rely on the cheesy common-block interface to get h2
@@ -2622,7 +2649,7 @@
 !-----------------------------------------------------------------------
     subroutine hsmg_intp_fc(uc,uf,l) ! l is coarse level
 
-    include 'SIZE'
+    use size_m
     include 'HSMG'
 
     real :: uc(1),uf(1)
@@ -2636,7 +2663,7 @@
     end subroutine hsmg_intp_fc
 !-----------------------------------------------------------------------
     subroutine mg_intp_fc_e(uc,uf,nxc,nyc,nzc,nxf,nyf,nzf,e,l,w)
-    include 'SIZE'
+    use size_m
     include 'INPUT'      ! if3d
     include 'HSMG'
 
@@ -2687,7 +2714,7 @@
     end subroutine mg_intp_fc_e
 !-----------------------------------------------------------------------
     subroutine mg_intp_gfc_e(gc,gf,ng,nxc,nyc,nzc,nxf,nyf,nzf,e,l,w)
-    include 'SIZE'
+    use size_m
     include 'INPUT'      ! if3d
     include 'HSMG'
 
@@ -2749,7 +2776,7 @@
     end subroutine mg_intp_gfc_e
 !-----------------------------------------------------------------------
     subroutine mg_scale_mass (b,g,wt,ng,nx,ny,nz,wk,ifinv)
-    include 'SIZE'
+    use size_m
     include 'INPUT'  ! if3d
     include 'HSMG'
 
@@ -2814,7 +2841,7 @@
     end subroutine mg_scale_mass
 !-----------------------------------------------------------------------
     subroutine mg_set_gb  (p_g,p_b,l0)
-    include 'SIZE'
+    use size_m
     include 'HSMG'
     include 'MASS'   ! bm1
     include 'TSTEP'  ! nelfld
@@ -2892,7 +2919,7 @@
     end subroutine mg_set_gb
 !-----------------------------------------------------------------------
     subroutine gxfer_e (g,ng,e)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: g(ng,1)
@@ -2923,7 +2950,7 @@
     end subroutine gxfer_e
 !-----------------------------------------------------------------------
     subroutine chkr(name3,ii)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'HSMG'
     character(3) :: name3
@@ -2984,7 +3011,7 @@
     end subroutine outmatz
 !-----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt_2(wt,ie,n,work,ifsqrt)
-    include 'SIZE'
+    use size_m
     real :: wt(1),work(1)
     logical :: ifsqrt
 
@@ -2996,7 +3023,7 @@
 !----------------------------------------------------------------------
 #if 0
     subroutine h1mg_setup_schwarz_wt2d_2(wt,ie,n,work,ifsqrt)
-    include 'SIZE'
+    use size_m
     logical :: ifsqrt
     integer :: n
     real :: wt(n,4,2,nelv)
@@ -3030,7 +3057,7 @@
 #endif
 !----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt3d_2(wt,ie,n,work,ifsqrt)
-    include 'SIZE'
+    use size_m
     logical :: ifsqrt
     integer :: n
     real :: wt(n,n,4,3,nelv)
@@ -3080,7 +3107,7 @@
     end subroutine h1mg_setup_schwarz_wt3d_2
 !----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
-    include 'SIZE'
+    use size_m
     include 'INPUT'  ! if3d
     include 'TSTEP'  ! ifield
     include 'HSMG'

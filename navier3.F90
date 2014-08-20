@@ -51,12 +51,12 @@
 !-----------------------------------------------------------------------
     subroutine dd_solver(u,v)
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'DOMAIN'
     include 'INPUT'
     include 'PARALLEL'
     include 'SOLN'
-    include 'CTIMER'
 
     real :: u(1),v(1)
     common /scrprc/ uc(lx1*ly1*lz1*lelt)
@@ -90,7 +90,7 @@
     end subroutine dd_solver
 !-----------------------------------------------------------------------
     subroutine rar2_out(x,name13)
-    include 'SIZE'
+    use size_m
 
     real :: x(lx2,ly2,lz2,lelt)
     character(13) :: name13
@@ -117,7 +117,7 @@
     end subroutine rar2_out
 !-----------------------------------------------------------------------
     subroutine rarr_out2(x,name13)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: x(lx2,ly2,lz2,lelt)

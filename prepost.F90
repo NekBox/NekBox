@@ -8,9 +8,9 @@
 !     p65 now indicates the number of parallel i/o files; iff p66 >= 6
 
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
 
 !     Work arrays and temporary arrays
 
@@ -153,7 +153,7 @@
 
 !     Store results for later postprocessing
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 !     Work arrays and temporary arrays
@@ -266,7 +266,7 @@
 
 !     output .fld file
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'RESTART'
 
@@ -465,7 +465,7 @@
 !-----------------------------------------------------------------------
     subroutine outhis(ifhis) ! output time history info
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     common /scrcg/ pm1    (lx1,ly1,lz1,lelv)
 
@@ -654,7 +654,7 @@
 !-----------------------------------------------------------------------
     subroutine intglq
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'INPUT'
     include 'PARALLEL'
@@ -802,7 +802,7 @@
 
 !-----------------------------------------------------------------------
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
     include 'INPUT'
@@ -869,7 +869,7 @@
 
 !-----------------------------------------------------------------------
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
     include 'INPUT'
@@ -936,7 +936,7 @@
 !=======================================================================
     subroutine setsmu (smult)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
 
@@ -967,8 +967,9 @@
 
     return
     end subroutine setsmu
+
     FUNCTION SUMFC (FF,SM,IFC)
-    include 'SIZE'
+    use size_m
     REAL :: FF(LX1,LY1,LZ1),SM(LX1,LY1,LZ1)
     SUMFC=0.0
     CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX1,NY1,NZ1,IFC)
@@ -986,7 +987,7 @@
 !     Defines machine specific input and output file names.
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
     include 'PARALLEL'
@@ -1153,7 +1154,7 @@
 !-----------------------------------------------------------------------
     subroutine dump_header(excodein,p66,ierr)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     character(30) ::  excodein
@@ -1230,7 +1231,7 @@
 !-----------------------------------------------------------------------
     subroutine fill_tmp(tdump,id,ie)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     common /scrcg/ pm1 (lx1,ly1,lz1,lelv)
@@ -1302,7 +1303,7 @@
 !-----------------------------------------------------------------------
     subroutine get_id(id) !  Count amount of data to be shipped
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     id=0
@@ -1321,7 +1322,7 @@
 !-----------------------------------------------------------------------
     subroutine close_fld(p66,ierr)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     if (nid == 0) then
@@ -1337,7 +1338,7 @@
 !-----------------------------------------------------------------------
     subroutine out_tmp(id,p66,ierr)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter (lxyz=lx1*ly1*lz1)
@@ -1377,7 +1378,7 @@
 !-----------------------------------------------------------------------
     subroutine mfo_outfld(prefix)  ! muti-file output
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'RESTART'
     common /scrcg/ pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
@@ -1558,13 +1559,13 @@
     end subroutine mfo_outfld
 !-----------------------------------------------------------------------
     subroutine io_init ! determine which nodes will output
-    character(132) :: hname
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
 
+    character(132) :: hname
     ifdiro = .FALSE. 
 
 #ifdef MPIIO
@@ -1621,7 +1622,7 @@
 !-----------------------------------------------------------------------
     subroutine mfo_open_files(prefix,ierr) ! open files
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
@@ -1832,25 +1833,18 @@ endif
     end subroutine full_restart_save
 !-----------------------------------------------------------------------
     subroutine restart_save(iosave,save_size,nfldi)
-
-    integer :: iosave,save_size,nfldi
-
-
 !     Save current fields for later restart.
-
 !     Input arguments:
-
 !       .iosave plays the usual triggering role, like iostep
-
 !       .save_size = 8 ==> dbl. precision output
-
 !       .nfldi is the number of rs files to save before overwriting
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'RESTART'
 
+    integer :: iosave,save_size,nfldi
     character(3) :: prefix
 
     character(17) :: kst
@@ -1917,7 +1911,7 @@ endif
 !-----------------------------------------------------------------------
     subroutine outpost(v1,v2,v3,vp,vt,name3)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: v1(1),v2(1),v3(1),vp(1),vt(1)
@@ -1933,7 +1927,7 @@ endif
 !-----------------------------------------------------------------------
     subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'INPUT'
 
@@ -2004,7 +1998,7 @@ endif
 !-----------------------------------------------------------------------
     subroutine mfo_mdatav(u,v,w,nel)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
@@ -2095,7 +2089,7 @@ endif
 !-----------------------------------------------------------------------
     subroutine mfo_mdatas(u,nel)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
@@ -2171,7 +2165,7 @@ endif
 !-----------------------------------------------------------------------
     subroutine mfo_outs(u,nel,mx,my,mz)   ! output a scalar field
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
@@ -2260,7 +2254,7 @@ endif
 
     subroutine mfo_outv(u,v,w,nel,mx,my,mz)   ! output a vector field
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
@@ -2381,7 +2375,7 @@ endif
 !-----------------------------------------------------------------------
     subroutine mfo_write_hdr          ! write hdr, byte key, els.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'

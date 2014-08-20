@@ -4,7 +4,7 @@
 !     Transfer array dimensions to common
 
 !-------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     NX1=LX1
@@ -37,9 +37,9 @@
 !     Initialize and set default values.
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
     COMMON /DOIT/ IFDOIT
     LOGICAL ::       IFDOIT
 
@@ -92,11 +92,11 @@
 !     No need to comment !!
 
 !---------------------------------------------------------------------
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'TSTEP'
-    include 'CTIMER'
 
     LOGICAL ::  IFCOUR
     SAVE     IFCOUR
@@ -148,7 +148,7 @@
 !     Initialize variables
 
 !------------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'DEALIAS'
@@ -320,7 +320,7 @@
 
 !     Echo the nonzero parameters from the readfile to the logfile
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     CHARACTER(132) :: STRING
     CHARACTER(1) ::  STRING1(132)
@@ -408,7 +408,7 @@
 !     Generate geometry data
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
     include 'GEOM'
@@ -484,7 +484,7 @@
 
 !     Defines machine specific input and output file names.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
 
@@ -608,7 +608,7 @@
 !     Set time-dependent coefficients in time-stepping schemes.
 
 !----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'TSTEP'
@@ -671,7 +671,7 @@
 !     Currently eigenvalues are computed only for the velocity mesh.
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'EIGEN'
     include 'INPUT'
     include 'TSTEP'
@@ -726,7 +726,7 @@
 !     (5) Lagrangian/"Eulerian"(operator splitting) modes
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'DEALIAS'
     include 'INPUT'
     include 'SOLN'
@@ -802,7 +802,7 @@
 !         temperatur or the velocity mesh.
 !     (5) A passive scalar has its own multiplicity (B.C.).
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
     include 'TURBO'
@@ -861,7 +861,7 @@
 !     Driver for mesh velocity used in conjunction with moving geometry.
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
 
@@ -878,9 +878,10 @@
 
     RETURN
     end subroutine meshv
+
     subroutine rescont (ind)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'TSTEP'
@@ -900,7 +901,7 @@
     end subroutine rescont
     subroutine rstartc (ind)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     common /SCRSF/ xm3(lx3,ly3,lz3,lelv) &
     , ym3(lx3,ly3,lz3,lelv) &
@@ -1096,9 +1097,9 @@
 !-----------------------------------------------------------------------
     subroutine time00
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
 
     nmxmf=0
     nmxms=0
@@ -1172,9 +1173,9 @@
 
 #ifndef NOTIMER
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
 
     real :: min_dsum, max_dsum, avg_dsum
     real :: min_vdss, max_vdss, avg_vdss
@@ -1454,11 +1455,12 @@
     end subroutine runstat
 !-----------------------------------------------------------------------
     subroutine pprint_all(s,n_in,io)
+    use size_m
+    include 'PARALLEL'
+
     character(1) :: s(n_in)
     character(1) :: w(132)
 
-    include 'SIZE'
-    include 'PARALLEL'
 
     n = min(132,n_in)
 
@@ -1496,7 +1498,7 @@
 
     subroutine opcount(ICALL)
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'OPCTR'
 
@@ -1553,7 +1555,7 @@
 
 !-----------------------------------------------------------------------
     subroutine dofcnt
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     COMMON /SCRNS/ WORK(LCTMP1)
 
@@ -1599,7 +1601,7 @@
 
 !     pff 6/28/98
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 !     Swap the comments on these two lines if you don't want to fix the
@@ -1692,7 +1694,7 @@
 
 !     pff 2/28/98
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: vxc(lx1,ly1,lz1,lelv) &
@@ -1753,7 +1755,7 @@
 !     (classical splitting scheme).
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: vxc(lx1,ly1,lz1,lelv) &
@@ -1812,7 +1814,7 @@
 !     (PLAN3).
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: vxc(lx1,ly1,lz1,lelv) &
@@ -1893,7 +1895,7 @@
 
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: vxc(lx1,ly1,lz1,lelv) &
@@ -1950,7 +1952,7 @@
 !-----------------------------------------------------------------------
     subroutine a_dmp
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     COMMON /SCRNS/ w(LX1,LY1,LZ1,LELT)
     COMMON /SCRUZ/ v (LX1,LY1,LZ1,LELT) &
@@ -1991,7 +1993,7 @@
 !     Set variable property arrays
 
 !------------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 !     Caution: 2nd and 3rd strainrate invariants residing in scratch

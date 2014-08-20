@@ -1832,7 +1832,7 @@
 !-----------------------------------------------------------------------
 #if 0
     subroutine perturb(tt,ifld,eps)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: tt(1)
@@ -1884,7 +1884,7 @@
     end subroutine vbyte_swap
 !-----------------------------------------------------------------------
     logical function if_byte_swap_test(bytetest,ierr)
-    include 'SIZE'
+    use size_m
      
     real*4 :: bytetest,test2
     real*4 :: test_pattern
@@ -1952,7 +1952,7 @@
     subroutine dsavg(u)
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     real :: u(lx1,ly1,lz1,lelt)
 
@@ -1979,7 +1979,7 @@
 !-----------------------------------------------------------------------
     subroutine map13_all(x3,x1)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: x3(lx3,ly3,lz3,lelt)
@@ -1996,7 +1996,7 @@
 !-----------------------------------------------------------------------
     subroutine mfi_gets(u,wk,lwk,iskip)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
@@ -2137,7 +2137,7 @@
 !-----------------------------------------------------------------------
     subroutine mfi_getv(u,v,w,wk,lwk,iskip)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
@@ -2286,7 +2286,7 @@
     end subroutine mfi_getv
 !-----------------------------------------------------------------------
     subroutine mfi_parse_hdr(hdr,ierr)
-    include 'SIZE'
+    use size_m
 
     character(132) :: hdr
 
@@ -2303,7 +2303,7 @@
     end subroutine mfi_parse_hdr
 !-----------------------------------------------------------------------
     subroutine parse_std_hdr(hdr)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'RESTART'
@@ -2384,7 +2384,7 @@
     end subroutine parse_std_hdr
 !-----------------------------------------------------------------------
     subroutine parse_std_hdr_2006(hdr,rlcode)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'RESTART'
 
@@ -2443,7 +2443,7 @@
 !          subsequent files are for B-field or perturbation fields
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'RESTART'
     character(132) :: hdr
@@ -2573,7 +2573,7 @@
     end subroutine mfi
 !-----------------------------------------------------------------------
     subroutine mbyte_open(hname,fid,ierr) ! open  blah000.fldnn
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
     include 'RESTART'
      
@@ -2623,12 +2623,12 @@
     end subroutine mbyte_open
 !-----------------------------------------------------------------------
     subroutine mfi_prepare(hname)  ! determine which nodes are readers
-    character(132) :: hname
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'RESTART'
 
+    character(132) :: hname
     integer :: stride
     character(132) :: hdr
     logical :: if_byte_swap_test
@@ -2733,7 +2733,7 @@
 !-----------------------------------------------------------------------
     subroutine axis_interp_ic(pm1)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'RESTART'
 
@@ -2785,7 +2785,7 @@
 !-----------------------------------------------------------------------
     subroutine map_pm1_to_pr(pm1,ifile)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'RESTART'
 
@@ -2820,7 +2820,7 @@
     end subroutine map_pm1_to_pr
 !-----------------------------------------------------------------------
     subroutine full_restart(s80,n_restart)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     character(80) :: s80(n_restart)

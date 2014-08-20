@@ -3,7 +3,7 @@
 
 !     Solve the convection-diffusion equation for passive scalar IPSCAL
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'MVGEOM'
@@ -120,7 +120,7 @@
 !     Fill up user defined forcing function and collocate will the
 !     mass matrix on the Gauss-Lobatto mesh.
 
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -142,7 +142,7 @@
 
 !     Set user specified volumetric forcing function (e.g. heat source).
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -180,7 +180,7 @@
 !     Generate user-specified volumetric source term (temp./p.s.)
 
 !------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'PARALLEL'
@@ -210,7 +210,7 @@
 !     at current time step.
 
 !---------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -230,7 +230,7 @@
 
 !     Sum up contributions to 3rd order Adams-Bashforth scheme.
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
 
@@ -259,7 +259,7 @@
 !     Add contributions to F from lagged BD terms.
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'GEOM'
@@ -302,7 +302,7 @@
 !     Compute convective contribution using
 !     operator-integrator-factor method (characteristics).
 
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -339,7 +339,7 @@
 !     Convection of a passive scalar.
 !     Runge-Kutta scheme.
 
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -411,7 +411,7 @@
 !     Convection of a passive scalar.
 !     Adams-Bashforth.
 
-    include 'SIZE'
+    use size_m
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -491,7 +491,7 @@
 
 !     Generate mask-array for the hyperbolic system (passive scalar).
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'SOLN'
@@ -533,7 +533,7 @@
 
 !     Set initial conditions for subintegration
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'TSTEP'
     REAL :: TCH (LX1,LY1,LZ1,1)
@@ -554,7 +554,7 @@
 !     Keep old passive scalar field(s)
 
 !-----------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -636,7 +636,7 @@
 
 !     explicit convection-diffusion equation for passive scalar
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'MVGEOM'
@@ -703,7 +703,7 @@
 !     at current time step.
 
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'

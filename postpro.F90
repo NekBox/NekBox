@@ -1,6 +1,6 @@
     subroutine load_fld(string)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'RESTART'
 
@@ -28,7 +28,7 @@
 
 !     Generate Lambda-2 vortex of Jeong & Hussein, JFM '95
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: l2(lx1,ly1,lz1,1)
@@ -260,7 +260,7 @@
 !     Compute the gradient tensor G_ij := ----  ,  for element e
 !                                         du_j
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: gije(lx1*ly1*lz1,ldim,ldim)
@@ -324,7 +324,7 @@
 !-----------------------------------------------------------------------
     subroutine filter_s1(scalar,tf,nx,nel) ! filter scalar field
 
-    include 'SIZE'
+    use size_m
 
     parameter(lxyz=lx1*ly1*lz1)
     real :: scalar(lxyz,1)
@@ -346,7 +346,7 @@
 !-----------------------------------------------------------------------
     subroutine filter_s0(scalar,wght,ncut,name5) ! filter scalar field
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: scalar(1)
@@ -396,7 +396,7 @@
 ! tolin ... stop point seach interation if 1-norm of the step in (r,s,t)
 !           is smaller than tolin
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
 
     common /nekmpi/ nidd,npp,nekcomm,nekgroup,nekreal
@@ -437,7 +437,7 @@
 ! out:
 ! fieldout ... packed list of interpolated values (n,nfld)
 
-    include 'SIZE'
+    use size_m
 
     real ::    fieldin(1),fieldout(1)
     real ::    pts(1)
@@ -530,7 +530,7 @@
 
 !     Note: this routine assumes that nx1=ny1=nz1
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     parameter (lw=4*lx1*lx1*lz1)
@@ -636,7 +636,7 @@
 
 !     mag(A_e) = sqrt( 0.5 (A:A) )
 
-    include 'SIZE'
+    use size_m
     REAL :: mag (lx1*ly1*lz1)
     REAL :: aije(lx1*ly1*lz1,ldim,ldim)
 
@@ -659,7 +659,7 @@
 
 !     Compute symmetric part of a tensor G_ij for element e
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: gije(lx1*ly1*lz1,ldim,ldim)
@@ -685,7 +685,7 @@
 
 !     Map scalar field u() to regular n x n x n array ur
 
-    include 'SIZE'
+    use size_m
     real :: ur(1),u(lx1*ly1*lz1,1)
 
     integer :: e
@@ -813,7 +813,7 @@
 ! Clobbers ccurve()
 ! byte read is float size..
 ! 4 wdsize
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     character(80) :: hdr
@@ -856,7 +856,7 @@
     end subroutine gen_re2
 !-----------------------------------------------------------------------
     subroutine gen_re2_xyz
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter (lv=2**ldim,lblock=1000)
@@ -1042,7 +1042,7 @@
 
 !     A two pass strategy is used:  first count, then write
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: e,eb,eg,wdsiz2
@@ -1160,7 +1160,7 @@
 !-----------------------------------------------------------------------
     subroutine gen_re2_bc (ifld)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: e,eb,eg,wdsiz2
@@ -1279,7 +1279,7 @@
 !-----------------------------------------------------------------------
     subroutine gen_rea(imid)  ! Generate and output essential parts of .rea
 ! Clobbers ccurve()
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 !     imid = 0  ! No midside node defs
@@ -1303,7 +1303,7 @@
     end subroutine gen_rea
 !-----------------------------------------------------------------------
     subroutine gen_rea_xyz
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter (lv=2**ldim,lblock=1000)
@@ -1405,7 +1405,7 @@
 
 !     A two pass strategy is used:  first count, then write
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: e,eb,eg
@@ -1502,7 +1502,7 @@
 !-----------------------------------------------------------------------
     subroutine gen_rea_bc (ifld)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     integer :: e,eb,eg
@@ -1591,7 +1591,7 @@
 !-----------------------------------------------------------------------
     subroutine gen_rea_midside_e(e)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     common /scrns/ x3(27),y3(27),z3(27),xyz(3,3)
@@ -1658,7 +1658,7 @@
 
 !     note: 8-byte fld files are currently not supported!
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'RESTART'
 
@@ -1926,7 +1926,7 @@
 
 !     ASSUMING LHIS IS MAX NUMBER OF POINTS TO READ IN ON ONE PROCESSOR
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter(nfldm=ldim+ldimt+1)
@@ -2041,7 +2041,7 @@
 !-----------------------------------------------------------------------
     subroutine buffer_in(buffer,npp,npoints,nbuf)
             
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
 
     real ::    buffer(ldim,nbuf)
@@ -2106,7 +2106,7 @@
     subroutine hpts_in(pts,npts,npoints)
 !                        npts=local count; npoints=total count
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
 
     parameter (lt2=2*lx1*ly1*lz1*lelt)
@@ -2168,7 +2168,7 @@
 !-----------------------------------------------------------------------
     subroutine hpts_out(fieldout,nflds,nfldm,npoints,nbuff)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: buf(nfldm,nbuff),fieldout(nfldm,nbuff)

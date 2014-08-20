@@ -31,7 +31,7 @@
 
 !     Set up arrays for overlapping Schwartz algorithm *for pressure solver*
 
-    include 'SIZE'
+    use size_m
     include 'DOMAIN'
     include 'ESOLV'
     include 'INPUT'
@@ -150,7 +150,7 @@
 !-----------------------------------------------------------------------
 #if 0
     subroutine set_fem_data_l2(nep,nd,no,x,y,z,p)
-    include 'SIZE'
+    use size_m
     include 'DOMAIN'
     include 'NONCON'
     include 'TOTAL'
@@ -247,7 +247,7 @@
 #endif
 !-----------------------------------------------------------------------
     subroutine map_face12(x2,x1,w1,w2)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'IXYZ'
 
@@ -279,7 +279,7 @@
     end subroutine map_face12
 !-----------------------------------------------------------------------
     subroutine map_one_face12(x2,x1,iface,i12,i12t,w1,w2)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
 !     Interpolate iface of x1 (GLL pts) onto interior of face of x2 (GL pts).
@@ -339,7 +339,7 @@
     subroutine dface_add1sa(x)
 !     Compute |face-interior|
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: x(nx1,ny1,nz1,1)
 

@@ -966,7 +966,7 @@
     end subroutine xyzrst
     subroutine chkjac(jac,n,iel,X,Y,Z,ND,IERR)
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
 
 !     Check the array JAC for a change in sign.
@@ -1007,7 +1007,7 @@
 !     Compute the volume based on mesh M1 and mesh M2
 
 
-    include 'SIZE'
+    use size_m
     include 'ESOLV'
     include 'INPUT'
     include 'MASS'
@@ -1647,7 +1647,7 @@
     end subroutine map21e
 !-----------------------------------------------------------------------
     subroutine out_xyz_el(x,y,z,e)
-    include 'SIZE'
+    use size_m
     integer :: e
     real :: x(1),y(1),z(1)
 
@@ -1659,7 +1659,7 @@
     end subroutine out_xyz_el
 !-----------------------------------------------------------------------
     subroutine out_fld_el(x,e,c2)
-    include 'SIZE'
+    use size_m
     real :: x(lx1,ly1,lz1,lelt)
     integer :: e
     character(2) :: c2
@@ -1676,7 +1676,7 @@
     end subroutine out_fld_el
 !-----------------------------------------------------------------------
     subroutine outxm3j(xm3,ym3,jm3)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: xm3(lx1,ly1,lz1,lelv)

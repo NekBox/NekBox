@@ -6,13 +6,13 @@
 !! This includes reading the input files
     subroutine nek_init(intracomm)
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
     include 'DOMAIN'
     include 'ZPER'
 
     include 'OPCTR'
-    include 'CTIMER'
 
     real :: kwave2
     real*8 :: t0, tpp
@@ -165,10 +165,10 @@
 !-----------------------------------------------------------------------
     subroutine nek_solve
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TSTEP'
     include 'INPUT'
-    include 'CTIMER'
 
     real*4 :: papi_mflops
     integer*8 :: papi_flops
@@ -227,9 +227,9 @@
 !-----------------------------------------------------------------------
     subroutine nek_advance
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
 
     common /cgeom/ igeom
 
@@ -294,7 +294,7 @@
 !-----------------------------------------------------------------------
     subroutine nek_end
 
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
     include 'PARALLEL'
     include 'OPCTR'
@@ -309,7 +309,7 @@
 !-----------------------------------------------------------------------
     subroutine nek__multi_advance(kstep,msteps)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     do i=1,msteps

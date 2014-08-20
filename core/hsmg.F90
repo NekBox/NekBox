@@ -1369,9 +1369,9 @@
     subroutine hsmg_coarse_solve(e,r)
     use ctimer
     use size_m
-    include 'DOMAIN'
-    include 'ESOLV'
-    include 'GEOM'
+    use domain
+    use esolv
+    use geom
     include 'SOLN'
     include 'PARALLEL'
     include 'HSMG'
@@ -1428,8 +1428,8 @@
     subroutine hsmg_solve(e,r)
     use ctimer
     use size_m
+    use geom
     include 'HSMG'
-    include 'GEOM'
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -1914,8 +1914,8 @@
 
 
     use size_m
+    use geom
     include 'HSMG'       ! Same array space as HSMG
-    include 'GEOM'
     include 'INPUT'
     include 'MASS'
     include 'SOLN'

@@ -9,9 +9,14 @@
     use ctimer
     use size_m
     use dealias, only : init_dealias
+    use domain, only : init_domain
+    use dxyz, only : init_dxyz
+    use esolv, only : init_esolv
+    use fdmh1, only : init_fdmh1
+    use geom, only : init_geom
 
+    use domain
     include 'TOTAL'
-    include 'DOMAIN'
     include 'ZPER'
 
     include 'OPCTR'
@@ -33,7 +38,13 @@
     call opcount(1)
 
 !     Initialize and set default values.
-    call init_dealias
+    call init_dealias()
+    call init_dxyz()
+    call init_domain()
+    call init_esolv()
+    call init_fdmh1()
+    call init_geom()
+    write(*,*) "Max inits"
 
     call initdim
     call initdat

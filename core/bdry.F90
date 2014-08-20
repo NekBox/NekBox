@@ -5,7 +5,7 @@
 
     use ctimer
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     INCLUDE 'TURBO'
@@ -174,7 +174,7 @@
 
 !-------------------------------------------------------------------
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
 
 !     Single or double precision???
@@ -212,7 +212,7 @@
 !      alignment with the X, Y, or Z axis.
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
 
     LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ
 
@@ -583,11 +583,11 @@
 
     use ctimer
     use size_m
-    INCLUDE 'TSTEP'
+    use geom
     INCLUDE 'INPUT'
-    INCLUDE 'GEOM'
     INCLUDE 'SOLN'
     INCLUDE 'TOPOL'
+    INCLUDE 'TSTEP'
     COMMON /SCRUZ/ TMP1(LX1,LY1,LZ1,LELV) &
     , TMP2(LX1,LY1,LZ1,LELV) &
     , TMP3(LX1,LY1,LZ1,LELV)
@@ -1171,7 +1171,7 @@
 !       TINF          Temperature at infinity
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'SOLN'
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
@@ -1210,8 +1210,8 @@
     SUBROUTINE BCNEUTR
 
     use size_m
+    use geom
     INCLUDE 'SOLN'
-    INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     COMMON /SCRSF/ TRX(LX1,LY1,LZ1) &
     , TRY(LX1,LY1,LZ1) &
@@ -1314,7 +1314,7 @@
     SUBROUTINE TRCON (TRX,TRY,TRZ,TR1,TR2,TR3,IEL,IFC)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TOPOL'
 
     DIMENSION TRX(LX1,LY1,LZ1) &
@@ -1356,8 +1356,8 @@
 !     Compute taction due to surface tension (2D)
 
     use size_m
-    INCLUDE 'GEOM'
-    INCLUDE 'DXYZ'
+    use dxyz
+    use geom
     INCLUDE 'TOPOL'
     INCLUDE 'WZ'
     COMMON /CTMP1/ A1X(LX1),A1Y(LX1),STX(LX1),STY(LX1)
@@ -1421,8 +1421,8 @@
 !     Compute taction due to surface tension (axisymmetric)
 
     use size_m
-    INCLUDE 'GEOM'
-    INCLUDE 'DXYZ'
+    use dxyz
+    use geom
     INCLUDE 'TOPOL'
     INCLUDE 'WZ'
     COMMON /CTMP1/ A1X(LX1),A1Y(LX1),A2X(LX1),A2Y(LX1) &
@@ -1540,9 +1540,9 @@
     SUBROUTINE CTANG2D (CANG,SANG,IXN,IYN,IAN,IFC,IEL)
 
     use size_m
-    INCLUDE 'GEOM'
-    INCLUDE 'SOLN'
+    use geom
     INCLUDE 'INPUT'
+    INCLUDE 'SOLN'
 
     DIMENSION CANG(2),SANG(2)
     DIMENSION IXN(2),IYN(2),IAN(2),ISN(2),NEBPT(4,2)
@@ -1603,7 +1603,7 @@
 !     Compute taction due to surface tension (3D)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'WZ'
     COMMON /CTMP0/  XFM1(LX1,LY1),YFM1(LX1,LY1),ZFM1(LX1,LY1)
     COMMON /CTMP1/  DRM1(LX1,LX1),DRTM1(LX1,LY1) &
@@ -1702,7 +1702,7 @@
     SUBROUTINE SETDRS (DRM1,DRTM1,DSM1,DSTM1,IFC)
 
     use size_m
-    INCLUDE 'DXYZ'
+    use dxyz
 
     DIMENSION DRM1(LX1,LX1),DRTM1(LX1,LX1) &
     , DSM1(LY1,LY1),DSTM1(LY1,LY1)
@@ -1739,7 +1739,7 @@
 !     IFACE  is the dssum notation.
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'TOPOL'
 
     DIMENSION R1(LX1,LY1,LZ1) &
@@ -1905,7 +1905,7 @@
     SUBROUTINE CHKZVN (VMAX,IEL,IFC,IVNORL)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'SOLN'
     COMMON /SCRMG/ V1(LX1,LY1,LZ1,LELV) &
     , V2(LX1,LY1,LZ1,LELV) &
@@ -1936,7 +1936,7 @@
 !     (No antimask operation is applied).
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
 

@@ -15,11 +15,11 @@
 
 
     use size_m
+    use eigen
     include 'INPUT'
-    include 'EIGEN'
+    include 'MASS'
     include 'SOLN'
     include 'TSTEP'
-    include 'MASS'
 
     common /scrns/  resv1 (lx1,ly1,lz1,lelv) &
     ,              resv2 (lx1,ly1,lz1,lelv) &
@@ -180,10 +180,10 @@
 !     Add contributions to magnetic source from lagged BD terms.
 
     use size_m
-    include 'SOLN'
-    include 'MASS'
-    include 'GEOM'
+    use geom
     include 'INPUT'
+    include 'MASS'
+    include 'SOLN'
     include 'TSTEP'
 
     COMMON /SCRNS/ TA1(LX1,LY1,LZ1,LELV) &
@@ -607,7 +607,7 @@
 
     use size_m
     use dealias
-    include 'GEOM'
+    use geom
     include 'WZ'
 
     real :: lf(lx1*ly1*lz1,3)
@@ -686,7 +686,7 @@
 !     local curl, multiplied by Jacobian
 
     use size_m
-    include 'DXYZ'
+    use dxyz
 
     real :: cb(lx1*ly1*lz1,3)  ! Output J*curl B  (J:=Jacobian)
     real :: b1(1),b2(1),b3(1)  ! Input B-field
@@ -853,12 +853,12 @@
 
 
     use size_m
+    use eigen
+    use geom
     include 'INPUT'
-    include 'EIGEN'
+    include 'MASS'
     include 'SOLN'
     include 'TSTEP'
-    include 'MASS'
-    include 'GEOM'
 
     common /scrnt/  besv1 (lbx1,lby1,lbz1,lbelv) &
     ,              besv2 (lbx1,lby1,lbz1,lbelv) &
@@ -918,7 +918,7 @@
 !     Given velocity field (u,v,w) and dt, compute current CFL number.
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
     include 'WZ'
     include 'SOLN'
@@ -1136,7 +1136,7 @@
 #if 0
     subroutine set_ifbcor
     use size_m
-    include 'GEOM'
+    use geom
     include 'INPUT'
 !     include 'TSTEP'   ! ifield?
 
@@ -1362,10 +1362,10 @@
 !     at current time step.
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
-    include 'SOLN'
     include 'MASS'
+    include 'SOLN'
     include 'TSTEP'
 
     parameter (lxy=lx1*ly1*lz1,ltd=lxd*lyd*lzd)
@@ -1561,8 +1561,8 @@
 !     at current time step.
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'TSTEP' ! for istep
 
     common /dealias1/ zd(lxd),wd(lxd)

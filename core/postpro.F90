@@ -397,7 +397,7 @@
 !           is smaller than tolin
 
     use size_m
-    include 'GEOM'
+    use geom
 
     common /nekmpi/ nidd,npp,nekcomm,nekgroup,nekreal
 

@@ -17,10 +17,10 @@
 !-----------------------------------------------------------------
 
     use size_m
-    INCLUDE 'WZ'
-    INCLUDE 'DXYZ'
-    INCLUDE 'IXYZ'
+    use dxyz
     INCLUDE 'INPUT'
+    INCLUDE 'IXYZ'
+    INCLUDE 'WZ'
 
     REAL :: TMP(LY1,LY1),TMPT(LY1,LY1)
 
@@ -367,7 +367,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
 
@@ -586,7 +586,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
 
@@ -672,7 +672,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
@@ -923,8 +923,8 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    INCLUDE 'GEOM'
-    INCLUDE 'DXYZ'
+    use dxyz
+    use geom
 
     DIMENSION XRM1(LX1,LY1,LZ1,1),YRM1(LX1,LY1,LZ1,1) &
     , ZRM1(LX1,LY1,LZ1,1),XSM1(LX1,LY1,LZ1,1) &
@@ -1008,7 +1008,7 @@
 
 
     use size_m
-    include 'ESOLV'
+    use esolv
     include 'INPUT'
     include 'MASS'
     include 'TSTEP'
@@ -1047,7 +1047,7 @@
 !     Compute surface data: areas, normals and tangents
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
 
     NSRF  = 6*NX1*NZ1*NELT
@@ -1072,7 +1072,7 @@
 
 !--------------------------------------------------------------------
     use size_m
-    INCLUDE 'GEOM'
+    use geom
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !           share the same array structure in Scratch Common /SCRNS/.
@@ -1137,7 +1137,7 @@
     subroutine setwgtr (wgtr1,wgtr2,wgtr3,wgtr4)
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'WZ'
 
@@ -1194,8 +1194,8 @@
 
 !--------------------------------------------------------------------
     use size_m
+    use geom
     INCLUDE 'WZ'
-    INCLUDE 'GEOM'
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !           share the same array structure in Scratch Common /SCRNS/.
@@ -1346,9 +1346,9 @@
 
 !--------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'INPUT'
+    INCLUDE 'MASS'
     INCLUDE 'TSTEP'
     INCLUDE 'WZ'
 
@@ -1388,7 +1388,7 @@
 !---------------------------------------------------------------
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'IXYZ'
     INCLUDE 'WZ'
     INCLUDE 'INPUT'
@@ -1457,7 +1457,7 @@
 !---------------------------------------------------------------
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
 
@@ -1500,7 +1500,7 @@
 !---------------------------------------------------------------
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
 
@@ -1537,7 +1537,7 @@
 !---------------------------------------------------------------
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
 
@@ -1575,7 +1575,7 @@
 !---------------------------------------------------------------
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
 
@@ -1616,7 +1616,7 @@
 !---------------------------------------------------------------
 
     use size_m
-    INCLUDE 'GEOM'
+    use geom
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
 

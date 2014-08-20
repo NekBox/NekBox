@@ -7,13 +7,13 @@
 !-----------------------------------------------------------------------
     use size_m
     use dealias
+    use geom
     INCLUDE 'INPUT'
     INCLUDE 'IXYZ'
-    INCLUDE 'GEOM'
-    INCLUDE 'SOLN'
     INCLUDE 'MASS'
     INCLUDE 'MVGEOM'
     INCLUDE 'PARALLEL'
+    INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
      
     logical  iffort(  ldimt1,0:lpert) &
@@ -1908,8 +1908,8 @@
 !     Generate geometry data
 
     use size_m
+    use geom
     INCLUDE 'INPUT'
-    INCLUDE 'GEOM'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     include 'WZ'

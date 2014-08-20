@@ -350,7 +350,7 @@
     subroutine grad_rstd(ur,us,ut,u,mx,md,if3d,ju) ! GLL->GL grad
 
     use size_m
-    include 'DXYZ'
+    use dxyz
 
     real ::    ur(1),us(1),ut(1),u(1),ju(1)
     logical :: if3d
@@ -647,7 +647,7 @@
     subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
 
     use size_m
-    include 'DXYZ'
+    use dxyz
 
     real ::    ur(1),us(1),ut(1),u(1)
     logical :: if3d
@@ -938,8 +938,8 @@
     subroutine set_char_mask(mask,u,v,w) ! mask for hyperbolic system
 
     use size_m
+    use geom
     include 'INPUT'
-    include 'GEOM'
     include 'SOLN'
     include 'TSTEP'
     integer :: msk(0:1)
@@ -1098,7 +1098,7 @@
 
     use size_m
     use dealias
-    include 'GEOM'
+    use geom
 
     real :: du(mx*mx*mx,nel)
     real ::  u(mx*mx*mx,nel)
@@ -1152,7 +1152,7 @@
 !     Assumes that current convecting field is on dealias mesh, in c()
 
     use size_m
-    include 'GEOM'
+    use geom
     include 'TSTEP'
 
 

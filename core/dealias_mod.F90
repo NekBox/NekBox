@@ -1,5 +1,6 @@
 module dealias
   use kinds, only : DP
+  implicit none
   real(DP), allocatable :: vxd(:,:,:,:)
   real(DP), allocatable :: vyd(:,:,:,:)
   real(DP), allocatable :: vzd(:,:,:,:)
@@ -16,6 +17,7 @@ module dealias
 
   subroutine init_dealias()
     use size_m
+    implicit none
     allocate(vxd(lxd, lyd, lzd, lelv))
     allocate(vyd(lxd, lyd, lzd, lelv))
     allocate(vzd(lxd, lyd, lzd, lelv))

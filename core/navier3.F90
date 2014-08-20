@@ -9,11 +9,11 @@
 
 !----------------------------------------------------------------
     use size_m
+    use geom
     INCLUDE 'INPUT'
-    INCLUDE 'GEOM'
-    INCLUDE 'SOLN'
     INCLUDE 'MASS'
     INCLUDE 'PARALLEL'
+    INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     REAL ::           Z2   (LX2,LY2,LZ2,LELV)
     REAL ::           R2   (LX2,LY2,LZ2,LELV)
@@ -53,7 +53,7 @@
 
     use ctimer
     use size_m
-    include 'DOMAIN'
+    use domain
     include 'INPUT'
     include 'PARALLEL'
     include 'SOLN'

@@ -7,7 +7,7 @@
 !     intype =  1  (explicit)
 !     intype = -1  (implicit)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'GMRES'
     common  /ctolpr/ divex
@@ -278,7 +278,7 @@
     end subroutine uzawa_gmres_temp
 !-----------------------------------------------------------------------
     subroutine ax(w,x,h1,h2,n)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 
@@ -303,7 +303,7 @@
 !     GMRES iteration.
 
          
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     include 'FDMH1'
     include 'GMRES'
@@ -536,7 +536,7 @@
 
 !     Sets up the gather scatter and the SEM operators
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
      
     common /c_is1/ glo_num(lxs*lys*lzs*lelv)
@@ -560,7 +560,7 @@
 
 !     Local overlapping Schwarz solves with overlap of 2
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 
@@ -596,7 +596,7 @@
 !-----------------------------------------------------------------------
     subroutine dd_swap_vals(v1,v0,gsh_dd)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     common /work1/ w1(lxs,lys,lzs)            & ! work arrarys for locals
@@ -648,7 +648,7 @@
 
 !     Generate fast diagonalization matrices for each element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'SOLN'
@@ -740,7 +740,7 @@
     end subroutine gen_fast_g
 !-----------------------------------------------------------------------
     subroutine set_up_fast_1D_sem_g(s,lam,n,lbc,rbc,ll,lm,lr,ie)
-    include 'SIZE'
+    use size_m
     include 'SEMHAT'
 
     parameter (lr3=2*lxs*lxs)
@@ -813,7 +813,7 @@
 !        (these contribs should be small for large N and
 !         elements of nearly equal size)
 
-    include 'SIZE'
+    use size_m
     real :: g(0:lx1+1,0:lx1+1)
     real :: ah(0:lx1-1,0:lx1-1)
     real :: ll,lm,lr
@@ -895,7 +895,7 @@
 !        (these contribs should be small for large N and
 !         elements of nearly equal size)
 
-    include 'SIZE'
+    use size_m
     real :: g(0:lx1+1,0:lx1+1)
     real :: bh(0:lx1-1)
     real :: ll,lm,lr
@@ -971,7 +971,7 @@
     subroutine dface_ext_g(x,t,e,nx,nz)
 !     Extend interior to face of element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: x(nx,nx,nz,1)
     integer :: e,t
@@ -1016,7 +1016,7 @@
     subroutine dface_add1si_g(x,c,t,e,nx,nz)
 !     Scale interior and add to face of element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: x(nx,nx,nz,1)
 
@@ -1067,7 +1067,7 @@
 
 !     Fast diagonalization solver for FEM on mesh 1
 
-    include 'SIZE'
+    use size_m
 
     parameter (lxss=lxs*lxs)
     common /fastg/  sr(lxss,2,lelv),ss(lxss,2,lelv),st(lxss,2,lelv) &
@@ -1102,7 +1102,7 @@
 
 !     Scale face and add to interior of element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: x(nx,nx,nz,1)
     integer :: t,e
@@ -1275,7 +1275,7 @@
     end subroutine outfldi_g
 !-----------------------------------------------------------------------
     subroutine setupds_no_crn(gs_h,nx,ny,nz,nel,melg,vertex,glo_num)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'NONCON'

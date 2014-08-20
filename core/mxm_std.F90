@@ -3928,12 +3928,13 @@
 !-----------------------------------------------------------------------
     subroutine mxmtest(s,nn,cn,mxmt,name,k,ivb)
 
+    use size_m
+
     real ::        s(nn,2)   ! MFLOPS
     character(5) :: cn        ! name
     character(5) :: name
     external mxmt
 
-    include 'SIZE'
     parameter (lt=4*lx1*ly1*lz1*lelt)
     common /scrns/ a(lt)
     common /scruz/ b(lt)
@@ -4028,7 +4029,7 @@
     end subroutine mxmtest
 !-----------------------------------------------------------------------
     subroutine mxm_analyze(s,a,nn,c,nt,ivb)
-    include 'SIZE'
+    use size_m
 
     character(5) :: c(3,nt)
     real ::        s(nn,2,nt,3)  ! Measured Mflops, 3 cases
@@ -4094,7 +4095,7 @@
     end subroutine mxm_analyze
 !-----------------------------------------------------------------------
     subroutine out_anal(s,a,nn,c,nt,itmax,name8,k,ivb)
-    include 'SIZE'
+    use size_m
 
     character(5) :: c(3,nt)
     real ::        s(nn,2,nt,3)

@@ -1,7 +1,7 @@
 !=======================================================================
     subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
-    INCLUDE 'SIZE'
     INCLUDE 'CTIMER'
+    INCLUDE 'SIZE'
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
@@ -76,6 +76,7 @@
 !     AU = helm1*[A]u + helm2*[B]u, for NEL elements.
 
 !------------------------------------------------------------------
+    INCLUDE 'CTIMER'
     INCLUDE 'SIZE'
     INCLUDE 'WZ'
     INCLUDE 'DXYZ'
@@ -83,7 +84,6 @@
     INCLUDE 'MASS'
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
-    INCLUDE 'CTIMER'
 
     COMMON /FASTAX/ WDDX(LX1,LX1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1)
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
@@ -951,7 +951,7 @@
         !-----------------------------------------------------------------------
 #if 0
             subroutine fdm_h1(z,r,d,mask,mult,nel,kt,rr)
-            include 'SIZE'
+            use size_m
             include 'TOTAL'
         
             common /ctmp0/ w(lx1,ly1,lz1)
@@ -1044,7 +1044,7 @@
         !-----------------------------------------------------------------------
             subroutine set_fdm_prec_h1A_gen
         
-            include 'SIZE'
+            use size_m
             include 'DXYZ'
             include 'INPUT'
             include 'MASS'
@@ -1136,7 +1136,7 @@
         !-----------------------------------------------------------------------
             subroutine set_fdm_prec_h1A_els
         
-            include 'SIZE'
+            use size_m
             include 'DXYZ'
             include 'FDMH1'
             include 'GEOM'
@@ -1290,7 +1290,7 @@
             end subroutine set_fdm_prec_h1A_els
         !-----------------------------------------------------------------------
             subroutine set_fdm_prec_h1b(d,h1,h2,nel)
-            include 'SIZE'
+            use size_m
             include 'FDMH1'
             include 'INPUT'
             include 'GEOM'
@@ -1376,7 +1376,7 @@
             end subroutine set_fdm_prec_h1b
         !-----------------------------------------------------------------------
             subroutine set_fdm_prec_h1A
-            include 'SIZE'
+            use size_m
         
             call set_fdm_prec_h1A_gen
             call set_fdm_prec_h1A_els
@@ -1395,7 +1395,7 @@
         !     precision, in bytes, so as to know whether dsygv or ssygv
         !     should be called.
         
-            include 'SIZE'
+            use size_m
             include 'PARALLEL'
         
             real :: a(n,n),b(n,n),lam(n),w(n,n)
@@ -1440,7 +1440,7 @@
             end subroutine generalev
         !-----------------------------------------------------------------------
             subroutine outmat2(a,m,n,k,name)
-            include 'SIZE'
+            use size_m
             real :: a(m,n)
             character(4) :: name
         

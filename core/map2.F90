@@ -1,6 +1,6 @@
 !-----------------------------------------------------------------------
     subroutine mapelpr()
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'SCRCT'
@@ -99,7 +99,7 @@
 !     physical distribution in an attempt to minimize exposed number of
 !     element interfaces.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'SOLN'
@@ -168,7 +168,7 @@
     subroutine gfdm_elm_to_proc(gllnid,np)
 
 
-    include 'SIZE'
+    use size_m
     include 'ZPER'
 
     integer :: gllnid(1)
@@ -254,7 +254,7 @@
 !-----------------------------------------------------------------------
     subroutine gfdm_set_pst(ip,is,it,nelbox,nstride_box,nxp,nyp,nzp)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'ZPER'
 
@@ -313,7 +313,7 @@
     subroutine gfdm_build_global_el_map (gllnid,map_st,nes,net &
     ,nelbox,nstride_box,ip,is,it)
 
-    include 'SIZE'
+    use size_m
     integer :: gllnid(1)
     integer :: map_st(nes,net)
     integer :: nelbox(3),nstride_box(3)

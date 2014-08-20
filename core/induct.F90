@@ -14,7 +14,7 @@
 !     projection onto a div-free space.
 
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'EIGEN'
     include 'SOLN'
@@ -55,7 +55,7 @@
 
 !     Keep old B-field(s)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -74,12 +74,12 @@
 
 !     Make rhs for induction equation
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'INPUT'
     include 'TSTEP'
-    include 'CTIMER'
 
     if (icalld == 0) tbmhd=0.0
     icalld = icalld+1
@@ -123,7 +123,7 @@
 
 !     Compute and add: (1) user specified forcing function (FX,FY,FZ)
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -142,7 +142,7 @@
 
 !     (nek5 equivalent for velocity is "makeabf")
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'MASS'
@@ -179,7 +179,7 @@
 
 !     Add contributions to magnetic source from lagged BD terms.
 
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'GEOM'
@@ -225,7 +225,7 @@
 !                                               n
 !     Also, subtract off best estimate of grad p
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     real ::           resv1 (lx1,ly1,lz1,1)
     real ::           resv2 (lx1,ly1,lz1,1)
@@ -255,7 +255,7 @@
 !                                               n
 !     Also, subtract off best estimate of grad p
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     real ::           resv1 (lx1,ly1,lz1,1)
     real ::           resv2 (lx1,ly1,lz1,1)
@@ -297,9 +297,9 @@
 !                not the current pressure derived from extrapolation.
 
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
 
     common /scrns/ w1    (lx1,ly1,lz1,lelv) &
     ,             w2    (lx1,ly1,lz1,lelv) &
@@ -401,7 +401,7 @@
     end subroutine extrapp
 !-----------------------------------------------------------------------
     subroutine opzero(ux,uy,uz)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     real :: ux(1),uy(1),uz(1)
 
@@ -414,7 +414,7 @@
     end subroutine opzero
 !-----------------------------------------------------------------------
     subroutine opnorm(unorm,ux,uy,uz,type3)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     character(3) :: type3
     real :: ux(1),uy(1),uz(1)
@@ -457,7 +457,7 @@
 
 !     (i.e.,   rhs(NS) = rhs(NS) + B*lf,  where B is the mass matrix)
 
-    include 'SIZE'
+    use size_m
 
     real :: lf(lx1*ly1*lz1*lelv,ldim)
     real :: b1(lx1*ly1*lz1*lelv)
@@ -482,7 +482,7 @@
 !-----------------------------------------------------------------------
     subroutine curl(vort,u,v,w,ifavg,work1,work2)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     logical :: ifavg
@@ -549,7 +549,7 @@
 
 !     (i.e.,   rhs(NS) = rhs(NS) + B*lf,  where B is the mass matrix)
 
-    include 'SIZE'
+    use size_m
 
     real :: lf(lx1*ly1*lz1*ldim,lelt)
     real :: b1(lx1*ly1*lz1,lelt)
@@ -605,7 +605,7 @@
 
 
 
-    include 'SIZE'
+    use size_m
     include 'DEALIAS'
     include 'GEOM'
     include 'WZ'
@@ -685,7 +685,7 @@
 
 !     local curl, multiplied by Jacobian
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
 
     real :: cb(lx1*ly1*lz1,3)  ! Output J*curl B  (J:=Jacobian)
@@ -751,7 +751,7 @@
 !-----------------------------------------------------------------------
     subroutine specx(b,nb,a,na,ba,ab,w)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     real :: b(1),a(1)
     real :: w(1)
@@ -852,7 +852,7 @@
 !     Solve MHD in Elsasser variables
 
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'EIGEN'
     include 'SOLN'
@@ -917,7 +917,7 @@
 
 !     Given velocity field (u,v,w) and dt, compute current CFL number.
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
     include 'WZ'
@@ -1022,7 +1022,7 @@
 
 !     Ok = (H1*A+H2*B)-1 * Ik  (implicit)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -1101,7 +1101,7 @@
 
 !     Ok  = (H1*A+H2*B)-1 * Ik   (implicit)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
@@ -1135,7 +1135,7 @@
 !--------------------------------------------------------------------
 #if 0
     subroutine set_ifbcor
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'INPUT'
 !     include 'TSTEP'   ! ifield?
@@ -1168,7 +1168,7 @@
 !c     This is a quick hack for the rings problem - it is not general,
 !c     but will also work fine for the periodic in Z problem
 !c
-!      include 'SIZE'
+!      use size_m
 !      include 'TOTAL'
 
 !      logical ifbcor
@@ -1199,7 +1199,7 @@
 
 !     Project soln onto best fit in the "E" norm.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -1264,7 +1264,7 @@
 !     Reconstruct the solution to the original problem by adding back
 !     the previous solutions
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: p    (lx2,ly2,lz2,lelv)
@@ -1302,7 +1302,7 @@
 !     Orthogonalize the soln wrt previous soln's for which we already
 !     know the soln.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: p    (lx2,ly2,lz2,lelv)
@@ -1361,7 +1361,7 @@
 !     Eulerian scheme, add convection term to forcing function
 !     at current time step.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'SOLN'
@@ -1560,7 +1560,7 @@
 !     Eulerian scheme, add convection term to forcing function
 !     at current time step.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'TSTEP' ! for istep
@@ -1641,7 +1641,7 @@
 !-----------------------------------------------------------------------
     subroutine cfl_check
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'SOLN'
     include 'MASS'

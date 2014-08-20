@@ -14,7 +14,7 @@
 
 !-----------------------------------------------------------------------
     subroutine setup_convect(igeom)
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     logical :: ifnew
 
@@ -61,7 +61,7 @@
 !            then by field number (this is opposite to prior Nek5000)
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
     real ::    p0(1),u(1),ulag(1),msk(1),c(1),cs(0:1)
     integer :: gsl
@@ -103,7 +103,7 @@
     subroutine char_conv1 &
     (p0,bmsk,u,n,ulag,ln,gsl,c,m,cs,nc,ct,u1,r1,r2,r3,r4)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
 
@@ -224,7 +224,7 @@
 !-----------------------------------------------------------------------
     subroutine conv_rhs (du,u,c,bmsk,gsl)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
 !     apply convecting field c(1,ndim) to scalar field u(1)
@@ -265,7 +265,7 @@
 !-----------------------------------------------------------------------
     subroutine convop_fst_3d(du,u,c,mx,md,nel)
 
-    include 'SIZE'
+    use size_m
 
 !     apply convecting field c to scalar field u
 
@@ -307,7 +307,7 @@
 !-----------------------------------------------------------------------
     subroutine convop_fst_2d(du,u,c,mx,md,nel)
 
-    include 'SIZE'
+    use size_m
 
 !     apply convecting field c to scalar field u
 
@@ -349,7 +349,7 @@
 !-----------------------------------------------------------------------
     subroutine grad_rstd(ur,us,ut,u,mx,md,if3d,ju) ! GLL->GL grad
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
 
     real ::    ur(1),us(1),ut(1),u(1),ju(1)
@@ -379,7 +379,7 @@
 
 !     If idir ^= 0, then apply transpose operator  (md to mx)
 
-    include 'SIZE'
+    use size_m
 
     real ::    ju(1),u(1)
     logical :: if3d
@@ -481,7 +481,7 @@
     end subroutine gen_dgl
 !-----------------------------------------------------------------------
     subroutine lim_chk(n,m,avar5,lvar5,sub_name10)
-    include 'SIZE'            ! need nid
+    use size_m            ! need nid
     character(5) ::  avar5,lvar5
     character(10) :: sub_name10
 
@@ -498,7 +498,7 @@
 
 !     Get pointer to jgl() for interpolation pair (mx,md)
 
-    include 'SIZE'
+    use size_m
 
     parameter (ldg=lxd**3,lwkd=4*lxd*lxd)
     common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
@@ -536,7 +536,7 @@
 
 !     Get pointer to GL-GL interpolation dgl() for pair (mx,md)
 
-    include 'SIZE'
+    use size_m
 
     parameter (ldg=lxd**3,lwkd=4*lxd*lxd)
     common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
@@ -572,7 +572,7 @@
 !-----------------------------------------------------------------------
 #if 0
     subroutine set_conv_char(ct,c,ux,uy,uz,nelc,tau,ifnew)
-    include 'SIZE'
+    use size_m
     include 'TSTEP'
 
     real :: ct(0:1)               ! time stamps for saved field (0=#flds)
@@ -605,7 +605,7 @@
 #endif
 !-----------------------------------------------------------------------
     subroutine set_ct_cvx(ct,c,m,u,v,w,tau,nc,mc,nelc,ifnew)
-    include 'SIZE'
+    use size_m
     include 'INPUT'  ! ifcons
 
     real :: ct(0:1),c(m,1)
@@ -646,7 +646,7 @@
 !-----------------------------------------------------------------------
     subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
 
-    include 'SIZE'
+    use size_m
     include 'DXYZ'
 
     real ::    ur(1),us(1),ut(1),u(1)
@@ -672,7 +672,7 @@
 
 !     Compute dealiased form:  J^T Bf *JC .grad Ju w/ correct Jacobians
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: bdu(1),u(1),cx(1),cy(1),cz(1)
@@ -769,7 +769,7 @@
 !     conservative form
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: bdu(1),u(1),cx(1),cy(1),cz(1)
@@ -853,7 +853,7 @@
 !     Put vx,vy,vz on fine mesh (for conservation form)
 
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter (lxy=lx1*ly1*lz1,ltd=lxd*lyd*lzd)
@@ -883,7 +883,7 @@
 
 !     For rst form, see eq. (4.8.5) in Deville, Fischer, Mund (2002).
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter (lxy=lx1*ly1*lz1,ltd=lxd*lyd*lzd)
@@ -937,7 +937,7 @@
 !-----------------------------------------------------------------------
     subroutine set_char_mask(mask,u,v,w) ! mask for hyperbolic system
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'SOLN'
@@ -983,14 +983,14 @@
 !     Compute convective contribution using
 !     operator-integrator-factor method (characteristics).
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'MASS'
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
     include 'PARALLEL'
 
-    include 'CTIMER'
 
     common /cchar/ ct_vx(0:lorder) ! time for each slice in c_vx()
 
@@ -1046,13 +1046,13 @@
 !     Compute convective contribution using
 !     operator-integrator-factor method (characteristics).
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'MASS'
     include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
     include 'PARALLEL'
-    include 'CTIMER'
 
     common /cchar/ ct_vx(0:lorder) ! time for each slice in c_vx()
 
@@ -1096,7 +1096,7 @@
 
 !     Assumes that current convecting field is on dealias mesh, in c()
 
-    include 'SIZE'
+    use size_m
     include 'DEALIAS'
     include 'GEOM'
 
@@ -1151,7 +1151,7 @@
 
 !     Assumes that current convecting field is on dealias mesh, in c()
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'TSTEP'
 

@@ -146,7 +146,7 @@
     end subroutine out_abd
 !-----------------------------------------------------------------------
     subroutine rarr_out(x,name13)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: x(lx1,ly1,lz1,lelt)
@@ -192,7 +192,7 @@
     end subroutine rarr_out
 !-----------------------------------------------------------------------
     subroutine iarr_out(x,name)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     integer :: x(lx1,ly1,lz1,lelt)
@@ -238,7 +238,7 @@
     end subroutine iarr_out
 !-----------------------------------------------------------------------
     subroutine iar2_out(x,name)
-    include 'SIZE'
+    use size_m
 
     integer :: x(lx2,ly2,lz2,lelt)
     character(13) :: name

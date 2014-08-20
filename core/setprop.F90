@@ -4,9 +4,9 @@
 !     Set variable property arrays
 
 !------------------------------------------------------------------------
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'TOTAL'
-    include 'CTIMER'
 
 !     Caution: 2nd and 3rd strainrate invariants residing in scratch
 !              common /SCREV/ are used in STNRINV and NEKASGN

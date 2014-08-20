@@ -8,6 +8,7 @@
 !           divergence and has to be provided
 !           by an external subroutine e.g qthermal
 
+    INCLUDE 'CTIMER'
     INCLUDE 'SIZE'
     INCLUDE 'INPUT'
     INCLUDE 'GEOM'
@@ -15,7 +16,6 @@
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
 !max    INCLUDE 'ORTHOP'
-    INCLUDE 'CTIMER'
 
     parameter (ktot = lx1*ly1*lz1*lelt)
     parameter (laxt = mxprev)
@@ -302,7 +302,7 @@
 !-----------------------------------------------------------------------
     subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     real :: duax(lx1), ta(lx1,ly1,lz1,lelv)
@@ -394,7 +394,7 @@
 
 !     extrapolate velocity
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
        
     real :: vext(lx1*ly1*lz1*lelv,1)
@@ -429,7 +429,7 @@
 !     Split viscosity into a constant implicit (VDIFF) and variable
 !     explicit (VDIFF_E) part.
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     n = nx1*ny1*nz1*nelv
@@ -444,7 +444,7 @@
 !-----------------------------------------------------------------------
     subroutine redo_split_vis     !     Redo split viscosity
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     n = nx1*ny1*nz1*nelv

@@ -2174,7 +2174,7 @@
 
 !     calculate surface normal
 
-    include 'SIZE'
+    use size_m
     include 'GEOM'
     include 'TOPOL'
 
@@ -2204,7 +2204,7 @@
 
 !     fixes masks for A/SYM face corners
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
      
     real ::   c1mask(lx1,ly1,lz1,1) &
@@ -2257,7 +2257,7 @@
 !     Assign the value VAL to face(IFACE,IE) of array A.
 !     IFACE is the input in the pre-processor ordering scheme.
 
-    include 'SIZE'
+    use size_m
     integer :: a(nx,ny,nz),val
     call facind (kx1,kx2,ky1,ky2,kz1,kz2,nx,ny,nz,iface)
     do 100 iz=kz1,kz2
@@ -2269,7 +2269,7 @@
     end subroutine iface_e
 !-----------------------------------------------------------------------
     function op_vlsc2_wt(b1,b2,b3,x1,x2,x3,wt)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
     real :: b1(1),b2(1),b3(1),x1(1),x2(1),x3(1),wt(1)
@@ -2293,7 +2293,7 @@
     end function op_vlsc2_wt
 !-----------------------------------------------------------------------
     function op_glsc2_wt(b1,b2,b3,x1,x2,x3,wt)
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'TSTEP'
     real :: b1(1),b2(1),b3(1),x1(1),x2(1),x3(1),wt(1)

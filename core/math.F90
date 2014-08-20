@@ -108,9 +108,9 @@
     end subroutine invcol1
 !-----------------------------------------------------------------------
     subroutine invcol2(a,b,n)
+    use ctimer
 
     REAL :: A(1),B(1)
-    include 'CTIMER'
     include 'OPCTR'
 
 #ifndef NOTIMER
@@ -143,10 +143,10 @@
     end subroutine invcol2
 !-----------------------------------------------------------------------
     subroutine invcol3(a,b,c,n)
+    use ctimer
     REAL :: A(1),B(1),C(1)
 
     include 'OPCTR'
-    include 'CTIMER'
 
 #ifndef NOTIMER
     if (icalld == 0) tinv3=0.0
@@ -1009,10 +1009,10 @@
     return
     end subroutine add4
     real function vlsc2(x,y,n)
-    REAL :: X(1),Y(1)
-    include 'SIZE'
+    use size_m
     include 'OPCTR'
     include 'PARALLEL'
+    REAL :: X(1),Y(1)
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -1036,10 +1036,10 @@
     end function vlsc2
 !-----------------------------------------------------------------------
     real function vlsc21(x,y,n)
-    real :: x(1),y(1)
-    include 'SIZE'
+    use size_m
     include 'OPCTR'
     include 'PARALLEL'
+    real :: x(1),y(1)
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -1153,7 +1153,7 @@
 !-----------------------------------------------------------------------
     real function gl2norm(a,n)
 
-    include 'SIZE'
+    use size_m
     include 'MASS'
 
     real :: a(1)
@@ -1304,7 +1304,7 @@
 !-----------------------------------------------------------------------
     function fmdian(a,n,ifok)
 !     find the Median of the (global) set A
-    include 'SIZE'
+    use size_m
     DIMENSION A(1)
     DIMENSION WORK1(5),WORK2(5)
     DIMENSION GUES(100)

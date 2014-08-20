@@ -3,12 +3,12 @@
 !     Compute matrix-matrix product C = A*B
 !     for contiguously packed matrices A,B, and C.
 
-    real :: a(n1,n2),b(n2,n3),c(n1,n3)
 
-    include 'SIZE'
+    use size_m
     include 'OPCTR'
     include 'TOTAL'
 
+    real :: a(n1,n2),b(n2,n3),c(n1,n3)
     integer :: aligned
     integer :: K10_mxm
 

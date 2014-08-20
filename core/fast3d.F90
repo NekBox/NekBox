@@ -4,7 +4,7 @@
 
 !     Generate fast diagonalization matrices for each element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'SOLN'
@@ -145,7 +145,7 @@
 
 !     Generate fast diagonalization matrices for each element
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'SOLN'
@@ -209,7 +209,7 @@
 !     Here, spacing is based on arithmetic mean.
 !     New verision uses harmonic mean.  pff 2/10/07
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: w(1),lr(1),ls(1),lt(1)
@@ -310,7 +310,7 @@
 !     Here, spacing is based on harmonic mean.  pff 2/10/07
 
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: w(1),lr(1),ls(1),lt(1)
@@ -430,7 +430,7 @@
 !     This addition made to simplify the periodic bdry treatment.
 
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
 
     real :: w(1),lr(1),ls(1),lt(1)
@@ -802,14 +802,14 @@
     end subroutine gen_eigs_A_fem
 !-----------------------------------------------------------------------
     subroutine get_fast_bc(lbr,rbr,lbs,rbs,lbt,rbt,e,bsym,ierr)
-    integer ::                lbr,rbr,lbs,rbs,lbt,rbt,e,bsym
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'TOPOL'
     include 'TSTEP'
 
+    integer ::                lbr,rbr,lbs,rbs,lbt,rbt,e,bsym
     integer :: fbc(6)
 
 !     ibc = 0  <==>  Dirichlet
@@ -1188,7 +1188,7 @@
 !     dgl = bgl dgl
 !     jgl = bgl jgl
 
-    include 'SIZE'
+    use size_m
     include 'SEMHAT'
 
     nr = nx1-1
@@ -1349,7 +1349,7 @@
     end subroutine fd_weights_full
 !-----------------------------------------------------------------------
     subroutine set_up_fast_1D_sem(s,lam,n,lbc,rbc,ll,lm,lr,ie)
-    include 'SIZE'
+    use size_m
     include 'SEMHAT'
 
     common /fast1dsem/ g(lr2),w(lr2)
@@ -1431,7 +1431,7 @@
 !        (these contribs should be small for large N and
 !         elements of nearly equal size)
 
-    include 'SIZE'
+    use size_m
     real :: g(0:lx1-1,0:lx1-1)
     real :: bh(0:lx1-1),jgl(1:lx2,0:lx1-1)
     real :: ll,lm,lr
@@ -1541,7 +1541,7 @@
 !-----------------------------------------------------------------------
     subroutine swap_lengths
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'GEOM'
     include 'WZ'
@@ -1634,7 +1634,7 @@
 
 !     Note: 'SYM' on a plane with r,s,t-normal is 'dnn','ndn','nnd'? bsym?
 
-    include 'SIZE'
+    use size_m
     include 'TOPOL'
     include 'INPUT'
     include 'TSTEP'

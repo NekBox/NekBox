@@ -3,7 +3,7 @@
 
 !     Project rhs onto best fit in the "E" norm.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -106,7 +106,7 @@
 !     the previous solutions
 !     know the soln.
 
-    include 'SIZE'
+    use size_m
     PARAMETER (LTOT2=LX2*LY2*LZ2*LELV)
     COMMON /ORTHOV/ RHS(LTOT2,MXPREV)
     COMMON /ORTHOX/ Pbar(LTOT2),Pnew(LTOT2)
@@ -150,7 +150,7 @@
 !          old vectors, perhaps chosen wisely via P.O.D.
 
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     PARAMETER (LTOT2=LX2*LY2*LZ2*LELV)
@@ -194,7 +194,7 @@
 !     Orthogonalize the rhs wrt previous rhs's for which we already
 !     know the soln.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -266,7 +266,7 @@
 !     It can be replaced with the standard nekton version.
 
 !--------------------------------------------------------------------
-    include 'SIZE'
+    use size_m
     include 'SOLN'
     include 'MASS'
     include 'INPUT'
@@ -346,7 +346,7 @@
 !     Update rhs's if E-matrix has changed
 
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'TSTEP'
@@ -419,7 +419,7 @@
 !     Orthogonalize the rhs wrt previous rhs's for which we already
 !     know the soln.
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -472,7 +472,7 @@
 !              wl        -- large work array of size lx1*ly1*lz1*nelv
 !              ws        -- small work array of size 2*max vecs
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -542,7 +542,7 @@
 !     Reconstruct the solution to the original problem by adding back
 !     the previous solutions
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -598,7 +598,7 @@
 
 !     Orthonormalize the kth vector against vector set
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'SOLN'
@@ -682,7 +682,7 @@
 
 !     Reorthogonalize approx if dt has changed
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'TSTEP'
@@ -743,11 +743,11 @@
     end subroutine updrhsh
 !-----------------------------------------------------------------------
     subroutine hmhzpf(name,u,r,h1,h2,mask,mult,imesh,tli,maxit,isd,bi)
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'FDMH1'
-    include 'CTIMER'
 
     CHARACTER(4) ::    NAME
     REAL ::           U    (LX1,LY1,LZ1,1)
@@ -792,12 +792,12 @@
 
 !     Either std. Helmholtz solve, or a projection + Helmholtz solve
 
-    include 'SIZE'
+    use ctimer
+    use size_m
     include 'INPUT'
     include 'MASS'
     include 'TSTEP'
     include 'FDMH1'
-    include 'CTIMER'
 
     CHARACTER(4) ::    NAME
     REAL ::           U    (LX1,LY1,LZ1,1)

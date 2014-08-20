@@ -3,12 +3,12 @@
 
 !     Subroutine to initialize logical flags
 
+    INCLUDE 'CTIMER'
     INCLUDE 'SIZE'
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     INCLUDE 'TURBO'
-    INCLUDE 'CTIMER'
     COMMON  /CPRINT/ IFPRINT
 
     common  /nekcb/ cb
@@ -581,13 +581,13 @@
 !     Apply Dirichlet boundary conditions to surface of vector (V1,V2,V3).
 !     Use IFIELD as a guide to which boundary conditions are to be applied.
 
+    INCLUDE 'CTIMER'
     INCLUDE 'SIZE'
     INCLUDE 'TSTEP'
     INCLUDE 'INPUT'
     INCLUDE 'GEOM'
     INCLUDE 'SOLN'
     INCLUDE 'TOPOL'
-    INCLUDE 'CTIMER'
     COMMON /SCRUZ/ TMP1(LX1,LY1,LZ1,LELV) &
     , TMP2(LX1,LY1,LZ1,LELV) &
     , TMP3(LX1,LY1,LZ1,LELV)
@@ -726,12 +726,12 @@
 !     Apply Dirichlet boundary conditions to surface of scalar, S.
 !     Use IFIELD as a guide to which boundary conditions are to be applied.
 
+    INCLUDE 'CTIMER'
     INCLUDE 'SIZE'
     INCLUDE 'TSTEP'
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
     INCLUDE 'TOPOL'
-    INCLUDE 'CTIMER'
 
     DIMENSION S(LX1,LY1,LZ1,LELT)
     COMMON /SCRSF/ TMP(LX1,LY1,LZ1,LELT) &
@@ -817,9 +817,9 @@
 !                   diagonal of A.
 
 
+    INCLUDE 'CTIMER'
     INCLUDE 'SIZE'
     INCLUDE 'TOTAL'
-    INCLUDE 'CTIMER'
     INCLUDE 'NEKUSE'
 
     DIMENSION S(LX1,LY1,LZ1,LELT)
@@ -1998,7 +1998,7 @@
     END SUBROUTINE ANTIMSK1
 !-----------------------------------------------------------------------
     subroutine check_cyclic  ! check for cyclic bcs
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     common /scrmg/ v1(lx1,ly1,lz1,lelt) &

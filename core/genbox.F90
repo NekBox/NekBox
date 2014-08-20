@@ -2,7 +2,7 @@
 #if 0
     subroutine genbox
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'ZPER'
 
@@ -68,7 +68,7 @@
 !-----------------------------------------------------------------------
     subroutine gen_gtp_vertex (vertex,ncrnr)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'ZPER'
@@ -143,7 +143,7 @@
 #if 0
     subroutine getbox(x,y,z,nfld)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'ZPER'
 
@@ -344,7 +344,7 @@
 
 !     Given melx  x  mely  x  melz elements, distribute to np processors
 
-    include 'SIZE'
+    use size_m
     include 'PARALLEL'
     include 'ZPER'
 
@@ -373,7 +373,7 @@
 !-----------------------------------------------------------------------
     subroutine makebox(x,y,z,nfld)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'PARALLEL'
     include 'ZPER'
@@ -901,7 +901,7 @@
 #if 0
     subroutine bcpbox(nfld)
 
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'ZPER'
     include 'PARALLEL'
@@ -930,7 +930,7 @@
     end subroutine bcpbox
 !-----------------------------------------------------------------------
     subroutine outbox_mesh
-    include 'SIZE'
+    use size_m
     include 'INPUT'
     include 'ZPER'
     include 'PARALLEL'

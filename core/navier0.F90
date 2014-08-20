@@ -4,6 +4,7 @@
 !     Choose E-solver
 
 !--------------------------------------------------------------------
+    use ctimer
     INCLUDE 'SIZE'
     INCLUDE 'ESOLV'
     INCLUDE 'INPUT'
@@ -16,7 +17,6 @@
     , wk2(lx2*ly2*lz2*lelv) &
     , wk3(lx2*ly2*lz2*lelv)
 
-    include 'CTIMER'
     real :: kwave2
 
     if (icalld == 0) teslv=0.0
@@ -101,7 +101,7 @@
 
 !     Dump map file and element center point
 
-    include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     common /ivrtx/ vertex ((2**ldim)*lelt)
@@ -128,12 +128,13 @@
     end subroutine dmp_map
 !-----------------------------------------------------------------------
     subroutine p_outvec_ir(ia,a,lda,name9)
+    use size_m
+    include 'TOTAL'
+
     integer :: ia(1)
     real ::    a(lda,1)
     character(9) :: name9
 
-    include 'SIZE'
-    include 'TOTAL'
 
     parameter (lbuf=50)
     common /scbuf/ buf(lbuf)

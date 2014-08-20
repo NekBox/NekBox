@@ -3,7 +3,7 @@
 
 !     Read in data from preprocessor input file (.rea)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
     INCLUDE 'ZPER'
@@ -213,8 +213,8 @@
 
 !     .Broadcast run parameters to all processors
 
-    INCLUDE 'CTIMER'
-    INCLUDE 'SIZE'
+    use ctimer
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
     INCLUDE 'ZPER'
@@ -792,7 +792,7 @@
 !      to sequential partition scheme
 
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
     CHARACTER(1) :: ANS
@@ -884,7 +884,7 @@
 !     .Disperse boundary condition data to all processors
 !      according to sequential partition scheme
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
     INCLUDE 'SCRCT'
@@ -1130,7 +1130,7 @@
 !     .Disperse material properties to all processors according
 !      to sequential partition scheme
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
 
@@ -1178,7 +1178,7 @@
 
 !     .Broadcast to all processors
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
 
@@ -1252,7 +1252,7 @@
 
 !     .Broadcast to all processors
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
 
@@ -1336,7 +1336,7 @@
 
 !     .Broadcast to all processors
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
 
@@ -1393,7 +1393,7 @@
 !     Note that periodic faces are not checked here.
 !=====================================================================
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
     COMMON /SCRNS/ TA(LX1,LY1,LZ1,LELT),TB(LX1,LY1,LZ1,LELT) &
     ,QMASK(LX1,LY1,LZ1,LELT),tmp(2)
@@ -1623,7 +1623,7 @@
 !     Note that periodic faces are not checked here.
 !=====================================================================
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
     common /scrns/ tc(lx1,ly1,lz1,lelt),td(lx1,ly1,lz1,lelt) &
     , ta(lx1,ly1,lz1,lelt),tb(lx1,ly1,lz1,lelt) &
@@ -1805,7 +1805,7 @@
 
 !     Rotate NPTS through ANGLE (in two directions IF3D).
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     DIMENSION XYZ(3,1)
     COMMON /CTMP0/ RMTRX(3,3),RX(3,3),RZ(3,3),XYZN(3,10)
@@ -1852,7 +1852,7 @@
 
 !     Rescale XYZL such that the mean value of IXX=IYY=IZZ for each element.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     DIMENSION XYZL(3,8,LELT)
     COMMON /CTMP0/ VO(LELT),XYZI(3,LELT),CG(3,LELT) &
@@ -1945,7 +1945,7 @@
     end subroutine inrtia
 !-----------------------------------------------------------------------
     subroutine volume2(vol,xyz,n)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     DIMENSION XYZ(3,2,2,2,1)
     DIMENSION VOL(1)
@@ -1999,7 +1999,7 @@
 
 !     Compute cg for N elements.
 
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION CG(3,1),XYZ(3,8,1)
 
     NCRNR=2**NDIM
@@ -2021,7 +2021,7 @@
 !     the direction having the smallest moment of inertia (the "long"
 !     direction).
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
     INCLUDE 'TSTEP'

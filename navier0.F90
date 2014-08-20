@@ -5,7 +5,7 @@
 
 !--------------------------------------------------------------------
     use ctimer
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'ESOLV'
     INCLUDE 'INPUT'
 
@@ -57,7 +57,7 @@
 !     Decide strategy for E-solver
 
 !---------------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
     IESOLV = 1
@@ -86,7 +86,7 @@
 !     Initialize E-solver
 
 !-----------------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'ESOLV'

@@ -16,7 +16,7 @@
 
 !-----------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'WZ'
     INCLUDE 'DXYZ'
     INCLUDE 'IXYZ'
@@ -366,7 +366,7 @@
 !     Stress   formulation : global-to-local mapping based on mesh 1
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
@@ -402,7 +402,7 @@
 !         JACM3                -   Jacobian
 
 !------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
 !     Note : work arrays for mesh 3 in scratch commons will be
@@ -585,7 +585,7 @@
 !         JACM1                -   Jacobian
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
@@ -671,7 +671,7 @@
 !     (Gauss-Legendre Lobatto mesh).
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'MASS'
@@ -835,7 +835,7 @@
 !         BM2                  -   Mass matrix
 
 !------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOTAL'
 
     NXYZ2 = NX2*NY2*NZ2
@@ -922,7 +922,7 @@
 !     Compute global-to-local derivatives on mesh 1.
 
 !-----------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'DXYZ'
 
@@ -1046,7 +1046,7 @@
 
 !     Compute surface data: areas, normals and tangents
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
 
@@ -1071,7 +1071,7 @@
 !     Compute areas, normals and tangents (2D and Axisymmetric geom.)
 
 !--------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
@@ -1136,7 +1136,7 @@
     end subroutine area2
     subroutine setwgtr (wgtr1,wgtr2,wgtr3,wgtr4)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'WZ'
@@ -1193,7 +1193,7 @@
 !     Compute areas, normals and tangents (3D geom.)
 
 !--------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'WZ'
     INCLUDE 'GEOM'
 
@@ -1320,7 +1320,7 @@
 !     Lag the mass matrix (matrices)
 
 !--------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
 
@@ -1345,7 +1345,7 @@
 !         in DSSUM routine for IMESH=1 and IMESH=2.
 
 !--------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'MASS'
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
@@ -1387,7 +1387,7 @@
 
 !---------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'IXYZ'
     INCLUDE 'WZ'
@@ -1456,7 +1456,7 @@
 
 !---------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
@@ -1499,7 +1499,7 @@
 
 !---------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
@@ -1536,7 +1536,7 @@
 
 !---------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
@@ -1574,7 +1574,7 @@
 
 !---------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'
@@ -1615,7 +1615,7 @@
 
 !---------------------------------------------------------------
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'IXYZ'
     INCLUDE 'INPUT'

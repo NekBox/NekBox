@@ -1097,7 +1097,7 @@
 !     Assumes that current convecting field is on dealias mesh, in c()
 
     use size_m
-    include 'DEALIAS'
+    use dealias
     include 'GEOM'
 
     real :: du(mx*mx*mx,nel)

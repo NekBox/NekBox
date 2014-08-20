@@ -94,7 +94,7 @@
     end subroutine dssum
 !-----------------------------------------------------------------------
     subroutine dsop(u,op,nx,ny,nz)
-    include  'CTIMER'
+    use ctimer
     use size_m
     include 'PARALLEL'
     include 'INPUT'
@@ -164,7 +164,7 @@
 !     the CBC array.
 
     use ctimer
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
@@ -212,7 +212,7 @@
 !     the CBC array.
 
     use ctimer
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'

@@ -1732,7 +1732,7 @@
     end subroutine hsmg_index_0
 !----------------------------------------------------------------------
     subroutine outfldn (x,n,txt10,ichk) ! writes into unit=40+ifiled
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(n,n,1,lelt)
     character(10) :: txt10
@@ -1791,7 +1791,7 @@
     end subroutine outfldn
 !-----------------------------------------------------------------------
     subroutine outfldn0 (x,n,txt10,ichk)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(n,n,1,lelt)
     character(10) :: txt10
@@ -1849,7 +1849,7 @@
     end subroutine outfldn0
 !-----------------------------------------------------------------------
     subroutine outflda (x,n,txt10,ichk) ! writes into unit=p130+ifiled
-    INCLUDE 'SIZE'                      ! or into std. output for p130<9
+    use size_m                      ! or into std. output for p130<9
     INCLUDE 'TSTEP'                     ! truncated below eps=p131
     INCLUDE 'INPUT'                     ! param(130)
     real :: x(1)
@@ -1878,7 +1878,7 @@
     end subroutine outflda
 !-----------------------------------------------------------------------
     subroutine outfldan(x,n,txt10,ichk) ! writes x(1:n) into unit=p130+ifiled
-    INCLUDE 'SIZE'                      ! or into std. output for 0<p130<9
+    use size_m                      ! or into std. output for 0<p130<9
     INCLUDE 'TSTEP'                     ! truncated below eps=p131
     INCLUDE 'INPUT'
     real :: x(1)

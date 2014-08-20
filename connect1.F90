@@ -177,7 +177,7 @@
 
 !     Set up required data for packing data on faces of spectral cubes.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
 
 !     Nominal ordering for direct stiffness summation of faces
@@ -310,7 +310,7 @@
 !                                               i=2 gives the stopping vertex
 !                                               i=3 gives the stride size.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TOPOL'
 
     COMMON /CTMP0/ ITMP(3,3,3)
@@ -553,7 +553,7 @@
 
 !     Set up arrays IXCN,ESKIP,SKPDAT,NEDG,NOFFST for new NX,NY,NZ
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TOPOL'
     INTEGER :: NXO,NYO,NZO
@@ -716,7 +716,7 @@
 
 !     Generate xyz coordinates
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'SCRCT'
     COMMON /CTMP0/ XCB(2,2,2),YCB(2,2,2),ZCB(2,2,2),H(3,3,2),INDX(8)
@@ -813,7 +813,7 @@
     end subroutine verify
 !-----------------------------------------------------------------------
     subroutine setside
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'TOPOL'
     INCLUDE 'SCRCT'
@@ -891,7 +891,7 @@
 !     8 Mar 1989 21:58:26   PFF
 !     Verify right-handedness of given elements.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'PARALLEL'
     INCLUDE 'SCRCT'
@@ -1078,7 +1078,7 @@
 !     Assign the value VAL to face(IFACE,IE) of array A.
 !     IFACE is the input in the pre-processor ordering scheme.
 
-    INCLUDE 'SIZE'
+    use size_m
     DIMENSION A(NX,NY,NZ,LELT)
     CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX,NY,NZ,IFACE)
     DO 100 IZ=KZ1,KZ2
@@ -1130,7 +1130,7 @@
     end subroutine combin2
 !-----------------------------------------------------------------------
     subroutine outfldio (x,txt10)
-    INCLUDE 'SIZE'
+    use size_m
     integer :: x(lx1,ly1,lz1,lelt)
     character(10) :: txt10
 
@@ -1158,7 +1158,7 @@
     end subroutine outfldio
 !-----------------------------------------------------------------------
     subroutine outfldi (x,txt10)
-    INCLUDE 'SIZE'
+    use size_m
     integer :: x(lx1,ly1,lz1,lelt)
     character(10) :: txt10
 
@@ -1209,7 +1209,7 @@
     end subroutine outfldi
 !-----------------------------------------------------------------------
     subroutine outfldr (x,txt10)
-    INCLUDE 'SIZE'
+    use size_m
     real :: x(lx1,ly1,lz1,lelt)
     character(10) :: txt10
 
@@ -1266,7 +1266,7 @@
     end subroutine checkit
 !-----------------------------------------------------------------------
     subroutine outfldro (x,txt10,ichk)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(nx1,ny1,nz1,lelt)
     character(10) :: txt10
@@ -1320,7 +1320,7 @@
     end subroutine outfldro
 !-----------------------------------------------------------------------
     subroutine outfldrv (x,txt10,ichk) ! writes to unit=40+ifield
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(nx1,ny1,nz1,lelt)
     character(10) :: txt10
@@ -1379,7 +1379,7 @@
     end subroutine outfldrv
 !-----------------------------------------------------------------------
     subroutine outfldrv0 (x,txt10,ichk)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(nx1,ny1,nz1,lelt)
     character(10) :: txt10
@@ -1437,7 +1437,7 @@
     end subroutine outfldrv0
 !-----------------------------------------------------------------------
     subroutine outfldrp0 (x,txt10,ichk)
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(nx2,ny2,nz2,lelt)
     character(10) :: txt10
@@ -1495,7 +1495,7 @@
     end subroutine outfldrp0
 !-----------------------------------------------------------------------
     subroutine outfldrp (x,txt10,ichk) ! writes out into unit = 40+ifield
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     real :: x(nx2,ny2,nz2,lelt)
     character(10) :: txt10

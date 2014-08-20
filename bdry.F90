@@ -3,8 +3,8 @@
 
 !     Subroutine to initialize logical flags
 
-    INCLUDE 'CTIMER'
-    INCLUDE 'SIZE'
+    use ctimer
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
@@ -173,7 +173,7 @@
 !     Are some of the elements close to the axis?
 
 !-------------------------------------------------------------------
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
 
@@ -211,7 +211,7 @@
 !      Check direction of normal of an element face for
 !      alignment with the X, Y, or Z axis.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
 
     LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ
@@ -275,7 +275,7 @@
 !-----------------------------------------------------------------------
     SUBROUTINE CHKAXCB
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     CHARACTER CB*3
 
@@ -330,7 +330,7 @@
 
 !     Zero out masks corresponding to Dirichlet boundary points.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'TSTEP'
     INCLUDE 'INPUT'
     INCLUDE 'MVGEOM'
@@ -581,8 +581,8 @@
 !     Apply Dirichlet boundary conditions to surface of vector (V1,V2,V3).
 !     Use IFIELD as a guide to which boundary conditions are to be applied.
 
-    INCLUDE 'CTIMER'
-    INCLUDE 'SIZE'
+    use ctimer
+    use size_m
     INCLUDE 'TSTEP'
     INCLUDE 'INPUT'
     INCLUDE 'GEOM'
@@ -726,8 +726,8 @@
 !     Apply Dirichlet boundary conditions to surface of scalar, S.
 !     Use IFIELD as a guide to which boundary conditions are to be applied.
 
-    INCLUDE 'CTIMER'
-    INCLUDE 'SIZE'
+    use ctimer
+    use size_m
     INCLUDE 'TSTEP'
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
@@ -817,8 +817,8 @@
 !                   diagonal of A.
 
 
-    INCLUDE 'CTIMER'
-    INCLUDE 'SIZE'
+    use ctimer
+    use size_m
     INCLUDE 'TOTAL'
     INCLUDE 'NEKUSE'
 
@@ -947,7 +947,7 @@
 !     Assign inflow boundary conditions to face(IE,IFACE)
 !     for scalar S.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'PARALLEL'
     INCLUDE 'NEKUSE'
     INCLUDE 'TSTEP'     ! ifield    11/19/2010
@@ -1021,7 +1021,7 @@
 !     Assign fortran function boundary conditions to
 !     face IFACE of element IEL for vector (V1,V2,V3).
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'NEKUSE'
     INCLUDE 'PARALLEL'
 
@@ -1170,7 +1170,7 @@
 !       HRAD          Radiation  heat transfer coefficient
 !       TINF          Temperature at infinity
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'SOLN'
     INCLUDE 'INPUT'
@@ -1209,7 +1209,7 @@
 !-----------------------------------------------------------------------
     SUBROUTINE BCNEUTR
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'SOLN'
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
@@ -1313,7 +1313,7 @@
 !-----------------------------------------------------------------------
     SUBROUTINE TRCON (TRX,TRY,TRZ,TR1,TR2,TR3,IEL,IFC)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TOPOL'
 
@@ -1355,7 +1355,7 @@
 
 !     Compute taction due to surface tension (2D)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'DXYZ'
     INCLUDE 'TOPOL'
@@ -1420,7 +1420,7 @@
 
 !     Compute taction due to surface tension (axisymmetric)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'DXYZ'
     INCLUDE 'TOPOL'
@@ -1539,7 +1539,7 @@
 !-----------------------------------------------------------------------
     SUBROUTINE CTANG2D (CANG,SANG,IXN,IYN,IAN,IFC,IEL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'SOLN'
     INCLUDE 'INPUT'
@@ -1602,7 +1602,7 @@
 
 !     Compute taction due to surface tension (3D)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'WZ'
     COMMON /CTMP0/  XFM1(LX1,LY1),YFM1(LX1,LY1),ZFM1(LX1,LY1)
@@ -1701,7 +1701,7 @@
 !-----------------------------------------------------------------------
     SUBROUTINE SETDRS (DRM1,DRTM1,DSM1,DSTM1,IFC)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'DXYZ'
 
     DIMENSION DRM1(LX1,LX1),DRTM1(LX1,LX1) &
@@ -1738,7 +1738,7 @@
 !     IFACE1 is in the preprocessor notation
 !     IFACE  is the dssum notation.
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'TOPOL'
 
@@ -1797,7 +1797,7 @@
 !     A1, A2 have the (NX1,  1,NFACE) data structure
 !     B1, B2 have the (NX1,NY1,    1) data structure
 
-    INCLUDE 'SIZE'
+    use size_m
 
     DIMENSION A1(LX1),A2(LX1),B1(LX1,LY1),B2(LX1,LY1)
 
@@ -1854,7 +1854,7 @@
 #if 0
     SUBROUTINE SETSHL
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'INPUT'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -1904,7 +1904,7 @@
 !-----------------------------------------------------------------------
     SUBROUTINE CHKZVN (VMAX,IEL,IFC,IVNORL)
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'SOLN'
     COMMON /SCRMG/ V1(LX1,LY1,LZ1,LELV) &
@@ -1935,7 +1935,7 @@
 !     Apply Dirichlet boundary conditions to surface of vector (V1,V2,V3)
 !     (No antimask operation is applied).
 
-    INCLUDE 'SIZE'
+    use size_m
     INCLUDE 'GEOM'
     INCLUDE 'INPUT'
     INCLUDE 'TSTEP'

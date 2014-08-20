@@ -193,7 +193,7 @@
             CALL GAMMAM1 (EIGGA3,V3MASK,VMULT,H1,H2,3)
             EIGGA = MAX  (EIGGA1,EIGGA2,EIGGA3)
         ELSE
-            CALL GAMMASF (H1,H2)
+!max            CALL GAMMASF (H1,H2)
         ENDIF
     ENDIF
 
@@ -392,7 +392,6 @@
     GAMMA = RQ
     RETURN
     END SUBROUTINE GAMMAM2
-
 !-----------------------------------------------------------------------
     SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
 

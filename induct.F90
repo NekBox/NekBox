@@ -1133,6 +1133,7 @@
     return
     end subroutine ophinvm
 !--------------------------------------------------------------------
+#if 0
     subroutine set_ifbcor
     include 'SIZE'
     include 'GEOM'
@@ -1160,6 +1161,7 @@
 
     return
     end subroutine set_ifbcor
+#endif
 !--------------------------------------------------------------------
 !      subroutine set_ifbcor_old(ifbcor)
 !c

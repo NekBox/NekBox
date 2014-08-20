@@ -79,6 +79,7 @@
     return
     end subroutine cbcmesh
 !-----------------------------------------------------------------------
+#if 0
     subroutine admeshv
 
     include 'SIZE'
@@ -128,6 +129,7 @@
 
     return
     end subroutine admesht
+#endif
 !-----------------------------------------------------------------------
     subroutine divws (fms,sfv,phi,nel,idir)
 

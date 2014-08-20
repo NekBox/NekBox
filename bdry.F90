@@ -33,7 +33,7 @@
     CALL LFALSE (IFEPPM,NMXV)
     CALL LFALSE (IFQINP,NMXV)
 
-    IF (IFMODEL) CALL SETSHL
+!max    IF (IFMODEL) CALL SETSHL
 
     IF (IFMVBD) THEN
         IFGEOM = .TRUE. 
@@ -96,7 +96,7 @@
     
     ENDIF
 
-    if (ifmhd) call set_ifbcor
+!max    if (ifmhd) call set_ifbcor
 
     IF (NHIS > 0) THEN
         IQ = 0
@@ -1851,6 +1851,7 @@
     RETURN
     END SUBROUTINE UNITVEC
 !-----------------------------------------------------------------------
+#if 0
     SUBROUTINE SETSHL
 
     INCLUDE 'SIZE'
@@ -1899,6 +1900,7 @@
 
     RETURN
     END SUBROUTINE SETSHL
+#endif
 !-----------------------------------------------------------------------
     SUBROUTINE CHKZVN (VMAX,IEL,IFC,IVNORL)
 

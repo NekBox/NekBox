@@ -308,6 +308,7 @@
 !     computes
 !              T
 !     v = A u B
+#if 0
     subroutine hsmg_tnsr2d_el(v,nv,u,nu,A,Bt)
     integer :: nv,nu
     real :: v(nv*nv),u(nu*nu),A(1),Bt(1)
@@ -319,6 +320,7 @@
 
     return
     end subroutine hsmg_tnsr2d_el
+#endif
 !----------------------------------------------------------------------
 !     computes
 
@@ -925,6 +927,7 @@
     integer :: ie,nn,i
     nn=nl**ndim
     if( .NOT. if3d) then
+#if 0
         do ie=1,nelv
             call hsmg_tnsr2d_el(e(1,ie),nl,r(1,ie),nl &
             ,s(1,2,1,ie),s(1,1,2,ie))
@@ -934,6 +937,7 @@
             call hsmg_tnsr2d_el(e(1,ie),nl,r(1,ie),nl &
             ,s(1,1,1,ie),s(1,2,2,ie))
         enddo
+#endif
     else
         do ie=1,nelv
             call hsmg_tnsr3d_el(e(1,ie),nl,r(1,ie),nl &
@@ -1272,13 +1276,16 @@
     include 'INPUT'
     include 'HSMG'
           
+#if 0
     if( .NOT. if3d) call hsmg_schwarz_wt2d( &
     e,mg_schwarz_wt(mg_schwarz_wt_index(l,mg_fld)),mg_nh(l))
+#endif
     if(if3d) call hsmg_schwarz_wt3d( &
     e,mg_schwarz_wt(mg_schwarz_wt_index(l,mg_fld)),mg_nh(l))
     return
     end subroutine hsmg_schwarz_wt
 !----------------------------------------------------------------------
+#if 0
     subroutine hsmg_schwarz_wt2d(e,wt,n)
     include 'SIZE'
     integer :: n
@@ -1302,6 +1309,7 @@
     enddo
     return
     end subroutine hsmg_schwarz_wt2d
+#endif
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_wt3d(e,wt,n)
     include 'SIZE'
@@ -2980,12 +2988,13 @@
     real :: wt(1),work(1)
     logical :: ifsqrt
 
-    if (ndim == 2) call h1mg_setup_schwarz_wt2d_2(wt,ie,n,work,ifsqrt)
+!max    if (ndim == 2) call h1mg_setup_schwarz_wt2d_2(wt,ie,n,work,ifsqrt)
     if (ndim == 3) call h1mg_setup_schwarz_wt3d_2(wt,ie,n,work,ifsqrt)
 
     return
     end subroutine h1mg_setup_schwarz_wt_2
 !----------------------------------------------------------------------
+#if 0
     subroutine h1mg_setup_schwarz_wt2d_2(wt,ie,n,work,ifsqrt)
     include 'SIZE'
     logical :: ifsqrt
@@ -3018,6 +3027,7 @@
 
     return
     end subroutine h1mg_setup_schwarz_wt2d_2
+#endif
 !----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt3d_2(wt,ie,n,work,ifsqrt)
     include 'SIZE'

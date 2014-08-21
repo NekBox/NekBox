@@ -34,7 +34,7 @@
     use size_m
     use domain
     use esolv
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     REAL*8 :: dnekclock,t0
@@ -248,7 +248,7 @@
 !-----------------------------------------------------------------------
     subroutine map_face12(x2,x1,w1,w2)
     use size_m
-    include 'INPUT'
+    use input
     include 'IXYZ'
 
 !     Interpolate iface of x1 (GLL pts) onto x2 (GL pts).
@@ -280,7 +280,7 @@
 !-----------------------------------------------------------------------
     subroutine map_one_face12(x2,x1,iface,i12,i12t,w1,w2)
     use size_m
-    include 'INPUT'
+    use input
 
 !     Interpolate iface of x1 (GLL pts) onto interior of face of x2 (GL pts).
 !     Work arrays should be of size nx1*nx1 each.
@@ -340,7 +340,7 @@
 !     Compute |face-interior|
 
     use size_m
-    include 'INPUT'
+    use input
     real :: x(nx1,ny1,nz1,1)
 
     do ie=1,nelv

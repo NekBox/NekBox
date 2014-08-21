@@ -4,7 +4,7 @@
 !     Read in data from preprocessor input file (.rea)
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
     INCLUDE 'ZPER'
      
@@ -215,7 +215,7 @@
 
     use ctimer
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
     INCLUDE 'ZPER'
 
@@ -705,7 +705,7 @@
 !      on each processor
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     character(1) :: adum
     real ::    dum(4)
@@ -793,7 +793,7 @@
 
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
     CHARACTER(1) :: ANS
 
@@ -885,7 +885,7 @@
 !      according to sequential partition scheme
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
     INCLUDE 'SCRCT'
     CHARACTER CBC1*1,CBC3*3,CHTEMP*1,CHTMP3*3
@@ -1063,7 +1063,7 @@
 !     .Broadcast ICFILE to all processors
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
 
     character(132) :: line
@@ -1131,7 +1131,7 @@
 !      to sequential partition scheme
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
 
     CHARACTER(132) :: LINE
@@ -1179,7 +1179,7 @@
 !     .Broadcast to all processors
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
 
     CALL BLANK (HCODE ,11*lhis)
@@ -1253,7 +1253,7 @@
 !     .Broadcast to all processors
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
 
     logical :: lbuf(5+ldimt1)
@@ -1337,7 +1337,7 @@
 !     .Broadcast to all processors
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
 
 !     Default if no data is read No Objects
@@ -1806,7 +1806,7 @@
 !     Rotate NPTS through ANGLE (in two directions IF3D).
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     DIMENSION XYZ(3,1)
     COMMON /CTMP0/ RMTRX(3,3),RX(3,3),RZ(3,3),XYZN(3,10)
 
@@ -1853,7 +1853,7 @@
 !     Rescale XYZL such that the mean value of IXX=IYY=IZZ for each element.
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     DIMENSION XYZL(3,8,LELT)
     COMMON /CTMP0/ VO(LELT),XYZI(3,LELT),CG(3,LELT) &
     ,TI(6),WORK(6)
@@ -1946,7 +1946,7 @@
 !-----------------------------------------------------------------------
     subroutine volume2(vol,xyz,n)
     use size_m
-    INCLUDE 'INPUT'
+    use input
     DIMENSION XYZ(3,2,2,2,1)
     DIMENSION VOL(1)
 
@@ -2022,7 +2022,7 @@
 !     direction).
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
     INCLUDE 'TSTEP'
 

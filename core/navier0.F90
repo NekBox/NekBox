@@ -7,7 +7,7 @@
     use ctimer
     use size_m
     use esolv
-    INCLUDE 'INPUT'
+    use input
 
     REAL :: RES   (LX2,LY2,LZ2,LELV)
     REAL :: H1    (LX1,LY1,LZ1,LELV)

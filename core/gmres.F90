@@ -649,7 +649,7 @@
 !     Generate fast diagonalization matrices for each element
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'SOLN'
     include 'WZ'
@@ -972,7 +972,7 @@
 !     Extend interior to face of element
 
     use size_m
-    include 'INPUT'
+    use input
     real :: x(nx,nx,nz,1)
     integer :: e,t
 
@@ -1017,7 +1017,7 @@
 !     Scale interior and add to face of element
 
     use size_m
-    include 'INPUT'
+    use input
     real :: x(nx,nx,nz,1)
 
     integer :: e,t
@@ -1103,7 +1103,7 @@
 !     Scale face and add to interior of element
 
     use size_m
-    include 'INPUT'
+    use input
     real :: x(nx,nx,nz,1)
     integer :: t,e
 
@@ -1276,7 +1276,7 @@
 !-----------------------------------------------------------------------
     subroutine setupds_no_crn(gs_h,nx,ny,nz,nel,melg,vertex,glo_num)
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'NONCON'
     integer ::   gs_h,vertex(1),e

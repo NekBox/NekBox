@@ -180,8 +180,8 @@
 !     Set the new time step. All cases covered.
 
     use size_m
+    use input
     include 'SOLN'
-    include 'INPUT'
     include 'TSTEP'
     common /cprint/ ifprint
     logical ::         ifprint
@@ -313,7 +313,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
     LOGICAL ::  IFCONV
 
@@ -385,7 +385,7 @@
 !-------------------------------------------------------------------
     use size_m
     use eigen
-    include 'INPUT'
+    use input
     include 'MASS'
 
     REAL :: RES  (LX1,LY1,LZ1,1)
@@ -452,9 +452,9 @@
 !--------------------------------------------------------------
     use size_m
     use geom
+    use input
     include 'MVGEOM'
     include 'MASS'
-    include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
 
@@ -651,7 +651,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'WZ'
 
     common /scrns/ xrm1 (lx1,ly1,lz1,lelv) &
@@ -768,7 +768,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     common /ctmp0/  stc(lx1,ly1,lz1),sigst(lx1,ly1),dtst(lx1,ly1)
@@ -1108,7 +1108,7 @@
 !     INTLOC =      integration type
 
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -1167,7 +1167,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     LOGICAL ::  IFKFLD,IFEFLD
@@ -1292,7 +1292,7 @@
 
 !------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     include 'PARALLEL'
@@ -1344,7 +1344,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'   ! For outpost diagnostic call
     include 'TSTEP'
@@ -1431,7 +1431,7 @@
 !-------------------------------------------------------------------
     use size_m
     use eigen
-    include 'INPUT'
+    use input
     include 'MASS'
     common /cprint/ ifprint
     logical ::         ifprint
@@ -1513,7 +1513,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'TSTEP'
     common /fastmd/ ifdfrm(lelt), iffast(lelt), ifh2, ifsolv
@@ -1581,7 +1581,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     common /ctmp0/ exz(lx1*ly1*lz1*lelt) &
@@ -1748,7 +1748,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
 
     DIMENSION U (LX1,LY1,LZ1,1) &
     , UR(LX1,LY1,LZ1,1) &
@@ -1982,7 +1982,7 @@
 !     a new array of global pointers for an nx^ndim set of elements.
 
     use size_m
-    include 'INPUT'
+    use input
 
     integer*8 :: glo_num(1),ngv
     integer :: vertex(1),nx
@@ -2013,7 +2013,7 @@
 !-----------------------------------------------------------------------
     subroutine get_strs_mask(mask,nxc,nzc,nel)
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
 
     real :: mask(ndim,nxc,nxc,nzc,nel)
@@ -2079,7 +2079,7 @@
 !     Galerkin projection
 
     use size_m
-    include 'INPUT'
+    use input
 
     real ::    a(ndim,ncl,ndim,ncl,1),h1(1),h2(1)
 !     real    a(ncl,ndim,ncl,ndim,1),h1(1),h2(1)
@@ -2133,7 +2133,7 @@
     use size_m
     use domain
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'PARALLEL'
     include 'TSTEP'
@@ -2221,7 +2221,7 @@
     use size_m
     use geom
     use domain
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'TSTEP'
     common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
@@ -2474,7 +2474,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
     include 'WZ'
 

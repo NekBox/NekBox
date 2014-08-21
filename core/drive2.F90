@@ -5,7 +5,7 @@
 
 !-------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
 
     NX1=LX1
     NY1=LY1
@@ -95,7 +95,7 @@
     use ctimer
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     LOGICAL ::  IFCOUR
@@ -151,7 +151,7 @@
     use size_m
     use dealias
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
 !     Enforce splitting/Uzawa according to the way the code was compiled
@@ -321,7 +321,7 @@
 !     Echo the nonzero parameters from the readfile to the logfile
 
     use size_m
-    include 'INPUT'
+    use input
     CHARACTER(132) :: STRING
     CHARACTER(1) ::  STRING1(132)
     EQUIVALENCE (STRING,STRING1)
@@ -410,7 +410,7 @@
 !----------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
     include 'WZ'
 
@@ -485,14 +485,14 @@
 !     Defines machine specific input and output file names.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
 
     CHARACTER(132) :: NAME
     CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
-    EQUIVALENCE  (SESSION,SESS1)
-    EQUIVALENCE  (PATH,PATH1)
-    EQUIVALENCE  (NAME,NAM1)
+!    EQUIVALENCE  (SESSION,SESS1)
+!    EQUIVALENCE  (PATH,PATH1)
+!    EQUIVALENCE  (NAME,NAM1)
     CHARACTER(1) ::  DMP(4),FLD(4),REA(4),HIS(4),SCH(4) ,ORE(4), NRE(4)
     CHARACTER(1) ::  RE2(4)
     CHARACTER(4) ::  DMP4  ,FLD4  ,REA4  ,HIS4  ,SCH4   ,ORE4  , NRE4
@@ -523,6 +523,10 @@
 !  23  ENDIF
 !      call err_chk(ierr,' Cannot open SESSION.NAME!$')
 
+  sess1 = transfer(session, sess1)
+  path1 = transfer(path, path1)
+  nam1 = transfer(name, nam1)
+
     len = ltrunc(path,132)
     if(indx1(path1(len),'/',1) < 1) then
         call chcopy(path1(len+1),'/',1)
@@ -544,6 +548,7 @@
 !     Construct file names containing full path to host:
 
     LS=LTRUNC(SESSION,132)
+    path = transfer(path1, path)
     LPP=LTRUNC(PATH,132)
     LSP=LS+LPP
 
@@ -597,6 +602,9 @@
         1001 FORMAT(/,' ')
     ENDIF
 
+    path = transfer(path1, path)
+    session = transfer(sess1, session)
+
     RETURN
 
     end subroutine files
@@ -610,7 +618,7 @@
 !----------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
     COMMON  /CPRINT/ IFPRINT
     LOGICAL ::          IFPRINT
@@ -673,7 +681,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use eigen
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     IF (IGEOM == 1) RETURN
@@ -728,7 +736,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use dealias
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -804,7 +812,7 @@
 
     use size_m
     use dealias
-    include 'INPUT'
+    use input
     include 'TSTEP'
     include 'TURBO'
 
@@ -862,7 +870,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     IF (IGEOM == 1) RETURN
@@ -882,7 +890,7 @@
     subroutine rescont (ind)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'TSTEP'
 

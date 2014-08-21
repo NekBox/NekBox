@@ -8,7 +8,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
 
     real :: ar(1)
@@ -149,7 +149,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
 
 
     open(unit=33,file='v1')
@@ -181,7 +181,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     parameter (lxyz=lx1*ly1*lz1)

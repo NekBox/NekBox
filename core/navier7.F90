@@ -147,7 +147,7 @@
 !-----------------------------------------------------------------------
     subroutine rarr_out(x,name13)
     use size_m
-    include 'INPUT'
+    use input
 
     real :: x(lx1,ly1,lz1,lelt)
     character(13) :: name13
@@ -193,7 +193,7 @@
 !-----------------------------------------------------------------------
     subroutine iarr_out(x,name)
     use size_m
-    include 'INPUT'
+    use input
 
     integer :: x(lx1,ly1,lz1,lelt)
     character(13) :: name

@@ -242,7 +242,7 @@
     use size_m
     use geom
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
     real :: respr (lx2,ly2,lz2,lelv)
@@ -877,6 +877,7 @@
     use size_m
     use input
     use mass
+    use opctr
     include 'SOLN'
 
     REAL :: OUT1  (1)
@@ -888,7 +889,6 @@
     REAL :: H2INV (1)
 
 
-    include 'OPCTR'
 
     if (isclld == 0) then
         isclld=1
@@ -936,6 +936,7 @@
     use size_m
     use input
     use mass
+    use opctr
     include 'SOLN'
 
     REAL :: OUT1  (1)
@@ -946,7 +947,6 @@
     REAL :: INP3  (1)
 
 
-    include 'OPCTR'
 
     if (isclld == 0) then
         isclld=1
@@ -993,8 +993,8 @@
     use geom
     use input
     use mass
+    use parallel
     include 'TSTEP'
-    include 'PARALLEL'
 
     REAL ::           RPCG (LX2,LY2,LZ2,LELV)
     REAL ::           RCG  (LX2,LY2,LZ2,LELV)
@@ -1069,7 +1069,7 @@
     use geom
     use input
     use mass
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
     REAL ::           Z2   (LX2,LY2,LZ2,LELV)
@@ -1576,7 +1576,7 @@
     subroutine nekuf (f1,f2,f3)
     use size_m
     use nekuse
-    include 'PARALLEL'
+    use parallel
     REAL :: F1 (LX1,LY1,LZ1,LELV)
     REAL :: F2 (LX1,LY1,LZ1,LELV)
     REAL :: F3 (LX1,LY1,LZ1,LELV)
@@ -1638,7 +1638,7 @@
     use size_m
     use input
     use mass
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
 
@@ -2021,6 +2021,7 @@
 !--------------------------------------------------------------------------
     use size_m
     use mass
+    use opctr
     include 'SOLN'
     include 'TSTEP'
 
@@ -2047,7 +2048,6 @@
     COMMON /SCRCH/ RKZ3  (LX1,LY1,LZ1,LELV) &
     ,             RKZ4  (LX1,LY1,LZ1,LELV)
 
-    include 'OPCTR'
     integer :: opct
 
 !     Operation count
@@ -2688,8 +2688,8 @@
 !     Return Dirichlet boundary values of X in the array Y
 
 !-------------------------------------------------------------------
+    use opctr
     REAL ::  Y(1),X(1),XMASK(1)
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -2817,10 +2817,10 @@
 
     subroutine opcolv3(a1,a2,a3,b1,b2,b3,c)
     use size_m
+    use opctr
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1),B3(1)
     REAL :: C (1)
-    include 'OPCTR'
 
     NTOT1=NX1*NY1*NZ1*NELV
 
@@ -2855,8 +2855,8 @@
 
     subroutine opcolv (a1,a2,a3,c)
     use size_m
+    use opctr
     REAL :: A1(1),A2(1),A3(1),C(1)
-    include 'OPCTR'
 
     NTOT1=NX1*NY1*NZ1*NELV
 
@@ -2925,7 +2925,7 @@
     use size_m
     use geom
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     real :: r1(lx1,ly1,lz1,1) &
@@ -3013,7 +3013,7 @@
     use size_m
     use geom
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     real :: a(1),b(1),c(1)
@@ -3035,7 +3035,7 @@
     use geom
     use geom
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     real :: a(1),b(1),c(1)
@@ -3102,9 +3102,9 @@
 !-----------------------------------------------------------------------
     subroutine opcolv2c(a1,a2,a3,b1,b2,c)
     use size_m
+    use opctr
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1)
-    include 'OPCTR'
 
     NTOT1=NX1*NY1*NZ1*NELV
 
@@ -3141,9 +3141,9 @@
 !-----------------------------------------------------------------------
     subroutine opcolv2(a1,a2,a3,b1,b2)
     use size_m
+    use opctr
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1)
-    include 'OPCTR'
 
     NTOT1=NX1*NY1*NZ1*NELV
 
@@ -3180,9 +3180,9 @@
 !-----------------------------------------------------------------------
     subroutine opadd2col(a1,a2,a3,b1,b2,b3,c)
     use size_m
+    use opctr
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1),B3(1),C(1)
-    include 'OPCTR'
 
     NTOT1=NX1*NY1*NZ1*NELV
 
@@ -3217,10 +3217,10 @@
 !-----------------------------------------------------------------------
     subroutine opcolv3c(a1,a2,a3,b1,b2,b3,c,d)
     use size_m
+    use opctr
     REAL :: A1(1),A2(1),A3(1)
     REAL :: B1(1),B2(1),B3(1)
     REAL :: C (1)
-    include 'OPCTR'
 
     NTOT1=NX1*NY1*NZ1*NELV
 
@@ -3392,8 +3392,8 @@
 
     use ctimer
     use size_m
-    include 'PARALLEL'
-    include 'OPCTR'
+    use parallel
+    use opctr
 
 
     integer :: lda,n,m
@@ -3472,7 +3472,7 @@
     subroutine spbfapf(abd,lda,n,m,info)
 
     use size_m
-    include 'PARALLEL'
+    use parallel
 
     integer :: lda,n,m,info
     real :: abd(lda,1)
@@ -4107,11 +4107,11 @@
     use size_m
     use geom
     use mass
+    use opctr
     include 'SOLN'
     include 'TSTEP'
     real :: vxn(1),vyn(1),vzn(1)
 
-    include 'OPCTR'
     integer :: opct
 
 !     Operation count
@@ -4176,6 +4176,7 @@
     use geom
     use input
     use mass
+    use opctr
     include 'SOLN'
     include 'TSTEP'
 
@@ -4183,7 +4184,6 @@
     real ::  u (1),v (1),w (1)
     integer :: mu(0:1)
 
-    include 'OPCTR'
     integer :: opct
 
 !     Operation count
@@ -4246,6 +4246,7 @@
     use dxyz
     use geom
     use input
+    use opctr
     include 'SOLN'
     include 'TSTEP'
 
@@ -4258,7 +4259,6 @@
     , dvds(lx1,ly1,lz1) &
     , dwds(lx1,ly1,lz1)
 
-    include 'OPCTR'
     integer :: opct
 
 !     Operation count
@@ -4365,6 +4365,7 @@
     use geom
     use input
     use mass
+    use opctr
     include 'SOLN'
     include 'TSTEP'
 
@@ -4374,7 +4375,6 @@
     real ::  wk(lx1*ly1*lz1,3)
     integer :: mu(0:1)
 
-    include 'OPCTR'
     integer :: opct
 
 !     Operation count

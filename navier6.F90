@@ -152,7 +152,7 @@
     subroutine set_fem_data_l2(nep,nd,no,x,y,z,p)
     use size_m
     use domain
-    include 'NONCON'
+    use noncon
     include 'TOTAL'
 
     real :: x(lx1,ly1,lz1,1),y(lx1,ly1,lz1,1),z(lx1,ly1,lz1,1)

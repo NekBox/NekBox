@@ -949,7 +949,7 @@
 
     use size_m
     use nekuse
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'SOLN'      ! tmask()   11/19/2010
     INCLUDE 'TSTEP'     ! ifield    11/19/2010
 
@@ -1023,7 +1023,7 @@
 
     use size_m
     use nekuse
-    INCLUDE 'PARALLEL'
+    use parallel
 
     dimension v1(nx,ny,nz),v2(nx,ny,nz),v3(nx,ny,nz)
     character cb*3
@@ -1988,8 +1988,8 @@
 !     Return only Dirichlet boundary values of X
 
 !-------------------------------------------------------------------
+    use opctr
     REAL ::  X(1),XMASK(1)
-    include 'OPCTR'
 
     DO 100 I=1,N
         X(I) = X(I)*(1.-XMASK(I))

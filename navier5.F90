@@ -835,7 +835,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'TOPOL'
     real :: a(lx1,ly1,lz1,1)
 
@@ -870,7 +870,7 @@
     use size_m
     use geom
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TOPOL'
     parameter (l=lx1*ly1*lz1)
 
@@ -1742,7 +1742,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -2340,7 +2340,7 @@
         if (indx1(initc,'done ',5) == 0) then ! We're not done
 
             nfiles = 1
-            call restart(nfiles)  ! Note -- time is reset.
+            call restart_driver(nfiles)  ! Note -- time is reset.
 
             call opadd2 (ua,va,wa,vx,vy,vz)
             call add2   (pa,pr,n2)
@@ -2382,7 +2382,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -2429,7 +2429,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -2510,7 +2510,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -2561,7 +2561,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
 
     real :: uz(nx,ny,nlxy),u (nx,ny,nz,nelv),w1(nx,ny,nlxy)
@@ -2593,7 +2593,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -2631,7 +2631,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -3705,7 +3705,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -3752,7 +3752,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -3813,7 +3813,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -3852,7 +3852,7 @@
     subroutine z_profile_transpose(u,ua) ! distribute ua to each z-plane
 
     use size_m
-    include 'PARALLEL'
+    use parallel
     include 'ZPER'
 
     real :: u(nx1,ny1,nz1,nelv),ua(lz1,lelz)
@@ -3909,7 +3909,7 @@
 
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'WZ'
     include 'ZPER'
 
@@ -3950,7 +3950,7 @@
     subroutine y_profile_transpose(u,ua) ! distribute ua to each z-plane
 
     use size_m
-    include 'PARALLEL'
+    use parallel
     include 'ZPER'
 
     real :: u(nx1,ny1,nz1,nelv),ua(lz1,lelz)
@@ -4242,7 +4242,7 @@
     use geom       ! Coordinates
     use input      ! cbc()
     include 'TSTEP'      ! nelfld
-    include 'PARALLEL'   ! gather-scatter handle for field "ifld"
+    use parallel   ! gather-scatter handle for field "ifld"
 
     real :: d(lx1,ly1,lz1,lelt)
 
@@ -4338,7 +4338,7 @@
     use geom       ! Coordinates
     use input      ! cbc()
     include 'TSTEP'      ! nelfld
-    include 'PARALLEL'   ! gather-scatter handle for field "ifld"
+    use parallel   ! gather-scatter handle for field "ifld"
 
     real :: d(lx1,ly1,lz1,lelt)
     character(3) :: b

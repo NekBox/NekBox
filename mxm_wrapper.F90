@@ -5,8 +5,8 @@
 
 
     use size_m
+    use opctr
     include 'TOTAL'
-    include 'OPCTR'
 
     real :: a(n1,n2),b(n2,n3),c(n1,n3)
     integer :: aligned

@@ -6,7 +6,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'WZ'
 
@@ -147,7 +147,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'WZ'
 
@@ -805,7 +805,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TOPOL'
     include 'TSTEP'
 

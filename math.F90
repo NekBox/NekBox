@@ -12,9 +12,9 @@
     END SUBROUTINE BLANK
 !-----------------------------------------------------------------------
     SUBROUTINE VSQ (A,N)
+    use opctr
     DIMENSION  A(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -36,9 +36,9 @@
     END SUBROUTINE VSQ
 !-----------------------------------------------------------------------
     SUBROUTINE VSQRT(A,N)
+    use opctr
     DIMENSION  A(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -60,9 +60,9 @@
     END SUBROUTINE VSQRT
 !-----------------------------------------------------------------------
     subroutine invers2(a,b,n)
+    use opctr
     REAL :: A(1),B(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -84,9 +84,9 @@
     end subroutine invers2
 !-----------------------------------------------------------------------
     subroutine invcol1(a,n)
+    use opctr
     REAL :: A(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -109,9 +109,9 @@
 !-----------------------------------------------------------------------
     subroutine invcol2(a,b,n)
     use ctimer
+    use opctr
 
     REAL :: A(1),B(1)
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (icalld == 0) tinvc=0.0
@@ -144,9 +144,9 @@
 !-----------------------------------------------------------------------
     subroutine invcol3(a,b,c,n)
     use ctimer
+    use opctr
     REAL :: A(1),B(1),C(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (icalld == 0) tinv3=0.0
@@ -177,9 +177,9 @@
     end subroutine invcol3
 !-----------------------------------------------------------------------
     subroutine col4(a,b,c,d,n)
+    use opctr
     REAL :: A(1),B(1),C(1),D(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -201,9 +201,9 @@
     end subroutine col4
 !-----------------------------------------------------------------------
     subroutine Xaddcol3(a,b,c,n)
+    use opctr
     REAL :: A(1),B(1),C(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -225,9 +225,9 @@
     end subroutine Xaddcol3
 !-----------------------------------------------------------------------
     subroutine addcol4(a,b,c,d,n)
+    use opctr
     REAL :: A(1),B(1),C(1),D(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -249,9 +249,9 @@
     end subroutine addcol4
 !-----------------------------------------------------------------------
     subroutine ascol5 (a,b,c,d,e,n)
+    use opctr
     REAL :: A(1),B(1),C(1),D(1),E(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -273,9 +273,9 @@
     end subroutine ascol5
 !-----------------------------------------------------------------------
     subroutine sub2(a,b,n)
+    use opctr
     REAL :: A(1),B(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -297,9 +297,9 @@
     end subroutine sub2
 !-----------------------------------------------------------------------
     subroutine sub3(a,b,c,n)
+    use opctr
     REAL :: A(1),B(1),C(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -321,9 +321,9 @@
     end subroutine sub3
 !-----------------------------------------------------------------------
     subroutine subcol3(a,b,c,n)
+    use opctr
     REAL :: A(1),B(1),C(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -345,9 +345,9 @@
     end subroutine subcol3
 !-----------------------------------------------------------------------
     subroutine subcol4(a,b,c,d,n)
+    use opctr
     REAL :: A(1),B(1),C(1),D(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -478,9 +478,9 @@
 
 !-----------------------------------------------------------------------
     subroutine cmult(a,const,n)
+    use opctr
     REAL :: A(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -502,9 +502,9 @@
     end subroutine cmult
 !-----------------------------------------------------------------------
     subroutine cadd(a,const,n)
+    use opctr
     REAL :: A(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -535,9 +535,9 @@
     end subroutine iadd
 !-----------------------------------------------------------------------
     subroutine cadd2(a,b,const,n)
+    use opctr
     REAL :: A(1),B(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -619,8 +619,8 @@
     end function vlamax
 !-----------------------------------------------------------------------
     real function vlsum(vec,n)
+    use opctr
     REAL :: VEC(1)
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -781,8 +781,8 @@
     end subroutine iswap
 !-----------------------------------------------------------------------
     subroutine col2(a,b,n)
+    use opctr
     real :: a(1),b(1)
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -816,8 +816,8 @@
     end subroutine col2c
 !-----------------------------------------------------------------------
     subroutine col3(a,b,c,n)
+    use opctr
     real :: a(1),b(1),c(1)
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -840,8 +840,8 @@
     end subroutine col3
 !-----------------------------------------------------------------------
     subroutine add2(a,b,n)
+    use opctr
     real :: a(1),b(1)
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -864,8 +864,8 @@
     end subroutine add2
 !-----------------------------------------------------------------------
     subroutine add3(a,b,c,n)
+    use opctr
     real :: a(1),b(1),c(1)
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -888,8 +888,8 @@
     end subroutine add3
 !-----------------------------------------------------------------------
     subroutine addcol3(a,b,c,n)
+    use opctr
     real :: a(1),b(1),c(1)
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -912,9 +912,9 @@
     end subroutine addcol3
 !-----------------------------------------------------------------------
     subroutine add2s1(a,b,c1,n)
+    use opctr
     real :: a(1),b(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -937,9 +937,9 @@
 
 !-----------------------------------------------------------------------
     subroutine add2s2(a,b,c1,n)
+    use opctr
     real :: a(1),b(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -962,9 +962,9 @@
 
 !-----------------------------------------------------------------------
     subroutine add3s2(a,b,c,c1,c2,n)
+    use opctr
     real :: a(1),b(1),c(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -987,9 +987,9 @@
 
 !-----------------------------------------------------------------------
     subroutine add4(a,b,c,d,n)
+    use opctr
     REAL :: A(1),B(1),C(1),D(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -1011,8 +1011,8 @@
     end subroutine add4
     real function vlsc2(x,y,n)
     use size_m
-    include 'OPCTR'
-    include 'PARALLEL'
+    use parallel
+    use opctr
     REAL :: X(1),Y(1)
 
 #ifndef NOTIMER
@@ -1038,8 +1038,8 @@
 !-----------------------------------------------------------------------
     real function vlsc21(x,y,n)
     use size_m
-    include 'OPCTR'
-    include 'PARALLEL'
+    use parallel
+    use opctr
     real :: x(1),y(1)
 
 #ifndef NOTIMER
@@ -1077,10 +1077,10 @@
 
 !     Perform inner-product in double precision
 
+    use opctr
     REAL :: A(1),B(1),MULT(1)
     REAL :: TMP,WORK(1)
 
-    include 'OPCTR'
 
 #ifndef NOTIMER
     if (isclld == 0) then
@@ -1108,7 +1108,7 @@
 
 !     Perform inner-product in double precision
 
-    include 'OPCTR'
+    use opctr
 
     real :: x(1), y(1)
     real :: tmp,work(1)

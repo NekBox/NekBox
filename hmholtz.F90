@@ -82,7 +82,7 @@
     use geom
     use input
     use mass
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'WZ'
 
     COMMON /FASTAX/ WDDX(LX1,LX1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1)
@@ -1396,7 +1396,7 @@
         !     should be called.
         
             use size_m
-            include 'PARALLEL'
+            use parallel
         
             real :: a(n,n),b(n,n),lam(n),w(n,n)
             real :: aa(100),bb(100)

@@ -40,7 +40,7 @@
     use size_m
     use input
     use hsmg
-    include 'PARALLEL'
+    use parallel
     include 'SEMHAT'
     include 'TSTEP'
 
@@ -141,7 +141,7 @@
     use size_m
     use input
     use hsmg
-    include 'PARALLEL'
+    use parallel
     parameter (lxyz=(lx1+2)*(ly1+2)*(lz1+2))
     common /c_is1/ glo_num(lxyz*lelv)
     common /ivrtx/ vertex ((2**ldim)*lelt)
@@ -1374,8 +1374,8 @@
     use geom
     use input
     use hsmg
+    use parallel
     include 'SOLN'
-    include 'PARALLEL'
     include 'TSTEP'
     real :: e(1),r(1)
 
@@ -1432,9 +1432,9 @@
     use input
     use hsmg
     use mass
+    use parallel
     include 'SOLN'
     include 'TSTEP'
-    include 'PARALLEL'
           
     real :: e(1),r(1)
 
@@ -1660,7 +1660,7 @@
     use size_m
     use input
     use hsmg
-    include 'PARALLEL'
+    use parallel
     include 'SEMHAT'
     real :: w(lx1+2)
     integer :: nf,nc,nr
@@ -1918,9 +1918,9 @@
     use input
     use hsmg       ! Same array space as HSMG
     use mass
+    use parallel
     include 'SOLN'
     include 'TSTEP'
-    include 'PARALLEL'
 
     real :: z(1),rhs(1)
           
@@ -2335,7 +2335,7 @@
     use size_m
     use input
     use hsmg
-    include 'PARALLEL'
+    use parallel
     include 'SEMHAT'
     include 'TSTEP'   ! nelfld
     real :: w(lx1+2)
@@ -2423,7 +2423,7 @@
     use size_m
     use input
     use hsmg
-    include 'PARALLEL'
+    use parallel
     parameter (lxyz=(lx1+2)*(ly1+2)*(lz1+2))
     common /c_is1/ glo_num(lxyz*lelt)
     common /ivrtx/ vertex ((2**ldim)*lelt)

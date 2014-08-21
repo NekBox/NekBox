@@ -1294,7 +1294,7 @@
     use size_m
     use input
     use nekuse
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
     ielg = lglel(iel)
@@ -2135,7 +2135,7 @@
     use geom
     use input
     include 'SOLN'
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     real :: u1(1),u2(1),u3(1),v1(1),v2(1),v3(1)
@@ -2222,7 +2222,7 @@
     use geom
     use domain
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
     common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
 

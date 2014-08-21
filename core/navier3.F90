@@ -13,8 +13,8 @@
     use input
     use mass
     use parallel
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     REAL ::           Z2   (LX2,LY2,LZ2,LELV)
     REAL ::           R2   (LX2,LY2,LZ2,LELV)
     COMMON /SCRNS/ MASK (LX1,LY1,LZ1,LELV) &
@@ -56,7 +56,7 @@
     use domain
     use input
     use parallel
-    include 'SOLN'
+    use soln
 
     real :: u(1),v(1)
     common /scrprc/ uc(lx1*ly1*lz1*lelt)

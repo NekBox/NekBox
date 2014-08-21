@@ -8,8 +8,8 @@
     use input
     use mass
     use mvgeom
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     COMMON  /CPRINT/ IFPRINT
     LOGICAL ::          IFPRINT
     LOGICAL ::          IFCONV
@@ -122,8 +122,8 @@
 
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     ntot = nx1*ny1*nz1*nelfld(ifield)
 
@@ -144,8 +144,8 @@
 
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real :: bql(lx1*ly1*lz1,lelt)
 
@@ -185,8 +185,8 @@
     use mass
     use nekuse
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real :: bql(lx1,ly1,lz1,lelt)
 
@@ -212,8 +212,8 @@
 !---------------------------------------------------------------
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ TA (LX1,LY1,LZ1,LELT)
 
@@ -231,8 +231,8 @@
 !     Sum up contributions to 3rd order Adams-Bashforth scheme.
 
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ TA (LX1,LY1,LZ1,LELT)
 
@@ -263,8 +263,8 @@
     use geom
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRNS/ TA (LX1,LY1,LZ1,LELT) &
     ,             TB (LX1,LY1,LZ1,LELT) &
@@ -304,8 +304,8 @@
 
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ TCH (LX1,LY1,LZ1,LELT) &
     ,             H2  (LX1,LY1,LZ1,LELT)
@@ -341,8 +341,8 @@
 
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     REAL ::           TCH   (LX1,LY1,LZ1,1)
     COMMON /SCRNS/ VXN   (LX1,LY1,LZ1,LELV) &
@@ -413,8 +413,8 @@
 
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     REAL ::           TCH   (LX1,LY1,LZ1,1)
     COMMON /SCRNS/ VXN   (LX1,LY1,LZ1,LELV) &
@@ -494,8 +494,8 @@
     use size_m
     use geom
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     REAL ::           HTMASK(LX1,LY1,LZ1,1)
     CHARACTER      CB*3
     PARAMETER (LXYZ1=LX1*LY1*LZ1)
@@ -534,8 +534,8 @@
 !     Set initial conditions for subintegration
 
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     REAL :: TCH (LX1,LY1,LZ1,1)
 
     NTOT1 = NX1*NY1*NZ1*NELFLD(IFIELD)
@@ -556,8 +556,8 @@
 !-----------------------------------------------------------------------
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     NTOT1 = NX1*NY1*NZ1*NELFLD(IFIELD)
 
@@ -573,7 +573,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldrq (x,txt10,ichk)
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(nx1,ny1,nz1,lelt)
     character(10) :: txt10
 
@@ -641,8 +641,8 @@
     use input
     use mass
     use mvgeom
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     common  /cprint/ ifprint
     logical ::          ifprint
     logical ::          ifconv
@@ -706,8 +706,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /scruz/ ta(lx1,ly1,lz1,lelt) &
     ,h2(lx1,ly1,lz1,lelt)

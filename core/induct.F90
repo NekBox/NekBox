@@ -18,8 +18,8 @@
     use eigen
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /scrns/  resv1 (lx1,ly1,lz1,lelv) &
     ,              resv2 (lx1,ly1,lz1,lelv) &
@@ -57,8 +57,8 @@
 
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     do ilag=nbdinp-1,2,-1
         call opcopy &
@@ -78,8 +78,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     if (icalld == 0) tbmhd=0.0
     icalld = icalld+1
@@ -125,8 +125,8 @@
 
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     time = time-dt
     call nekuf   (bmx,bmy,bmz)
@@ -145,8 +145,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /scrns/ ta1 (lx1,ly1,lz1,lelv) &
     ,             ta2 (lx1,ly1,lz1,lelv) &
@@ -183,8 +183,8 @@
     use geom
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRNS/ TA1(LX1,LY1,LZ1,LELV) &
     ,             TA2(LX1,LY1,LZ1,LELV) &
@@ -371,8 +371,8 @@
 !     Pressure extrapolation
 
     use size_m
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 
     real ::  p    (lx2,ly2,lz2,1) &
     ,plag (lx2,ly2,lz2,1)
@@ -608,7 +608,7 @@
     use size_m
     use dealias
     use geom
-    include 'WZ'
+    use wz_m
 
     real :: lf(lx1*ly1*lz1,3)
     real :: b1(lx1*ly1*lz1)
@@ -857,8 +857,8 @@
     use geom
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /scrnt/  besv1 (lbx1,lby1,lbz1,lbelv) &
     ,              besv2 (lbx1,lby1,lbz1,lbelv) &
@@ -920,8 +920,8 @@
     use size_m
     use geom
     use input
-    include 'WZ'
-    include 'SOLN'
+    use soln
+    use wz_m
 
     real :: u(nx1,ny1,nz1,nelv),v(nx1,ny1,nz1,nelv),w(nx1,ny1,nz1,nelv)
 
@@ -1025,10 +1025,10 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
+    use soln
 !max    include 'ORTHOV'
+    use tstep
     include 'VPROJ'
-    include 'TSTEP'
 
     parameter (ktot = lx1*ly1*lz1*lelt)
 
@@ -1103,8 +1103,8 @@
 
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     real :: o1(lx1,ly1,lz1,1), o2(lx1,ly1,lz1,1), o3(lx1,ly1,lz1,1)
     real :: i1(lx1,ly1,lz1,1), i2(lx1,ly1,lz1,1), i3(lx1,ly1,lz1,1)
     real :: m1(lx1,ly1,lz1,1), m2(lx1,ly1,lz1,1), m3(lx1,ly1,lz1,1)
@@ -1138,7 +1138,7 @@
     use size_m
     use geom
     use input
-!     include 'TSTEP'   ! ifield?
+!     use tstep   ! ifield?
 
     common  /nekcb/ cb
     character cb*3
@@ -1202,8 +1202,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real :: p    (lx2,ly2,lz2,lelv)
     real :: h1   (lx1,ly1,lz1,lelv)
@@ -1365,8 +1365,8 @@
     use geom
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     parameter (lxy=lx1*ly1*lz1,ltd=lxd*lyd*lzd)
     common /scrns/ wk(2*ltd) &
@@ -1563,7 +1563,7 @@
     use size_m
     use geom
     use input
-    include 'TSTEP' ! for istep
+    use tstep ! for istep
 
     common /dealias1/ zd(lxd),wd(lxd)
     integer :: e
@@ -1644,8 +1644,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /scrns/ ta1 (lx1,ly1,lz1,lelv) &
     ,             ta2 (lx1,ly1,lz1,lelv) &

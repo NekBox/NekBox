@@ -5,8 +5,8 @@
     use fdmh1
     use input
     use mass
-    INCLUDE 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     CHARACTER      NAME*4
     REAL ::           U    (LX1,LY1,LZ1,1)
@@ -83,7 +83,7 @@
     use input
     use mass
     use parallel
-    INCLUDE 'WZ'
+    use wz_m
 
     COMMON /FASTAX/ WDDX(LX1,LX1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1)
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
@@ -344,7 +344,7 @@
     use size_m
     use dxyz
     use geom
-    INCLUDE 'WZ'
+    use wz_m
     COMMON /FASTAX/ WDDX(LX1,LY1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1)
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
@@ -415,8 +415,8 @@
     use geom
     use input
     use mass
-    INCLUDE 'TSTEP'
-    INCLUDE 'WZ'
+    use tstep
+    use wz_m
     REAL ::            DPCM1 (LX1,LY1,LZ1,1)
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
@@ -654,8 +654,8 @@
     use fdmh1
     use input
     use mass
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 
     COMMON  /CPRINT/ IFPRINT, IFHZPC
     LOGICAL ::          IFPRINT, IFHZPC
@@ -1049,7 +1049,7 @@
             use fdmh1
             use input
             use mass
-            include 'WZ'
+            use wz_m
         
         
             COMMON /CTMP0/ W(LX1,LX1),aa(lx1,lx1),bb(lx1,lx1)
@@ -1141,9 +1141,9 @@
             use fdmh1
             use geom
             use input
-            include 'SOLN'
-            include 'TOPOL'
-            include 'WZ'
+            use soln
+            use topol
+            use wz_m
         
             COMMON /CTMP0/ W(LX1,LX1),aa(lx1,lx1),bb(lx1,lx1) &
             , mask(lx1,ly1,lz1,lelt)

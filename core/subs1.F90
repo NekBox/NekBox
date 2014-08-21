@@ -181,8 +181,8 @@
 
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     common /cprint/ ifprint
     logical ::         ifprint
     common /udxmax/ umax
@@ -314,7 +314,7 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
     LOGICAL ::  IFCONV
 
     IF (IFNONL(IFIELD)) THEN
@@ -340,8 +340,8 @@
 
 !---------------------------------------------------------------------
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     IF (IFIELD == 1) THEN
     
@@ -455,8 +455,8 @@
     use input
     use mass
     use mvgeom
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /ctmp1/ u(lx1,ly1,lz1,lelv) &
     ,             v(lx1,ly1,lz1,lelv) &
@@ -652,7 +652,7 @@
     use size_m
     use geom
     use input
-    include 'WZ'
+    use wz_m
 
     common /scrns/ xrm1 (lx1,ly1,lz1,lelv) &
     ,             xsm1 (lx1,ly1,lz1,lelv) &
@@ -769,8 +769,8 @@
     use size_m
     use geom
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     common /ctmp0/  stc(lx1,ly1,lz1),sigst(lx1,ly1),dtst(lx1,ly1)
     character cb*3,cb2*2
 
@@ -929,7 +929,7 @@
 !         5 Jan 1989 15:12:22      PFF
 
     use size_m
-    include 'TOPOL'
+    use topol
     DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1)
 
 !     Set up counters
@@ -967,7 +967,7 @@
 !------------------------------------------------------------------------
     use size_m
     use geom
-    include 'TOPOL'
+    use topol
     REAL :: A(LX1,LY1,LZ1,1)
 
     FCAREA = 0.
@@ -1006,7 +1006,7 @@
 !         5 Jan 1989 15:12:22      PFF
 
     use size_m
-    include 'TOPOL'
+    use topol
     DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1)
 
 !     Set up counters
@@ -1041,7 +1041,7 @@
 !         5 Jan 1989 15:12:22      PFF
 
     use size_m
-    include 'TOPOL'
+    use topol
     DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1,LZ1),C(LX1,LY1)
 
 !     Set up counters
@@ -1076,7 +1076,7 @@
 !         29 Jan 1990 18:00 PST   PFF
 
     use size_m
-    include 'TOPOL'
+    use topol
     DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1,LZ1),C(LX1,LY1)
 
 !     Set up counters
@@ -1109,8 +1109,8 @@
 
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real :: h1(1),h2(1)
 
@@ -1168,8 +1168,8 @@
 !-----------------------------------------------------------------------
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     LOGICAL ::  IFKFLD,IFEFLD
 
     NXYZ1 = NX1*NY1*NZ1
@@ -1295,8 +1295,8 @@
     use input
     use nekuse
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     ielg = lglel(iel)
 !     IF (IFSTRS .AND. IFIELD.EQ.1) CALL STNRINV ! don't call! pff, 2007
     DO 10 K=1,NZ1
@@ -1346,8 +1346,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'   ! For outpost diagnostic call
-    include 'TSTEP'
+    use soln   ! For outpost diagnostic call
+    use tstep
     include 'ORTHOSTRS'
 
     DIMENSION U1(LX1,LY1,LZ1,1) &
@@ -1515,7 +1515,7 @@
     use geom
     use input
     use mass
-    include 'TSTEP'
+    use tstep
     common /fastmd/ ifdfrm(lelt), iffast(lelt), ifh2, ifsolv
     logical :: ifdfrm, iffast, ifh2, ifsolv
 
@@ -1582,7 +1582,7 @@
     use size_m
     use geom
     use input
-    include 'TSTEP'
+    use tstep
 
     common /ctmp0/ exz(lx1*ly1*lz1*lelt) &
     , eyz(lx1*ly1*lz1*lelt)
@@ -1832,7 +1832,7 @@
 
     use size_m
     use geom
-    include 'TOPOL'
+    use topol
     real :: x(lx1,ly1,lz1,1)
     integer :: e,f,fd
 
@@ -2014,7 +2014,7 @@
     subroutine get_strs_mask(mask,nxc,nzc,nel)
     use size_m
     use input
-    include 'SOLN'
+    use soln
 
     real :: mask(ndim,nxc,nxc,nzc,nel)
     integer :: e
@@ -2134,9 +2134,9 @@
     use domain
     use geom
     use input
-    include 'SOLN'
+    use soln
     use parallel
-    include 'TSTEP'
+    use tstep
 
     real :: u1(1),u2(1),u3(1),v1(1),v2(1),v3(1)
 
@@ -2223,7 +2223,7 @@
     use domain
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
     common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
 
     common /ivrtx/ vertex ((2**ldim)*lelt)
@@ -2475,8 +2475,8 @@
     use dxyz
     use geom
     use input
-    include 'TSTEP'
-    include 'WZ'
+    use tstep
+    use wz_m
 
     DIMENSION TX(LX1,LY1,LZ1,1) &
     , TY(LX1,LY1,LZ1,1) &
@@ -2545,7 +2545,7 @@
 
     use size_m
     use dxyz
-    include 'TSTEP'
+    use tstep
 
     DIMENSION FF(LX1,LY1,LZ1) &
     , FR(LX1,LY1,LZ1) &
@@ -2578,7 +2578,7 @@
     use size_m
     use dxyz
     use geom
-    include 'WZ'
+    use wz_m
     common /ctmp0/ phi(lx1,ly1)
 
     DIMENSION VFY(LX1,LY1,LZ1,1) &

@@ -7,8 +7,8 @@
     use size_m
     use input
     use parallel
-    include 'SOLN'
-    include 'WZ'
+    use soln
+    use wz_m
 
     parameter(lxx=lx1*lx1)
     real :: df(lx1*ly1*lz1,1),sr(lxx*2,1),ss(lxx*2,1),st(lxx*2,1)
@@ -148,8 +148,8 @@
     use size_m
     use input
     use parallel
-    include 'SOLN'
-    include 'WZ'
+    use soln
+    use wz_m
 
     parameter(lxx=lx1*lx1)
 
@@ -806,8 +806,8 @@
     use size_m
     use input
     use parallel
-    include 'TOPOL'
-    include 'TSTEP'
+    use topol
+    use tstep
 
     integer ::                lbr,rbr,lbs,rbs,lbt,rbt,e,bsym
     integer :: fbc(6)
@@ -1189,10 +1189,10 @@
 !     jgl = bgl jgl
 
     use size_m
-    include 'SEMHAT'
+    use semhat
 
     nr = nx1-1
-    call semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,nr,wh)
+    call generate_semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,nr,wh)
     call do_semhat_weight(jgl,dgl,bgl,nr)
 
     return
@@ -1214,7 +1214,7 @@
     return
     end subroutine do_semhat_weight
 !-----------------------------------------------------------------------
-    subroutine semhat(a,b,c,d,z,dgll,jgll,bgl,zgl,dgl,jgl,n,w)
+    subroutine generate_semhat(a,b,c,d,z,dgll,jgll,bgl,zgl,dgl,jgl,n,w)
 
 !     Generate matrices for single element, 1D operators:
 
@@ -1289,7 +1289,7 @@
     enddo
 
     return
-    end subroutine semhat
+    end subroutine generate_semhat
 !-----------------------------------------------------------------------
     subroutine fd_weights_full(xx,x,n,m,c)
 
@@ -1350,7 +1350,7 @@
 !-----------------------------------------------------------------------
     subroutine set_up_fast_1D_sem(s,lam,n,lbc,rbc,ll,lm,lr,ie)
     use size_m
-    include 'SEMHAT'
+    use semhat
 
     common /fast1dsem/ g(lr2),w(lr2)
 
@@ -1544,7 +1544,7 @@
     use size_m
     use geom
     use input
-    include 'WZ'
+    use wz_m
     common /swaplengths/ l(lx1,ly1,lz1,lelv)
     common /ctmpf/  lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &
     , llr(lelt),lls(lelt),llt(lelt) &
@@ -1635,9 +1635,9 @@
 !     Note: 'SYM' on a plane with r,s,t-normal is 'dnn','ndn','nnd'? bsym?
 
     use size_m
-    include 'TOPOL'
+    use topol
     use input
-    include 'TSTEP'
+    use tstep
 
     ied = eface(face)	! symmetric -> preprocessor notation
     nfc = face+1

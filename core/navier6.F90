@@ -35,7 +35,7 @@
     use domain
     use esolv
     use input
-    include 'TSTEP'
+    use tstep
 
     REAL*8 :: dnekclock,t0
 

@@ -172,7 +172,7 @@
     subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
 
     use size_m
-    include 'TSTEP'
+    use tstep
 
     real :: v(nx*nx*nz,nelt),w1(1),w2(1)
     logical :: if3d
@@ -547,7 +547,7 @@
 !     f  is in the preprocessor notation
 
     use size_m
-    include 'TOPOL'
+    use topol
     real :: a(lx1,lz1,6,lelt),area(lx1,lz1,6,lelt)
 
     integer :: e,f
@@ -570,7 +570,7 @@
 !        27 June, 2012            PFF
 
     use size_m
-    include 'TOPOL'
+    use topol
     real :: a(lx1,ly1,lz1,lelt),area(lx1,lz1,6,lelt)
 
     integer :: e,f,fd
@@ -607,7 +607,7 @@
 !         5 Jan 1989 15:12:22      PFF
 
     use size_m
-    INCLUDE 'TOPOL'
+    use topol
     DIMENSION A    (LX1,LY1,LZ1,lelv) &
     ,B    (lx1,lz1,6,lelv) &
     ,area (lx1,lz1,6,lelv)
@@ -639,7 +639,7 @@
 !-----------------------------------------------------------------------
     function facint2(a,b,c,area,ifc,ie)
     use size_m
-    include 'TOPOL'
+    use topol
     dimension a    (lx1,ly1,lz1,lelv) &
     , b    (lx1,lz1,6,lelv) &
     , c    (lx1,lz1,6,lelv) &
@@ -740,7 +740,7 @@
     use dxyz
     use geom
     use input
-    include 'TSTEP'
+    use tstep
 
     parameter (lxyz=lx1*ly1*lz1)
     real :: ux(lxyz,1),uy(lxyz,1),uz(lxyz,1),u(lxyz,1)
@@ -836,7 +836,7 @@
     use size_m
     use geom
     use parallel
-    include 'TOPOL'
+    use topol
     real :: a(lx1,ly1,lz1,1)
 
     integer :: e,f
@@ -871,7 +871,7 @@
     use geom
     use input
     use parallel
-    include 'TOPOL'
+    use topol
     parameter (l=lx1*ly1*lz1)
 
     real :: qx(l,1),qy(l,1),qz(l,1),w(lx1,ly1,lz1)
@@ -1253,7 +1253,7 @@
 !-----------------------------------------------------------------------
     subroutine avg1(avg,f,alpha,beta,n,name,ifverbose)
     use size_m
-    include 'TSTEP'
+    use tstep
 
     real :: avg(n),f(n)
     character(4) :: name
@@ -1276,7 +1276,7 @@
 !-----------------------------------------------------------------------
     subroutine avg2(avg,f,alpha,beta,n,name,ifverbose)
     use size_m
-    include 'TSTEP'
+    use tstep
 
     real :: avg(n),f(n)
     character(4) :: name
@@ -1299,7 +1299,7 @@
 !-----------------------------------------------------------------------
     subroutine avg3(avg,f,g,alpha,beta,n,name,ifverbose)
     use size_m
-    include 'TSTEP'
+    use tstep
 
     real :: avg(n),f(n),g(n)
     character(4) :: name
@@ -1743,8 +1743,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: ua(nz1,nelz),u(nx1*ny1,nz1,nelv),w1(nz1,nelz),w2(nz1,nelz)
     integer :: e,eg,ez
@@ -1785,8 +1785,8 @@
     use size_m
     use geom
     use input
-    INCLUDE 'TOPOL'
-    INCLUDE 'TSTEP'
+    use topol
+    use tstep
 
     real :: dgtq(3,4)
     real :: xm0 (lx1,ly1,lz1,lelt)
@@ -2290,7 +2290,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     character(127) :: fname127
     character(1) ::   f1(127)
@@ -2383,8 +2383,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: ua(ny1,nz1,nely,nelz),u (nx1,ny1,nz1,nelv) &
     ,w1(ny1,nz1,nely,nelz),w2(ny1,nz1,nely,nelz)
@@ -2430,8 +2430,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: u(nx1,ny1,nz1,nelv),ua(ny1,nz1,nely,nelz)
 
@@ -2465,7 +2465,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     real :: u(1)
 
@@ -2490,7 +2490,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     real :: ua(1),u(1)
 
@@ -2511,8 +2511,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: ua(nx1,nz1,nelx,nelz),u (nx1,ny1,nz1,nelv) &
     ,w1(nx1,nz1,nelx,nelz),w2(nx1,nz1,nelx,nelz)
@@ -2562,7 +2562,7 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
+    use wz_m
 
     real :: uz(nx,ny,nlxy),u (nx,ny,nz,nelv),w1(nx,ny,nlxy)
     integer :: e,eg,ex,ey,ez,ezi
@@ -2594,8 +2594,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: ua(nx1,ny1,nelx,nely),u (nx1,ny1,nz1,nelv) &
     ,w1(nx1,ny1,nelx,nely),w2(nx1,ny1,nelx,nely)
@@ -2632,8 +2632,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: ua(nx1,nz1,nelx,nelz),u (nx1,ny1,nz1,nelv) &
     ,w1(nx1,nz1,nelx,nelz),w2(nx1,nz1,nelx,nelz)
@@ -2677,7 +2677,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     real :: ux(1),uy(1),uz(1)
     character(2) :: c2,name
@@ -2704,7 +2704,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     real :: ux(1),uy(1),uz(1)
     character(2) :: c2,name
@@ -2731,7 +2731,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     real :: ux(1),uy(1),uz(1)
     character(2) :: c2,name
@@ -2758,7 +2758,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     real :: ux(1),uy(1),uz(1)
     character(2) :: c2,name
@@ -2928,7 +2928,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     integer :: icount
     save    icount
@@ -3185,8 +3185,8 @@
     use size_m
     use geom
     use input
-    INCLUDE 'TOPOL'
-    INCLUDE 'TSTEP'
+    use topol
+    use tstep
 
     real :: dgtq(3,4)
     real :: xm0 (lx1,ly1,lz1,lelt)
@@ -3683,7 +3683,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     real :: ux(1),uy(1),uz(1)
     character(2) :: c2,name
@@ -3706,8 +3706,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: ua(nx1,ny1,nelx,nely),u (nx1,ny1,nz1,nelv) &
     ,w1(nx1,ny1,nelx,nely),w2(nx1,ny1,nelx,nely)
@@ -3753,8 +3753,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: u(nx1,ny1,nz1,nelv),ua(nx1,ny1,nelx,nely)
 
@@ -3788,7 +3788,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'         ! nelx,nely,nelz
+    use zper         ! nelx,nely,nelz
 
     real :: u(1)
 
@@ -3814,8 +3814,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: ua(lz1,lelz),u (nx1,ny1,nz1,nelv) &
     ,w1(lz1,lelz),w2(lz1,lelz)
@@ -3853,7 +3853,7 @@
 
     use size_m
     use parallel
-    include 'ZPER'
+    use zper
 
     real :: u(nx1,ny1,nz1,nelv),ua(lz1,lelz)
     integer :: e,eg,ex,ey,ez
@@ -3884,7 +3884,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'ZPER'         ! nelx,nely,nelz
+    use zper         ! nelx,nely,nelz
 
     real :: u(1)
 
@@ -3910,8 +3910,8 @@
     use size_m
     use geom
     use parallel
-    include 'WZ'
-    include 'ZPER'
+    use wz_m
+    use zper
 
     real :: ua(lz1,lelz),u (nx1,ny1,nz1,nelv) &
     ,w1(lz1,lelz),w2(lz1,lelz)
@@ -3951,7 +3951,7 @@
 
     use size_m
     use parallel
-    include 'ZPER'
+    use zper
 
     real :: u(nx1,ny1,nz1,nelv),ua(lz1,lelz)
     integer :: e,eg,ex,ey,ez
@@ -4241,7 +4241,7 @@
     use size_m
     use geom       ! Coordinates
     use input      ! cbc()
-    include 'TSTEP'      ! nelfld
+    use tstep      ! nelfld
     use parallel   ! gather-scatter handle for field "ifld"
 
     real :: d(lx1,ly1,lz1,lelt)
@@ -4337,7 +4337,7 @@
     use size_m
     use geom       ! Coordinates
     use input      ! cbc()
-    include 'TSTEP'      ! nelfld
+    use tstep      ! nelfld
     use parallel   ! gather-scatter handle for field "ifld"
 
     real :: d(lx1,ly1,lz1,lelt)

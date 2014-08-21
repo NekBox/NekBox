@@ -8,10 +8,10 @@
   use mass
   use mvgeom
   use parallel
-    include 'SOLN'
-    include 'STEADY'
-    include 'TOPOL'
-    include 'TSTEP'
-    include 'TURBO'
-    include 'WZ'
-    include 'WZF'
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf

@@ -105,7 +105,7 @@
 
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
 
     real ::    p0(n),u(n),ulag(ln,1),bmsk(n),c(m,0:nc),cs(0:nc)
 
@@ -573,7 +573,7 @@
 #if 0
     subroutine set_conv_char(ct,c,ux,uy,uz,nelc,tau,ifnew)
     use size_m
-    include 'TSTEP'
+    use tstep
 
     real :: ct(0:1)               ! time stamps for saved field (0=#flds)
     real :: c(1)                  ! saved vel. fields, dealiased etc.
@@ -940,8 +940,8 @@
     use size_m
     use geom
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     integer :: msk(0:1)
     character      cb*3
     parameter (lxyz1=lx1*ly1*lz1)
@@ -988,8 +988,8 @@
     use input
     use mass
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
 
     common /cchar/ ct_vx(0:lorder) ! time for each slice in c_vx()
@@ -1051,8 +1051,8 @@
     use input
     use mass
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /cchar/ ct_vx(0:lorder) ! time for each slice in c_vx()
 
@@ -1153,7 +1153,7 @@
 
     use size_m
     use geom
-    include 'TSTEP'
+    use tstep
 
 
     real :: du(mx*mx,nel)

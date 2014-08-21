@@ -88,8 +88,8 @@
 !-----------------------------------------------------------------------------
     use size_m
     use esolv
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     COMMON /SCRHI/  H2INV (LX1,LY1,LZ1,LELV)
     LOGICAL :: IFNEWP
 

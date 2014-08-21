@@ -2,7 +2,7 @@
 
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
 
     logical ::  ifturb,if_conv_std
 

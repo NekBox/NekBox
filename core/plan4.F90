@@ -13,8 +13,8 @@
     use geom
     use input
     use mass
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 !max    INCLUDE 'ORTHOP'
 
     parameter (ktot = lx1*ly1*lz1*lelt)

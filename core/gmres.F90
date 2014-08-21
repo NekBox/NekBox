@@ -651,8 +651,8 @@
     use size_m
     use input
     use parallel
-    include 'SOLN'
-    include 'WZ'
+    use soln
+    use wz_m
 
     parameter (lxss=lxs*lxs)
     common /fastg/  sr(lxss,2,lelv),ss(lxss,2,lelv),st(lxss,2,lelv) &
@@ -741,7 +741,7 @@
 !-----------------------------------------------------------------------
     subroutine set_up_fast_1D_sem_g(s,lam,n,lbc,rbc,ll,lm,lr,ie)
     use size_m
-    include 'SEMHAT'
+    use semhat
 
     parameter (lr3=2*lxs*lxs)
     common /fast1dsem/ g(lr3),w(lr3)
@@ -1150,7 +1150,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldr_g(x,txt10,nx,nz,ichk)
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(nx,nx,nz,lelt)
     character(10) :: txt10
 
@@ -1213,7 +1213,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldi_g(x,txt10,nx,nz,ichk)
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     integer :: x(nx,nx,nz,lelt)
     character(10) :: txt10
 

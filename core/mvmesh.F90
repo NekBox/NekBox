@@ -6,7 +6,7 @@
     use size_m
     use geom
     use input
-    include 'TSTEP'
+    use tstep
 
     CHARACTER CBM*1,CBF*3,CBT*3,CB*3
 
@@ -83,8 +83,8 @@
     subroutine admeshv
 
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ FM1(LX1,LY1,LZ1,LELT) &
     , FM2(LX1,LY1,LZ1,LELT) &
@@ -112,8 +112,8 @@
     subroutine admesht
 
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ FMT(LX1,LY1,LZ1,LELT) &
     , PHI(LX1,LY1,LZ1,LELT)
@@ -138,7 +138,7 @@
     use input
     use mass
     use mvgeom
-    include 'WZ'
+    use wz_m
 
     COMMON /SCRSF/ PHR(LX1,LY1,LZ1,LELT) &
     , PHS(LX1,LY1,LZ1,LELT) &
@@ -187,7 +187,7 @@
     use input
     use mass
     use mvgeom
-    include 'WZ'
+    use wz_m
     COMMON /SCRSF/ PHR(LX1,LY1,LZ1,LELT) &
     , PHS(LX1,LY1,LZ1,LELT) &
     , PHT(LX1,LY1,LZ1,LELT)
@@ -232,7 +232,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'TSTEP'
+    use tstep
 
     IFIELD = 0
     NEL    = NELFLD(IFIELD)
@@ -256,8 +256,8 @@
     use geom
     use input
     use mvgeom
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /scrsf/ wvx(lx1*ly1*lz1,lelt) &
     , wvy(lx1*ly1*lz1,lelt) &
@@ -617,7 +617,7 @@
 
     use size_m
     use geom
-    include 'TOPOL'
+    use topol
     COMMON /SCRUZ/ R1(LX1,LY1,LZ1),R2(LX1,LY1,LZ1),R3(LX1,LY1,LZ1)
 
     DIMENSION WT1(LX1,LY1,LZ1),WT2(LX1,LY1,LZ1),WT3(LX1,LY1,LZ1)
@@ -678,8 +678,8 @@
 
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     COMMON /SCRVH/ H1(LX1,LY1,LZ1,LELT) &
     , H2(LX1,LY1,LZ1,LELT)
 
@@ -745,8 +745,8 @@
     use geom
     use input
     use mvgeom
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRNS/ DW1  (LX1,LY1,LZ1,LELT) &
     , DW2  (LX1,LY1,LZ1,LELT) &
@@ -846,7 +846,7 @@
     use size_m
     use eigen
     use mvgeom
-    include 'TSTEP'
+    use tstep
     DIMENSION TA(LX1,LY1,LZ1,1)
 
     NTOT1 = NX1*NY1*NZ1*NEL
@@ -878,7 +878,7 @@
     use size_m
     use geom
     use mvgeom
-    include 'TSTEP'
+    use tstep
     COMMON /SCRSF/ UX(LX1,LY1,LZ1,LELT) &
     , UY(LX1,LY1,LZ1,LELT) &
     , UZ(LX1,LY1,LZ1,LELT)
@@ -922,7 +922,7 @@
     use size_m
     use input
     use mvgeom
-    include 'TSTEP'
+    use tstep
 
     NTOT1 = NX1*NY1*NZ1*NEL
 
@@ -979,8 +979,8 @@
     use geom
     use input
     use mvgeom
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
     ,             YM3 (LX3,LY3,LZ3,LELT) &
     ,             ZM3 (LX3,LY3,LZ3,LELT)
@@ -1018,7 +1018,7 @@
     use input
     use mvgeom
     use parallel
-    include 'TSTEP'
+    use tstep
 
     CHARACTER CB*1
 
@@ -1067,7 +1067,7 @@
     subroutine inigeom (ux,uy,uz,x,y,z,iside,iel)
 
     use size_m
-    include 'TSTEP'
+    use tstep
 
     UX  =  0.0
     UY  =  0.0
@@ -1079,7 +1079,7 @@
     subroutine quickmv
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     if (if3d) then
         call quickmv3d
@@ -1092,7 +1092,7 @@
     subroutine quickmv2d
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     integer :: e,ex,ey,ez,eg
     common /surfa/ zsurf(lx1,lz1,lelx,lely) &
@@ -1159,7 +1159,7 @@
     subroutine quickmv3d
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     integer :: e,ex,ey,ez,eg
     common /surfa/ zsurf(lx1,lz1,lelx,lely) &

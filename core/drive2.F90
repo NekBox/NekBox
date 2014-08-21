@@ -96,7 +96,7 @@
     use size_m
     use geom
     use input
-    include 'TSTEP'
+    use tstep
 
     LOGICAL ::  IFCOUR
     SAVE     IFCOUR
@@ -152,7 +152,7 @@
     use dealias
     use geom
     use input
-    include 'TSTEP'
+    use tstep
 
 !     Enforce splitting/Uzawa according to the way the code was compiled
     nxd = lxd
@@ -411,8 +411,8 @@
     use size_m
     use geom
     use input
-    include 'TSTEP'
-    include 'WZ'
+    use tstep
+    use wz_m
 
     COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
     ,             YM3 (LX3,LY3,LZ3,LELT) &
@@ -619,7 +619,7 @@
     use size_m
     use geom
     use input
-    include 'TSTEP'
+    use tstep
     COMMON  /CPRINT/ IFPRINT
     LOGICAL ::          IFPRINT
     SAVE
@@ -682,7 +682,7 @@
     use size_m
     use eigen
     use input
-    include 'TSTEP'
+    use tstep
 
     IF (IGEOM == 1) RETURN
 
@@ -737,8 +737,8 @@
     use size_m
     use dealias
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real*8 :: ts, dnekclock
      
@@ -813,8 +813,8 @@
     use size_m
     use dealias
     use input
-    include 'TSTEP'
-    include 'TURBO'
+    use tstep
+    use turbo
 
     real*8 :: ts, dnekclock
 
@@ -871,7 +871,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
 
     IF (IGEOM == 1) RETURN
 
@@ -892,7 +892,7 @@
     use size_m
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
     if (np > 1) return
     irst = param(46)

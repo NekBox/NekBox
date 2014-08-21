@@ -6,7 +6,7 @@
 !------------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'TSTEP'
+    use tstep
     ISSS = 0
     IADV = 0
     DO 100 IFIELD=1,NFIELD
@@ -32,8 +32,8 @@
     use size_m
     use eigen
     use input
-    INCLUDE 'TSTEP'
-    INCLUDE 'STEADY'
+    use steady
+    use tstep
 
     IFTRAN    = .TRUE. 
     IFCHAR    = .TRUE. 
@@ -89,8 +89,8 @@
 !------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'STEADY'
-    INCLUDE 'TSTEP'
+    use steady
+    use tstep
     LOGICAL :: IFACCX
     real*8 :: Z(1),S(1)
     REAL :: H1NRM1 (LDIMT1), H1NRM2(LDIMT1)
@@ -161,8 +161,8 @@
     SUBROUTINE FILLLAG
     use size_m
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     NBDINP = 3
     IF (IFFLOW) THEN
         CALL LAGVEL
@@ -185,7 +185,7 @@
 !----------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'STEADY'
+    use steady
     EXTERNAL GOSTEP
 
     DO 1000 JSTEP=1,N
@@ -287,9 +287,9 @@
 !------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
-    INCLUDE 'STEADY'
+    use soln
+    use steady
+    use tstep
 
     MFIELD=1
     IF ( .NOT. IFFLOW) MFIELD=2
@@ -313,8 +313,8 @@
 !-------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     real*8 :: X(1)
 
     NTOTV = NX1*NY1*NZ1*NELV
@@ -356,8 +356,8 @@
 !------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     real*8 :: X(1)
 
     NTOTV = NX1*NY1*NZ1*NELV
@@ -399,8 +399,8 @@
 !------------------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'TSTEP'
-    INCLUDE 'STEADY'
+    use steady
+    use tstep
 
     IF (L == 0) THEN
         CALL SSINIT (KMAX)
@@ -457,8 +457,8 @@
 !-----------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'TSTEP'
-    INCLUDE 'STEADY'
+    use steady
+    use tstep
 
     IF (IFFLOW) THEN
         IMESH  = 1
@@ -495,9 +495,9 @@
     use eigen
     use input
     use mass
-    INCLUDE 'SOLN'
-    INCLUDE 'STEADY'
-    INCLUDE 'TSTEP'
+    use soln
+    use steady
+    use tstep
     COMMON /CTOLPR/ DIVEX
     COMMON /CPRINT/ IFPRINT
     LOGICAL ::         IFPRINT
@@ -583,9 +583,9 @@
 !----------------------------------------------------------------------
     use size_m
     use mass
-    INCLUDE 'SOLN'
-    INCLUDE 'STEADY'
-    INCLUDE 'TSTEP'
+    use soln
+    use steady
+    use tstep
     COMMON /SCRUZ/  DELTAT (LX1,LY1,LZ1,LELT) &
     ,              WA     (LX1,LY1,LZ1,LELT) &
     ,              WB     (LX1,LY1,LZ1,LELT)
@@ -637,8 +637,8 @@
     SUBROUTINE SSNORMD (DV1,DV2,DV3)
     use size_m
     use mass
-    INCLUDE 'TSTEP'
-    INCLUDE 'STEADY'
+    use steady
+    use tstep
     REAL :: DV1(1),DV2(1),DV3(1)
     CALL NORMVC (DVDFH1,DVDFSM,DVDFL2,DVDFL8,DV1,DV2,DV3)
     RETURN
@@ -646,8 +646,8 @@
 
     SUBROUTINE SSNORMP (DV1,DV2,DV3)
     use size_m
-    INCLUDE 'TSTEP'
-    INCLUDE 'STEADY'
+    use steady
+    use tstep
     REAL :: DV1(1),DV2(1),DV3(1)
     CALL NORMVC (DVPRH1,DVPRSM,DVPRL2,DVPRL8,DV1,DV2,DV3)
     RETURN
@@ -663,8 +663,8 @@
     use eigen
     use input
     use mass
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     REAL :: LENGTH
 
     NTOT   = NX1*NY1*NZ1*NELFLD(IFIELD)
@@ -708,8 +708,8 @@
     use eigen
     use input
     use mass
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     REAL :: LENGTH
 
     NTOT   = NX1*NY1*NZ1*NELFLD(IFIELD)
@@ -732,8 +732,8 @@
     SUBROUTINE CHKTOLP (TOLMIN)
     use size_m
     use mass
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     COMMON /SCRMG/ DIVFLD (LX2,LY2,LZ2,LELV) &
     ,             WORK   (LX2,LY2,LZ2,LELV)
     NTOT2 = NX2*NY2*NZ2*NELV
@@ -760,7 +760,7 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'TSTEP'
+    use tstep
 
     IF (IFCHAR) THEN
         ICT    = INT(CTARG)

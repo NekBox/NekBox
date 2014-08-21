@@ -35,7 +35,7 @@ PPS_C = $(patsubst %,-D%,$(PPS))
 # CORE##########################################################################
 CORE = \
 kinds_mod.o ctimer_mod.o size_mod.o dealias_mod.o domain_mod.o dxyz_mod.o \
-eigen_mod.o esolv_mod.o fdmh1_mod.o geom_mod.o \
+eigen_mod.o esolv_mod.o fdmh1_mod.o geom_mod.o input_mod.o \
 drive.o drive1.o drive2.o \
 plan4.o bdry.o coef.o conduct.o connect1.o connect2.o \
 dssum.o edgec.o eigsolv.o genxyz.o navier1.o  \
@@ -196,6 +196,7 @@ $(OBJDIR)/eigen_mod.o	:$S/eigen_mod.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/esolv_mod.o	:$S/esolv_mod.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/fdmh1_mod.o	:$S/fdmh1_mod.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/geom_mod.o	:$S/geom_mod.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/input_mod.o	:$S/input_mod.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/drive.o	:$S/drive.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/drive2.o	:$S/drive2.F90;			$(F77) -c $(FL2) $< -o $@

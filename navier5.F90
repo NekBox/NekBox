@@ -739,7 +739,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     parameter (lxyz=lx1*ly1*lz1)
@@ -869,7 +869,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'TOPOL'
     parameter (l=lx1*ly1*lz1)
@@ -1784,7 +1784,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
 
@@ -3184,7 +3184,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
 
@@ -4240,7 +4240,7 @@
 
     use size_m
     use geom       ! Coordinates
-    include 'INPUT'      ! cbc()
+    use input      ! cbc()
     include 'TSTEP'      ! nelfld
     include 'PARALLEL'   ! gather-scatter handle for field "ifld"
 
@@ -4336,7 +4336,7 @@
 
     use size_m
     use geom       ! Coordinates
-    include 'INPUT'      ! cbc()
+    use input      ! cbc()
     include 'TSTEP'      ! nelfld
     include 'PARALLEL'   ! gather-scatter handle for field "ifld"
 

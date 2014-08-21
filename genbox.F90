@@ -3,7 +3,7 @@
     subroutine genbox
 
     use size_m
-    include 'INPUT'
+    use input
     include 'ZPER'
 
     character(132) :: string
@@ -69,7 +69,7 @@
     subroutine gen_gtp_vertex (vertex,ncrnr)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'ZPER'
 
@@ -144,7 +144,7 @@
     subroutine getbox(x,y,z,nfld)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'ZPER'
 
     real :: x(0:1),y(0:1),z(0:1)
@@ -374,7 +374,7 @@
     subroutine makebox(x,y,z,nfld)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'ZPER'
 
@@ -902,7 +902,7 @@
     subroutine bcpbox(nfld)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'ZPER'
     include 'PARALLEL'
 
@@ -931,7 +931,7 @@
 !-----------------------------------------------------------------------
     subroutine outbox_mesh
     use size_m
-    include 'INPUT'
+    use input
     include 'ZPER'
     include 'PARALLEL'
     integer :: e

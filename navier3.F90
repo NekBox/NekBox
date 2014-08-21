@@ -10,7 +10,7 @@
 !----------------------------------------------------------------
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'PARALLEL'
     INCLUDE 'SOLN'
@@ -54,7 +54,7 @@
     use ctimer
     use size_m
     use domain
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'SOLN'
 
@@ -118,7 +118,7 @@
 !-----------------------------------------------------------------------
     subroutine rarr_out2(x,name13)
     use size_m
-    include 'INPUT'
+    use input
 
     real :: x(lx2,ly2,lz2,lelt)
     character(13) :: name13

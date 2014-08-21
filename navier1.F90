@@ -6,7 +6,7 @@
 
 !-------------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     use eigen
     include 'SOLN'
     include 'TSTEP'
@@ -241,7 +241,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
@@ -318,7 +318,7 @@
 !---------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
 
     REAL :: OUT1 (LX2,LY2,LZ2,1)
     REAL :: OUT2 (LX2,LY2,LZ2,1)
@@ -352,7 +352,7 @@
     use dxyz
     use esolv
     use geom
-    include 'INPUT'
+    use input
     include 'IXYZ'
     include 'MASS'
     include 'WZ'
@@ -568,7 +568,7 @@
     use dxyz
     use esolv
     use geom
-    include 'INPUT'
+    use input
     include 'IXYZ'
     include 'MASS'
     include 'WZ'
@@ -770,7 +770,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     REAL :: OUT1 (LX1,LY1,LZ1,1)
@@ -840,7 +840,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     REAL :: OUT1 (LX1,LY1,LZ1,1)
     REAL :: OUT2 (LX1,LY1,LZ1,1)
@@ -875,7 +875,7 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
 
@@ -934,7 +934,7 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
 
@@ -991,7 +991,7 @@
 !--------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'TSTEP'
     include 'PARALLEL'
@@ -1067,7 +1067,7 @@
 !----------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'PARALLEL'
     include 'SOLN'
@@ -1193,7 +1193,7 @@
 !-------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'TSTEP'
     REAL ::           RES (LX2,LY2,LZ2,LELV)
@@ -1265,7 +1265,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     REAL ::  DU  (LX1,LY1,LZ1,1)
@@ -1498,7 +1498,7 @@
 
 !---------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     REAL :: CMASK1 (LX1,LY1,LZ1,LELV)
@@ -1533,9 +1533,9 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'SOLN'
+    use input
     include 'MASS'
-    include 'INPUT'
+    include 'SOLN'
     include 'TSTEP'
 
     call makeuf
@@ -1636,8 +1636,8 @@
 
 !----------------------------------------------------------------
     use size_m
+    use input
     include 'MASS'
-    include 'INPUT'
     include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
@@ -1721,7 +1721,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -1979,8 +1979,8 @@
 
 !---------------------------------------------------------------------
     use size_m
+    use input
     include 'MASS'
-    include 'INPUT'
     include 'SOLN'
     include 'TSTEP'
 
@@ -2372,7 +2372,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -2399,7 +2399,7 @@
 !---------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     REAL ::           HV1MSK (LX1,LY1,LZ1,1)
@@ -2445,7 +2445,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
 !     IF (IFSPLIT .OR. NBDINP.EQ.0) THEN     undid hardwire, 3/6/92 pff
@@ -2717,7 +2717,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     REAL :: VBDRY1 (LX1,LY1,LZ1,1)
@@ -2756,7 +2756,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     REAL :: RES1(1),RES2(1),RES3(1)
@@ -2924,7 +2924,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'TSTEP'
 
@@ -3012,7 +3012,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'TSTEP'
 
@@ -3034,7 +3034,7 @@
     use size_m
     use geom
     use geom
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'TSTEP'
 
@@ -3599,7 +3599,7 @@
 
 
     use size_m
-    include 'INPUT'
+    use input
     real :: b(nb,nb,nb),a(na,na,na)
     real :: w(1)
 
@@ -3864,7 +3864,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -3942,7 +3942,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -4020,7 +4020,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -4174,7 +4174,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -4245,7 +4245,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -4363,7 +4363,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -4440,7 +4440,7 @@
 !---------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     integer :: msk(0:1)
@@ -4685,7 +4685,7 @@
 
     use size_m
     use dealias
-    include 'INPUT'
+    use input
 
     parameter(lx=80)
     real :: LkN(lx,lx),LkD(lx,lx),LkNt(lx,lx)
@@ -4742,7 +4742,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
     include 'WZ'
 
@@ -4889,7 +4889,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
 
     COMMON /SCRNS/ EXZ(LX1,LY1,LZ1,LELT) &
     , EYZ(LX1,LY1,LZ1,LELT) &
@@ -5015,7 +5015,7 @@
 !-----------------------------------------------------------------------
     subroutine expl_strs_e(w1,w2,w3,u1,u2,u3,e)
     use size_m
-    include 'INPUT'  ! if3d
+    use input  ! if3d
     include 'SOLN'   ! nu_star
 
     real :: w1(1),w2(1),w3(1),u1(1),u2(1),u3(1)
@@ -5048,7 +5048,7 @@
 
     use size_m
     use geom    ! jacmi,rxm1, etc.
-    include 'INPUT'   ! if3d
+    use input   ! if3d
     include 'MASS'    ! bm1
     include 'SOLN'    ! vtrans,vdiff,nu_star
     include 'TSTEP'   ! dt
@@ -5129,7 +5129,7 @@
 
     use size_m
     use geom    ! jacmi,rxm1, etc.
-    include 'INPUT'   ! if3d
+    use input   ! if3d
     include 'MASS'    ! bm1
     include 'SOLN'    ! vtrans,vdiff,nu_star
     include 'TSTEP'   ! dt

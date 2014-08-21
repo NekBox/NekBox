@@ -8,7 +8,7 @@
     use size_m
     use dealias
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'IXYZ'
     INCLUDE 'MASS'
     INCLUDE 'MVGEOM'
@@ -385,7 +385,7 @@
 
 !---------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'RESTART'
 
     logical  iffort(  ldimt1,0:lpert) &
@@ -1053,7 +1053,7 @@
 !     Set IO flags according to Restart Options File, RSOPTS
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'RESTART'
     INCLUDE 'TSTEP'
 
@@ -1529,7 +1529,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
     LOGICAL :: IFZERO
 
@@ -1563,7 +1563,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
     LOGICAL ::  IFSAV1,IFSAV2(LDIMT1)
 
@@ -1610,7 +1610,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     LOGICAL ::  IFSAV1,IFSAV2
@@ -1675,7 +1675,7 @@
 
 !------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'TURBO'
@@ -1909,7 +1909,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     include 'WZ'
@@ -1997,7 +1997,7 @@
     subroutine mfi_gets(u,wk,lwk,iskip)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -2138,7 +2138,7 @@
     subroutine mfi_getv(u,v,w,wk,lwk,iskip)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -2304,7 +2304,7 @@
 !-----------------------------------------------------------------------
     subroutine parse_std_hdr(hdr)
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -2385,7 +2385,7 @@
 !-----------------------------------------------------------------------
     subroutine parse_std_hdr_2006(hdr,rlcode)
     use size_m
-    include 'INPUT'
+    use input
     include 'RESTART'
 
     character(132) :: hdr

@@ -708,6 +708,7 @@
     200 END DO
     return
     end subroutine addtnsr
+
     function ltrunc(string,l)
     CHARACTER(1) :: STRING(L)
     CHARACTER(1) ::   BLNK

@@ -14,7 +14,7 @@
     use size_m
     use eigen
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
 
     NTOT1=NX1*NY1*NZ1*NELFLD(IFIELD)
@@ -105,7 +105,7 @@
 !-------------------------------------------------------------------------
     use size_m
     use eigen
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
 

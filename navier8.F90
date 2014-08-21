@@ -6,7 +6,7 @@
 !     a new array of global pointers for an nx^ndim set of elements.
 
     use size_m
-    include 'INPUT'
+    use input
 
     integer*8 :: glo_num(1),ngv
     integer :: vertex(1),nx
@@ -40,9 +40,9 @@
     use domain
     use esolv
     use geom
+    use input
     include 'PARALLEL'
     include 'SOLN'
-    include 'INPUT'
     include 'TSTEP'
     real :: uf(1),vf(1)
     common /scrpre/ uc(lcr*lelt),w(2*lx1*ly1*lz1)
@@ -85,7 +85,7 @@
     use size_m
     use domain
     use geom
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'TSTEP'
 
@@ -496,7 +496,7 @@
     use size_m
     use domain
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
     include 'PARALLEL'
 
@@ -812,7 +812,7 @@
     use size_m
     use domain
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
     include 'PARALLEL'
 
@@ -1065,7 +1065,7 @@
 
     use size_m
     use domain
-    include 'INPUT'
+    use input
 
     parameter (lxyz = lx2*ly2*lz2)
     real :: uc(nxyz_c,lelt),uf(lxyz,lelt),w(1)
@@ -1089,7 +1089,7 @@
 
     use size_m
     use domain
-    include 'INPUT'
+    use input
 
     parameter (lxyz = lx2*ly2*lz2)
     real :: uc(nxyz_c,lelt),uf(lxyz,lelt),w(1)
@@ -1328,7 +1328,7 @@
     use size_m
     use domain
     use geom
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
@@ -1392,7 +1392,7 @@
 
     use size_m
     use domain
-    include 'INPUT'
+    use input
 
     parameter (lxyz = lx1*ly1*lz1)
     real :: uc(2,2,ldim-1,lelt),uf(lxyz,lelt)
@@ -1442,7 +1442,7 @@
 
     use size_m
     use domain
-    include 'INPUT'
+    use input
 
     parameter (lxyz = lx1*ly1*lz1)
     real :: uc(lcr,lelt),uf(lx1,ly1,lz1,lelt)
@@ -1748,7 +1748,7 @@
 !-----------------------------------------------------------------------
     subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     logical :: ifgfdm
     common /nekmpi/ nid_,np_,nekcomm,nekgroup,nekreal

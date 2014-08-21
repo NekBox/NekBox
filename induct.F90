@@ -16,7 +16,7 @@
 
     use size_m
     use eigen
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -56,7 +56,7 @@
 !     Keep old B-field(s)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -76,9 +76,9 @@
 
     use ctimer
     use size_m
-    include 'SOLN'
+    use input
     include 'MASS'
-    include 'INPUT'
+    include 'SOLN'
     include 'TSTEP'
 
     if (icalld == 0) tbmhd=0.0
@@ -143,7 +143,7 @@
 !     (nek5 equivalent for velocity is "makeabf")
 
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'
@@ -181,7 +181,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -752,7 +752,7 @@
     subroutine specx(b,nb,a,na,ba,ab,w)
 
     use size_m
-    include 'INPUT'
+    use input
     real :: b(1),a(1)
     real :: w(1)
 
@@ -855,7 +855,7 @@
     use size_m
     use eigen
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -919,7 +919,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'WZ'
     include 'SOLN'
 
@@ -1023,7 +1023,7 @@
 !     Ok = (H1*A+H2*B)-1 * Ik  (implicit)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
 !max    include 'ORTHOV'
@@ -1102,7 +1102,7 @@
 !     Ok  = (H1*A+H2*B)-1 * Ik   (implicit)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     real :: o1(lx1,ly1,lz1,1), o2(lx1,ly1,lz1,1), o3(lx1,ly1,lz1,1)
@@ -1137,7 +1137,7 @@
     subroutine set_ifbcor
     use size_m
     use geom
-    include 'INPUT'
+    use input
 !     include 'TSTEP'   ! ifield?
 
     common  /nekcb/ cb
@@ -1200,7 +1200,7 @@
 !     Project soln onto best fit in the "E" norm.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -1265,7 +1265,7 @@
 !     the previous solutions
 
     use size_m
-    include 'INPUT'
+    use input
 
     real :: p    (lx2,ly2,lz2,lelv)
     real :: h1   (lx1,ly1,lz1,lelv)
@@ -1303,7 +1303,7 @@
 !     know the soln.
 
     use size_m
-    include 'INPUT'
+    use input
 
     real :: p    (lx2,ly2,lz2,lelv)
     real :: h1   (lx1,ly1,lz1,lelv)
@@ -1363,7 +1363,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -1562,7 +1562,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP' ! for istep
 
     common /dealias1/ zd(lxd),wd(lxd)
@@ -1642,7 +1642,7 @@
     subroutine cfl_check
 
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'MASS'
     include 'TSTEP'

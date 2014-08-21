@@ -4,7 +4,7 @@
 !     Project rhs onto best fit in the "E" norm.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -151,7 +151,7 @@
 
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     PARAMETER (LTOT2=LX2*LY2*LZ2*LELV)
     COMMON /ORTHOV/ RHS(LTOT2,MXPREV)
@@ -195,7 +195,7 @@
 !     know the soln.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -267,9 +267,9 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'SOLN'
+    use input
     include 'MASS'
-    include 'INPUT'
+    include 'SOLN'
     include 'TSTEP'
     COMMON /CTOLPR/ DIVEX
     COMMON /CPRINT/ IFPRINT
@@ -347,7 +347,7 @@
 
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'TSTEP'
 
@@ -420,7 +420,7 @@
 !     know the soln.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -473,7 +473,7 @@
 !              ws        -- small work array of size 2*max vecs
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -543,7 +543,7 @@
 !     the previous solutions
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -599,7 +599,7 @@
 !     Orthonormalize the kth vector against vector set
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'PARALLEL'
@@ -683,7 +683,7 @@
 !     Reorthogonalize approx if dt has changed
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'TSTEP'
 
@@ -746,7 +746,7 @@
     use ctimer
     use size_m
     use fdmh1
-    include 'INPUT'
+    use input
     include 'MASS'
 
     CHARACTER(4) ::    NAME
@@ -795,7 +795,7 @@
     use ctimer
     use size_m
     use fdmh1
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'TSTEP'
 

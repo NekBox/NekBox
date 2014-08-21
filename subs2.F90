@@ -255,7 +255,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use eigen
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'MVGEOM'
     INCLUDE 'SOLN'
@@ -351,7 +351,7 @@
     SUBROUTINE EMERXIT
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
     INCLUDE 'PARALLEL'
 
@@ -736,8 +736,8 @@
 
     use size_m
     use geom
+    use input
     INCLUDE 'TSTEP'
-    include 'INPUT'
     common /screv/ hfmask(lx1,lz1,6,lelt) &
     , hvmask(lx1,ly1,lz1,lelt)
 
@@ -786,7 +786,7 @@
     SUBROUTINE SETHMSK (HVMASK,HFMASK,IFLD,NEL)
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
 
     DIMENSION HVMASK(LX1,LY1,LZ1,1) &
@@ -886,7 +886,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -1785,7 +1785,7 @@
     SUBROUTINE SETCDOF
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
 
     NFACE = 2*NDIM
 
@@ -1800,7 +1800,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     common /scrsf/ a1mask(lx1,ly1,lz1,lelt) &
@@ -1842,7 +1842,7 @@
     SUBROUTINE RMASK (R1,R2,R3,NEL)
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'MVGEOM'
@@ -2202,7 +2202,7 @@
 !     fixes masks for A/SYM face corners
 
     use size_m
-    include 'INPUT'
+    use input
      
     real ::   c1mask(lx1,ly1,lz1,1) &
     ,c2mask(lx1,ly1,lz1,1) &
@@ -2267,7 +2267,7 @@
 !-----------------------------------------------------------------------
     function op_vlsc2_wt(b1,b2,b3,x1,x2,x3,wt)
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
     real :: b1(1),b2(1),b3(1),x1(1),x2(1),x3(1),wt(1)
 
@@ -2291,7 +2291,7 @@
 !-----------------------------------------------------------------------
     function op_glsc2_wt(b1,b2,b3,x1,x2,x3,wt)
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
     real :: b1(1),b2(1),b3(1),x1(1),x2(1),x3(1),wt(1)
 

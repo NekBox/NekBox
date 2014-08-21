@@ -3,8 +3,8 @@
     use size_m
     use geom
     use input
-    include 'TOPOL'
-    include 'WZ'
+    use topol
+    use wz_m
 
 !     ....note..... CTMP1 is used in this format in several subsequent routines
 
@@ -103,8 +103,8 @@
     subroutine defsrf(xml,yml,zml,nxl,nyl,nzl,ie,iface1,ccv)
     use size_m
     use geom
-    include 'TOPOL'
-    include 'WZ'
+    use topol
+    use wz_m
     COMMON /CTMP1/ H(LX1,3,2),XCRVED(LX1),YCRVED(LY1),ZCRVED(LZ1) &
     , ZGML(LX1,3),WORK(3,LX1,LZ1)
 
@@ -560,8 +560,8 @@
     use geom
     use input
     use parallel
-    include 'TOPOL'
-    include 'WZ'
+    use topol
+    use wz_m
 
     real :: xml(nxl,nyl,nzl,1),yml(nxl,nyl,nzl,1),zml(nxl,nyl,nzl,1)
 
@@ -646,7 +646,7 @@
 
     use size_m
     use geom
-    include 'WZ'
+    use wz_m
 
     real :: zgml(lx1,3)
     integer :: e
@@ -687,8 +687,8 @@
 
     use size_m
     use input
-    include 'WZ'
-    include 'TOPOL'
+    use topol
+    use wz_m
     DIMENSION XML(NX,NY,NZ,1),YML(NX,NY,NZ,1),ZML(NX,NY,NZ,1)
     DIMENSION XYSRF(3,NX,NZ)
 
@@ -932,7 +932,7 @@
 !-----------------------------------------------------------------------
     subroutine crn3d(xcv,xc,yc,zc,curve,iface)
     use size_m
-    include 'TOPOL'
+    use topol
     DIMENSION XCV(3,2,2),XC(8),YC(8),ZC(8),CURVE(4)
     DIMENSION INDVTX(4,6)
     SAVE      INDVTX
@@ -1034,8 +1034,8 @@
 !     include 'basics.inc'
     use size_m
     use input
-    include 'WZ'
-    include 'TOPOL'
+    use topol
+    use wz_m
 
     DIMENSION XML(MX,MY,MZ,1),YML(MX,MY,MZ,1),ZML(MX,MY,MZ,1) &
     ,ZGML(MX,3)
@@ -1242,8 +1242,8 @@
     use geom
     use input
     use parallel
-    include 'TOPOL'
-    include 'WZ'
+    use topol
+    use wz_m
 
     real :: xl(nxl*nyl*nzl,1),yl(nxl*nyl*nzl,1),zl(nxl*nyl*nzl,1)
 

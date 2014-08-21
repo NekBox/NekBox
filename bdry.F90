@@ -7,8 +7,8 @@
     use size_m
     use geom
     use input
-    INCLUDE 'TSTEP'
-    INCLUDE 'TURBO'
+    use tstep
+    use turbo
     COMMON  /CPRINT/ IFPRINT
 
     common  /nekcb/ cb
@@ -333,9 +333,9 @@
     use size_m
     use input
     use mvgeom
-    INCLUDE 'SOLN'
-    INCLUDE 'TOPOL'
-    INCLUDE 'TSTEP'
+    use soln
+    use topol
+    use tstep
 
     common  /nekcb/ cb
     character(3) :: cb
@@ -585,9 +585,9 @@
     use size_m
     use geom
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TOPOL'
-    INCLUDE 'TSTEP'
+    use soln
+    use topol
+    use tstep
     COMMON /SCRUZ/ TMP1(LX1,LY1,LZ1,LELV) &
     , TMP2(LX1,LY1,LZ1,LELV) &
     , TMP3(LX1,LY1,LZ1,LELV)
@@ -729,9 +729,9 @@
     use ctimer
     use size_m
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TOPOL'
-    INCLUDE 'TSTEP'
+    use soln
+    use topol
+    use tstep
 
     DIMENSION S(LX1,LY1,LZ1,LELT)
     COMMON /SCRSF/ TMP(LX1,LY1,LZ1,LELT) &
@@ -950,8 +950,8 @@
     use size_m
     use nekuse
     use parallel
-    INCLUDE 'SOLN'      ! tmask()   11/19/2010
-    INCLUDE 'TSTEP'     ! ifield    11/19/2010
+    use soln      ! tmask()   11/19/2010
+    use tstep     ! ifield    11/19/2010
 
     DIMENSION S(LX1,LY1,LZ1)
     CHARACTER CB*3
@@ -1174,8 +1174,8 @@
     use geom
     use input
     use nekuse
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 
     common  /nekcb/ cb
     CHARACTER CB*3
@@ -1212,7 +1212,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'SOLN'
+    use soln
     COMMON /SCRSF/ TRX(LX1,LY1,LZ1) &
     , TRY(LX1,LY1,LZ1) &
     , TRZ(LX1,LY1,LZ1)
@@ -1315,7 +1315,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TOPOL'
+    use topol
 
     DIMENSION TRX(LX1,LY1,LZ1) &
     , TRY(LX1,LY1,LZ1) &
@@ -1358,8 +1358,8 @@
     use size_m
     use dxyz
     use geom
-    INCLUDE 'TOPOL'
-    INCLUDE 'WZ'
+    use topol
+    use wz_m
     COMMON /CTMP1/ A1X(LX1),A1Y(LX1),STX(LX1),STY(LX1)
 
     DIMENSION TRX(LX1,LY1,LZ1),TRY(LX1,LY1,LZ1),SIGST(LX1,1)
@@ -1423,8 +1423,8 @@
     use size_m
     use dxyz
     use geom
-    INCLUDE 'TOPOL'
-    INCLUDE 'WZ'
+    use topol
+    use wz_m
     COMMON /CTMP1/ A1X(LX1),A1Y(LX1),A2X(LX1),A2Y(LX1) &
     , STX(LX1),STY(LX1),XJM1(LX1)
     COMMON /CTMP0/ XFM1(LX1),YFM1(LX1),T1XF(LX1),T1YF(LX1)
@@ -1542,7 +1542,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'SOLN'
+    use soln
 
     DIMENSION CANG(2),SANG(2)
     DIMENSION IXN(2),IYN(2),IAN(2),ISN(2),NEBPT(4,2)
@@ -1604,7 +1604,7 @@
 
     use size_m
     use geom
-    INCLUDE 'WZ'
+    use wz_m
     COMMON /CTMP0/  XFM1(LX1,LY1),YFM1(LX1,LY1),ZFM1(LX1,LY1)
     COMMON /CTMP1/  DRM1(LX1,LX1),DRTM1(LX1,LY1) &
     ,  DSM1(LX1,LX1),DSTM1(LX1,LY1) &
@@ -1740,7 +1740,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TOPOL'
+    use topol
 
     DIMENSION R1(LX1,LY1,LZ1) &
     , R2(LX1,LY1,LZ1) &
@@ -1856,8 +1856,8 @@
 
     use size_m
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     COMMON /SCRMG/ V1(LX1,LY1,LZ1,LELV) &
     , V2(LX1,LY1,LZ1,LELV) &
     , V3(LX1,LY1,LZ1,LELV) &
@@ -1906,7 +1906,7 @@
 
     use size_m
     use geom
-    INCLUDE 'SOLN'
+    use soln
     COMMON /SCRMG/ V1(LX1,LY1,LZ1,LELV) &
     , V2(LX1,LY1,LZ1,LELV) &
     , V3(LX1,LY1,LZ1,LELV) &
@@ -1938,7 +1938,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'TSTEP'
+    use tstep
 
     DIMENSION TMP1(NX1,NY1,NZ1,1) &
     , TMP2(NX1,NY1,NZ1,1) &

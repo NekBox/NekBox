@@ -5,7 +5,7 @@
 !     include any other modules in this file.
 
     use size_m
-    INCLUDE 'TOPOL'
+    use topol
     DATA    IEDGFC /  5,7,9,11,  6,8,10,12, &
     &                   1,3,9,10,  2,4,11,12, &
     &                   1,2,5,6,   3,4,7,8    /

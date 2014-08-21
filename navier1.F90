@@ -8,8 +8,8 @@
     use size_m
     use input
     use eigen
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRHI/ H2INV (LX1,LY1,LZ1,LELV)
     COMMON /SCRNS/ RESV1 (LX1,LY1,LZ1,LELV) &
@@ -129,7 +129,7 @@
 !----------------------------------------------------------------------
     use size_m
     use geom
-    include 'SOLN'
+    use soln
     REAL ::           RESV1 (LX1,LY1,LZ1,1)
     REAL ::           RESV2 (LX1,LY1,LZ1,1)
     REAL ::           RESV3 (LX1,LY1,LZ1,1)
@@ -210,7 +210,7 @@
 
     use size_m
     use mass
-    include 'TSTEP'
+    use tstep
     REAL ::           RESPR (LX2,LY2,LZ2,LELV)
     COMMON /SCRMG/ WORK  (LX1,LY1,LZ1,LELV)
 
@@ -243,8 +243,8 @@
     use geom
     use input
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     real :: respr (lx2,ly2,lz2,lelv)
     integer*8 :: ntotg,nxyz2
 
@@ -355,7 +355,7 @@
     use input
     use ixyz
     use mass
-    include 'WZ'
+    use wz_m
 
     real :: dtx  (lx1*ly1*lz1,lelv)
     real :: x    (lx2*ly2*lz2,lelv)
@@ -571,7 +571,7 @@
     use input
     use ixyz
     use mass
-    include 'WZ'
+    use wz_m
 
     real ::           dx   (lx2*ly2*lz2,lelv)
     real ::           x    (lx1*ly1*lz1,lelv)
@@ -771,8 +771,8 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     REAL :: OUT1 (LX1,LY1,LZ1,1)
     REAL :: OUT2 (LX1,LY1,LZ1,1)
     REAL :: OUT3 (LX1,LY1,LZ1,1)
@@ -841,7 +841,7 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    include 'SOLN'
+    use soln
     REAL :: OUT1 (LX1,LY1,LZ1,1)
     REAL :: OUT2 (LX1,LY1,LZ1,1)
     REAL :: OUT3 (LX1,LY1,LZ1,1)
@@ -878,7 +878,7 @@
     use input
     use mass
     use opctr
-    include 'SOLN'
+    use soln
 
     REAL :: OUT1  (1)
     REAL :: OUT2  (1)
@@ -937,7 +937,7 @@
     use input
     use mass
     use opctr
-    include 'SOLN'
+    use soln
 
     REAL :: OUT1  (1)
     REAL :: OUT2  (1)
@@ -994,7 +994,7 @@
     use input
     use mass
     use parallel
-    include 'TSTEP'
+    use tstep
 
     REAL ::           RPCG (LX2,LY2,LZ2,LELV)
     REAL ::           RCG  (LX2,LY2,LZ2,LELV)
@@ -1070,8 +1070,8 @@
     use input
     use mass
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     REAL ::           Z2   (LX2,LY2,LZ2,LELV)
     REAL ::           R2   (LX2,LY2,LZ2,LELV)
     COMMON /SCRNS/ MASK (LX1,LY1,LZ1,LELV) &
@@ -1195,7 +1195,7 @@
     use geom
     use input
     use mass
-    include 'TSTEP'
+    use tstep
     REAL ::           RES (LX2,LY2,LZ2,LELV)
     COMMON /CTMP0/ TA  (LX2,LY2,LZ2,LELV) &
     ,             TB  (LX2,LY2,LZ2,LELV)
@@ -1266,7 +1266,7 @@
     use dxyz
     use geom
     use input
-    include 'TSTEP'
+    use tstep
 
     REAL ::  DU  (LX1,LY1,LZ1,1)
     REAL ::  U   (LX1,LY1,LZ1,1)
@@ -1499,7 +1499,7 @@
 !---------------------------------------------------------------
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
 
     REAL :: CMASK1 (LX1,LY1,LZ1,LELV)
     REAL :: CMASK2 (LX1,LY1,LZ1,LELV)
@@ -1535,8 +1535,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     call makeuf
 !    if (ifnatc)                               call natconv
@@ -1562,8 +1562,8 @@
 !----------------------------------------------------------------------
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     TIME = TIME-DT
     CALL NEKUF   (BFX,BFY,BFZ)
@@ -1605,8 +1605,8 @@
 !-----------------------------------------------------------------------
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ TA1 (LX1,LY1,LZ1,LELV) &
     ,             TA2 (LX1,LY1,LZ1,LELV) &
@@ -1639,8 +1639,8 @@
     use input
     use mass
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     CHARACTER CB*1
     DIMENSION TEMP(2)
@@ -1692,8 +1692,8 @@
 !---------------------------------------------------------------
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ TA1 (LX1,LY1,LZ1,LELV) &
     ,             TA2 (LX1,LY1,LZ1,LELV) &
@@ -1723,8 +1723,8 @@
     use geom
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRNS/ TA1(LX1,LY1,LZ1,LELV) &
     ,             TA2(LX1,LY1,LZ1,LELV) &
@@ -1768,8 +1768,8 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ TA1 (LX1,LY1,LZ1,LELV) &
     ,             TA2 (LX1,LY1,LZ1,LELV) &
@@ -1808,7 +1808,7 @@
 !     (variable time step).
 
     use size_m
-    include 'TSTEP'
+    use tstep
 
     IF (ISTEP <= 2) THEN
         AB0 = 1.
@@ -1981,8 +1981,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ VEL1 (LX1,LY1,LZ1,LELV) &
     ,             VEL2 (LX1,LY1,LZ1,LELV) &
@@ -2022,8 +2022,8 @@
     use size_m
     use mass
     use opctr
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     REAL ::           VEL1  (LX1,LY1,LZ1,1)
     REAL ::           VEL2  (LX1,LY1,LZ1,1)
@@ -2149,8 +2149,8 @@
 !--------------------------------------------------------------------------
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     REAL ::           VEL1  (LX1,LY1,LZ1,1)
     REAL ::           VEL2  (LX1,LY1,LZ1,1)
@@ -2250,7 +2250,7 @@
 
 !-------------------------------------------------------------------
     use size_m
-    include 'TSTEP'
+    use tstep
     TAU   = 0.
     DO 10 I=NBD,ILAG+1,-1
         TAU = TAU+DTLAG(I)
@@ -2265,7 +2265,7 @@
 
 !-------------------------------------------------------------------
     use size_m
-    include 'SOLN'
+    use soln
     REAL :: VEL1 (LX1,LY1,LZ1,LELV)
     REAL :: VEL2 (LX1,LY1,LZ1,LELV)
     REAL :: VEL3 (LX1,LY1,LZ1,LELV)
@@ -2286,8 +2286,8 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     REAL :: VXN (LX1,LY1,LZ1,LELV)
     REAL :: VYN (LX1,LY1,LZ1,LELV)
     REAL :: VZN (LX1,LY1,LZ1,LELV)
@@ -2307,7 +2307,7 @@
 !--------------------------------------------------------------------
     use size_m
     use mass
-    include 'TSTEP'
+    use tstep
     REAL :: Y    (LX1,LY1,LZ1,1)
     REAL :: X    (LX1,LY1,LZ1,1)
     REAL :: MASK (LX1,LY1,LZ1,1)
@@ -2373,8 +2373,8 @@
 !-----------------------------------------------------------------------
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     NTOT1 = NX1*NY1*NZ1*NELV
 
@@ -2400,8 +2400,8 @@
     use size_m
     use geom
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     REAL ::           HV1MSK (LX1,LY1,LZ1,1)
     REAL ::           HV2MSK (LX1,LY1,LZ1,1)
     REAL ::           HV3MSK (LX1,LY1,LZ1,1)
@@ -2446,7 +2446,7 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
 
 !     IF (IFSPLIT .OR. NBDINP.EQ.0) THEN     undid hardwire, 3/6/92 pff
     IF ( NBDINP < 1) THEN
@@ -2718,8 +2718,8 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     REAL :: VBDRY1 (LX1,LY1,LZ1,1)
     REAL :: VBDRY2 (LX1,LY1,LZ1,1)
     REAL :: VBDRY3 (LX1,LY1,LZ1,1)
@@ -2757,8 +2757,8 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     REAL :: RES1(1),RES2(1),RES3(1)
 
     NTOT1 = NX1*NY1*NZ1*NELV
@@ -2926,7 +2926,7 @@
     use geom
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
     real :: r1(lx1,ly1,lz1,1) &
     , r2(lx1,ly1,lz1,1) &
@@ -3014,7 +3014,7 @@
     use geom
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
     real :: a(1),b(1),c(1)
 
@@ -3036,7 +3036,7 @@
     use geom
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
     real :: a(1),b(1),c(1)
     character(3) :: op
@@ -3865,8 +3865,8 @@
     use dxyz
     use geom
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real ::  du  (lx1*ly1*lz1,1)
     real ::  u   (lx1,ly1,lz1,1)
@@ -3943,8 +3943,8 @@
     use dxyz
     use geom
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real ::  du  (lx1*ly1*lz1,1)
     real ::  u   (lx1,ly1,lz1,1)
@@ -4021,8 +4021,8 @@
     use dxyz
     use geom
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real ::  du(lx1*ly1*lz1,1),dv(lx1*ly1*lz1,1),dw(lx1*ly1*lz1,1)
     real ::  u (lx1,ly1,lz1,1),v (lx1,ly1,lz1,1),w (lx1,ly1,lz1,1)
@@ -4108,8 +4108,8 @@
     use geom
     use mass
     use opctr
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     real :: vxn(1),vyn(1),vzn(1)
 
     integer :: opct
@@ -4177,8 +4177,8 @@
     use input
     use mass
     use opctr
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real ::  du(1),dv(1),dw(1)
     real ::  u (1),v (1),w (1)
@@ -4247,8 +4247,8 @@
     use geom
     use input
     use opctr
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real ::  du(lx1*ly1*lz1,1),dv(lx1*ly1*lz1,1),dw(lx1*ly1*lz1,1)
     real ::  u (lx1,ly1,lz1,1),v (lx1,ly1,lz1,1),w (lx1,ly1,lz1,1)
@@ -4366,8 +4366,8 @@
     use input
     use mass
     use opctr
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real ::  du(1),dv(1),dw(1)
     real ::  u (1),v (1),w (1)
@@ -4441,8 +4441,8 @@
     use size_m
     use geom
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     integer :: msk(0:1)
     CHARACTER      CB*3
     PARAMETER (LXYZ1=LX1*LY1*LZ1)
@@ -4494,8 +4494,8 @@
 !--------------------------------------------------------------------------
     use size_m
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     REAL ::           VEL1  (LX1,LY1,LZ1,1)
     REAL ::           VEL2  (LX1,LY1,LZ1,1)
@@ -4743,8 +4743,8 @@
     use dxyz
     use geom
     use input
-    include 'TSTEP'
-    include 'WZ'
+    use tstep
+    use wz_m
 
     parameter (lxyz=lx1*ly1*lz1)
     real :: ux(lxyz,1),uy(lxyz,1),uz(lxyz,1),u(lxyz,1)
@@ -4814,8 +4814,8 @@
 !----------------------------------------------------------------------
     use size_m
     use mass
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRUZ/ W1 (LX1,LY1,LZ1,LELV) &
     ,             W2 (LX1,LY1,LZ1,LELV) &
@@ -5016,7 +5016,7 @@
     subroutine expl_strs_e(w1,w2,w3,u1,u2,u3,e)
     use size_m
     use input  ! if3d
-    include 'SOLN'   ! nu_star
+    use soln   ! nu_star
 
     real :: w1(1),w2(1),w3(1),u1(1),u2(1),u3(1)
     integer :: e
@@ -5050,9 +5050,9 @@
     use geom    ! jacmi,rxm1, etc.
     use input   ! if3d
     use mass    ! bm1
-    include 'SOLN'    ! vtrans,vdiff,nu_star
-    include 'TSTEP'   ! dt
-    include 'WZ'      ! w3m1
+    use soln    ! vtrans,vdiff,nu_star
+    use tstep   ! dt
+    use wz_m      ! w3m1
 
     real :: w1(1),w2(1),w3(1),u1(1),u2(1),u3(1)
     integer :: e
@@ -5131,9 +5131,9 @@
     use geom    ! jacmi,rxm1, etc.
     use input   ! if3d
     use mass    ! bm1
-    include 'SOLN'    ! vtrans,vdiff,nu_star
-    include 'TSTEP'   ! dt
-    include 'WZ'      ! w3m1
+    use soln    ! vtrans,vdiff,nu_star
+    use tstep   ! dt
+    use wz_m      ! w3m1
 
     real :: w1(1),w2(1),u1(1),u2(1)
     integer :: e

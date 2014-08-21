@@ -182,7 +182,7 @@
     use dxyz
     use geom
     use input
-    include 'TSTEP'
+    use tstep
 
     parameter (lxyz=lx1*ly1*lz1)
     real :: ux(lxyz),uy(lxyz),uz(lxyz),u(lxyz,1)

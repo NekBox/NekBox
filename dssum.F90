@@ -36,7 +36,7 @@
     use input
     use noncon
     use parallel
-    include 'TSTEP'
+    use tstep
     real :: u(1)
 
     parameter (lface=lx1*ly1)
@@ -98,7 +98,7 @@
     use size_m
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
     real :: u(1)
     character(3) :: op
@@ -167,8 +167,8 @@
     use size_m
     use input
     use parallel
-    INCLUDE 'TOPOL'
-    INCLUDE 'TSTEP'
+    use topol
+    use tstep
 
     REAL :: U(1),V(1),W(1)
 
@@ -215,8 +215,8 @@
     use size_m
     use input
     use parallel
-    INCLUDE 'TOPOL'
-    INCLUDE 'TSTEP'
+    use topol
+    use tstep
 
     real :: u(1),v(1),w(1)
     character(3) :: op
@@ -487,7 +487,7 @@
     use input
     use noncon
     use parallel
-    include 'TSTEP'
+    use tstep
     real :: u(1)
 
     parameter (lface=lx1*ly1)
@@ -530,7 +530,7 @@
     use input
     use noncon
     use parallel
-    include 'TSTEP'
+    use tstep
     real :: u(1)
 
     parameter (lface=lx1*ly1)
@@ -565,7 +565,7 @@
     use input
     use noncon
     use parallel
-    include 'TSTEP'
+    use tstep
     real :: u(1)
 
     parameter (lface=lx1*ly1)
@@ -627,7 +627,7 @@
     use input
     use noncon
     use parallel
-    include 'TSTEP'
+    use tstep
     real :: u(1),mask(1)
 
     parameter (lface=lx1*ly1)
@@ -692,7 +692,7 @@
     use input
     use noncon
     use parallel
-    include 'TSTEP'
+    use tstep
     real :: u(1),mask(1),binv(1)
 
     parameter (lface=lx1*ly1)

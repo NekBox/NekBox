@@ -20,7 +20,7 @@
     use input
     use parallel
 
-    include 'TSTEP'
+    use tstep
 
     real :: u(lx2,ly2,lz2,lelv),v(lx2,ly2,lz2,lelv)
     common /scrpre/ v1(lx1,ly1,lz1,lelv) &
@@ -312,7 +312,7 @@
 
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
     parameter(levb=lelv+lbelv)
     common /swaplengths/ l(lx1,ly1,lz1,lelv)
     common /weightop/ w(lx2,lz2,2,3,levb)
@@ -406,7 +406,7 @@
     subroutine do_weight_op(x)
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
     parameter(levb=lelv+lbelv)
     common /weightop/ w(lx2,lz2,2,3,levb)
     real :: w

@@ -15,7 +15,7 @@
     use eigen
     use geom
     use input
-    INCLUDE 'TSTEP'
+    use tstep
 
     NTOT1=NX1*NY1*NZ1*NELFLD(IFIELD)
     XMIN = GLMIN(XM1,NTOT1)
@@ -106,8 +106,8 @@
     use size_m
     use eigen
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRVH/ H1 (LX1,LY1,LZ1,LELT) &
     ,             H2 (LX1,LY1,LZ1,LELT)
@@ -208,7 +208,7 @@
 !---------------------------------------------------------------------------
     use size_m
     use mass
-    INCLUDE 'TSTEP'
+    use tstep
 
     REAL ::            MASK (LX1,LY1,LZ1,1)
     REAL ::            MULT (LX1,LY1,LZ1,1)
@@ -263,7 +263,7 @@
 !---------------------------------------------------------------------------
     use size_m
     use mass
-    INCLUDE 'TSTEP'
+    use tstep
 
     REAL ::            MASK (LX1,LY1,LZ1,1)
     REAL ::            MULT (LX1,LY1,LZ1,1)
@@ -318,7 +318,7 @@
 !----------------------------------------------------------------------
     use size_m
     use mass
-    INCLUDE 'TSTEP'
+    use tstep
 
     REAL ::           H1   (LX1,LY1,LZ1,1)
     REAL ::           H2   (LX1,LY1,LZ1,1)
@@ -363,7 +363,7 @@
 !-------------------------------------------------------------------
     use size_m
     use mass
-    INCLUDE 'TSTEP'
+    use tstep
 
     REAL ::           H1    (LX1,LY1,LZ1,1)
     REAL ::           H2    (LX1,LY1,LZ1,1)

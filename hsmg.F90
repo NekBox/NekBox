@@ -41,8 +41,8 @@
     use input
     use hsmg
     use parallel
-    include 'SEMHAT'
-    include 'TSTEP'
+    use semhat
+    use tstep
 
     integer :: nf,nc,nr
     integer :: nx,ny,nz
@@ -68,12 +68,12 @@
     use size_m
     use input
     use hsmg
-    include 'SEMHAT'
+    use semhat
     integer :: n,l
 !     generate the SEM hat matrices for each level
 !     top level
     n = mg_nx(mg_lmax)
-    call semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
+    call generate_semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
     call copy(mg_zh(1,mg_lmax),zgl,n-1) !top level based on gl points
     mg_nh(mg_lmax)=n-1
     mg_nhz(mg_lmax)=n-1
@@ -82,7 +82,7 @@
     do l=1,mg_lmax-1
         n = mg_nx(l)
         if(n > 1) then
-            call semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
+            call generate_semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
             call copy(mg_ah(1,l),ah,(n+1)*(n+1))
             call copy(mg_bh(1,l),bh,n+1)
             call copy(mg_dh(1,l),dh,(n+1)*(n+1))
@@ -100,7 +100,7 @@
     subroutine hsmg_setup_intp
     use size_m
     use hsmg
-    include 'SEMHAT'
+    use semhat
     integer :: l,nf,nc
 
     do l=1,mg_lmax-1
@@ -479,7 +479,7 @@
     use size_m
     use input  ! if3d
     use hsmg
-    include 'TSTEP'  ! ifield
+    use tstep  ! ifield
 
     real :: e(1),r(1)
 
@@ -1375,8 +1375,8 @@
     use input
     use hsmg
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     real :: e(1),r(1)
 
     integer :: n_crs_tot
@@ -1433,8 +1433,8 @@
     use hsmg
     use mass
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
           
     real :: e(1),r(1)
 
@@ -1661,7 +1661,7 @@
     use input
     use hsmg
     use parallel
-    include 'SEMHAT'
+    use semhat
     real :: w(lx1+2)
     integer :: nf,nc,nr
     integer :: nx,ny,nz
@@ -1733,7 +1733,7 @@
 !----------------------------------------------------------------------
     subroutine outfldn (x,n,txt10,ichk) ! writes into unit=40+ifiled
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(n,n,1,lelt)
     character(10) :: txt10
 
@@ -1792,7 +1792,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldn0 (x,n,txt10,ichk)
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(n,n,1,lelt)
     character(10) :: txt10
 
@@ -1851,7 +1851,7 @@
     subroutine outflda (x,n,txt10,ichk) ! writes into unit=p130+ifiled
     use size_m                      ! or into std. output for p130<9
     use input                     ! param(130)
-    INCLUDE 'TSTEP'                     ! truncated below eps=p131
+    use tstep                     ! truncated below eps=p131
     real :: x(1)
     character(10) :: txt10                  ! note: n is not used
 !     parameter (eps=1.e-7)
@@ -1880,7 +1880,7 @@
     subroutine outfldan(x,n,txt10,ichk) ! writes x(1:n) into unit=p130+ifiled
     use size_m                      ! or into std. output for 0<p130<9
     use input
-    INCLUDE 'TSTEP'                     ! truncated below eps=p131
+    use tstep                     ! truncated below eps=p131
     real :: x(1)
     character(10) :: txt10
 !     parameter (eps=1.e-7)
@@ -1919,8 +1919,8 @@
     use hsmg       ! Same array space as HSMG
     use mass
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real :: z(1),rhs(1)
           
@@ -2017,7 +2017,7 @@
 
     use size_m
     use hsmg
-    include 'TSTEP'  ! nelfld
+    use tstep  ! nelfld
 
     real :: w(1),p(1),wk(1)
 
@@ -2336,8 +2336,8 @@
     use input
     use hsmg
     use parallel
-    include 'SEMHAT'
-    include 'TSTEP'   ! nelfld
+    use semhat
+    use tstep   ! nelfld
     real :: w(lx1+2)
     integer :: nf,nc,nr
     integer :: nx,ny,nz
@@ -2402,11 +2402,11 @@
     use size_m
     use input
     use hsmg
-    include 'SEMHAT'
+    use semhat
 
     do l=1,mg_h1_lmax
         n = mg_nx(l)     ! polynomial order
-        call semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
+        call generate_semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
         call copy(mg_ah(1,l),ah,(n+1)*(n+1))
         call copy(mg_bh(1,l),bh,n+1)
         call copy(mg_dh(1,l),dh,(n+1)*(n+1))
@@ -2457,7 +2457,7 @@
     subroutine mg_set_msk(p_msk ,l0)
     use size_m
     use hsmg
-    include 'TSTEP'
+    use tstep
     integer :: p_msk
 
     l                  = mg_h1_lmax
@@ -2844,7 +2844,7 @@
     use size_m
     use hsmg
     use mass   ! bm1
-    include 'TSTEP'  ! nelfld
+    use tstep  ! nelfld
 
     integer :: p_g,p_b,e
     common /ctmp1/ w(lx1*ly1*lz1*lelt*2)
@@ -3110,7 +3110,7 @@
     use size_m
     use input  ! if3d
     use hsmg
-    include 'TSTEP'  ! ifield
+    use tstep  ! ifield
 
     real :: wt(1),work(1)
     logical :: ifsqrt

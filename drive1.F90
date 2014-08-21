@@ -22,11 +22,17 @@
     use mvgeom, only : init_mvgeom
     use noncon, only : init_noncon
     use parallel, only : init_parallel
+    use scratch, only : init_scratch
+    use semhat, only : init_semhat
+    use soln, only : init_soln
+    use topol, only : init_topol
+    use turbo, only : init_turbo
+    use zper, only : init_zper
 
     use domain
     use opctr
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
 
     real :: kwave2
@@ -60,6 +66,12 @@
     call init_mvgeom()
     call init_noncon()
     call init_parallel()
+    call init_scratch()
+    call init_semhat()
+    call init_soln()
+    call init_topol()
+    call init_turbo()
+    call init_zper()
     write(*,*) "Max inits"
 
     call initdim
@@ -199,7 +211,7 @@
     use ctimer
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
 
     real*4 :: papi_mflops
     integer*8 :: papi_flops
@@ -328,7 +340,7 @@
     use size_m
     use parallel
     use opctr
-    include 'TSTEP'
+    use tstep
 
     if(instep /= 0)  call runstat
     if(xxth(1) > 0) call crs_stats(xxth(1))

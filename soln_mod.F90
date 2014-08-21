@@ -1,23 +1,79 @@
-    parameter (lvt1  = lx1*ly1*lz1*lelv)
-    parameter (lvt2  = lx2*ly2*lz2*lelv)
-    parameter (lbt1  = lbx1*lby1*lbz1*lbelv)
-    parameter (lbt2  = lbx2*lby2*lbz2*lbelv)
+module soln
+  use kinds, only : DP
+  use size_m
+  implicit none
 
-    parameter (lptmsk = lvt1*(5+2*ldimt) + 4*lbt1)
-    parameter (lptsol &
+  integer, parameter :: lvt1  = lx1*ly1*lz1*lelv
+  integer, parameter :: lvt2  = lx2*ly2*lz2*lelv
+  integer, parameter :: lbt1  = lbx1*lby1*lbz1*lbelv
+  integer, parameter :: lbt2  = lbx2*lby2*lbz2*lbelv
+
+  integer, parameter :: lptmsk = lvt1*(5+2*ldimt) + 4*lbt1
+  integer, parameter :: lptsol &
     = lvt1*(12 + 4*ldimt + 2*ldimt1 + (3+ldimt)*(lorder-1)) &
     + lvt2*(lorder-1) &
     + lbt1*(12 + 3*(lorder-1)) &
-    + lbt2*(lorder-1) )
-!    $         + lptmsk )
+    + lbt2*(lorder-1) 
 
-    parameter (lorder2 = max(1,lorder-2) )
+  integer, parameter :: lorder2 = max(1,lorder-2)
 
 !     Solution and data
+  real(DP), allocatable :: BQ(:,:,:,:,:)
+!     Can be used for post-processing runs (SIZE .gt. 10+3*LDIMT flds)
+  real(DP), allocatable, dimension(:,:,:,:,:) :: VXLAG, VYLAG, VZLAG
+  real(DP), allocatable :: TLAG(:,:,:,:,:,:)
+  real(DP), allocatable, dimension(:,:,:,:,:) :: VGRADT1, VGRADT2
+  real(DP), allocatable, dimension(:,:,:,:) :: ABX1, ABY1, ABZ1 
+  real(DP), allocatable, dimension(:,:,:,:) :: ABX2, ABY2, ABZ2
+  real(DP), allocatable, dimension(:,:,:,:) :: VDIFF_E
+!     Solution data
+  real(DP), allocatable, dimension(:,:,:,:) :: VX, VY, VZ
+  real(DP), allocatable, dimension(:,:,:,:,:) :: T, VTRANS, VDIFF
+  real(DP), allocatable, dimension(:,:,:,:) :: BFX, BFY, BFZ
+  real(DP), allocatable, dimension(:,:,:,:) :: cflf
+  real(DP), allocatable :: c_vx(:,:)
+!     Solution data for magnetic field
+  real(DP), allocatable, dimension(:,:,:,:) :: BX, BY, BZ, PM
+  real(DP), allocatable, dimension(:,:,:,:) :: BMX, BMY, BMZ ! Magnetic field RHS
+! Extrapolation terms for magnetic field rhs
+  real(DP), allocatable, dimension(:,:,:,:) :: BBX1, BBY1, BBZ1
+  real(DP), allocatable, dimension(:,:,:,:) :: BBX2, BBY2, BBZ2
+  real(DP), allocatable :: BXLAG(:,:), BYLAG(:,:), BZLAG(:,:), PMLAG(:,:)
 
-    COMMON /BQCB/    BQ     (LX1,LY1,LZ1,LELT,LDIMT)
+  real(DP) ::             nu_star
 
-    COMMON /VPTSOL/ &
+  real(DP), allocatable :: PR(:,:,:,:), PRLAG(:,:,:,:,:)
+
+  real(DP), allocatable :: QTL(:,:,:,:), USRDIV(:,:,:,:)
+
+  real(DP), allocatable, dimension(:,:,:,:) :: V1MASK, V2MASK, V3MASK, PMASK
+  real(DP), allocatable, dimension(:,:,:,:,:) :: TMASK
+  real(DP), allocatable, dimension(:,:,:,:) :: OMASK, VMULT
+  real(DP), allocatable, dimension(:,:,:,:,:) :: TMULT
+  real(DP), allocatable, dimension(:,:,:,:) :: B1MASK, B2MASK, B3MASK! masks for mag. field
+  real(DP), allocatable, dimension(:,:,:,:) :: BPMASK ! magnetic pressure
+
+!     Solution and data for perturbation fields
+  real(DP), allocatable, dimension(:,:) :: VXP, VYP, VZP, PRP
+  real(DP), allocatable, dimension(:,:,:) :: TP, BQP
+  real(DP), allocatable, dimension(:,:) :: BFXP, BFYP, BFZP! perturbation field RHS
+  real(DP), allocatable, dimension(:,:,:) :: VXLAGP, VYLAGP, VZLAGP, PRLAGP
+  real(DP), allocatable, dimension(:,:,:,:) :: TLAGP 
+! Extrapolation terms for perturbation field rhs
+  real(DP), allocatable, dimension(:,:) :: EXX1P, EXY1P, EXZ1P, EXX2P, EXY2P, EXZ2P
+  real(DP), allocatable, dimension(:,:,:) :: VGRADT1P, VGRADT2P
+
+  integer :: jp
+
+  contains
+
+  subroutine init_soln()
+    use size_m
+    implicit none 
+    
+    allocate(BQ(LX1,LY1,LZ1,LELT,LDIMT))
+
+    allocate( &
 !     Can be used for post-processing runs (SIZE .gt. 10+3*LDIMT flds)
     VXLAG  (LX1,LY1,LZ1,LELV,2) &
     , VYLAG  (LX1,LY1,LZ1,LELV,2) &
@@ -61,19 +117,13 @@
     , BXLAG  (LBX1*LBY1*LBZ1*LBELV,LORDER-1) &
     , BYLAG  (LBX1*LBY1*LBZ1*LBELV,LORDER-1) &
     , BZLAG  (LBX1*LBY1*LBZ1*LBELV,LORDER-1) &
-    , PMLAG  (LBX2*LBY2*LBZ2*LBELV,LORDER2)
+    , PMLAG  (LBX2*LBY2*LBZ2*LBELV,LORDER2) )
 
-    common /expvis/  nu_star
-    real ::             nu_star
+    allocate(PR(LX2,LY2,LZ2,LELV), PRLAG(LX2,LY2,LZ2,LELV,LORDER2)) 
 
-    COMMON /CBM2/ &
-    PR     (LX2,LY2,LZ2,LELV) &
-    , PRLAG  (LX2,LY2,LZ2,LELV,LORDER2)
+    allocate(QTL(LX2,LY2,LZ2,LELT), USRDIV(LX2,LY2,LZ2,LELT))
 
-    COMMON /DIVERG/  QTL    (LX2,LY2,LZ2,LELT) &
-    , USRDIV (LX2,LY2,LZ2,LELT)
-
-    COMMON /VPTMSK/  V1MASK (LX1,LY1,LZ1,LELV) &
+    allocate(V1MASK (LX1,LY1,LZ1,LELV) &
     , V2MASK (LX1,LY1,LZ1,LELV) &
     , V3MASK (LX1,LY1,LZ1,LELV) &
     , PMASK  (LX1,LY1,LZ1,LELV) &
@@ -84,11 +134,11 @@
     , B1MASK (LBX1,LBY1,LBZ1,LBELV)   & ! masks for mag. field
     , B2MASK (LBX1,LBY1,LBZ1,LBELV) &
     , B3MASK (LBX1,LBY1,LBZ1,LBELV) &
-    , BPMASK (LBX1,LBY1,LBZ1,LBELV)  ! magnetic pressure
+    , BPMASK (LBX1,LBY1,LBZ1,LBELV) )  ! magnetic pressure
 
 !     Solution and data for perturbation fields
 
-    COMMON /PVPTSL/ VXP    (LPX1*LPY1*LPZ1*LPELV,lpert) &
+    allocate(VXP(LPX1*LPY1*LPZ1*LPELV,lpert) &
     , VYP    (LPX1*LPY1*LPZ1*LPELV,lpert) &
     , VZP    (LPX1*LPY1*LPZ1*LPELV,lpert) &
     , PRP    (LPX2*LPY2*LPZ2*LPELV,lpert) &
@@ -109,6 +159,8 @@
     , EXY2P  (LPX1*LPY1*LPZ1*LPELV,lpert) &
     , EXZ2P  (LPX1*LPY1*LPZ1*LPELV,lpert) &
     ,VGRADT1P(LPX1*LPY1*LPZ1*LPELT,LDIMT,lpert) &
-    ,VGRADT2P(LPX1*LPY1*LPZ1*LPELT,LDIMT,lpert)
+    ,VGRADT2P(LPX1*LPY1*LPZ1*LPELT,LDIMT,lpert) )
 
-    common /ppointr/ jp
+  end subroutine init_soln
+
+end module soln

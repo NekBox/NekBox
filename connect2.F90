@@ -6,7 +6,7 @@
     use size_m
     use input
     use parallel
-    INCLUDE 'ZPER'
+    use zper
      
     logical :: ifbswap,ifre2
     character(132) :: string
@@ -217,7 +217,7 @@
     use size_m
     use input
     use parallel
-    INCLUDE 'ZPER'
+    use zper
 
     character(132) :: string(100)
 
@@ -887,7 +887,7 @@
     use size_m
     use input
     use parallel
-    INCLUDE 'SCRCT'
+    use scratch
     CHARACTER CBC1*1,CBC3*3,CHTEMP*1,CHTMP3*3
     EQUIVALENCE (CHTEMP,CHTMP3)
     character(132) :: string
@@ -2024,7 +2024,7 @@
     use size_m
     use input
     use parallel
-    INCLUDE 'TSTEP'
+    use tstep
 
     DIMENSION LIST(LELT),LIST1(LELT),LIST2(LELT)
     DIMENSION XYZI(3),CG(3,LELT),wgt(1)

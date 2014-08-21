@@ -657,8 +657,8 @@
     use size_m
     use input
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /scrvx/ ts   (lx1,ly1,lz1,lelt) &
     , smult(lx1,ly1,lz1,lelt)
@@ -804,8 +804,8 @@
 
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     common /scrvh/ h1 (lx1,ly1,lz1,lelv) &
     , h2 (lx1,ly1,lz1,lelv)
     common /scruz/ ta1(lx1,ly1,lz1,lelv) &
@@ -871,8 +871,8 @@
 
     use size_m
     use input
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     common /scrvh/ h1(lx1,ly1,lz1,lelt) &
     , h2(lx1,ly1,lz1,lelt)
     common /scruz/ ta(lx1,ly1,lz1,lelt)
@@ -990,7 +990,7 @@
     use size_m
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
     CHARACTER(132) :: NAME
     CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
@@ -1930,7 +1930,7 @@ endif
 
     use size_m
     use input
-    include 'SOLN'
+    use soln
 
     parameter(ltot1=lx1*ly1*lz1*lelt)
     parameter(ltot2=lx2*ly2*lz2*lelv)
@@ -2380,7 +2380,7 @@ endif
     use input
     use parallel
     use restart
-    include 'TSTEP'
+    use tstep
     real*4 :: test_pattern
     common /ctmp0/ lglist(0:lelt)
 

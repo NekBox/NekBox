@@ -1155,7 +1155,7 @@
     real function gl2norm(a,n)
 
     use size_m
-    include 'MASS'
+    use mass
 
     real :: a(1)
 

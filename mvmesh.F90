@@ -136,8 +136,8 @@
     use size_m
     use geom
     use input
-    include 'MASS'
-    include 'MVGEOM'
+    use mass
+    use mvgeom
     include 'WZ'
 
     COMMON /SCRSF/ PHR(LX1,LY1,LZ1,LELT) &
@@ -185,8 +185,8 @@
     use dxyz
     use geom
     use input
-    include 'MASS'
-    include 'MVGEOM'
+    use mass
+    use mvgeom
     include 'WZ'
     COMMON /SCRSF/ PHR(LX1,LY1,LZ1,LELT) &
     , PHS(LX1,LY1,LZ1,LELT) &
@@ -255,7 +255,7 @@
     use size_m
     use geom
     use input
-    include 'MVGEOM'
+    use mvgeom
     include 'SOLN'
     include 'TSTEP'
 
@@ -744,7 +744,7 @@
     use size_m
     use geom
     use input
-    include 'MVGEOM'
+    use mvgeom
     include 'SOLN'
     include 'TSTEP'
 
@@ -845,7 +845,7 @@
 
     use size_m
     use eigen
-    include 'MVGEOM'
+    use mvgeom
     include 'TSTEP'
     DIMENSION TA(LX1,LY1,LZ1,1)
 
@@ -877,7 +877,7 @@
 
     use size_m
     use geom
-    include 'MVGEOM'
+    use mvgeom
     include 'TSTEP'
     COMMON /SCRSF/ UX(LX1,LY1,LZ1,LELT) &
     , UY(LX1,LY1,LZ1,LELT) &
@@ -921,7 +921,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use input
-    include 'MVGEOM'
+    use mvgeom
     include 'TSTEP'
 
     NTOT1 = NX1*NY1*NZ1*NEL
@@ -978,7 +978,7 @@
     use size_m
     use geom
     use input
-    include 'MVGEOM'
+    use mvgeom
     include 'SOLN'
     include 'TSTEP'
     COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
@@ -1016,8 +1016,8 @@
     use size_m
     use geom
     use input
+    use mvgeom
     include 'PARALLEL'
-    include 'MVGEOM'
     include 'TSTEP'
 
     CHARACTER CB*1

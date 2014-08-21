@@ -207,7 +207,7 @@
 
 !---------------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
 
     REAL ::            MASK (LX1,LY1,LZ1,1)
@@ -262,7 +262,7 @@
 
 !---------------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
 
     REAL ::            MASK (LX1,LY1,LZ1,1)
@@ -317,7 +317,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
 
     REAL ::           H1   (LX1,LY1,LZ1,1)
@@ -362,7 +362,7 @@
 
 !-------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
 
     REAL ::           H1    (LX1,LY1,LZ1,1)
@@ -399,7 +399,7 @@
 !     Normalization: XT*B*X = 1
 
     use size_m
-    INCLUDE 'MASS'
+    use mass
 
     REAL :: X1   (LX1,LY1,LZ1,1)
     REAL :: Y1   (LX1,LY1,LZ1,1)
@@ -432,7 +432,7 @@
 
 !------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
+    use mass
 
     REAL :: X2 (LX2,LY2,LZ2,LELV)
     REAL :: Y2 (LX2,LY2,LZ2,LELV)

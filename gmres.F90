@@ -8,8 +8,8 @@
 !     intype = -1  (implicit)
 
     use size_m
+    use gmres
     include 'TOTAL'
-    include 'GMRES'
     common  /ctolpr/ divex
     common  /cprint/ ifprint
     logical ::          ifprint
@@ -305,8 +305,8 @@
          
     use size_m
     use fdmh1
+    use gmres
     include 'TOTAL'
-    include 'GMRES'
     common  /ctolpr/ divex
     common  /cprint/ ifprint
     logical ::          ifprint

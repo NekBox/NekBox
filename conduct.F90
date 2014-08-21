@@ -6,8 +6,8 @@
     use size_m
     use geom
     use input
-    include 'MASS'
-    include 'MVGEOM'
+    use mass
+    use mvgeom
     include 'SOLN'
     include 'TSTEP'
     COMMON  /CPRINT/ IFPRINT
@@ -121,7 +121,7 @@
 !     mass matrix on the Gauss-Lobatto mesh.
 
     use size_m
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -182,8 +182,8 @@
 !------------------------------------------------------------------
     use size_m
     use input
-    include 'MASS'
-    include 'NEKUSE'
+    use mass
+    use nekuse
     include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
@@ -211,8 +211,8 @@
 
 !---------------------------------------------------------------
     use size_m
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     COMMON /SCRUZ/ TA (LX1,LY1,LZ1,LELT)
@@ -262,7 +262,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -303,7 +303,7 @@
 !     operator-integrator-factor method (characteristics).
 
     use size_m
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -340,7 +340,7 @@
 !     Runge-Kutta scheme.
 
     use size_m
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -412,7 +412,7 @@
 !     Adams-Bashforth.
 
     use size_m
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -639,8 +639,8 @@
     use size_m
     use geom
     use input
-    include 'MASS'
-    include 'MVGEOM'
+    use mass
+    use mvgeom
     include 'SOLN'
     include 'TSTEP'
     common  /cprint/ ifprint
@@ -705,7 +705,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 

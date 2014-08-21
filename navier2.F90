@@ -9,7 +9,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
 
     real :: ar(1)
     real :: xx(9)
@@ -287,7 +287,7 @@
 !            For the incompressible NS (as in Julie Mullen Thesis, 99),
 !            alpha = 2.   For the anelastic case, alpha=4/3.
 
-    Include 'SIZE'
+    use size_m
     include 'TOTAL'
 
     parameter(lxyz = lx1*ly1*lz1)

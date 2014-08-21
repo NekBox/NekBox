@@ -249,7 +249,7 @@
     subroutine map_face12(x2,x1,w1,w2)
     use size_m
     use input
-    include 'IXYZ'
+    use ixyz
 
 !     Interpolate iface of x1 (GLL pts) onto x2 (GL pts).
 !     Work arrays should be of size nx1*nx1 each.

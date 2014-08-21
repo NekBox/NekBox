@@ -4,9 +4,9 @@
   use esolv
   use geom
   use input
-    include 'IXYZ'
-    include 'MASS'
-    include 'MVGEOM'
+  use ixyz
+  use mass
+  use mvgeom
     include 'PARALLEL'
     include 'SOLN'
     include 'STEADY'

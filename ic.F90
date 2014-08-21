@@ -9,9 +9,9 @@
     use dealias
     use geom
     use input
-    INCLUDE 'IXYZ'
-    INCLUDE 'MASS'
-    INCLUDE 'MVGEOM'
+    use ixyz
+    use mass
+    use mvgeom
     INCLUDE 'PARALLEL'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -867,7 +867,7 @@
                     IF (MOD(IEG,10000) == 1) WRITE(6,*) 'Reading',IEG
                     IF (iffmat) THEN
                         READ(91,*,ERR=70,END=70) &
-                        ((tdump(IXYZ,II),II=1,NOUTS),IXYZ=1,NXYZR)
+                        ((tdump(IXYZZ,II),II=1,NOUTS),IXYZZ=1,NXYZR)
                     ELSE
                         do ii=1,nouts
                             call byte_read(tdump(1,II),nxyzr,ierr)
@@ -1001,9 +1001,9 @@
     
         IF (IDUMP == 1 .AND. NID == 0) THEN
             write(6,1700) fname
-            write(6,1701) ieg,ixyz
+            write(6,1701) ieg,ixyzz
             write(6,1702) &
-            ((tdump(jxyz,ii),ii=1,nouts),jxyz=ixyz-1,ixyz)
+            ((tdump(jxyz,ii),ii=1,nouts),jxyz=ixyzz-1,ixyzz)
             1700 FORMAT(5X,'WARNING:  No data read in for file ',A132)
             1701 FORMAT(5X,'Failed on  element',I4,',  point',I5,'.')
             1702 FORMAT(5X,'Last read dump:',/,5G15.7)
@@ -1280,7 +1280,7 @@
 !---------------------------------------------------------------
 
     use size_m
-    INCLUDE 'IXYZ'
+    use ixyz
     INCLUDE 'WZ'
 
     PARAMETER (LXR=LX1+6)
@@ -1341,7 +1341,7 @@
 !---------------------------------------------------------------
 
     use size_m
-    INCLUDE 'IXYZ'
+    use ixyz
     INCLUDE 'WZ'
 
     PARAMETER (LXR=LX1+6)
@@ -1676,11 +1676,11 @@
 !------------------------------------------------------------------
     use size_m
     use input
+    use nekuse
+    INCLUDE 'PARALLEL'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'TURBO'
-    INCLUDE 'PARALLEL'
-    INCLUDE 'NEKUSE'
 
     NEL   = NELFLD(IFIELD)
 

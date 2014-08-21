@@ -12,7 +12,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
 !max    INCLUDE 'ORTHOP'

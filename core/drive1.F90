@@ -14,6 +14,7 @@
     use esolv, only : init_esolv
     use fdmh1, only : init_fdmh1
     use geom, only : init_geom
+    use hsmg, only : init_hsmg
     use input, only : init_input
 
     use domain
@@ -45,6 +46,7 @@
     call init_esolv()
     call init_fdmh1()
     call init_geom()
+    call init_hsmg()
     call init_input()
     write(*,*) "Max inits"
 

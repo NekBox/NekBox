@@ -528,7 +528,23 @@
 !----------------------------------------------------------------------
     use size_m
     use restart
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /inelr/ nelrr
 
@@ -1833,7 +1849,23 @@
 #if 0
     subroutine perturb(tt,ifld,eps)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: tt(1)
     integer :: ifld
@@ -1953,7 +1985,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real :: u(lx1,ly1,lz1,lelt)
 
 
@@ -1980,7 +2028,23 @@
     subroutine map13_all(x3,x1)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: x3(lx3,ly3,lz3,lelt)
     real :: x1(lx1,ly1,lz1,lelt)
@@ -2445,7 +2509,23 @@
 
     use size_m
     use restart
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     character(132) :: hdr
     character(132) ::  fname
 
@@ -2735,7 +2815,23 @@
 
     use size_m
     use restart
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: pm1(lx1,ly1,lz1,lelv)
 
@@ -2787,7 +2883,23 @@
 
     use size_m
     use restart
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     logical :: if_full_pres_tmp
 
@@ -2821,7 +2933,23 @@
 !-----------------------------------------------------------------------
     subroutine full_restart(s80,n_restart)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(80) :: s80(n_restart)
 

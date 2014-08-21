@@ -9,7 +9,23 @@
 
     use size_m
     use gmres
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     common  /ctolpr/ divex
     common  /cprint/ ifprint
     logical ::          ifprint
@@ -279,7 +295,23 @@
 !-----------------------------------------------------------------------
     subroutine ax(w,x,h1,h2,n)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 
 !     w = A*x for pressure iteration
@@ -306,7 +338,23 @@
     use size_m
     use fdmh1
     use gmres
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     common  /ctolpr/ divex
     common  /cprint/ ifprint
     logical ::          ifprint
@@ -537,7 +585,23 @@
 !     Sets up the gather scatter and the SEM operators
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
      
     common /c_is1/ glo_num(lxs*lys*lzs*lelv)
     integer*8 :: glo_num
@@ -561,7 +625,23 @@
 !     Local overlapping Schwarz solves with overlap of 2
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 
     common /cwork1/ v1(lxs,lys,lzs,lelt)
@@ -597,7 +677,23 @@
     subroutine dd_swap_vals(v1,v0,gsh_dd)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /work1/ w1(lxs,lys,lzs)            & ! work arrarys for locals
     ,w2(lxs,lys,lzs)

@@ -5,7 +5,23 @@
 !     !! NOTE: Do not change the content of the array BQ until the current
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     logical ::  if_conv_std
     common /SCRUZ/ w1(lx1,ly1,lz1,lelt)

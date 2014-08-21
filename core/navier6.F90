@@ -153,7 +153,23 @@
     use size_m
     use domain
     use noncon
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: x(lx1,ly1,lz1,1),y(lx1,ly1,lz1,1),z(lx1,ly1,lz1,1)
     real :: p(lx1,ly1,lz1,1)

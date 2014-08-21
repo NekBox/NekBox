@@ -2070,7 +2070,23 @@
 
     use size_m
     use hsmg
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: w (nx*ny*nz,nel), p (nx*ny*nz,nel) &
     , h1(nx*ny*nz,nel), h2(nx*ny*nz,nel) &
@@ -2296,7 +2312,23 @@
     subroutine h1mg_setup()
     use size_m
     use hsmg
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /scrhi/ h2inv (lx1,ly1,lz1,lelt)
     common /scrvh/ h1    (lx1,ly1,lz1,lelt), &
@@ -2920,7 +2952,23 @@
 !-----------------------------------------------------------------------
     subroutine gxfer_e (g,ng,e)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: g(ng,1)
     integer :: e
@@ -2952,7 +3000,23 @@
     subroutine chkr(name3,ii)
     use size_m
     use hsmg
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     character(3) :: name3
 
     write(6,*) mg_h1_lmax,ii,' ',name3,' CHKR'

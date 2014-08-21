@@ -39,7 +39,23 @@
 !--------------------------------------------------------------------
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     COMMON /DOIT/ IFDOIT
     LOGICAL ::       IFDOIT
 
@@ -910,7 +926,23 @@
     subroutine rstartc (ind)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     common /SCRSF/ xm3(lx3,ly3,lz3,lelv) &
     , ym3(lx3,ly3,lz3,lelv) &
     , zm3(lx3,ly3,lz3,lelv)
@@ -1107,7 +1139,23 @@
 
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     nmxmf=0
     nmxms=0
@@ -1183,7 +1231,23 @@
 
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: min_dsum, max_dsum, avg_dsum
     real :: min_vdss, max_vdss, avg_vdss
@@ -1564,7 +1628,23 @@
 !-----------------------------------------------------------------------
     subroutine dofcnt
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     COMMON /SCRNS/ WORK(LCTMP1)
 
     integer*8 :: ntot,ntotp,ntotv
@@ -1610,7 +1690,23 @@
 !     pff 6/28/98
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Swap the comments on these two lines if you don't want to fix the
 !     flow rate for periodic-in-X (or Z) flow problems.
@@ -1703,7 +1799,23 @@
 !     pff 2/28/98
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: vxc(lx1,ly1,lz1,lelv) &
     , vyc(lx1,ly1,lz1,lelv) &
@@ -1764,7 +1876,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: vxc(lx1,ly1,lz1,lelv) &
     , vyc(lx1,ly1,lz1,lelv) &
@@ -1823,7 +1951,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: vxc(lx1,ly1,lz1,lelv) &
     , vyc(lx1,ly1,lz1,lelv) &
@@ -1904,7 +2048,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: vxc(lx1,ly1,lz1,lelv) &
     , vyc(lx1,ly1,lz1,lelv) &
@@ -1961,7 +2121,23 @@
     subroutine a_dmp
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     COMMON /SCRNS/ w(LX1,LY1,LZ1,LELT)
     COMMON /SCRUZ/ v (LX1,LY1,LZ1,LELT) &
     , h1(LX1,LY1,LZ1,LELT) &
@@ -2002,7 +2178,23 @@
 
 !------------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Caution: 2nd and 3rd strainrate invariants residing in scratch
 !              common /SCREV/ are used in STNRINV and NEKASGN

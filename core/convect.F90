@@ -15,7 +15,23 @@
 !-----------------------------------------------------------------------
     subroutine setup_convect(igeom)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     logical :: ifnew
 
     common /cchar/ ct_vx(0:lorder+1) ! time for each slice in c_vx()
@@ -62,7 +78,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real ::    p0(1),u(1),ulag(1),msk(1),c(1),cs(0:1)
     integer :: gsl
 
@@ -225,7 +257,23 @@
     subroutine conv_rhs (du,u,c,bmsk,gsl)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     apply convecting field c(1,ndim) to scalar field u(1)
 
@@ -673,7 +721,23 @@
 !     Compute dealiased form:  J^T Bf *JC .grad Ju w/ correct Jacobians
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: bdu(1),u(1),cx(1),cy(1),cz(1)
     logical :: ifuf,ifcf            ! u and/or c already on fine mesh?
@@ -770,7 +834,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: bdu(1),u(1),cx(1),cy(1),cz(1)
 
@@ -854,7 +934,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter (lxy=lx1*ly1*lz1,ltd=lxd*lyd*lzd)
 
@@ -884,7 +980,23 @@
 !     For rst form, see eq. (4.8.5) in Deville, Fischer, Mund (2002).
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter (lxy=lx1*ly1*lz1,ltd=lxd*lyd*lzd)
 

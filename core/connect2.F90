@@ -1394,7 +1394,23 @@
 !=====================================================================
 
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     COMMON /SCRNS/ TA(LX1,LY1,LZ1,LELT),TB(LX1,LY1,LZ1,LELT) &
     ,QMASK(LX1,LY1,LZ1,LELT),tmp(2)
     CHARACTER(3) :: CB
@@ -1624,7 +1640,23 @@
 !=====================================================================
 
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     common /scrns/ tc(lx1,ly1,lz1,lelt),td(lx1,ly1,lz1,lelt) &
     , ta(lx1,ly1,lz1,lelt),tb(lx1,ly1,lz1,lelt) &
     , qmask(lx1,ly1,lz1,lelt)
@@ -2162,7 +2194,23 @@
 
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     logical :: ifbswap
 
@@ -2209,7 +2257,23 @@
     subroutine buf_to_xyz(buf,e,ifbswap,ierr)! version 1 of binary reader
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     logical :: ifbswap
 
     integer :: e,eg,buf(0:49)
@@ -2251,7 +2315,23 @@
     subroutine buf_to_curve(buf)    ! version 1 of binary reader
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: e,eg,f,buf(30)
 
@@ -2281,7 +2361,23 @@
     subroutine buf_to_bc(cbl,bl,buf)    ! version 1 of binary reader
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(3) :: cbl(6,lelt)
     real ::         bl(5,6,lelt)
@@ -2323,7 +2419,23 @@
     subroutine bin_rd1_mesh(ifbswap)    ! version 1 of binary reader
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     logical :: ifbswap
 
     integer :: e,eg,buf(55)
@@ -2391,7 +2503,23 @@
     subroutine bin_rd1_curve (ifbswap) ! v. 1 of curve side reader
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     logical :: ifbswap
 
     integer :: e,eg,buf(55)
@@ -2476,7 +2604,23 @@
     subroutine bin_rd1_bc (cbl,bl,ifbswap) ! v. 1 of bc reader
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     logical :: ifbswap
 
     character(3) :: cbl(6,lelt)
@@ -2630,7 +2774,23 @@
     subroutine open_bin_file(ifbswap) ! open file & chk for byteswap
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     logical :: ifbswap,if_byte_swap_test
 
@@ -2683,7 +2843,23 @@
 !-----------------------------------------------------------------------
     subroutine chk_xyz
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     integer :: e,f,eg
 
     do e=1,nelt
@@ -2697,7 +2873,23 @@
 !-----------------------------------------------------------------------
     subroutine chk_nel
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     neltmx=np*lelt
     nelvmx=np*lelv

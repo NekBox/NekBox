@@ -403,7 +403,23 @@
 
 !------------------------------------------------------------------
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Note : work arrays for mesh 3 in scratch commons will be
 !            changed after exit of routine.
@@ -836,7 +852,23 @@
 
 !------------------------------------------------------------------
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     NXYZ2 = NX2*NY2*NZ2
     NTOT2 = NXYZ2*NELV
@@ -1677,7 +1709,23 @@
 !-----------------------------------------------------------------------
     subroutine outxm3j(xm3,ym3,jm3)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: xm3(lx1,ly1,lz1,lelv)
     real :: ym3(lx1,ly1,lz1,lelv)

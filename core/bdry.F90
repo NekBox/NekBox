@@ -820,7 +820,23 @@
     use ctimer
     use size_m
     use nekuse
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     DIMENSION S(LX1,LY1,LZ1,LELT)
     common  /nekcb/ cb
@@ -1999,7 +2015,23 @@
 !-----------------------------------------------------------------------
     subroutine check_cyclic  ! check for cyclic bcs
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /scrmg/ v1(lx1,ly1,lz1,lelt) &
     , v2(lx1,ly1,lz1,lelt) &

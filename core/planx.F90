@@ -85,7 +85,23 @@
 
 !---------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     REAL ::           RESV1 (LX1,LY1,LZ1,1)
     REAL ::           RESV2 (LX1,LY1,LZ1,1)
     REAL ::           RESV3 (LX1,LY1,LZ1,1)

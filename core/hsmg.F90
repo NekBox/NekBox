@@ -39,8 +39,8 @@
     subroutine hsmg_setup()
     use size_m
     use input
+    use hsmg
     include 'PARALLEL'
-    include 'HSMG'
     include 'SEMHAT'
     include 'TSTEP'
 
@@ -67,7 +67,7 @@
     subroutine hsmg_setup_semhat
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
     include 'SEMHAT'
     integer :: n,l
 !     generate the SEM hat matrices for each level
@@ -99,7 +99,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_intp
     use size_m
-    include 'HSMG'
+    use hsmg
     include 'SEMHAT'
     integer :: l,nf,nc
 
@@ -140,8 +140,8 @@
     subroutine hsmg_setup_dssum
     use size_m
     use input
+    use hsmg
     include 'PARALLEL'
-    include 'HSMG'
     parameter (lxyz=(lx1+2)*(ly1+2)*(lz1+2))
     common /c_is1/ glo_num(lxyz*lelv)
     common /ivrtx/ vertex ((2**ldim)*lelt)
@@ -174,7 +174,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_setup_wtmask
     use size_m
-    include 'HSMG'
+    use hsmg
     integer :: i,l
     i = mg_mask_index(mg_lmax,mg_fld-1)
     do l=1,mg_lmax
@@ -198,7 +198,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_wtmask
     use size_m
-    include 'HSMG'
+    use hsmg
     integer :: i,l
     i = mg_mask_index(mg_lmax,mg_fld-1)
     do l=1,mg_lmax-1
@@ -222,7 +222,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_intp(uf,uc,l) ! l is coarse level
     use size_m
-    include 'HSMG'
+    use hsmg
     real :: uf(1),uc(1)
     integer :: l
 
@@ -232,7 +232,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_rstr(uc,uf,l) ! l is coarse level
     use size_m
-    include 'HSMG'
+    use hsmg
     real :: uf(1),uc(1)
     integer :: l
 
@@ -246,7 +246,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_rstr_no_dssum(uc,uf,l) ! l is coarse level
     use size_m
-    include 'HSMG'
+    use hsmg
 
     real :: uf(1),uc(1)
     integer :: l
@@ -361,7 +361,7 @@
     subroutine hsmg_dssum(u,l)
     use ctimer
     use size_m
-    include 'HSMG'
+    use hsmg
 
     if (ifsync) call nekgsync()
 #ifndef NOTIMER
@@ -378,7 +378,7 @@
     subroutine hsmg_dsprod(u,l)
     use ctimer
     use size_m
-    include 'HSMG'
+    use hsmg
     real :: u(1)
 
     if (ifsync) call nekgsync()
@@ -390,7 +390,7 @@
     subroutine hsmg_schwarz_dssum(u,l)
     use ctimer
     use size_m
-    include 'HSMG'
+    use hsmg
 
     if (ifsync) call nekgsync()
 #ifndef NOTIMER
@@ -462,7 +462,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_schwarz(e,r,sigma,l)
     use size_m
-    include 'HSMG'
+    use hsmg
 
     real :: e(1),r(1)
 
@@ -478,8 +478,8 @@
     subroutine h1mg_schwarz_part1 (e,r,l)
     use size_m
     use input  ! if3d
+    use hsmg
     include 'TSTEP'  ! ifield
-    include 'HSMG'
 
     real :: e(1),r(1)
 
@@ -534,7 +534,7 @@
     subroutine hsmg_schwarz(e,r,l)
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
     real :: e(1),r(1)
     integer :: l
     integer :: enx,eny,enz
@@ -671,7 +671,7 @@
     subroutine h1mg_setup_fdm()
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
           
     integer :: l,i,j,nl
     i = mg_fast_s_index(mg_lmax,mg_fld-1)
@@ -705,7 +705,7 @@
     subroutine hsmg_setup_fdm()
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
           
     integer :: l,i,j,nl
     i = mg_fast_s_index(mg_lmax,mg_fld-1)
@@ -739,7 +739,7 @@
     subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
     real :: s(nl*nl,2,ndim,nelv)
     real :: d(nl**ndim,nelv)
     real :: ah(1),bh(1)
@@ -926,7 +926,7 @@
     subroutine hsmg_fdm(e,r,l)
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
     call hsmg_do_fast(e,r, &
     mg_fast_s(mg_fast_s_index(l,mg_fld)), &
     mg_fast_d(mg_fast_d_index(l,mg_fld)), &
@@ -1231,7 +1231,7 @@
     subroutine hsmg_setup_schwarz_wt(ifsqrt)
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
     logical :: ifsqrt
           
     integer :: l,i,nl,nlz
@@ -1261,7 +1261,7 @@
     subroutine h1mg_setup_schwarz_wt(ifsqrt)
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
     logical :: ifsqrt
           
     integer :: l,i,nl,nlz
@@ -1293,7 +1293,7 @@
     subroutine hsmg_schwarz_wt(e,l)
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
           
 #if 0
     if( .NOT. if3d) call hsmg_schwarz_wt2d( &
@@ -1373,7 +1373,7 @@
     use esolv
     use geom
     use input
-    include 'HSMG'
+    use hsmg
     include 'SOLN'
     include 'PARALLEL'
     include 'TSTEP'
@@ -1407,7 +1407,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_solve
     use size_m
-    include 'HSMG'
+    use hsmg
           
     integer :: l,i,nl,nlz
     i = mg_solve_index(mg_lmax+1,mg_fld-1)
@@ -1430,7 +1430,7 @@
     use size_m
     use geom
     use input
-    include 'HSMG'
+    use hsmg
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -1659,8 +1659,8 @@
     subroutine hsmg_setup_mg_nx()
     use size_m
     use input
+    use hsmg
     include 'PARALLEL'
-    include 'HSMG'
     include 'SEMHAT'
     real :: w(lx1+2)
     integer :: nf,nc,nr
@@ -1717,7 +1717,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_index_0 ! initialize index sets
     use size_m
-    include 'HSMG'
+    use hsmg
 
     n = lmgn*(lmgs+1)
 
@@ -1916,7 +1916,7 @@
     use size_m
     use geom
     use input
-    include 'HSMG'       ! Same array space as HSMG
+    use hsmg       ! Same array space as HSMG
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -2016,7 +2016,7 @@
 !     been established
 
     use size_m
-    include 'HSMG'
+    use hsmg
     include 'TSTEP'  ! nelfld
 
     real :: w(1),p(1),wk(1)
@@ -2069,8 +2069,8 @@
 
 
     use size_m
+    use hsmg
     include 'TOTAL'
-    include 'HSMG'
 
     real :: w (nx*ny*nz,nel), p (nx*ny*nz,nel) &
     , h1(nx*ny*nz,nel), h2(nx*ny*nz,nel) &
@@ -2277,7 +2277,7 @@
 !------------------------------------------   T  -----------------------
     subroutine h1mg_rstr(r,l,ifdssum) ! r =J r,   l is coarse level
     use size_m
-    include 'HSMG'
+    use hsmg
     logical :: ifdssum
 
     real :: r(1)
@@ -2295,8 +2295,8 @@
 !----------------------------------------------------------------------
     subroutine h1mg_setup()
     use size_m
+    use hsmg
     include 'TOTAL'
-    include 'HSMG'
 
     common /scrhi/ h2inv (lx1,ly1,lz1,lelt)
     common /scrvh/ h1    (lx1,ly1,lz1,lelt), &
@@ -2334,8 +2334,8 @@
     subroutine h1mg_setup_mg_nx()
     use size_m
     use input
+    use hsmg
     include 'PARALLEL'
-    include 'HSMG'
     include 'SEMHAT'
     include 'TSTEP'   ! nelfld
     real :: w(lx1+2)
@@ -2401,7 +2401,7 @@
     subroutine h1mg_setup_semhat ! SEM hat matrices for each level
     use size_m
     use input
-    include 'HSMG'
+    use hsmg
     include 'SEMHAT'
 
     do l=1,mg_h1_lmax
@@ -2422,8 +2422,8 @@
     subroutine h1mg_setup_dssum
     use size_m
     use input
+    use hsmg
     include 'PARALLEL'
-    include 'HSMG'
     parameter (lxyz=(lx1+2)*(ly1+2)*(lz1+2))
     common /c_is1/ glo_num(lxyz*lelt)
     common /ivrtx/ vertex ((2**ldim)*lelt)
@@ -2456,7 +2456,7 @@
 !----------------------------------------------------------------------
     subroutine mg_set_msk(p_msk ,l0)
     use size_m
-    include 'HSMG'
+    use hsmg
     include 'TSTEP'
     integer :: p_msk
 
@@ -2570,7 +2570,7 @@
 !----------------------------------------------------------------------
     subroutine mg_set_h1  (p_h1 ,l0)
     use size_m
-    include 'HSMG'
+    use hsmg
     integer :: pf,pc
 
 !     As a first pass, rely on the cheesy common-block interface to get h1
@@ -2610,7 +2610,7 @@
 !-----------------------------------------------------------------------
     subroutine mg_set_h2  (p_h2 ,l0)
     use size_m
-    include 'HSMG'
+    use hsmg
 
 !     As a first pass, rely on the cheesy common-block interface to get h2
 
@@ -2650,7 +2650,7 @@
     subroutine hsmg_intp_fc(uc,uf,l) ! l is coarse level
 
     use size_m
-    include 'HSMG'
+    use hsmg
 
     real :: uc(1),uf(1)
 
@@ -2665,7 +2665,7 @@
     subroutine mg_intp_fc_e(uc,uf,nxc,nyc,nzc,nxf,nyf,nzf,e,l,w)
     use size_m
     use input      ! if3d
-    include 'HSMG'
+    use hsmg
 
     real :: uf(nxf,nyf,nzf),uc(nxc,nyc,nzc),w(1)
 
@@ -2716,7 +2716,7 @@
     subroutine mg_intp_gfc_e(gc,gf,ng,nxc,nyc,nzc,nxf,nyf,nzf,e,l,w)
     use size_m
     use input      ! if3d
-    include 'HSMG'
+    use hsmg
 
     real :: gf(ng,nxf,nyf,nzf),gc(ng,nxc,nyc,nzc),w(1)
 
@@ -2778,7 +2778,7 @@
     subroutine mg_scale_mass (b,g,wt,ng,nx,ny,nz,wk,ifinv)
     use size_m
     use input  ! if3d
-    include 'HSMG'
+    use hsmg
 
     real :: b(1),g(ng,1),wt(1),wk(1)
     logical :: ifinv
@@ -2842,7 +2842,7 @@
 !-----------------------------------------------------------------------
     subroutine mg_set_gb  (p_g,p_b,l0)
     use size_m
-    include 'HSMG'
+    use hsmg
     include 'MASS'   ! bm1
     include 'TSTEP'  ! nelfld
 
@@ -2951,8 +2951,8 @@
 !-----------------------------------------------------------------------
     subroutine chkr(name3,ii)
     use size_m
+    use hsmg
     include 'TOTAL'
-    include 'HSMG'
     character(3) :: name3
 
     write(6,*) mg_h1_lmax,ii,' ',name3,' CHKR'
@@ -3109,8 +3109,8 @@
     subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
     use size_m
     use input  ! if3d
+    use hsmg
     include 'TSTEP'  ! ifield
-    include 'HSMG'
 
     real :: wt(1),work(1)
     logical :: ifsqrt

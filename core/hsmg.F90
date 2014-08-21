@@ -38,7 +38,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup()
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'HSMG'
     include 'SEMHAT'
@@ -66,7 +66,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_semhat
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
     include 'SEMHAT'
     integer :: n,l
@@ -139,7 +139,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_dssum
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'HSMG'
     parameter (lxyz=(lx1+2)*(ly1+2)*(lz1+2))
@@ -263,7 +263,7 @@
 !     v = [A (x) A (x) A] u
     subroutine hsmg_tnsr(v,nv,u,nu,A,At)
     use size_m
-    include 'INPUT'
+    use input
 
     integer :: nv,nu
     real :: v(1),u(1),A(1),At(1)
@@ -405,7 +405,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
     use size_m
-    include 'INPUT'
+    use input
     integer :: l1,l2,nx,ny,nz
     real :: arr1(nx,ny,nz,nelv),arr2(nx,ny,nz,nelv)
     real :: f1,f2
@@ -477,7 +477,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_schwarz_part1 (e,r,l)
     use size_m
-    include 'INPUT'  ! if3d
+    use input  ! if3d
     include 'TSTEP'  ! ifield
     include 'HSMG'
 
@@ -533,7 +533,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz(e,r,l)
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
     real :: e(1),r(1)
     integer :: l
@@ -670,7 +670,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_setup_fdm()
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
           
     integer :: l,i,j,nl
@@ -704,7 +704,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_fdm()
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
           
     integer :: l,i,j,nl
@@ -738,7 +738,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
     real :: s(nl*nl,2,ndim,nelv)
     real :: d(nl**ndim,nelv)
@@ -925,7 +925,7 @@
 !     clobbers r
     subroutine hsmg_fdm(e,r,l)
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
     call hsmg_do_fast(e,r, &
     mg_fast_s(mg_fast_s_index(l,mg_fld)), &
@@ -937,7 +937,7 @@
 !     clobbers r
     subroutine hsmg_do_fast(e,r,s,d,nl)
     use size_m
-    include 'INPUT'
+    use input
     real :: e(nl**ndim,nelv)
     real :: r(nl**ndim,nelv)
     real :: s(nl*nl,2,ndim,nelv)
@@ -974,7 +974,7 @@
 !     u = wt .* u
     subroutine hsmg_do_wt(u,wt,nx,ny,nz)
     use size_m
-    include 'INPUT'
+    use input
     integer :: nx,ny,nz
     real :: u(nx,ny,nz,nelv)
     real :: wt(nx,nz,2,ndim,nelv)
@@ -1029,7 +1029,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
     use size_m
-    include 'INPUT'
+    use input
     integer :: nx,ny,nz,l
     real :: w(nx,ny,nz,nelv)
     real :: wt(nx,nz,2,ndim,nelv)
@@ -1111,7 +1111,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_mask(wt,nx,ny,nz,l,w)
     use size_m
-    include 'INPUT'
+    use input
     integer :: nx,ny,nz,l
     real :: w(nx,ny,nz,nelv)
     real :: wt(nx,nz,2,ndim,nelv)
@@ -1230,7 +1230,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_schwarz_wt(ifsqrt)
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
     logical :: ifsqrt
           
@@ -1260,7 +1260,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt(ifsqrt)
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
     logical :: ifsqrt
           
@@ -1292,7 +1292,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_wt(e,l)
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
           
 #if 0
@@ -1372,10 +1372,10 @@
     use domain
     use esolv
     use geom
+    use input
+    include 'HSMG'
     include 'SOLN'
     include 'PARALLEL'
-    include 'HSMG'
-    include 'INPUT'
     include 'TSTEP'
     real :: e(1),r(1)
 
@@ -1429,8 +1429,8 @@
     use ctimer
     use size_m
     use geom
+    use input
     include 'HSMG'
-    include 'INPUT'
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -1658,7 +1658,7 @@
 !----------------------------------------------------------------------
     subroutine hsmg_setup_mg_nx()
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'HSMG'
     include 'SEMHAT'
@@ -1850,8 +1850,8 @@
 !-----------------------------------------------------------------------
     subroutine outflda (x,n,txt10,ichk) ! writes into unit=p130+ifiled
     use size_m                      ! or into std. output for p130<9
+    use input                     ! param(130)
     INCLUDE 'TSTEP'                     ! truncated below eps=p131
-    INCLUDE 'INPUT'                     ! param(130)
     real :: x(1)
     character(10) :: txt10                  ! note: n is not used
 !     parameter (eps=1.e-7)
@@ -1879,8 +1879,8 @@
 !-----------------------------------------------------------------------
     subroutine outfldan(x,n,txt10,ichk) ! writes x(1:n) into unit=p130+ifiled
     use size_m                      ! or into std. output for 0<p130<9
+    use input
     INCLUDE 'TSTEP'                     ! truncated below eps=p131
-    INCLUDE 'INPUT'
     real :: x(1)
     character(10) :: txt10
 !     parameter (eps=1.e-7)
@@ -1915,8 +1915,8 @@
 
     use size_m
     use geom
+    use input
     include 'HSMG'       ! Same array space as HSMG
-    include 'INPUT'
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -2130,7 +2130,7 @@
     (w,p,h1,h2,g,ng,b,nx,ny,nz,ur,us,ut,ifh2,ifrz,e)
 
     use size_m
-    include 'INPUT'   ! if3d
+    use input   ! if3d
     logical :: ifh2,ifrz
 
     real :: w (nx*ny*nz), p (nx*ny*nz) &
@@ -2193,7 +2193,7 @@
 !     v = [A (x) A (x) A] u
 
     use size_m
-    include 'INPUT'
+    use input
 
     integer :: nv,nu
     real :: v(1),A(1),At(1)
@@ -2333,7 +2333,7 @@
 !-----------------------------------------------------------------------
     subroutine h1mg_setup_mg_nx()
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'HSMG'
     include 'SEMHAT'
@@ -2400,7 +2400,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_setup_semhat ! SEM hat matrices for each level
     use size_m
-    include 'INPUT'
+    use input
     include 'HSMG'
     include 'SEMHAT'
 
@@ -2421,7 +2421,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_setup_dssum
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'HSMG'
     parameter (lxyz=(lx1+2)*(ly1+2)*(lz1+2))
@@ -2486,7 +2486,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
     use size_m
-    include 'INPUT'        ! if3d
+    use input        ! if3d
 
     integer :: mask(1)        ! Pointer to Dirichlet BCs
     integer :: nx,ny,nz,l
@@ -2664,7 +2664,7 @@
 !-----------------------------------------------------------------------
     subroutine mg_intp_fc_e(uc,uf,nxc,nyc,nzc,nxf,nyf,nzf,e,l,w)
     use size_m
-    include 'INPUT'      ! if3d
+    use input      ! if3d
     include 'HSMG'
 
     real :: uf(nxf,nyf,nzf),uc(nxc,nyc,nzc),w(1)
@@ -2715,7 +2715,7 @@
 !-----------------------------------------------------------------------
     subroutine mg_intp_gfc_e(gc,gf,ng,nxc,nyc,nzc,nxf,nyf,nzf,e,l,w)
     use size_m
-    include 'INPUT'      ! if3d
+    use input      ! if3d
     include 'HSMG'
 
     real :: gf(ng,nxf,nyf,nzf),gc(ng,nxc,nyc,nzc),w(1)
@@ -2777,7 +2777,7 @@
 !-----------------------------------------------------------------------
     subroutine mg_scale_mass (b,g,wt,ng,nx,ny,nz,wk,ifinv)
     use size_m
-    include 'INPUT'  ! if3d
+    use input  ! if3d
     include 'HSMG'
 
     real :: b(1),g(ng,1),wt(1),wk(1)
@@ -3108,7 +3108,7 @@
 !----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
     use size_m
-    include 'INPUT'  ! if3d
+    use input  ! if3d
     include 'TSTEP'  ! ifield
     include 'HSMG'
 

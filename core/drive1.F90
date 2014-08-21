@@ -14,6 +14,7 @@
     use esolv, only : init_esolv
     use fdmh1, only : init_fdmh1
     use geom, only : init_geom
+    use input, only : init_input
 
     use domain
     include 'TOTAL'
@@ -44,6 +45,7 @@
     call init_esolv()
     call init_fdmh1()
     call init_geom()
+    call init_input()
     write(*,*) "Max inits"
 
     call initdim
@@ -182,8 +184,8 @@
 
     use ctimer
     use size_m
+    use input
     include 'TSTEP'
-    include 'INPUT'
 
     real*4 :: papi_mflops
     integer*8 :: papi_flops

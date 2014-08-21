@@ -1,7 +1,7 @@
     subroutine makeq_aux
 
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     logical ::  ifturb,if_conv_std

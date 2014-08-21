@@ -1,7 +1,7 @@
     subroutine load_fld(string)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'RESTART'
 
     character(1) :: string(1),fout(132),BLNK
@@ -531,7 +531,7 @@
 !     Note: this routine assumes that nx1=ny1=nz1
 
     use size_m
-    include 'INPUT'
+    use input
 
     parameter (lw=4*lx1*lx1*lz1)
     common /ctensor/ w1(lw),w2(lw)

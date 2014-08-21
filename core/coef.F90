@@ -18,7 +18,7 @@
 
     use size_m
     use dxyz
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'IXYZ'
     INCLUDE 'WZ'
 
@@ -368,7 +368,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
 
 !     Note : XM3,YM3,ZM3 should come from COMMON /SCRUZ/.
@@ -587,7 +587,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
@@ -673,7 +673,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
     INCLUDE 'WZ'
@@ -1009,7 +1009,7 @@
 
     use size_m
     use esolv
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'TSTEP'
     integer :: e
@@ -1048,7 +1048,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
 
     NSRF  = 6*NX1*NZ1*NELT
 
@@ -1138,7 +1138,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'WZ'
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
@@ -1347,7 +1347,7 @@
 !--------------------------------------------------------------------
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
     INCLUDE 'WZ'
@@ -1389,9 +1389,9 @@
 
     use size_m
     use geom
+    use input
     INCLUDE 'IXYZ'
     INCLUDE 'WZ'
-    INCLUDE 'INPUT'
 
     REAL :: X(NREST,NREST,NREST)
     REAL :: Y(LX1,LY1,LZ1)
@@ -1458,8 +1458,8 @@
 
     use size_m
     use geom
+    use input
     INCLUDE 'IXYZ'
-    INCLUDE 'INPUT'
 
     REAL :: X(LX3,LY3,LZ3)
     REAL :: Y(LX1,LY1,LZ1)
@@ -1501,8 +1501,8 @@
 
     use size_m
     use geom
+    use input
     INCLUDE 'IXYZ'
-    INCLUDE 'INPUT'
 
     REAL :: X(LX1,LY1,LZ1)
     REAL :: Y(LX3,LY3,LZ3)
@@ -1538,8 +1538,8 @@
 
     use size_m
     use geom
+    use input
     INCLUDE 'IXYZ'
-    INCLUDE 'INPUT'
 
     REAL :: X(LX1,LY1,LZ1)
     REAL :: Y(LX2,LY2,LZ2)
@@ -1576,8 +1576,8 @@
 
     use size_m
     use geom
+    use input
     INCLUDE 'IXYZ'
-    INCLUDE 'INPUT'
 
     REAL :: X(LX2,LY2,LZ2)
     REAL :: Y(LX1,LY1,LZ1)
@@ -1617,8 +1617,8 @@
 
     use size_m
     use geom
+    use input
     INCLUDE 'IXYZ'
-    INCLUDE 'INPUT'
 
     REAL :: X(LX2,LY2,LZ2)
     REAL :: Y(LX1,LY1,LZ1)

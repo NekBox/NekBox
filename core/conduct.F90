@@ -5,7 +5,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'MVGEOM'
     include 'SOLN'
@@ -143,7 +143,7 @@
 !     Set user specified volumetric forcing function (e.g. heat source).
 
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -181,12 +181,12 @@
 
 !------------------------------------------------------------------
     use size_m
-    include 'SOLN'
+    use input
     include 'MASS'
-    include 'PARALLEL'
-    include 'TSTEP'
     include 'NEKUSE'
-    include 'INPUT'
+    include 'PARALLEL'
+    include 'SOLN'
+    include 'TSTEP'
 
     real :: bql(lx1,ly1,lz1,lelt)
 
@@ -261,7 +261,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -493,7 +493,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     REAL ::           HTMASK(LX1,LY1,LZ1,1)
@@ -555,7 +555,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
 
@@ -638,7 +638,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'MVGEOM'
     include 'SOLN'
@@ -704,10 +704,10 @@
 
 
     use size_m
-    include 'SOLN'
+    use input
     include 'MASS'
+    include 'SOLN'
     include 'TSTEP'
-    include 'INPUT'
 
     common /scruz/ ta(lx1,ly1,lz1,lelt) &
     ,h2(lx1,ly1,lz1,lelt)

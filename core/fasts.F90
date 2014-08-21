@@ -17,7 +17,7 @@
     use ctimer
     use size_m
     use domain
-    include 'INPUT'
+    use input
     include 'PARALLEL'
 
     include 'TSTEP'
@@ -131,7 +131,7 @@
 
 
     use size_m
-    include 'INPUT'
+    use input
     real :: v(nv,nv,nv),u(nu,nu,nu)
     real :: A(1),Bt(1),Ct(1)
     real :: w(1)
@@ -166,7 +166,7 @@
 !     Scale face and add to interior of element
 
     use size_m
-    include 'INPUT'
+    use input
     real :: x(nx1,ny1,nz1,1)
 
     do ie=1,nelv
@@ -213,7 +213,7 @@
 !     Extend interior to face of element
 
     use size_m
-    include 'INPUT'
+    use input
     real :: x(nx1,ny1,nz1,1)
 
     do ie=1,nelv
@@ -261,7 +261,7 @@
 !     Scale interior and add to face of element
 
     use size_m
-    include 'INPUT'
+    use input
     real :: x(nx1,ny1,nz1,1)
 
     do ie=1,nelv
@@ -311,7 +311,7 @@
     subroutine init_weight_op
 
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
     parameter(levb=lelv+lbelv)
     common /swaplengths/ l(lx1,ly1,lz1,lelv)
@@ -405,7 +405,7 @@
 !-----------------------------------------------------------------------
     subroutine do_weight_op(x)
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
     parameter(levb=lelv+lbelv)
     common /weightop/ w(lx2,lz2,2,3,levb)

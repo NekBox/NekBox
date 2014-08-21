@@ -655,9 +655,9 @@
     subroutine intglq
 
     use size_m
-    include 'SOLN'
-    include 'INPUT'
+    use input
     include 'PARALLEL'
+    include 'SOLN'
     include 'TSTEP'
 
     common /scrvx/ ts   (lx1,ly1,lz1,lelt) &
@@ -803,9 +803,9 @@
 !-----------------------------------------------------------------------
 
     use size_m
+    use input
     include 'SOLN'
     include 'TSTEP'
-    include 'INPUT'
     common /scrvh/ h1 (lx1,ly1,lz1,lelv) &
     , h2 (lx1,ly1,lz1,lelv)
     common /scruz/ ta1(lx1,ly1,lz1,lelv) &
@@ -870,9 +870,9 @@
 !-----------------------------------------------------------------------
 
     use size_m
+    use input
     include 'SOLN'
     include 'TSTEP'
-    include 'INPUT'
     common /scrvh/ h1(lx1,ly1,lz1,lelt) &
     , h2(lx1,ly1,lz1,lelt)
     common /scruz/ ta(lx1,ly1,lz1,lelt)
@@ -937,7 +937,7 @@
     subroutine setsmu (smult)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
 
     DIMENSION SMULT (LX1,LY1,LZ1,1)
@@ -988,14 +988,14 @@
 
 !----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
-    include 'TSTEP'
+    use input
     include 'PARALLEL'
+    include 'TSTEP'
 
     CHARACTER(132) :: NAME
     CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
-    EQUIVALENCE  (SESSION,SESS1)
-    EQUIVALENCE  (PATH,PATH1)
+!max    EQUIVALENCE  (SESSION,SESS1)
+!max    EQUIVALENCE  (PATH,PATH1)
     EQUIVALENCE  (NAME,NAM1)
     CHARACTER(1) ::  DMP(4),FLD(4),REA(4),HIS(4),SCH(4) ,ORE(4), NRE(4)
     CHARACTER(4) ::  DMP4  ,FLD4  ,REA4  ,HIS4  ,SCH4   ,ORE4  , NRE4
@@ -1034,7 +1034,8 @@
 
     DO 200 I=1,LS
         l = l+1
-        NAM1(l)=SESS1(I)
+        NAM1(l)=SESSION(I:I)
+!        NAM1(l)=SESS1(I)
     200 END DO
 
 ! .fld file
@@ -1561,7 +1562,7 @@
     subroutine io_init ! determine which nodes will output
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -1623,7 +1624,7 @@
     subroutine mfo_open_files(prefix,ierr) ! open files
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -1912,7 +1913,7 @@ endif
     subroutine outpost(v1,v2,v3,vp,vt,name3)
 
     use size_m
-    include 'INPUT'
+    use input
 
     real :: v1(1),v2(1),v3(1),vp(1),vt(1)
     character(3) :: name3
@@ -1928,8 +1929,8 @@ endif
     subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
 
     use size_m
+    use input
     include 'SOLN'
-    include 'INPUT'
 
     parameter(ltot1=lx1*ly1*lz1*lelt)
     parameter(ltot2=lx2*ly2*lz2*lelv)
@@ -1999,7 +2000,7 @@ endif
     subroutine mfo_mdatav(u,v,w,nel)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -2090,7 +2091,7 @@ endif
     subroutine mfo_mdatas(u,nel)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -2166,7 +2167,7 @@ endif
     subroutine mfo_outs(u,nel,mx,my,mz)   ! output a scalar field
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -2255,7 +2256,7 @@ endif
     subroutine mfo_outv(u,v,w,nel,mx,my,mz)   ! output a vector field
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
 
@@ -2376,7 +2377,7 @@ endif
     subroutine mfo_write_hdr          ! write hdr, byte key, els.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'RESTART'
     include 'TSTEP'

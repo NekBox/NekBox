@@ -7,7 +7,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     use eigen
     include 'SOLN'
     include 'TSTEP'
@@ -148,7 +148,7 @@
 !     OT = (H1*A+H2*B)-1 * IN  (implicit)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'ORTHOV'
     include 'TSTEP'
     include 'SOLN'
@@ -187,7 +187,7 @@
 !-----------------------------------------------------------------------
     subroutine hmzpf2(nm,u,rhs,h1,h2,mask,mult,imsh,tol,mxit,isd)
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     character(4) :: nm
 
@@ -220,7 +220,7 @@
 !     know the soln.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -330,7 +330,7 @@
 !     the previous solutions
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -360,7 +360,7 @@
 !          old vectors, perhaps chosen wisely via P.O.D.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -394,7 +394,7 @@
 !     Orthonormalize the last saved vector against vector set
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'SOLN'
     include 'TSTEP'
@@ -439,7 +439,7 @@
 !     Update rhs's if A-matrix has changed
 
     use size_m
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'ORTHOV'
     include 'TSTEP'

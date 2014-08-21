@@ -6,7 +6,7 @@
     use ctimer
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
     INCLUDE 'TURBO'
     COMMON  /CPRINT/ IFPRINT
@@ -175,7 +175,7 @@
 !-------------------------------------------------------------------
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
 
 !     Single or double precision???
 
@@ -276,7 +276,7 @@
     SUBROUTINE CHKAXCB
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     CHARACTER CB*3
 
     IFLD  = 1
@@ -331,11 +331,11 @@
 !     Zero out masks corresponding to Dirichlet boundary points.
 
     use size_m
-    INCLUDE 'TSTEP'
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MVGEOM'
     INCLUDE 'SOLN'
     INCLUDE 'TOPOL'
+    INCLUDE 'TSTEP'
 
     common  /nekcb/ cb
     character(3) :: cb
@@ -584,7 +584,7 @@
     use ctimer
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
@@ -728,10 +728,10 @@
 
     use ctimer
     use size_m
-    INCLUDE 'TSTEP'
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TOPOL'
+    INCLUDE 'TSTEP'
 
     DIMENSION S(LX1,LY1,LZ1,LELT)
     COMMON /SCRSF/ TMP(LX1,LY1,LZ1,LELT) &
@@ -1172,10 +1172,10 @@
 
     use size_m
     use geom
-    INCLUDE 'SOLN'
-    INCLUDE 'INPUT'
-    INCLUDE 'TSTEP'
+    use input
     INCLUDE 'NEKUSE'
+    INCLUDE 'SOLN'
+    INCLUDE 'TSTEP'
 
     common  /nekcb/ cb
     CHARACTER CB*3
@@ -1211,8 +1211,8 @@
 
     use size_m
     use geom
+    use input
     INCLUDE 'SOLN'
-    INCLUDE 'INPUT'
     COMMON /SCRSF/ TRX(LX1,LY1,LZ1) &
     , TRY(LX1,LY1,LZ1) &
     , TRZ(LX1,LY1,LZ1)
@@ -1541,7 +1541,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
 
     DIMENSION CANG(2),SANG(2)
@@ -1855,7 +1855,7 @@
     SUBROUTINE SETSHL
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     COMMON /SCRMG/ V1(LX1,LY1,LZ1,LELV) &
@@ -1937,7 +1937,7 @@
 
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
 
     DIMENSION TMP1(NX1,NY1,NZ1,1) &

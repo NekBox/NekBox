@@ -1,7 +1,7 @@
 !-----------------------------------------------------------------------
     subroutine mapelpr()
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'SCRCT'
     include 'SOLN'
@@ -100,7 +100,7 @@
 !     element interfaces.
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'SOLN'
     include 'SCRCT'
@@ -255,7 +255,7 @@
     subroutine gfdm_set_pst(ip,is,it,nelbox,nstride_box,nxp,nyp,nzp)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'ZPER'
 
     integer :: nelbox(3),nstride_box(3)

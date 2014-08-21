@@ -5,7 +5,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     CHARACTER CBM*1,CBF*3,CBT*3,CB*3
@@ -135,10 +135,10 @@
 
     use size_m
     use geom
+    use input
     include 'MASS'
     include 'MVGEOM'
     include 'WZ'
-    include 'INPUT'
 
     COMMON /SCRSF/ PHR(LX1,LY1,LZ1,LELT) &
     , PHS(LX1,LY1,LZ1,LELT) &
@@ -184,7 +184,7 @@
     use size_m
     use dxyz
     use geom
-    include 'INPUT'
+    use input
     include 'MASS'
     include 'MVGEOM'
     include 'WZ'
@@ -254,7 +254,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MVGEOM'
     include 'SOLN'
     include 'TSTEP'
@@ -500,7 +500,7 @@
     subroutine norcmp2(wvx,wvy,wvz,e,f)
     use size_m
     use geom
-    include 'INPUT'
+    use input
 
 
     real :: wvx(lx1,ly1,lz1),wvy(lx1,ly1,lz1),wvz(lx1,ly1,lz1)
@@ -677,7 +677,7 @@
     subroutine cqnet (qni,ta,nel)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     COMMON /SCRVH/ H1(LX1,LY1,LZ1,LELT) &
@@ -743,7 +743,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'MVGEOM'
     include 'SOLN'
     include 'TSTEP'
@@ -920,7 +920,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     include 'MVGEOM'
     include 'TSTEP'
 
@@ -977,10 +977,10 @@
 !-----------------------------------------------------------------------
     use size_m
     use geom
+    use input
     include 'MVGEOM'
     include 'SOLN'
     include 'TSTEP'
-    include 'INPUT'
     COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
     ,             YM3 (LX3,LY3,LZ3,LELT) &
     ,             ZM3 (LX3,LY3,LZ3,LELT)
@@ -1015,7 +1015,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'MVGEOM'
     include 'TSTEP'

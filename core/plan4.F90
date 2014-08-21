@@ -11,7 +11,7 @@
     use ctimer
     use size_m
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'

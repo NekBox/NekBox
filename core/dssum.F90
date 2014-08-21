@@ -1,6 +1,6 @@
     subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'NONCON'
 
@@ -33,7 +33,7 @@
     subroutine dssum(u,nx,ny,nz)
     use ctimer
     use size_m
-    include 'INPUT'
+    use input
     include 'NONCON'
     include 'PARALLEL'
     include 'TSTEP'
@@ -96,8 +96,8 @@
     subroutine dsop(u,op,nx,ny,nz)
     use ctimer
     use size_m
+    use input
     include 'PARALLEL'
-    include 'INPUT'
     include 'TSTEP'
 
     real :: u(1)
@@ -165,9 +165,9 @@
 
     use ctimer
     use size_m
-    INCLUDE 'TOPOL'
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
+    INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
 
     REAL :: U(1),V(1),W(1)
@@ -213,9 +213,9 @@
 
     use ctimer
     use size_m
-    INCLUDE 'TOPOL'
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
+    INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
 
     real :: u(1),v(1),w(1)
@@ -484,7 +484,7 @@
     subroutine apply_Jt(u,nx,ny,nz,nel)
     use ctimer
     use size_m
-    include 'INPUT'
+    use input
     include 'NONCON'
     include 'PARALLEL'
     include 'TSTEP'
@@ -527,7 +527,7 @@
     subroutine apply_J(u,nx,ny,nz,nel)
     use ctimer
     use size_m
-    include 'INPUT'
+    use input
     include 'NONCON'
     include 'PARALLEL'
     include 'TSTEP'
@@ -562,7 +562,7 @@
     subroutine h1_proj(u,nx,ny,nz)
     use ctimer
     use size_m
-    include 'INPUT'
+    use input
     include 'NONCON'
     include 'PARALLEL'
     include 'TSTEP'
@@ -624,7 +624,7 @@
     subroutine dssum_msk(u,mask,nx,ny,nz)
     use ctimer
     use size_m
-    include 'INPUT'
+    use input
     include 'NONCON'
     include 'PARALLEL'
     include 'TSTEP'
@@ -689,7 +689,7 @@
     subroutine dssum_msk2(u,mask,binv,nx,ny,nz)
     use ctimer
     use size_m
-    include 'INPUT'
+    use input
     include 'NONCON'
     include 'PARALLEL'
     include 'TSTEP'

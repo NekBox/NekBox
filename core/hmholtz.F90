@@ -3,7 +3,7 @@
     use ctimer
     use size_m
     use fdmh1
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     include 'TSTEP'
@@ -80,7 +80,7 @@
     use size_m
     use dxyz
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'PARALLEL'
     INCLUDE 'WZ'
@@ -292,7 +292,7 @@
 
 !-------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
     REAL :: HELM1(NX1,NY1,NZ1,1), HELM2(NX1,NY1,NZ1,1)
@@ -413,7 +413,7 @@
     use size_m
     use dxyz
     use geom
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'TSTEP'
     INCLUDE 'WZ'
@@ -567,7 +567,7 @@
 !-------------------------------------------------------------------
     use size_m
     use eigen
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     COMMON  /CPRINT/ IFPRINT
     LOGICAL ::          IFPRINT
@@ -652,7 +652,7 @@
     use size_m
     use geom
     use fdmh1
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -1047,7 +1047,7 @@
             use size_m
             use dxyz
             use fdmh1
-            include 'INPUT'
+            use input
             include 'MASS'
             include 'WZ'
         
@@ -1140,7 +1140,7 @@
             use dxyz
             use fdmh1
             use geom
-            include 'INPUT'
+            use input
             include 'SOLN'
             include 'TOPOL'
             include 'WZ'
@@ -1293,7 +1293,7 @@
             use size_m
             use fdmh1
             use geom
-            include 'INPUT'
+            use input
             real :: d (nx1,ny1,nz1,1)
             real :: h1(nx1,ny1,nz1,1)
             real :: h2(nx1,ny1,nz1,1)

@@ -104,7 +104,7 @@
     (p0,bmsk,u,n,ulag,ln,gsl,c,m,cs,nc,ct,u1,r1,r2,r3,r4)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     real ::    p0(n),u(n),ulag(ln,1),bmsk(n),c(m,0:nc),cs(0:nc)
@@ -606,7 +606,7 @@
 !-----------------------------------------------------------------------
     subroutine set_ct_cvx(ct,c,m,u,v,w,tau,nc,mc,nelc,ifnew)
     use size_m
-    include 'INPUT'  ! ifcons
+    use input  ! ifcons
 
     real :: ct(0:1),c(m,1)
     real :: u(1),v(1),w(1)
@@ -939,7 +939,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'SOLN'
     include 'TSTEP'
     integer :: msk(0:1)
@@ -985,11 +985,11 @@
 
     use ctimer
     use size_m
+    use input
     include 'MASS'
-    include 'INPUT'
+    include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
-    include 'PARALLEL'
 
 
     common /cchar/ ct_vx(0:lorder) ! time for each slice in c_vx()
@@ -1048,11 +1048,11 @@
 
     use ctimer
     use size_m
+    use input
     include 'MASS'
-    include 'INPUT'
+    include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
-    include 'PARALLEL'
 
     common /cchar/ ct_vx(0:lorder) ! time for each slice in c_vx()
 

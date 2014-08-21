@@ -554,7 +554,7 @@
 !     Set up arrays IXCN,ESKIP,SKPDAT,NEDG,NOFFST for new NX,NY,NZ
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TOPOL'
     INTEGER :: NXO,NYO,NZO
     SAVE    NXO,NYO,NZO
@@ -717,7 +717,7 @@
 !     Generate xyz coordinates
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'SCRCT'
     COMMON /CTMP0/ XCB(2,2,2),YCB(2,2,2),ZCB(2,2,2),H(3,3,2),INDX(8)
 
@@ -803,8 +803,8 @@
 !     .Verify correlation between E-E BC's and physical coincidence
 
     use size_m
+    use input
     include 'PARALLEL'
-    include 'INPUT'
     include 'SCRCT'
      
     call verrhe
@@ -814,7 +814,7 @@
 !-----------------------------------------------------------------------
     subroutine setside
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TOPOL'
     INCLUDE 'SCRCT'
 
@@ -892,7 +892,7 @@
 !     Verify right-handedness of given elements.
 
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'PARALLEL'
     INCLUDE 'SCRCT'
     INCLUDE 'TOPOL'

@@ -2,7 +2,7 @@
     subroutine arcsrf(xml,yml,zml,nxl,nyl,nzl,ie,isid)
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TOPOL'
     include 'WZ'
 
@@ -323,7 +323,7 @@
     END FUNCTION ZBRENT
     FUNCTION FNC(ETA)
     use size_m
-    include 'INPUT'
+    use input
     COMMON /SRFCEI/ IEL,IFCE
     COMMON /SRFCER/ X0(3),DX(3)
     COMMON /SRFCEL/ SUCCES
@@ -355,7 +355,7 @@
 
 !-------------------------------------------------------------------
     use size_m
-    include 'INPUT'
+    use input
     DIMENSION XCC(8),YCC(8),ZCC(8)
     DIMENSION INDX(8)
     REAL :: VEC(3,12)
@@ -540,7 +540,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use geom
-    include 'INPUT'
+    use input
     DIMENSION XM3(LX3,LY3,LZ3,1),YM3(LX3,LY3,LZ3,1),ZM3(LX3,LY3,LZ3,1)
 
 !     Select appropriate mesh
@@ -558,7 +558,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TOPOL'
     include 'PARALLEL'
     include 'WZ'
@@ -617,7 +617,7 @@
     subroutine sethmat(h,zgml,nxl,nyl,nzl)
 
     use size_m
-    include 'INPUT'  ! if3d
+    use input  ! if3d
 
     real :: h(lx1,3,2),zgml(lx1,3)
 
@@ -686,7 +686,7 @@
 !     input.  Paul F. Fischer
 
     use size_m
-    include 'INPUT'
+    use input
     include 'WZ'
     include 'TOPOL'
     DIMENSION XML(NX,NY,NZ,1),YML(NX,NY,NZ,1),ZML(NX,NY,NZ,1)
@@ -989,7 +989,7 @@
     use size_m
     use esolv
     use geom
-    include 'INPUT'
+    use input
     COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
     LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
 
@@ -1033,7 +1033,7 @@
 
 !     include 'basics.inc'
     use size_m
-    include 'INPUT'
+    use input
     include 'WZ'
     include 'TOPOL'
 
@@ -1240,7 +1240,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'TOPOL'
     include 'PARALLEL'
     include 'WZ'
@@ -1274,7 +1274,7 @@
 !     Generate bi- or trilinear mesh
 
     use size_m
-    include 'INPUT'
+    use input
 
     real :: xl(nxl,nyl,nzl),yl(nxl,nyl,nzl),zl(nxl,nyl,nzl)
     integer :: e
@@ -1339,7 +1339,7 @@
 !     Generate bi- or trilinear mesh
 
     use size_m
-    include 'INPUT'
+    use input
 
     real :: xl(nxl,nyl,nzl),yl(nxl,nyl,nzl),zl(nxl,nyl,nzl)
     real :: xq(27),yq(27),zq(27)

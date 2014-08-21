@@ -5,7 +5,7 @@
 !     Generate fast diagonalization matrices for each element
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'SOLN'
     include 'WZ'
@@ -146,7 +146,7 @@
 !     Generate fast diagonalization matrices for each element
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'SOLN'
     include 'WZ'
@@ -210,7 +210,7 @@
 !     New verision uses harmonic mean.  pff 2/10/07
 
     use size_m
-    include 'INPUT'
+    use input
 
     real :: w(1),lr(1),ls(1),lt(1)
     real :: x(0:nxn,0:nxn,nz0:nzn,1)
@@ -311,7 +311,7 @@
 
 
     use size_m
-    include 'INPUT'
+    use input
 
     real :: w(1),lr(1),ls(1),lt(1)
     real :: x(0:nxn,0:nxn,nz0:nzn,1)
@@ -431,7 +431,7 @@
 
 
     use size_m
-    include 'INPUT'
+    use input
 
     real :: w(1),lr(1),ls(1),lt(1)
     real :: x(0:nxn,0:nxn,nz0:nzn,1)
@@ -804,7 +804,7 @@
     subroutine get_fast_bc(lbr,rbr,lbs,rbs,lbt,rbt,e,bsym,ierr)
 
     use size_m
-    include 'INPUT'
+    use input
     include 'PARALLEL'
     include 'TOPOL'
     include 'TSTEP'
@@ -1543,7 +1543,7 @@
 
     use size_m
     use geom
-    include 'INPUT'
+    use input
     include 'WZ'
     common /swaplengths/ l(lx1,ly1,lz1,lelv)
     common /ctmpf/  lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &
@@ -1636,7 +1636,7 @@
 
     use size_m
     include 'TOPOL'
-    include 'INPUT'
+    use input
     include 'TSTEP'
 
     ied = eface(face)	! symmetric -> preprocessor notation

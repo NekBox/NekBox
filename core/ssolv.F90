@@ -5,7 +5,7 @@
 
 !------------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
     ISSS = 0
     IADV = 0
@@ -31,7 +31,7 @@
 !-----------------------------------------------------------
     use size_m
     use eigen
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
 
@@ -88,9 +88,9 @@
 
 !------------------------------------------------------------------
     use size_m
-    INCLUDE 'TSTEP'
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'STEADY'
+    INCLUDE 'TSTEP'
     LOGICAL :: IFACCX
     real*8 :: Z(1),S(1)
     REAL :: H1NRM1 (LDIMT1), H1NRM2(LDIMT1)
@@ -160,8 +160,8 @@
 
     SUBROUTINE FILLLAG
     use size_m
+    use input
     INCLUDE 'SOLN'
-    INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     NBDINP = 3
     IF (IFFLOW) THEN
@@ -184,7 +184,7 @@
 
 !----------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'STEADY'
     EXTERNAL GOSTEP
 
@@ -286,10 +286,10 @@
 
 !------------------------------------------------------------------
     use size_m
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
-    INCLUDE 'INPUT'
 
     MFIELD=1
     IF ( .NOT. IFFLOW) MFIELD=2
@@ -312,8 +312,8 @@
 
 !-------------------------------------------------------------
     use size_m
+    use input
     INCLUDE 'SOLN'
-    INCLUDE 'INPUT'
     INCLUDE 'TSTEP'
     real*8 :: X(1)
 
@@ -355,9 +355,9 @@
 
 !------------------------------------------------------------------
     use size_m
+    use input
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
-    INCLUDE 'INPUT'
     real*8 :: X(1)
 
     NTOTV = NX1*NY1*NZ1*NELV
@@ -398,8 +398,8 @@
 
 !------------------------------------------------------------------------------
     use size_m
+    use input
     INCLUDE 'TSTEP'
-    INCLUDE 'INPUT'
     INCLUDE 'STEADY'
 
     IF (L == 0) THEN
@@ -456,7 +456,7 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
 
@@ -493,7 +493,7 @@
 !--------------------------------------------------------------------
     use size_m
     use eigen
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     INCLUDE 'STEADY'
@@ -661,7 +661,7 @@
 !-------------------------------------------------------------------
     use size_m
     use eigen
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -706,7 +706,7 @@
 !-------------------------------------------------------------------
     use size_m
     use eigen
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'MASS'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
@@ -759,7 +759,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    INCLUDE 'INPUT'
+    use input
     INCLUDE 'TSTEP'
 
     IF (IFCHAR) THEN

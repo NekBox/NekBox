@@ -3,7 +3,7 @@
   use eigen
   use esolv
   use geom
-    include 'INPUT'
+  use input
     include 'IXYZ'
     include 'MASS'
     include 'MVGEOM'

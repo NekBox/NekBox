@@ -986,7 +986,7 @@
     use ctimer
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
@@ -1049,7 +1049,7 @@
     use ctimer
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'

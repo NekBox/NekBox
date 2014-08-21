@@ -11,7 +11,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'PARALLEL'
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'

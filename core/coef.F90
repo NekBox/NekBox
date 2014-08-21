@@ -19,7 +19,7 @@
     use size_m
     use dxyz
     use input
-    INCLUDE 'IXYZ'
+    use ixyz
     INCLUDE 'WZ'
 
     REAL :: TMP(LY1,LY1),TMPT(LY1,LY1)
@@ -674,7 +674,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
     INCLUDE 'WZ'
 
@@ -1010,7 +1010,7 @@
     use size_m
     use esolv
     use input
-    include 'MASS'
+    use mass
     include 'TSTEP'
     integer :: e
 
@@ -1321,7 +1321,7 @@
 
 !--------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
 
     NTOT1 = NX1*NY1*NZ1*NELT
@@ -1348,7 +1348,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
     INCLUDE 'WZ'
 
@@ -1390,7 +1390,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'IXYZ'
+    use ixyz
     INCLUDE 'WZ'
 
     REAL :: X(NREST,NREST,NREST)
@@ -1459,7 +1459,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'IXYZ'
+    use ixyz
 
     REAL :: X(LX3,LY3,LZ3)
     REAL :: Y(LX1,LY1,LZ1)
@@ -1502,7 +1502,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'IXYZ'
+    use ixyz
 
     REAL :: X(LX1,LY1,LZ1)
     REAL :: Y(LX3,LY3,LZ3)
@@ -1539,7 +1539,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'IXYZ'
+    use ixyz
 
     REAL :: X(LX1,LY1,LZ1)
     REAL :: Y(LX2,LY2,LZ2)
@@ -1577,7 +1577,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'IXYZ'
+    use ixyz
 
     REAL :: X(LX2,LY2,LZ2)
     REAL :: Y(LX1,LY1,LZ1)
@@ -1618,7 +1618,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'IXYZ'
+    use ixyz
 
     REAL :: X(LX2,LY2,LZ2)
     REAL :: Y(LX1,LY1,LZ1)

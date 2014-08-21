@@ -4,7 +4,7 @@
     use size_m
     use fdmh1
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'SOLN'
     include 'TSTEP'
 
@@ -81,7 +81,7 @@
     use dxyz
     use geom
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'PARALLEL'
     INCLUDE 'WZ'
 
@@ -414,7 +414,7 @@
     use dxyz
     use geom
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
     INCLUDE 'WZ'
     REAL ::            DPCM1 (LX1,LY1,LZ1,1)
@@ -568,7 +568,7 @@
     use size_m
     use eigen
     use input
-    INCLUDE 'MASS'
+    use mass
     COMMON  /CPRINT/ IFPRINT
     LOGICAL ::          IFPRINT
     COMMON /CTMP0/ W1   (LX1,LY1,LZ1,LELT) &
@@ -653,7 +653,7 @@
     use geom
     use fdmh1
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
 
@@ -1048,7 +1048,7 @@
             use dxyz
             use fdmh1
             use input
-            include 'MASS'
+            use mass
             include 'WZ'
         
         

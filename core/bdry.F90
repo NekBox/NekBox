@@ -332,7 +332,7 @@
 
     use size_m
     use input
-    INCLUDE 'MVGEOM'
+    use mvgeom
     INCLUDE 'SOLN'
     INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
@@ -819,8 +819,8 @@
 
     use ctimer
     use size_m
+    use nekuse
     INCLUDE 'TOTAL'
-    INCLUDE 'NEKUSE'
 
     DIMENSION S(LX1,LY1,LZ1,LELT)
     common  /nekcb/ cb
@@ -948,10 +948,10 @@
 !     for scalar S.
 
     use size_m
+    use nekuse
     INCLUDE 'PARALLEL'
-    INCLUDE 'NEKUSE'
-    INCLUDE 'TSTEP'     ! ifield    11/19/2010
     INCLUDE 'SOLN'      ! tmask()   11/19/2010
+    INCLUDE 'TSTEP'     ! ifield    11/19/2010
 
     DIMENSION S(LX1,LY1,LZ1)
     CHARACTER CB*3
@@ -1022,7 +1022,7 @@
 !     face IFACE of element IEL for vector (V1,V2,V3).
 
     use size_m
-    INCLUDE 'NEKUSE'
+    use nekuse
     INCLUDE 'PARALLEL'
 
     dimension v1(nx,ny,nz),v2(nx,ny,nz),v3(nx,ny,nz)
@@ -1173,7 +1173,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'NEKUSE'
+    use nekuse
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
 

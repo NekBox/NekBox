@@ -494,7 +494,7 @@
     use size_m
     use eigen
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'SOLN'
     INCLUDE 'STEADY'
     INCLUDE 'TSTEP'
@@ -582,10 +582,10 @@
 
 !----------------------------------------------------------------------
     use size_m
+    use mass
     INCLUDE 'SOLN'
-    INCLUDE 'MASS'
-    INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
+    INCLUDE 'TSTEP'
     COMMON /SCRUZ/  DELTAT (LX1,LY1,LZ1,LELT) &
     ,              WA     (LX1,LY1,LZ1,LELT) &
     ,              WB     (LX1,LY1,LZ1,LELT)
@@ -636,7 +636,7 @@
 
     SUBROUTINE SSNORMD (DV1,DV2,DV3)
     use size_m
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'TSTEP'
     INCLUDE 'STEADY'
     REAL :: DV1(1),DV2(1),DV3(1)
@@ -662,7 +662,7 @@
     use size_m
     use eigen
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     REAL :: LENGTH
@@ -707,7 +707,7 @@
     use size_m
     use eigen
     use input
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     REAL :: LENGTH
@@ -731,8 +731,8 @@
 
     SUBROUTINE CHKTOLP (TOLMIN)
     use size_m
+    use mass
     INCLUDE 'SOLN'
-    INCLUDE 'MASS'
     INCLUDE 'TSTEP'
     COMMON /SCRMG/ DIVFLD (LX2,LY2,LZ2,LELV) &
     ,             WORK   (LX2,LY2,LZ2,LELV)

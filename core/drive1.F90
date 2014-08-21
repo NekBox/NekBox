@@ -14,8 +14,12 @@
     use esolv, only : init_esolv
     use fdmh1, only : init_fdmh1
     use geom, only : init_geom
+    use gmres, only : init_gmres
     use hsmg, only : init_hsmg
     use input, only : init_input
+    use ixyz, only : init_ixyz
+    use mass, only : init_mass
+    use mvgeom, only : init_mvgeom
 
     use domain
     include 'TOTAL'
@@ -46,8 +50,12 @@
     call init_esolv()
     call init_fdmh1()
     call init_geom()
+    call init_gmres()
     call init_hsmg()
     call init_input()
+    call init_ixyz()
+    call init_mass()
+    call init_mvgeom()
     write(*,*) "Max inits"
 
     call initdim

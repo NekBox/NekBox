@@ -188,7 +188,7 @@
     subroutine hmzpf2(nm,u,rhs,h1,h2,mask,mult,imsh,tol,mxit,isd)
     use size_m
     use input
-    include 'MASS'
+    use mass
     character(4) :: nm
 
     REAL ::           U    (LX1,LY1,LZ1,1)
@@ -221,7 +221,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
     include 'ORTHOV'
@@ -331,7 +331,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
     include 'ORTHOV'
@@ -361,7 +361,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
     include 'ORTHOV'
@@ -395,7 +395,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
     include 'ORTHOV'
@@ -440,7 +440,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'ORTHOV'
     include 'TSTEP'
 

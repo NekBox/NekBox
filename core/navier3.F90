@@ -12,7 +12,7 @@
     use geom
     use input
     use mass
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     REAL ::           Z2   (LX2,LY2,LZ2,LELV)
@@ -55,7 +55,7 @@
     use size_m
     use domain
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
 
     real :: u(1),v(1)

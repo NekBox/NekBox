@@ -1,8 +1,8 @@
     subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
     use size_m
     use input
-    include 'PARALLEL'
-    include 'NONCON'
+    use noncon
+    use parallel
 
     integer :: gs_handle
     integer :: vertex(1)
@@ -34,8 +34,8 @@
     use ctimer
     use size_m
     use input
-    include 'NONCON'
-    include 'PARALLEL'
+    use noncon
+    use parallel
     include 'TSTEP'
     real :: u(1)
 
@@ -97,7 +97,7 @@
     use ctimer
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     real :: u(1)
@@ -166,7 +166,7 @@
     use ctimer
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
 
@@ -214,7 +214,7 @@
     use ctimer
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'TOPOL'
     INCLUDE 'TSTEP'
 
@@ -485,8 +485,8 @@
     use ctimer
     use size_m
     use input
-    include 'NONCON'
-    include 'PARALLEL'
+    use noncon
+    use parallel
     include 'TSTEP'
     real :: u(1)
 
@@ -528,8 +528,8 @@
     use ctimer
     use size_m
     use input
-    include 'NONCON'
-    include 'PARALLEL'
+    use noncon
+    use parallel
     include 'TSTEP'
     real :: u(1)
 
@@ -563,8 +563,8 @@
     use ctimer
     use size_m
     use input
-    include 'NONCON'
-    include 'PARALLEL'
+    use noncon
+    use parallel
     include 'TSTEP'
     real :: u(1)
 
@@ -625,8 +625,8 @@
     use ctimer
     use size_m
     use input
-    include 'NONCON'
-    include 'PARALLEL'
+    use noncon
+    use parallel
     include 'TSTEP'
     real :: u(1),mask(1)
 
@@ -690,8 +690,8 @@
     use ctimer
     use size_m
     use input
-    include 'NONCON'
-    include 'PARALLEL'
+    use noncon
+    use parallel
     include 'TSTEP'
     real :: u(1),mask(1),binv(1)
 

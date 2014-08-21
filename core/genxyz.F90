@@ -559,8 +559,8 @@
     use size_m
     use geom
     use input
+    use parallel
     include 'TOPOL'
-    include 'PARALLEL'
     include 'WZ'
 
     real :: xml(nxl,nyl,nzl,1),yml(nxl,nyl,nzl,1),zml(nxl,nyl,nzl,1)
@@ -1241,8 +1241,8 @@
     use size_m
     use geom
     use input
+    use parallel
     include 'TOPOL'
-    include 'PARALLEL'
     include 'WZ'
 
     real :: xl(nxl*nyl*nzl,1),yl(nxl*nyl*nzl,1),zl(nxl*nyl*nzl,1)

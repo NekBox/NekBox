@@ -11,7 +11,7 @@
     subroutine byte_open_mpi(fname,mpi_fh,ierr)
 
     use size_m
-    include 'RESTART'
+    use restart
 
 #ifdef MPIIO
     include 'mpif.h'
@@ -40,7 +40,7 @@
     subroutine byte_read_mpi(buf,icount,iorank,mpi_fh,ierr)
 
     use size_m
-    include 'RESTART'
+    use restart
 
 #ifdef MPIIO
     include 'mpif.h'
@@ -77,7 +77,7 @@
     subroutine byte_write_mpi(buf,icount,iorank,mpi_fh,ierr)
 
     use size_m
-    include 'RESTART'
+    use restart
 
 #ifdef MPIIO
     include 'mpif.h'
@@ -112,7 +112,7 @@
     subroutine byte_close_mpi(mpi_fh,ierr)
 
     use size_m
-    include 'RESTART'
+    use restart
 
 #ifdef MPIIO
     include 'mpif.h'
@@ -135,7 +135,7 @@
     subroutine byte_set_view(ioff_in,mpi_fh)
 
     use size_m
-    include 'RESTART'
+    use restart
 
 #ifdef MPIIO
     include 'mpif.h'
@@ -162,8 +162,8 @@
     subroutine nek_comm_io(nn)
 
     use size_m
-    include 'RESTART'
-    include 'PARALLEL'
+    use parallel
+    use restart
 
 #ifdef MPIIO
     include 'mpif.h'

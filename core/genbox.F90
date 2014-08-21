@@ -70,7 +70,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'ZPER'
 
 !     integer vertex((2**ldim)*lelt)    ! local -- 2D for now !?  long?
@@ -345,7 +345,7 @@
 !     Given melx  x  mely  x  melz elements, distribute to np processors
 
     use size_m
-    include 'PARALLEL'
+    use parallel
     include 'ZPER'
 
     nelx = melx
@@ -375,7 +375,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'ZPER'
 
     real :: x(0:1),y(0:1),z(0:1)
@@ -904,7 +904,7 @@
     use size_m
     use input
     include 'ZPER'
-    include 'PARALLEL'
+    use parallel
 
     call bcast(ndim,isize)
     call bcast(nfld,isize)
@@ -933,7 +933,7 @@
     use size_m
     use input
     include 'ZPER'
-    include 'PARALLEL'
+    use parallel
     integer :: e
 
     if (np > 1) return

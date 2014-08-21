@@ -987,7 +987,7 @@
     use size_m
     use input
     use mass
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
 
@@ -1050,7 +1050,7 @@
     use size_m
     use input
     use mass
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
 

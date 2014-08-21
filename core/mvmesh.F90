@@ -1017,7 +1017,7 @@
     use geom
     use input
     use mvgeom
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     CHARACTER CB*1

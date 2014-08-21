@@ -352,8 +352,8 @@
 
     use size_m
     use input
+    use parallel
     INCLUDE 'TSTEP'
-    INCLUDE 'PARALLEL'
 
 !     Try to hang in there on the first few time steps (pff 8/92)
     IF (IFTRAN .AND. ISTEP < 9) RETURN

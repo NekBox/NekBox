@@ -12,7 +12,7 @@
     use ixyz
     use mass
     use mvgeom
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
      
@@ -123,7 +123,7 @@
          
 
     call nekgsync()
-    call restart(nfiles) !  Check restart files
+    call restart_driver(nfiles) !  Check restart files
     call nekgsync()
 
 
@@ -386,7 +386,7 @@
 !---------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'RESTART'
+    use restart
 
     logical  iffort(  ldimt1,0:lpert) &
     , ifrest(0:ldimt1,0:lpert) &
@@ -509,7 +509,7 @@
     return
     end subroutine slogic
 !-----------------------------------------------------------------------
-    subroutine restart(nfiles)
+    subroutine restart_driver(nfiles)
 !----------------------------------------------------------------------
 
 !     (1) Open restart file(s)
@@ -527,8 +527,8 @@
 
 !----------------------------------------------------------------------
     use size_m
+    use restart
     INCLUDE 'TOTAL'
-    INCLUDE 'RESTART'
 
     common /inelr/ nelrr
 
@@ -1045,7 +1045,7 @@
     6000 END DO
 
     return
-    end subroutine restart
+    end subroutine restart_driver
 
 !-----------------------------------------------------------------------
     subroutine sioflag(ndumps,fname,rsopts)
@@ -1054,7 +1054,7 @@
 
     use size_m
     use input
-    INCLUDE 'RESTART'
+    use restart
     INCLUDE 'TSTEP'
 
     character(132) :: rsopts,fname
@@ -1202,7 +1202,7 @@
 
 !----------------------------------------------------------------------
     use size_m
-    INCLUDE 'PARALLEL'
+    use parallel
 
     PARAMETER (LXYZ1=LX1*LY1*LZ1)
     PARAMETER (LXR=LX1+6)
@@ -1677,7 +1677,7 @@
     use size_m
     use input
     use nekuse
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'TURBO'
@@ -1998,8 +1998,8 @@
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
 
     real :: u(lx1*ly1*lz1,1)
@@ -2139,8 +2139,8 @@
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     real :: u(lx1*ly1*lz1,1),v(lx1*ly1*lz1,1),w(lx1*ly1*lz1,1)
     logical :: iskip
@@ -2305,8 +2305,8 @@
     subroutine parse_std_hdr(hdr)
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     character(132) :: hdr
     character(4) :: dummy
@@ -2386,7 +2386,7 @@
     subroutine parse_std_hdr_2006(hdr,rlcode)
     use size_m
     use input
-    include 'RESTART'
+    use restart
 
     character(132) :: hdr
     character(1) :: rlcode(20)
@@ -2444,8 +2444,8 @@
 
 
     use size_m
+    use restart
     include 'TOTAL'
-    include 'RESTART'
     character(132) :: hdr
     character(132) ::  fname
 
@@ -2574,8 +2574,8 @@
 !-----------------------------------------------------------------------
     subroutine mbyte_open(hname,fid,ierr) ! open  blah000.fldnn
     use size_m
+    use restart
     include 'TSTEP'
-    include 'RESTART'
      
     integer :: fid
     character(132) :: hname
@@ -2625,8 +2625,8 @@
     subroutine mfi_prepare(hname)  ! determine which nodes are readers
 
     use size_m
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     character(132) :: hname
     integer :: stride
@@ -2734,8 +2734,8 @@
     subroutine axis_interp_ic(pm1)
 
     use size_m
+    use restart
     include 'TOTAL'
-    include 'RESTART'
 
     real :: pm1(lx1,ly1,lz1,lelv)
 
@@ -2786,8 +2786,8 @@
     subroutine map_pm1_to_pr(pm1,ifile)
 
     use size_m
+    use restart
     include 'TOTAL'
-    include 'RESTART'
 
     logical :: if_full_pres_tmp
 
@@ -2832,7 +2832,7 @@
         param(67) = 6.00
         call chcopy (initc,s80(ifile),80)
         call bcast  (initc,80)
-        call restart       (1)
+        call restart_driver(1)
         param(67)=p67
     endif
        

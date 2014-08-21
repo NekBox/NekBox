@@ -36,7 +36,8 @@ PPS_C = $(patsubst %,-D%,$(PPS))
 CORE = \
 kinds_mod.o ctimer_mod.o size_mod.o dealias_mod.o domain_mod.o dxyz_mod.o \
 eigen_mod.o esolv_mod.o fdmh1_mod.o geom_mod.o gmres_mod.o hsmg_mod.o input_mod.o \
-ixyz_mod.o mass_mod.o mvgeom_mod.o nekuse_mod.o \
+ixyz_mod.o mass_mod.o mvgeom_mod.o nekuse_mod.o noncon_mod.o parallel_mod.o \
+opctr_mod.o restart_mod.o \
 drive.o drive1.o drive2.o \
 plan4.o bdry.o coef.o conduct.o connect1.o connect2.o \
 dssum.o edgec.o eigsolv.o genxyz.o navier1.o  \
@@ -204,6 +205,10 @@ $(OBJDIR)/ixyz_mod.o	:$S/ixyz_mod.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/mass_mod.o	:$S/mass_mod.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/mvgeom_mod.o	:$S/mvgeom_mod.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/nekuse_mod.o	:$S/nekuse_mod.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/noncon_mod.o	:$S/noncon_mod.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/opctr_mod.o	:$S/opctr_mod.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/parallel_mod.o	:$S/parallel_mod.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/restart_mod.o	:$S/restart_mod.F90;			$(F77) -c $(FL2) $< -o $@
 
 $(OBJDIR)/drive.o	:$S/drive.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F77) -c $(FL2) $< -o $@

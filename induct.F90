@@ -1124,7 +1124,10 @@
     use soln
 !max    include 'ORTHOV'
     use tstep
-    include 'VPROJ'
+
+    parameter (ktob = lbelv*lbx1*lby1*lbz1)
+    common /wrthoi/ ivproj(2,6)
+    common /wrthov/  vproj(ktob*mxprev,2*ldim)
 
     parameter (ktot = lx1*ly1*lz1*lelt)
 

@@ -226,7 +226,23 @@
 !     Single element case
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: u(1),ux(1),uy(1),uz(1)
     integer :: e
@@ -288,7 +304,23 @@
 !            alpha = 2.   For the anelastic case, alpha=4/3.
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter(lxyz = lx1*ly1*lz1)
     real ::  afx(lxyz,lelv),afy(lxyz,lelv),afz(lxyz,lelv)

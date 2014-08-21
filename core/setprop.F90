@@ -6,7 +6,23 @@
 !------------------------------------------------------------------------
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Caution: 2nd and 3rd strainrate invariants residing in scratch
 !              common /SCREV/ are used in STNRINV and NEKASGN

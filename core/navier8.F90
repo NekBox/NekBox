@@ -1610,7 +1610,23 @@
 !-----------------------------------------------------------------------
     subroutine get_vertex
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     common /ivrtx/ vertex ((2**ldim)*lelt)
@@ -1719,7 +1735,23 @@
 !-----------------------------------------------------------------------
     subroutine get_vert
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     common /ivrtx/ vertex ((2**ldim),lelt)
@@ -2569,7 +2601,23 @@
     subroutine check_p_bc(glo_num,nx,ny,nz,nel)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer*8 :: glo_num(nx,ny,nz,nel)
     integer*8 :: gmn

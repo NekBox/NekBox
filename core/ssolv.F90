@@ -205,7 +205,23 @@
 
 !----------------------------------------------------------------
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real*8 :: X(1), Y(1)
 
     CALL MKARR (X)
@@ -247,7 +263,23 @@
 
 !----------------------------------------------------------------
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     IF ( .NOT. IFSKIP) NJSTEP=1
     IF (     IFSKIP) NJSTEP=NSSKIP
@@ -792,7 +824,23 @@
 
 !--------------------------------------------------------------------
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     COMMON /SCRNS/ W1    (LX1,LY1,LZ1,LELV) &
     ,             W2    (LX1,LY1,LZ1,LELV) &
     ,             W3    (LX1,LY1,LZ1,LELV) &

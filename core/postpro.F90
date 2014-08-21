@@ -29,7 +29,23 @@
 !     Generate Lambda-2 vortex of Jeong & Hussein, JFM '95
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: l2(lx1,ly1,lz1,1)
 
@@ -261,7 +277,23 @@
 !                                         du_j
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: gije(lx1*ly1*lz1,ldim,ldim)
     real :: u   (lx1*ly1*lz1)
@@ -347,7 +379,23 @@
     subroutine filter_s0(scalar,wght,ncut,name5) ! filter scalar field
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: scalar(1)
     character(5) :: name5
@@ -660,7 +708,23 @@
 !     Compute symmetric part of a tensor G_ij for element e
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: gije(lx1*ly1*lz1,ldim,ldim)
 
@@ -814,7 +878,23 @@
 ! byte read is float size..
 ! 4 wdsize
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(80) :: hdr
     real*4 :: test
@@ -857,7 +937,23 @@
 !-----------------------------------------------------------------------
     subroutine gen_re2_xyz
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter (lv=2**ldim,lblock=1000)
     common /scrns/ xyz(lv,ldim,lblock),wk(lv*ldim*lblock)
@@ -1043,7 +1139,23 @@
 !     A two pass strategy is used:  first count, then write
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: e,eb,eg,wdsiz2
     character(1) :: cc(4)
@@ -1161,7 +1273,23 @@
     subroutine gen_re2_bc (ifld)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: e,eb,eg,wdsiz2
 
@@ -1280,7 +1408,23 @@
     subroutine gen_rea(imid)  ! Generate and output essential parts of .rea
 ! Clobbers ccurve()
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     imid = 0  ! No midside node defs
 !     imid = 1  ! Midside defs where current curve sides don't exist
@@ -1304,7 +1448,23 @@
 !-----------------------------------------------------------------------
     subroutine gen_rea_xyz
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter (lv=2**ldim,lblock=1000)
     common /scrns/ xyz(lv,ldim,lblock),wk(lv*ldim*lblock)
@@ -1406,7 +1566,23 @@
 !     A two pass strategy is used:  first count, then write
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: e,eb,eg
     character(1) :: cc
@@ -1503,7 +1679,23 @@
     subroutine gen_rea_bc (ifld)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: e,eb,eg
 
@@ -1592,7 +1784,23 @@
     subroutine gen_rea_midside_e(e)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /scrns/ x3(27),y3(27),z3(27),xyz(3,3)
     character(1) :: ccrve(12)
@@ -1660,7 +1868,23 @@
 
     use size_m
     use restart
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(132) :: geofld,outfld,infld
 
@@ -1927,7 +2151,23 @@
 !     ASSUMING LHIS IS MAX NUMBER OF POINTS TO READ IN ON ONE PROCESSOR
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter(nfldm=ldim+ldimt+1)
 
@@ -2169,7 +2409,23 @@
     subroutine hpts_out(fieldout,nflds,nfldm,npoints,nbuff)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: buf(nfldm,nbuff),fieldout(nfldm,nbuff)
 

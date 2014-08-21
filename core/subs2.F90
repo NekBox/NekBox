@@ -256,8 +256,8 @@
     use size_m
     use eigen
     use input
-    INCLUDE 'MASS'
-    INCLUDE 'MVGEOM'
+    use mass
+    use mvgeom
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
     INCLUDE 'WZ'
@@ -436,7 +436,7 @@
 
 !------------------------------------------------------------------
     use size_m
-    INCLUDE 'MASS'
+    use mass
     INCLUDE 'SOLN'
     common /scrmg/ ae1(lx1,ly1,lz1,lelv) &
     , ae2(lx1,ly1,lz1,lelv) &
@@ -1843,9 +1843,9 @@
 
     use size_m
     use input
+    use mvgeom
     INCLUDE 'SOLN'
     INCLUDE 'TSTEP'
-    INCLUDE 'MVGEOM'
 
     DIMENSION R1  (LX1,LY1,LZ1,1) &
     , R2  (LX1,LY1,LZ1,1) &

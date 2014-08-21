@@ -17,7 +17,7 @@
     use size_m
     use eigen
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -77,7 +77,7 @@
     use ctimer
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -124,8 +124,8 @@
 !     Compute and add: (1) user specified forcing function (FX,FY,FZ)
 
     use size_m
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     time = time-dt
@@ -144,8 +144,8 @@
 
     use size_m
     use input
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     common /scrns/ ta1 (lx1,ly1,lz1,lelv) &
@@ -182,7 +182,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -856,7 +856,7 @@
     use eigen
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -1024,7 +1024,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
 !max    include 'ORTHOV'
     include 'VPROJ'
@@ -1201,7 +1201,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -1364,7 +1364,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -1643,8 +1643,8 @@
 
     use size_m
     use input
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     common /scrns/ ta1 (lx1,ly1,lz1,lelv) &

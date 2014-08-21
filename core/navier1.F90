@@ -209,7 +209,7 @@
 !     Compute the pressure tolerance
 
     use size_m
-    include 'MASS'
+    use mass
     include 'TSTEP'
     REAL ::           RESPR (LX2,LY2,LZ2,LELV)
     COMMON /SCRMG/ WORK  (LX1,LY1,LZ1,LELV)
@@ -353,8 +353,8 @@
     use esolv
     use geom
     use input
-    include 'IXYZ'
-    include 'MASS'
+    use ixyz
+    use mass
     include 'WZ'
 
     real :: dtx  (lx1*ly1*lz1,lelv)
@@ -569,8 +569,8 @@
     use esolv
     use geom
     use input
-    include 'IXYZ'
-    include 'MASS'
+    use ixyz
+    use mass
     include 'WZ'
 
     real ::           dx   (lx2*ly2*lz2,lelv)
@@ -876,7 +876,7 @@
 !--------------------------------------------------------------------
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
 
     REAL :: OUT1  (1)
@@ -935,7 +935,7 @@
 !--------------------------------------------------------------------
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
 
     REAL :: OUT1  (1)
@@ -992,7 +992,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'TSTEP'
     include 'PARALLEL'
 
@@ -1068,7 +1068,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
@@ -1139,7 +1139,7 @@
 
 !-----------------------------------------------------------------
     use size_m
-    include 'MASS'
+    use mass
     REAL ::           RES  (1)
     REAL ::           Z    (1)
     REAL ::           wrk1(2),wrk2(2)
@@ -1167,7 +1167,7 @@
 
 !-----------------------------------------------------------------
     use size_m
-    include 'MASS'
+    use mass
     REAL ::           RES  (LX2,LY2,LZ2,LELV)
     COMMON /SCRMG/ TA   (LX2,LY2,LZ2,LELV) &
     ,             TB   (LX2,LY2,LZ2,LELV)
@@ -1194,7 +1194,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'TSTEP'
     REAL ::           RES (LX2,LY2,LZ2,LELV)
     COMMON /CTMP0/ TA  (LX2,LY2,LZ2,LELV) &
@@ -1534,7 +1534,7 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -1561,8 +1561,8 @@
 
 !----------------------------------------------------------------------
     use size_m
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     TIME = TIME-DT
@@ -1575,8 +1575,8 @@
 
     subroutine nekuf (f1,f2,f3)
     use size_m
+    use nekuse
     include 'PARALLEL'
-    include 'NEKUSE'
     REAL :: F1 (LX1,LY1,LZ1,LELV)
     REAL :: F2 (LX1,LY1,LZ1,LELV)
     REAL :: F3 (LX1,LY1,LZ1,LELV)
@@ -1604,8 +1604,8 @@
 
 !-----------------------------------------------------------------------
     use size_m
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     COMMON /SCRUZ/ TA1 (LX1,LY1,LZ1,LELV) &
@@ -1637,7 +1637,7 @@
 !----------------------------------------------------------------
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
@@ -1691,8 +1691,8 @@
 
 !---------------------------------------------------------------
     use size_m
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     COMMON /SCRUZ/ TA1 (LX1,LY1,LZ1,LELV) &
@@ -1722,7 +1722,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -1980,7 +1980,7 @@
 !---------------------------------------------------------------------
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -2020,7 +2020,7 @@
 
 !--------------------------------------------------------------------------
     use size_m
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -2148,7 +2148,7 @@
 
 !--------------------------------------------------------------------------
     use size_m
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -2306,7 +2306,7 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'MASS'
+    use mass
     include 'TSTEP'
     REAL :: Y    (LX1,LY1,LZ1,1)
     REAL :: X    (LX1,LY1,LZ1,1)
@@ -2471,7 +2471,7 @@
 
 !---------------------------------------------------------------
     use size_m
-    include 'MASS'
+    use mass
 
     REAL ::           X  (LX1,LY1,LZ1,1)
     COMMON /SCRNRM/ Y  (LX1,LY1,LZ1,LELT) &
@@ -2528,7 +2528,7 @@
 
 !---------------------------------------------------------------
     use size_m
-    include 'MASS'
+    use mass
 
     REAL ::           X1 (LX1,LY1,LZ1,1)
     REAL ::           X2 (LX1,LY1,LZ1,1)
@@ -4106,7 +4106,7 @@
 
     use size_m
     use geom
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
     real :: vxn(1),vyn(1),vzn(1)
@@ -4175,8 +4175,8 @@
     use dxyz
     use geom
     use input
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     real ::  du(1),dv(1),dw(1)
@@ -4364,8 +4364,8 @@
     use dxyz
     use geom
     use input
+    use mass
     include 'SOLN'
-    include 'MASS'
     include 'TSTEP'
 
     real ::  du(1),dv(1),dw(1)
@@ -4493,7 +4493,7 @@
 
 !--------------------------------------------------------------------------
     use size_m
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -4813,8 +4813,8 @@
      
 !----------------------------------------------------------------------
     use size_m
+    use mass
     INCLUDE 'SOLN'
-    INCLUDE 'MASS'
     INCLUDE 'TSTEP'
 
     COMMON /SCRUZ/ W1 (LX1,LY1,LZ1,LELV) &
@@ -5049,7 +5049,7 @@
     use size_m
     use geom    ! jacmi,rxm1, etc.
     use input   ! if3d
-    include 'MASS'    ! bm1
+    use mass    ! bm1
     include 'SOLN'    ! vtrans,vdiff,nu_star
     include 'TSTEP'   ! dt
     include 'WZ'      ! w3m1
@@ -5130,7 +5130,7 @@
     use size_m
     use geom    ! jacmi,rxm1, etc.
     use input   ! if3d
-    include 'MASS'    ! bm1
+    use mass    ! bm1
     include 'SOLN'    ! vtrans,vdiff,nu_star
     include 'TSTEP'   ! dt
     include 'WZ'      ! w3m1

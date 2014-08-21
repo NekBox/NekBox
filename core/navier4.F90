@@ -5,7 +5,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -152,7 +152,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     PARAMETER (LTOT2=LX2*LY2*LZ2*LELV)
     COMMON /ORTHOV/ RHS(LTOT2,MXPREV)
     COMMON /ORTHOX/ Pbar(LTOT2),Pnew(LTOT2)
@@ -196,7 +196,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -268,7 +268,7 @@
 !--------------------------------------------------------------------
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
     COMMON /CTOLPR/ DIVEX
@@ -348,7 +348,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'TSTEP'
 
     PARAMETER (LTOT2=LX2*LY2*LZ2*LELV)
@@ -421,7 +421,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -474,7 +474,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -544,7 +544,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
 
@@ -600,7 +600,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'PARALLEL'
     include 'TSTEP'
@@ -684,7 +684,7 @@
 
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'TSTEP'
 
 
@@ -747,7 +747,7 @@
     use size_m
     use fdmh1
     use input
-    include 'MASS'
+    use mass
 
     CHARACTER(4) ::    NAME
     REAL ::           U    (LX1,LY1,LZ1,1)
@@ -796,7 +796,7 @@
     use size_m
     use fdmh1
     use input
-    include 'MASS'
+    use mass
     include 'TSTEP'
 
     CHARACTER(4) ::    NAME

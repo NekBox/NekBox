@@ -1431,7 +1431,7 @@
     use geom
     use input
     use hsmg
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
     include 'PARALLEL'
@@ -1917,7 +1917,7 @@
     use geom
     use input
     use hsmg       ! Same array space as HSMG
-    include 'MASS'
+    use mass
     include 'SOLN'
     include 'TSTEP'
     include 'PARALLEL'
@@ -2843,7 +2843,7 @@
     subroutine mg_set_gb  (p_g,p_b,l0)
     use size_m
     use hsmg
-    include 'MASS'   ! bm1
+    use mass   ! bm1
     include 'TSTEP'  ! nelfld
 
     integer :: p_g,p_b,e

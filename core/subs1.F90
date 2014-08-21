@@ -386,7 +386,7 @@
     use size_m
     use eigen
     use input
-    include 'MASS'
+    use mass
 
     REAL :: RES  (LX1,LY1,LZ1,1)
     REAL :: W1   (LX1,LY1,LZ1,1)
@@ -453,8 +453,8 @@
     use size_m
     use geom
     use input
-    include 'MVGEOM'
-    include 'MASS'
+    use mass
+    use mvgeom
     include 'SOLN'
     include 'TSTEP'
 
@@ -1293,10 +1293,10 @@
 !------------------------------------------------------------------
     use size_m
     use input
+    use nekuse
+    include 'PARALLEL'
     include 'SOLN'
     include 'TSTEP'
-    include 'PARALLEL'
-    include 'NEKUSE'
     ielg = lglel(iel)
 !     IF (IFSTRS .AND. IFIELD.EQ.1) CALL STNRINV ! don't call! pff, 2007
     DO 10 K=1,NZ1
@@ -1345,7 +1345,7 @@
 !-----------------------------------------------------------------------
     use size_m
     use input
-    include 'MASS'
+    use mass
     include 'SOLN'   ! For outpost diagnostic call
     include 'TSTEP'
     include 'ORTHOSTRS'
@@ -1432,7 +1432,7 @@
     use size_m
     use eigen
     use input
-    include 'MASS'
+    use mass
     common /cprint/ ifprint
     logical ::         ifprint
     common /ctmp0/ wa (lx1,ly1,lz1,lelt)
@@ -1514,7 +1514,7 @@
     use size_m
     use geom
     use input
-    include 'MASS'
+    use mass
     include 'TSTEP'
     common /fastmd/ ifdfrm(lelt), iffast(lelt), ifh2, ifsolv
     logical :: ifdfrm, iffast, ifh2, ifsolv

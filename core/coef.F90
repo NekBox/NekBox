@@ -967,7 +967,7 @@
     subroutine chkjac(jac,n,iel,X,Y,Z,ND,IERR)
 
     use size_m
-    include 'PARALLEL'
+    use parallel
 
 !     Check the array JAC for a change in sign.
 

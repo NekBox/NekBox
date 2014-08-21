@@ -2,7 +2,7 @@
 
     use size_m
     use input
-    include 'RESTART'
+    use restart
 
     character(1) :: string(1),fout(132),BLNK
     character(6) :: ext
@@ -1659,8 +1659,8 @@
 !     note: 8-byte fld files are currently not supported!
 
     use size_m
+    use restart
     include 'TOTAL'
-    include 'RESTART'
 
     character(132) :: geofld,outfld,infld
 
@@ -2042,7 +2042,7 @@
     subroutine buffer_in(buffer,npp,npoints,nbuf)
             
     use size_m
-    include 'PARALLEL'
+    use parallel
 
     real ::    buffer(ldim,nbuf)
 
@@ -2107,7 +2107,7 @@
 !                        npts=local count; npoints=total count
 
     use size_m
-    include 'PARALLEL'
+    use parallel
 
     parameter (lt2=2*lx1*ly1*lz1*lelt)
     common /scrns/ xyz(ldim,lt2)

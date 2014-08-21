@@ -184,7 +184,7 @@
     use input
     use mass
     use nekuse
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
 

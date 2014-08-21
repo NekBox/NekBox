@@ -5,7 +5,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'ZPER'
      
     logical :: ifbswap,ifre2
@@ -216,7 +216,7 @@
     use ctimer
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'ZPER'
 
     character(132) :: string(100)
@@ -706,7 +706,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     character(1) :: adum
     real ::    dum(4)
 
@@ -794,7 +794,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
     CHARACTER(1) :: ANS
 
 
@@ -886,7 +886,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'SCRCT'
     CHARACTER CBC1*1,CBC3*3,CHTEMP*1,CHTMP3*3
     EQUIVALENCE (CHTEMP,CHTMP3)
@@ -1064,7 +1064,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
 
     character(132) :: line
     logical ::      ifgtil
@@ -1132,7 +1132,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
 
     CHARACTER(132) :: LINE
 
@@ -1180,7 +1180,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
 
     CALL BLANK (HCODE ,11*lhis)
     CALL IZERO (LOCHIS, 4*lhis)
@@ -1254,7 +1254,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
 
     logical :: lbuf(5+ldimt1)
 
@@ -1338,7 +1338,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
 
 !     Default if no data is read No Objects
 
@@ -2023,7 +2023,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'TSTEP'
 
     DIMENSION LIST(LELT),LIST1(LELT),LIST2(LELT)
@@ -2587,7 +2587,7 @@
     subroutine buf_close_outv  ! this is the stupid O(P) formulation
 
     use size_m
-    include 'PARALLEL'
+    use parallel
     integer*4 :: zero
     real ::      rzero
 
@@ -2609,7 +2609,7 @@
     subroutine buf_close_out  ! this is the stupid O(P) formulation
 
     use size_m
-    include 'PARALLEL'
+    use parallel
     integer*4 :: zero
     real ::      rzero
 

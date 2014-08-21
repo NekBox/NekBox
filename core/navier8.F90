@@ -41,7 +41,7 @@
     use esolv
     use geom
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
     real :: uf(1),vf(1)
@@ -86,7 +86,7 @@
     use domain
     use geom
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
@@ -497,8 +497,8 @@
     use domain
     use geom
     use input
+    use parallel
     include 'TSTEP'
-    include 'PARALLEL'
 
 
 !     Generate local triangular matrix
@@ -813,8 +813,8 @@
     use domain
     use geom
     use input
+    use parallel
     include 'TSTEP'
-    include 'PARALLEL'
 
 !     Generate local triangle-based stiffnes matrix for quad
 
@@ -1329,7 +1329,7 @@
     use domain
     use geom
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
 
@@ -1749,7 +1749,7 @@
     subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     logical :: ifgfdm
     common /nekmpi/ nid_,np_,nekcomm,nekgroup,nekreal
     integer :: vertex(nlv,1)
@@ -2006,7 +2006,7 @@
     use ctimer
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'TOPOL'
 
     integer*8 :: glo_num(1),ngv
@@ -2361,7 +2361,7 @@
     use ctimer
     use size_m
     use geom
-    include 'PARALLEL'
+    use parallel
     include 'TOPOL'
 
     integer*8 :: glo_num(1),ngv

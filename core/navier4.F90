@@ -312,13 +312,13 @@
     RETURN
     end subroutine chkptol
     FUNCTION VLSC3(X,Y,B,N)
+    use opctr
 
 !     local inner product, with weight
 
     DIMENSION X(1),Y(1),B(1)
     REAL :: DT
 
-    include 'OPCTR'
 
     if (isclld == 0) then
         isclld=1
@@ -601,8 +601,8 @@
     use size_m
     use input
     use mass
+    use parallel
     include 'SOLN'
-    include 'PARALLEL'
     include 'TSTEP'
 
     parameter  (lt=lx1*ly1*lz1*lelt)

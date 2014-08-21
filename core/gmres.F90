@@ -650,7 +650,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'WZ'
 
@@ -1277,8 +1277,8 @@
     subroutine setupds_no_crn(gs_h,nx,ny,nz,nel,melg,vertex,glo_num)
     use size_m
     use input
-    include 'PARALLEL'
-    include 'NONCON'
+    use noncon
+    use parallel
     integer ::   gs_h,vertex(1),e
     integer*8 :: ngv,glo_num(nx,ny,nz,nel)
           

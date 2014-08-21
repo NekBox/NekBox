@@ -19,10 +19,10 @@
 
 
     use size_m
+    use noncon
     include 'TOTAL'
-    include 'NONCON'
-    include 'ZPER'
     include 'SCRCT'
+    include 'ZPER'
 
     COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
     ,             YM3 (LX3,LY3,LZ3,LELT) &
@@ -804,7 +804,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SCRCT'
      
     call verrhe
@@ -893,7 +893,7 @@
 
     use size_m
     use input
-    INCLUDE 'PARALLEL'
+    use parallel
     INCLUDE 'SCRCT'
     INCLUDE 'TOPOL'
     LOGICAL :: IFYES,IFCSTT
@@ -1556,7 +1556,7 @@
 !-----------------------------------------------------------------------
     subroutine outmatp(a,m,n,name6,ie)
     use size_m
-    include 'PARALLEL'
+    use parallel
     real :: a(m,n)
     character(6) :: name6
 
@@ -1794,7 +1794,7 @@
 
     use size_m
     include 'TOTAL'
-    include 'NONCON'
+    use noncon
     include 'ZPER'
 
     common /c_is1/ glo_num(1*lx1*ly1*lz1*lelv)

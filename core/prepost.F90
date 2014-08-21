@@ -267,8 +267,8 @@
 !     output .fld file
 
     use size_m
+    use restart
     include 'TOTAL'
-    include 'RESTART'
 
 !     Work arrays and temporary arrays
 
@@ -656,7 +656,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'TSTEP'
 
@@ -938,7 +938,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
 
     DIMENSION SMULT (LX1,LY1,LZ1,1)
 
@@ -989,7 +989,7 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     CHARACTER(132) :: NAME
@@ -1380,8 +1380,8 @@
     subroutine mfo_outfld(prefix)  ! muti-file output
 
     use size_m
+    use restart
     include 'TOTAL'
-    include 'RESTART'
     common /scrcg/ pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
 
     integer*8 :: offs0,offs,nbyte,stride,strideB,nxyzo8
@@ -1563,8 +1563,8 @@
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     character(132) :: hname
     ifdiro = .FALSE. 
@@ -1625,8 +1625,8 @@
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     character(1) :: prefix(3)
     character(3) :: prefx
@@ -1842,8 +1842,8 @@ endif
 
 
     use size_m
+    use restart
     include 'TOTAL'
-    include 'RESTART'
 
     integer :: iosave,save_size,nfldi
     character(3) :: prefix
@@ -2001,8 +2001,8 @@ endif
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     real :: u(lx1*ly1*lz1,1),v(lx1*ly1*lz1,1),w(lx1*ly1*lz1,1)
 
@@ -2092,8 +2092,8 @@ endif
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     real :: u(lx1*ly1*lz1,1)
 
@@ -2168,8 +2168,8 @@ endif
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     real :: u(mx,my,mz,1)
 
@@ -2257,8 +2257,8 @@ endif
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
 
     real :: u(mx*my*mz,1),v(mx*my*mz,1),w(mx*my*mz,1)
 
@@ -2378,8 +2378,8 @@ endif
 
     use size_m
     use input
-    include 'PARALLEL'
-    include 'RESTART'
+    use parallel
+    use restart
     include 'TSTEP'
     real*4 :: test_pattern
     common /ctmp0/ lglist(0:lelt)

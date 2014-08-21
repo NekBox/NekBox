@@ -2,7 +2,7 @@
     subroutine mapelpr()
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SCRCT'
     include 'SOLN'
     include 'TSTEP'
@@ -101,7 +101,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'SOLN'
     include 'SCRCT'
     include 'TSTEP'

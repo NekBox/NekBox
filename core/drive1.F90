@@ -20,12 +20,14 @@
     use ixyz, only : init_ixyz
     use mass, only : init_mass
     use mvgeom, only : init_mvgeom
+    use noncon, only : init_noncon
+    use parallel, only : init_parallel
 
     use domain
+    use opctr
     include 'TOTAL'
     include 'ZPER'
 
-    include 'OPCTR'
 
     real :: kwave2
     real*8 :: t0, tpp
@@ -56,6 +58,8 @@
     call init_ixyz()
     call init_mass()
     call init_mvgeom()
+    call init_noncon()
+    call init_parallel()
     write(*,*) "Max inits"
 
     call initdim
@@ -322,9 +326,9 @@
     subroutine nek_end
 
     use size_m
+    use parallel
+    use opctr
     include 'TSTEP'
-    include 'PARALLEL'
-    include 'OPCTR'
 
     if(instep /= 0)  call runstat
     if(xxth(1) > 0) call crs_stats(xxth(1))

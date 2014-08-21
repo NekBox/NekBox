@@ -486,7 +486,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
 
     CHARACTER(132) :: NAME
     CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
@@ -891,7 +891,7 @@
 
     use size_m
     use input
-    include 'PARALLEL'
+    use parallel
     include 'TSTEP'
 
     if (np > 1) return
@@ -1464,7 +1464,7 @@
 !-----------------------------------------------------------------------
     subroutine pprint_all(s,n_in,io)
     use size_m
-    include 'PARALLEL'
+    use parallel
 
     character(1) :: s(n_in)
     character(1) :: w(132)
@@ -1507,8 +1507,8 @@
     subroutine opcount(ICALL)
 
     use size_m
-    include 'PARALLEL'
-    include 'OPCTR'
+    use parallel
+    use opctr
 
     character(6) :: sname(maxrts)
     integer ::     ind  (maxrts)

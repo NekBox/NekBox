@@ -1,7 +1,7 @@
 !---------------------------------------------------------------------
     subroutine iniproc(intracomm)
     use size_m
-    include 'PARALLEL'
+    use parallel
     include 'mpif.h'
 
     common /nekmpi/ nid_,np_,nekcomm,nekgroup,nekreal
@@ -286,7 +286,7 @@
 !     Broadcast logical variable to all processors.
 
     use size_m
-    include 'PARALLEL'
+    use parallel
     include 'mpif.h'
 
     logical :: ifif
@@ -594,7 +594,7 @@
 ! ivb = 2 --> smaller sample set(shorter)
 
     use size_m
-    include 'PARALLEL'
+    use parallel
 
     call gop_test(ivb)   ! added, Jan. 8, 2008
 

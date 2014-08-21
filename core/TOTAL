@@ -7,7 +7,7 @@
   use ixyz
   use mass
   use mvgeom
-    include 'PARALLEL'
+  use parallel
     include 'SOLN'
     include 'STEADY'
     include 'TOPOL'

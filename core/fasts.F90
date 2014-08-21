@@ -18,7 +18,7 @@
     use size_m
     use domain
     use input
-    include 'PARALLEL'
+    use parallel
 
     include 'TSTEP'
 

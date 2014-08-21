@@ -143,7 +143,23 @@
 !     Compute start residual/right-hand-side in the pressure
 
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     REAL ::           RESPR (LX2*LY2*LZ2*LELV)
 
@@ -263,7 +279,23 @@
 !     Compute the residual for the velocity
 
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: resv1(lx1,ly1,lz1,lelv) &
     , resv2(lx1,ly1,lz1,lelv) &
@@ -303,7 +335,23 @@
     subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: duax(lx1), ta(lx1,ly1,lz1,lelv)
 
@@ -395,7 +443,23 @@
 !     extrapolate velocity
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
        
     real :: vext(lx1*ly1*lz1*lelv,1)
 
@@ -430,7 +494,23 @@
 !     explicit (VDIFF_E) part.
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     n = nx1*ny1*nz1*nelv
 
@@ -445,7 +525,23 @@
     subroutine redo_split_vis     !     Redo split viscosity
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     n = nx1*ny1*nz1*nelv
     call add2(vdiff,vdiff_e,n) ! sum up explicit and implicit part

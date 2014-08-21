@@ -10,7 +10,23 @@
 
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Work arrays and temporary arrays
 
@@ -154,7 +170,23 @@
 !     Store results for later postprocessing
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Work arrays and temporary arrays
 
@@ -268,7 +300,23 @@
 
     use size_m
     use restart
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Work arrays and temporary arrays
 
@@ -466,7 +514,23 @@
     subroutine outhis(ifhis) ! output time history info
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     common /scrcg/ pm1    (lx1,ly1,lz1,lelv)
 
     real :: hdump(25)
@@ -1156,7 +1220,23 @@
     subroutine dump_header(excodein,p66,ierr)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(30) ::  excodein
 
@@ -1233,7 +1313,23 @@
     subroutine fill_tmp(tdump,id,ie)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /scrcg/ pm1 (lx1,ly1,lz1,lelv)
 
@@ -1305,7 +1401,23 @@
     subroutine get_id(id) !  Count amount of data to be shipped
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     id=0
 
@@ -1324,7 +1436,23 @@
     subroutine close_fld(p66,ierr)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     if (nid == 0) then
         if (p66 < 1) then
@@ -1340,7 +1468,23 @@
     subroutine out_tmp(id,p66,ierr)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter (lxyz=lx1*ly1*lz1)
     parameter (lpsc9=ldimt1+9)
@@ -1381,7 +1525,23 @@
 
     use size_m
     use restart
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     common /scrcg/ pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
 
     integer*8 :: offs0,offs,nbyte,stride,strideB,nxyzo8
@@ -1843,7 +2003,23 @@ endif
 
     use size_m
     use restart
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: iosave,save_size,nfldi
     character(3) :: prefix

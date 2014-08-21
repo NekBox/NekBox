@@ -9,7 +9,23 @@
     use size_m
     use domain
     use fdmh1
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /screv/  dpc(lx1*ly1*lz1*lelt) &
     ,          p1 (lx1*ly1*lz1*lelt)
@@ -1864,7 +1880,23 @@
     function surf_mean(u,ifld,bc_in,ierr)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: u(1)
 
@@ -1900,7 +1932,23 @@
     subroutine fdm_h1a(z,r,d,nel,kt,rr)
     use size_m
     use fdmh1
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /ctmp0/ w(lx1,ly1,lz1)
 
@@ -2302,7 +2350,23 @@
 !                                         du_j
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: au(1),av(1),aw(1),u(1),v(1),w(1),h1(1),h2(1)
 
@@ -2391,7 +2455,23 @@
 !                                         du_j
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: au(1),av(1),u(1),v(1),h1(1),h2(1)
 
@@ -2443,7 +2523,23 @@
 !-----------------------------------------------------------------------
     subroutine axsf_fast(au,av,aw,u,v,w,h1,h2,ifld)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter (l=lx1*ly1*lz1)
     real :: au(l,1),av(l,1),aw(l,1),u(l,1),v(l,1),w(l,1),h1(l,1),h2(l,1)
@@ -2625,7 +2721,23 @@
 !-----------------------------------------------------------------------
     function opnorm2w(v1,v2,v3,w)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: v1(1) , v2(1), v3(1), w(1)
 
@@ -2646,7 +2758,23 @@
 !     Assumes if uservp is true and thus reorthogonalizes every step
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     include 'ORTHOSTRS'  ! Storage of approximation space
 
     real :: b1(1),b2(1),b3(1),h1(1),h2(1),wt(1)
@@ -2694,7 +2822,23 @@
 !     Reconstruct solution; don't bother to orthonomalize bases
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     include 'ORTHOSTRS'  ! Storage of approximation space
 
     real :: x1(1),x2(1),x3(1),h1(1),h2(1),wt(1)
@@ -2753,7 +2897,23 @@
 !     Orthonormalize the kth element of X against x_j, j < k.
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: x(n,ndim,k),b(n,ndim,k),h1(n),h2(n),wt(n),w(n,ndim)
     real :: al(mxprev),bt(mxprev)
@@ -2812,7 +2972,23 @@
     subroutine strs_ortho_all(x,b,n,k,h1,h2,wt,ifld,w,ierr,matmod)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: x(n,ndim,k),b(n,ndim,k),h1(n),h2(n),wt(n),w(n,ndim)
 

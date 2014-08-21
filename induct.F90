@@ -226,7 +226,23 @@
 !     Also, subtract off best estimate of grad p
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real ::           resv1 (lx1,ly1,lz1,1)
     real ::           resv2 (lx1,ly1,lz1,1)
     real ::           resv3 (lx1,ly1,lz1,1)
@@ -256,7 +272,23 @@
 !     Also, subtract off best estimate of grad p
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real ::           resv1 (lx1,ly1,lz1,1)
     real ::           resv2 (lx1,ly1,lz1,1)
     real ::           resv3 (lx1,ly1,lz1,1)
@@ -299,7 +331,23 @@
 
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /scrns/ w1    (lx1,ly1,lz1,lelv) &
     ,             w2    (lx1,ly1,lz1,lelv) &
@@ -402,7 +450,23 @@
 !-----------------------------------------------------------------------
     subroutine opzero(ux,uy,uz)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real :: ux(1),uy(1),uz(1)
 
     n = nx1*ny1*nz1*nelfld(ifield)
@@ -415,7 +479,23 @@
 !-----------------------------------------------------------------------
     subroutine opnorm(unorm,ux,uy,uz,type3)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     character(3) :: type3
     real :: ux(1),uy(1),uz(1)
     real :: un(3),wn(3)
@@ -483,7 +563,23 @@
     subroutine curl(vort,u,v,w,ifavg,work1,work2)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     logical :: ifavg
 
@@ -1169,8 +1265,7 @@
 !c     but will also work fine for the periodic in Z problem
 !c
 !      use size_m
-!      include 'TOTAL'
-
+!      use TOTAL
 !      logical ifbcor
 
 !      integer e,f

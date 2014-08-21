@@ -1078,7 +1078,23 @@
 !-----------------------------------------------------------------------
     subroutine quickmv
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     if (if3d) then
@@ -1091,7 +1107,23 @@
 !-----------------------------------------------------------------------
     subroutine quickmv2d
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     integer :: e,ex,ey,ez,eg
@@ -1158,7 +1190,23 @@
 !-----------------------------------------------------------------------
     subroutine quickmv3d
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     integer :: e,ex,ey,ez,eg

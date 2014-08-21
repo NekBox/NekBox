@@ -21,7 +21,23 @@
     use size_m
     use noncon
     use scratch
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
@@ -1581,7 +1597,23 @@
 !-----------------------------------------------------------------------
     subroutine gs_chkr(glo_num)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: glo_num(lx1,ly1,lz1,lelt)
     integer :: e,eg
@@ -1612,7 +1644,23 @@
 !-----------------------------------------------------------------------
     subroutine gs_counter(glo_num,gsh_std)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: glo_num(lx1,ly1,lz1,lelt)
 
@@ -1693,7 +1741,23 @@
 !-----------------------------------------------------------------------
     subroutine gs_new_tstr(glo_num,x,c,gsh_std)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: gsh_std,gsh_pair,gsh_mlti
 
@@ -1793,7 +1857,23 @@
     subroutine setup_mesh_dssum ! Set up dssum for mesh
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use noncon
     use zper
 

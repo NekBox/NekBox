@@ -4,7 +4,23 @@
 !     filter vx,vy,vz, and p by simple interpolation
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 
 !     These are the dimensions that we interpolate onto for v and p:
@@ -244,7 +260,23 @@
     subroutine drag_calc(scale)
 
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /scrns/         pm1(lx1,ly1,lz1,lelv) &
     ,vxx(lx1,ly1,lz1,lelv),vxy(lx1,ly1,lz1,lelv),vxz(lx1,ly1,lz1,lelv) &
@@ -507,7 +539,23 @@
     subroutine mappr(pm1,pm2,pa,pb)
 
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real :: pm1(lx1,ly1,lz1,lelv),pm2(lx2,ly2,lz2,lelv) &
     ,pa (lx1,ly2,lz2)     ,pb (lx1,ly1,lz2)
 
@@ -785,7 +833,23 @@
     subroutine comp_vort3(vort,work1,work2,u,v,w)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter(lt=lx1*ly1*lz1*lelv)
     real :: vort(lt,3),work1(1),work2(1),u(1),v(1),w(1)
@@ -1137,7 +1201,23 @@
 !           is the expected value of the sub-ensemble i (i=1...N).
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     include 'AVG'
 
     logical :: ifverbose
@@ -1514,7 +1594,23 @@
     subroutine dump_header2d(excode,nx,ny,nlx,nly,ierr)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(2) :: excode(15)
 
@@ -1590,7 +1686,23 @@
     subroutine outfld2d_p(u,v,w,nx,ny,nlx,nly,name,ifld,jid,npido,ir)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: icalld
     save    icalld
@@ -1671,7 +1783,23 @@
     subroutine outfld2d(u,v,w,nx,ny,nlx,nly,name,ifld)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: u(nx*ny*nlx*nly)
     real :: v(nx*ny*nlx*nly)
@@ -1923,7 +2051,23 @@
 
 
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /cvflow_r/ flow_rate,base_flow,domain_length,xsec &
     , scale_vf(3)
@@ -2151,7 +2295,23 @@
 !                                       du_j       du_i
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     integer :: e
 
@@ -2289,7 +2449,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     character(127) :: fname127
@@ -2464,7 +2640,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     real :: u(1)
@@ -2489,7 +2681,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     real :: ua(1),u(1)
@@ -2676,7 +2884,23 @@
 !     Compute the y average of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     real :: ux(1),uy(1),uz(1)
@@ -2703,7 +2927,23 @@
 !     Compute the z average of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     real :: ux(1),uy(1),uz(1)
@@ -2730,7 +2970,23 @@
 !     Compute the z average of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     real :: ux(1),uy(1),uz(1)
@@ -2757,7 +3013,23 @@
 !     Compute the z average of quantity u() - assumes global tens.prod.
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     real :: ux(1),uy(1),uz(1)
@@ -2782,7 +3054,23 @@
     subroutine buff_2d_out(u,v,w,nx,ny,nex,ney,c2,name,ifld)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: u(1),v(1),w(1)
     character(2) :: c2,name
@@ -2837,7 +3125,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real :: u(1),v(1),w(1),p(1)
     character(1) :: c1,c2(2)
 
@@ -2886,7 +3190,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real :: u(1),v(1),w(1),p(1)
     character(1) :: c1,c2(2)
 
@@ -2927,7 +3247,23 @@
     subroutine anal_2d
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     integer :: icount
@@ -2966,7 +3302,23 @@
     subroutine chkit(u,name4,n)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(4) :: name4
     real :: u(1)
@@ -2991,7 +3343,23 @@
 !-----------------------------------------------------------------------
     subroutine outmesh
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     integer :: e,eg
 
     common /cmesh/ xt(2**ldim,ldim)
@@ -3027,7 +3395,23 @@
 !-----------------------------------------------------------------------
     subroutine out_el(xt,e)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: xt(2**ldim,ldim)
     integer :: e
@@ -3048,7 +3432,23 @@
 !-----------------------------------------------------------------------
     subroutine get_el(xt,x,y,z)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: xt(2**ldim,ldim)
     real :: x(nx1,ny1,nz1),y(nx1,ny1,nz1),z(nx1,ny1,nz1)
@@ -3077,7 +3477,23 @@
 
 
     use size_m
-    INCLUDE 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real ::    strsmx(maxobj),x0(3),w1(0:maxobj)
     logical :: ifdout,iftout
@@ -3278,7 +3694,23 @@
     subroutine fix_geom ! fix up geometry irregularities
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter (lt = lx1*ly1*lz1)
     common /scrns/ xb(lt,lelt),yb(lt,lelt),zb(lt,lelt)
@@ -3682,7 +4114,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper
 
     real :: ux(1),uy(1),uz(1)
@@ -3787,7 +4235,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper         ! nelx,nely,nelz
 
     real :: u(1)
@@ -3883,7 +4347,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     use zper         ! nelx,nely,nelz
 
     real :: u(1)
@@ -4037,7 +4517,23 @@
 !     Generalized filter: F(u) with F = J^T D J, where D=diag(diag)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: u(1),diag(1)
 
@@ -4060,7 +4556,23 @@
 !     Generalized filter: F(u) with F = J^T D J, where D=diag(diag)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: u(1)
 
@@ -4086,7 +4598,23 @@
     subroutine filter_d2(v,nx,nz,wgt,ifd4)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     parameter (lt=lx1*ly1*lz1)
     real :: v(lt,nelt)
@@ -4205,7 +4733,23 @@
     subroutine domain_size(xmin,xmax,ymin,ymax,zmin,zmax)
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     n = nx1*ny1*nz1*nelt
 
@@ -4480,7 +5024,23 @@
 
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: d(lx2,ly2,lz2,lelt),m1(lx1*ly1*lz1,lelt)
 
@@ -4592,7 +5152,23 @@
 !     enddo
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     character(3) :: f2tbc(2,nbc)
 
     integer :: e,f

@@ -386,7 +386,23 @@
     subroutine exittr(stringi,rdata,idata)
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(1) :: stringi(132)
     character(1) :: stringo(132)
@@ -410,7 +426,23 @@
     subroutine exitti(stringi,idata)
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     character(1) :: stringi(132)
     character(1) :: stringo(132)
@@ -433,7 +465,23 @@
 !-----------------------------------------------------------------------
     subroutine err_chk(ierr,string)
     use size_m
-!     include 'TOTAL'
+!     use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 !     use ctimer
     character(1) :: string(132)
     character(1) :: ostring(132)
@@ -462,7 +510,23 @@
     subroutine exitt0
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     include 'mpif.h'
 
     real*4 :: papi_mflops
@@ -487,7 +551,23 @@
     subroutine exitt
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     include 'mpif.h'
     common /happycallflag/ icall
 
@@ -577,7 +657,23 @@
     subroutine platform_timer(ivb) ! mxm, ping-pong, and all_reduce timer
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 
     call mxm_test_all(nid,ivb)  ! measure mxm times

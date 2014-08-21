@@ -13,7 +13,23 @@
 !     energy equation expressed in terms of temperature.
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     COMMON /SCRNS/ w1(LX1,LY1,LZ1,LELT) &
     ,w2(LX1,LY1,LZ1,LELT) &

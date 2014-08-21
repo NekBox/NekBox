@@ -6,7 +6,23 @@
 
     use size_m
     use opctr
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: a(n1,n2),b(n2,n3),c(n1,n3)
     integer :: aligned

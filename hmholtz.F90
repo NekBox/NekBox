@@ -953,7 +953,23 @@
             subroutine fdm_h1(z,r,d,mask,mult,nel,kt,rr)
             use size_m
             use fdmh1
-            include 'TOTAL'
+            use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
         
             common /ctmp0/ w(lx1,ly1,lz1)
         

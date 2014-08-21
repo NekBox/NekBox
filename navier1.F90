@@ -93,7 +93,23 @@
 
 !---------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     REAL ::           RESPR  (LX2,LY2,LZ2,LELV)
     REAL ::           G1     (LX1,LY1,LZ1,LELV)
     REAL ::           G2     (LX1,LY1,LZ1,LELV)
@@ -161,7 +177,23 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     REAL ::           OUT1  (LX1,LY1,LZ1,LELV)
     REAL ::           OUT2  (LX1,LY1,LZ1,LELV)
     REAL ::           OUT3  (LX1,LY1,LZ1,LELV)
@@ -276,7 +308,23 @@
 !     INTYPE=-1  Compute the matrix-vector product    D(A+B/DT)(-1)DT*p
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     REAL ::           AP    (LX2,LY2,LZ2,1)
     REAL ::           WP    (LX2,LY2,LZ2,1)
     REAL ::           H1    (LX1,LY1,LZ1,1)
@@ -1332,7 +1380,23 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Use the common blocks CTMP0 and CTMP1 as work space.
 
@@ -1401,7 +1465,23 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     REAL ::           DTFI (LX1,LY1,LZ1,1)
     REAL ::           FI   (LX1,LY1,LZ1,1)
     COMMON /SCRNS/ TA1  (LX1,LY1,LZ1,LELV) &
@@ -2623,7 +2703,23 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     LOGICAL ::        IFSTUZ
     COMMON /SCRNS/ RESV1 (LX1,LY1,LZ1,LELV) &
     ,             RESV2 (LX1,LY1,LZ1,LELV) &
@@ -3265,7 +3361,23 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     COMMON  /CTOLPR/ DIVEX
     COMMON  /CPRINT/ IFPRINT
     LOGICAL ::          IFPRINT
@@ -3737,7 +3849,23 @@
 
     use ctimer
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
 !     Use the common blocks CTMP0 and CTMP1 as work space.
 
@@ -3809,7 +3937,23 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     REAL ::           DFI (LX1,LY1,LZ1,1)
     REAL ::           FI  (LX1,LY1,LZ1,1)
 
@@ -4667,7 +4811,23 @@
 
 !-----------------------------------------------------------------------
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
     real :: outx   (lx1,ly1,lz1,1)
     real :: outy   (lx1,ly1,lz1,1)
     real :: outz   (lx1,ly1,lz1,1)
@@ -4940,7 +5100,23 @@
 !     contribution
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: out(1),a(1),diff(1)
     real :: wrk(lx1,ly1,lz1,lelt)
@@ -4968,7 +5144,23 @@
     subroutine explstrs ! Explicit stress tensor w/ variable viscosity
 
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     common /scruz/ u(lx1*ly1*lz1),v(lx1*ly1*lz1),w(lx1*ly1*lz1)
 
@@ -4995,7 +5187,23 @@
 !-----------------------------------------------------------------------
     subroutine expl_strs(w1,w2,w3,u1,u2,u3)
     use size_m
-    include 'TOTAL'
+    use dealias
+  use dxyz
+  use eigen
+  use esolv
+  use geom
+  use input
+  use ixyz
+  use mass
+  use mvgeom
+  use parallel
+  use soln
+  use steady
+  use topol
+  use tstep
+  use turbo
+  use wz_m
+  use wzf
 
     real :: w1(1),w2(1),w3(1),u1(1),u2(1),u3(1)
 

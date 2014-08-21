@@ -1,4 +1,9 @@
-    COMMON /TSTEP1/ TIME,TIMEF,FINTIM,TIMEIO &
+module tstep
+  use kinds, only : DP
+  use size_m
+  implicit none
+
+  real(DP) :: TIME,TIMEF,FINTIM,TIMEIO &
     ,DT,DTLAG(10),DTINIT,DTINVM,COURNO,CTARG &
     ,AB(10),BD(10),ABMSH(10) &
     ,AVDIFF(LDIMT1),AVTRAN(LDIMT1),VOLFLD(0:LDIMT1) &
@@ -8,16 +13,17 @@
     ,TNRMH1(LDIMT),TNRMSM(LDIMT),TNRML2(LDIMT) &
     ,TNRML8(LDIMT),TMEAN(LDIMT)
 
-    COMMON /ISTEP2/ IFIELD,IMESH,ISTEP,NSTEPS,IOSTEP,LASTEP,IOCOMM &
+
+  integer :: IFIELD,IMESH,ISTEP,NSTEPS,IOSTEP,LASTEP,IOCOMM &
     ,INSTEP &
     ,NAB,NBD,NBDINP,NTAUBD &
     ,NMXH,NMXP,NMXE,NMXNL,NINTER &
     ,NELFLD(0:LDIMT1) &
     ,nconv,nconv_max
 
-    COMMON /TSTEP3/ PI,BETAG,GTHETA
-    COMMON /TSTEP4/ IFPRNT,if_full_pres
-    LOGICAL :: IFPRNT,if_full_pres
+  real(DP) :: PI, BETAG, GTHETA
+  LOGICAL :: IFPRNT,if_full_pres
 
-    COMMON /TSTEP5/ lyap(3,lpert)  !  lyapunov simulation history
-    real :: lyap
+  real(DP) :: lyap(3,lpert)
+
+end module tstep

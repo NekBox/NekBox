@@ -9,8 +9,8 @@
     use size_m
     use input
     use eigen
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     COMMON /SCRNS/  RESV1 (LX1,LY1,LZ1,LELV) &
     ,              RESV2 (LX1,LY1,LZ1,LELV) &
@@ -66,8 +66,8 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /cgeom/ igeom
 
@@ -119,8 +119,8 @@
 
 !--------------------------------------------------------------------
     use size_m
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     COMMON /CTMP0/ DPR (LX2,LY2,LZ2,LELV)
     REAL ::        PREXTR (LX2,LY2,LZ2,LELV)
 
@@ -150,8 +150,8 @@
     use size_m
     use input
     include 'ORTHOV'
-    include 'TSTEP'
-    include 'SOLN'
+    use tstep
+    use soln
 
     REAL :: OT1 (LX1,LY1,LZ1,1)
     REAL :: OT2 (LX1,LY1,LZ1,1)
@@ -222,8 +222,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     include 'ORTHOV'
 
     real :: v1(1),h1(1),h2(1),vml(1),vmask(1)
@@ -332,8 +332,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     include 'ORTHOV'
     real :: v1(1),h1(1),h2(1),vml(1),vmask(1)
 
@@ -362,8 +362,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     include 'ORTHOV'
     real :: v1(1),h1(1),h2(1),vml(1),vmask(1)
 
@@ -396,8 +396,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     include 'ORTHOV'
     real :: h1(1),h2(1),vml(1),vmask(1)
     real :: work(mxprev)
@@ -442,7 +442,7 @@
     use input
     use mass
     include 'ORTHOV'
-    include 'TSTEP'
+    use tstep
 
 
     real :: vml(1),h1(1),h2(1),vmask(1)

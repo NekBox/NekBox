@@ -3,9 +3,9 @@
     use size_m
     use input
     use parallel
-    include 'SCRCT'
-    include 'SOLN'
-    include 'TSTEP'
+    use scratch
+    use soln
+    use tstep
 
     logical :: ifverbm
 
@@ -102,10 +102,10 @@
     use size_m
     use input
     use parallel
-    include 'SOLN'
-    include 'SCRCT'
-    include 'TSTEP'
-    include 'ZPER'
+    use scratch
+    use soln
+    use tstep
+    use zper
     common /ctmp0/ iwork(lelt)
 
     REAL*8 :: dnekclock,t0
@@ -169,7 +169,7 @@
 
 
     use size_m
-    include 'ZPER'
+    use zper
 
     integer :: gllnid(1)
 
@@ -256,7 +256,7 @@
 
     use size_m
     use input
-    include 'ZPER'
+    use zper
 
     integer :: nelbox(3),nstride_box(3)
 

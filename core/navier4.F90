@@ -6,8 +6,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     REAL ::             P    (LX2,LY2,LZ2,LELV)
     REAL ::             H1   (LX1,LY1,LZ1,LELV)
@@ -197,8 +197,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     REAL ::             H1   (LX1,LY1,LZ1,LELV)
     REAL ::             H2   (LX1,LY1,LZ1,LELV)
@@ -269,8 +269,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     COMMON /CTOLPR/ DIVEX
     COMMON /CPRINT/ IFPRINT
     LOGICAL ::         IFPRINT
@@ -349,7 +349,7 @@
     use size_m
     use input
     use mass
-    include 'TSTEP'
+    use tstep
 
     PARAMETER (LTOT2=LX2*LY2*LZ2*LELV)
     COMMON /ORTHOV/ RHS(LTOT2,MXPREV)
@@ -422,8 +422,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     REAL ::             H1   (LX1,LY1,LZ1,LELV)
     REAL ::             H2   (LX1,LY1,LZ1,LELV)
@@ -475,8 +475,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     parameter(lt=lx1*ly1*lz1*lelt)
 
@@ -545,8 +545,8 @@
     use size_m
     use input
     use mass
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     common /iterhm/ niterhm
 
@@ -602,8 +602,8 @@
     use input
     use mass
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     parameter  (lt=lx1*ly1*lz1*lelt)
     real :: approx(lt,0:1),h1(1),h2(1),vml(1),vmk(1),ws(1)
@@ -685,7 +685,7 @@
     use size_m
     use input
     use mass
-    include 'TSTEP'
+    use tstep
 
 
     parameter  (lt=lx1*ly1*lz1*lelt)
@@ -797,7 +797,7 @@
     use fdmh1
     use input
     use mass
-    include 'TSTEP'
+    use tstep
 
     CHARACTER(4) ::    NAME
     REAL ::           U    (LX1,LY1,LZ1,1)

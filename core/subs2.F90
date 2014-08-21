@@ -1,7 +1,7 @@
     SUBROUTINE SETAXW1 (IFAXWG)
 
     use size_m
-    INCLUDE 'WZ'
+    use wz_m
 
     LOGICAL :: IFAXWG
 
@@ -16,7 +16,7 @@
     SUBROUTINE SETAXW2 (IFAXWG)
 
     use size_m
-    INCLUDE 'WZ'
+    use wz_m
 
     LOGICAL :: IFAXWG
 
@@ -33,8 +33,8 @@
 !     Calculate 2nd and 3rd strain-rate invariants
 
     use size_m
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     common /screv/ ei2(lx1,ly1,lz1,lelt) &
     , ei3(lx1,ly1,lz1,lelt)
     common /ctmp1/ exx(lx1,ly1,lz1,lelt) &
@@ -131,7 +131,7 @@
 !     IFACE  is the dssum notation.
 
     use size_m
-    INCLUDE 'TOPOL'
+    use topol
 
     DIMENSION A(LX1,LY1),B(LX1,LY1,LZ1)
 
@@ -175,7 +175,7 @@
 !     IFACE  is the dssum notation.
 
     use size_m
-    INCLUDE 'TOPOL'
+    use topol
 
     DIMENSION A1(LX1,LY1),A2(LX1,LY1),A3(LX1,LY1), &
     B1(LX1,LY1,LZ1),B2(LX1,LY1,LZ1),B3(LX1,LY1,LZ1)
@@ -220,7 +220,7 @@
 !     IFACE  is the dssum notation.
 
     use size_m
-    INCLUDE 'TOPOL'
+    use topol
 
     DIMENSION A1(LX1,LY1,LZ1),A2(LX1,LY1,LZ1),A3(LX1,LY1,LZ1), &
     B1(LX1,LY1),B2(LX1,LY1),B3(LX1,LY1)
@@ -258,9 +258,9 @@
     use input
     use mass
     use mvgeom
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
-    INCLUDE 'WZ'
+    use soln
+    use tstep
+    use wz_m
     common /scrmg/ ae1(lx1,ly1,lz1,lelv) &
     , ae2(lx1,ly1,lz1,lelv) &
     , ae3(lx1,ly1,lz1,lelv)
@@ -353,7 +353,7 @@
     use size_m
     use input
     use parallel
-    INCLUDE 'TSTEP'
+    use tstep
 
 !     Try to hang in there on the first few time steps (pff 8/92)
     IF (IFTRAN .AND. ISTEP < 9) RETURN
@@ -393,7 +393,7 @@
 !         IFACE  is the dssum notation.
 
     use size_m
-    INCLUDE 'TOPOL'
+    use topol
     DIMENSION A1(LX1,LY1,LZ1),A2(LX1,LY1,LZ1),A3(LX1,LY1,LZ1), &
     B(LX1,LY1)
 
@@ -437,7 +437,7 @@
 !------------------------------------------------------------------
     use size_m
     use mass
-    INCLUDE 'SOLN'
+    use soln
     common /scrmg/ ae1(lx1,ly1,lz1,lelv) &
     , ae2(lx1,ly1,lz1,lelv) &
     , ae3(lx1,ly1,lz1,lelv)
@@ -477,8 +477,8 @@
 
     use size_m
     use geom
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 
     DO 100 IEL=1,NELV
         DO 100 K=1,NZ1
@@ -511,8 +511,8 @@
 
     use size_m
     use geom
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 
     DO 100 IEL=1,NELV
         DO 100 K=1,NZ2
@@ -737,7 +737,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'TSTEP'
+    use tstep
     common /screv/ hfmask(lx1,lz1,6,lelt) &
     , hvmask(lx1,ly1,lz1,lelt)
 
@@ -771,7 +771,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TSTEP'
+    use tstep
     common /screv/ hfmask(lx1,lz1,6,lelt) &
     , hvmask(lx1,ly1,lz1,lelt)
 
@@ -787,7 +787,7 @@
 
     use size_m
     use input
-    INCLUDE 'TSTEP'
+    use tstep
 
     DIMENSION HVMASK(LX1,LY1,LZ1,1) &
     , HFMASK(LX1,LZ1,6,1)
@@ -1061,7 +1061,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TSTEP'
+    use tstep
     DIMENSION HVMASK(LX1,LY1,LZ1,1) &
     , HFMASK(LX1,LZ1,6,1)
 
@@ -1801,8 +1801,8 @@
     use size_m
     use geom
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     common /scrsf/ a1mask(lx1,ly1,lz1,lelt) &
     , a2mask(lx1,ly1,lz1,lelt) &
     , a3mask(lx1,ly1,lz1,lelt)
@@ -1844,8 +1844,8 @@
     use size_m
     use input
     use mvgeom
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
 
     DIMENSION R1  (LX1,LY1,LZ1,1) &
     , R2  (LX1,LY1,LZ1,1) &
@@ -1877,7 +1877,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TSTEP'
+    use tstep
     common /ctmp1/ s1(lx1,ly1,lz1,lelt) &
     , s2(lx1,ly1,lz1,lelt) &
     , s3(lx1,ly1,lz1,lelt)
@@ -1934,7 +1934,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TSTEP'
+    use tstep
     DIMENSION R1(LX1,LY1,LZ1,1) &
     , R2(LX1,LY1,LZ1,1) &
     , S1(LX1,LY1,LZ1,1) &
@@ -1969,7 +1969,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TSTEP'
+    use tstep
     DIMENSION R1(LX1,LY1,LZ1,1) &
     , R2(LX1,LY1,LZ1,1) &
     , R3(LX1,LY1,LZ1,1) &
@@ -2018,7 +2018,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TSTEP'
+    use tstep
     DIMENSION R1(LX1,LY1,LZ1,1) &
     , R2(LX1,LY1,LZ1,1) &
     , R3(LX1,LY1,LZ1,1) &
@@ -2066,7 +2066,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TSTEP'
+    use tstep
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -2111,7 +2111,7 @@
 
     use size_m
     use geom
-    INCLUDE 'TSTEP'
+    use tstep
     common /indxfc/ mcrfc(4,6) &
     , MFCCR(3,8) &
     , MEGCR(3,8) &
@@ -2173,7 +2173,7 @@
 
     use size_m
     use geom
-    include 'TOPOL'
+    use topol
 
     real :: sn(3)
     integer :: e,f
@@ -2268,7 +2268,7 @@
     function op_vlsc2_wt(b1,b2,b3,x1,x2,x3,wt)
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
     real :: b1(1),b2(1),b3(1),x1(1),x2(1),x3(1),wt(1)
 
     nel = nelfld(ifield)
@@ -2292,7 +2292,7 @@
     function op_glsc2_wt(b1,b2,b3,x1,x2,x3,wt)
     use size_m
     use input
-    include 'TSTEP'
+    use tstep
     real :: b1(1),b2(1),b3(1),x1(1),x2(1),x3(1),wt(1)
 
     nel = nelfld(ifield)
@@ -2316,7 +2316,7 @@
       SUBROUTINE FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
 
       use size_m
-      INCLUDE 'TOPOL'
+      use topol
 
       CALL DSSET (NX1,NY1,NZ1)
       IFACE  = EFACE1(IFC)

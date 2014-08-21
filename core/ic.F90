@@ -13,8 +13,8 @@
     use mass
     use mvgeom
     use parallel
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
      
     logical  iffort(  ldimt1,0:lpert) &
     , ifrest(0:ldimt1,0:lpert) &
@@ -1055,7 +1055,7 @@
     use size_m
     use input
     use restart
-    INCLUDE 'TSTEP'
+    use tstep
 
     character(132) :: rsopts,fname
     character(2) ::  s2
@@ -1281,7 +1281,7 @@
 
     use size_m
     use ixyz
-    INCLUDE 'WZ'
+    use wz_m
 
     PARAMETER (LXR=LX1+6)
     PARAMETER (LYR=LY1+6)
@@ -1342,7 +1342,7 @@
 
     use size_m
     use ixyz
-    INCLUDE 'WZ'
+    use wz_m
 
     PARAMETER (LXR=LX1+6)
     PARAMETER (LYR=LY1+6)
@@ -1530,7 +1530,7 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'TSTEP'
+    use tstep
     LOGICAL :: IFZERO
 
     IFZERO = .TRUE. 
@@ -1564,7 +1564,7 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'TSTEP'
+    use tstep
     LOGICAL ::  IFSAV1,IFSAV2(LDIMT1)
 
     IF (NID == 0) WRITE(6,*) ' '
@@ -1611,8 +1611,8 @@
 !----------------------------------------------------------------------
     use size_m
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
+    use soln
+    use tstep
     LOGICAL ::  IFSAV1,IFSAV2
 
     IF (NID == 0) WRITE(6,*) ' '
@@ -1678,9 +1678,9 @@
     use input
     use nekuse
     use parallel
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
-    INCLUDE 'TURBO'
+    use soln
+    use tstep
+    use turbo
 
     NEL   = NELFLD(IFIELD)
 
@@ -1910,9 +1910,9 @@
     use size_m
     use geom
     use input
-    INCLUDE 'SOLN'
-    INCLUDE 'TSTEP'
-    include 'WZ'
+    use soln
+    use tstep
+    use wz_m
 
     COMMON /scruz/ XM3 (LX1,LY1,LZ1,LELT) &
     ,             YM3 (LX1,LY1,LZ1,LELT) &
@@ -2575,7 +2575,7 @@
     subroutine mbyte_open(hname,fid,ierr) ! open  blah000.fldnn
     use size_m
     use restart
-    include 'TSTEP'
+    use tstep
      
     integer :: fid
     character(132) :: hname

@@ -4,7 +4,7 @@
 
     use size_m
     use input
-    include 'ZPER'
+    use zper
 
     character(132) :: string
     character(1) ::  string1(132)
@@ -71,7 +71,7 @@
     use size_m
     use input
     use parallel
-    include 'ZPER'
+    use zper
 
 !     integer vertex((2**ldim)*lelt)    ! local -- 2D for now !?  long?
     integer :: vertex(2**ldim,1)         ! local -- 2D for now !?  long?
@@ -145,7 +145,7 @@
 
     use size_m
     use input
-    include 'ZPER'
+    use zper
 
     real :: x(0:1),y(0:1),z(0:1)
 
@@ -346,7 +346,7 @@
 
     use size_m
     use parallel
-    include 'ZPER'
+    use zper
 
     nelx = melx
     nely = mely
@@ -376,7 +376,7 @@
     use size_m
     use input
     use parallel
-    include 'ZPER'
+    use zper
 
     real :: x(0:1),y(0:1),z(0:1)
     integer :: e,eg,ex,ey,ez
@@ -903,7 +903,7 @@
 
     use size_m
     use input
-    include 'ZPER'
+    use zper
     use parallel
 
     call bcast(ndim,isize)
@@ -932,7 +932,7 @@
     subroutine outbox_mesh
     use size_m
     use input
-    include 'ZPER'
+    use zper
     use parallel
     integer :: e
 

@@ -20,7 +20,7 @@
     use dxyz
     use input
     use ixyz
-    INCLUDE 'WZ'
+    use wz_m
 
     REAL :: TMP(LY1,LY1),TMPT(LY1,LY1)
 
@@ -369,7 +369,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'TSTEP'
+    use tstep
 
 !     Note : XM3,YM3,ZM3 should come from COMMON /SCRUZ/.
 
@@ -588,7 +588,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'SOLN'
+    use soln
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !           share the same array structure in Scratch Common /SCRNS/.
@@ -675,8 +675,8 @@
     use geom
     use input
     use mass
-    INCLUDE 'TSTEP'
-    INCLUDE 'WZ'
+    use tstep
+    use wz_m
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !           share the same array structure in Scratch Common /SCRNS/.
@@ -1011,7 +1011,7 @@
     use esolv
     use input
     use mass
-    include 'TSTEP'
+    use tstep
     integer :: e
 
     volvm1=glsum(bm1,nx1*ny1*nz1*nelv)
@@ -1139,7 +1139,7 @@
     use size_m
     use geom
     use input
-    INCLUDE 'WZ'
+    use wz_m
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !           share the same array structure in Scratch Common /SCRNS/.
@@ -1195,7 +1195,7 @@
 !--------------------------------------------------------------------
     use size_m
     use geom
-    INCLUDE 'WZ'
+    use wz_m
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !           share the same array structure in Scratch Common /SCRNS/.
@@ -1322,7 +1322,7 @@
 !--------------------------------------------------------------------
     use size_m
     use mass
-    INCLUDE 'TSTEP'
+    use tstep
 
     NTOT1 = NX1*NY1*NZ1*NELT
     DO 100 ILAG=NBDINP-1,2,-1
@@ -1349,8 +1349,8 @@
     use geom
     use input
     use mass
-    INCLUDE 'TSTEP'
-    INCLUDE 'WZ'
+    use tstep
+    use wz_m
 
     nxyz1  = nx1*ny1*nz1
 
@@ -1391,7 +1391,7 @@
     use geom
     use input
     use ixyz
-    INCLUDE 'WZ'
+    use wz_m
 
     REAL :: X(NREST,NREST,NREST)
     REAL :: Y(LX1,LY1,LZ1)

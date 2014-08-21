@@ -20,9 +20,9 @@
 
     use size_m
     use noncon
+    use scratch
     include 'TOTAL'
-    include 'SCRCT'
-    include 'ZPER'
+    use zper
 
     COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
     ,             YM3 (LX3,LY3,LZ3,LELT) &
@@ -178,7 +178,7 @@
 !     Set up required data for packing data on faces of spectral cubes.
 
     use size_m
-    INCLUDE 'TOPOL'
+    use topol
 
 !     Nominal ordering for direct stiffness summation of faces
 
@@ -311,7 +311,7 @@
 !                                               i=3 gives the stride size.
 
     use size_m
-    INCLUDE 'TOPOL'
+    use topol
 
     COMMON /CTMP0/ ITMP(3,3,3)
     INTEGER :: ORDER
@@ -555,7 +555,7 @@
 
     use size_m
     use input
-    INCLUDE 'TOPOL'
+    use topol
     INTEGER :: NXO,NYO,NZO
     SAVE    NXO,NYO,NZO
     DATA    NXO,NYO,NZO /3*0/
@@ -718,7 +718,7 @@
 
     use size_m
     use input
-    INCLUDE 'SCRCT'
+    use scratch
     COMMON /CTMP0/ XCB(2,2,2),YCB(2,2,2),ZCB(2,2,2),H(3,3,2),INDX(8)
 
     NXL=3
@@ -805,7 +805,7 @@
     use size_m
     use input
     use parallel
-    include 'SCRCT'
+    use scratch
      
     call verrhe
 
@@ -815,8 +815,8 @@
     subroutine setside
     use size_m
     use input
-    INCLUDE 'TOPOL'
-    INCLUDE 'SCRCT'
+    use scratch
+    use topol
 
 !     SIDE(i,IFACE,IE) -  Physical (xyz) location of element side midpoint.
 !                         i=1,2,3 gives x,y,z value, respectively.
@@ -894,8 +894,8 @@
     use size_m
     use input
     use parallel
-    INCLUDE 'SCRCT'
-    INCLUDE 'TOPOL'
+    use scratch
+    use topol
     LOGICAL :: IFYES,IFCSTT
 
     IFCSTT= .TRUE. 
@@ -1267,7 +1267,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldro (x,txt10,ichk)
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(nx1,ny1,nz1,lelt)
     character(10) :: txt10
 
@@ -1321,7 +1321,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldrv (x,txt10,ichk) ! writes to unit=40+ifield
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(nx1,ny1,nz1,lelt)
     character(10) :: txt10
 
@@ -1380,7 +1380,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldrv0 (x,txt10,ichk)
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(nx1,ny1,nz1,lelt)
     character(10) :: txt10
 
@@ -1438,7 +1438,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldrp0 (x,txt10,ichk)
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(nx2,ny2,nz2,lelt)
     character(10) :: txt10
 
@@ -1496,7 +1496,7 @@
 !-----------------------------------------------------------------------
     subroutine outfldrp (x,txt10,ichk) ! writes out into unit = 40+ifield
     use size_m
-    INCLUDE 'TSTEP'
+    use tstep
     real :: x(nx2,ny2,nz2,lelt)
     character(10) :: txt10
 
@@ -1795,7 +1795,7 @@
     use size_m
     include 'TOTAL'
     use noncon
-    include 'ZPER'
+    use zper
 
     common /c_is1/ glo_num(1*lx1*ly1*lz1*lelv)
     integer*8 :: glo_num

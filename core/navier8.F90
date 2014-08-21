@@ -42,8 +42,8 @@
     use geom
     use input
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
     real :: uf(1),vf(1)
     common /scrpre/ uc(lcr*lelt),w(2*lx1*ly1*lz1)
 
@@ -87,7 +87,7 @@
     use geom
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
     common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
 
@@ -498,7 +498,7 @@
     use geom
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
 
 !     Generate local triangular matrix
@@ -814,7 +814,7 @@
     use geom
     use input
     use parallel
-    include 'TSTEP'
+    use tstep
 
 !     Generate local triangle-based stiffnes matrix for quad
 
@@ -1330,8 +1330,8 @@
     use geom
     use input
     use parallel
-    include 'SOLN'
-    include 'TSTEP'
+    use soln
+    use tstep
 
     real :: uf(1),vf(1)
     common /scrpre/ uc(lcr*lelt)
@@ -1373,7 +1373,7 @@
 
     use size_m
     use domain
-    include 'WZ'
+    use wz_m
 
     do ix=1,nx1
         h1_basis(ix) = 0.5*(1.0-zgm1(ix,1))
@@ -1611,7 +1611,7 @@
     subroutine get_vertex
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     common /ivrtx/ vertex ((2**ldim)*lelt)
     integer :: vertex
@@ -1720,7 +1720,7 @@
     subroutine get_vert
     use size_m
     include 'TOTAL'
-    include 'ZPER'
+    use zper
 
     common /ivrtx/ vertex ((2**ldim),lelt)
     integer :: vertex
@@ -2007,7 +2007,7 @@
     use size_m
     use geom
     use parallel
-    include 'TOPOL'
+    use topol
 
     integer*8 :: glo_num(1),ngv
     integer :: vertex(0:1,0:1,0:1,1),nx
@@ -2362,7 +2362,7 @@
     use size_m
     use geom
     use parallel
-    include 'TOPOL'
+    use topol
 
     integer*8 :: glo_num(1),ngv
     integer :: vertex(0:1,0:1,1),nx

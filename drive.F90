@@ -1,3 +1,6 @@
+!> \file drive.F90
+!! \brief main program
+
 !> NEK5000: Spectral Element Computational Fluid Dynamics Solver
 !! COPYRIGHT (c) 2008-2010 UCHICAGO ARGONNE, LLC
 !!
@@ -22,6 +25,10 @@
 !!    along with NEK5000.  If not, see <http://www.gnu.org/licenses/>.
 
 program NEKTON
+  implicit none
+
+  integer :: intracomm
+
   call nek_init(intracomm)
   call nek_solve()
   call nek_end()

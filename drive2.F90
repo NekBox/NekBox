@@ -1,637 +1,633 @@
-    subroutine initdim
 !-------------------------------------------------------------------
-
-!     Transfer array dimensions to common
-
+!>     Transfer array dimensions to common
 !-------------------------------------------------------------------
-    use size_m
-    use input
-
-    NX1=LX1
-    NY1=LY1
-    NZ1=LZ1
-
-    NX2=LX2
-    NY2=LY2
-    NZ2=LZ2
-
-    NX3=LX3
-    NY3=LY3
-    NZ3=LZ3
-
-    NXD=LXD
-    NYD=LYD
-    NZD=LZD
-
-
-    NELT=LELT
-    NELV=LELV
-    NDIM=LDIM
-
-    RETURN
-    end subroutine initdim
-
-    subroutine initdat
-!--------------------------------------------------------------------
-
-!     Initialize and set default values.
-
-!--------------------------------------------------------------------
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
+subroutine initdim
+  use size_m
   use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    COMMON /DOIT/ IFDOIT
-    LOGICAL ::       IFDOIT
+  implicit none
+
+  NX1=LX1
+  NY1=LY1
+  NZ1=LZ1
+
+  NX2=LX2
+  NY2=LY2
+  NZ2=LZ2
+
+  NX3=LX3
+  NY3=LY3
+  NZ3=LZ3
+
+  NXD=LXD
+  NYD=LYD
+  NZD=LZD
+
+
+  NELT=LELT
+  NELV=LELV
+  NDIM=LDIM
+
+  RETURN
+end subroutine initdim
+
+!--------------------------------------------------------------------
+!>     Initialize and set default values.
+!--------------------------------------------------------------------
+subroutine initdat
+  use size_m,   only : lx1, lx2, lelt, nx1, ny1, nz1, nx2, ny2, nz2
+  use input,    only : IFCVODE, IFEXPLVIS, ifsplit, param, ccurve, xc, yc, zc
+  use parallel, only : ifgprnt 
+  use soln,     only : abx1, abx2, aby1, aby2, abz1, abz2, vgradt1, vgradt2, usrdiv
+  use tstep,    only : if_full_pres
+  implicit none
+
+  LOGICAL ::       IFDOIT
+  COMMON /DOIT/ IFDOIT
+
+  integer :: nel8, ntot
 
 !     Set default logicals
 
-    IFDOIT    = .FALSE. 
-    IFCVODE   = .FALSE. 
-    IFEXPLVIS = .FALSE. 
+  IFDOIT    = .FALSE. 
+  IFCVODE   = .FALSE. 
+  IFEXPLVIS = .FALSE. 
 
-    ifsplit = .FALSE. 
-    if (lx1 == lx2) ifsplit= .TRUE. 
+  ifsplit = .FALSE. 
+  if (lx1 == lx2) ifsplit= .TRUE. 
 
-    if_full_pres = .FALSE. 
+  if_full_pres = .FALSE. 
 
 !     Turn off (on) diagnostics for communication
-    IFGPRNT= .FALSE. 
+  IFGPRNT= .FALSE. 
 
-    CALL RZERO (PARAM,200)
+  CALL RZERO (PARAM,200)
 
 !     The initialization of CBC is done in READAT
 
 !      LCBC = 3*6*LELT*(LDIMT1+1)
 !      CALL BLANK(CBC,LCBC)
 
-    CALL BLANK(CCURVE ,12*LELT)
-    NEL8 = 8*LELT
-    CALL RZERO(XC,NEL8)
-    CALL RZERO(YC,NEL8)
-    CALL RZERO(ZC,NEL8)
+  CALL BLANK(CCURVE ,12*LELT)
+  NEL8 = 8*LELT
+  CALL RZERO(XC,NEL8)
+  CALL RZERO(YC,NEL8)
+  CALL RZERO(ZC,NEL8)
 
-    NTOT=NX1*NY1*NZ1*LELT
-    CALL RZERO(ABX1,NTOT)
-    CALL RZERO(ABX2,NTOT)
-    CALL RZERO(ABY1,NTOT)
-    CALL RZERO(ABY2,NTOT)
-    CALL RZERO(ABZ1,NTOT)
-    CALL RZERO(ABZ2,NTOT)
-    CALL RZERO(VGRADT1,NTOT)
-    CALL RZERO(VGRADT2,NTOT)
+  NTOT=NX1*NY1*NZ1*LELT
+  CALL RZERO(ABX1,NTOT)
+  CALL RZERO(ABX2,NTOT)
+  CALL RZERO(ABY1,NTOT)
+  CALL RZERO(ABY2,NTOT)
+  CALL RZERO(ABZ1,NTOT)
+  CALL RZERO(ABZ2,NTOT)
+  CALL RZERO(VGRADT1,NTOT)
+  CALL RZERO(VGRADT2,NTOT)
 
-    NTOT=NX2*NY2*NZ2*LELT
-    CALL RZERO(USRDIV,NTOT)
+  NTOT=NX2*NY2*NZ2*LELT
+  CALL RZERO(USRDIV,NTOT)
 
-    RETURN
-    end subroutine initdat
-
-    subroutine comment
-!---------------------------------------------------------------------
-
-!     No need to comment !!
+  RETURN
+end subroutine initdat
 
 !---------------------------------------------------------------------
-    use ctimer
-    use size_m
-    use geom
-    use input
-    use tstep
+!>     No need to comment !!
+!---------------------------------------------------------------------
+subroutine comment
+  use kinds,  only : DP
+  use ctimer, only : dnekclock, ttime
+  use geom,   only : ifwcno
+  use input,  only : ifadvc, iftran
+  use tstep,  only : nid, istep, ifield, nfield, lastep, time, dt, courno
+  implicit none
 
-    LOGICAL ::  IFCOUR
-    SAVE     IFCOUR
-    COMMON  /CPRINT/ IFPRINT
-    LOGICAL ::          IFPRINT
-    REAL*8 :: EETIME0,EETIME1,EETIME2
-    SAVE   EETIME0,EETIME1,EETIME2
-    DATA   EETIME0,EETIME1,EETIME2 /0.0, 0.0, 0.0/
+  LOGICAL ::  IFCOUR
+  SAVE     IFCOUR
+  COMMON  /CPRINT/ IFPRINT
+  LOGICAL ::          IFPRINT
+  REAL(DP) :: EETIME0,EETIME1,EETIME2, TTIME_STP
+  SAVE   EETIME0,EETIME1,EETIME2
+  DATA   EETIME0,EETIME1,EETIME2 /0.0, 0.0, 0.0/
 
 
 !     Only node zero makes comments.
-    IF (NID /= 0) RETURN
+  IF (NID /= 0) RETURN
 
 
-    IF (EETIME0 == 0.0 .AND. ISTEP == 1) EETIME0=DNEKCLOCK()
-    EETIME1=EETIME2
-    EETIME2=DNEKCLOCK()
+  IF (EETIME0 == 0.0 .AND. ISTEP == 1) EETIME0=DNEKCLOCK()
+  EETIME1=EETIME2
+  EETIME2=DNEKCLOCK()
 
-    IF (ISTEP == 0) THEN
-        IFCOUR  = .FALSE. 
-        DO 10 IFIELD=1,NFIELD
-            IF (IFADVC(IFIELD)) IFCOUR = .TRUE. 
-        10 END DO
-        IF (IFWCNO) IFCOUR = .TRUE. 
-    ELSEIF (ISTEP > 0 .AND. LASTEP == 0 .AND. IFTRAN) THEN
-        TTIME_STP = EETIME2-EETIME1   ! time per timestep
-        TTIME     = EETIME2-EETIME0   ! sum of all timesteps
-        IF(ISTEP == 1) THEN
-            TTIME_STP = 0
-            TTIME     = 0
-        ENDIF
-        IF (     IFCOUR) &
-        WRITE (6,100) ISTEP,TIME,DT,COURNO,TTIME,TTIME_STP
-        IF ( .NOT. IFCOUR) WRITE (6,101) ISTEP,TIME,DT
-    ELSEIF (LASTEP == 1) THEN
-        TTIME_STP = EETIME2-EETIME1   ! time per timestep
-        TTIME     = EETIME2-EETIME0   ! sum of all timesteps
-    ENDIF
-    100 FORMAT('Step',I7,', t=',1pE14.7,', DT=',1pE14.7 &
-    ,', C=',0pF7.3,2(1pE11.4))
-    101 FORMAT('Step',I7,', time=',1pE12.5,', DT=',1pE11.3)
+  IF (ISTEP == 0) THEN
+      IFCOUR  = .FALSE. 
+      DO 10 IFIELD=1,NFIELD
+          IF (IFADVC(IFIELD)) IFCOUR = .TRUE. 
+      10 END DO
+      IF (IFWCNO) IFCOUR = .TRUE. 
+  ELSEIF (ISTEP > 0 .AND. LASTEP == 0 .AND. IFTRAN) THEN
+      TTIME_STP = EETIME2-EETIME1   ! time per timestep
+      TTIME     = EETIME2-EETIME0   ! sum of all timesteps
+      IF(ISTEP == 1) THEN
+          TTIME_STP = 0
+          TTIME     = 0
+      ENDIF
+      IF (     IFCOUR) &
+      WRITE (6,100) ISTEP,TIME,DT,COURNO,TTIME,TTIME_STP
+      IF ( .NOT. IFCOUR) WRITE (6,101) ISTEP,TIME,DT
+  ELSEIF (LASTEP == 1) THEN
+      TTIME_STP = EETIME2-EETIME1   ! time per timestep
+      TTIME     = EETIME2-EETIME0   ! sum of all timesteps
+  ENDIF
+  100 FORMAT('Step',I7,', t=',1pE14.7,', DT=',1pE14.7 &
+  ,', C=',0pF7.3,2(1pE11.4))
+  101 FORMAT('Step',I7,', time=',1pE12.5,', DT=',1pE11.3)
 
-    RETURN
-    end subroutine comment
-
-    subroutine setvar
-!------------------------------------------------------------------------
-
-!     Initialize variables
+  RETURN
+end subroutine comment
 
 !------------------------------------------------------------------------
-    use size_m
-    use dealias
-    use geom
-    use input
-    use tstep
+!>     Initialize variables
+!------------------------------------------------------------------------
+subroutine setvar
+  use kinds, only : DP
+  use size_m, only : nfield, nid, lorder, nelt, ldimt, lzd, lyd, lxd
+  use size_m, only : nxd, nyd, nzd, nelv
+  use geom, only : ifgmsh3
+  use input, only : param, ifcvode, ifnav, ifnatc, iflomach
+  use input, only : ifadvc, iftmsh, ifmvbd, ifmodel, ifmhd, iftran
+  use input, only : npscal, ifstrs, ifflow, ifsplit, ngeom, ifheat
+  use tstep, only : tolpdf, lastep, iostep, timeio, iocomm, nsteps, fintim
+  use tstep, only : dtinit, dt, gtheta, betag, nmxnl, dtlag, nbd, ifield, tolnl
+  use tstep, only : prelax, nbdinp, tolrel, tolhdf, pi, ctarg, tolabs, nmxe
+  use tstep, only : nelfld, nmxh, nmxp
+
+  implicit none
+
+  integer :: NFLDTM, nfldt, mfield, NABMSH, IADV, IFLD1
+  real(DP) :: TLFAC, one
 
 !     Enforce splitting/Uzawa according to the way the code was compiled
-    nxd = lxd
-    nyd = lyd
-    nzd = lzd
+  nxd = lxd
+  nyd = lyd
+  nzd = lzd
 
 !     Geometry on Mesh 3 or 1?
-    IFGMSH3 = .TRUE. 
-    IF ( IFSTRS )           IFGMSH3 = .FALSE. 
-    IF ( .NOT. IFFLOW)        IFGMSH3 = .FALSE. 
-    IF ( IFSPLIT )          IFGMSH3 = .FALSE. 
+  IFGMSH3 = .TRUE. 
+  IF ( IFSTRS )           IFGMSH3 = .FALSE. 
+  IF ( .NOT. IFFLOW)        IFGMSH3 = .FALSE. 
+  IF ( IFSPLIT )          IFGMSH3 = .FALSE. 
 
-    NGEOM  = 2
+  NGEOM  = 2
 
-    NFIELD = 1
-    IF (IFHEAT) THEN
-        NFIELD = 2 + NPSCAL
-        NFLDTM = 1 + NPSCAL
-    ENDIF
+  NFIELD = 1
+  IF (IFHEAT) THEN
+      NFIELD = 2 + NPSCAL
+      NFLDTM = 1 + NPSCAL
+  ENDIF
 
-    nfldt = nfield
-    if (ifmhd) then
-        nfldt  = nfield + 1
-        nfldtm = nfldtm + 1
-    endif
+  nfldt = nfield
+  if (ifmhd) then
+      nfldt  = nfield + 1
+      nfldtm = nfldtm + 1
+  endif
 
 
-    IF (IFMODEL) write(*,*) "Oops: turb"
+  IF (IFMODEL) write(*,*) "Oops: turb"
 #if 0
-    IF (IFMODEL) CALL SETTMC
-    IF (IFMODEL .AND. IFKEPS) THEN
-        write(*,*) "Oops: turb"
-        NPSCAL = 1
-        NFLDTM = NPSCAL + 1
-        IF (LDIMT < NFLDTM) THEN
-            WRITE (6,*) 'k-e turbulence model activated'
-            WRITE (6,*) 'Insufficient number of field arrays'
-            WRITE (6,*) 'Rerun through PRE or change SIZE file'
-            call exitt
-        ENDIF
-        NFIELD = NFIELD + 2
-        CALL SETTURB
-    ENDIF
+  IF (IFMODEL) CALL SETTMC
+  IF (IFMODEL .AND. IFKEPS) THEN
+      write(*,*) "Oops: turb"
+      NPSCAL = 1
+      NFLDTM = NPSCAL + 1
+      IF (LDIMT < NFLDTM) THEN
+          WRITE (6,*) 'k-e turbulence model activated'
+          WRITE (6,*) 'Insufficient number of field arrays'
+          WRITE (6,*) 'Rerun through PRE or change SIZE file'
+          call exitt
+      ENDIF
+      NFIELD = NFIELD + 2
+      CALL SETTURB
+  ENDIF
 #endif
-    MFIELD = 1
-    IF (IFMVBD) MFIELD = 0
+  MFIELD = 1
+  IF (IFMVBD) MFIELD = 0
 
-    DO 100 IFIELD=MFIELD,nfldt+(LDIMT-1 - NPSCAL)
-        IF (IFTMSH(IFIELD)) THEN
-            NELFLD(IFIELD) = NELT
-        ELSE
-            NELFLD(IFIELD) = NELV
-        ENDIF
-    100 END DO
+  DO 100 IFIELD=MFIELD,nfldt+(LDIMT-1 - NPSCAL)
+      IF (IFTMSH(IFIELD)) THEN
+          NELFLD(IFIELD) = NELT
+      ELSE
+          NELFLD(IFIELD) = NELV
+      ENDIF
+  100 END DO
 
-    NMXH   = 1000
-    if (iftran) NMXH   = 100
-    NMXP   = 1000 !  (for testing) 100 !  2000
-    NMXE   = 100 !  1000
-    NMXNL  = 10  !  100
+  NMXH   = 1000
+  if (iftran) NMXH   = 100
+  NMXP   = 1000 !  (for testing) 100 !  2000
+  NMXE   = 100 !  1000
+  NMXNL  = 10  !  100
 
-    PARAM(86) = 0 ! No skew-symm. convection for now
+  PARAM(86) = 0 ! No skew-symm. convection for now
 
-    BETAG  = 0 ! PARAM(3)
-    GTHETA = 0 ! PARAM(4)
-    DT     = abs(PARAM(12))
-    DTINIT = DT
-    FINTIM = PARAM(10)
-    NSTEPS = PARAM(11)
-    IOCOMM = PARAM(13)
-    TIMEIO = PARAM(14)
-    IOSTEP = PARAM(15)
-    LASTEP = 0
-    TOLPDF = abs(PARAM(21))
-    TOLHDF = abs(PARAM(22))
-    TOLREL = abs(PARAM(24))
-    TOLABS = abs(PARAM(25))
-    CTARG  = PARAM(26)
-    NBDINP = PARAM(27)
-    NABMSH = PARAM(28)
+  BETAG  = 0 ! PARAM(3)
+  GTHETA = 0 ! PARAM(4)
+  DT     = abs(PARAM(12))
+  DTINIT = DT
+  FINTIM = PARAM(10)
+  NSTEPS = PARAM(11)
+  IOCOMM = PARAM(13)
+  TIMEIO = PARAM(14)
+  IOSTEP = PARAM(15)
+  LASTEP = 0
+  TOLPDF = abs(PARAM(21))
+  TOLHDF = abs(PARAM(22))
+  TOLREL = abs(PARAM(24))
+  TOLABS = abs(PARAM(25))
+  CTARG  = PARAM(26)
+  NBDINP = PARAM(27)
+  NABMSH = PARAM(28)
 
-    if (nbdinp > lorder) then
-        if (nid == 0) then
-            write(6,*) 'ERROR: torder > lorder.',nbdinp,lorder
-            write(6,*) 'Change SIZEu and recompile entire code.'
-        endif
-        call exitt
-    endif
+  if (nbdinp > lorder) then
+      if (nid == 0) then
+          write(6,*) 'ERROR: torder > lorder.',nbdinp,lorder
+          write(6,*) 'Change SIZEu and recompile entire code.'
+      endif
+      call exitt
+  endif
 
-    if(abs(PARAM(16)) >= 2) IFCVODE = .TRUE. 
+  if(abs(PARAM(16)) >= 2) IFCVODE = .TRUE. 
 
 
 !     Check accuracy requested.
 
-    IF (TOLREL <= 0.) TOLREL = 0.01
+  IF (TOLREL <= 0.) TOLREL = 0.01
 
 !     Relaxed pressure iteration; maximum decrease in the residual.
 
-    PRELAX = 0.1*TOLREL
-    IF ( .NOT. IFTRAN .AND. .NOT. IFNAV) PRELAX = 1.E-5
+  PRELAX = 0.1*TOLREL
+  IF ( .NOT. IFTRAN .AND. .NOT. IFNAV) PRELAX = 1.E-5
 
 !     Tolerance for nonlinear iteration
 
-    TOLNL  = 1.E-4
+  TOLNL  = 1.E-4
 
 !     Fintim overrides nsteps
-
-    IF (FINTIM /= 0.) NSTEPS = 1000000000
-    IF ( .NOT. IFTRAN ) NSTEPS = 1
+  IF (FINTIM /= 0.) NSTEPS = 1000000000
+  IF ( .NOT. IFTRAN ) NSTEPS = 1
 
 !     Print interval defaults to 1
-
-    IF (IOCOMM == 0)  IOCOMM = nsteps+1
+  IF (IOCOMM == 0)  IOCOMM = nsteps+1
 
 
 !     Set logical for Boussinesq approx (natural convection)
-
-    IFNATC = .FALSE. 
-    IF (BETAG > 0.) IFNATC= .TRUE. 
-    IF(IFLOMACH) IFNATC = .FALSE. 
+  IFNATC = .FALSE. 
+  IF (BETAG > 0.) IFNATC= .TRUE. 
+  IF(IFLOMACH) IFNATC = .FALSE. 
 
 !     Set default for mesh integration scheme
-
-    IF (NABMSH <= 0 .OR. NABMSH > 3) THEN
-        NABMSH    = NBDINP
-        PARAM(28) = (NABMSH)
-    ENDIF
+  IF (NABMSH <= 0 .OR. NABMSH > 3) THEN
+      NABMSH    = NBDINP
+      PARAM(28) = (NABMSH)
+  ENDIF
 
 !     Set default for mixing length factor
-
-    TLFAC = 0.14
+  TLFAC = 0.14
 !     IF (PARAM(49) .LE. 0.0) PARAM(49) = TLFAC
 
 !     Courant number only applicable if convection in ANY field.
-
-    IADV  = 0
-    IFLD1 = 1
-    IF ( .NOT. IFFLOW) IFLD1 = 2
-    DO 200 IFIELD=IFLD1,nfldt
-        IF (IFADVC(IFIELD)) IADV = 1
-    200 END DO
+  IADV  = 0
+  IFLD1 = 1
+  IF ( .NOT. IFFLOW) IFLD1 = 2
+  DO 200 IFIELD=IFLD1,nfldt
+      IF (IFADVC(IFIELD)) IADV = 1
+  200 END DO
 
 !     If characteristics, need number of sub-timesteps (DT/DS).
 !     Current sub-timeintegration scheme: RK4.
 !     If not characteristics, i.e. standard semi-implicit scheme,
 !     check user-defined Courant number.
-
-    IF (IADV == 1) CALL SETCHAR
+  IF (IADV == 1) CALL SETCHAR
 
 !     Initialize order of time-stepping scheme (BD)
 !     Initialize time step array.
-
-    NBD    = 0
-    CALL RZERO (DTLAG,10)
+  NBD    = 0
+  CALL RZERO (DTLAG,10)
 
 !     Useful constants
+  one = 1.
+  PI  = 4.*ATAN(one)
 
-    one = 1.
-    PI  = 4.*ATAN(one)
+  RETURN
+end subroutine setvar
 
-    RETURN
-    end subroutine setvar
-
-    subroutine echopar
-
+subroutine echopar
 !     Echo the nonzero parameters from the readfile to the logfile
+  use kinds, only : DP
+  use size_m, only : nid, ndim, ldim
+  use input, only : reafle, vnekton, nktonv, param
+  implicit none
 
-    use size_m
-    use input
-    CHARACTER(132) :: STRING
-    CHARACTER(1) ::  STRING1(132)
-    EQUIVALENCE (STRING,STRING1)
+  CHARACTER(132) :: STRING
+  CHARACTER(1) ::  STRING1(132)
+  EQUIVALENCE (STRING,STRING1)
 
-    IF (nid /= 0) RETURN
+  real(DP) :: vnekmin
+  integer :: ls, nparam, j, i
+  integer, external :: ltrunc
 
-    OPEN (UNIT=9,FILE=REAFLE,STATUS='OLD')
-    REWIND(UNIT=9)
+  IF (nid /= 0) RETURN
+
+  OPEN (UNIT=9,FILE=REAFLE,STATUS='OLD')
+  REWIND(UNIT=9)
 
 
-    READ(9,*,ERR=400)
-    READ(9,*,ERR=400) VNEKTON
-    NKTONV=VNEKTON
-    VNEKMIN=2.5
-    IF(VNEKTON < VNEKMIN)THEN
-        PRINT*,' Error: This NEKTON Solver Requires a .rea file'
-        PRINT*,' from prenek version ',VNEKMIN,' or higher'
-        PRINT*,' Please run the session through the preprocessor'
-        PRINT*,' to bring the .rea file up to date.'
-        call exitt
-    ENDIF
-    READ(9,*,ERR=400) NDIM
-!     error check
-    IF(NDIM /= LDIM)THEN
-        WRITE(6,10) LDIM,NDIM
-        10 FORMAT(//,2X,'Error: This NEKTON Solver has been compiled' &
-        /,2X,'       for spatial dimension equal to',I2,'.' &
-        /,2X,'       The data file has dimension',I2,'.')
-        CALL exitt
-    ENDIF
+  READ(9,*,ERR=400)
+  READ(9,*,ERR=400) VNEKTON
+  NKTONV=VNEKTON
+  VNEKMIN=2.5
+  IF(VNEKTON < VNEKMIN)THEN
+      PRINT*,' Error: This NEKTON Solver Requires a .rea file'
+      PRINT*,' from prenek version ',VNEKMIN,' or higher'
+      PRINT*,' Please run the session through the preprocessor'
+      PRINT*,' to bring the .rea file up to date.'
+      call exitt
+  ENDIF
+  READ(9,*,ERR=400) NDIM
+!   error check
+  IF(NDIM /= LDIM)THEN
+      WRITE(6,10) LDIM,NDIM
+      10 FORMAT(//,2X,'Error: This NEKTON Solver has been compiled' &
+      /,2X,'       for spatial dimension equal to',I2,'.' &
+      /,2X,'       The data file has dimension',I2,'.')
+      CALL exitt
+  ENDIF
 
-    CALL BLANK(STRING,132)
-    CALL CHCOPY(STRING,REAFLE,132)
-    Ls=LTRUNC(STRING,132)
-    READ(9,*,ERR=400) NPARAM
-    WRITE(6,82) NPARAM,(STRING1(j),j=1,Ls)
+  CALL BLANK(STRING,132)
+  CALL CHCOPY(STRING,REAFLE,132)
+  Ls=LTRUNC(STRING,132)
+  READ(9,*,ERR=400) NPARAM
+  WRITE(6,82) NPARAM,(STRING1(j),j=1,Ls)
 
-    DO 20 I=1,NPARAM
-        CALL BLANK(STRING,132)
-        READ(9,80,ERR=400) STRING
-        Ls=LTRUNC(STRING,132)
-        IF (PARAM(i) /= 0.0) WRITE(6,81) I,(STRING1(j),j=1,Ls)
-    20 END DO
-    80 FORMAT(A132)
-    81 FORMAT(I4,3X,132A1)
-    82 FORMAT(I4,3X,'Parameters from file:',132A1)
-    CLOSE (UNIT=9)
-    write(6,*) ' '
+  DO 20 I=1,NPARAM
+      CALL BLANK(STRING,132)
+      READ(9,80,ERR=400) STRING
+      Ls=LTRUNC(STRING,132)
+      IF (PARAM(i) /= 0.0) WRITE(6,81) I,(STRING1(j),j=1,Ls)
+  20 END DO
+  80 FORMAT(A132)
+  81 FORMAT(I4,3X,132A1)
+  82 FORMAT(I4,3X,'Parameters from file:',132A1)
+  CLOSE (UNIT=9)
+  write(6,*) ' '
 
-!      if(param(2).ne.param(8).and.nid.eq.0) then
-!         write(6,*) 'Note VISCOS not equal to CONDUCT!'
-!         write(6,*) 'Note VISCOS  =',PARAM(2)
-!         write(6,*) 'Note CONDUCT =',PARAM(8)
-!      endif
+!    if(param(2).ne.param(8).and.nid.eq.0) then
+!       write(6,*) 'Note VISCOS not equal to CONDUCT!'
+!       write(6,*) 'Note VISCOS  =',PARAM(2)
+!       write(6,*) 'Note CONDUCT =',PARAM(8)
+!    endif
 
-    if (param(62) > 0) then
-        if(nid == 0) write(6,*) &
-        'enable byte swap for output'
-        call set_bytesw_write(1)
-    endif
+  if (param(62) > 0) then
+      if(nid == 0) write(6,*) &
+      'enable byte swap for output'
+      call set_bytesw_write(1)
+  endif
 
-    return
+  return
 
-!     Error handling:
+!   Error handling:
 
-    400 CONTINUE
-    WRITE(6,401)
-    401 FORMAT(2X,'ERROR READING PARAMETER DATA' &
-    ,/,2X,'ABORTING IN ROUTINE ECHOPAR.')
-    CALL exitt
+  400 CONTINUE
+  WRITE(6,401)
+  401 FORMAT(2X,'ERROR READING PARAMETER DATA' &
+  ,/,2X,'ABORTING IN ROUTINE ECHOPAR.')
+  CALL exitt
 
-    500 CONTINUE
-    WRITE(6,501)
-    501 FORMAT(2X,'ERROR READING LOGICAL DATA' &
-    ,/,2X,'ABORTING IN ROUTINE ECHOPAR.')
-    CALL exitt
+  500 CONTINUE
+  WRITE(6,501)
+  501 FORMAT(2X,'ERROR READING LOGICAL DATA' &
+  ,/,2X,'ABORTING IN ROUTINE ECHOPAR.')
+  CALL exitt
 
-    RETURN
-    end subroutine echopar
+  RETURN
+end subroutine echopar
 
-    subroutine gengeom (igeom)
 !----------------------------------------------------------------------
-
-!     Generate geometry data
-
+!>     Generate geometry data
 !----------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use tstep
-    use wz_m
+subroutine gengeom (igeom)
+  use kinds, only : DP
+  use size_m, only : nid, nx3, ny3, nz3, lx3, ly3, lz3, lelt
+  use soln, only : tmult, vmult
+  use input, only : ifheat, if3d
+  use tstep, only : istep, ifield
+  implicit none
 
-    COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
-    ,             YM3 (LX3,LY3,LZ3,LELT) &
-    ,             ZM3 (LX3,LY3,LZ3,LELT)
+  integer, intent(in) :: igeom
+  integer :: ntot3, ifieldo
+  real(DP) :: xm3, ym3, zm3
+
+  COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
+  ,             YM3 (LX3,LY3,LZ3,LELT) &
+  ,             ZM3 (LX3,LY3,LZ3,LELT)
 
 
-    if (nid == 0 .AND. istep <= 1) write(6,*) 'generate geometry data'
+  if (nid == 0 .AND. istep <= 1) write(6,*) 'generate geometry data'
 
-    IF (IGEOM == 1) THEN
-        RETURN
-    ELSEIF (IGEOM == 2) THEN
-        CALL LAGMASS
-        IF (ISTEP == 0) CALL GENCOOR (XM3,YM3,ZM3)
-        IF (ISTEP >= 1) CALL UPDCOOR
-        CALL GEOM1 (XM3,YM3,ZM3)
-        CALL GEOM2
-        CALL UPDMSYS (1)
-        CALL VOLUME
-        CALL SETINVM
-        CALL SETDEF
-        CALL SFASTAX
-        IF (ISTEP >= 1) CALL EINIT
-    ELSEIF (IGEOM == 3) THEN
-    
-    !        Take direct stiffness avg of mesh
-    
-        ifieldo = ifield
-        CALL GENCOOR (XM3,YM3,ZM3)
-        if (ifheat) then
-            ifield = 2
-            CALL dssum(xm3,nx3,ny3,nz3)
-            call col2 (xm3,tmult,ntot3)
-            CALL dssum(ym3,nx3,ny3,nz3)
-            call col2 (ym3,tmult,ntot3)
-            if (if3d) then
-                CALL dssum(xm3,nx3,ny3,nz3)
-                call col2 (xm3,tmult,ntot3)
-            endif
-        else
-            ifield = 1
-            CALL dssum(xm3,nx3,ny3,nz3)
-            call col2 (xm3,vmult,ntot3)
-            CALL dssum(ym3,nx3,ny3,nz3)
-            call col2 (ym3,vmult,ntot3)
-            if (if3d) then
-                CALL dssum(xm3,nx3,ny3,nz3)
-                call col2 (xm3,vmult,ntot3)
-            endif
-        endif
-        CALL GEOM1 (XM3,YM3,ZM3)
-        CALL GEOM2
-        CALL UPDMSYS (1)
-        CALL VOLUME
-        CALL SETINVM
-        CALL SETDEF
-        CALL SFASTAX
-        ifield = ifieldo
-    ENDIF
+  IF (IGEOM == 1) THEN
+      RETURN
+  ELSEIF (IGEOM == 2) THEN
+      CALL LAGMASS
+      IF (ISTEP == 0) CALL GENCOOR (XM3,YM3,ZM3)
+      IF (ISTEP >= 1) CALL UPDCOOR
+      CALL GEOM1 (XM3,YM3,ZM3)
+      CALL GEOM2
+      CALL UPDMSYS (1)
+      CALL VOLUME
+      CALL SETINVM
+      CALL SETDEF
+      CALL SFASTAX
+      IF (ISTEP >= 1) CALL EINIT
+  ELSEIF (IGEOM == 3) THEN
+  
+  !        Take direct stiffness avg of mesh
+  
+      ifieldo = ifield
+      CALL GENCOOR (XM3,YM3,ZM3)
+      if (ifheat) then
+          ifield = 2
+          CALL dssum(xm3,nx3,ny3,nz3)
+          call col2 (xm3,tmult,ntot3)
+          CALL dssum(ym3,nx3,ny3,nz3)
+          call col2 (ym3,tmult,ntot3)
+          if (if3d) then
+              CALL dssum(xm3,nx3,ny3,nz3)
+              call col2 (xm3,tmult,ntot3)
+          endif
+      else
+          ifield = 1
+          CALL dssum(xm3,nx3,ny3,nz3)
+          call col2 (xm3,vmult,ntot3)
+          CALL dssum(ym3,nx3,ny3,nz3)
+          call col2 (ym3,vmult,ntot3)
+          if (if3d) then
+              CALL dssum(xm3,nx3,ny3,nz3)
+              call col2 (xm3,vmult,ntot3)
+          endif
+      endif
+      CALL GEOM1 (XM3,YM3,ZM3)
+      CALL GEOM2
+      CALL UPDMSYS (1)
+      CALL VOLUME
+      CALL SETINVM
+      CALL SETDEF
+      CALL SFASTAX
+      ifield = ifieldo
+  ENDIF
 
-    if (nid == 0 .AND. istep <= 1) then
-        write(6,*) 'done :: generate geometry data'
-        write(6,*) ' '
-    endif
+  if (nid == 0 .AND. istep <= 1) then
+      write(6,*) 'done :: generate geometry data'
+      write(6,*) ' '
+  endif
 
-    return
-    end subroutine gengeom
+  return
+end subroutine gengeom
+
 !-----------------------------------------------------------------------
-    subroutine files
+!>    Defines machine specific input and output file names.
+subroutine files
+  use size_m, only : nid
+  use input, only : session, path
+  use input, only : reafle, re2fle, fldfle, hisfle, schfle
+  use input, only : dmpfle, orefle, nrefle
+  implicit none
 
-!     Defines machine specific input and output file names.
+  integer, external :: ltrunc, indx1
+  integer :: ls, lpp, lsp, l1, ln, len
 
-    use size_m
-    use input
-    use parallel
+  CHARACTER(132) :: NAME
+  CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
+!   EQUIVALENCE  (SESSION,SESS1)
+!   EQUIVALENCE  (PATH,PATH1)
+!   EQUIVALENCE  (NAME,NAM1)
+  CHARACTER(1) ::  DMP(4),FLD(4),REA(4),HIS(4),SCH(4) ,ORE(4), NRE(4)
+  CHARACTER(1) ::  RE2(4)
+  CHARACTER(4) ::  DMP4  ,FLD4  ,REA4  ,HIS4  ,SCH4   ,ORE4  , NRE4
+  CHARACTER(4) ::  RE24
+  EQUIVALENCE (DMP,DMP4), (FLD,FLD4), (REA,REA4), (HIS,HIS4) &
+  , (SCH,SCH4), (ORE,ORE4), (NRE,NRE4) &
+  , (RE2,RE24)
+  DATA DMP4,FLD4,REA4 /'.dmp','.fld','.rea'/
+  DATA HIS4,SCH4      /'.his','.sch'/
+  DATA ORE4,NRE4      /'.ore','.nre'/
+  DATA RE24           /'.re2'       /
+  CHARACTER(78) ::  STRING
 
-    CHARACTER(132) :: NAME
-    CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
-!    EQUIVALENCE  (SESSION,SESS1)
-!    EQUIVALENCE  (PATH,PATH1)
-!    EQUIVALENCE  (NAME,NAM1)
-    CHARACTER(1) ::  DMP(4),FLD(4),REA(4),HIS(4),SCH(4) ,ORE(4), NRE(4)
-    CHARACTER(1) ::  RE2(4)
-    CHARACTER(4) ::  DMP4  ,FLD4  ,REA4  ,HIS4  ,SCH4   ,ORE4  , NRE4
-    CHARACTER(4) ::  RE24
-    EQUIVALENCE (DMP,DMP4), (FLD,FLD4), (REA,REA4), (HIS,HIS4) &
-    , (SCH,SCH4), (ORE,ORE4), (NRE,NRE4) &
-    , (RE2,RE24)
-    DATA DMP4,FLD4,REA4 /'.dmp','.fld','.rea'/
-    DATA HIS4,SCH4      /'.his','.sch'/
-    DATA ORE4,NRE4      /'.ore','.nre'/
-    DATA RE24           /'.re2'       /
-    CHARACTER(78) ::  STRING
+!    Find out the session name:
 
-!     Find out the session name:
+!     CALL BLANK(SESSION,132)
+!     CALL BLANK(PATH   ,132)
 
-!      CALL BLANK(SESSION,132)
-!      CALL BLANK(PATH   ,132)
-
-!      ierr = 0
-!      IF(NID.EQ.0) THEN
-!        OPEN (UNIT=8,FILE='SESSION.NAME',STATUS='OLD',ERR=24)
-!        READ(8,10) SESSION
-!        READ(8,10) PATH
-!  10      FORMAT(A132)
-!        CLOSE(UNIT=8)
-!        GOTO 23
-!  24    ierr = 1
-!  23  ENDIF
-!      call err_chk(ierr,' Cannot open SESSION.NAME!$')
+!     ierr = 0
+!     IF(NID.EQ.0) THEN
+!       OPEN (UNIT=8,FILE='SESSION.NAME',STATUS='OLD',ERR=24)
+!       READ(8,10) SESSION
+!       READ(8,10) PATH
+! 10      FORMAT(A132)
+!       CLOSE(UNIT=8)
+!       GOTO 23
+! 24    ierr = 1
+! 23  ENDIF
+!     call err_chk(ierr,' Cannot open SESSION.NAME!$')
 
   sess1 = transfer(session, sess1)
   path1 = transfer(path, path1)
   nam1 = transfer(name, nam1)
 
-    len = ltrunc(path,132)
-    if(indx1(path1(len),'/',1) < 1) then
-        call chcopy(path1(len+1),'/',1)
-    endif
+  len = ltrunc(path,132)
+  if(indx1(path1(len),'/',1) < 1) then
+      call chcopy(path1(len+1),'/',1)
+  endif
 
-!      call bcast(SESSION,132*CSIZE)
-!      call bcast(PATH,132*CSIZE)
+!     call bcast(SESSION,132*CSIZE)
+!     call bcast(PATH,132*CSIZE)
 
-    CALL BLANK(REAFLE,132)
-    CALL BLANK(RE2FLE,132)
-    CALL BLANK(FLDFLE,132)
-    CALL BLANK(HISFLE,132)
-    CALL BLANK(SCHFLE,132)
-    CALL BLANK(DMPFLE,132)
-    CALL BLANK(OREFLE,132)
-    CALL BLANK(NREFLE,132)
-    CALL BLANK(NAME  ,132)
+  CALL BLANK(REAFLE,132)
+  CALL BLANK(RE2FLE,132)
+  CALL BLANK(FLDFLE,132)
+  CALL BLANK(HISFLE,132)
+  CALL BLANK(SCHFLE,132)
+  CALL BLANK(DMPFLE,132)
+  CALL BLANK(OREFLE,132)
+  CALL BLANK(NREFLE,132)
+  CALL BLANK(NAME  ,132)
 
-!     Construct file names containing full path to host:
+!    Construct file names containing full path to host:
 
-    LS=LTRUNC(SESSION,132)
-    path = transfer(path1, path)
-    LPP=LTRUNC(PATH,132)
-    LSP=LS+LPP
+  LS=LTRUNC(SESSION,132)
+  path = transfer(path1, path)
+  LPP=LTRUNC(PATH,132)
+  LSP=LS+LPP
 
-    call chcopy(nam1(    1),path1,lpp)
-    call chcopy(nam1(lpp+1),sess1,ls )
-    l1 = lpp+ls+1
-    ln = lpp+ls+4
-
-
-! .rea file
-    call chcopy(nam1  (l1),rea , 4)
-    call chcopy(reafle    ,nam1,ln)
-!      write(6,*) 'reafile:',reafle
-
-! .re2 file
-    call chcopy(nam1  (l1),re2 , 4)
-    call chcopy(re2fle    ,nam1,ln)
-
-! .fld file
-    call chcopy(nam1  (l1),fld , 4)
-    call chcopy(fldfle    ,nam1,ln)
-
-! .his file
-    call chcopy(nam1  (l1),his , 4)
-    call chcopy(hisfle    ,nam1,ln)
-
-! .sch file
-    call chcopy(nam1  (l1),sch , 4)
-    call chcopy(schfle    ,nam1,ln)
+  call chcopy(nam1(    1),path1,lpp)
+  call chcopy(nam1(lpp+1),sess1,ls )
+  l1 = lpp+ls+1
+  ln = lpp+ls+4
 
 
-! .dmp file
-    call chcopy(nam1  (l1),dmp , 4)
-    call chcopy(dmpfle    ,nam1,ln)
+!.rea file
+  call chcopy(nam1  (l1),rea , 4)
+  call chcopy(reafle    ,nam1,ln)
+!     write(6,*) 'reafile:',reafle
 
-! .ore file
-    call chcopy(nam1  (l1),ore , 4)
-    call chcopy(orefle    ,nam1,ln)
+!.re2 file
+  call chcopy(nam1  (l1),re2 , 4)
+  call chcopy(re2fle    ,nam1,ln)
 
-! .nre file
-    call chcopy(nam1  (l1),nre , 4)
-    call chcopy(nrefle    ,nam1,ln)
+!.fld file
+  call chcopy(nam1  (l1),fld , 4)
+  call chcopy(fldfle    ,nam1,ln)
 
-!     Write the name of the .rea file to the logfile.
+!.his file
+  call chcopy(nam1  (l1),his , 4)
+  call chcopy(hisfle    ,nam1,ln)
 
-    IF (NID == 0) THEN
-        CALL CHCOPY(STRING,REAFLE,78)
-        WRITE(6,1000) STRING
-        WRITE(6,1001)
-        1000 FORMAT(//,2X,'Beginning session:',/,2X,A78)
-        1001 FORMAT(/,' ')
-    ENDIF
+!.sch file
+  call chcopy(nam1  (l1),sch , 4)
+  call chcopy(schfle    ,nam1,ln)
 
-    path = transfer(path1, path)
-    session = transfer(sess1, session)
 
-    RETURN
+!.dmp file
+  call chcopy(nam1  (l1),dmp , 4)
+  call chcopy(dmpfle    ,nam1,ln)
 
-    end subroutine files
+!.ore file
+  call chcopy(nam1  (l1),ore , 4)
+  call chcopy(orefle    ,nam1,ln)
 
+!.nre file
+  call chcopy(nam1  (l1),nre , 4)
+  call chcopy(nrefle    ,nam1,ln)
+
+!    Write the name of the .rea file to the logfile.
+
+  IF (NID == 0) THEN
+      CALL CHCOPY(STRING,REAFLE,78)
+      WRITE(6,1000) STRING
+      WRITE(6,1001)
+      1000 FORMAT(//,2X,'Beginning session:',/,2X,A78)
+      1001 FORMAT(/,' ')
+  ENDIF
+
+  path = transfer(path1, path)
+  session = transfer(sess1, session)
+
+  RETURN
+
+end subroutine files
+
+!----------------------------------------------------------------------
+!>     Store old time steps and compute new time step, time and timef.
+!>     Set time-dependent coefficients in time-stepping schemes.
+!----------------------------------------------------------------------
     subroutine settime
-!----------------------------------------------------------------------
-
-!     Store old time steps and compute new time step, time and timef.
-!     Set time-dependent coefficients in time-stepping schemes.
-
-!----------------------------------------------------------------------
     use size_m
     use geom
     use input

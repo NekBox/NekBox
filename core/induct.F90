@@ -477,91 +477,6 @@
     return
     end subroutine opzero
 !-----------------------------------------------------------------------
-#if 0
-    subroutine opnorm(unorm,ux,uy,uz,type3)
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    character(3) :: type3
-    real :: ux(1),uy(1),uz(1)
-    real :: un(3),wn(3)
-
-    n = nx1*ny1*nz1*nelfld(ifield)
-    if (type3 == 'L2 ') then
-        if (if3d) then
-            un(1) = vlsc3(ux,ux,bm1,n)
-            un(2) = vlsc3(uy,uy,bm1,n)
-            un(3) = vlsc3(uz,uz,bm1,n)
-            un(1) = un(1) + un(2) + un(3)
-            unorm = glsum(un(1),1)
-            if (unorm > 0) unorm = sqrt(unorm/volvm1)
-        else
-            un(1) = vlsc3(ux,ux,bm1,n)
-            un(2) = vlsc3(uy,uy,bm1,n)
-            un(1) = un(1) + un(2)
-            unorm = glsum(un(1),1)
-            if (unorm > 0) unorm = sqrt(unorm/volvm1)
-        endif
-    endif
-
-    return
-    end subroutine opnorm
-!-----------------------------------------------------------------------
-    subroutine lorentz_force (lf,b1,b2,b3,w1,w2)
-
-!     Compute Lorentz force
-
-!     Input:  B     := (b1,b2,b3)
-
-!     Output: lf(1,ldim)
-
-!     Work arrays: w1(ltot) and w2(ltot)
-
-!     The output will not be continuous.  However, it will be in
-!     the form appropriate for incorporation as a body force term
-!     in the variational formulation of the Navier-Stokes equations.
-
-!     (i.e.,   rhs(NS) = rhs(NS) + B*lf,  where B is the mass matrix)
-
-    use size_m
-
-    real :: lf(lx1*ly1*lz1*lelv,ldim)
-    real :: b1(lx1*ly1*lz1*lelv)
-    real :: b2(lx1*ly1*lz1*lelv)
-    real :: b3(lx1*ly1*lz1*lelv)
-
-    call curl(lf,b1,b2,b3, .FALSE. ,w1,w2)
-
-    ntot = nx1*ny1*nz1*nelv
-
-    do i=1,ntot
-        c1 = lf(i,2)*b3(i) - lf(i,3)*b2(i)
-        c2 = lf(i,3)*b1(i) - lf(i,1)*b3(i)
-        c3 = lf(i,1)*b2(i) - lf(i,2)*b1(i)
-        lf(i,1) = c1
-        lf(i,2) = c2
-        lf(i,3) = c3
-    enddo
-
-    return
-    end subroutine lorentz_force
-#endif
-!-----------------------------------------------------------------------
     subroutine curl(vort,u,v,w,ifavg,work1,work2)
 
     use size_m
@@ -630,40 +545,6 @@
 
     return
     end subroutine curl
-!-----------------------------------------------------------------------
-#if 0
-    subroutine lorentz_force2(lf,b1,b2,b3)
-
-!     Compute Lorentz force
-
-!     Input:  B     := (b1,b2,b3)
-
-!     Output: lf(1,ldim)
-
-!     Work arrays: w1(ltot) and w2(ltot)
-
-!     The output will not be continuous.  However, it will be in
-!     the form appropriate for incorporation as a body force term
-!     in the variational formulation of the Navier-Stokes equations.
-
-!     (i.e.,   rhs(NS) = rhs(NS) + B*lf,  where B is the mass matrix)
-
-    use size_m
-
-    real :: lf(lx1*ly1*lz1*ldim,lelt)
-    real :: b1(lx1*ly1*lz1,lelt)
-    real :: b2(lx1*ly1*lz1,lelt)
-    real :: b3(lx1*ly1*lz1,lelt)
-
-    integer :: e
-
-    do e = 1,nelt   ! NOTE:  the order is different from v. 1
-        call lorentz_force_e(lf(1,e),b1(1,e),b2(1,e),b3(1,e),e)
-    enddo
-
-    return
-    end subroutine lorentz_force2
-#endif
 !-----------------------------------------------------------------------
     subroutine lorentz_force_e(lf,b1,b2,b3,e)
 
@@ -1236,37 +1117,7 @@
     return
     end subroutine ophinvm
 !--------------------------------------------------------------------
-#if 0
-    subroutine set_ifbcor
-    use size_m
-    use geom
-    use input
-!     use tstep   ! ifield?
-
-    common  /nekcb/ cb
-    character cb*3
-
-    ifbcor = .TRUE. 
-    ifield = ifldmhd
-
-    nface  = 2*ndim
-    do iel=1,nelv
-        do ifc=1,nface
-            cb = cbc(ifc,iel,ifield)
-            if  (cb == 'ndd' .OR. cb == 'dnd' .OR. cb == 'ddn') &
-            ifbcor = .FALSE. 
-        enddo
-    enddo
-
-    call gllog(ifbcor , .FALSE. )
-
-    if (nid == 0)  write (6,*) 'IFBCOR   =',ifbcor
-
-    return
-    end subroutine set_ifbcor
-#endif
-!--------------------------------------------------------------------
-!      subroutine set_ifbcor_old(ifbcor)
+!>      subroutine set_ifbcor_old(ifbcor)
 !c
 !c     This is a quick hack for the rings problem - it is not general,
 !c     but will also work fine for the periodic in Z problem

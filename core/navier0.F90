@@ -113,54 +113,6 @@
     RETURN
     END SUBROUTINE EINIT
 !-----------------------------------------------------------------------
-#if 0
-    subroutine dmp_map(imap)
-
-!     Dump map file and element center point
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    common /ivrtx/ vertex ((2**ldim)*lelt)
-    common /scruz/ xbar(ldim,lelt),ibar(lelt)
-    integer :: vertex
-    integer :: imap(nelgt)
-
-    integer :: e,eg
-
-    nxb = (nx1+1)/2
-    nyb = (ny1+1)/2
-    nzb = (nz1+1)/2
-          
-    do e=1,nelt
-        xbar(ndim,e) = zm1(nxb,nyb,nzb,e)
-        xbar(1   ,e) = xm1(nxb,nyb,nzb,e)
-        xbar(2   ,e) = ym1(nxb,nyb,nzb,e)
-        eg           = lglel(e)
-        ibar(e)      = imap(eg)
-    enddo
-    call p_outvec_ir(ibar,xbar,ndim,'mpxyz.dat')
-
-    return
-    end subroutine dmp_map
-#endif
-!-----------------------------------------------------------------------
     subroutine p_outvec_ir(ia,a,lda,name9)
     use size_m
     use dealias

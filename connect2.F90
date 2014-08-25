@@ -2845,6 +2845,7 @@
     return
     end subroutine open_bin_file
 !-----------------------------------------------------------------------
+#if 0
     subroutine chk_xyz
     use size_m
     use dealias
@@ -2874,6 +2875,7 @@
 
     return
     end subroutine chk_xyz
+#endif
 !-----------------------------------------------------------------------
     subroutine chk_nel
     use size_m

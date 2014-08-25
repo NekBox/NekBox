@@ -439,7 +439,7 @@ subroutine gengeom (igeom)
   ELSEIF (IGEOM == 2) THEN
       CALL LAGMASS
       IF (ISTEP == 0) CALL GENCOOR (XM3,YM3,ZM3)
-      IF (ISTEP >= 1) CALL UPDCOOR
+!max      IF (ISTEP >= 1) CALL UPDCOOR
       CALL GEOM1 (XM3,YM3,ZM3)
       CALL GEOM2
       CALL UPDMSYS (1)

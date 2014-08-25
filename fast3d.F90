@@ -1657,3 +1657,24 @@
     end subroutine mhd_bc_dn
 #endif
 !-----------------------------------------------------------------------
+!> \brief Reorder vector using temporary buffer
+subroutine swap(b,ind,n,temp)
+  implicit none
+  real :: B(1),TEMP(1)
+  integer :: n, IND(1)
+  integer :: i, jj
+
+!***
+!***  SORT ASSOCIATED ELEMENTS BY PUTTING ITEM(JJ)
+!***  INTO ITEM(I), WHERE JJ=IND(I).
+!***
+  DO I=1,N
+      JJ=IND(I)
+      TEMP(I)=B(JJ)
+  END DO
+  DO I=1,N
+      B(I)=TEMP(I)
+  END DO
+  RETURN
+end subroutine swap
+

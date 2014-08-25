@@ -317,28 +317,7 @@
     return
     end subroutine hsmg_tnsr3d
 !----------------------------------------------------------------------
-!     computes
-!              T
-!     v = A u B
-#if 0
-    subroutine hsmg_tnsr2d_el(v,nv,u,nu,A,Bt)
-    use size_m
-
-    integer :: nv,nu
-    real :: v(nv*nv),u(nu*nu),A(1),Bt(1)
-
-    common /hsmgw/ work((lx1+2)*(lx1+2))
-
-    call mxm(A,nv,u,nu,work,nu)
-    call mxm(work,nv,Bt,nu,v,nv)
-
-    return
-    end subroutine hsmg_tnsr2d_el
-#endif
-!----------------------------------------------------------------------
-!     computes
-
-!     v = [C (x) B (x) A] u
+!> computes  v = [C (x) B (x) A] u
     subroutine hsmg_tnsr3d_el(v,nv,u,nu,A,Bt,Ct)
     use size_m
 
@@ -633,24 +612,6 @@
     enddo
     return
     end subroutine hsmg_schwarz_toext3d
-!----------------------------------------------------------------------
-#if 0
-    subroutine hsmg_schwarz_toreg2d(b,a,n)
-    use size_m
-    integer :: n
-    real :: a(0:n+1,0:n+1,nelv),b(n,n,nelv)
-          
-    integer :: i,j,ie
-    do ie=1,nelv
-        do j=1,n
-            do i=1,n
-                b(i,j,ie)=a(i,j,ie)
-            enddo
-        enddo
-    enddo
-    return
-    end subroutine hsmg_schwarz_toreg2d
-#endif
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_toreg3d(b,a,n)
     use size_m
@@ -1306,32 +1267,6 @@
     return
     end subroutine hsmg_schwarz_wt
 !----------------------------------------------------------------------
-#if 0
-    subroutine hsmg_schwarz_wt2d(e,wt,n)
-    use size_m
-    integer :: n
-    real :: e(n,n,nelv)
-    real :: wt(n,4,2,nelv)
-          
-    integer :: ie,i,j
-    do ie=1,nelv
-        do j=1,n
-            e(1  ,j,ie)=e(1  ,j,ie)*wt(j,1,1,ie)
-            e(2  ,j,ie)=e(2  ,j,ie)*wt(j,2,1,ie)
-            e(n-1,j,ie)=e(n-1,j,ie)*wt(j,3,1,ie)
-            e(n  ,j,ie)=e(n  ,j,ie)*wt(j,4,1,ie)
-        enddo
-        do i=3,n-2
-            e(i,1  ,ie)=e(i,1  ,ie)*wt(i,1,2,ie)
-            e(i,2  ,ie)=e(i,2  ,ie)*wt(i,2,2,ie)
-            e(i,n-1,ie)=e(i,n-1,ie)*wt(i,3,2,ie)
-            e(i,n  ,ie)=e(i,n  ,ie)*wt(i,4,2,ie)
-        enddo
-    enddo
-    return
-    end subroutine hsmg_schwarz_wt2d
-#endif
-!----------------------------------------------------------------------
     subroutine hsmg_schwarz_wt3d(e,wt,n)
     use size_m
     integer :: n
@@ -1733,184 +1668,6 @@
     return
     end subroutine hsmg_index_0
 !----------------------------------------------------------------------
-#if 0
-    subroutine outfldn (x,n,txt10,ichk) ! writes into unit=40+ifiled
-    use size_m
-    use tstep
-    real :: x(n,n,1,lelt)
-    character(10) :: txt10
-
-    integer :: idum,e
-    save    idum
-    data    idum /3/
-    if (idum < 0)   return
-    m = 40 + ifield                 ! unit #
-
-
-    mtot = n*n*nelv
-    if (n > 7 .OR. nelv > 16) return
-    xmin = glmin(x,mtot)
-    xmax = glmax(x,mtot)
-
-    rnel = nelv
-    snel = sqrt(rnel)+.1
-    ne   = snel
-    ne1  = nelv-ne+1
-    do ie=ne1,1,-ne
-        l=ie-1
-        do k=1,1
-            if (ie == ne1) write(m,116) txt10,k,ie,xmin,xmax,ichk,time
-            write(m,117)
-            do j=n,1,-1
-                if (n == 2) write(m,102) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 3) write(m,103) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 4) write(m,104) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 5) write(m,105) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 6) write(m,106) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 7) write(m,107) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 8) write(m,108) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-            enddo
-        enddo
-    enddo
-
-
-    102 FORMAT(4(2f9.5,2x))
-    103 FORMAT(4(3f9.5,2x))
-    104 FORMAT(4(4f7.3,2x))
-    105 FORMAT(5f9.5,10x,5f9.5)
-    106 FORMAT(6f9.5,5x,6f9.5)
-    107 FORMAT(7f8.4,5x,7f8.4)
-    108 FORMAT(8f8.4,4x,8f8.4)
-
-    116 FORMAT(  /,5X,'     ^              ',/, &
-    &     5X,'   Y |              ',/, &
-    &     5X,'     |              ',A10,/, &
-    &     5X,'     +---->         ','Plane = ',I2,'/',I2,2x,2e12.4,/, &
-    &     5X,'       X            ','Step  =',I9,f15.5)
-    117 FORMAT(' ')
-
-!     if (ichk.eq.1.and.idum.gt.0) call checkit(idum)
-    return
-    end subroutine outfldn
-!-----------------------------------------------------------------------
-    subroutine outfldn0 (x,n,txt10,ichk)
-    use size_m
-    use tstep
-    real :: x(n,n,1,lelt)
-    character(10) :: txt10
-
-    integer :: idum,e
-    save idum
-    data idum /3/
-    if (idum < 0) return
-
-
-    mtot = n*n*nelv
-    if (n > 7 .OR. nelv > 16) return
-    xmin = glmin(x,mtot)
-    xmax = glmax(x,mtot)
-
-    rnel = nelv
-    snel = sqrt(rnel)+.1
-    ne   = snel
-    ne1  = nelv-ne+1
-    do ie=ne1,1,-ne
-        l=ie-1
-        do k=1,1
-            if (ie == ne1) write(6,116) txt10,k,ie,xmin,xmax,ichk,time
-            write(6,117)
-            do j=n,1,-1
-                if (n == 2) write(6,102) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 3) write(6,103) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 4) write(6,104) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 5) write(6,105) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 6) write(6,106) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 7) write(6,107) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-                if (n == 8) write(6,108) ((x(i,j,k,e+l),i=1,n),e=1,ne)
-            enddo
-        enddo
-    enddo
-
-
-    102 FORMAT(4(2f9.5,2x))
-    103 FORMAT(4(3f9.5,2x))
-    104 FORMAT(4(4f7.3,2x))
-    105 FORMAT(5f9.5,10x,5f9.5)
-    106 FORMAT(6f9.5,5x,6f9.5)
-    107 FORMAT(7f8.4,5x,7f8.4)
-    108 FORMAT(8f8.4,4x,8f8.4)
-
-    116 FORMAT(  /,5X,'     ^              ',/, &
-    &     5X,'   Y |              ',/, &
-    &     5X,'     |              ',A10,/, &
-    &     5X,'     +---->         ','Plane = ',I2,'/',I2,2x,2e12.4,/, &
-    &     5X,'       X            ','Step  =',I9,f15.5)
-    117 FORMAT(' ')
-
-!     if (ichk.eq.1.and.idum.gt.0) call checkit(idum)
-    return
-    end subroutine outfldn0
-!-----------------------------------------------------------------------
-    subroutine outflda (x,n,txt10,ichk) ! writes into unit=p130+ifiled
-    use size_m                      ! or into std. output for p130<9
-    use input                     ! param(130)
-    use tstep                     ! truncated below eps=p131
-    real :: x(1)
-    character(10) :: txt10                  ! note: n is not used
-!     parameter (eps=1.e-7)
-
-    p130 = param(130)
-    eps  = param(131)
-    if (p130 <= 0)    return
-    m    = 6
-    if (p130 > 9)  m = p130 + ifield
-
-    ntot = nx1*ny1*nz1*nelfld(ifield)
-
-    xmin = glmin(x,ntot)
-    xmax = glmax(x,ntot)
-    xavg = glsum(x,ntot)/ntot
-
-    if (abs(xavg) < eps) xavg = 0.     ! truncation
-
-    if (nid == 0) write(m,10) txt10,ichk,ntot,xavg,xmin,xmax
-
-    10 format(3X,a10,2i8,' pts, avg,min,max = ',1p3g14.6)
-
-    return
-    end subroutine outflda
-!-----------------------------------------------------------------------
-    subroutine outfldan(x,n,txt10,ichk) ! writes x(1:n) into unit=p130+ifiled
-    use size_m                      ! or into std. output for 0<p130<9
-    use input
-    use tstep                     ! truncated below eps=p131
-    real :: x(1)
-    character(10) :: txt10
-!     parameter (eps=1.e-7)
-
-    p130 = param(130)
-    eps  = param(131)
-    if (p130 <= 0)    return
-    m    = 6
-    if (p130 > 9)  m = p130 + ifield
-
-    ntot = n
-
-    xmin = glmin(x,ntot)
-    xmax = glmax(x,ntot)
-    xavg = glsum(x,ntot)/ntot
-
-    if (abs(xavg) < eps) xavg = 0.     ! truncation
-
-    if (nid == 0) write(m,10) txt10,ichk,ntot,xavg,xmin,xmax
-
-    10 format(3X,a10,2i8,' pts, avg,min,max = ',1p3g11.3)
-!  10 format(3X,a10,2i8,' pts, avg,min,max = ',1p3g14.6)
-
-    return
-    end subroutine outfldan
-#endif
-!-----------------------------------------------------------------------
     subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
     use ctimer
 
@@ -2007,62 +1764,6 @@
 
     return
     end subroutine h1mg_solve
-!-----------------------------------------------------------------------
-#if 0
-    subroutine h1mg_axm(w,p,aw,ap,l,wk)
-
-!     w  := aw*w + ap*H*p, level l, with mask and dssum
-
-!     Hu := div. h1 grad u + h2 u
-
-!        ~= h1 A u + h2 B u
-
-!     Here, we assume that pointers into g() and h1() and h2() have
-!     been established
-
-    use size_m
-    use hsmg
-    use tstep  ! nelfld
-
-    real :: w(1),p(1),wk(1)
-
-    integer :: p_h1,p_h2,p_g,p_b,p_msk
-    logical :: ifh2
-
-    p_h1  = p_mg_h1  (l,mg_fld)
-    p_h2  = p_mg_h2  (l,mg_fld)
-    p_g   = p_mg_g   (l,mg_fld)
-    p_b   = p_mg_b   (l,mg_fld)
-    p_msk = p_mg_msk (l,mg_fld)
-
-    if (p_h1 == 0) call mg_set_h1  (p_h1 ,l)
-    if (p_h2 == 0) call mg_set_h2  (p_h2 ,l)
-    if (p_g  == 0) call mg_set_gb  (p_g,p_b,l)
-    if (p_msk == 0) call mg_set_msk (p_msk,l)
-
-    ifh2 = .TRUE. 
-    if (p_h2 == 0) ifh2 = .FALSE.  ! Need a much better mech.
-    ifh2 = .FALSE. 
-
-    nx = mg_nh(l)
-    ny = mg_nh(l)
-    nz = mg_nhz(l)
-    ng = 3*ndim-3
-
-
-    call h1mg_axml (wk,p &
-    ,mg_h1(p_h1),mg_h2(p_h2),nx,ny,nz,nelfld(ifield) &
-    ,mg_g (p_g) , ng ,mg_b(p_b), mg_imask(p_msk),ifh2)
-
-
-    call hsmg_dssum (wk,l)
-
-    n = nx*ny*nz*nelfld(ifield)
-    call add2sxy    (w,aw,wk,ap,n)
-
-    return
-    end subroutine h1mg_axm
-#endif
 !-----------------------------------------------------------------------
     subroutine h1mg_axml &
     (w,p,h1,h2,nx,ny,nz,nel,g,ng,b,mask,ifh2)
@@ -3030,32 +2731,6 @@
     return
     end subroutine chkr
 !-----------------------------------------------------------------------
-#if 0
-    subroutine outgmat(a,ng,nx,ny,name6,k,e)
-
-    integer :: e
-    real :: a(ng,nx,ny)
-    common /ctmp0/ w(100000)
-    character(6) :: name6
-
-!     do i=1,ng
-    do i=1,1
-        sum = 0.
-        do ii=1,nx*ny
-            w(ii)=a(i,ii,1)
-            sum = sum + a(i,ii,1)
-        enddo
-
-        write(6,1) name6,i,k,e,nx,ny,ng,sum
-        1 format(a6,6i5,f12.5,'  outgmat')
-
-        call outmatz(w,nx,ny,name6,i)
-    enddo
-
-    return
-    end subroutine outgmat
-#endif
-!-----------------------------------------------------------------------
     subroutine outmatz(a,m,n,name6,ie)
     real :: a(m,n)
     character(6) :: name6
@@ -3092,41 +2767,6 @@
 
     return
     end subroutine h1mg_setup_schwarz_wt_2
-!----------------------------------------------------------------------
-#if 0
-    subroutine h1mg_setup_schwarz_wt2d_2(wt,ie,n,work,ifsqrt)
-    use size_m
-    logical :: ifsqrt
-    integer :: n
-    real :: wt(n,4,2,nelv)
-    real :: work(n,n)
-          
-    integer :: ie,i,j
-    do j=1,n
-        wt(j,1,1,ie)=1.0/work(1,j)
-        wt(j,2,1,ie)=1.0/work(2,j)
-        wt(j,3,1,ie)=1.0/work(n-1,j)
-        wt(j,4,1,ie)=1.0/work(n,j)
-    enddo
-    do i=1,n
-        wt(i,1,2,ie)=1.0/work(i,1)
-        wt(i,2,2,ie)=1.0/work(i,2)
-        wt(i,3,2,ie)=1.0/work(i,n-1)
-        wt(i,4,2,ie)=1.0/work(i,n)
-    enddo
-    if(ifsqrt) then
-        do ii=1,2
-            do j=1,4
-                do i=1,n
-                    wt(i,j,ii,ie)=sqrt(wt(i,j,ii,ie))
-                enddo
-            enddo
-        enddo
-    endif
-
-    return
-    end subroutine h1mg_setup_schwarz_wt2d_2
-#endif
 !----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt3d_2(wt,ie,n,work,ifsqrt)
     use size_m

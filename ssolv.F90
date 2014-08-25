@@ -80,84 +80,7 @@
 
     RETURN
     END SUBROUTINE SSINIT
-#if 0
-    SUBROUTINE CHKEXT (IFACCX,Z,S)
-!------------------------------------------------------------------
 
-!     Accept extrapolation?
-
-!------------------------------------------------------------------
-    use size_m
-    use input
-    use steady
-    use tstep
-    LOGICAL :: IFACCX
-    real*8 :: Z(1),S(1)
-    REAL :: H1NRM1 (LDIMT1), H1NRM2(LDIMT1)
-
-    CALL RZERO (H1NRM1,NFIELD)
-    IF (IFFLOW) THEN
-        IFIELD = 1
-        CALL UNORM
-        H1NRM1(IFIELD) = VNRMH1
-    ENDIF
-    DO 10 IFIELD=2,NFIELD
-        CALL UNORM
-        H1NRM1(IFIELD) = TNRMH1(IFIELD-1)
-    10 END DO
-
-    CALL MKVEC (Z)
-    CALL MKARR (S)
-
-    CALL RZERO (H1NRM2,NFIELD)
-    IF (IFFLOW) THEN
-        IFIELD = 1
-        CALL UNORM
-        H1NRM2(IFIELD) = VNRMH1
-    ENDIF
-    DO 20 IFIELD=2,NFIELD
-        CALL UNORM
-        H1NRM2(IFIELD) = TNRMH1(IFIELD-1)
-    20 END DO
-
-    XLIM   = .2
-    IFACCX = .TRUE. 
-    RDMAX  = 0.
-    RDLIM  = .5*TOLREL+1.E-4
-    IF (IFFLOW) THEN
-        IFIELD = 1
-        RDIFF = ABS((H1NRM2(IFIELD)-H1NRM1(IFIELD))/H1NRM1(IFIELD))
-        IF (RDIFF > RDMAX) RDMAX = RDIFF
-        IF (NID == 0) WRITE (6,*) ' ifield, rdiff ',ifield,rdiff
-        IF (RDIFF > XLIM) IFACCX = .FALSE. 
-    ENDIF
-    DO 100 IFIELD=2,NFIELD
-        RDIFF = ABS((H1NRM2(IFIELD)-H1NRM1(IFIELD))/H1NRM1(IFIELD))
-        IF (RDIFF > RDMAX) RDMAX = RDIFF
-        IF (NID == 0) WRITE (6,*) ' ifield, rdiff ',ifield,rdiff
-        IF (RDIFF > XLIM) IFACCX = .FALSE. 
-    100 END DO
-
-    IF ( .NOT. IFACCX) THEN
-        IF (NID == 0) THEN
-            WRITE (6,*) ' '
-            write (6,*) 'Extrapolation attempt rejected'
-            write (6,*) ' '
-        ENDIF
-        CALL MKARR (Z)
-    ELSE
-        IF (NID == 0) THEN
-            write (6,*)  ' '
-            write (6,*) 'Extrapolation accepted'
-            write (6,*) ' '
-        ENDIF
-        IF (RDMAX < RDLIM) IFSSVT = .TRUE. 
-        CALL FILLLAG
-    ENDIF
-
-    RETURN
-    END SUBROUTINE CHKEXT
-#endif
     SUBROUTINE FILLLAG
     use size_m
     use input
@@ -176,87 +99,6 @@
     ENDIF
     RETURN
     END SUBROUTINE FILLLAG
-
-#if 0
-    SUBROUTINE GONSTEP (N,ITEST)
-!----------------------------------------------------------------
-
-!     Do N steps; return if steady state
-
-!----------------------------------------------------------------
-    use size_m
-    use input
-    use steady
-    EXTERNAL GOSTEP
-
-    DO 1000 JSTEP=1,N
-        IF (ITEST == 0 .AND. IFSSVT) GOTO 1001
-        IF (ITEST == 1 .AND. (IFSSVT .OR. IFEXVT)) GOTO 1001
-        CALL GOSTEP
-    1000 END DO
-    1001 CONTINUE
-
-    RETURN
-    END SUBROUTINE GONSTEP
-
-    SUBROUTINE GO1STEP (X,Y,NVEC)
-!----------------------------------------------------------------
-
-!     Advance one (or more) time step(s)
-
-!----------------------------------------------------------------
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    real*8 :: X(1), Y(1)
-
-    CALL MKARR (X)
-    IF ( .NOT. IFSKIP) NJSTEP=1
-    IF (     IFSKIP) NJSTEP=NSSKIP
-
-    DO 9000 JSTEP=1,NJSTEP
-    
-        ISTEP = ISTEP+1
-        CALL SETTIME
-        CALL SETPROP
-        IF (IFMODP) CALL MODPROP
-        CALL SETSOLV
-        CALL COMMENT
-        DO 100 IGEOM=1,2
-            IF (IFGEOM) THEN
-                CALL GENGEOM (IGEOM)
-                CALL GENEIG  (IGEOM)
-            ENDIF
-            IF (IFFLOW) CALL FLUID (IGEOM)
-            IF (IFHEAT) CALL HEAT  (IGEOM)
-!max            IF (IFMVBD) CALL MESHV (IGEOM)
-        100 END DO
-        CALL PREPOST( .FALSE. )
-        CALL USERCHK
-    
-    9000 END DO
-
-    IF (ISTEP > 1) CALL CHKSSVT
-    CALL MKVEC (Y)
-
-    RETURN
-    END SUBROUTINE GO1STEP
-#endif
 
     SUBROUTINE GOSTEP
 !----------------------------------------------------------------
@@ -425,65 +267,7 @@
     RETURN
     END SUBROUTINE MKARR
 
-#if 0
-    SUBROUTINE SSPARAM (KMAX,L)
-!------------------------------------------------------------------------------
 
-!     Set steady state parameters
-
-!------------------------------------------------------------------------------
-    use size_m
-    use input
-    use steady
-    use tstep
-
-    IF (L == 0) THEN
-        CALL SSINIT (KMAX)
-    ELSEIF (L == 1) THEN
-        ISTEP  = 0
-    
-        PRELAX = 1.E-2
-        IF (IFSPLIT) PRELAX = 1.E-5
-    
-        CTARG  = 1.
-        IF (IFSPLIT) CTARG  = 1.
-        IF (NX1 >= 10) THEN
-            CTARG  = 2.
-            IF (IFSPLIT) CTARG = 2.
-        ENDIF
-    
-        KMAX   = 5
-        NBDINP = 3
-        IF (IFMODEL) NBDINP = 2
-        NSSKIP = 2
-        IFSKIP = .TRUE. 
-        IFMODP = .FALSE. 
-    
-    ELSEIF (L == 2) THEN
-    
-        PRELAX = 1.E-3
-        IF (IFSPLIT) PRELAX = 1.E-5
-    
-        CTARG = 1.
-        IF (IFSPLIT) CTARG = 1.
-        IF (NX1 >= 10) THEN
-            CTARG = 2.
-            IF (IFSPLIT) CTARG = 2.
-        ENDIF
-    
-        KMAX   = 5
-        NBDINP = 3
-        IF (IFMODEL) NBDINP = 2
-        NSSKIP = 2
-        IFSKIP = .TRUE. 
-        IFMODP = .FALSE. 
-    
-    ELSE
-    ENDIF
-    CALL SETCHAR
-    RETURN
-    END SUBROUTINE SSPARAM
-#endif
     SUBROUTINE CHKSSVT
 !-----------------------------------------------------------------------
 
@@ -678,16 +462,7 @@
     CALL NORMVC (DVDFH1,DVDFSM,DVDFL2,DVDFL8,DV1,DV2,DV3)
     RETURN
     END SUBROUTINE SSNORMD
-#if 0
-    SUBROUTINE SSNORMP (DV1,DV2,DV3)
-    use size_m
-    use steady
-    use tstep
-    REAL :: DV1(1),DV2(1),DV3(1)
-    CALL NORMVC (DVPRH1,DVPRSM,DVPRL2,DVPRL8,DV1,DV2,DV3)
-    RETURN
-    END SUBROUTINE SSNORMP
-#endif
+
     SUBROUTINE SETTOLV
 !-------------------------------------------------------------------
 
@@ -763,27 +538,7 @@
 
     RETURN
     END SUBROUTINE SETTOLT
-#if 0
-    SUBROUTINE CHKTOLP (TOLMIN)
-    use size_m
-    use mass
-    use soln
-    use tstep
-    COMMON /SCRMG/ DIVFLD (LX2,LY2,LZ2,LELV) &
-    ,             WORK   (LX2,LY2,LZ2,LELV)
-    NTOT2 = NX2*NY2*NZ2*NELV
-    CALL OPDIV   (DIVFLD,VX,VY,VZ)
-    CALL COL3    (WORK,DIVFLD,BM2INV,NTOT2)
-    CALL COL2    (WORK,DIVFLD,NTOT2)
-    DIVV  = SQRT(GLSUM(WORK,NTOT2)/VOLVM2)
 
-    IFIELD = 1
-    CALL SETTOLV
-    TOLMIN = DIVV/100.
-    IF (TOLMIN < TOLPS) TOLMIN = TOLPS
-    RETURN
-    END SUBROUTINE CHKTOLP
-#endif
     SUBROUTINE SETCHAR
 !-----------------------------------------------------------------------
 

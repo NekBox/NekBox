@@ -415,7 +415,7 @@
     if (if3d) then
         call local_grad3(ur,us,ut,ju,m0,1,dg(ip),dgt(ip))
     else
-        call local_grad2(ur,us   ,ju,m0,1,dg(ip),dgt(ip))
+!max        call local_grad2(ur,us   ,ju,m0,1,dg(ip),dgt(ip))
     endif
 
     return
@@ -710,7 +710,7 @@
     if (if3d) then
         call local_grad3(ur,us,ut,u,m0,1,dg(ip),dgt(ip))
     else
-        call local_grad2(ur,us   ,u,m0,1,dg(ip),dgt(ip))
+!max        call local_grad2(ur,us   ,u,m0,1,dg(ip),dgt(ip))
     endif
 
     return

@@ -248,6 +248,7 @@
     return
     end subroutine updcoor
 !-----------------------------------------------------------------------
+#if 0
     subroutine mvbdry (nel)
 
 !     Evaluate mesh velocities at all moving boundaries
@@ -496,6 +497,7 @@
      
     return
     end subroutine mvbdry
+#endif
 !-----------------------------------------------------------------------
     subroutine norcmp2(wvx,wvy,wvz,e,f)
     use size_m
@@ -532,6 +534,7 @@
     return
     end subroutine norcmp2
 !-----------------------------------------------------------------------
+#if 0
     subroutine norcmp (wt1,wt2,wt3,rnx,rny,rnz,ifc)
 
     use size_m
@@ -612,6 +615,7 @@
 #endif
     return
     end subroutine facemv
+#endif
 !-----------------------------------------------------------------------
     subroutine faczqn (wt1,wt2,wt3,ifc,iel)
 
@@ -1076,6 +1080,7 @@
     return
     end subroutine inigeom
 !-----------------------------------------------------------------------
+#if 0
     subroutine quickmv
     use size_m
     use dealias
@@ -1104,6 +1109,7 @@
     endif
     return
     end subroutine quickmv
+#endif
 !-----------------------------------------------------------------------
     subroutine quickmv2d
     use size_m

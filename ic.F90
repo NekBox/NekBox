@@ -132,7 +132,7 @@
 !     ...else, do pre-solv for fluid if requested.)
 
     ifield = 1
-    if (ifprsl(ifield,jp)) call prsolvv
+!max    if (ifprsl(ifield,jp)) call prsolvv
 
 
 !     Fortran function initial conditions for velocity.
@@ -163,7 +163,7 @@
 
 !     Initial mesh velocities
     if (ifmvbd) call opcopy (wx,wy,wz,vx,vy,vz)
-    if (ifmvbd .AND. .NOT. ifrest(0,jp)) call meshv (2)
+!max    if (ifmvbd .AND. .NOT. ifrest(0,jp)) call meshv (2)
 
 !     Compute additional initial values for turbulence model arrays
 !     based on I.C.
@@ -1538,6 +1538,7 @@
     return
     end subroutine ljust
 !-----------------------------------------------------------------------
+#if 0
     subroutine chknorm (ifzero)
 !----------------------------------------------------------------------
 
@@ -1570,7 +1571,6 @@
     end subroutine chknorm
 
 !-----------------------------------------------------------------------
-#if 0
     subroutine prsolvt
 !----------------------------------------------------------------------
 
@@ -1618,6 +1618,7 @@
     end subroutine prsolvt
 #endif
 !-----------------------------------------------------------------------
+#if 0
     subroutine prsolvv
 !----------------------------------------------------------------------
 
@@ -1682,6 +1683,7 @@
 
     return
     end subroutine prsolvv
+#endif
 
 !-----------------------------------------------------------------------
     subroutine nekuic
@@ -2931,6 +2933,7 @@
     return
     end subroutine map_pm1_to_pr
 !-----------------------------------------------------------------------
+#if 0
     subroutine full_restart(s80,n_restart)
     use size_m
     use dealias
@@ -2966,4 +2969,5 @@
        
     return
     end subroutine full_restart
+#endif
 !-----------------------------------------------------------------------

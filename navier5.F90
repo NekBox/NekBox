@@ -242,6 +242,7 @@
     return
     end subroutine filterq
 !-----------------------------------------------------------------------
+#if 0
     subroutine outmatx(a,m,n,io,name)
     real :: a(m*n)
     character(4) :: name
@@ -256,7 +257,6 @@
     return
     end subroutine outmatx
 !-----------------------------------------------------------------------
-#if 0
     subroutine drag_calc(scale)
 
     use size_m
@@ -764,6 +764,7 @@
     return
     end subroutine local_grad3
 !-----------------------------------------------------------------------
+#if 0
     subroutine local_grad2(ur,us,u,N,e,D,Dt)
 !     Output: ur,us         Input:u,N,e,D,Dt
     real :: ur(0:N,0:N),us(0:N,0:N)
@@ -779,7 +780,6 @@
     return
     end subroutine local_grad2
 !-----------------------------------------------------------------------
-#if 0
     subroutine gradm1(ux,uy,uz,u)
 
 !     Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)
@@ -816,6 +816,7 @@
                 + ut(i)*tzm1(i,1,1,e) )
             enddo
         else
+#if 0
             if (ifaxis) call setaxdy (ifrzer(e))
             call local_grad2(ur,us,u,N,e,dxm1,dytm1)
             do i=1,lxyz
@@ -824,6 +825,7 @@
                 uy(i,e) =jacmi(i,e)*(ur(i)*rym1(i,1,1,e) &
                 + us(i)*sym1(i,1,1,e) )
             enddo
+#endif
         endif
     enddo
 
@@ -2363,7 +2365,7 @@
         enddo
 
     elseif (ifaxis) then  ! AXISYMMETRIC CASE
-
+#if 0
     
     !        Notation:                       ( 2  x  Acheson, p. 353)
     !                     Cylindrical
@@ -2414,8 +2416,9 @@
 
             enddo
         enddo
-
+#endif
     else              ! 2D CASE
+#if 0
 
         do e=1,nelv
             call local_grad2(ur,us,u,N,e,dxm1,dxtm1)
@@ -2436,6 +2439,7 @@
 
             enddo
         enddo
+#endif
     endif
     return
     end subroutine comp_sij
@@ -4667,7 +4671,7 @@
         enddo
 
     else  ! 2D
-
+#if 0
         do e=1,nel
             call local_grad2(ur,us,v(1,e),nn,1,dxm1,dxtm1)
             do i=1,lt
@@ -4700,7 +4704,7 @@
                 v(i,e)  = v(i,e) - wght*w(i,e)/w3m1(i,1,1)
             enddo
         enddo
-
+#endif
     endif
 
     vmax = glamax(v,n)

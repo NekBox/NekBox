@@ -1,4 +1,5 @@
 !-----------------------------------------------------------------------
+#if 0
     subroutine setrhs(p,h1,h2,h2inv)
 
 !     Project rhs onto best fit in the "E" norm.
@@ -188,6 +189,7 @@
 
     RETURN
     end subroutine updtset
+#endif
 !-----------------------------------------------------------------------
     subroutine econj(kprev,h1,h2,h2inv,ierr)
 
@@ -341,6 +343,7 @@
     RETURN
     END FUNCTION VLSC3
 !-----------------------------------------------------------------------
+#if 0
     subroutine updrhse(p,h1,h2,h2inv,ierr)
 
 !     Update rhs's if E-matrix has changed
@@ -455,6 +458,7 @@
     20 END DO
     return
     end subroutine echeck
+#endif
 !-----------------------------------------------------------------------
 !     THE ROUTINES BELOW ARE THE NEW Helmholtz projectors
 !-----------------------------------------------------------------------

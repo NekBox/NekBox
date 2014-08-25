@@ -113,6 +113,7 @@
     return
     end subroutine imout
 !-----------------------------------------------------------------------
+#if 0
     subroutine out_abd(abd,lda,n,m)
     real ::    abd(lda,1)
 
@@ -435,6 +436,7 @@
 
     return
     end subroutine scsr_to_spb
+#endif
 !=======================================================================
     subroutine scsr_to_spbm(abd,lda,acsr,ia,ja,n)
 
@@ -473,6 +475,7 @@
     return
     end function mbw_csr
 !=======================================================================
+#if 0
     subroutine out_spbmat(abd,n,lda,name)
     real ::    abd(lda,1)
 
@@ -499,6 +502,7 @@
 
     return
     end subroutine out_spbmat
+#endif
 !=======================================================================
     subroutine swap(b,ind,n,temp)
     real :: B(1),TEMP(1)
@@ -517,6 +521,7 @@
     RETURN
     end subroutine swap
 !=======================================================================
+#if 0
     subroutine ipermute(a,icperm,n,b)
     integer :: a(1),b(1)
     integer :: icperm(1)
@@ -558,4 +563,5 @@
 
     return
     end subroutine out_csrmat
+#endif
 !=======================================================================

@@ -477,6 +477,7 @@
     return
     end subroutine opzero
 !-----------------------------------------------------------------------
+#if 0
     subroutine opnorm(unorm,ux,uy,uz,type3)
     use size_m
     use dealias
@@ -559,6 +560,7 @@
 
     return
     end subroutine lorentz_force
+#endif
 !-----------------------------------------------------------------------
     subroutine curl(vort,u,v,w,ifavg,work1,work2)
 
@@ -629,6 +631,7 @@
     return
     end subroutine curl
 !-----------------------------------------------------------------------
+#if 0
     subroutine lorentz_force2(lf,b1,b2,b3)
 
 !     Compute Lorentz force
@@ -660,6 +663,7 @@
 
     return
     end subroutine lorentz_force2
+#endif
 !-----------------------------------------------------------------------
     subroutine lorentz_force_e(lf,b1,b2,b3,e)
 

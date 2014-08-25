@@ -60,7 +60,7 @@
     nxyz  = nx1*ny1*nz1
     n     = nxyz*nel
 
-    if (istep <= 1 .AND. iffdm) call set_fdm_prec_h1A
+!max    if (istep <= 1 .AND. iffdm) call set_fdm_prec_h1A
 
     tol=tin
     if (param(22) /= 0) tol=abs(param(22))
@@ -390,7 +390,7 @@
 
     return
     end subroutine unorm
-
+#if 0
     subroutine chktmg (tol,res,w1,w2,mult,mask,imesh)
 !-------------------------------------------------------------------
 
@@ -458,6 +458,7 @@
 
     return
     end subroutine chktmg
+#endif
 
 
     subroutine setdtc
@@ -1234,6 +1235,7 @@
         IGRP=IGROUP(IEL)
 
         if (ifuservp) then
+#if 0
         
         !           User specified fortran function   (pff 2/13/01)
             CALL NEKUVP (IEL)
@@ -1242,7 +1244,7 @@
                 WRITE (6,100) DIFMIN,IFIELD,IGRP
                 CALL EXITT
             endif
-        
+#endif        
         ELSE IF(MATYPE(IGRP,IFIELD) == 1)THEN
         
         !           Constant property within groups of elements
@@ -1261,7 +1263,8 @@
             endif
         
         ELSE IF(MATYPE(IGRP,IFIELD) == 2)THEN
-        
+          write(*,*) "Oops: matype" 
+#if 0
         !           User specified fortran function
         
             CALL NEKUVP (IEL)
@@ -1271,7 +1274,7 @@
                 WRITE (6,100) DIFMIN,IFIELD,IGRP
                 CALL EXITT
             endif
-        
+#endif        
         ELSE IF(MATYPE(IGRP,IFIELD) == 0)THEN
         
         !           Default constant property
@@ -1301,6 +1304,7 @@
     return
     end subroutine vprops
 
+#if 0
     subroutine nekuvp (iel)
 !------------------------------------------------------------------
 
@@ -1325,6 +1329,7 @@
     10 END DO
     return
     end subroutine nekuvp
+#endif
 
     subroutine diagnos
     return
@@ -1338,6 +1343,7 @@
     return
     end subroutine setsolv
 
+#if 0
     subroutine mggo
     return
     end subroutine mggo
@@ -1349,7 +1355,6 @@
 !     New files from LH on stress formulation (SFSUBS.FOR)
 
 !-----------------------------------------------------------------------
-#if 0
     subroutine hmhzsf (name,u1,u2,u3,r1,r2,r3,h1,h2, &
     rmask1,rmask2,rmask3,rmult, &
     tol,maxit,matmod)
@@ -1835,6 +1840,7 @@
     return
     end subroutine flush_io
 !-----------------------------------------------------------------------
+#if 0
     subroutine fcsum2(xsum,asum,x,e,f)
 
 !     Compute the weighted sum of X over face f of element e
@@ -2099,7 +2105,6 @@
     return
     end subroutine get_strs_mask
 !-----------------------------------------------------------------------
-#if 0
     subroutine axstrs(a1,a2,a3,p1,p2,p3,h1,h2,matmod,nel)
     real :: a1(1),a2(1),a3(1),p1(1),p2(1),p3(1)
 
@@ -2448,6 +2453,7 @@
     return
     end subroutine axsf_e_3d
 !-----------------------------------------------------------------------
+#if 0
     subroutine axsf_e_2d(au,av,u,v,h1,h2,ur,e)
 
 !                                         du_i
@@ -2520,6 +2526,7 @@
 
     return
     end subroutine axsf_e_2d
+#endif
 !-----------------------------------------------------------------------
     subroutine axsf_fast(au,av,aw,u,v,w,h1,h2,ifld)
     use size_m
@@ -2556,10 +2563,12 @@
             ,h1(1,e),h2(1,e),ur,e)
         enddo
     else
+#if 0
         do e=1,nel
             call axsf_e_2d(au(1,e),av(1,e),u(1,e),v(1,e) &
             ,h1(1,e),h2(1,e),ur,e)
         enddo
+#endif
     endif
 
     return
@@ -2719,6 +2728,7 @@
     return
     end subroutine setaxdy
 !-----------------------------------------------------------------------
+#if 0
     function opnorm2w(v1,v2,v3,w)
     use size_m
     use dealias
@@ -2752,7 +2762,6 @@
     return
     end function opnorm2w
 !-----------------------------------------------------------------------
-#if 0
     subroutine strs_project_a(b1,b2,b3,h1,h2,wt,ifld,ierr,matmod)
 
 !     Assumes if uservp is true and thus reorthogonalizes every step

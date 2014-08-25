@@ -27,7 +27,7 @@
 !     iffdm = .true.
     if (ifsplit) iffdm = .TRUE. 
 
-    if (icalld == 0 .AND. iffdm) call set_fdm_prec_h1A
+!max    if (icalld == 0 .AND. iffdm) call set_fdm_prec_h1A
 
     icalld=icalld+1
     nhmhz=icalld
@@ -870,6 +870,7 @@
             return
             end function vlsc32
         !=======================================================================
+#if 0
             subroutine calc (diag,upper,d,e,n,dmax,dmin)
         
             dimension diag(n),upper(n)
@@ -949,7 +950,6 @@
             return
             end subroutine calc
         !-----------------------------------------------------------------------
-#if 0
             subroutine fdm_h1(z,r,d,mask,mult,nel,kt,rr)
             use size_m
             use fdmh1
@@ -1391,6 +1391,7 @@
             return
             end subroutine set_fdm_prec_h1b
         !-----------------------------------------------------------------------
+#if 0
             subroutine set_fdm_prec_h1A
             use size_m
         
@@ -1399,6 +1400,7 @@
         
             return
             end subroutine set_fdm_prec_h1A
+#endif
         !-----------------------------------------------------------------------
             subroutine generalev(a,b,lam,n,w)
         

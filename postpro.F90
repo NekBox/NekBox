@@ -24,6 +24,7 @@
     return
     end subroutine load_fld
 !-----------------------------------------------------------------------
+#if 0
     subroutine lambda2(l2)
 
 !     Generate Lambda-2 vortex of Jeong & Hussein, JFM '95
@@ -95,6 +96,7 @@
 
     return
     end subroutine lambda2
+#endif
 !-----------------------------------------------------------------------
     subroutine find_lam3(lam,aa,w,ndim,ierr)
     real :: aa(ndim,ndim),lam(ndim),w(ndim,ndim),lam2
@@ -337,7 +339,7 @@
         'ABORT: comp_gije no axialsymmetric support for now'
         call exitt
     else              ! 2D CASE
-
+#if 0
         do k=1,2
             if (k == 1) call local_grad2(ur,us,u,n,1,dxm1,dxtm1)
             if (k == 2) call local_grad2(ur,us,v,n,1,dxm1,dxtm1)
@@ -349,11 +351,13 @@
                 gije(i,k,2)=dj*(ur(i)*rym1(i,1,1,e)+us(i)*sym1(i,1,1,e))
             enddo
         enddo
+#endif
     endif
 
     return
     end subroutine comp_gije
 !-----------------------------------------------------------------------
+#if 0
     subroutine filter_s1(scalar,tf,nx,nel) ! filter scalar field
 
     use size_m
@@ -375,6 +379,7 @@
 
     return
     end subroutine filter_s1
+#endif
 !-----------------------------------------------------------------------
     subroutine filter_s0(scalar,wght,ncut,name5) ! filter scalar field
 
@@ -678,6 +683,7 @@
     return
     end subroutine build_1d_filt
 !-----------------------------------------------------------------------
+#if 0
     subroutine mag_tensor_e(mag,aije)
 
 !     Compute magnitude of tensor A_e for element e
@@ -702,6 +708,7 @@
 
     return
     end subroutine mag_tensor_e
+#endif
 !-----------------------------------------------------------------------
     subroutine comp_sije(gije)
 
@@ -872,6 +879,7 @@
     return
     end subroutine zuni
 !-----------------------------------------------------------------------
+#if 0
     subroutine gen_re2(imid)  ! Generate and output essential parts of .rea
 ! And re2
 ! Clobbers ccurve()
@@ -934,6 +942,7 @@
 
     return
     end subroutine gen_re2
+#endif
 !-----------------------------------------------------------------------
     subroutine gen_re2_xyz
     use size_m
@@ -1405,6 +1414,7 @@
     return
     end subroutine gen_re2_bc
 !-----------------------------------------------------------------------
+#if 0
     subroutine gen_rea(imid)  ! Generate and output essential parts of .rea
 ! Clobbers ccurve()
     use size_m
@@ -1445,6 +1455,7 @@
 
     return
     end subroutine gen_rea
+#endif
 !-----------------------------------------------------------------------
     subroutine gen_rea_xyz
     use size_m
@@ -1855,6 +1866,7 @@
     return
     end subroutine gen_rea_midside_e
 !-----------------------------------------------------------------------
+#if 0
     subroutine g2gi(outfld,infld,geofld)
 
 !     grid-to-grid interpolation
@@ -2106,6 +2118,7 @@
 
     return
     end subroutine g2gi
+#endif
 !-----------------------------------------------------------------------
     subroutine g2gi_buf2v(v,buf,ndim,nel,nxyz)
 
@@ -2141,6 +2154,7 @@
     return
     end subroutine g2gi_v2buf
 !-----------------------------------------------------------------------
+#if 0
     subroutine hpts
 
 !     evaluate velocity, temperature, pressure and ps-scalars
@@ -2278,6 +2292,7 @@
 
     return
     end subroutine hpts
+#endif
 !-----------------------------------------------------------------------
     subroutine buffer_in(buffer,npp,npoints,nbuf)
             

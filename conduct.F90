@@ -297,6 +297,7 @@
     return
     end subroutine makebdq
 !-----------------------------------------------------------------------
+#if 0
     subroutine convch_old
 
 !     Compute convective contribution using
@@ -332,7 +333,7 @@
 
     return
     end subroutine convch_old
-
+#endif
 !-----------------------------------------------------------------------
     subroutine thyprk (tch,ilag)
 
@@ -571,6 +572,7 @@
     return
     end subroutine lagscal
 !-----------------------------------------------------------------------
+#if 0
     subroutine outfldrq (x,txt10,ichk)
     use size_m
     use tstep
@@ -731,4 +733,5 @@
 
     return
     end subroutine diffab
+#endif
 !-----------------------------------------------------------------------

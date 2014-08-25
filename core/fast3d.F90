@@ -526,6 +526,7 @@
     return
     end subroutine plane_space2
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_up_fast_1D_fem(s,lam,n,lbc,rbc,ll,lm,lr,z,nz,e)
     real :: s(1),lam(1),ll,lm,lr,z(1)
     integer :: lbc,rbc,e
@@ -559,6 +560,7 @@
 
     return
     end subroutine set_up_fast_1D_fem
+#endif
 !-----------------------------------------------------------------------
     subroutine set_up_1D_geom(dx,lbc,rbc,ll,lm,lr,z,nz)
 
@@ -904,6 +906,7 @@
     return
     end subroutine outmat
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_up_fast_1D_fem_ax &
     (s,lam,n,lbc,rbc,ll,lm,lr,z,y,nz,ie)
     real :: s(1),lam(1),ll,lm,lr,z(1),y(1)
@@ -938,6 +941,7 @@
 
     return
     end subroutine set_up_fast_1D_fem_ax
+#endif
 !-----------------------------------------------------------------------
     subroutine set_up_1D_geom_ax(dx,lbc,rbc,ll,lm,lr,z,y,nz)
 
@@ -1348,6 +1352,7 @@
     return
     end subroutine fd_weights_full
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_up_fast_1D_sem(s,lam,n,lbc,rbc,ll,lm,lr,ie)
     use size_m
     use semhat
@@ -1406,6 +1411,7 @@
 !     call exitt
     return
     end subroutine set_up_fast_1D_sem
+#endif
 !-----------------------------------------------------------------------
     subroutine set_up_fast_1D_sem_op(g,b0,b1,l,r,ll,lm,lr,bh,jgl,jscl)
 !            -1 T

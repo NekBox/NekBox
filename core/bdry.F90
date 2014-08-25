@@ -352,6 +352,7 @@
 !     Masks for moving mesh
 
     IF (IFMVBD) THEN
+#if 0
         IFIELD = 0
         CALL STSMASK (W1MASK,W2MASK,W3MASK)
         do e=1,nelv
@@ -363,6 +364,7 @@
                 endif
             enddo
         enddo
+#endif
     ENDIF
 
 !     Masks for flow variables
@@ -391,7 +393,7 @@
     !        write(6,*) 'MASK ifstrs',ifstrs,ifield
     !        call exitt
         IF (IFSTRS) THEN
-            CALL STSMASK (V1MASK,V2MASK,V3MASK)
+!max            CALL STSMASK (V1MASK,V2MASK,V3MASK)
         ELSE
         
             CALL RONE(V1MASK,NTOT)
@@ -505,7 +507,7 @@
     !        B-field masks
     
         if (ifstrs) then
-            call stsmask (b1mask,b2mask,b3mask)
+!max            call stsmask (b1mask,b2mask,b3mask)
         else
         
             call rone(b1mask,ntot)
@@ -700,6 +702,7 @@
             if (if3d) call antimsk1(tmp3,mask3,ntot)
         endif
     ELSE
+#if 0
         IF (IFMODEL) THEN
             CALL COPY (TMQ1,TMP1,NTOT)
             CALL COPY (TMQ2,TMP2,NTOT)
@@ -707,6 +710,7 @@
             CALL AMASK (TMP1,TMP2,TMP3,TMQ1,TMQ2,TMQ3,NELV)
         ENDIF
         CALL RMASK (V1,V2,V3,NELV)
+#endif
     ENDIF
 
     CALL ADD2(V1,TMP1,NTOT)
@@ -2013,6 +2017,7 @@
     RETURN
     END SUBROUTINE ANTIMSK1
 !-----------------------------------------------------------------------
+#if 0
     subroutine check_cyclic  ! check for cyclic bcs
     use size_m
     use dealias
@@ -2105,4 +2110,5 @@
 
     return
     end subroutine check_cyclic
+#endif
 !-----------------------------------------------------------------------

@@ -1121,6 +1121,7 @@
     return
     end subroutine ifacev
 !-----------------------------------------------------------------------
+#if 0
     subroutine facec(a,b,ie,iface,nx,ny,nz,nel)
 
 !     Copy the face (IFACE) of B to A.
@@ -1136,6 +1137,7 @@
     100 END DO
     RETURN
     end subroutine facec
+#endif
 !-----------------------------------------------------------------------
     subroutine combin2(glnm1,glnm2,nglob)
 
@@ -1145,6 +1147,7 @@
     return
     end subroutine combin2
 !-----------------------------------------------------------------------
+#if 0
     subroutine outfldio (x,txt10)
     use size_m
     integer :: x(lx1,ly1,lz1,lelt)
@@ -1274,6 +1277,7 @@
 
     return
     end subroutine outfldr
+#endif
 !-----------------------------------------------------------------------
     subroutine checkit(idum)
     write(6,*) 'continue?'
@@ -1281,6 +1285,7 @@
     return
     end subroutine checkit
 !-----------------------------------------------------------------------
+#if 0
     subroutine outfldro (x,txt10,ichk)
     use size_m
     use tstep
@@ -1594,6 +1599,7 @@
     enddo
     return
     end subroutine outmatp
+#endif
 !-----------------------------------------------------------------------
     subroutine gs_chkr(glo_num)
     use size_m

@@ -84,7 +84,6 @@
 
     return
     end subroutine plan1
-#endif
 
     subroutine crespuz (respr,g1,g2,g3,h1,h2,h2inv,intype)
 !---------------------------------------------------------------------
@@ -165,7 +164,6 @@
 
     return
     end subroutine cresvuz
-
     subroutine makeg (out1,out2,out3,h1,h2,intype)
 !----------------------------------------------------------------------
 
@@ -234,6 +232,7 @@
 
     return
     end subroutine makeg
+#endif
 
 !-----------------------------------------------------------------------
     subroutine ctolspl (tolspl,respr)
@@ -1208,6 +1207,7 @@
     return
     end subroutine convprn
 
+#if 0
     subroutine convpr (res,tol,iconv,rbnorm)
 !-----------------------------------------------------------------
 
@@ -1230,6 +1230,7 @@
     IF (RBNORM < TOL) ICONV=1
     return
     end subroutine convpr
+#endif
 
     subroutine chktcg2 (tol,res,iconv)
 !-------------------------------------------------------------------
@@ -2051,6 +2052,7 @@
     return
     end subroutine bdsys
 
+#if 0
     subroutine advchar_old
 !----------------------------------------------------------------------
 
@@ -2091,6 +2093,7 @@
 
     return
     end subroutine advchar_old
+#endif
 
     subroutine ophyprkn(vel1,vel2,vel3,ilag)
 !---------------------------------------------------------------------------
@@ -2675,6 +2678,7 @@
     return
     end subroutine normvc
 
+#if 0
     subroutine genwp (wp,wm2,p)
 !------------------------------------------------------------------
 
@@ -2771,6 +2775,7 @@
 
     return
     end subroutine convuz
+#endif
 
     subroutine convsp (ifstsp)
     LOGICAL :: IFSTSP
@@ -2778,6 +2783,7 @@
     return
     end subroutine convsp
 
+#if 0
     subroutine antimsk (y,x,xmask,n)
 !------------------------------------------------------------------
 
@@ -2844,6 +2850,7 @@
 
     return
     end subroutine opamask
+#endif
 
     subroutine opmask (res1,res2,res3)
 !----------------------------------------------------------------------
@@ -2863,7 +2870,7 @@
 !     sb=glsum(b3mask,ntot1)
 !     write(6,*) istep,' ifld:',ifield,intype,sv,sb
     IF (IFSTRS) THEN
-        CALL RMASK (RES1,RES2,RES3,NELV)
+!max        CALL RMASK (RES1,RES2,RES3,NELV)
     ELSE
         if (ifield == ifldmhd) then
             CALL COL2 (RES1,B1MASK,NTOT1)
@@ -3156,6 +3163,7 @@
     return
     end subroutine opdsop
 !-----------------------------------------------------------------------
+#if 0
     subroutine opicol2 (a1,a2,a3,b1,b2,b3)
     use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
@@ -3165,6 +3173,7 @@
     IF(NDIM == 3)CALL INVCOL2(A3,B3,NTOT1)
     return
     end subroutine opicol2
+#endif
 
     subroutine oprzero (a,b,c)
     use size_m
@@ -3175,7 +3184,7 @@
     IF(NDIM == 3) CALL RZERO(C,NTOT1)
     return
     end subroutine oprzero
-
+#if 0
     subroutine oprone (a,b,c)
     use size_m
     REAL :: A(1),B(1),C(1)
@@ -3185,7 +3194,6 @@
     IF(NDIM == 3) CALL RONE(C,NTOT1)
     return
     end subroutine oprone
-
     subroutine opcmult (a,b,c,const)
     use size_m
     REAL :: A(1),B(1),C(1)
@@ -3195,6 +3203,7 @@
     IF(NDIM == 3) CALL CMULT(C,CONST,NTOT1)
     return
     end subroutine opcmult
+#endif
 !-----------------------------------------------------------------------
     subroutine opcolv2c(a1,a2,a3,b1,b2,c)
     use size_m
@@ -3500,6 +3509,7 @@
     return
     end subroutine uzawa
 !-----------------------------------------------------------------------
+#if 0
     subroutine spbslpf(abd,lda,n,m,b)
 
     use ctimer
@@ -3645,6 +3655,7 @@
 
     return
     end subroutine spbfapf
+#endif
 !-----------------------------------------------------------------------
     subroutine mapw(md,nd,m1,n1,mflg)
 
@@ -4079,7 +4090,6 @@
 
     return
     end subroutine conv1
-#endif
 !-----------------------------------------------------------------------
     subroutine conv1no(du,u)
 
@@ -4158,6 +4168,7 @@
 
     return
     end subroutine conv1no
+#endif
 !-----------------------------------------------------------------------
     subroutine conv1rk(du,dv,dw,u,v,w)
 
@@ -4929,7 +4940,7 @@
                 + ut(i)*tzm1(i,1,1,e) )
             enddo
         else
-
+#if 0
             if (ifaxis) then
                 call setaxdy (ifrzer(e))  ! reset dytm1
                 call setaxw1 (ifrzer(e))  ! reset w3m1
@@ -4943,12 +4954,14 @@
                 uy(i,e) =w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
                 + us(i)*sym1(i,1,1,e) )
             enddo
+#endif
         endif
 
     enddo
 
     return
     end subroutine wgradm1
+#if 0
 !-----------------------------------------------------------------------
     SUBROUTINE MAKEVIS
 !----------------------------------------------------------------------
@@ -5039,6 +5052,7 @@
 
     RETURN
     END SUBROUTINE MAKEVIS
+#endif
 !-----------------------------------------------------------------------
 
     SUBROUTINE COMP_SIEJ (U1,U2,U3)
@@ -5185,6 +5199,7 @@
     end subroutine explstrs
 #endif
 !-----------------------------------------------------------------------
+#if 0
     subroutine expl_strs(w1,w2,w3,u1,u2,u3)
     use size_m
     use dealias
@@ -5220,6 +5235,7 @@
 
     return
     end subroutine expl_strs
+#endif
 !-----------------------------------------------------------------------
     subroutine expl_strs_e(w1,w2,w3,u1,u2,u3,e)
     use size_m
@@ -5412,7 +5428,7 @@
     if (if3d) then
         call local_grad3_t(u,ur,us,ut,m0,1,d(ip),dt(ip),wkd)
     else
-        call local_grad2_t(u,ur,us   ,m0,1,d(ip),dt(ip),wkd)
+!max        call local_grad2_t(u,ur,us   ,m0,1,d(ip),dt(ip),wkd)
     endif
 
     return
@@ -5438,7 +5454,7 @@
     if (if3d) then
         call local_grad3(ur,us,ut,u,m0,1,d(ip),dt(ip))
     else
-        call local_grad2(ur,us   ,u,m0,1,d(ip),dt(ip))
+!max        call local_grad2(ur,us   ,u,m0,1,d(ip),dt(ip))
     endif
 
     return

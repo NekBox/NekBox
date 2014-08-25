@@ -1833,6 +1833,7 @@
     return
     end subroutine vrdsmshx
 !-----------------------------------------------------------------------
+#if 0
     subroutine rotat2(xyz,angle,npts)
 
 !     Rotate NPTS through ANGLE (in two directions IF3D).
@@ -1879,6 +1880,7 @@
 
     return
     end subroutine rotat2
+#endif
 !-----------------------------------------------------------------------
     subroutine scale(xyzl,nl)
 
@@ -2027,6 +2029,7 @@
     return
     end subroutine volume2
 !-----------------------------------------------------------------------
+#if 0
     subroutine findcg(cg,xyz,n)
 
 !     Compute cg for N elements.
@@ -2189,6 +2192,7 @@
 
     return
     end subroutine divide
+#endif
 !-----------------------------------------------------------------------
     subroutine bin_rd1(ifbswap)  ! read mesh, curve, and bc info
 

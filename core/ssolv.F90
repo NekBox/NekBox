@@ -80,7 +80,7 @@
 
     RETURN
     END SUBROUTINE SSINIT
-
+#if 0
     SUBROUTINE CHKEXT (IFACCX,Z,S)
 !------------------------------------------------------------------
 
@@ -157,7 +157,7 @@
 
     RETURN
     END SUBROUTINE CHKEXT
-
+#endif
     SUBROUTINE FILLLAG
     use size_m
     use input
@@ -177,6 +177,7 @@
     RETURN
     END SUBROUTINE FILLLAG
 
+#if 0
     SUBROUTINE GONSTEP (N,ITEST)
 !----------------------------------------------------------------
 
@@ -243,7 +244,7 @@
             ENDIF
             IF (IFFLOW) CALL FLUID (IGEOM)
             IF (IFHEAT) CALL HEAT  (IGEOM)
-            IF (IFMVBD) CALL MESHV (IGEOM)
+!max            IF (IFMVBD) CALL MESHV (IGEOM)
         100 END DO
         CALL PREPOST( .FALSE. )
         CALL USERCHK
@@ -255,6 +256,7 @@
 
     RETURN
     END SUBROUTINE GO1STEP
+#endif
 
     SUBROUTINE GOSTEP
 !----------------------------------------------------------------
@@ -299,7 +301,7 @@
             ENDIF
             IF (IFFLOW) CALL FLUID (IGEOM)
             IF (IFHEAT) CALL HEAT  (IGEOM)
-            IF (IFMVBD) CALL MESHV (IGEOM)
+!max            IF (IFMVBD) CALL MESHV (IGEOM)
         100 END DO
         CALL PREPOST( .FALSE. )
         CALL USERCHK
@@ -423,6 +425,7 @@
     RETURN
     END SUBROUTINE MKARR
 
+#if 0
     SUBROUTINE SSPARAM (KMAX,L)
 !------------------------------------------------------------------------------
 
@@ -480,7 +483,7 @@
     CALL SETCHAR
     RETURN
     END SUBROUTINE SSPARAM
-
+#endif
     SUBROUTINE CHKSSVT
 !-----------------------------------------------------------------------
 
@@ -675,7 +678,7 @@
     CALL NORMVC (DVDFH1,DVDFSM,DVDFL2,DVDFL8,DV1,DV2,DV3)
     RETURN
     END SUBROUTINE SSNORMD
-
+#if 0
     SUBROUTINE SSNORMP (DV1,DV2,DV3)
     use size_m
     use steady
@@ -684,7 +687,7 @@
     CALL NORMVC (DVPRH1,DVPRSM,DVPRL2,DVPRL8,DV1,DV2,DV3)
     RETURN
     END SUBROUTINE SSNORMP
-
+#endif
     SUBROUTINE SETTOLV
 !-------------------------------------------------------------------
 
@@ -760,7 +763,7 @@
 
     RETURN
     END SUBROUTINE SETTOLT
-
+#if 0
     SUBROUTINE CHKTOLP (TOLMIN)
     use size_m
     use mass
@@ -780,7 +783,7 @@
     IF (TOLMIN < TOLPS) TOLMIN = TOLPS
     RETURN
     END SUBROUTINE CHKTOLP
-
+#endif
     SUBROUTINE SETCHAR
 !-----------------------------------------------------------------------
 

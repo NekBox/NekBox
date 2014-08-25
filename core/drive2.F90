@@ -1,5 +1,8 @@
+!> \file drive2.F90
+!! \brief second level drivers called from drive1.F90
+
 !-------------------------------------------------------------------
-!>     Transfer array dimensions to common
+!> Transfer array dimensions to common
 !-------------------------------------------------------------------
 subroutine initdim
   use size_m
@@ -318,8 +321,8 @@ subroutine setvar
   RETURN
 end subroutine setvar
 
+!> \brief Echo the nonzero parameters from the readfile to the logfile
 subroutine echopar
-!     Echo the nonzero parameters from the readfile to the logfile
   use kinds, only : DP
   use size_m, only : nid, ndim, ldim
   use input, only : reafle, vnekton, nktonv, param
@@ -410,7 +413,7 @@ subroutine echopar
 end subroutine echopar
 
 !----------------------------------------------------------------------
-!>     Generate geometry data
+!> \brief Generate geometry data
 !----------------------------------------------------------------------
 subroutine gengeom (igeom)
   use kinds, only : DP
@@ -624,1055 +627,1052 @@ subroutine files
 end subroutine files
 
 !----------------------------------------------------------------------
-!>     Store old time steps and compute new time step, time and timef.
-!>     Set time-dependent coefficients in time-stepping schemes.
+!> \brief setup time-stepping
+!!
+!! Store old time steps and compute new time step, time and timef.
+!! Set time-dependent coefficients in time-stepping schemes.
 !----------------------------------------------------------------------
-    subroutine settime
-    use size_m
-    use geom
-    use input
-    use tstep
-    COMMON  /CPRINT/ IFPRINT
-    LOGICAL ::          IFPRINT
-    SAVE
+subroutine settime
+  use geom,  only : ifsurt
+  use input, only : ifmvbd, param
+  use tstep, only : dtlag, ab, abmsh, bd, dt, iocomm
+  use tstep, only : istep, nab, nbd, nbdinp, time, timef
+  implicit none
 
-    irst = param(46)
+  COMMON  /CPRINT/ IFPRINT
+  LOGICAL :: IFPRINT
+  integer :: nfldt, ilag, irst, nabmsh, nbdmsh
 
-!     Set time step.
+  irst = param(46)
 
-    DO 10 ILAG=10,2,-1
-        DTLAG(ILAG) = DTLAG(ILAG-1)
-    10 END DO
-    CALL SETDT
-    DTLAG(1) = DT
-    IF (ISTEP == 1 .AND. irst <= 0) DTLAG(2) = DT
+!   Set time step.
 
-!     Set time.
+  DO 10 ILAG=10,2,-1
+      DTLAG(ILAG) = DTLAG(ILAG-1)
+  10 END DO
+  CALL SETDT
+  DTLAG(1) = DT
+  IF (ISTEP == 1 .AND. irst <= 0) DTLAG(2) = DT
 
-    TIMEF    = TIME
-    TIME     = TIME+DT
+!   Set time.
 
-!     Set coefficients in AB/BD-schemes.
+  TIMEF    = TIME
+  TIME     = TIME+DT
 
-    CALL SETORDBD
-    if (irst > 0) nbd = nbdinp
-    CALL RZERO (BD,10)
-    CALL SETBD (BD,DTLAG,NBD)
-    NAB = 3
-    IF (ISTEP <= 2 .AND. irst <= 0) NAB = ISTEP
-    CALL RZERO   (AB,10)
-    CALL SETABBD (AB,DTLAG,NAB,NBD)
-    IF (IFMVBD) THEN
-        NBDMSH = 1
-        NABMSH = PARAM(28)
-        IF (NABMSH > ISTEP .AND. irst <= 0) NABMSH = ISTEP
-        IF (IFSURT)          NABMSH = NBD
-        CALL RZERO   (ABMSH,10)
-        CALL SETABBD (ABMSH,DTLAG,NABMSH,NBDMSH)
-    ENDIF
+!   Set coefficients in AB/BD-schemes.
 
-
-!     Set logical for printout to screen/log-file
-
-    IFPRINT = .FALSE. 
-    IF (IOCOMM > 0 .AND. MOD(ISTEP,IOCOMM) == 0) IFPRINT= .TRUE. 
-    IF (ISTEP == 1  .OR. ISTEP == 0           ) IFPRINT= .TRUE. 
-
-    RETURN
-    end subroutine settime
+  CALL SETORDBD
+  if (irst > 0) nbd = nbdinp
+  CALL RZERO (BD,10)
+  CALL SETBD (BD,DTLAG,NBD)
+  NAB = 3
+  IF (ISTEP <= 2 .AND. irst <= 0) NAB = ISTEP
+  CALL RZERO   (AB,10)
+  CALL SETABBD (AB,DTLAG,NAB,NBD)
+  IF (IFMVBD) THEN
+      NBDMSH = 1
+      NABMSH = PARAM(28)
+      IF (NABMSH > ISTEP .AND. irst <= 0) NABMSH = ISTEP
+      IF (IFSURT)          NABMSH = NBD
+      CALL RZERO   (ABMSH,10)
+      CALL SETABBD (ABMSH,DTLAG,NABMSH,NBDMSH)
+  ENDIF
 
 
-    subroutine geneig (igeom)
-!-----------------------------------------------------------------------
+!   Set logical for printout to screen/log-file
 
-!     Compute eigenvalues.
-!     Used for automatic setting of tolerances and to find critical
-!     time step for explicit mode.
-!     Currently eigenvalues are computed only for the velocity mesh.
+  IFPRINT = .FALSE. 
+  IF (IOCOMM > 0 .AND. MOD(ISTEP,IOCOMM) == 0) IFPRINT= .TRUE. 
+  IF (ISTEP == 1  .OR. ISTEP == 0           ) IFPRINT= .TRUE. 
+
+  RETURN
+  end subroutine settime
 
 !-----------------------------------------------------------------------
-    use size_m
-    use eigen
-    use input
-    use tstep
-
-    IF (IGEOM == 1) RETURN
-
-!     Decide which eigenvalues to be computed.
-
-    IF (IFFLOW) THEN
-    
-        IFAA  = .FALSE. 
-        IFAE  = .FALSE. 
-        IFAS  = .FALSE. 
-        IFAST = .FALSE. 
-        IFGA  = .TRUE. 
-        IFGE  = .FALSE. 
-        IFGS  = .FALSE. 
-        IFGST = .FALSE. 
-    
-    !        For now, only compute eigenvalues during initialization.
-    !        For deforming geometries the eigenvalues should be
-    !        computed every time step (based on old eigenvectors => more memory)
-    
-        IMESH  = 1
-        IFIELD = 1
-        TOLEV  = 1.E-3
-        TOLHE  = TOLHDF
-        TOLHR  = TOLHDF
-        TOLHS  = TOLHDF
-        TOLPS  = TOLPDF
-        CALL EIGENV
-        CALL ESTEIG
-    
-    ELSEIF (IFHEAT .AND. .NOT. IFFLOW) THEN
-    
-        CALL ESTEIG
-    
-    ENDIF
-
-    RETURN
-    end subroutine geneig
+!> \brief Compute eigenvalues.
+!!
+!! Used for automatic setting of tolerances and to find critical
+!! time step for explicit mode.
+!! Currently eigenvalues are computed only for the velocity mesh.
 !-----------------------------------------------------------------------
-    subroutine fluid (igeom)
+subroutine geneig (igeom)
+  use eigen, only : ifaa, ifae, ifas, ifast, ifga, ifge, ifgs, ifgst
+  use input, only : ifflow, ifheat
+  use tstep, only : ifield, imesh, tolev, tolhdf, tolhe, tolhr, tolhs
+  use tstep, only : tolpdf, tolps
 
-!     Driver for solving the incompressible Navier-Stokes equations.
+  implicit none
 
-!     Current version:
-!     (1) Velocity/stress formulation.
-!     (2) Constant/variable properties.
-!     (3) Implicit/explicit time stepping.
-!     (4) Automatic setting of tolerances .
-!     (5) Lagrangian/"Eulerian"(operator splitting) modes
+  integer, intent(in) :: igeom
+
+  IF (IGEOM == 1) RETURN
+
+!   Decide which eigenvalues to be computed.
+
+  IF (IFFLOW) THEN
+  
+      IFAA  = .FALSE. 
+      IFAE  = .FALSE. 
+      IFAS  = .FALSE. 
+      IFAST = .FALSE. 
+      IFGA  = .TRUE. 
+      IFGE  = .FALSE. 
+      IFGS  = .FALSE. 
+      IFGST = .FALSE. 
+  
+  !        For now, only compute eigenvalues during initialization.
+  !        For deforming geometries the eigenvalues should be
+  !        computed every time step (based on old eigenvectors => more memory)
+  
+      IMESH  = 1
+      IFIELD = 1
+      TOLEV  = 1.E-3
+      TOLHE  = TOLHDF
+      TOLHR  = TOLHDF
+      TOLHS  = TOLHDF
+      TOLPS  = TOLPDF
+      CALL EIGENV
+      CALL ESTEIG
+  
+  ELSEIF (IFHEAT .AND. .NOT. IFFLOW) THEN
+  
+      CALL ESTEIG
+  
+  ENDIF
+
+  RETURN
+end subroutine geneig
 
 !-----------------------------------------------------------------------
-    use size_m
-    use dealias
-    use input
-    use soln
-    use tstep
+!> \brief Driver for solving the incompressible Navier-Stokes equations.
+!!
+!! Current version:
+!! (1) Velocity/stress formulation.
+!! (2) Constant/variable properties.
+!! (3) Implicit/explicit time stepping.
+!! (4) Automatic setting of tolerances .
+!! (5) Lagrangian/"Eulerian"(operator splitting) modes
+!-----------------------------------------------------------------------
+subroutine fluid (igeom)
+  use size_m, only : nid
+  use input, only : ifnav, ifsplit, iftran, param
+  use tstep, only : ifield, imesh, istep, time
 
-    real*8 :: ts, dnekclock
-     
-    ifield = 1
-    imesh  = 1
-    call unorm
-    call settolv
+  implicit none
 
-    ts = dnekclock()
+  integer, intent(inout) :: igeom
+ 
+  real*8 :: ts, dnekclock
+   
+  ifield = 1
+  imesh  = 1
+  call unorm
+  call settolv
 
-    if(nid == 0 .AND. igeom == 1) &
-    write(6,*) 'Solving for fluid',ifsplit,iftran,ifnav
+  ts = dnekclock()
 
-    if (ifsplit) then
+  if(nid == 0 .AND. igeom == 1) &
+  write(6,*) 'Solving for fluid',ifsplit,iftran,ifnav
 
-    !        PLAN 4: TOMBO SPLITTING
-    !                - Time-dependent Navier-Stokes calculation (Re>>1).
-    !                - Same approximation spaces for pressure and velocity.
-    !                - Incompressibe or Weakly compressible (div u .ne. 0).
-         
-        call plan4
-        igeom = 2
+  if (ifsplit) then
+
+  !        PLAN 4: TOMBO SPLITTING
+  !                - Time-dependent Navier-Stokes calculation (Re>>1).
+  !                - Same approximation spaces for pressure and velocity.
+  !                - Incompressibe or Weakly compressible (div u .ne. 0).
+       
+      call plan4
+      igeom = 2
 #if 0
-        call twalluz (igeom) ! Turbulence model
+      call twalluz (igeom) ! Turbulence model
 #endif
-        call chkptol         ! check pressure tolerance
-        call vol_flow        ! check for fixed flow rate
+      call chkptol         ! check pressure tolerance
+!max      if (param(55) /= 0) call vol_flow        ! check for fixed flow rate
 
-    elseif (iftran) then
-#if 0
-
-    !        call plan1 (igeom)       !  Orig. NEKTON time stepper
-
-        call plan3 (igeom)       !  Same as PLAN 1 w/o nested iteration
-    !  Std. NEKTON time stepper  !
-        if (ifmodel)    call twalluz (igeom) ! Turbulence model
-        if (igeom >= 2) call chkptol         ! check pressure tolerance
-        if (igeom >= 2) call vol_flow        ! check for fixed flow rate
-
-#endif
-    else   !  steady Stokes, non-split
-
-    !             - Steady/Unsteady Stokes/Navier-Stokes calculation.
-    !             - Consistent approximation spaces for velocity and pressure.
-    !             - Explicit treatment of the convection term.
-    !             - Velocity/stress formulation.
-#if 0
-        call plan1 (igeom) ! The NEKTON "Classic".
-#endif
-    endif
-
-    if(nid == 0 .AND. igeom >= 2) &
-    write(*,'(4x,i7,1x,1p2e12.4,a)') &
-    istep,time,dnekclock()-ts,' Fluid done'
-
-    return
-    end subroutine fluid
-!-----------------------------------------------------------------------
-    subroutine heat (igeom)
-
-!     Driver for temperature or passive scalar.
-
-!     Current version:
-!     (1) Varaiable properties.
-!     (2) Implicit time stepping.
-!     (3) User specified tolerance for the Helmholtz solver
-!         (not based on eigenvalues).
-!     (4) A passive scalar can be defined on either the
-!         temperatur or the velocity mesh.
-!     (5) A passive scalar has its own multiplicity (B.C.).
-
-    use size_m
-    use dealias
-    use input
-    use tstep
-    use turbo
-
-    real*8 :: ts, dnekclock
-
-    ts = dnekclock()
-
-    if (nid == 0 .AND. igeom == 1) &
-    write(*,'(13x,a)') 'Solving for heat'
-
-    if (ifcvode) then
+  elseif (iftran) then
 #if 0
 
-        call cdscal_cvode(igeom)
-        igeom = 2
+  !        call plan1 (igeom)       !  Orig. NEKTON time stepper
+
+      call plan3 (igeom)       !  Same as PLAN 1 w/o nested iteration
+  !  Std. NEKTON time stepper  !
+      if (ifmodel)    call twalluz (igeom) ! Turbulence model
+      if (igeom >= 2) call chkptol         ! check pressure tolerance
+!max      if (igeom >= 2 and param(55) /= 0) call vol_flow ! check for fixed flow rate
+
 #endif
-    elseif (ifsplit) then
+  else   !  steady Stokes, non-split
 
-        do igeo=1,2
-            do ifield=2,nfield
-                intype        = -1
-                if ( .NOT. iftmsh(ifield)) imesh = 1
-                if (     iftmsh(ifield)) imesh = 2
-                call unorm
-                call settolt
-                call cdscal (igeo)
-            enddo
-        enddo
-        igeom = 2
+  !             - Steady/Unsteady Stokes/Navier-Stokes calculation.
+  !             - Consistent approximation spaces for velocity and pressure.
+  !             - Explicit treatment of the convection term.
+  !             - Velocity/stress formulation.
+#if 0
+      call plan1 (igeom) ! The NEKTON "Classic".
+#endif
+  endif
 
-    else  ! PN-PN-2
+  if(nid == 0 .AND. igeom >= 2) &
+  write(*,'(4x,i7,1x,1p2e12.4,a)') &
+  istep,time,dnekclock()-ts,' Fluid done'
 
-        do ifield=2,nfield
-            intype        = -1
-            if ( .NOT. iftmsh(ifield)) imesh = 1
-            if (     iftmsh(ifield)) imesh = 2
-            call unorm
-            call settolt
-            call cdscal (igeom)
-        enddo
-
-    endif
-
-    if (nid == 0 .AND. igeom >= 2) &
-    write(*,'(4x,i7,1x,1p2e12.4,a)') &
-    istep,time,dnekclock()-ts,' Heat done'
-
-
-    return
-    end subroutine heat
-!-----------------------------------------------------------------------
-    subroutine meshv (igeom)
-
-!     Driver for mesh velocity used in conjunction with moving geometry.
+  return
+end subroutine fluid
 
 !-----------------------------------------------------------------------
-    use size_m
-    use input
-    use tstep
-
-    IF (IGEOM == 1) RETURN
-
-    IFIELD = 0
-    NEL    = NELFLD(IFIELD)
-    IMESH  = 1
-    IF (IFTMSH(IFIELD)) IMESH = 2
-
-    CALL UPDMSYS (0)
-    CALL MVBDRY  (NEL)
-    CALL ELASOLV (NEL)
-
-    RETURN
-    end subroutine meshv
-
-    subroutine rescont (ind)
-
-    use size_m
-    use input
-    use parallel
-    use tstep
-
-    if (np > 1) return
-    irst = param(46)
-    iwrf = 1
-    if (irst /= 0) then
-        iwrf = mod(istep,iabs(irst))
-        if (lastep == 1) iwrf = 0
-    endif
-
-    if (ind == 1 .AND. irst > 0) call rstartc (ind)
-    if (ind == 0 .AND. iwrf == 0) call rstartc (ind)
-
-    return
-    end subroutine rescont
-    subroutine rstartc (ind)
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    common /SCRSF/ xm3(lx3,ly3,lz3,lelv) &
-    , ym3(lx3,ly3,lz3,lelv) &
-    , zm3(lx3,ly3,lz3,lelv)
-
-    integer :: icall1,icall2
-    save    icall1,icall2
-    data    icall1 /0/
-    data    icall2 /0/
-
-    if (np > 1) return
-    ntov1=nx1*ny1*nz1*nelv
-    ntov2=nx2*ny2*nz2*nelv
-    ntot1=nx1*ny1*nz1*nelt
-    ntfc1=nx1*nz1*6*nelv
-    ntow1=lx1m*ly1m*lz1m*nelfld(0)
-    ntoe1=lx1m*ly1m*lz1m*nelv
-    ntotf=ntot1*ldimt
-    nlag =lorder-1
-
-    if (ind == 1) then
-    
-        iru=22
-        if (icall1 == 0) then
-            icall1=1
-            open(unit=22,file=orefle,status='OLD')
-        endif
-    
-        rewind iru
-        read(iru,1100,end=9000) time,dt,courno,(dtlag(i),i=1,10)
-        read(iru,1100,end=9000) eigaa, eigas, eigast, eigae, &
-        eigga, eiggs, eiggst, eigge
-    
-        write (6,*) '  '
-        write (6,*) 'READ RESTART FILE, TIME =',time
-    
-        iread = 0
-        if (ifmvbd) then
-            read (iru,1100,end=9000) (xm1(i,1,1,1),i=1,ntot1)
-            read (iru,1100,end=9000) (ym1(i,1,1,1),i=1,ntot1)
-            if (ndim == 3) &
-            read (iru,1100,end=9000) (zm1(i,1,1,1),i=1,ntot1)
-            read (iru,1100,end=9000) (wx(i,1,1,1) ,i=1,ntow1)
-            read (iru,1100,end=9000) (wy(i,1,1,1) ,i=1,ntow1)
-            if (ndim == 3) &
-            read (iru,1100,end=9000) (wz(i,1,1,1) ,i=1,ntow1)
-            if (nlag >= 1) then
-                read (iru,1100,end=9000) (wxlag(i,1,1,1,1) ,i=1,ntow1*nlag)
-                read (iru,1100,end=9000) (wylag(i,1,1,1,1) ,i=1,ntow1*nlag)
-                if (ndim == 3) &
-                read (iru,1100,end=9000) (wzlag(i,1,1,1,1) ,i=1,ntow1*nlag)
-            endif
-        endif
-    
-        iread = 1
-        if (ifflow) then
-            read (iru,1100,end=9000) (vx(i,1,1,1) ,i=1,ntov1)
-            read (iru,1100,end=9000) (vy(i,1,1,1) ,i=1,ntov1)
-            if (ndim == 3) &
-            read (iru,1100,end=9000) (vz(i,1,1,1) ,i=1,ntov1)
-            read (iru,1100,end=9000) (pr(i,1,1,1) ,i=1,ntov2)
-            read (iru,1100,end=9000) (abx2(i,1,1,1),i=1,ntov1)
-            read (iru,1100,end=9000) (aby2(i,1,1,1),i=1,ntov1)
-            if (ndim == 3) &
-            read (iru,1100,end=9000) (abz2(i,1,1,1),i=1,ntov1)
-            read (iru,1100,end=9000) (abx1(i,1,1,1),i=1,ntov1)
-            read (iru,1100,end=9000) (aby1(i,1,1,1),i=1,ntov1)
-            if (ndim == 3) &
-            read (iru,1100,end=9000) (abz1(i,1,1,1),i=1,ntov1)
-            if (nlag >= 1) then
-                read (iru,1100,end=9000) (vxlag (i,1,1,1,1),i=1,ntov1*nlag)
-                read (iru,1100,end=9000) (vylag (i,1,1,1,1),i=1,ntov1*nlag)
-                if (ndim == 3) &
-                read (iru,1100,end=9000) (vzlag (i,1,1,1,1),i=1,ntov1*nlag)
-                read (iru,1100,end=9000) (bm1lag(i,1,1,1,1),i=1,ntot1*nlag)
-            endif
-        endif
-    
-        iread = 2
-        if (ifheat) then
-            read (iru,1100,end=9000) (t(i,1,1,1,1),i=1,ntotf)
-            read (iru,1100,end=9000) (vgradt1(i,1,1,1,1),i=1,ntotf)
-            read (iru,1100,end=9000) (vgradt2(i,1,1,1,1),i=1,ntotf)
-            if (nlag >= 1) then
-                read (iru,1100,end=9000) (tlag(i,1,1,1,1,1),i=1,ntotf*nlag)
-            endif
-        endif
-    
-        iread = 3
-        if (ifmodel .AND. .NOT. ifkeps) then
-            read (iru,1100,end=9000) tlmax,tlimul
-            read (iru,1100,end=9000) (turbl(i,1,1,1),i=1,ntov1)
-        endif
-        if (ifcwuz) then
-            read (iru,1100,end=9000) (zwall (i,1,1,1),i=1,ntfc1)
-            read (iru,1100,end=9000) (uwall(i,1,1,1),i=1,ntfc1)
-        endif
-    
-        if (ifgeom) then
-            call geom1 (xm3,ym3,zm3)
-            call geom2
-            call updmsys (1)
-            call volume
-            call setinvm
-        endif
-    
-    elseif (ind == 0) then
-    
-        iwu=23
-        if (icall2 == 0) then
-            icall2=1
-            open(unit=23,file=nrefle,status='NEW')
-        endif
-    
-        rewind iwu
-        write(iwu,1100) time,dt,courno,(dtlag(i),i=1,10)
-        write(iwu,1100) eigaa, eigas, eigast, eigae, &
-        eigga, eiggs, eiggst, eigge
-    
-        write (6,*) '  '
-        write (6,*) 'WRITE RESTART FILE, TIME =',time
-    
-        if (ifmvbd) then
-            write (iwu,1100) (xm1(i,1,1,1),i=1,ntot1)
-            write (iwu,1100) (ym1(i,1,1,1),i=1,ntot1)
-            if (ndim == 3) &
-            write (iwu,1100) (zm1(i,1,1,1),i=1,ntot1)
-            write (iwu,1100) (wx(i,1,1,1) ,i=1,ntow1)
-            write (iwu,1100) (wy(i,1,1,1) ,i=1,ntow1)
-            if (ndim == 3) &
-            write (iwu,1100) (wz(i,1,1,1) ,i=1,ntow1)
-            if (nlag >= 1) then
-                write (iwu,1100) (wxlag(i,1,1,1,1) ,i=1,ntow1*nlag)
-                write (iwu,1100) (wylag(i,1,1,1,1) ,i=1,ntow1*nlag)
-                if (ndim == 3) &
-                write (iwu,1100) (wzlag(i,1,1,1,1) ,i=1,ntow1*nlag)
-            endif
-        endif
-    
-        if (ifflow) then
-            write (iwu,1100) (vx(i,1,1,1) ,i=1,ntov1)
-            write (iwu,1100) (vy(i,1,1,1) ,i=1,ntov1)
-            if (ndim == 3) &
-            write (iwu,1100) (vz(i,1,1,1) ,i=1,ntov1)
-            write (iwu,1100) (pr(i,1,1,1) ,i=1,ntov2)
-            write (iwu,1100) (abx2(i,1,1,1),i=1,ntov1)
-            write (iwu,1100) (aby2(i,1,1,1),i=1,ntov1)
-            if (ndim == 3) &
-            write (iwu,1100) (abz2(i,1,1,1),i=1,ntov1)
-            write (iwu,1100) (abx1(i,1,1,1),i=1,ntov1)
-            write (iwu,1100) (aby1(i,1,1,1),i=1,ntov1)
-            if (ndim == 3) &
-            write (iwu,1100) (abz1(i,1,1,1),i=1,ntov1)
-            if (nlag >= 1) then
-                write (iwu,1100) (vxlag (i,1,1,1,1),i=1,ntov1*nlag)
-                write (iwu,1100) (vylag (i,1,1,1,1),i=1,ntov1*nlag)
-                if (ndim == 3) &
-                write (iwu,1100) (vzlag (i,1,1,1,1),i=1,ntov1*nlag)
-                write (iwu,1100) (bm1lag(i,1,1,1,1),i=1,ntot1*nlag)
-            endif
-        endif
-    
-        if (ifheat) then
-            write (iwu,1100) (t(i,1,1,1,1),i=1,ntotf)
-            write (iwu,1100) (vgradt1(i,1,1,1,1),i=1,ntotf)
-            write (iwu,1100) (vgradt2(i,1,1,1,1),i=1,ntotf)
-            if (nlag >= 1) then
-                write (iwu,1100) (tlag(i,1,1,1,1,1),i=1,ntotf*nlag)
-            endif
-        endif
-    
-        if (ifmodel .AND. .NOT. ifkeps) then
-            write (iwu,1100) tlmax,tlimul
-            write (iwu,1100) (turbl(i,1,1,1),i=1,ntov1)
-        endif
-        if (ifcwuz) then
-            write (iwu,1100) (zwall(i,1,1,1),i=1,ntfc1)
-            write (iwu,1100) (uwall(i,1,1,1),i=1,ntfc1)
-        endif
-    
-    endif
-
-    return
-
-    1100 format ((5e16.8))
-    9000 continue
-
-    write ( 6,*)  ' RECORD OUT-OF-ORDER DURING READING OF RESTART'
-    write ( 6,*)  ' FILE -- iread =',iread
-
-    call exitt
-    end subroutine rstartc
+!> \brief Driver for temperature or passive scalar.
+!!
+!!  Current version:
+!!  (1) Varaiable properties.
+!!  (2) Implicit time stepping.
+!!  (3) User specified tolerance for the Helmholtz solver
+!!      (not based on eigenvalues).
+!!  (4) A passive scalar can be defined on either the
+!!      temperatur or the velocity mesh.
+!!  (5) A passive scalar has its own multiplicity (B.C.).
 !-----------------------------------------------------------------------
-    subroutine time00
+subroutine heat (igeom)
+  use size_m, only : nid, nfield
+  use input, only : ifcvode, ifsplit, iftmsh
+  use tstep, only : ifield, imesh, istep, time
 
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  implicit none
 
-    nmxmf=0
-    nmxms=0
-    ndsum=0
-    nvdss=0
-    nsett=0
-    ncdtp=0
-    npres=0
-    nmltd=0
-    ngsum=0
-    nprep=0
-    ndsnd=0
-    ndadd=0
-    nhmhz=0
-    naxhm=0
-    ngop =0
-    nusbc=0
-    ncopy=0
-    ninvc=0
-    ninv3=0
-    nsolv=0
-    nslvb=0
-    nddsl=0
-    ncrsl=0
-    ndott=0
-    nbsol=0
-    nadvc=0
-    nspro=0
+  integer, intent(inout) :: igeom
+  real*8 :: ts, dnekclock
+  integer :: intype, igeo
 
-    tmxmf=0.0
-    tmxms=0.0
-    tdsum=0.0
-    tvdss=0.0
-    tvdss=0.0
-    tdsmn=9.9e9
-    tdsmx=0.0
-    tsett=0.0
-    tcdtp=0.0
-    tpres=0.0
-    teslv=0.0
-    tmltd=0.0
-    tgsum=0.0
-    tgsmn=9.9e9
-    tgsmx=0.0
-    tprep=0.0
-    tdsnd=0.0
-    tdadd=0.0
-    thmhz=0.0
-    taxhm=0.0
-    tgop =0.0
-    tusbc=0.0
-    tcopy=0.0
-    tinvc=0.0
-    tinv3=0.0
-    tsolv=0.0
-    tslvb=0.0
-    tddsl=0.0
-    tcrsl=0.0
-    tdott=0.0
-    tbsol=0.0
-    tbso2=0.0
-    tspro=0.0
-    tadvc=0.0
-    ttime=0.0
+  ts = dnekclock()
 
-    return
-    end subroutine time00
+  if (nid == 0 .AND. igeom == 1) &
+  write(*,'(13x,a)') 'Solving for heat'
+
+  if (ifcvode) then
+#if 0
+
+      call cdscal_cvode(igeom)
+      igeom = 2
+#endif
+  elseif (ifsplit) then
+
+      do igeo=1,2
+          do ifield=2,nfield
+              intype        = -1
+              if ( .NOT. iftmsh(ifield)) imesh = 1
+              if (     iftmsh(ifield)) imesh = 2
+              call unorm
+              call settolt
+              call cdscal (igeo)
+          enddo
+      enddo
+      igeom = 2
+
+  else  ! PN-PN-2
+
+      do ifield=2,nfield
+          intype        = -1
+          if ( .NOT. iftmsh(ifield)) imesh = 1
+          if (     iftmsh(ifield)) imesh = 2
+          call unorm
+          call settolt
+          call cdscal (igeom)
+      enddo
+
+  endif
+
+  if (nid == 0 .AND. igeom >= 2) &
+  write(*,'(4x,i7,1x,1p2e12.4,a)') &
+  istep,time,dnekclock()-ts,' Heat done'
+
+  return
+end subroutine heat
 
 !-----------------------------------------------------------------------
-    subroutine runstat
+!> Driver for mesh velocity used in conjunction with moving geometry.
+!-----------------------------------------------------------------------
+subroutine meshv (igeom)
+  use input, only : iftmsh
+  use tstep, only : ifield, imesh, nelfld
+  implicit none
 
+  integer, intent(in) :: igeom
+  integer :: nel
+
+  IF (IGEOM == 1) RETURN
+
+  IFIELD = 0
+  NEL    = NELFLD(IFIELD)
+  IMESH  = 1
+  IF (IFTMSH(IFIELD)) IMESH = 2
+
+  CALL UPDMSYS (0)
+  CALL MVBDRY  (NEL)
+  CALL ELASOLV (NEL)
+
+  RETURN
+end subroutine meshv
+
+#if 0
+subroutine rescont (ind)
+  use input, only : param
+  use parallel, only : np
+  use tstep, only : istep, lastep
+  
+  implicit none
+  integer, intent(in) :: ind
+  integer :: iwrf, irst
+
+  if (np > 1) return
+  irst = param(46)
+  iwrf = 1
+  if (irst /= 0) then
+      iwrf = mod(istep,abs(irst))
+      if (lastep == 1) iwrf = 0
+  endif
+
+  if (ind == 1 .AND. irst > 0)  call rstartc (ind)
+  if (ind == 0 .AND. iwrf == 0) call rstartc (ind)
+
+  return
+end subroutine rescont
+
+subroutine rstartc (ind)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv
+  use size_m, only : nx2, ny2, nz2, nelt
+  use size_m, only : lx3, ly3, lz3, lelv
+  use size_m, only : lx1m, ly1m, lz1m, ldimt
+  use size_m, only : lorder, ndim
+  use eigen, only : eigaa, eigas, eigast, eigae
+  use eigen, only : eigga, eiggs, eiggst, eigge
+  use geom, only : ifgeom, xm1, ym1, zm1
+  use input, only : ifheat, ifmodel, ifkeps, ifmvbd, ifflow
+  use input, only : nrefle, orefle
+  use mass, only : bm1lag
+  use mvgeom, only : wx, wy, wz, wxlag, wylag, wzlag
+  use parallel, only : np
+  use soln, only : vx, vy, vz, pr, t
+  use soln, only : vxlag, vylag, vzlag, vgradt1, vgradt2, tlag
+  use soln, only : abx2, aby2, abz2, abx1, aby1, abz1
+  use tstep, only : nelfld, time, dt, courno, dtlag
+  use turbo, only : ifcwuz, uwall, zwall, tlmax, tlimul, turbl
+  implicit none
+
+  real(DP) :: xm3, ym3, zm3
+  common /SCRSF/ xm3(lx3,ly3,lz3,lelv) &
+  , ym3(lx3,ly3,lz3,lelv) &
+  , zm3(lx3,ly3,lz3,lelv)
+
+  integer :: icall1,icall2
+  integer :: ntov1, ntov2, ntot1, ntfc1, ntow1, ntoe1, ntotf, nlag
+  integer :: i, ind, iru, iread, iwu
+  save    icall1,icall2
+  data    icall1 /0/
+  data    icall2 /0/
+
+  if (np > 1) return
+  ntov1=nx1*ny1*nz1*nelv
+  ntov2=nx2*ny2*nz2*nelv
+  ntot1=nx1*ny1*nz1*nelt
+  ntfc1=nx1*nz1*6*nelv
+  ntow1=lx1m*ly1m*lz1m*nelfld(0)
+  ntoe1=lx1m*ly1m*lz1m*nelv
+  ntotf=ntot1*ldimt
+  nlag =lorder-1
+
+  if (ind == 1) then
+  
+      iru=22
+      if (icall1 == 0) then
+          icall1=1
+          open(unit=22,file=orefle,status='OLD')
+      endif
+  
+      rewind iru
+      read(iru,1100,end=9000) time,dt,courno,(dtlag(i),i=1,10)
+      read(iru,1100,end=9000) eigaa, eigas, eigast, eigae, &
+      eigga, eiggs, eiggst, eigge
+  
+      write (6,*) '  '
+      write (6,*) 'READ RESTART FILE, TIME =',time
+  
+      iread = 0
+      if (ifmvbd) then
+          read (iru,1100,end=9000) (xm1(i,1,1,1),i=1,ntot1)
+          read (iru,1100,end=9000) (ym1(i,1,1,1),i=1,ntot1)
+          if (ndim == 3) &
+          read (iru,1100,end=9000) (zm1(i,1,1,1),i=1,ntot1)
+          read (iru,1100,end=9000) (wx(i,1,1,1) ,i=1,ntow1)
+          read (iru,1100,end=9000) (wy(i,1,1,1) ,i=1,ntow1)
+          if (ndim == 3) &
+          read (iru,1100,end=9000) (wz(i,1,1,1) ,i=1,ntow1)
+          if (nlag >= 1) then
+              read (iru,1100,end=9000) (wxlag(i,1,1,1,1) ,i=1,ntow1*nlag)
+              read (iru,1100,end=9000) (wylag(i,1,1,1,1) ,i=1,ntow1*nlag)
+              if (ndim == 3) &
+              read (iru,1100,end=9000) (wzlag(i,1,1,1,1) ,i=1,ntow1*nlag)
+          endif
+      endif
+  
+      iread = 1
+      if (ifflow) then
+          read (iru,1100,end=9000) (vx(i,1,1,1) ,i=1,ntov1)
+          read (iru,1100,end=9000) (vy(i,1,1,1) ,i=1,ntov1)
+          if (ndim == 3) &
+          read (iru,1100,end=9000) (vz(i,1,1,1) ,i=1,ntov1)
+          read (iru,1100,end=9000) (pr(i,1,1,1) ,i=1,ntov2)
+          read (iru,1100,end=9000) (abx2(i,1,1,1),i=1,ntov1)
+          read (iru,1100,end=9000) (aby2(i,1,1,1),i=1,ntov1)
+          if (ndim == 3) &
+          read (iru,1100,end=9000) (abz2(i,1,1,1),i=1,ntov1)
+          read (iru,1100,end=9000) (abx1(i,1,1,1),i=1,ntov1)
+          read (iru,1100,end=9000) (aby1(i,1,1,1),i=1,ntov1)
+          if (ndim == 3) &
+          read (iru,1100,end=9000) (abz1(i,1,1,1),i=1,ntov1)
+          if (nlag >= 1) then
+              read (iru,1100,end=9000) (vxlag (i,1,1,1,1),i=1,ntov1*nlag)
+              read (iru,1100,end=9000) (vylag (i,1,1,1,1),i=1,ntov1*nlag)
+              if (ndim == 3) &
+              read (iru,1100,end=9000) (vzlag (i,1,1,1,1),i=1,ntov1*nlag)
+              read (iru,1100,end=9000) (bm1lag(i,1,1,1,1),i=1,ntot1*nlag)
+          endif
+      endif
+  
+      iread = 2
+      if (ifheat) then
+          read (iru,1100,end=9000) (t(i,1,1,1,1),i=1,ntotf)
+          read (iru,1100,end=9000) (vgradt1(i,1,1,1,1),i=1,ntotf)
+          read (iru,1100,end=9000) (vgradt2(i,1,1,1,1),i=1,ntotf)
+          if (nlag >= 1) then
+              read (iru,1100,end=9000) (tlag(i,1,1,1,1,1),i=1,ntotf*nlag)
+          endif
+      endif
+  
+      iread = 3
+      if (ifmodel .AND. .NOT. ifkeps) then
+          read (iru,1100,end=9000) tlmax,tlimul
+          read (iru,1100,end=9000) (turbl(i,1,1,1),i=1,ntov1)
+      endif
+      if (ifcwuz) then
+          read (iru,1100,end=9000) (zwall (i,1,1,1),i=1,ntfc1)
+          read (iru,1100,end=9000) (uwall(i,1,1,1),i=1,ntfc1)
+      endif
+  
+      if (ifgeom) then
+          call geom1 (xm3,ym3,zm3)
+          call geom2
+          call updmsys (1)
+          call volume
+          call setinvm
+      endif
+  
+  elseif (ind == 0) then
+  
+      iwu=23
+      if (icall2 == 0) then
+          icall2=1
+          open(unit=23,file=nrefle,status='NEW')
+      endif
+  
+      rewind iwu
+      write(iwu,1100) time,dt,courno,(dtlag(i),i=1,10)
+      write(iwu,1100) eigaa, eigas, eigast, eigae, &
+      eigga, eiggs, eiggst, eigge
+  
+      write (6,*) '  '
+      write (6,*) 'WRITE RESTART FILE, TIME =',time
+  
+      if (ifmvbd) then
+          write (iwu,1100) (xm1(i,1,1,1),i=1,ntot1)
+          write (iwu,1100) (ym1(i,1,1,1),i=1,ntot1)
+          if (ndim == 3) &
+          write (iwu,1100) (zm1(i,1,1,1),i=1,ntot1)
+          write (iwu,1100) (wx(i,1,1,1) ,i=1,ntow1)
+          write (iwu,1100) (wy(i,1,1,1) ,i=1,ntow1)
+          if (ndim == 3) &
+          write (iwu,1100) (wz(i,1,1,1) ,i=1,ntow1)
+          if (nlag >= 1) then
+              write (iwu,1100) (wxlag(i,1,1,1,1) ,i=1,ntow1*nlag)
+              write (iwu,1100) (wylag(i,1,1,1,1) ,i=1,ntow1*nlag)
+              if (ndim == 3) &
+              write (iwu,1100) (wzlag(i,1,1,1,1) ,i=1,ntow1*nlag)
+          endif
+      endif
+  
+      if (ifflow) then
+          write (iwu,1100) (vx(i,1,1,1) ,i=1,ntov1)
+          write (iwu,1100) (vy(i,1,1,1) ,i=1,ntov1)
+          if (ndim == 3) &
+          write (iwu,1100) (vz(i,1,1,1) ,i=1,ntov1)
+          write (iwu,1100) (pr(i,1,1,1) ,i=1,ntov2)
+          write (iwu,1100) (abx2(i,1,1,1),i=1,ntov1)
+          write (iwu,1100) (aby2(i,1,1,1),i=1,ntov1)
+          if (ndim == 3) &
+          write (iwu,1100) (abz2(i,1,1,1),i=1,ntov1)
+          write (iwu,1100) (abx1(i,1,1,1),i=1,ntov1)
+          write (iwu,1100) (aby1(i,1,1,1),i=1,ntov1)
+          if (ndim == 3) &
+          write (iwu,1100) (abz1(i,1,1,1),i=1,ntov1)
+          if (nlag >= 1) then
+              write (iwu,1100) (vxlag (i,1,1,1,1),i=1,ntov1*nlag)
+              write (iwu,1100) (vylag (i,1,1,1,1),i=1,ntov1*nlag)
+              if (ndim == 3) &
+              write (iwu,1100) (vzlag (i,1,1,1,1),i=1,ntov1*nlag)
+              write (iwu,1100) (bm1lag(i,1,1,1,1),i=1,ntot1*nlag)
+          endif
+      endif
+  
+      if (ifheat) then
+          write (iwu,1100) (t(i,1,1,1,1),i=1,ntotf)
+          write (iwu,1100) (vgradt1(i,1,1,1,1),i=1,ntotf)
+          write (iwu,1100) (vgradt2(i,1,1,1,1),i=1,ntotf)
+          if (nlag >= 1) then
+              write (iwu,1100) (tlag(i,1,1,1,1,1),i=1,ntotf*nlag)
+          endif
+      endif
+  
+      if (ifmodel .AND. .NOT. ifkeps) then
+          write (iwu,1100) tlmax,tlimul
+          write (iwu,1100) (turbl(i,1,1,1),i=1,ntov1)
+      endif
+      if (ifcwuz) then
+          write (iwu,1100) (zwall(i,1,1,1),i=1,ntfc1)
+          write (iwu,1100) (uwall(i,1,1,1),i=1,ntfc1)
+      endif
+  
+  endif
+
+  return
+
+  1100 format ((5e16.8))
+  9000 continue
+
+  write ( 6,*)  ' RECORD OUT-OF-ORDER DURING READING OF RESTART'
+  write ( 6,*)  ' FILE -- iread =',iread
+
+  call exitt()
+end subroutine rstartc
+#endif
+
+!-----------------------------------------------------------------------
+!> \brief zero the ctimer
+subroutine time00
+  use ctimer
+  implicit none
+
+  nmxmf=0
+  nmxms=0
+  ndsum=0
+  nvdss=0
+  nsett=0
+  ncdtp=0
+  npres=0
+  nmltd=0
+  ngsum=0
+  nprep=0
+  ndsnd=0
+  ndadd=0
+  nhmhz=0
+  naxhm=0
+  ngop =0
+  nusbc=0
+  ncopy=0
+  ninvc=0
+  ninv3=0
+  nsolv=0
+  nslvb=0
+  nddsl=0
+  ncrsl=0
+  ndott=0
+  nbsol=0
+  nadvc=0
+  nspro=0
+
+  tmxmf=0.0
+  tmxms=0.0
+  tdsum=0.0
+  tvdss=0.0
+  tvdss=0.0
+  tdsmn=9.9e9
+  tdsmx=0.0
+  tsett=0.0
+  tcdtp=0.0
+  tpres=0.0
+  teslv=0.0
+  tmltd=0.0
+  tgsum=0.0
+  tgsmn=9.9e9
+  tgsmx=0.0
+  tprep=0.0
+  tdsnd=0.0
+  tdadd=0.0
+  thmhz=0.0
+  taxhm=0.0
+  tgop =0.0
+  tusbc=0.0
+  tcopy=0.0
+  tinvc=0.0
+  tinv3=0.0
+  tsolv=0.0
+  tslvb=0.0
+  tddsl=0.0
+  tcrsl=0.0
+  tdott=0.0
+  tbsol=0.0
+  tbso2=0.0
+  tspro=0.0
+  tadvc=0.0
+  ttime=0.0
+
+  return
+end subroutine time00
+
+!-----------------------------------------------------------------------
+!> \brief print run statistics from ctimer
+subroutine runstat
 #ifndef NOTIMER
+  use ctimer
+  use size_m, only : nid
+  use parallel, only : np
+  implicit none
 
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  real :: min_dsum, max_dsum, avg_dsum
+  real :: min_vdss, max_vdss, avg_vdss
+  real :: min_gop,  max_gop,  avg_gop
+  real :: min_gop_sync,  max_gop_sync,  avg_gop_sync
+  real :: min_crsl, max_crsl, avg_crsl
+  real :: min_usbc, max_usbc, avg_usbc
+  real :: min_syc, max_syc, avg_syc
+  real :: min_wal, max_wal, avg_wal
+  real :: min_irc, max_irc, avg_irc
+  real :: min_isd, max_isd, avg_isd
+  real :: min_comm, max_comm, avg_comm
+  real :: tstop, tirc, tisd, trc, tsd, tcomm, wwork, padvc
+  integer :: nirc, nisd
 
-    real :: min_dsum, max_dsum, avg_dsum
-    real :: min_vdss, max_vdss, avg_vdss
-    real :: min_gop,  max_gop,  avg_gop
-    real :: min_gop_sync,  max_gop_sync,  avg_gop_sync
-    real :: min_crsl, max_crsl, avg_crsl
-    real :: min_usbc, max_usbc, avg_usbc
-    real :: min_syc, max_syc, avg_syc
-    real :: min_wal, max_wal, avg_wal
-    real :: min_irc, max_irc, avg_irc
-    real :: min_isd, max_isd, avg_isd
-    real :: min_comm, max_comm, avg_comm
+  real :: comm_timers(8)
+  integer :: comm_counters(8)
+  character(132) :: s132
 
-    real :: comm_timers(8)
-    integer :: comm_counters(8)
-    character(132) :: s132
-
-    tstop=dnekclock()
-    tttstp=ttime         ! sum over all timesteps
+  tstop=dnekclock()
+  tttstp=ttime         ! sum over all timesteps
 
 !      call opcount(3)      ! print op-counters
 
-    call nek_comm_getstat(comm_timers,comm_counters)
-    tgop      = comm_timers(1)
-    tgop_sync = comm_timers(2)
-    twal      = comm_timers(3)
-    tsyc      = comm_timers(4)
-    tirc      = comm_timers(5)
-    tisd      = comm_timers(6)
-    trc       = comm_timers(7)
-    tsd       = comm_timers(8)
-    ngop      = comm_counters(1)
-    nwal      = comm_counters(3)
-    nsyc      = comm_counters(4)
-    nirc      = comm_counters(5)
-    nisd      = comm_counters(6)
+  call nek_comm_getstat(comm_timers,comm_counters)
+  tgop      = comm_timers(1)
+  tgop_sync = comm_timers(2)
+  twal      = comm_timers(3)
+  tsyc      = comm_timers(4)
+  tirc      = comm_timers(5)
+  tisd      = comm_timers(6)
+  trc       = comm_timers(7)
+  tsd       = comm_timers(8)
+  ngop      = comm_counters(1)
+  nwal      = comm_counters(3)
+  nsyc      = comm_counters(4)
+  nirc      = comm_counters(5)
+  nisd      = comm_counters(6)
 
-    tcomm  = tisd + tirc + tsyc + tgop + twal + trc + tsd
-    min_comm = tcomm
-    call gop(min_comm,wwork,'m  ',1)
-    max_comm = tcomm
-    call gop(max_comm,wwork,'M  ',1)
-    avg_comm = tcomm
-    call gop(avg_comm,wwork,'+  ',1)
-    avg_comm = avg_comm/np
+  tcomm  = tisd + tirc + tsyc + tgop + twal + trc + tsd
+  min_comm = tcomm
+  call gop(min_comm,wwork,'m  ',1)
+  max_comm = tcomm
+  call gop(max_comm,wwork,'M  ',1)
+  avg_comm = tcomm
+  call gop(avg_comm,wwork,'+  ',1)
+  avg_comm = avg_comm/np
 
-    min_isd = tisd
-    call gop(min_isd,wwork,'m  ',1)
-    max_isd = tisd
-    call gop(max_isd,wwork,'M  ',1)
-    avg_isd = tisd
-    call gop(avg_isd,wwork,'+  ',1)
-    avg_isd = avg_isd/np
+  min_isd = tisd
+  call gop(min_isd,wwork,'m  ',1)
+  max_isd = tisd
+  call gop(max_isd,wwork,'M  ',1)
+  avg_isd = tisd
+  call gop(avg_isd,wwork,'+  ',1)
+  avg_isd = avg_isd/np
 
-    min_irc = tirc
-    call gop(min_irc,wwork,'m  ',1)
-    max_irc = tirc
-    call gop(max_irc,wwork,'M  ',1)
-    avg_irc = tirc
-    call gop(avg_irc,wwork,'+  ',1)
-    avg_irc = avg_irc/np
+  min_irc = tirc
+  call gop(min_irc,wwork,'m  ',1)
+  max_irc = tirc
+  call gop(max_irc,wwork,'M  ',1)
+  avg_irc = tirc
+  call gop(avg_irc,wwork,'+  ',1)
+  avg_irc = avg_irc/np
 
-    min_syc = tsyc
-    call gop(min_syc,wwork,'m  ',1)
-    max_syc = tsyc
-    call gop(max_syc,wwork,'M  ',1)
-    avg_syc = tsyc
-    call gop(avg_syc,wwork,'+  ',1)
-    avg_syc = avg_syc/np
+  min_syc = tsyc
+  call gop(min_syc,wwork,'m  ',1)
+  max_syc = tsyc
+  call gop(max_syc,wwork,'M  ',1)
+  avg_syc = tsyc
+  call gop(avg_syc,wwork,'+  ',1)
+  avg_syc = avg_syc/np
 
-    min_wal = twal
-    call gop(min_wal,wwork,'m  ',1)
-    max_wal = twal
-    call gop(max_wal,wwork,'M  ',1)
-    avg_wal = twal
-    call gop(avg_wal,wwork,'+  ',1)
-    avg_wal = avg_wal/np
+  min_wal = twal
+  call gop(min_wal,wwork,'m  ',1)
+  max_wal = twal
+  call gop(max_wal,wwork,'M  ',1)
+  avg_wal = twal
+  call gop(avg_wal,wwork,'+  ',1)
+  avg_wal = avg_wal/np
 
-    min_gop = tgop
-    call gop(min_gop,wwork,'m  ',1)
-    max_gop = tgop
-    call gop(max_gop,wwork,'M  ',1)
-    avg_gop = tgop
-    call gop(avg_gop,wwork,'+  ',1)
-    avg_gop = avg_gop/np
+  min_gop = tgop
+  call gop(min_gop,wwork,'m  ',1)
+  max_gop = tgop
+  call gop(max_gop,wwork,'M  ',1)
+  avg_gop = tgop
+  call gop(avg_gop,wwork,'+  ',1)
+  avg_gop = avg_gop/np
 
-    min_gop_sync = tgop_sync
-    call gop(min_gop_sync,wwork,'m  ',1)
-    max_gop_sync = tgop_sync
-    call gop(max_gop_sync,wwork,'M  ',1)
-    avg_gop_sync = tgop_sync
-    call gop(avg_gop_sync,wwork,'+  ',1)
-    avg_gop_sync = avg_gop_sync/np
+  min_gop_sync = tgop_sync
+  call gop(min_gop_sync,wwork,'m  ',1)
+  max_gop_sync = tgop_sync
+  call gop(max_gop_sync,wwork,'M  ',1)
+  avg_gop_sync = tgop_sync
+  call gop(avg_gop_sync,wwork,'+  ',1)
+  avg_gop_sync = avg_gop_sync/np
 
-    min_vdss = tvdss
-    call gop(min_vdss,wwork,'m  ',1)
-    max_vdss = tvdss
-    call gop(max_vdss,wwork,'M  ',1)
-    avg_vdss = tvdss
-    call gop(avg_vdss,wwork,'+  ',1)
-    avg_vdss = avg_vdss/np
+  min_vdss = tvdss
+  call gop(min_vdss,wwork,'m  ',1)
+  max_vdss = tvdss
+  call gop(max_vdss,wwork,'M  ',1)
+  avg_vdss = tvdss
+  call gop(avg_vdss,wwork,'+  ',1)
+  avg_vdss = avg_vdss/np
 
-    min_dsum = tdsum
-    call gop(min_dsum,wwork,'m  ',1)
-    max_dsum = tdsum
-    call gop(max_dsum,wwork,'M  ',1)
-    avg_dsum = tdsum
-    call gop(avg_dsum,wwork,'+  ',1)
-    avg_dsum = avg_dsum/np
+  min_dsum = tdsum
+  call gop(min_dsum,wwork,'m  ',1)
+  max_dsum = tdsum
+  call gop(max_dsum,wwork,'M  ',1)
+  avg_dsum = tdsum
+  call gop(avg_dsum,wwork,'+  ',1)
+  avg_dsum = avg_dsum/np
 
 
-    min_crsl = tcrsl
-    call gop(min_crsl,wwork,'m  ',1)
-    max_crsl = tcrsl
-    call gop(max_crsl,wwork,'M  ',1)
-    avg_crsl = tcrsl
-    call gop(avg_crsl,wwork,'+  ',1)
-    avg_crsl = avg_crsl/np
+  min_crsl = tcrsl
+  call gop(min_crsl,wwork,'m  ',1)
+  max_crsl = tcrsl
+  call gop(max_crsl,wwork,'M  ',1)
+  avg_crsl = tcrsl
+  call gop(avg_crsl,wwork,'+  ',1)
+  avg_crsl = avg_crsl/np
 
-    min_usbc = tusbc
-    call gop(min_usbc,wwork,'m  ',1)
-    max_usbc = tusbc
-    call gop(max_usbc,wwork,'M  ',1)
-    avg_usbc = tusbc
-    call gop(avg_usbc,wwork,'+  ',1)
-    avg_usbc = avg_usbc/np
+  min_usbc = tusbc
+  call gop(min_usbc,wwork,'m  ',1)
+  max_usbc = tusbc
+  call gop(max_usbc,wwork,'M  ',1)
+  avg_usbc = tusbc
+  call gop(avg_usbc,wwork,'+  ',1)
+  avg_usbc = avg_usbc/np
 
-    tttstp = tttstp + 1e-7
-    if (nid == 0) then
-        write(6,'(A)') 'runtime statistics:'
-        write(6,*) 'total time',tttstp
+  tttstp = tttstp + 1e-7
+  if (nid == 0) then
+      write(6,'(A)') 'runtime statistics:'
+      write(6,*) 'total time',tttstp
 
-    !         pcopy=tcopy/tttstp
-    !         write(6,*) 'copy time',ncopy,tcopy,pcopy
-    !         pmxmf=tmxmf/tttstp
-    !         write(6,*) 'mxmf time',nmxmf,tmxmf,pmxmf
+  !         pcopy=tcopy/tttstp
+  !         write(6,*) 'copy time',ncopy,tcopy,pcopy
+  !         pmxmf=tmxmf/tttstp
+  !         write(6,*) 'mxmf time',nmxmf,tmxmf,pmxmf
 
-        pinv3=tinv3/tttstp
-        write(6,*) 'inv3 time',ninv3,tinv3,pinv3
-        pinvc=tinvc/tttstp
-        write(6,*) 'invc time',ninvc,tinvc,pinvc
-        pmltd=tmltd/tttstp
-        write(6,*) 'mltd time',nmltd,tmltd,pmltd
-        pcdtp=tcdtp/tttstp
-        write(6,*) 'cdtp time',ncdtp,tcdtp,pcdtp
-        peslv=teslv/tttstp
-        write(6,*) 'eslv time',neslv,teslv,peslv
+      pinv3=tinv3/tttstp
+      write(6,*) 'inv3 time',ninv3,tinv3,pinv3
+      pinvc=tinvc/tttstp
+      write(6,*) 'invc time',ninvc,tinvc,pinvc
+      pmltd=tmltd/tttstp
+      write(6,*) 'mltd time',nmltd,tmltd,pmltd
+      pcdtp=tcdtp/tttstp
+      write(6,*) 'cdtp time',ncdtp,tcdtp,pcdtp
+      peslv=teslv/tttstp
+      write(6,*) 'eslv time',neslv,teslv,peslv
 
-    !        Pressure solver timings
-        ppres=tpres/tttstp
-        write(6,*) 'pres time',npres,tpres,ppres
+  !        Pressure solver timings
+      ppres=tpres/tttstp
+      write(6,*) 'pres time',npres,tpres,ppres
 
-    !        Coarse grid solver timings
-        pcrsl=tcrsl/tttstp
-        write(6,*) 'crsl time',ncrsl,tcrsl,pcrsl
-        write(6,*) 'crsl min ',min_crsl
-        write(6,*) 'crsl max ',max_crsl
-        write(6,*) 'crsl avg ',avg_crsl
+  !        Coarse grid solver timings
+      pcrsl=tcrsl/tttstp
+      write(6,*) 'crsl time',ncrsl,tcrsl,pcrsl
+      write(6,*) 'crsl min ',min_crsl
+      write(6,*) 'crsl max ',max_crsl
+      write(6,*) 'crsl avg ',avg_crsl
 
-    !        Helmholz solver timings
-        phmhz=thmhz/tttstp
-        write(6,*) 'hmhz time',nhmhz,thmhz,phmhz
+  !        Helmholz solver timings
+      phmhz=thmhz/tttstp
+      write(6,*) 'hmhz time',nhmhz,thmhz,phmhz
 
-        pspro=tspro/tttstp
-        write(6,*) 'spro time',nspro,tspro,pspro
+      pspro=tspro/tttstp
+      write(6,*) 'spro time',nspro,tspro,pspro
 
-    !        USERBC timings
-        pusbc=tusbc/tttstp
-        write(6,*) 'usbc time',nusbc,tusbc,pusbc
-        write(6,*) 'usbc min ',min_usbc
-        write(6,*) 'usbc max ',max_usbc
-        write(6,*) 'usb  avg ',avg_usbc
+  !        USERBC timings
+      pusbc=tusbc/tttstp
+      write(6,*) 'usbc time',nusbc,tusbc,pusbc
+      write(6,*) 'usbc min ',min_usbc
+      write(6,*) 'usbc max ',max_usbc
+      write(6,*) 'usb  avg ',avg_usbc
 
-    !        Axhelm timings
-        paxhm=taxhm/tttstp
-        write(6,*) 'axhm time',naxhm,taxhm,paxhm
+  !        Axhelm timings
+      paxhm=taxhm/tttstp
+      write(6,*) 'axhm time',naxhm,taxhm,paxhm
 
-    !        Convection timings
-        padvc=tadvc/tttstp
-        write(6,*) 'advc time',nadvc,tadvc,padvc
+  !        Convection timings
+      padvc=tadvc/tttstp
+      write(6,*) 'advc time',nadvc,tadvc,padvc
 
-    !        Vector direct stiffness summuation timings
-        pvdss=tvdss/tttstp
-        write(6,*) 'vdss time',nvdss,tvdss,pvdss
-        write(6,*) 'vdss min ',min_vdss
-        write(6,*) 'vdss max ',max_vdss
-        write(6,*) 'vdss avg ',avg_vdss
+  !        Vector direct stiffness summuation timings
+      pvdss=tvdss/tttstp
+      write(6,*) 'vdss time',nvdss,tvdss,pvdss
+      write(6,*) 'vdss min ',min_vdss
+      write(6,*) 'vdss max ',max_vdss
+      write(6,*) 'vdss avg ',avg_vdss
 
-    !        Direct stiffness summuation timings
-        pdsum=tdsum/tttstp
-        write(6,*) 'dsum time',ndsum,tdsum,pdsum
-        write(6,*) 'dsum min ',min_dsum
-        write(6,*) 'dsum max ',max_dsum
-        write(6,*) 'dsum avg ',avg_dsum
+  !        Direct stiffness summuation timings
+      pdsum=tdsum/tttstp
+      write(6,*) 'dsum time',ndsum,tdsum,pdsum
+      write(6,*) 'dsum min ',min_dsum
+      write(6,*) 'dsum max ',max_dsum
+      write(6,*) 'dsum avg ',avg_dsum
 
-    !         pgsum=tgsum/tttstp
-    !         write(6,*) 'gsum time',ngsum,tgsum,pgsum
+  !         pgsum=tgsum/tttstp
+  !         write(6,*) 'gsum time',ngsum,tgsum,pgsum
 
-    !         pdsnd=tdsnd/tttstp
-    !         write(6,*) 'dsnd time',ndsnd,tdsnd,pdsnd
+  !         pdsnd=tdsnd/tttstp
+  !         write(6,*) 'dsnd time',ndsnd,tdsnd,pdsnd
 
-        pdadd=tdadd/tttstp
-        write(6,*) 'dadd time',ndadd,tdadd,pdadd
+      pdadd=tdadd/tttstp
+      write(6,*) 'dadd time',ndadd,tdadd,pdadd
 
-    !         pdsmx=tdsmx/tttstp
-    !         write(6,*) 'dsmx time',ndsmx,tdsmx,pdsmx
-    !         pdsmn=tdsmn/tttstp
-    !         write(6,*) 'dsmn time',ndsmn,tdsmn,pdsmn
-    !         pslvb=tslvb/tttstp
-    !         write(6,*) 'slvb time',nslvb,tslvb,pslvb
-        pddsl=tddsl/tttstp
-        write(6,*) 'ddsl time',nddsl,tddsl,pddsl
-    
-        psolv=tsolv/tttstp
-        write(6,*) 'solv time',nsolv,tsolv,psolv
+  !         pdsmx=tdsmx/tttstp
+  !         write(6,*) 'dsmx time',ndsmx,tdsmx,pdsmx
+  !         pdsmn=tdsmn/tttstp
+  !         write(6,*) 'dsmn time',ndsmn,tdsmn,pdsmn
+  !         pslvb=tslvb/tttstp
+  !         write(6,*) 'slvb time',nslvb,tslvb,pslvb
+      pddsl=tddsl/tttstp
+      write(6,*) 'ddsl time',nddsl,tddsl,pddsl
+  
+      psolv=tsolv/tttstp
+      write(6,*) 'solv time',nsolv,tsolv,psolv
 
-    !         psett=tsett/tttstp
-    !         write(6,*) 'sett time',nsett,tsett,psett
+  !         psett=tsett/tttstp
+  !         write(6,*) 'sett time',nsett,tsett,psett
 
-        pprep=tprep/tttstp
-        write(6,*) 'prep time',nprep,tprep,pprep
-    !         pbsol=tbsol/tttstp
-    !         write(6,*) 'bsol time',nbsol,tbsol,pbsol
-    !         pbso2=tbso2/tttstp
-    !         write(6,*) 'bso2 time',nbso2,tbso2,pbso2
+      pprep=tprep/tttstp
+      write(6,*) 'prep time',nprep,tprep,pprep
+  !         pbsol=tbsol/tttstp
+  !         write(6,*) 'bsol time',nbsol,tbsol,pbsol
+  !         pbso2=tbso2/tttstp
+  !         write(6,*) 'bso2 time',nbso2,tbso2,pbso2
 
 #ifdef MPITIMER
-        write(6,'(/,A)') 'MPI timings'
-    !        MPI timings
-        write(6,*) 'total comm time',tcomm, max_comm/ttime
-        write(6,*) 'comm min ',min_comm
-        write(6,*) 'comm max ',max_comm
-        write(6,*) 'comm avg ',avg_comm
+      write(6,'(/,A)') 'MPI timings'
+  !        MPI timings
+      write(6,*) 'total comm time',tcomm, max_comm/ttime
+      write(6,*) 'comm min ',min_comm
+      write(6,*) 'comm max ',max_comm
+      write(6,*) 'comm avg ',avg_comm
 
-    !        MPI_Barrier timings
-        psyc=tsyc/tcomm
-        write(6,*) 'barrier time',nsyc,tsyc,psyc
-        write(6,*) 'barrier min ',min_syc
-        write(6,*) 'barrier max ',max_syc
-        write(6,*) 'barrier avg ',avg_syc
+  !        MPI_Barrier timings
+      psyc=tsyc/tcomm
+      write(6,*) 'barrier time',nsyc,tsyc,psyc
+      write(6,*) 'barrier min ',min_syc
+      write(6,*) 'barrier max ',max_syc
+      write(6,*) 'barrier avg ',avg_syc
 
-    !        MPI_Waitall timings
-        pwal=twal/tcomm
-        write(6,*) 'waitall time',nwal,twal,pwal
-        write(6,*) 'waitall min ',min_wal
-        write(6,*) 'waitall max ',max_wal
-        write(6,*) 'waitall avg ',avg_wal
+  !        MPI_Waitall timings
+      pwal=twal/tcomm
+      write(6,*) 'waitall time',nwal,twal,pwal
+      write(6,*) 'waitall min ',min_wal
+      write(6,*) 'waitall max ',max_wal
+      write(6,*) 'waitall avg ',avg_wal
 
-    !        MPI_Allreduce timings
-        pgop=tgop/tcomm
-        write(6,*) 'allreduce  time',ngop,tgop,pgop
-        write(6,*) 'allreduce  min ',min_gop
-        write(6,*) 'allreduce  max ',max_gop
-        write(6,*) 'allreduce  avg ',avg_gop
+  !        MPI_Allreduce timings
+      pgop=tgop/tcomm
+      write(6,*) 'allreduce  time',ngop,tgop,pgop
+      write(6,*) 'allreduce  min ',min_gop
+      write(6,*) 'allreduce  max ',max_gop
+      write(6,*) 'allreduce  avg ',avg_gop
 
-    !        MPI_Allreduce(sync) timings
-        pgop_sync=tgop_sync/tcomm
-        write(6,*) 'allreduce_sync  time',tgop_sync,pgop_sync
-        write(6,*) 'allreduce_sync  min ',min_gop_sync
-        write(6,*) 'allreduce_sync  max ',max_gop_sync
-        write(6,*) 'allreduce_sync  avg ',avg_gop_sync
+  !        MPI_Allreduce(sync) timings
+      pgop_sync=tgop_sync/tcomm
+      write(6,*) 'allreduce_sync  time',tgop_sync,pgop_sync
+      write(6,*) 'allreduce_sync  min ',min_gop_sync
+      write(6,*) 'allreduce_sync  max ',max_gop_sync
+      write(6,*) 'allreduce_sync  avg ',avg_gop_sync
 #endif
-    endif
+  endif
 
-    if (nid == 0)   & ! header for timing
-    write(6,1) 'tusbc','tdadd','tcrsl','tvdss','tdsum',' tgop',ifsync
-    1 format(/,'#',2x,'nid',6(7x,a5),4x,'qqq',1x,l4)
+  if (nid == 0)   & ! header for timing
+  write(6,1) 'tusbc','tdadd','tcrsl','tvdss','tdsum',' tgop',ifsync
+  1 format(/,'#',2x,'nid',6(7x,a5),4x,'qqq',1x,l4)
 
-    call blank(s132,132)
-    write(s132,132) nid,tusbc,tdadd,tcrsl,tvdss,tdsum,tgop
-    132 format(i12,1p6e12.4,' qqq')
-    call pprint_all(s132,132,6)
+  call blank(s132,132)
+  write(s132,132) nid,tusbc,tdadd,tcrsl,tvdss,tdsum,tgop
+  132 format(i12,1p6e12.4,' qqq')
+  call pprint_all(s132,132,6)
 
 #endif
 
-    return
-    end subroutine runstat
-!-----------------------------------------------------------------------
-    subroutine pprint_all(s,n_in,io)
-    use size_m
-    use parallel
-
-    character(1) :: s(n_in)
-    character(1) :: w(132)
-
-
-    n = min(132,n_in)
-
-    mtag = 999
-    m    = 1
-    call nekgsync()
-
-    if (nid == 0) then
-        l = ltrunc(s,n)
-        write(io,1) (s(k),k=1,l)
-        1 format(132a1)
-
-        do i=1,np-1
-            call csend(mtag,s,1,i,0)    ! send handshake
-            m = 132
-            call blank(w,m)
-            call crecv(i,w,m)
-            if (m <= 132) then
-                l = ltrunc(w,m)
-                write(io,1) (w(k),k=1,l)
-            else
-                write(io,*) 'pprint long message: ',i,m
-                l = ltrunc(w,132)
-                write(io,1) (w(k),k=1,l)
-            endif
-        enddo
-    else
-        call crecv(mtag,w,m)          ! wait for handshake
-        l = ltrunc(s,n)
-        call csend(nid,s,l,0,0)       ! send data to node 0
-    endif
-    return
-    end subroutine pprint_all
-!-----------------------------------------------------------------------
-
-    subroutine opcount(ICALL)
-
-    use size_m
-    use parallel
-    use opctr
-
-    character(6) :: sname(maxrts)
-    integer ::     ind  (maxrts)
-    integer ::     idum (maxrts)
-
-    if (icall == 1) then
-        nrout=0
-    endif
-    if (icall == 1 .OR. icall == 2) then
-        dcount = 0.0
-        do 100 i=1,maxrts
-            ncall(i) = 0
-            dct(i)   = 0.0
-        100 END DO
-    endif
-    if (icall == 3) then
-    
-    !        Sort and print out diagnostics
-    
-        if (nid == 0) then
-            write(6,*) nid,' opcount',dcount
-            do i = 1,np-1
-                call csend(i,idum,4,i,0)
-                call crecv(i,ddcount,wdsize)
-                write(6,*) i,' opcount',ddcount
-            enddo
-        else
-            call crecv (nid,idum,4)
-            call csend (nid,dcount,wdsize,0,0)
-        endif
-
-        dhc = dcount
-        call gop(dhc,dwork,'+  ',1)
-        if (nid == 0) then
-            write(6,*) ' TOTAL OPCOUNT',dhc
-        endif
-    
-        CALL DRCOPY(rct,dct,nrout)
-        CALL SORT(rct,ind,nrout)
-        CALL CHSWAPR(rname,6,ind,nrout,sname)
-        call iswap(ncall,ind,nrout,idum)
-    
-        if (nid == 0) then
-            do 200 i=1,nrout
-                write(6,201) nid,rname(i),rct(i),ncall(i)
-            200 END DO
-            201 format(2x,' opnode',i4,2x,a6,g18.7,i12)
-        endif
-    endif
-    return
-    end subroutine opcount
+  return
+end subroutine runstat
 
 !-----------------------------------------------------------------------
-    subroutine dofcnt
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    COMMON /SCRNS/ WORK(LCTMP1)
+!> \brief pretty-print from runstat
+subroutine pprint_all(s,n_in,io)
+  use size_m, only : nid
+  use parallel, only : np
+  implicit none
 
-    integer*8 :: ntot,ntotp,ntotv
+  integer, intent(in) :: n_in, io
+  character(1), intent(in) :: s(n_in)
+  character(1) :: w(132)
+  integer :: n, mtag, m, i, k, l
+  integer, external :: ltrunc
 
-    nxyz  = nx1*ny1*nz1
-    nel   = nelv
+  n = min(132,n_in)
+
+  mtag = 999
+  m    = 1
+  call nekgsync()
+
+  if (nid == 0) then
+      l = ltrunc(s,n)
+      write(io,1) (s(k),k=1,l)
+      1 format(132a1)
+
+      do i=1,np-1
+          call csend(mtag,s,1,i,0)    ! send handshake
+          m = 132
+          call blank(w,m)
+          call crecv(i,w,m)
+          if (m <= 132) then
+              l = ltrunc(w,m)
+              write(io,1) (w(k),k=1,l)
+          else
+              write(io,*) 'pprint long message: ',i,m
+              l = ltrunc(w,132)
+              write(io,1) (w(k),k=1,l)
+          endif
+      enddo
+  else
+      call crecv(mtag,w,m)          ! wait for handshake
+      l = ltrunc(s,n)
+      call csend(nid,s,l,0,0)       ! send data to node 0
+  endif
+  return
+end subroutine pprint_all
+
+!-----------------------------------------------------------------------
+!> \brief init opcounter
+subroutine opcount(ICALL)
+  use kinds, only : DP
+  use size_m, only : nid
+  use parallel, only : np, wdsize
+  use opctr, only : nrout, dcount, ncall, dct, rct, rname, maxrts
+  implicit none
+
+  integer, intent(in) :: icall
+  character(6) :: sname(maxrts)
+  integer ::     ind  (maxrts)
+  integer ::     idum (maxrts)
+  integer :: i
+  real(DP) :: dhc, dwork, ddcount
+
+  if (icall == 1) then
+      nrout=0
+  endif
+  if (icall == 1 .OR. icall == 2) then
+      dcount = 0.0
+      do 100 i=1,maxrts
+          ncall(i) = 0
+          dct(i)   = 0.0
+      100 END DO
+  endif
+  if (icall == 3) then
+  
+  !        Sort and print out diagnostics
+  
+      if (nid == 0) then
+          write(6,*) nid,' opcount',dcount
+          do i = 1,np-1
+              call csend(i,idum,4,i,0)
+              call crecv(i,ddcount,wdsize)
+              write(6,*) i,' opcount',ddcount
+          enddo
+      else
+          call crecv (nid,idum,4)
+          call csend (nid,dcount,wdsize,0,0)
+      endif
+
+      dhc = dcount
+      call gop(dhc,dwork,'+  ',1)
+      if (nid == 0) then
+          write(6,*) ' TOTAL OPCOUNT',dhc
+      endif
+  
+      CALL DRCOPY(rct,dct,nrout)
+      CALL SORT(rct,ind,nrout)
+      CALL CHSWAPR(rname,6,ind,nrout,sname)
+      call iswap(ncall,ind,nrout,idum)
+  
+      if (nid == 0) then
+          do 200 i=1,nrout
+              write(6,201) nid,rname(i),rct(i),ncall(i)
+          200 END DO
+          201 format(2x,' opnode',i4,2x,a6,g18.7,i12)
+      endif
+  endif
+  return
+end subroutine opcount
+
+!-----------------------------------------------------------------------
+!> \brief count degrees of freedom
+subroutine dofcnt
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, nid
+  use size_m, only : nx2, ny2, nz2, lctmp1
+  use input, only : ifflow, ifsplit
+  use parallel, only : nvtot
+  use soln, only : vmult, tmult, tmask, v1mask, pmask
+  implicit none
+
+  real(DP) :: work
+  COMMON /SCRNS/ WORK(LCTMP1)
+
+  integer :: nxyz, nel, ntot1, ntot2
+  real(DP) :: vpts, ppts
+  real(DP), external :: glsum
+  integer, external :: glsc2, i8glsum
+  integer*8 :: ntot,ntotp,ntotv
+
+  nxyz  = nx1*ny1*nz1
+  nel   = nelv
 
 ! unique points on v-mesh
-    vpts = glsum(vmult,nel*nxyz) + .1
-    nvtot=vpts
+  vpts = glsum(vmult,nel*nxyz) + .1
+  nvtot=vpts
 
 ! unique points on pressure mesh
-    work(1)=nel*nxyz
-    ppts = glsum(work,1) + .1
-    ntot=ppts
+  work(1)=nel*nxyz
+  ppts = glsum(work,1) + .1
+  ntot=ppts
 
-    if (nid == 0) write(6,'(A,2i13)') &
-    'gridpoints unique/tot: ',nvtot,ntot
+  if (nid == 0) write(6,'(A,2i13)') &
+  'gridpoints unique/tot: ',nvtot,ntot
 
-    ntot1=nx1*ny1*nz1*nelv
-    ntot2=nx2*ny2*nz2*nelv
+  ntot1=nx1*ny1*nz1*nelv
+  ntot2=nx2*ny2*nz2*nelv
 
-    ntotv = glsc2(tmult,tmask,ntot1)
-    ntotp = i8glsum(ntot2,1)
+  ntotv = glsc2(tmult,tmask,ntot1)
+  ntotp = i8glsum(ntot2,1)
 
-    if (ifflow)  ntotv = glsc2(vmult,v1mask,ntot1)
-    if (ifsplit) ntotp = glsc2(vmult,pmask ,ntot1)
-    if (nid == 0) write(6,*) ' dofs:',ntotv,ntotp
+  if (ifflow)  ntotv = glsc2(vmult,v1mask,ntot1)
+  if (ifsplit) ntotp = glsc2(vmult,pmask ,ntot1)
+  if (nid == 0) write(6,*) ' dofs:',ntotv,ntotp
 
-    return
-    end subroutine dofcnt
+  return
+end subroutine dofcnt
 !-----------------------------------------------------------------------
+#if 0
     subroutine vol_flow
 
 
@@ -2224,4 +2224,5 @@ end subroutine files
     endif
     return
     end subroutine reset_prop
+#endif
 !-----------------------------------------------------------------------

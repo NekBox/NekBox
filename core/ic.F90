@@ -58,7 +58,7 @@
 !     If moving geometry then add a perturbation to the
 !     mesh coordinates (see Subroutine INIGEOM)
 
-    if (ifmvbd) call ptbgeom
+!max    if (ifmvbd) call ptbgeom
 
 !     Find out what type of i.c. is requested
 !     Current options:

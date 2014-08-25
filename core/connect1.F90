@@ -78,7 +78,7 @@
 
     CALL SETCDOF
     IF (IFAXIS            ) CALL SETRZER
-    IF (IFMVBD            ) CALL CBCMESH
+!max    IF (IFMVBD            ) CALL CBCMESH
 #if 0
     IF (IFMODEL .AND. IFKEPS) CALL CBCTURB
 #endif

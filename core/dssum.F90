@@ -391,7 +391,6 @@
     100 END DO
     return
     end subroutine zero_f
-#endif
 !-----------------------------------------------------------------------
     subroutine ftovec_0(a,b,ie,iface,nx,ny,nz)
 
@@ -430,7 +429,6 @@
     return
     end subroutine ftovec
 !-----------------------------------------------------------------------
-#if 0
     subroutine vectof(b,a,ie,iface,nx,ny,nz)
 
 !     Copy vector A to the face (IFACE) of B

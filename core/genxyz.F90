@@ -100,71 +100,6 @@
     return
     end subroutine arcsrf
 !-----------------------------------------------------------------------
-#if 0
-    subroutine defsrf(xml,yml,zml,nxl,nyl,nzl,ie,iface1,ccv)
-    use size_m
-    use geom
-    use topol
-    use wz_m
-    COMMON /CTMP1/ H(LX1,3,2),XCRVED(LX1),YCRVED(LY1),ZCRVED(LZ1) &
-    , ZGML(LX1,3),WORK(3,LX1,LZ1)
-
-    DIMENSION XML(NXL,NYL,NZL,1),YML(NXL,NYL,NZL,1),ZML(NXL,NYL,NZL,1)
-    DIMENSION X1(3),X2(3),X3(3),DX(3)
-    DIMENSION IOPP(3),NXX(3)
-    CHARACTER(1) :: CCV
-
-    CALL DSSET(NXL,NYL,NZL)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-
-    IOPP(1) = NXL-1
-    IOPP(2) = NXL*(NYL-1)
-    IOPP(3) = NXL*NYL*(NZL-1)
-    NXX(1)  = NXL
-    NXX(2)  = NYL
-    NXX(3)  = NZL
-    IDIR    = 2*MOD(IFACE,2) - 1
-    IFC2    = (IFACE+1)/2
-    DELT    = 0.0
-!      DELT    = SIDE(4,IFACE,IE)
-
-!     Compute surface deflection and perturbation due to face IFACE
-
-    DO 200 J2=JS2,JF2,JSKIP2
-        DO 200 J1=JS1,JF1,JSKIP1
-            JOPP = J1 + IOPP(IFC2)*IDIR
-            X2(1) = XML(J1,J2,1,IE)
-            X2(2) = YML(J1,J2,1,IE)
-            X2(3) = ZML(J1,J2,1,IE)
-            X1(1) = XML(JOPP,J2,1,IE)
-            X1(2) = YML(JOPP,J2,1,IE)
-            X1(3) = ZML(JOPP,J2,1,IE)
-            CALL INTRSC(X3,X2,X1,DELT,IE,IFACE1)
-        
-            DX(1) = X3(1)-X2(1)
-            DX(2) = X3(2)-X2(2)
-            DX(3) = X3(3)-X2(3)
-        
-            NXS = NXX(IFC2)
-            JOFF = (J1-JOPP)/(NXS-1)
-            DO 100 IX = 2,NXS
-                J = JOPP + JOFF*(IX-1)
-                ZETA = 0.5*(ZGML(IX,IFC2) + 1.0)
-                XML(J,J2,1,IE) = XML(J,J2,1,IE)+DX(1)*ZETA
-                YML(J,J2,1,IE) = YML(J,J2,1,IE)+DX(2)*ZETA
-                ZML(J,J2,1,IE) = ZML(J,J2,1,IE)+DX(3)*ZETA
-            100 END DO
-    200 END DO
-
-    return
-    end subroutine defsrf
-#endif
 !-----------------------------------------------------------------------
     subroutine intrsc(x3,x2,x1,delt,ie,iface)
 
@@ -983,54 +918,6 @@
 
     return
     end subroutine crn3d
-!-----------------------------------------------------------------------
-#if 0
-    subroutine rotxyz
-!-----------------------------------------------------------------------
-
-!     Establish rotation of undeformed elements.
-!     Used for fast evaluation of D*x and DT*x.
-!     Currently used for 2-d problems.
-
-!-----------------------------------------------------------------------
-    use size_m
-    use esolv
-    use geom
-    use input
-    COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-    LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-
-    IF (IFMVBD)    return
-    IF (NDIM == 3) return
-
-    EPS    = 1.E-6
-    EPSINV = 1./EPS
-    NXYZ1 = NX1*NY1*NZ1
-    DO 100 IEL=1,NELV
-        IF ( .NOT. IFDFRM(IEL)) THEN
-            RXAVER = VLSUM(RXM1(1,1,1,IEL),NXYZ1)/(NXYZ1)
-            SXAVER = VLSUM(SXM1(1,1,1,IEL),NXYZ1)/(NXYZ1)
-            IF (SXAVER /= 0.) THEN
-                ROTXY = ABS(SXAVER/RXAVER)
-                IF (ROTXY < EPS) THEN
-                    IFALGN(IEL) = .TRUE. 
-                    IFRSXY(IEL) = .TRUE. 
-                ELSEIF (ROTXY > EPSINV) THEN
-                    IFALGN(IEL) = .TRUE. 
-                    IFRSXY(IEL) = .FALSE. 
-                ELSE
-                    IFALGN(IEL) = .FALSE. 
-                    IFRSXY(IEL) = .FALSE. 
-                ENDIF
-            ELSE
-                IFALGN(IEL) = .TRUE. 
-                IFRSXY(IEL) = .TRUE. 
-            ENDIF
-        ENDIF
-    100 END DO
-    return
-    end subroutine rotxyz
-#endif
 !-----------------------------------------------------------------------
     subroutine gensrf(XML,YML,ZML,IFCE,IE,MX,MY,MZ,zgml)
 

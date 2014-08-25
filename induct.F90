@@ -43,7 +43,7 @@
 
         call elsasserh(igeom)
 
-        call vol_flow        ! check for fixed flow rate
+!max    if(param(55) /= 0)    call vol_flow        ! check for fixed flow rate
 
 
     endif

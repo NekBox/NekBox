@@ -378,7 +378,8 @@
     , ZM3(LX3,LY3,LZ3,1)
 
     IF (IFGMSH3 .AND. ISTEP == 0) THEN
-        CALL GLMAPM3 (XM3,YM3,ZM3)
+      write(*,*) "Oops: IFGMSH3"
+!max        CALL GLMAPM3 (XM3,YM3,ZM3)
     ELSE
         CALL GLMAPM1
     ENDIF
@@ -387,300 +388,320 @@
 
     RETURN
     end subroutine geom1
-    subroutine glmapm3 (xm3,ym3,zm3)
+
+#if 0
 !-------------------------------------------------------------------
-
-!     Routine to generate mapping data based on mesh 3
-!     (Gauss-Legendre Lobatto meshes).
-
-!         XRM3,  YRM3,  ZRM3   -   dx/dr, dy/dr, dz/dr
-!         XSM3,  YSM3,  ZSM3   -   dx/ds, dy/ds, dz/ds
-!         XTM3,  YTM3,  ZTM3   -   dx/dt, dy/dt, dz/dt
-!         RXM3,  RYM3,  RZM3   -   dr/dx, dr/dy, dr/dz
-!         SXM3,  SYM3,  SZM3   -   ds/dx, ds/dy, ds/dz
-!         TXM3,  TYM3,  TZM3   -   dt/dx, dt/dy, dt/dz
-!         JACM3                -   Jacobian
-
+!>\brief     Routine to generate mapping data based on mesh 3
+!!     (Gauss-Legendre Lobatto meshes).
+!!
+!!         XRM3,  YRM3,  ZRM3   -   dx/dr, dy/dr, dz/dr
+!!         XSM3,  YSM3,  ZSM3   -   dx/ds, dy/ds, dz/ds
+!!         XTM3,  YTM3,  ZTM3   -   dx/dt, dy/dt, dz/dt
+!!         RXM3,  RYM3,  RZM3   -   dr/dx, dr/dy, dr/dz
+!!         SXM3,  SYM3,  SZM3   -   ds/dx, ds/dy, ds/dz
+!!         TXM3,  TYM3,  TZM3   -   dt/dx, dt/dy, dt/dz
+!!         JACM3                -   Jacobian
 !------------------------------------------------------------------
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+subroutine glmapm3 (xm3,ym3,zm3)
+  use kinds, only : DP
+  use size_m, only : nx3, ny3, nz3, nelt, nx1, ny1, nz1, ndim, nid
+  use size_m, only : lx3, ly3, lz3, lelt
+  use dxyz, only : dxm3, dytm3, dztm3
+  use geom, only : rxm1, rym1, sxm1, sym1, rzm1, szm1, txm1, tym1, tzm1
+  use geom, only : jacm1, xm1, ym1, zm1, jacmi
+  use input, only : ifxyo, ifvo, ifpo, ifto, param
+  use soln, only : vx, vy, vz, pr, t
+  implicit none
 
-!     Note : work arrays for mesh 3 in scratch commons will be
-!            changed after exit of routine.
-
-    COMMON /SCRNS/ XRM3 (LX3,LY3,LZ3,LELT) &
-    ,             XSM3 (LX3,LY3,LZ3,LELT) &
-    ,             XTM3 (LX3,LY3,LZ3,LELT) &
-    ,             YRM3 (LX3,LY3,LZ3,LELT) &
-    ,             YSM3 (LX3,LY3,LZ3,LELT) &
-    ,             YTM3 (LX3,LY3,LZ3,LELT) &
-    ,             ZRM3 (LX3,LY3,LZ3,LELT)
-    COMMON /CTMP0/ ZSM3 (LX3,LY3,LZ3,LELT) &
-    ,             ZTM3 (LX3,LY3,LZ3,LELT)
-    COMMON /CTMP1/ RXM3 (LX3,LY3,LZ3,LELT) &
-    ,             RYM3 (LX3,LY3,LZ3,LELT) &
-    ,             RZM3 (LX3,LY3,LZ3,LELT) &
-    ,             SXM3 (LX3,LY3,LZ3,LELT)
-    COMMON /SCRMG/ SYM3 (LX3,LY3,LZ3,LELT) &
-    ,             SZM3 (LX3,LY3,LZ3,LELT) &
-    ,             TXM3 (LX3,LY3,LZ3,LELT) &
-    ,             TYM3 (LX3,LY3,LZ3,LELT)
-    COMMON /SCREV/ TZM3 (LX3,LY3,LZ3,LELT) &
-    ,             JACM3(LX3,LY3,LZ3,LELT)
-    REAL ::           JACM3
-    DIMENSION XM3(LX3,LY3,LZ3,1) &
-    , YM3(LX3,LY3,LZ3,1) &
-    , ZM3(LX3,LY3,LZ3,1)
+  real(DP), intent(inout) :: XM3(LX3,LY3,LZ3,1)
+  real(DP), intent(inout) :: YM3(LX3,LY3,LZ3,1)
+  real(DP), intent(inout) :: ZM3(LX3,LY3,LZ3,1)
 
 
-    NXY3  = NX3*NY3
-    NYZ3  = NY3*NZ3
-    NXYZ3 = NX3*NY3*NZ3
-    NTOT3 = NXYZ3*NELT
-    NXYZ1 = NX1*NY1*NZ1
-    NTOT1 = NXYZ1*NELT
+!   Note : work arrays for mesh 3 in scratch commons will be
+!          changed after exit of routine.
+  real(DP), allocatable, dimension(:,:,:,:) :: xrm3, yrm3, zrm3
+  real(DP), allocatable, dimension(:,:,:,:) :: xsm3, ysm3, zsm3
+  real(DP), allocatable, dimension(:,:,:,:) :: xtm3, ytm3, ztm3
+  real(DP), allocatable, dimension(:,:,:,:) :: rxm3, rym3, rzm3
+  real(DP), allocatable, dimension(:,:,:,:) :: sxm3, sym3, szm3
+  real(DP), allocatable, dimension(:,:,:,:) :: txm3, tym3, tzm3
+  REAL(DP), allocatable, dimension(:,:,:,:) :: JACM3
 
 
-!     Compute isoparametric partials.
+  integer :: nxy3, nyz3, nxyz3, ntot3, nxyz1, ntot1
+  integer :: iel, iz, kerr, ie, ierr
+  integer, external :: iglsum
 
+  write(*,*) "MAX: glmapm3"
 
-    IF (NDIM == 2) THEN
+  NXY3  = NX3*NY3
+  NYZ3  = NY3*NZ3
+  NXYZ3 = NX3*NY3*NZ3
+  NTOT3 = NXYZ3*NELT
+  NXYZ1 = NX1*NY1*NZ1
+  NTOT1 = NXYZ1*NELT
+
+  allocate(XRM3 (LX3,LY3,LZ3,LELT) &
+  ,        XSM3 (LX3,LY3,LZ3,LELT) &
+  ,        XTM3 (LX3,LY3,LZ3,LELT) &
+  ,        YRM3 (LX3,LY3,LZ3,LELT) &
+  ,        YSM3 (LX3,LY3,LZ3,LELT) &
+  ,        YTM3 (LX3,LY3,LZ3,LELT) &
+  ,        ZRM3 (LX3,LY3,LZ3,LELT) )
+  allocate(ZSM3 (LX3,LY3,LZ3,LELT) &
+  ,        ZTM3 (LX3,LY3,LZ3,LELT) )
+  allocate(RXM3 (LX3,LY3,LZ3,LELT) &
+  ,        RYM3 (LX3,LY3,LZ3,LELT) &
+  ,        RZM3 (LX3,LY3,LZ3,LELT) &
+  ,        SXM3 (LX3,LY3,LZ3,LELT) )
+  allocate(SYM3 (LX3,LY3,LZ3,LELT) &
+  ,        SZM3 (LX3,LY3,LZ3,LELT) &
+  ,        TXM3 (LX3,LY3,LZ3,LELT) &
+  ,        TYM3 (LX3,LY3,LZ3,LELT) )
+  allocate(TZM3 (LX3,LY3,LZ3,LELT) &
+  ,        JACM3(LX3,LY3,LZ3,LELT) )
+
+!   Compute isoparametric partials.
+  IF (NDIM == 2) THEN
+  !     Two-dimensional case
+#if 0
+  
+  
+      DO 200 IEL=1,NELT
+      
+      !     Use the appropriate derivative- and interpolation operator in
+      !     the y-direction (= radial direction if axisymmetric).
+      
+          IF (IFAXIS) THEN
+              NY33   = NY3*NY3
+              IF (IFRZER(IEL)) THEN
+                  CALL COPY (DYTM3,DATM3,NY33)
+              ELSE
+                  CALL COPY (DYTM3,DCTM3,NY33)
+              ENDIF
+          ENDIF
+      
+          CALL MXM(DXM3,NX3,XM3(1,1,1,IEL),NX3,XRM3(1,1,1,IEL),NY3)
+          CALL MXM(DXM3,NX3,YM3(1,1,1,IEL),NX3,YRM3(1,1,1,IEL),NY3)
+          CALL MXM(XM3(1,1,1,IEL),NX3,DYTM3,NY3,XSM3(1,1,1,IEL),NY3)
+          CALL MXM(YM3(1,1,1,IEL),NX3,DYTM3,NY3,YSM3(1,1,1,IEL),NY3)
+      
+      200 END DO
+  
+      CALL RZERO   (JACM3,NTOT3)
+      CALL ADDCOL3 (JACM3,XRM3,YSM3,NTOT3)
+      CALL SUBCOL3 (JACM3,XSM3,YRM3,NTOT3)
+  
+      CALL COPY    (RXM3,YSM3,NTOT3)
+      CALL COPY    (RYM3,XSM3,NTOT3)
+      CALL CHSIGN  (RYM3,NTOT3)
+      CALL COPY    (SXM3,YRM3,NTOT3)
+      CALL CHSIGN  (SXM3,NTOT3)
+      CALL COPY    (SYM3,XRM3,NTOT3)
+#endif 
+  ELSE
+  
+  !     Three-dimensional case  
+    DO IEL=1,NELT
+      CALL MXM(DXM3,NX3,XM3(1,1,1,IEL),NX3,XRM3(1,1,1,IEL),NYZ3)
+      CALL MXM(DXM3,NX3,YM3(1,1,1,IEL),NX3,YRM3(1,1,1,IEL),NYZ3)
+      CALL MXM(DXM3,NX3,ZM3(1,1,1,IEL),NX3,ZRM3(1,1,1,IEL),NYZ3)
     
-    !     Two-dimensional case
+      DO IZ=1,NZ3
+        CALL MXM(XM3(1,1,IZ,IEL),NX3,DYTM3,NY3,XSM3(1,1,IZ,IEL),NY3)
+        CALL MXM(YM3(1,1,IZ,IEL),NX3,DYTM3,NY3,YSM3(1,1,IZ,IEL),NY3)
+        CALL MXM(ZM3(1,1,IZ,IEL),NX3,DYTM3,NY3,ZSM3(1,1,IZ,IEL),NY3)
+      END DO
     
-        DO 200 IEL=1,NELT
-        
-        !     Use the appropriate derivative- and interpolation operator in
-        !     the y-direction (= radial direction if axisymmetric).
-        
-            IF (IFAXIS) THEN
-                NY33   = NY3*NY3
-                IF (IFRZER(IEL)) THEN
-                    CALL COPY (DYTM3,DATM3,NY33)
-                ELSE
-                    CALL COPY (DYTM3,DCTM3,NY33)
-                ENDIF
-            ENDIF
-        
-            CALL MXM(DXM3,NX3,XM3(1,1,1,IEL),NX3,XRM3(1,1,1,IEL),NY3)
-            CALL MXM(DXM3,NX3,YM3(1,1,1,IEL),NX3,YRM3(1,1,1,IEL),NY3)
-            CALL MXM(XM3(1,1,1,IEL),NX3,DYTM3,NY3,XSM3(1,1,1,IEL),NY3)
-            CALL MXM(YM3(1,1,1,IEL),NX3,DYTM3,NY3,YSM3(1,1,1,IEL),NY3)
-        
-        200 END DO
-    
-        CALL RZERO   (JACM3,NTOT3)
-        CALL ADDCOL3 (JACM3,XRM3,YSM3,NTOT3)
-        CALL SUBCOL3 (JACM3,XSM3,YRM3,NTOT3)
-    
-        CALL COPY    (RXM3,YSM3,NTOT3)
-        CALL COPY    (RYM3,XSM3,NTOT3)
-        CALL CHSIGN  (RYM3,NTOT3)
-        CALL COPY    (SXM3,YRM3,NTOT3)
-        CALL CHSIGN  (SXM3,NTOT3)
-        CALL COPY    (SYM3,XRM3,NTOT3)
-    
-    ELSE
-    
-    !     Three-dimensional case
-    
-        DO 300 IEL=1,NELT
-        
-            CALL MXM(DXM3,NX3,XM3(1,1,1,IEL),NX3,XRM3(1,1,1,IEL),NYZ3)
-            CALL MXM(DXM3,NX3,YM3(1,1,1,IEL),NX3,YRM3(1,1,1,IEL),NYZ3)
-            CALL MXM(DXM3,NX3,ZM3(1,1,1,IEL),NX3,ZRM3(1,1,1,IEL),NYZ3)
-        
-            DO 310 IZ=1,NZ3
-                CALL MXM(XM3(1,1,IZ,IEL),NX3,DYTM3,NY3,XSM3(1,1,IZ,IEL),NY3)
-                CALL MXM(YM3(1,1,IZ,IEL),NX3,DYTM3,NY3,YSM3(1,1,IZ,IEL),NY3)
-                CALL MXM(ZM3(1,1,IZ,IEL),NX3,DYTM3,NY3,ZSM3(1,1,IZ,IEL),NY3)
-            310 END DO
-        
-            CALL MXM(XM3(1,1,1,IEL),NXY3,DZTM3,NZ3,XTM3(1,1,1,IEL),NZ3)
-            CALL MXM(YM3(1,1,1,IEL),NXY3,DZTM3,NZ3,YTM3(1,1,1,IEL),NZ3)
-            CALL MXM(ZM3(1,1,1,IEL),NXY3,DZTM3,NZ3,ZTM3(1,1,1,IEL),NZ3)
-        
-        300 END DO
-    
-        CALL RZERO   (JACM3,NTOT3)
-        CALL ADDCOL4 (JACM3,XRM3,YSM3,ZTM3,NTOT3)
-        CALL ADDCOL4 (JACM3,XTM3,YRM3,ZSM3,NTOT3)
-        CALL ADDCOL4 (JACM3,XSM3,YTM3,ZRM3,NTOT3)
-        CALL SUBCOL4 (JACM3,XRM3,YTM3,ZSM3,NTOT3)
-        CALL SUBCOL4 (JACM3,XSM3,YRM3,ZTM3,NTOT3)
-        CALL SUBCOL4 (JACM3,XTM3,YSM3,ZRM3,NTOT3)
-    
-        CALL ASCOL5  (RXM3,YSM3,ZTM3,YTM3,ZSM3,NTOT3)
-        CALL ASCOL5  (RYM3,XTM3,ZSM3,XSM3,ZTM3,NTOT3)
-        CALL ASCOL5  (RZM3,XSM3,YTM3,XTM3,YSM3,NTOT3)
-        CALL ASCOL5  (SXM3,YTM3,ZRM3,YRM3,ZTM3,NTOT3)
-        CALL ASCOL5  (SYM3,XRM3,ZTM3,XTM3,ZRM3,NTOT3)
-        CALL ASCOL5  (SZM3,XTM3,YRM3,XRM3,YTM3,NTOT3)
-        CALL ASCOL5  (TXM3,YRM3,ZSM3,YSM3,ZRM3,NTOT3)
-        CALL ASCOL5  (TYM3,XSM3,ZRM3,XRM3,ZSM3,NTOT3)
-        CALL ASCOL5  (TZM3,XRM3,YSM3,XSM3,YRM3,NTOT3)
-    
-    ENDIF
+      CALL MXM(XM3(1,1,1,IEL),NXY3,DZTM3,NZ3,XTM3(1,1,1,IEL),NZ3)
+      CALL MXM(YM3(1,1,1,IEL),NXY3,DZTM3,NZ3,YTM3(1,1,1,IEL),NZ3)
+      CALL MXM(ZM3(1,1,1,IEL),NXY3,DZTM3,NZ3,ZTM3(1,1,1,IEL),NZ3)
+    END DO
+  
+    jacm3 = 0._dp
+    jacm3 = jacm3 + xrm3*ysm3*ztm3
+    jacm3 = jacm3 + xtm3*yrm3*zsm3
+    jacm3 = jacm3 + xsm3*ytm3*zrm3
+    jacm3 = jacm3 - xrm3*ytm3*zsm3
+    jacm3 = jacm3 - xsm3*yrm3*ztm3
+    jacm3 = jacm3 - xtm3*ysm3*zrm3
+  
+    rxm3 = ysm3*ztm3 - ytm3*zsm3
+    rym3 = xtm3*zsm3 - xsm3*ztm3
+    rzm3 = xsm3*ytm3 - xtm3*ytm3 
 
-!     Mapping from space P(n-2) to space P(n) (mesh M3 to mesh M1).
+    sxm3 = ytm3*zrm3 - yrm3*ztm3
+    sym3 = xrm3*ztm3 - xtm3*zrm3
+    szm3 = xtm3*yrm3 - xrm3*ytm3
 
-    IF (NDIM == 2) THEN
-        CALL RZERO (RZM1,NTOT1)
-        CALL RZERO (SZM1,NTOT1)
-        CALL RONE  (TZM1,NTOT1)
-    ENDIF
+    txm3 = yrm3*zsm3 - ysm3*zrm3
+    tym3 = xsm3*zrm3 - xrm3*zsm3
+    tzm3 = xrm3*ysm3 - xsm3*yrm3
+  
+  ENDIF
 
-    kerr = 0
-    DO 400 ie=1,NELT
+!   Mapping from space P(n-2) to space P(n) (mesh M3 to mesh M1).
+  IF (NDIM == 2) THEN
+#if 0
+      CALL RZERO (RZM1,NTOT1)
+      CALL RZERO (SZM1,NTOT1)
+      CALL RONE  (TZM1,NTOT1)
+#endif
+  ENDIF
 
-    !        write(6,*) 'chkj1'
-    !        call outxm3j(xm3,ym3,jacm3)
+  kerr = 0
+  DO 400 ie=1,NELT
 
-        CALL CHKJAC(JACM3(1,1,1,ie),NXYZ3,ie,xm3,ym3,zm3,ndim,ierr)
-        if (ierr == 1) kerr = kerr+1
-        CALL MAP31 (RXM1(1,1,1,ie),RXM3(1,1,1,ie),ie)
-        CALL MAP31 (RYM1(1,1,1,ie),RYM3(1,1,1,ie),ie)
-        CALL MAP31 (SXM1(1,1,1,ie),SXM3(1,1,1,ie),ie)
-        CALL MAP31 (SYM1(1,1,1,ie),SYM3(1,1,1,ie),ie)
-        IF (NDIM == 3) THEN
-            CALL MAP31 (RZM1(1,1,1,ie),RZM3(1,1,1,ie),ie)
-            CALL MAP31 (SZM1(1,1,1,ie),SZM3(1,1,1,ie),ie)
-            CALL MAP31 (TXM1(1,1,1,ie),TXM3(1,1,1,ie),ie)
-            CALL MAP31 (TYM1(1,1,1,ie),TYM3(1,1,1,ie),ie)
-            CALL MAP31 (TZM1(1,1,1,ie),TZM3(1,1,1,ie),ie)
-        ENDIF
-        CALL MAP31 (JACM1(1,1,1,ie),JACM3(1,1,1,ie),ie)
-        CALL MAP31 (XM1(1,1,1,ie),XM3(1,1,1,ie),ie)
-        CALL MAP31 (YM1(1,1,1,ie),YM3(1,1,1,ie),ie)
-        CALL MAP31 (ZM1(1,1,1,ie),ZM3(1,1,1,ie),ie)
-    400 END DO
-    kerr = iglsum(kerr,1)
-    if (kerr > 0) then
-        ifxyo = .TRUE. 
-        ifvo  = .FALSE. 
-        ifpo  = .FALSE. 
-        ifto  = .FALSE. 
-        param(66) = 4
-        call outpost(vx,vy,vz,pr,t,'xyz')
-        if (nid == 0) write(6,*) 'Jac error 3, setting p66=4, ifxyo=t'
-        call exitt
-    endif
+  !        write(6,*) 'chkj1'
+  !        call outxm3j(xm3,ym3,jacm3)
 
-    call invers2(jacmi,jacm1,ntot1)
+      CALL CHKJAC(JACM3(1,1,1,ie),NXYZ3,ie,xm3,ym3,zm3,ndim,ierr)
+      if (ierr == 1) kerr = kerr+1
+      CALL MAP31 (RXM1(1,1,1,ie),RXM3(1,1,1,ie),ie)
+      CALL MAP31 (RYM1(1,1,1,ie),RYM3(1,1,1,ie),ie)
+      CALL MAP31 (SXM1(1,1,1,ie),SXM3(1,1,1,ie),ie)
+      CALL MAP31 (SYM1(1,1,1,ie),SYM3(1,1,1,ie),ie)
+      IF (NDIM == 3) THEN
+          CALL MAP31 (RZM1(1,1,1,ie),RZM3(1,1,1,ie),ie)
+          CALL MAP31 (SZM1(1,1,1,ie),SZM3(1,1,1,ie),ie)
+          CALL MAP31 (TXM1(1,1,1,ie),TXM3(1,1,1,ie),ie)
+          CALL MAP31 (TYM1(1,1,1,ie),TYM3(1,1,1,ie),ie)
+          CALL MAP31 (TZM1(1,1,1,ie),TZM3(1,1,1,ie),ie)
+      ENDIF
+      CALL MAP31 (JACM1(1,1,1,ie),JACM3(1,1,1,ie),ie)
+      CALL MAP31 (XM1(1,1,1,ie),XM3(1,1,1,ie),ie)
+      CALL MAP31 (YM1(1,1,1,ie),YM3(1,1,1,ie),ie)
+      CALL MAP31 (ZM1(1,1,1,ie),ZM3(1,1,1,ie),ie)
+  400 END DO
+  kerr = iglsum(kerr,1)
+  if (kerr > 0) then
+      ifxyo = .TRUE. 
+      ifvo  = .FALSE. 
+      ifpo  = .FALSE. 
+      ifto  = .FALSE. 
+      param(66) = 4
+      call outpost(vx,vy,vz,pr,t,'xyz')
+      if (nid == 0) write(6,*) 'Jac error 3, setting p66=4, ifxyo=t'
+      call exitt
+  endif
 
-    RETURN
-    end subroutine glmapm3
-    subroutine glmapm1
-!-----------------------------------------------------------------------
+  call invers2(jacmi,jacm1,ntot1)
 
-!     Routine to generate mapping data based on mesh 1
-!     (Gauss-Legendre Lobatto meshes).
-
-!         XRM1,  YRM1,  ZRM1   -   dx/dr, dy/dr, dz/dr
-!         XSM1,  YSM1,  ZSM1   -   dx/ds, dy/ds, dz/ds
-!         XTM1,  YTM1,  ZTM1   -   dx/dt, dy/dt, dz/dt
-!         RXM1,  RYM1,  RZM1   -   dr/dx, dr/dy, dr/dz
-!         SXM1,  SYM1,  SZM1   -   ds/dx, ds/dy, ds/dz
-!         TXM1,  TYM1,  TZM1   -   dt/dx, dt/dy, dt/dz
-!         JACM1                -   Jacobian
+  RETURN
+end subroutine glmapm3
+#endif
 
 !-----------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use soln
+!> \brief Routine to generate mapping data based on mesh 1
+!!        (Gauss-Legendre Lobatto meshes).
+!!
+!!         XRM1,  YRM1,  ZRM1   -   dx/dr, dy/dr, dz/dr
+!!         XSM1,  YSM1,  ZSM1   -   dx/ds, dy/ds, dz/ds
+!!         XTM1,  YTM1,  ZTM1   -   dx/dt, dy/dt, dz/dt
+!!         RXM1,  RYM1,  RZM1   -   dr/dx, dr/dy, dr/dz
+!!         SXM1,  SYM1,  SZM1   -   ds/dx, ds/dy, ds/dz
+!!         TXM1,  TYM1,  TZM1   -   dt/dx, dt/dy, dt/dz
+!!         JACM1                -   Jacobian
+!-----------------------------------------------------------------------
+subroutine glmapm1
+  use kinds, only : DP
+  use size_m, only : ndim, nid
+  use size_m, only : nx1, ny1, nz1, nelt
+  use size_m, only : lx1, ly1, lz1, lelt
+  use geom, only : jacm1, jacmi
+  use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
+  use geom, only : xm1, ym1, zm1
+  use input, only : ifaxis, ifxyo, ifvo, ifpo, ifto, param
+  use soln, only : vx, vy, vz, pr, t
+  implicit none
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !           share the same array structure in Scratch Common /SCRNS/.
+  real(DP) :: xrm1, yrm1, zrm1
+  real(DP) :: xsm1, ysm1, zsm1
+  real(DP) :: xtm1, ytm1, ztm1
 
-    COMMON /SCRNS/ XRM1(LX1,LY1,LZ1,LELT) &
-    ,             YRM1(LX1,LY1,LZ1,LELT) &
-    ,             XSM1(LX1,LY1,LZ1,LELT) &
-    ,             YSM1(LX1,LY1,LZ1,LELT) &
-    ,             XTM1(LX1,LY1,LZ1,LELT) &
-    ,             YTM1(LX1,LY1,LZ1,LELT) &
-    ,             ZRM1(LX1,LY1,LZ1,LELT)
-    COMMON /CTMP1/ ZSM1(LX1,LY1,LZ1,LELT) &
-    ,             ZTM1(LX1,LY1,LZ1,LELT)
+  COMMON /SCRNS/ XRM1(LX1,LY1,LZ1,LELT) &
+  ,             YRM1(LX1,LY1,LZ1,LELT) &
+  ,             XSM1(LX1,LY1,LZ1,LELT) &
+  ,             YSM1(LX1,LY1,LZ1,LELT) &
+  ,             XTM1(LX1,LY1,LZ1,LELT) &
+  ,             YTM1(LX1,LY1,LZ1,LELT) &
+  ,             ZRM1(LX1,LY1,LZ1,LELT)
+  COMMON /CTMP1/ ZSM1(LX1,LY1,LZ1,LELT) &
+  ,             ZTM1(LX1,LY1,LZ1,LELT)
 
-    NXY1  = NX1*NY1
-    NYZ1  = NY1*NZ1
-    NXYZ1 = NX1*NY1*NZ1
-    NTOT1 = NXYZ1*NELT
+  integer :: nxy1, nyz1, nxyz1, ntot1
+  integer :: ie, ierr, kerr
+  integer, external :: iglsum
+  write(*,*) "MAX: glmapm1"
 
-    CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, &
-    IFAXIS)
+  NXY1  = NX1*NY1
+  NYZ1  = NY1*NZ1
+  NXYZ1 = NX1*NY1*NZ1
+  NTOT1 = NXYZ1*NELT
 
-    IF (NDIM == 2) THEN
-        CALL RZERO   (JACM1,NTOT1)
-        CALL ADDCOL3 (JACM1,XRM1,YSM1,NTOT1)
-        CALL SUBCOL3 (JACM1,XSM1,YRM1,NTOT1)
-        CALL COPY    (RXM1,YSM1,NTOT1)
-        CALL COPY    (RYM1,XSM1,NTOT1)
-        CALL CHSIGN  (RYM1,NTOT1)
-        CALL COPY    (SXM1,YRM1,NTOT1)
-        CALL CHSIGN  (SXM1,NTOT1)
-        CALL COPY    (SYM1,XRM1,NTOT1)
-        CALL RZERO   (RZM1,NTOT1)
-        CALL RZERO   (SZM1,NTOT1)
-        CALL RONE    (TZM1,NTOT1)
-    ELSE
-        CALL RZERO   (JACM1,NTOT1)
-        CALL ADDCOL4 (JACM1,XRM1,YSM1,ZTM1,NTOT1)
-        CALL ADDCOL4 (JACM1,XTM1,YRM1,ZSM1,NTOT1)
-        CALL ADDCOL4 (JACM1,XSM1,YTM1,ZRM1,NTOT1)
-        CALL SUBCOL4 (JACM1,XRM1,YTM1,ZSM1,NTOT1)
-        CALL SUBCOL4 (JACM1,XSM1,YRM1,ZTM1,NTOT1)
-        CALL SUBCOL4 (JACM1,XTM1,YSM1,ZRM1,NTOT1)
-        CALL ASCOL5  (RXM1,YSM1,ZTM1,YTM1,ZSM1,NTOT1)
-        CALL ASCOL5  (RYM1,XTM1,ZSM1,XSM1,ZTM1,NTOT1)
-        CALL ASCOL5  (RZM1,XSM1,YTM1,XTM1,YSM1,NTOT1)
-        CALL ASCOL5  (SXM1,YTM1,ZRM1,YRM1,ZTM1,NTOT1)
-        CALL ASCOL5  (SYM1,XRM1,ZTM1,XTM1,ZRM1,NTOT1)
-        CALL ASCOL5  (SZM1,XTM1,YRM1,XRM1,YTM1,NTOT1)
-        CALL ASCOL5  (TXM1,YRM1,ZSM1,YSM1,ZRM1,NTOT1)
-        CALL ASCOL5  (TYM1,XSM1,ZRM1,XRM1,ZSM1,NTOT1)
-        CALL ASCOL5  (TZM1,XRM1,YSM1,XSM1,YRM1,NTOT1)
-    ENDIF
+  CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, &
+  IFAXIS)
 
-    kerr = 0
-    DO 500 ie=1,NELT
-        CALL CHKJAC(JACM1(1,1,1,ie),NXYZ1,ie,xm1,ym1,zm1,ndim,ierr)
-        if (ierr /= 0) kerr = kerr+1
-    500 END DO
-    kerr = iglsum(kerr,1)
-    if (kerr > 0) then
-        ifxyo = .TRUE. 
-        ifvo  = .FALSE. 
-        ifpo  = .FALSE. 
-        ifto  = .FALSE. 
-        param(66) = 4
-        call outpost(vx,vy,vz,pr,t,'xyz')
-        if (nid == 0) write(6,*) 'Jac error 1, setting p66=4, ifxyo=t'
-        call exitt
-    endif
+  IF (NDIM == 2) THEN
+#if 0
+      CALL RZERO   (JACM1,NTOT1)
+      CALL ADDCOL3 (JACM1,XRM1,YSM1,NTOT1)
+      CALL SUBCOL3 (JACM1,XSM1,YRM1,NTOT1)
+      CALL COPY    (RXM1,YSM1,NTOT1)
+      CALL COPY    (RYM1,XSM1,NTOT1)
+      CALL CHSIGN  (RYM1,NTOT1)
+      CALL COPY    (SXM1,YRM1,NTOT1)
+      CALL CHSIGN  (SXM1,NTOT1)
+      CALL COPY    (SYM1,XRM1,NTOT1)
+      CALL RZERO   (RZM1,NTOT1)
+      CALL RZERO   (SZM1,NTOT1)
+      CALL RONE    (TZM1,NTOT1)
+#endif
+  ELSE
+      CALL RZERO   (JACM1,NTOT1)
+      CALL ADDCOL4 (JACM1,XRM1,YSM1,ZTM1,NTOT1)
+      CALL ADDCOL4 (JACM1,XTM1,YRM1,ZSM1,NTOT1)
+      CALL ADDCOL4 (JACM1,XSM1,YTM1,ZRM1,NTOT1)
+      CALL SUBCOL4 (JACM1,XRM1,YTM1,ZSM1,NTOT1)
+      CALL SUBCOL4 (JACM1,XSM1,YRM1,ZTM1,NTOT1)
+      CALL SUBCOL4 (JACM1,XTM1,YSM1,ZRM1,NTOT1)
+      CALL ASCOL5  (RXM1,YSM1,ZTM1,YTM1,ZSM1,NTOT1)
+      CALL ASCOL5  (RYM1,XTM1,ZSM1,XSM1,ZTM1,NTOT1)
+      CALL ASCOL5  (RZM1,XSM1,YTM1,XTM1,YSM1,NTOT1)
+      CALL ASCOL5  (SXM1,YTM1,ZRM1,YRM1,ZTM1,NTOT1)
+      CALL ASCOL5  (SYM1,XRM1,ZTM1,XTM1,ZRM1,NTOT1)
+      CALL ASCOL5  (SZM1,XTM1,YRM1,XRM1,YTM1,NTOT1)
+      CALL ASCOL5  (TXM1,YRM1,ZSM1,YSM1,ZRM1,NTOT1)
+      CALL ASCOL5  (TYM1,XSM1,ZRM1,XRM1,ZSM1,NTOT1)
+      CALL ASCOL5  (TZM1,XRM1,YSM1,XSM1,YRM1,NTOT1)
+  ENDIF
 
-    call invers2(jacmi,jacm1,ntot1)
+  kerr = 0
+  DO 500 ie=1,NELT
+      CALL CHKJAC(JACM1(1,1,1,ie),NXYZ1,ie,xm1,ym1,zm1,ndim,ierr)
+      if (ierr /= 0) kerr = kerr+1
+  500 END DO
+  kerr = iglsum(kerr,1)
+  if (kerr > 0) then
+      ifxyo = .TRUE. 
+      ifvo  = .FALSE. 
+      ifpo  = .FALSE. 
+      ifto  = .FALSE. 
+      param(66) = 4
+      call outpost(vx,vy,vz,pr,t,'xyz')
+      if (nid == 0) write(6,*) 'Jac error 1, setting p66=4, ifxyo=t'
+      call exitt
+  endif
 
-    RETURN
-    end subroutine glmapm1
-    subroutine geodat1
+  call invers2(jacmi,jacm1,ntot1)
+
+  RETURN
+end subroutine glmapm1
+
+subroutine geodat1
 !-----------------------------------------------------------------------
 
 !     Routine to generate elemental geometric matrices on mesh 1
@@ -711,9 +732,11 @@
     NXYZ1 = NX1*NY1*NZ1
     NTOT1 = NXYZ1*NELT
 
-    IF (IFGMSH3 .AND. ISTEP == 0) &
-    CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, &
-    IFAXIS)
+    IF (IFGMSH3 .AND. ISTEP == 0) then
+      write(*,*) "Oops: IFGMSH3"
+!max      CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, &
+!                  IFAXIS)
+    endif
 
     IF ( .NOT. IFAXIS) THEN
         CALL INVERS2 (WJ,JACM1,NTOT1)
@@ -1090,13 +1113,14 @@
     CALL RZERO3 (T2X,T2Y,T2Z,NSRF)
 
     IF (NDIM == 2) THEN
-        CALL AREA2
+!max        CALL AREA2
     ELSE
         CALL AREA3
     ENDIF
 
     RETURN
     end subroutine setarea
+#if 0
     subroutine area2
 !--------------------------------------------------------------------
 
@@ -1166,6 +1190,7 @@
 
     RETURN
     end subroutine area2
+#endif
     subroutine setwgtr (wgtr1,wgtr2,wgtr3,wgtr4)
 
     use size_m
@@ -1219,12 +1244,11 @@
 
     RETURN
     end subroutine setwgtr
+
+!--------------------------------------------------------------------
+!!>brief Compute areas, normals and tangents (3D geom.)
+!--------------------------------------------------------------------
     subroutine area3
-!--------------------------------------------------------------------
-
-!     Compute areas, normals and tangents (3D geom.)
-
-!--------------------------------------------------------------------
     use size_m
     use geom
     use wz_m
@@ -1409,9 +1433,8 @@
 
     return
     end subroutine setinvm
-
+#if 0
 !-----------------------------------------------------------------------
-
     subroutine maprs(y,x,xa,nrest,iel)
 
 !     Map the elemental array X from Restart mesh to Y on mesh M1
@@ -1480,13 +1503,11 @@
 
     RETURN
     end subroutine maprs
-
-    subroutine map31 (y,x,iel)
+#endif
 !---------------------------------------------------------------
-
-!     Map the elemental array X from mesh M3 to mesh M1
-
+!> \breif Map the elemental array X from mesh M3 to mesh M1
 !---------------------------------------------------------------
+subroutine map31 (y,x,iel)
 
     use size_m
     use geom
@@ -1599,6 +1620,7 @@
     RETURN
     end subroutine map12
 
+#if 0
     subroutine map21t (y,x,iel)
 !---------------------------------------------------------------
 
@@ -1640,6 +1662,8 @@
     ENDIF
     RETURN
     end subroutine map21t
+#endif
+
     subroutine map21e (y,x,iel)
 !---------------------------------------------------------------
 
@@ -1678,6 +1702,7 @@
     RETURN
     end subroutine map21e
 !-----------------------------------------------------------------------
+#if 0
     subroutine out_xyz_el(x,y,z,e)
     use size_m
     integer :: e
@@ -1689,6 +1714,7 @@
 
     return
     end subroutine out_xyz_el
+#endif
 !-----------------------------------------------------------------------
     subroutine out_fld_el(x,e,c2)
     use size_m
@@ -1707,6 +1733,7 @@
     return
     end subroutine out_fld_el
 !-----------------------------------------------------------------------
+#if 0
     subroutine outxm3j(xm3,ym3,jm3)
     use size_m
     use dealias
@@ -1742,6 +1769,7 @@
 
     return
     end subroutine outxm3j
+#endif
 !-----------------------------------------------------------------------
     SUBROUTINE INVMT(A,B,AA,N)
 

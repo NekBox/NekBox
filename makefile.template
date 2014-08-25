@@ -42,9 +42,9 @@ topol_mod.o tstep_mod.o turbo_mod.o wz_mod.o wzf_mod.o zper_mod.o \
 drive.o drive1.o drive2.o \
 plan4.o bdry.o coef.o conduct.o connect1.o connect2.o \
 dssum.o eigsolv.o genxyz.o  \
-navier0.o navier1.o navier3.o navier4.o navier5.o navier6.o navier7.o navier8.o \
+navier0.o navier1.o navier3.o navier4.o navier5.o navier6.o  navier8.o \
 speclib.o \
-map2.o mvmesh.o ic.o ssolv.o math.o mxm_wrapper.o \
+map2.o ic.o ssolv.o math.o mxm_wrapper.o \
 hmholtz.o \
 subs1.o subs2.o \
 gmres.o hsmg.o convect.o induct.o \
@@ -60,6 +60,8 @@ papi.o \
 gauss.o \
 makeq.o makeq_aux.o \
 genbox.o \
+#mvmesh.o  \
+#navier7.o \
 #navier2.o \
 #planx.o \
 #edgec.o \

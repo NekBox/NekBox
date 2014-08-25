@@ -100,6 +100,7 @@
     return
     end subroutine arcsrf
 !-----------------------------------------------------------------------
+#if 0
     subroutine defsrf(xml,yml,zml,nxl,nyl,nzl,ie,iface1,ccv)
     use size_m
     use geom
@@ -163,6 +164,7 @@
 
     return
     end subroutine defsrf
+#endif
 !-----------------------------------------------------------------------
     subroutine intrsc(x3,x2,x1,delt,ie,iface)
 
@@ -546,7 +548,8 @@
 !     Select appropriate mesh
 
     IF ( IFGMSH3 ) THEN
-        CALL GENXYZ (XM3,YM3,ZM3,NX3,NY3,NZ3)
+      write(*,*) "Oops: IFGMSH3"
+!max        CALL GENXYZ (XM3,YM3,ZM3,NX3,NY3,NZ3)
     ELSE
         CALL GENXYZ (XM1,YM1,ZM1,NX1,NY1,NZ1)
     ENDIF
@@ -662,10 +665,13 @@
             zgml(3,k) =  1
         enddo
     elseif (ifgmsh3 .AND. nxl == nx3) then
+      write(*,*) "Oops: IFGMSH3"
+#if 0
         call copy(zgml(1,1),zgm3(1,1),nx3)
         call copy(zgml(1,2),zgm3(1,2),ny3)
         call copy(zgml(1,3),zgm3(1,3),nz3)
         if (ifaxl .AND. ifrzer(e)) call copy(zgml(1,2),zam3,ny3)
+#endif
     elseif (nxl == nx1) then
         call copy(zgml(1,1),zgm1(1,1),nx1)
         call copy(zgml(1,2),zgm1(1,2),ny1)
@@ -978,6 +984,7 @@
     return
     end subroutine crn3d
 !-----------------------------------------------------------------------
+#if 0
     subroutine rotxyz
 !-----------------------------------------------------------------------
 
@@ -1023,6 +1030,7 @@
     100 END DO
     return
     end subroutine rotxyz
+#endif
 !-----------------------------------------------------------------------
     subroutine gensrf(XML,YML,ZML,IFCE,IE,MX,MY,MZ,zgml)
 

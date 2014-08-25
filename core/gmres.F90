@@ -580,6 +580,7 @@
     return
     end subroutine hmh_gmres
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_overlap2
 
 !     Sets up the gather scatter and the SEM operators
@@ -619,6 +620,7 @@
 
     return
     end subroutine set_overlap2
+#endif
 !-----------------------------------------------------------------------
     subroutine h1_overlap_2(u,v,mask)
 
@@ -1244,6 +1246,7 @@
     return
     end subroutine s_face_to_int2_g
 !-----------------------------------------------------------------------
+#if 0
     subroutine outfldr_g(x,txt10,nx,nz,ichk)
     use size_m
     use tstep
@@ -1369,6 +1372,7 @@
     if (ichk == 1 .AND. idum > 0) call checkit(idum)
     return
     end subroutine outfldi_g
+#endif
 !-----------------------------------------------------------------------
     subroutine setupds_no_crn(gs_h,nx,ny,nz,nel,melg,vertex,glo_num)
     use size_m

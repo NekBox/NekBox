@@ -253,6 +253,7 @@
     return
     end subroutine vec_dsop
 !-----------------------------------------------------------------------
+#if 0
     subroutine nvec_dssum(u,stride,n,gs_handle)
 
 !     Direct stiffness summation of the array u for n fields
@@ -281,7 +282,7 @@
 
     return
     end subroutine nvec_dssum
-
+#endif
 !----------------------------------------------------------------------
     subroutine matvec3(uout,Jmat,uin,iftrsp,n1,n2)
 
@@ -374,6 +375,7 @@
     return
     end subroutine vectof_add
 !-----------------------------------------------------------------------
+#if 0
     subroutine zero_f(b,ie,iface,nx,ny,nz)
 
 !     ZERO the face (IFACE) of B
@@ -389,6 +391,7 @@
     100 END DO
     return
     end subroutine zero_f
+#endif
 !-----------------------------------------------------------------------
     subroutine ftovec_0(a,b,ie,iface,nx,ny,nz)
 
@@ -427,6 +430,7 @@
     return
     end subroutine ftovec
 !-----------------------------------------------------------------------
+#if 0
     subroutine vectof(b,a,ie,iface,nx,ny,nz)
 
 !     Copy vector A to the face (IFACE) of B
@@ -752,4 +756,5 @@
 
     return
     end subroutine dssum_msk2
+#endif
 !-----------------------------------------------------------------------

@@ -1,4 +1,5 @@
 !-----------------------------------------------------------------------
+#if 0
     subroutine aspect_ratios(ar)
 
 !     7/6/96
@@ -171,6 +172,7 @@
     close(unit=33)
     return
     end subroutine out_sem
+#endif
 !-----------------------------------------------------------------------
     subroutine gradm11(ux,uy,uz,u,e)
 
@@ -207,6 +209,7 @@
             + ut(i)*tzm1(i,1,1,e) )
         enddo
     else
+#if 0
         call local_grad2(ur,us,u,N,e,dxm1,dxtm1)
         do i=1,lxyz
             ux(i) =jacmi(i,e)*(ur(i)*rxm1(i,1,1,e) &
@@ -214,6 +217,7 @@
             uy(i) =jacmi(i,e)*(ur(i)*rym1(i,1,1,e) &
             + us(i)*sym1(i,1,1,e) )
         enddo
+#endif
     endif
 
     return
@@ -292,6 +296,7 @@
     return
     end subroutine gradm11ts
 !-----------------------------------------------------------------------
+#if 0
     subroutine makemsf(afx,afy,afz)
 
 !     This updates the RHS for the modified stress tensor.
@@ -383,4 +388,5 @@
 
     return
     end subroutine makemsf
+#endif
 !-----------------------------------------------------------------------

@@ -89,6 +89,7 @@
     return
     end subroutine dd_solver
 !-----------------------------------------------------------------------
+#if 0
     subroutine rar2_out(x,name13)
     use size_m
 
@@ -161,4 +162,5 @@
     6 format(4f8.5,5x,4f8.5)
     return
     end subroutine rarr_out2
+#endif
 !-----------------------------------------------------------------------

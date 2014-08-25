@@ -890,6 +890,7 @@ end subroutine heat
 !-----------------------------------------------------------------------
 !> Driver for mesh velocity used in conjunction with moving geometry.
 !-----------------------------------------------------------------------
+#if 0
 subroutine meshv (igeom)
   use input, only : iftmsh
   use tstep, only : ifield, imesh, nelfld
@@ -912,7 +913,6 @@ subroutine meshv (igeom)
   RETURN
 end subroutine meshv
 
-#if 0
 subroutine rescont (ind)
   use input, only : param
   use parallel, only : np

@@ -116,13 +116,13 @@
     
     !        rsb element to processor mapping
     
-        if (ifgfdm)       call gfdm_elm_to_proc(gllnid,np) ! gfdm w/ .map
+!max        if (ifgfdm)       call gfdm_elm_to_proc(gllnid,np) ! gfdm w/ .map
 
         call get_map
 
     endif
 
-    if(ifzper .OR. ifgtp) call gfdm_elm_to_proc(gllnid,np) ! special processor map
+!max    if(ifzper .OR. ifgtp) call gfdm_elm_to_proc(gllnid,np) ! special processor map
 
 !     compute global to local map (no processor info)
 
@@ -165,6 +165,7 @@
     return
     end subroutine set_proc_map
 !-----------------------------------------------------------------------
+#if 0
     subroutine gfdm_elm_to_proc(gllnid,np)
 
 
@@ -251,6 +252,7 @@
 
     return
     end subroutine gfdm_map_2d
+#endif
 !-----------------------------------------------------------------------
     subroutine gfdm_set_pst(ip,is,it,nelbox,nstride_box,nxp,nyp,nzp)
 
@@ -335,6 +337,7 @@
     return
     end subroutine gfdm_build_global_el_map
 !-----------------------------------------------------------------------
+#if 0
     subroutine outmati(u,m,n,name6)
     integer :: u(m,n)
     character(6) :: name6
@@ -380,6 +383,7 @@
     enddo
     return
     end subroutine outmati8
+#endif
 !-----------------------------------------------------------------------
     subroutine get_map
 

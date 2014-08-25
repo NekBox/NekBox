@@ -113,6 +113,7 @@
     return
     end subroutine set_overlap
 !-----------------------------------------------------------------------
+#if 0
     subroutine overflow_ck(n_req,n_avail,signal)
 
 !     Check for buffer overflow
@@ -131,6 +132,7 @@
     endif
     return
     end subroutine overflow_ck
+#endif
 !-----------------------------------------------------------------------
     subroutine iunswap(b,ind,n,temp)
     integer :: b(1),ind(1),temp(1)

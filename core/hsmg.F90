@@ -520,7 +520,7 @@
     call hsmg_extrude(mg_work(i),2,one,mg_work(i),0,one,enx,eny,enz)
 
     if( .NOT. if3d) then ! Go back to regular size array
-        call hsmg_schwarz_toreg2d(e,mg_work(i),mg_nh(l))
+!max        call hsmg_schwarz_toreg2d(e,mg_work(i),mg_nh(l))
     else
         call hsmg_schwarz_toreg3d(e,mg_work(i),mg_nh(l))
     endif
@@ -577,7 +577,7 @@
     call hsmg_extrude(mg_work(i),2,one,mg_work(i),0,one,enx,eny,enz)
 !     go back to regular size array
     if( .NOT. if3d) then
-        call hsmg_schwarz_toreg2d(e,mg_work(i),mg_nh(l))
+!max        call hsmg_schwarz_toreg2d(e,mg_work(i),mg_nh(l))
     else
         call hsmg_schwarz_toreg3d(e,mg_work(i),mg_nh(l))
     endif
@@ -634,6 +634,7 @@
     return
     end subroutine hsmg_schwarz_toext3d
 !----------------------------------------------------------------------
+#if 0
     subroutine hsmg_schwarz_toreg2d(b,a,n)
     use size_m
     integer :: n
@@ -649,6 +650,7 @@
     enddo
     return
     end subroutine hsmg_schwarz_toreg2d
+#endif
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_toreg3d(b,a,n)
     use size_m
@@ -1731,6 +1733,7 @@
     return
     end subroutine hsmg_index_0
 !----------------------------------------------------------------------
+#if 0
     subroutine outfldn (x,n,txt10,ichk) ! writes into unit=40+ifiled
     use size_m
     use tstep
@@ -1906,6 +1909,7 @@
 
     return
     end subroutine outfldan
+#endif
 !-----------------------------------------------------------------------
     subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
     use ctimer
@@ -1949,7 +1953,7 @@
     call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M       rhs
 !               Schwarz
     call copy(r,rhs,n)                              ! r  := rhs
-    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
+!max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
 !  l
 
     do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
@@ -1962,7 +1966,7 @@
         call h1mg_schwarz(e(is),r,sigma,l)           ! e := sigma W M       r
     !  l            Schwarz l
 
-        if(if_hybrid)call h1mg_axm(r,e(is),op,om,l,w)! r  := r - A e
+!max        if(if_hybrid)call h1mg_axm(r,e(is),op,om,l,w)! r  := r - A e
     !  l           l
     enddo
     is = is+n
@@ -2004,6 +2008,7 @@
     return
     end subroutine h1mg_solve
 !-----------------------------------------------------------------------
+#if 0
     subroutine h1mg_axm(w,p,aw,ap,l,wk)
 
 !     w  := aw*w + ap*H*p, level l, with mask and dssum
@@ -2057,6 +2062,7 @@
 
     return
     end subroutine h1mg_axm
+#endif
 !-----------------------------------------------------------------------
     subroutine h1mg_axml &
     (w,p,h1,h2,nx,ny,nz,nel,g,ng,b,mask,ifh2)
@@ -3024,6 +3030,7 @@
     return
     end subroutine chkr
 !-----------------------------------------------------------------------
+#if 0
     subroutine outgmat(a,ng,nx,ny,name6,k,e)
 
     integer :: e
@@ -3047,6 +3054,7 @@
 
     return
     end subroutine outgmat
+#endif
 !-----------------------------------------------------------------------
     subroutine outmatz(a,m,n,name6,ie)
     real :: a(m,n)
@@ -3204,7 +3212,7 @@
     call hsmg_extrude(mg_work(i),2,one,mg_work(i),0,one,enx,eny,enz)
 
     if( .NOT. if3d) then ! Go back to regular size array
-        call hsmg_schwarz_toreg2d(mg_work,mg_work(i),mg_nh(l))
+!max        call hsmg_schwarz_toreg2d(mg_work,mg_work(i),mg_nh(l))
     else
         call hsmg_schwarz_toreg3d(mg_work,mg_work(i),mg_nh(l))
     endif

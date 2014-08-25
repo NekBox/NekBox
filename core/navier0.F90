@@ -113,6 +113,7 @@
     RETURN
     END SUBROUTINE EINIT
 !-----------------------------------------------------------------------
+#if 0
     subroutine dmp_map(imap)
 
 !     Dump map file and element center point
@@ -158,6 +159,7 @@
 
     return
     end subroutine dmp_map
+#endif
 !-----------------------------------------------------------------------
     subroutine p_outvec_ir(ia,a,lda,name9)
     use size_m

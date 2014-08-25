@@ -15,7 +15,7 @@
     if (if3d) then
         call setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
     else
-        call setvert2d(glo_num,ngv,nx,nel,vertex,ifcenter)
+!max        call setvert2d(glo_num,ngv,nx,nel,vertex,ifcenter)
     endif
 
 !     Check for single-element periodicity 'p' bc
@@ -242,6 +242,7 @@
     return
     end subroutine set_mat_ij
 !-----------------------------------------------------------------------
+#if 0
     subroutine irank_vec(ind,nn,a,m,n,key,nkey,aa)
 
 !     Compute rank of each unique entry a(1,i)
@@ -303,6 +304,7 @@
 
     return
     end subroutine irank_vec
+#endif
 
 !-----------------------------------------------------------------------
 
@@ -488,7 +490,7 @@
     end function iftuple_ianeb
 
 !-----------------------------------------------------------------------
-
+#if 0
     subroutine get_local_crs(a,lda,nxc,h1,h2,w,ldw)
 
 !     This routine generates Nelv submatrices of order nxc^ndim.
@@ -536,6 +538,7 @@
 
     return
     end subroutine get_local_crs
+#endif
 
 !-----------------------------------------------------------------------
 
@@ -1012,6 +1015,7 @@
     GOTO 100
     end subroutine irank
 !-----------------------------------------------------------------------
+#if 0
     subroutine iranku(r,input,n,w,ind)
 
 !     Return the rank of each input value, and the maximum rank.
@@ -1039,6 +1043,7 @@
 
     return
     end subroutine iranku
+#endif
 
 !-----------------------------------------------------------------------
 
@@ -1183,6 +1188,7 @@
     end subroutine maph1_to_l2t
 
 !-----------------------------------------------------------------------
+#if 0
     subroutine irank_vec_tally(ind,nn,a,m,n,key,nkey,key2,aa)
 
 !     Compute rank of each unique entry a(1,i)
@@ -1257,6 +1263,7 @@
 
     return
     end subroutine irank_vec_tally
+#endif
 
 !-----------------------------------------------------------------------
 
@@ -2386,6 +2393,7 @@
     return
     end subroutine setvert3d
 !-----------------------------------------------------------------------
+#if 0
     subroutine setvert2d(glo_num,ngv,nx,nel,vertex,ifcenter)
 
 !     setup unique ids for dssum
@@ -2561,7 +2569,6 @@
     return
     end subroutine setvert2d
 !-----------------------------------------------------------------------
-
     subroutine map_to_crs(a,na,b,nb,if3d,w,ldw)
 
 !     Input:   b
@@ -2597,6 +2604,7 @@
 
     return
     end subroutine map_to_crs
+#endif
 !-----------------------------------------------------------------------
     subroutine check_p_bc(glo_num,nx,ny,nz,nel)
 

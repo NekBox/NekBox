@@ -428,6 +428,7 @@
 
     RETURN
     END SUBROUTINE FACCVS
+#if 0
     SUBROUTINE STX1SF
 !------------------------------------------------------------------
 
@@ -490,6 +491,7 @@
 
     RETURN
     END SUBROUTINE SOLVEL
+#endif
     SUBROUTINE VSOLN (UX,UY,UZ,X,Y,Z,PI)
 
 !       URR=(1.-0.75/SQRT(X**2+Y**2)+0.0625/(SQRT(X**2+Y**2)**3))*(X/
@@ -507,6 +509,7 @@
 
     RETURN
     END SUBROUTINE VSOLN
+#if 0
     SUBROUTINE SOLPRES
 
     use size_m
@@ -524,6 +527,7 @@
 
     RETURN
     END SUBROUTINE SOLPRES
+#endif
     SUBROUTINE PRSOLN (P,X,Y,Z,PI)
 
 !      R  = SQRT( X**2 + Y**2 )
@@ -536,6 +540,7 @@
 
     RETURN
     END SUBROUTINE PRSOLN
+#if 0
     SUBROUTINE STORE
 !-----------------------------------------------------------------------
 
@@ -668,6 +673,8 @@
 
     RETURN
     END SUBROUTINE PRINTV
+#endif
+
     SUBROUTINE OUTF1 (X,TXT,IEL,IFC)
     use size_m
     DIMENSION X(LX1,LZ1,6,LELT)
@@ -722,6 +729,7 @@
 
     RETURN
     END SUBROUTINE OUTM1
+#if 0
     SUBROUTINE OUTM2 (X,TXT,NP,IEL,IP)
     use size_m
     DIMENSION X(LX2,LY2,LZ2,LELV)
@@ -783,6 +791,7 @@
 
     RETURN
     END SUBROUTINE STSMASK
+#endif
     SUBROUTINE UPDMSYS (IFLD)
 
     use size_m
@@ -1097,13 +1106,14 @@
     10 END DO
 
     IF (NDIM == 2) THEN
-        CALL COMAVN2 (HVMASK,HFMASK,NEL)
+!max        CALL COMAVN2 (HVMASK,HFMASK,NEL)
     ELSE
         CALL COMAVN3 (HVMASK,HFMASK,NEL)
     ENDIF
 
     RETURN
     END SUBROUTINE SETCSYS
+#if 0
     SUBROUTINE COMAVN2 (HVMASK,HFMASK,NEL)
 
     use size_m
@@ -1168,6 +1178,7 @@
 
     RETURN
     END SUBROUTINE COMAVN2
+#endif
     SUBROUTINE COMAVN3 (HVMASK,HFMASK,NEL)
 
     use size_m
@@ -1812,6 +1823,7 @@
 
     RETURN
     END SUBROUTINE SETCDOF
+#if 0
     SUBROUTINE AMASK (VB1,VB2,VB3,V1,V2,V3,NEL)
 
     use size_m
@@ -1889,6 +1901,7 @@
 
     RETURN
     END SUBROUTINE RMASK
+#endif
     SUBROUTINE QMASK (R1,R2,R3,R1MASK,R2MASK,R3MASK,NEL)
 
     use size_m

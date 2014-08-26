@@ -442,7 +442,7 @@ subroutine gengeom (igeom)
 !max      IF (ISTEP >= 1) CALL UPDCOOR
       CALL GEOM1 (XM3,YM3,ZM3)
       CALL GEOM2
-      CALL UPDMSYS (1)
+!max      CALL UPDMSYS (1)
       CALL VOLUME
       CALL SETINVM
       CALL SETDEF
@@ -477,7 +477,7 @@ subroutine gengeom (igeom)
       endif
       CALL GEOM1 (XM3,YM3,ZM3)
       CALL GEOM2
-      CALL UPDMSYS (1)
+!max      CALL UPDMSYS (1)
       CALL VOLUME
       CALL SETINVM
       CALL SETDEF

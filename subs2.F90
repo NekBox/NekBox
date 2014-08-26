@@ -74,6 +74,7 @@
 
     RETURN
     END SUBROUTINE STNRINV
+#if 0
     SUBROUTINE OPDOT (DP,A1,A2,A3,B1,B2,B3,N)
 
     use size_m
@@ -94,6 +95,7 @@
 
     RETURN
     END SUBROUTINE OPDOT
+#endif
     SUBROUTINE FACEXS (A,B,IFACE1,IOP)
 
 !     IOP = 0
@@ -695,6 +697,7 @@
 
     RETURN
     END SUBROUTINE COMAVN3
+#if 0
     SUBROUTINE FXWMS2 (W2MASK,HVMASK,HFMASK,NEL)
 
     use size_m
@@ -824,6 +827,7 @@
 
     RETURN
     END SUBROUTINE FXWMS3
+#endif
     SUBROUTINE SETCDAT
 
     use size_m
@@ -1470,6 +1474,7 @@
     RETURN
     END SUBROUTINE CRMSK3
 
+#if 0
     subroutine getSnormal(sn,ix,iy,iz,iside,e)
 
 !     calculate surface normal
@@ -1526,6 +1531,7 @@
     100 END DO
     return
     end subroutine iface_e
+#endif
 !-----------------------------------------------------------------------
       SUBROUTINE FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
 

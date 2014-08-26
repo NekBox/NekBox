@@ -1104,6 +1104,7 @@
     end subroutine dudxyz
 
 !-----------------------------------------------------------------------
+#if 0
     subroutine conv2 (dtfi,fi)
 !--------------------------------------------------------------------
 
@@ -1246,6 +1247,7 @@
     100 END DO
     return
     end subroutine cmask
+#endif
 
     subroutine makef
 !---------------------------------------------------------------------
@@ -1321,6 +1323,7 @@
     return
     end subroutine nekuf
 
+#if 0
     subroutine settbar (tbar)
 !----------------------------------------------------------------
 
@@ -1374,6 +1377,7 @@
 
     return
     end subroutine settbar
+#endif
 
     subroutine advab
 !---------------------------------------------------------------
@@ -1662,7 +1666,7 @@
     40 END DO
     return
     end subroutine bdsys
-
+#if 0
     subroutine ophyprkn(vel1,vel2,vel3,ilag)
 !---------------------------------------------------------------------------
 
@@ -1893,6 +1897,7 @@
 
     return
     end subroutine ophypab
+#endif
 
     subroutine tauinit (tau,ilag)
 !-------------------------------------------------------------------
@@ -2867,7 +2872,7 @@
     return
     end subroutine uzawa
 !-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
+#if 0
     subroutine mapw(md,nd,m1,n1,mflg)
 
 !     Interpolate from mesh "1" to "d" if mflg = 1
@@ -2925,6 +2930,7 @@
 
     return
     end subroutine mapwp
+#endif
 !-----------------------------------------------------------------------
     subroutine specmp(b,nb,a,na,ba,ab,w)
 
@@ -3620,6 +3626,7 @@
     return
     end subroutine hypmsk3v
 !-----------------------------------------------------------------------
+#if 0
     subroutine ophyprk (vel1,vel2,vel3,ilag)
 !---------------------------------------------------------------------------
 
@@ -3763,6 +3770,7 @@
 
     return
     end subroutine ophyprk
+#endif
 !-----------------------------------------------------------------------
     subroutine opdiv(outfld,inpx,inpy,inpz)
 !---------------------------------------------------------------------
@@ -3942,7 +3950,7 @@
     return
     end subroutine wgradm1
 !-----------------------------------------------------------------------
-
+#if 0
     SUBROUTINE COMP_SIEJ (U1,U2,U3)
 
 !     Compute strainrates
@@ -3995,6 +4003,7 @@
 
     RETURN
     END SUBROUTINE COMP_SIEJ
+#endif
 !-----------------------------------------------------------------------
     subroutine wlaplacian(out,a,diff,ifld)
 
@@ -4042,6 +4051,7 @@
     return
     end subroutine wlaplacian
 !-----------------------------------------------------------------------
+#if 0
     subroutine expl_strs_e(w1,w2,w3,u1,u2,u3,e)
     use size_m
     use input  ! if3d
@@ -4209,6 +4219,7 @@
 
     return
     end subroutine expl_strs_e_2d
+#endif
 !-----------------------------------------------------------------------
     subroutine gradl_rst_t(u,ur,us,ut,md,if3d)  ! GLL grad-transpose
 

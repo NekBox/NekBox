@@ -1027,6 +1027,7 @@
             return
             end subroutine outmat2
         !-----------------------------------------------------------------------
+#if 0
             subroutine rescale_abhalf (a,b,w,n)
             real :: a(n,n),b(n,n),w(n)
         
@@ -1053,4 +1054,5 @@
         
             return
             end subroutine rescale_abhalf
+#endif
         !-----------------------------------------------------------------------

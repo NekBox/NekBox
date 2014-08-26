@@ -1,3 +1,4 @@
+#if 0
     subroutine load_fld(string)
 
     use size_m
@@ -519,72 +520,74 @@
     return
     end subroutine tens3d1
 !-----------------------------------------------------------------------
-    subroutine build_1d_filt(fh,fht,trnsfr,nx,nid)
-
-!     This routing builds a 1D filter with transfer function diag()
-
+!> \brief This routing builds a 1D filter with transfer function diag()
+subroutine build_1d_filt(fh,fht,trnsfr,nx,nid)
+  use kinds, only : DP
+  implicit none
 !     Here, nx = number of points
+  real :: fh(nx,nx),fht(nx,nx),trnsfr(nx)
+  integer, intent(in) :: nx, nid
+  integer, parameter :: lm=40
+  integer, parameter :: lm2=lm*lm
+  real(DP), allocatable :: phi(:), pht(:), diag(:), rmult(:), Lj(:), zpts(:)
+  integer, allocatable :: indr(:), indc(:), ipiv(:)
+  integer :: kj, n, i, j, k, ierr, np1
+  real(DP) :: z
 
-    real :: fh(nx,nx),fht(nx,nx),trnsfr(nx)
+  allocate(phi(lm2), pht(lm2), diag(lm2), rmult(lm), Lj(lm), zpts(lm))
+  allocate(indr(lm),indc(lm),ipiv(lm))
 
-    parameter (lm=40)
-    parameter (lm2=lm*lm)
-    common /cfiltr/ phi(lm2),pht(lm2),diag(lm2),rmult(lm),Lj(lm) &
-    , zpts(lm)
-    real :: Lj
+  if (nx > lm) then
+      write(6,*) 'ABORT in set_filt:',nx,lm
+      call exitt
+  endif
 
-    common /cfilti/ indr(lm),indc(lm),ipiv(lm)
+  call zwgll(zpts,rmult,nx)
 
-    if (nx > lm) then
-        write(6,*) 'ABORT in set_filt:',nx,lm
-        call exitt
-    endif
+  kj = 0
+  n  = nx-1
+  do j=1,nx
+      z = zpts(j)
+      call legendre_poly(Lj,z,n)
+      kj = kj+1
+      pht(kj) = Lj(1)
+      kj = kj+1
+      pht(kj) = Lj(2)
+      do k=3,nx
+          kj = kj+1
+          pht(kj) = Lj(k)-Lj(k-2)
+      enddo
+  enddo
+  call transpose (phi,nx,pht,nx)
+  call copy      (pht,phi,nx*nx)
+  call gaujordf  (pht,nx,nx,indr,indc,ipiv,ierr,rmult)
 
-    call zwgll(zpts,rmult,nx)
+  call rzero(diag,nx*nx)
+  k=1
+  do i=1,nx
+      diag(k) = trnsfr(i)
+      k = k+(nx+1)
+  enddo
 
-    kj = 0
-    n  = nx-1
-    do j=1,nx
-        z = zpts(j)
-        call legendre_poly(Lj,z,n)
-        kj = kj+1
-        pht(kj) = Lj(1)
-        kj = kj+1
-        pht(kj) = Lj(2)
-        do k=3,nx
-            kj = kj+1
-            pht(kj) = Lj(k)-Lj(k-2)
-        enddo
-    enddo
-    call transpose (phi,nx,pht,nx)
-    call copy      (pht,phi,nx*nx)
-    call gaujordf  (pht,nx,nx,indr,indc,ipiv,ierr,rmult)
+  call mxm  (diag,nx,pht,nx,fh,nx)      !          -1
+  call mxm  (phi ,nx,fh,nx,pht,nx)      !     V D V
 
-    call rzero(diag,nx*nx)
-    k=1
-    do i=1,nx
-        diag(k) = trnsfr(i)
-        k = k+(nx+1)
-    enddo
+  call copy      (fh,pht,nx*nx)
+  call transpose (fht,nx,fh,nx)
 
-    call mxm  (diag,nx,pht,nx,fh,nx)      !          -1
-    call mxm  (phi ,nx,fh,nx,pht,nx)      !     V D V
+  do k=1,nx*nx
+      pht(k) = 1.-diag(k)
+  enddo
+  np1 = nx+1
+  if (nid == 0) then
+      write(6,6) 'flt amp',(pht (k),k=1,nx*nx,np1)
+      write(6,6) 'flt trn',(diag(k),k=1,nx*nx,np1)
+      6 format(a8,16f7.4,6(/,8x,16f7.4))
+  endif
 
-    call copy      (fh,pht,nx*nx)
-    call transpose (fht,nx,fh,nx)
-
-    do k=1,nx*nx
-        pht(k) = 1.-diag(k)
-    enddo
-    np1 = nx+1
-    if (nid == 0) then
-        write(6,6) 'flt amp',(pht (k),k=1,nx*nx,np1)
-        write(6,6) 'flt trn',(diag(k),k=1,nx*nx,np1)
-        6 format(a8,16f7.4,6(/,8x,16f7.4))
-    endif
-
-    return
-    end subroutine build_1d_filt
+  return
+end subroutine build_1d_filt
+#endif
 !-----------------------------------------------------------------------
     subroutine comp_sije(gije)
 
@@ -755,6 +758,7 @@
     return
     end subroutine zuni
 !-----------------------------------------------------------------------
+#if 0
     subroutine gen_re2_xyz
     use size_m
     use dealias
@@ -1559,6 +1563,7 @@
 
     return
     end subroutine gen_rea_bc
+#endif
 !-----------------------------------------------------------------------
     subroutine gen_rea_midside_e(e)
 
@@ -1634,6 +1639,7 @@
     return
     end subroutine gen_rea_midside_e
 !-----------------------------------------------------------------------
+#if 0
     subroutine g2gi_buf2v(v,buf,ndim,nel,nxyz)
 
     real*4 :: buf(1)
@@ -1857,4 +1863,5 @@
 
     return
     end subroutine hpts_out
+#endif
 !-----------------------------------------------------------------------

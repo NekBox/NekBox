@@ -2908,6 +2908,7 @@
     return
     end subroutine opsub2
 
+#if 0
     subroutine opsub3 (a1,a2,a3,b1,b2,b3,c1,c2,c3)
     use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1),C1(1),C2(1),C3(1)
@@ -2917,6 +2918,7 @@
     IF(NDIM == 3)CALL SUB3(A3,B3,C3,NTOT1)
     return
     end subroutine opsub3
+#endif
 
     subroutine opcolv3(a1,a2,a3,b1,b2,b3,c)
     use size_m
@@ -5485,6 +5487,7 @@
     return
     end subroutine local_grad3_t
 !-----------------------------------------------------------------------
+#if 0
     subroutine local_grad2_t(u,ur,us,N,e,D,Dt,w)
 !     Output: ur,us         Input:u,N,e,D,Dt
     real :: u (0:N,0:N,1)
@@ -5502,6 +5505,7 @@
 
     return
     end subroutine local_grad2_t
+#endif
 !-----------------------------------------------------------------------
     subroutine get_dgll_ptr (ip,mx,md)
 

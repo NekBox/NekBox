@@ -1871,6 +1871,7 @@
     RETURN
     END SUBROUTINE UNITVEC
 !-----------------------------------------------------------------------
+#if 0
     SUBROUTINE CHKZVN (VMAX,IEL,IFC,IVNORL)
 
     use size_m
@@ -1950,6 +1951,7 @@
 
     RETURN
     END SUBROUTINE BCTWALL
+#endif
 !-----------------------------------------------------------------------
     SUBROUTINE ANTIMSK1(X,XMASK,N)
 !------------------------------------------------------------------

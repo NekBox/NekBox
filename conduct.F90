@@ -369,6 +369,7 @@
     end subroutine thyprk
 
 !-----------------------------------------------------------------------
+#if 0
     subroutine thypab (tch,ilag)
 
 !     Convection of a passive scalar.
@@ -448,7 +449,7 @@
 
     return
     end subroutine thypab
-
+#endif
 !-----------------------------------------------------------------------
     subroutine hypmsk1 (htmask)
 

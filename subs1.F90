@@ -517,7 +517,7 @@
 
     return
     end subroutine cumax
-
+#if 0
     subroutine cdxmin2 (dtst,rhosig,iel,ifc,ifaxis)
 
     use size_m
@@ -600,6 +600,7 @@
 
     return
     end subroutine cdxmin3
+#endif
 
     FUNCTION FACDOT(A,B,IFACE1)
 
@@ -980,6 +981,7 @@
     return
     end subroutine setsolv
 
+#if 0
     subroutine chktcgs (r1,r2,r3,rmask1,rmask2,rmask3,rmult,binv, &
     vol,tol,nel)
 !-------------------------------------------------------------------
@@ -1061,6 +1063,7 @@
 
     return
     end subroutine chktcgs
+#endif
 !-----------------------------------------------------------------------
     subroutine stnrate (u1,u2,u3,nel,matmod)
 
@@ -1108,6 +1111,7 @@
     return
     end subroutine stnrate
 !-----------------------------------------------------------------------
+#if 0
     subroutine stress (h1,h2,nel,matmod,ifaxis)
 
 !     MATMOD.GE.0        Fluid material models
@@ -1200,6 +1204,7 @@
 
     return
     end subroutine aijuj
+#endif
 !-----------------------------------------------------------------------
     subroutine uxyz (u,ex,ey,ez,nel)
 
@@ -1308,6 +1313,7 @@
     return
     end subroutine flush_io
 !-----------------------------------------------------------------------
+#if 0
     subroutine axsf_e_3d(au,av,aw,u,v,w,h1,h2,ur,e)
 
 !                                         du_i
@@ -1458,6 +1464,7 @@
 
     return
     end subroutine axsf_fast
+#endif
 !-----------------------------------------------------------------------
     subroutine ttxyz (ff,tx,ty,tz,nel)
 

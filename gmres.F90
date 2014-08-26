@@ -580,127 +580,7 @@
     return
     end subroutine hmh_gmres
 !-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-    subroutine h1_overlap_2(u,v,mask)
-
-!     Local overlapping Schwarz solves with overlap of 2
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-
-    common /cwork1/ v1(lxs,lys,lzs,lelt)
-    common /handle/ gsh_dd
-    integer :: gsh_dd
-
-    real :: u(lx1,lx1,lz1,1),v(1),mask(1)
-    integer :: e
-
-    n = nx1*ny1*nz1*nelfld(ifield)
-
-    call dd_swap_vals(v1,v,gsh_dd)
-
-    iz1 = 0
-    if (if3d) iz1=1
-    do ie=1,nelfld(ifield)
-        do iz=1,nz1
-            do iy=1,ny1
-                do ix=1,nx1
-                    u(ix,iy,iz,ie) = v1(ix+1,iy+1,iz+iz1,ie)
-                enddo
-            enddo
-        enddo
-    enddo
-
-    call dssum (u,nx1,ny1,nz1)
-    call col2  (u,mask,n)
-
-
-    return
-    end subroutine h1_overlap_2
-!-----------------------------------------------------------------------
-    subroutine dd_swap_vals(v1,v0,gsh_dd)
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    common /work1/ w1(lxs,lys,lzs)            & ! work arrarys for locals
-    ,w2(lxs,lys,lzs)
-    integer :: gsh_dd
-
-    real :: v1(lxs,lys,lzs,lelt)
-    real :: v0(lx1,ly1,lz1,lelt)
-
-    integer :: e
-
-    mz = ndim-2
-
-    nx = nx1+2
-    ny = ny1+2
-    nz = nz1+2*mz
-
-    n  = nx1*ny1*nz1*nelv
-    m  = (nx1+2)*(ny1+2)*(nz1+2*mz)*nelv
-
-    do e=1,nelv
-        call rzero_g        (v1,e,nx,ny,nz)
-        call fill_interior_g(v1,v0,e,nx1,nz1,mz,nelv)    ! v0      --> v1(int)
-        call dface_ext_g    (v1,2,e,nx,nz)               ! v1(int) --> v1(face)
-    enddo
-
-!                 ~ ~T
-!     This is the Q Q  part
-
-    call gs_op(gsh_dd,v1,1,1,0)  ! 1 ==> +         ! swap v1 & add vals
-
-    do e =1,nelv
-        call dface_add1si_g  (v1,-1.,2,e,nx,nz)
-        call fastdm1_g       (v1(1,1,1,e),e,w1,w2)
-        call s_face_to_int2_g(v1,-1.,2,e,nx,nz)
-    enddo
-
-!     Exchange/add elemental solutions
-
-    call gs_op              (gsh_dd,v1,1,1,0)
-    do e =1,nelv
-        call s_face_to_int2_g(v1,1.,2,e,nx,nz)
-    enddo
-
-    return
-    end subroutine dd_swap_vals
-!-----------------------------------------------------------------------
+#if 0
     subroutine gen_fast_g
 
 !     Generate fast diagonalization matrices for each element
@@ -795,6 +675,7 @@
      
     return
     end subroutine gen_fast_g
+#endif
 !-----------------------------------------------------------------------
     subroutine set_up_fast_1D_sem_g(s,lam,n,lbc,rbc,ll,lm,lr,ie)
     use size_m
@@ -1006,6 +887,7 @@
     return
     end subroutine set_up_fast_1D_sem_op_b
 !-----------------------------------------------------------------------
+#if 0
     subroutine fill_interior_g(v1,v,e,nx,nz,iz1,nel)
 
     real :: v1(nx+2,nx+2,nz+2*iz1,nel) ! iz1=ndim-2
@@ -1250,6 +1132,7 @@
 
     return
     end subroutine setupds_no_crn
+#endif
 !-----------------------------------------------------------------------
     subroutine rzero_g(a,e,nx,ny,nz)
 

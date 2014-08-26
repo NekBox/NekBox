@@ -94,6 +94,7 @@
 
     RETURN
     END SUBROUTINE OPDOT
+#if 0
     SUBROUTINE OPADDS (A1,A2,A3,B1,B2,B3,CONST,N,ISC)
 
     use size_m
@@ -117,6 +118,7 @@
 
     RETURN
     END SUBROUTINE OPADDS
+#endif
     SUBROUTINE FACEXS (A,B,IFACE1,IOP)
 
 !     IOP = 0
@@ -542,6 +544,7 @@
 
     RETURN
     END SUBROUTINE SETHMSK
+#if 0
     SUBROUTINE SKIPCNR (NEL)
 
     use size_m
@@ -717,6 +720,7 @@
 
     RETURN
     END SUBROUTINE SETMLOG
+#endif
     SUBROUTINE SETCSYS (HVMASK,HFMASK,NEL)
 
     use size_m
@@ -893,6 +897,7 @@
 
     RETURN
     END SUBROUTINE COMAVN3
+#if 0
     SUBROUTINE FIXWMSK (W2MASK,W3MASK,HVMASK,HFMASK,NEL)
 
     use size_m
@@ -913,6 +918,7 @@
 
     RETURN
     END SUBROUTINE FIXWMSK
+#endif
     SUBROUTINE FXWMS2 (W2MASK,HVMASK,HFMASK,NEL)
 
     use size_m
@@ -1718,6 +1724,7 @@
     return
     end subroutine getSnormal
 
+#if 0
     subroutine fixmska (c1mask,c2mask,c3mask)
 
 !     fixes masks for A/SYM face corners
@@ -1759,6 +1766,7 @@
 
     return
     end subroutine fixmska
+#endif
 !-----------------------------------------------------------------------
     subroutine icol2(a,b,n)
     integer :: a(1),b(1)
@@ -1786,6 +1794,7 @@
     return
     end subroutine iface_e
 !-----------------------------------------------------------------------
+#if 0
     function op_vlsc2_wt(b1,b2,b3,x1,x2,x3,wt)
     use size_m
     use input
@@ -1833,6 +1842,7 @@
           
     return
     end function op_glsc2_wt
+#endif
 !-----------------------------------------------------------------------
       SUBROUTINE FACIND2 (JS1,JF1,JSKIP1,JS2,JF2,JSKIP2,IFC)
 

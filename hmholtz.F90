@@ -871,6 +871,7 @@
             end function vlsc32
         !=======================================================================
         !-----------------------------------------------------------------------
+#if 0
             subroutine set_fdm_prec_h1A_gen
         
             use size_m
@@ -1117,6 +1118,7 @@
         
             return
             end subroutine set_fdm_prec_h1A_els
+#endif
         !-----------------------------------------------------------------------
             subroutine set_fdm_prec_h1b(d,h1,h2,nel)
             use size_m

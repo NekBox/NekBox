@@ -477,6 +477,7 @@
     return
     end subroutine opzero
 !-----------------------------------------------------------------------
+#if 0
     subroutine curl(vort,u,v,w,ifavg,work1,work2)
 
     use size_m
@@ -661,6 +662,7 @@
 
     return
     end subroutine lorentz_force_e
+#endif
 !-----------------------------------------------------------------------
     subroutine spec_curl_e (cb,b1,b2,b3,rx,ry,rz,sx,sy,sz,tx,ty,tz)
 

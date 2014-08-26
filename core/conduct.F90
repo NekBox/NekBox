@@ -24,7 +24,6 @@
 
     common /trthoi/ napprox(2)
     common /trthov/ approx(ktot,0:laxt)
-    common /trthoc/ name4
     character(4) ::     name4
 
 !max    include 'ORTHOT'

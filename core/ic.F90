@@ -1287,127 +1287,134 @@
     ENDIF
     return
     end subroutine mapdmp
-!-----------------------------------------------------------------------
-    subroutine mapab(x,y,nxr,nel)
 !---------------------------------------------------------------
-
-!     Interpolate Y(NXR,NYR,NZR,NEL) to X(NX1,NY1,NZ1,NEL)
-!     (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
+!> \brief Interpolate Y(NXR,NYR,NZR,NEL) to X(NX1,NY1,NZ1,NEL)
+!! (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
 !---------------------------------------------------------------
+subroutine mapab(x,y,nxr,nel)
+  use kinds, only : DP
+  use size_m, only : nid, ndim
+  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1
+  use wz_m, only : zgm1
+  implicit none
 
-    use size_m
-    use ixyz
-    use wz_m
+  real(DP) :: X(NX1,NY1,NZ1,NEL)
+  real(DP) :: Y(NXR,NXR,NXR,NEL)
 
-    PARAMETER (LXR=LX1+6)
-    PARAMETER (LYR=LY1+6)
-    PARAMETER (LZR=LZ1+6)
-    PARAMETER (LXYZR=LXR*LYR*LZR)
-    PARAMETER (LXYZ1=LX1*LY1*LZ1)
-    DIMENSION X(NX1,NY1,NZ1,NEL)
-    DIMENSION Y(NXR,NXR,NXR,NEL)
 
-    common /ctmp0/  xa(lxyzr)      ,xb(lx1,ly1,lzr) ,xc(lxyzr) &
-    , zgmr(lxr)      ,wgtr(lxr)
-    common /ctmpab/ ires(lxr,lxr)  ,itres(lxr,lxr)
-    real :: ires,itres
+  integer, parameter :: LXR=LX1+6
+  integer, parameter :: LYR=LY1+6
+  integer, parameter :: LZR=LZ1+6
+  integer, parameter :: LXYZR=LXR*LYR*LZR
+  integer, parameter :: LXYZ1=LX1*LY1*LZ1
+  
+  integer :: nxr, nel
 
-    INTEGER :: NOLD
-    SAVE    NOLD
-    DATA    NOLD /0/
+  real(DP) :: xa, xb, xc, zgmr, wgtr
+  common /ctmp0/  xa(lxyzr)      ,xb(lx1,ly1,lzr) ,xc(lxyzr) &
+  , zgmr(lxr)      ,wgtr(lxr)
+  real, allocatable :: ires(:,:), itres(:,:)
 
-    NZR = NXR
-    IF(NZ1 == 1) NZR=1
-    NYZR = NXR*NZR
-    NXY1 = NX1*NY1
+  integer :: nzr, nyzr, nxy1
+  integer :: ie, iz, izoff
+  INTEGER, save :: NOLD = 0
 
-    IF (NXR /= NOLD) THEN
-        NOLD=NXR
-        CALL ZWGLL   (ZGMR,WGTR,NXR)
-        CALL IGLLM   (IRES,ITRES,ZGMR,ZGM1,NXR,NX1,NXR,NX1)
-        IF (NID == 0) WRITE(6,10) NXR,NX1
-        10 FORMAT(2X,'Mapping restart data from Nold=',I2 &
-        ,' to Nnew=',I2,'.')
-    ENDIF
+  allocate(ires(lxr,lxr)  ,itres(lxr,lxr))
 
-    DO 1000 IE=1,NEL
-        CALL MXM (IRES,NX1,Y(1,1,1,IE),NXR,XA,NYZR)
-        DO 100 IZ=1,NZR
-            IZOFF = 1 + (IZ-1)*NX1*NXR
-            CALL MXM (XA(IZOFF),NX1,ITRES,NXR,XB(1,1,IZ),NY1)
-        100 END DO
-        IF (NDIM == 3) THEN
-            CALL MXM (XB,NXY1,ITRES,NZR,X(1,1,1,IE),NZ1)
-        ELSE
-            CALL COPY(X(1,1,1,IE),XB,NXY1)
-        ENDIF
-    1000 END DO
+  NZR = NXR
+  IF(NZ1 == 1) NZR=1
+  NYZR = NXR*NZR
+  NXY1 = NX1*NY1
 
-    return
-    end subroutine mapab
-!-----------------------------------------------------------------------
-    subroutine mapab4R(x,y,nxr,nel)
-!---------------------------------------------------------------
+  IF (NXR /= NOLD) THEN
+      NOLD=NXR
+      CALL ZWGLL   (ZGMR,WGTR,NXR)
+      CALL IGLLM   (IRES,ITRES,ZGMR,ZGM1,NXR,NX1,NXR,NX1)
+      IF (NID == 0) WRITE(6,10) NXR,NX1
+      10 FORMAT(2X,'Mapping restart data from Nold=',I2 &
+      ,' to Nnew=',I2,'.')
+  ENDIF
 
-!     Interpolate Y(NXR,NYR,NZR,NEL) to X(NX1,NY1,NZ1,NEL)
-!     (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
+  DO 1000 IE=1,NEL
+      CALL MXM (IRES,NX1,Y(1,1,1,IE),NXR,XA,NYZR)
+      DO 100 IZ=1,NZR
+          IZOFF = 1 + (IZ-1)*NX1*NXR
+          CALL MXM (XA(IZOFF),NX1,ITRES,NXR,XB(1,1,IZ),NY1)
+      100 END DO
+      IF (NDIM == 3) THEN
+          CALL MXM (XB,NXY1,ITRES,NZR,X(1,1,1,IE),NZ1)
+      ELSE
+          CALL COPY(X(1,1,1,IE),XB,NXY1)
+      ENDIF
+  1000 END DO
 
-!     Input:  real*4,  Output:  default precision
+  return
+  end subroutine mapab
 
 !---------------------------------------------------------------
+!> Interpolate Y(NXR,NYR,NZR,NEL) to X(NX1,NY1,NZ1,NEL)
+!! (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
+!! Input:  real*4,  Output:  default precision
+!---------------------------------------------------------------
+subroutine mapab4R(x,y,nxr,nel)
+  use kinds, only : DP
+  use size_m, only : nid, ndim
+  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1
+  use wz_m, only : zgm1
+  implicit none
 
-    use size_m
-    use ixyz
-    use wz_m
+  integer :: nxr, nel
+  REAL*4 :: X(NX1,NY1,NZ1,NEL)
+  REAL ::   Y(NXR,NXR,NXR,NEL)
 
-    PARAMETER (LXR=LX1+6)
-    PARAMETER (LYR=LY1+6)
-    PARAMETER (LZR=LZ1+6)
-    PARAMETER (LXYZR=LXR*LYR*LZR)
-    PARAMETER (LXYZ1=LX1*LY1*LZ1)
-    REAL*4 :: X(NX1,NY1,NZ1,NEL)
-    REAL ::   Y(NXR,NXR,NXR,NEL)
+  integer, parameter :: LXR=LX1+6
+  integer, parameter :: LYR=LY1+6
+  integer, parameter :: LZR=LZ1+6
+  integer, parameter :: LXYZR=LXR*LYR*LZR
+  integer, parameter :: LXYZ1=LX1*LY1*LZ1
 
-    common /ctmp0/  xa(lxyzr)      ,xb(lx1,ly1,lzr) ,xc(lxyzr) &
-    , zgmr(lxr)      ,wgtr(lxr)
-    common /ctmpa4/ ires(lxr,lxr)  ,itres(lxr,lxr)
-    real :: ires,itres
+  real(DP) :: xa, xb, xc, zgmr, wgtr
+  common /ctmp0/  xa(lxyzr)      ,xb(lx1,ly1,lzr) ,xc(lxyzr) &
+  , zgmr(lxr)      ,wgtr(lxr)
+  real(DP), allocatable :: ires(:,:), itres(:,:)
 
-    INTEGER :: NOLD
-    SAVE    NOLD
-    DATA    NOLD /0/
+  integer :: nzr, nyzr, nxy1, nxyzr
+  integer :: ie, iz, izoff
+  integer, save :: NOLD = 0
+  
+  allocate(ires(lxr,lxr), itres(lxr,lxr))
 
-    NZR = NXR
-    IF(NZ1 == 1) NZR=1
-    NYZR = NXR*NZR
-    NXY1 = NX1*NY1
-    nxyzr = nxr*nxr*nzr
+  NZR = NXR
+  IF(NZ1 == 1) NZR=1
+  NYZR = NXR*NZR
+  NXY1 = NX1*NY1
+  nxyzr = nxr*nxr*nzr
 
-    IF (NXR /= NOLD) THEN
-        NOLD=NXR
-        CALL ZWGLL   (ZGMR,WGTR,NXR)
-        CALL IGLLM   (IRES,ITRES,ZGMR,ZGM1,NXR,NX1,NXR,NX1)
-        IF (NID == 0) WRITE(6,10) NXR,NX1
-        10 FORMAT(2X,'Mapping restart data from Nold=',I2 &
-        ,' to Nnew=',I2,'.')
-    ENDIF
+  IF (NXR /= NOLD) THEN
+      NOLD=NXR
+      CALL ZWGLL   (ZGMR,WGTR,NXR)
+      CALL IGLLM   (IRES,ITRES,ZGMR,ZGM1,NXR,NX1,NXR,NX1)
+      IF (NID == 0) WRITE(6,10) NXR,NX1
+      10 FORMAT(2X,'Mapping restart data from Nold=',I2 &
+      ,' to Nnew=',I2,'.')
+  ENDIF
 
-    DO 1000 IE=1,NEL
-        call copy4r(xc,y(1,1,1,ie),nxyzr)
-        CALL MXM (IRES,NX1,xc,NXR,XA,NYZR)
-        DO 100 IZ=1,NZR
-            IZOFF = 1 + (IZ-1)*NX1*NXR
-            CALL MXM (XA(IZOFF),NX1,ITRES,NXR,XB(1,1,IZ),NY1)
-        100 END DO
-        IF (NDIM == 3) THEN
-            CALL MXM (XB,NXY1,ITRES,NZR,X(1,1,1,IE),NZ1)
-        ELSE
-            CALL COPY(X(1,1,1,IE),XB,NXY1)
-        ENDIF
-    1000 END DO
+  DO 1000 IE=1,NEL
+      call copy4r(xc,y(1,1,1,ie),nxyzr)
+      CALL MXM (IRES,NX1,xc,NXR,XA,NYZR)
+      DO 100 IZ=1,NZR
+          IZOFF = 1 + (IZ-1)*NX1*NXR
+          CALL MXM (XA(IZOFF),NX1,ITRES,NXR,XB(1,1,IZ),NY1)
+      100 END DO
+      IF (NDIM == 3) THEN
+          CALL MXM (XB,NXY1,ITRES,NZR,X(1,1,1,IE),NZ1)
+      ELSE
+          CALL COPY(X(1,1,1,IE),XB,NXY1)
+      ENDIF
+  1000 END DO
 
-    return
-    end subroutine mapab4R
+  return
+end subroutine mapab4R
 !-----------------------------------------------------------------------
     function i1_from_char(s1)
     character(1) :: s1

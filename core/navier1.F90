@@ -1615,62 +1615,67 @@
     end subroutine setordbd
 
 !-----------------------------------------------------------------------
-    subroutine normsc (h1,semi,l2,linf,x,imesh)
 !---------------------------------------------------------------
-
-!     Compute error norms of a (scalar) field variable X
-!     defined on mesh 1 or mesh 2.
-!     The error norms are normalized with respect to the volume
-!     (except for Linf).
-
+!> \brief Compute error norms of a (scalar) field variable X
+!! defined on mesh 1 or mesh 2.
+!! The error norms are normalized with respect to the volume
+!! (except for Linf).
 !---------------------------------------------------------------
-    use size_m
-    use mass
+subroutine normsc (h1,semi,l2,linf,x,imesh)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelv, nelt, ndim
+  use mass, only : bm1, voltm1, volvm1
+  implicit none
 
-    REAL ::           X  (LX1,LY1,LZ1,1)
-    COMMON /SCRNRM/ Y  (LX1,LY1,LZ1,LELT) &
-    ,TA1(LX1,LY1,LZ1,LELT) &
-    ,TA2(LX1,LY1,LZ1,LELT)
-    REAL :: H1,SEMI,L2,LINF
-    REAL :: LENGTH
+  real(DP) :: h1, semi, l2, linf
+  real(DP) ::           X  (LX1,LY1,LZ1,1)
+  integer :: imesh
 
-    IF (IMESH == 1) THEN
-        NEL = NELV
-        VOL = VOLVM1
-    ELSEIF (IMESH == 2) THEN
-        NEL = NELT
-        VOL = VOLTM1
-    ENDIF
-    LENGTH = VOL**(1./(NDIM))
-    NXYZ1  = NX1*NY1*NZ1
-    NTOT1  = NXYZ1*NEL
+  real(DP), allocatable, dimension(:,:,:,:) :: y, ta1, ta2
+  REAL(DP) :: LENGTH, vol
+  integer :: nel, nxyz1, ntot1
+  real(DP), external :: glamax, glsum
 
-    H1     = 0.
-    SEMI   = 0.
-    L2     = 0.
-    LINF   = 0.
+  allocate(Y(LX1,LY1,LZ1,LELT), TA1(LX1,LY1,LZ1,LELT), TA2(LX1,LY1,LZ1,LELT))
 
-    LINF = GLAMAX (X,NTOT1)
+  IF (IMESH == 1) THEN
+      NEL = NELV
+      VOL = VOLVM1
+  ELSEIF (IMESH == 2) THEN
+      NEL = NELT
+      VOL = VOLTM1
+  ENDIF
+  LENGTH = VOL**(1./(NDIM))
+  NXYZ1  = NX1*NY1*NZ1
+  NTOT1  = NXYZ1*NEL
 
-    CALL COL3   (TA1,X,X,NTOT1)
-    CALL COL2   (TA1,BM1,NTOT1)
-    L2   = GLSUM  (TA1,NTOT1)
-    IF (L2 < 0.0) L2 = 0.
+  H1     = 0.
+  SEMI   = 0.
+  L2     = 0.
+  LINF   = 0.
 
-    CALL RONE   (TA1,NTOT1)
-    CALL RZERO  (TA2,NTOT1)
-    CALL AXHELM (Y,X,TA1,TA2,IMESH,1)
-    CALL COL3   (TA1,Y,X,NTOT1)
-    SEMI = GLSUM  (TA1,NTOT1)
-    IF (SEMI < 0.0) SEMI = 0.
+  LINF = GLAMAX (X,NTOT1)
 
-    H1   = SQRT((SEMI*LENGTH**2+L2)/VOL)
-    SEMI = SQRT(SEMI/VOL)
-    L2   = SQRT(L2/VOL)
-    IF (H1 < 0.) H1 = 0.
+  CALL COL3   (TA1,X,X,NTOT1)
+  CALL COL2   (TA1,BM1,NTOT1)
+  L2   = GLSUM  (TA1,NTOT1)
+  IF (L2 < 0.0) L2 = 0.
 
-    return
-    end subroutine normsc
+  CALL RONE   (TA1,NTOT1)
+  CALL RZERO  (TA2,NTOT1)
+  CALL AXHELM (Y,X,TA1,TA2,IMESH,1)
+  CALL COL3   (TA1,Y,X,NTOT1)
+  SEMI = GLSUM  (TA1,NTOT1)
+  IF (SEMI < 0.0) SEMI = 0.
+
+  H1   = SQRT((SEMI*LENGTH**2+L2)/VOL)
+  SEMI = SQRT(SEMI/VOL)
+  L2   = SQRT(L2/VOL)
+  IF (H1 < 0.) H1 = 0.
+
+  return
+end subroutine normsc
 
     subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
 !---------------------------------------------------------------
@@ -2699,6 +2704,7 @@
     return
     end subroutine wlaplacian
 !-----------------------------------------------------------------------
+#if 0
     subroutine gradl_rst_t(u,ur,us,ut,md,if3d)  ! GLL grad-transpose
 
 !     Thus routine originally from fsi file: u5.usr (May 2010)
@@ -2800,6 +2806,8 @@
     , pjgl  (0:ld*ld)
     integer :: pd , pdg , pjgl
 
+    write(*,*) "MAX: get_dgll_ptr"
+
     ij = md + ld*(mx-1)
     ip = pdg (ij)
 
@@ -2822,6 +2830,7 @@
 
     return
     end subroutine get_dgll_ptr
+#endif
 !-----------------------------------------------------------------------
     subroutine gen_dgll(dgl,dgt,mp,np,w)
 

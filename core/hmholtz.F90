@@ -641,389 +641,399 @@
     return
     end subroutine chktcg1
 !=======================================================================
-    subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 !-------------------------------------------------------------------------
-
-!     Solve the Helmholtz equation, H*U = RHS,
-!     using preconditioned conjugate gradient iteration.
-!     Preconditioner: diag(H).
-
+!> \brief Solve the Helmholtz equation, H*U = RHS,
+!! using preconditioned conjugate gradient iteration.
+!! Preconditioner: diag(H).
 !------------------------------------------------------------------------
-    use size_m
-    use geom
-    use fdmh1
-    use input
-    use mass
-    use soln
-    use tstep
+subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
+  use kinds, only : DP
+  use size_m, only : nid, nx1, ny1, nz1, nelt, nelv
+  use size_m, only : lx1, ly1, lz1, lelt
+  use fdmh1, only : kfldfdm
+  use input, only : ifsplit, param
+  use mass, only : volvm1, voltm1, bm1
+  use tstep, only : istep, imesh
+  implicit none
 
-    COMMON  /CPRINT/ IFPRINT, IFHZPC
-    LOGICAL ::          IFPRINT, IFHZPC
+  real(DP) :: x(1),f(1),h1(1),h2(1),mask(1),mult(1),binv(1)
+  integer :: imsh, isd, maxit
+  real(DP) :: tin
+  character(4) :: name
 
-    COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-    LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-    logical :: ifmcor,ifprint_hmh
+  COMMON  /CPRINT/ IFPRINT, IFHZPC
+  LOGICAL ::          IFPRINT, IFHZPC
 
-    real :: x(1),f(1),h1(1),h2(1),mask(1),mult(1),binv(1)
-    parameter        (lg=lx1*ly1*lz1*lelt)
-    COMMON /SCRCG/ d (lg) , scalar(2)
-    common /SCRMG/ r (lg) , w (lg) , p (lg) , z (lg)
+  COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
+  LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
+  logical :: ifmcor,ifprint_hmh
 
-    parameter (maxcg=900)
-    common /tdarray/ diagt(maxcg),upper(maxcg)
-    common /iterhm/ niterhm
-    character(4) :: name
+  integer, parameter :: lg=lx1*ly1*lz1*lelt
+  real(DP) :: d, scalar, r, w, p, z
+  COMMON /SCRCG/ d (lg) , scalar(2)
+  common /SCRMG/ r (lg) , w (lg) , p (lg) , z (lg)
 
-    if (ifsplit .AND. name == 'PRES' .AND. param(42) == 0) then
-        n = nx1*ny1*nz1*nelv
-        call copy      (x,f,n)
-        call hmh_gmres (x,h1,h2,mult,iter)
-        niterhm = iter
-        return
-    endif
+  integer, parameter :: maxcg=900
+  real(DP), allocatable :: diagt(:), upper(:)
+  integer :: niterhm
+  common /iterhm/ niterhm
+
+  integer :: n, iter, nxyz, nel, niter, krylov
+  real(DP) :: rho, vol, tol, h2max, skmin, smean, rmean
+  real(DP) :: rtz1, rtz2, rbn2, rbn0, beta, rho0, alpha, alphm
+  real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, vlsc32, glsc3
+
+  allocatE(diagt(maxcg),upper(maxcg))
+
+  if (ifsplit .AND. name == 'PRES' .AND. param(42) == 0) then
+      n = nx1*ny1*nz1*nelv
+      call copy      (x,f,n)
+      call hmh_gmres (x,h1,h2,mult,iter)
+      niterhm = iter
+      return
+  endif
 !      write(6,*) ifsplit,name,param(44),' P44 C'
 
 ! **  zero out stuff for Lanczos eigenvalue estimator
-    call rzero(diagt,maxcg)
-    call rzero(upper,maxcg)
-    rho = 0.00
+  call rzero(diagt,maxcg)
+  call rzero(upper,maxcg)
+  rho = 0.00
 
 !     Initialization
+  NXYZ   = NX1*NY1*NZ1
+  NEL    = NELV
+  VOL    = VOLVM1
+  IF (IMSH == 2) NEL=NELT
+  IF (IMSH == 2) VOL=VOLTM1
+  n      = NEL*NXYZ
 
-    NXYZ   = NX1*NY1*NZ1
-    NEL    = NELV
-    VOL    = VOLVM1
-    IF (IMSH == 2) NEL=NELT
-    IF (IMSH == 2) VOL=VOLTM1
-    n      = NEL*NXYZ
-
-    tol=abs(tin)
-    if (param(22) /= 0) tol=abs(param(22))
-    if (name == 'PRES' .AND. param(21) /= 0) tol=abs(param(21))
-    if (tin < 0)       tol=abs(tin)
-    niter = min(maxit,maxcg)
+  tol=abs(tin)
+  if (param(22) /= 0) tol=abs(param(22))
+  if (name == 'PRES' .AND. param(21) /= 0) tol=abs(param(21))
+  if (tin < 0)       tol=abs(tin)
+  niter = min(maxit,maxcg)
 
 !     Speed-up for undeformed elements and constant properties.
-    if ( .NOT. ifsolv) then
-        call setfast(h1,h2,imesh)
-        ifsolv = .TRUE. 
-    endif
+  if ( .NOT. ifsolv) then
+      call setfast(h1,h2,imesh)
+      ifsolv = .TRUE. 
+  endif
 
 !     Set up diag preconditioner.
 
-    if (kfldfdm < 0) then
-        call setprec(D,h1,h2,imsh,isd)
-    elseif(param(100) /= 2) then
-        call set_fdm_prec_h1b(d,h1,h2,nel)
-    endif
+  if (kfldfdm < 0) then
+      call setprec(D,h1,h2,imsh,isd)
+  elseif(param(100) /= 2) then
+      call set_fdm_prec_h1b(d,h1,h2,nel)
+  endif
 
-    call copy (r,f,n)
-    call rzero(x,n)
-    call rzero(p,n)
+  call copy (r,f,n)
+  call rzero(x,n)
+  call rzero(p,n)
 
 !     Check for non-trivial null-space
 
-    ifmcor = .FALSE. 
-    h2max = glmax(h2  ,n)
-    skmin = glmin(mask,n)
-    if (skmin > 0 .AND. h2max == 0) ifmcor = .TRUE. 
+  ifmcor = .FALSE. 
+  h2max = glmax(h2  ,n)
+  skmin = glmin(mask,n)
+  if (skmin > 0 .AND. h2max == 0) ifmcor = .TRUE. 
 
-    if (name == 'PRES') then
-    !        call ortho (r)           ! Commented out March 15, 2011,pff
-    elseif (ifmcor) then
+  if (name == 'PRES') then
+  !        call ortho (r)           ! Commented out March 15, 2011,pff
+  elseif (ifmcor) then
 
-        smean = -1./glsum(bm1,n) ! Modified 5/4/12 pff
-        rmean = smean*glsc2(r,mult,n)
-        call copy(x,bm1,n)
-        call dssum(x,nx1,ny1,nz1)
-        call add2s2(r,x,rmean,n)
-        call rzero(x,n)
+      smean = -1./glsum(bm1,n) ! Modified 5/4/12 pff
+      rmean = smean*glsc2(r,mult,n)
+      call copy(x,bm1,n)
+      call dssum(x,nx1,ny1,nz1)
+      call add2s2(r,x,rmean,n)
+      call rzero(x,n)
+  endif
+
+  krylov = 0
+  rtz1=1.0
+  niterhm = 0
+
+  do iter=1,niter
+  
+      if (kfldfdm < 0) then  ! Jacobi Preconditioner
+      !           call copy(z,r,n)
+          call col3(z,r,d,n)
+      else                                       ! Schwarz Preconditioner
+      write (*,*) "Oops: kfldfdm"
+#if 0
+          if (name == 'PRES' .AND. param(100) == 2) then
+              call h1_overlap_2(z,r,mask)
+              call crs_solve_h1 (w,r)  ! Currently, crs grd only for P
+              call add2         (z,w,n)
+          else
+              call fdm_h1(z,r,d,mask,mult,nel,ktype(1,1,kfldfdm),w)
+              if (name == 'PRES') then
+                  call crs_solve_h1 (w,r)  ! Currently, crs grd only for P
+                  call add2         (z,w,n)
+              endif
+          endif
+#endif
+      endif
+  
+      if (name == 'PRES') then
+          call ortho (z)
+      elseif (ifmcor) then
+          rmean = smean*glsc2(z,bm1,n)
+          call cadd(z,rmean,n)
+      endif
+  !        write(6,*) rmean,ifmcor,' ifmcor'
+  
+      rtz2=rtz1
+      scalar(1)=vlsc3 (z,r,mult,n)
+      scalar(2)=vlsc32(r,mult,binv,n)
+      call gop(scalar,w,'+  ',2)
+      rtz1=scalar(1)
+      rbn2=sqrt(scalar(2)/vol)
+      if (iter == 1) rbn0 = rbn2
+      if (param(22) < 0) tol=abs(param(22))*rbn0
+      if (tin < 0)       tol=abs(tin)*rbn0
+
+      ifprint_hmh = .FALSE. 
+      if (nid == 0 .AND. ifprint .AND. param(74) /= 0) ifprint_hmh= .TRUE. 
+      if (nid == 0 .AND. istep == 1)                 ifprint_hmh= .TRUE. 
+
+      if (ifprint_hmh) &
+      write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1),h2(1)
+
+
+  !        Always take at least one iteration   (for projection) pff 11/23/98
+#ifndef TST_WSCAL
+      IF (rbn2 <= TOL .AND. (iter > 1 .OR. istep <= 5)) THEN
+#else
+          iter_max = param(150)
+          if (name == 'PRES') iter_max = param(151)
+          if (iter > iter_max) then
+#endif
+          !        IF (rbn2.LE.TOL) THEN
+              NITER = ITER-1
+          !           IF(NID.EQ.0.AND.((.NOT.IFHZPC).OR.IFPRINT))
+              if (nid == 0) &
+              write(6,3000) istep,name,niter,rbn2,rbn0,tol
+              goto 9999
+          ENDIF
+      
+          beta = rtz1/rtz2
+          if (iter == 1) beta=0.0
+          call add2s1 (p,z,beta,n)
+          call axhelm (w,p,h1,h2,imsh,isd)
+          call dssum  (w,nx1,ny1,nz1)
+          call col2   (w,mask,n)
+      
+          rho0 = rho
+          rho  = glsc3(w,p,mult,n)
+          alpha=rtz1/rho
+          alphm=-alpha
+          call add2s2(x,p ,alpha,n)
+          call add2s2(r,w ,alphm,n)
+      
+      !        Generate tridiagonal matrix for Lanczos scheme
+          if (iter == 1) then
+              krylov = krylov+1
+              diagt(iter) = rho/rtz1
+          elseif (iter <= maxcg) then
+              krylov = krylov+1
+              diagt(iter)    = (beta**2 * rho0 + rho ) / rtz1
+              upper(iter-1)  = -beta * rho0 / sqrt(rtz2 * rtz1)
+          endif
+          1000 enddo
+          niter = iter-1
+      
+          if (nid == 0) write (6,3001) istep,niter,name,rbn2,rbn0,tol
+          3000 format(4x,i7,4x,'Hmholtz ',a4,': ',I6,1p6E13.4)
+          3001 format(2i6,' **ERROR**: Failed in HMHOLTZ: ',a4,1p6E13.4)
+          3002 format(i3,i6,' Helmholtz ',a4,1x,l4,':',1p6E13.4)
+          9999 continue
+          niterhm = niter
+          ifsolv = .FALSE. 
+      
+      
+      !     Call eigenvalue routine for Lanczos scheme:
+      !          two work arrays are req'd if you want to save "diag & upper"
+      
+      !     if (iter.ge.3) then
+      !        niter = iter-1
+      !        call calc (diagt,upper,w,z,krylov,dmax,dmin)
+      !        cond = dmax/dmin
+      !        if (nid.eq.0) write(6,6) istep,cond,dmin,dmax,' lambda'
+      !     endif
+      !   6 format(i9,1p3e12.4,4x,a7)
+      
+      !     if (n.gt.0) write(6,*) 'quit in cggo'
+      !     if (n.gt.0) call exitt
+      !     call exitt
+  return
+end subroutine cggo
+!=======================================================================
+    function vlsc32(r,b,m,n)
+    real :: r(1),b(1),m(1)
+    s = 0.
+    do i=1,n
+        s = s + b(i)*m(i)*r(i)*r(i)
+    enddo
+    vlsc32 = s
+    return
+    end function vlsc32
+!=======================================================================
+    subroutine set_fdm_prec_h1b(d,h1,h2,nel)
+    use size_m
+    use fdmh1
+    use geom
+    use input
+    real :: d (nx1,ny1,nz1,1)
+    real :: h1(nx1,ny1,nz1,1)
+    real :: h2(nx1,ny1,nz1,1)
+
+!     Set up diagonal for FDM for each spectral element
+
+    nxyz = nx1*ny1*nz1
+    if (if3d) then
+        do ie=1,nel
+            h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
+            h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
+            k1 = ktype(ie,1,kfldfdm)
+            k2 = ktype(ie,2,kfldfdm)
+            k3 = ktype(ie,3,kfldfdm)
+            vol = elsize(1,ie)*elsize(2,ie)*elsize(3,ie)
+            vl1 = elsize(2,ie)*elsize(3,ie)/elsize(1,ie)
+            vl2 = elsize(1,ie)*elsize(3,ie)/elsize(2,ie)
+            vl3 = elsize(1,ie)*elsize(2,ie)/elsize(3,ie)
+            do i3=1,nz1
+                do i2=1,ny1
+                    do i1=1,nx1
+                        den = h1b*(vl1*dd(i1,k1) + vl2*dd(i2,k2) + vl3*dd(i3,k3)) &
+                        + h2b*vol
+                        if (ifbhalf) den = den/vol
+                        if (den /= 0) then
+                            d(i1,i2,i3,ie) = 1./den
+                        else
+                            d(i1,i2,i3,ie) = 0.
+                        
+                        !                 write(6,3) 'd=0:'
+                        !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2),dd(i3,k3)
+                        !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2,k3
+                            3 format(a4,1p4e12.4,8i8)
+                        
+                        endif
+                    enddo
+                enddo
+            enddo
+        enddo
+    else
+        do ie=1,nel
+            if (ifaxis) then
+                h1b = vlsc2(h1(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
+                h2b = vlsc2(h2(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
+            else
+                h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
+                h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
+            endif
+            k1 = ktype(ie,1,kfldfdm)
+            k2 = ktype(ie,2,kfldfdm)
+            vol = elsize(1,ie)*elsize(2,ie)
+            vl1 = elsize(2,ie)/elsize(1,ie)
+            vl2 = elsize(1,ie)/elsize(2,ie)
+            i3=1
+            do i2=1,ny1
+                do i1=1,nx1
+                    den = h1b*( vl1*dd(i1,k1) + vl2*dd(i2,k2) ) &
+                    + h2b*vol
+                    if (ifbhalf) den = den/vol
+                    if (den /= 0) then
+                        d(i1,i2,i3,ie) = 1./den
+                    !                 write(6,3) 'dn0:'
+                    !    $                 ,d(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
+                    !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
+                    else
+                        d(i1,i2,i3,ie) = 0.
+                    !                 write(6,3) 'd=0:'
+                    !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
+                    !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
+                        2 format(a4,1p3e12.4,8i8)
+                    endif
+                !           write(6,1) ie,i1,i2,k1,k2,'d:',d(i1,i2,i3,ie),vol,vl1,vl2
+                !   1       format(5i3,2x,a2,1p4e12.4)
+                enddo
+            enddo
+        enddo
     endif
 
-    krylov = 0
-    rtz1=1.0
-    niterhm = 0
+    return
+    end subroutine set_fdm_prec_h1b
+!-----------------------------------------------------------------------
+    subroutine generalev(a,b,lam,n,w)
 
-    do iter=1,niter
+!     Solve the generalized eigenvalue problem  A x = lam B x
+
+!     A -- symm.
+!     B -- symm., pos. definite
+
+!     "SIZE" is included here only to deduce WDSIZE, the working
+!     precision, in bytes, so as to know whether dsygv or ssygv
+!     should be called.
+
+    use size_m
+    use parallel
+
+    real :: a(n,n),b(n,n),lam(n),w(n,n)
+    real :: aa(100),bb(100)
+
+    parameter (lbw=4*lx1*ly1*lz1*lelv)
+    common /bigw/ bw(lbw)
+
+    lw = n*n
+!     write(6,*) 'in generalev, =',info,n,ninf
+
+!     call outmat2(a,n,n,n,'aa  ')
+!     call outmat2(b,n,n,n,'bb  ')
+
+    call copy(aa,a,100)
+    call copy(bb,b,100)
+
+    if (ifdblas) then
+        call dsygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
+    else
+        call ssygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
+    endif
+
+!     call outmat2(a,n,n,n,'Aeig')
+!     call outmat2(lam,1,n,n,'Deig')
+
+    if (info /= 0) then
     
-        if (kfldfdm < 0) then  ! Jacobi Preconditioner
-        !           call copy(z,r,n)
-            call col3(z,r,d,n)
-        else                                       ! Schwarz Preconditioner
-        write (*,*) "Oops: kfldfdm"
-#if 0
-            if (name == 'PRES' .AND. param(100) == 2) then
-                call h1_overlap_2(z,r,mask)
-                call crs_solve_h1 (w,r)  ! Currently, crs grd only for P
-                call add2         (z,w,n)
-            else
-                call fdm_h1(z,r,d,mask,mult,nel,ktype(1,1,kfldfdm),w)
-                if (name == 'PRES') then
-                    call crs_solve_h1 (w,r)  ! Currently, crs grd only for P
-                    call add2         (z,w,n)
-                endif
-            endif
-#endif
+        if (nid == 0) then
+            call outmat2(aa ,n,n,n,'aa  ')
+            call outmat2(bb ,n,n,n,'bb  ')
+            call outmat2(a  ,n,n,n,'Aeig')
+            call outmat2(lam,1,n,n,'Deig')
         endif
     
-        if (name == 'PRES') then
-            call ortho (z)
-        elseif (ifmcor) then
-            rmean = smean*glsc2(z,bm1,n)
-            call cadd(z,rmean,n)
-        endif
-    !        write(6,*) rmean,ifmcor,' ifmcor'
-    
-        rtz2=rtz1
-        scalar(1)=vlsc3 (z,r,mult,n)
-        scalar(2)=vlsc32(r,mult,binv,n)
-        call gop(scalar,w,'+  ',2)
-        rtz1=scalar(1)
-        rbn2=sqrt(scalar(2)/vol)
-        if (iter == 1) rbn0 = rbn2
-        if (param(22) < 0) tol=abs(param(22))*rbn0
-        if (tin < 0)       tol=abs(tin)*rbn0
+        ninf = n-info
+        write(6,*) 'Error in generalev, info=',info,n,ninf
+        call exitt
+    endif
 
-        ifprint_hmh = .FALSE. 
-        if (nid == 0 .AND. ifprint .AND. param(74) /= 0) ifprint_hmh= .TRUE. 
-        if (nid == 0 .AND. istep == 1)                 ifprint_hmh= .TRUE. 
+    return
+    end subroutine generalev
+!-----------------------------------------------------------------------
+    subroutine outmat2(a,m,n,k,name)
+    use size_m
+    real :: a(m,n)
+    character(4) :: name
 
-        if (ifprint_hmh) &
-        write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1),h2(1)
-
-
-    !        Always take at least one iteration   (for projection) pff 11/23/98
-#ifndef TST_WSCAL
-        IF (rbn2 <= TOL .AND. (iter > 1 .OR. istep <= 5)) THEN
-#else
-            iter_max = param(150)
-            if (name == 'PRES') iter_max = param(151)
-            if (iter > iter_max) then
-#endif
-            !        IF (rbn2.LE.TOL) THEN
-                NITER = ITER-1
-            !           IF(NID.EQ.0.AND.((.NOT.IFHZPC).OR.IFPRINT))
-                if (nid == 0) &
-                write(6,3000) istep,name,niter,rbn2,rbn0,tol
-                goto 9999
-            ENDIF
-        
-            beta = rtz1/rtz2
-            if (iter == 1) beta=0.0
-            call add2s1 (p,z,beta,n)
-            call axhelm (w,p,h1,h2,imsh,isd)
-            call dssum  (w,nx1,ny1,nz1)
-            call col2   (w,mask,n)
-        
-            rho0 = rho
-            rho  = glsc3(w,p,mult,n)
-            alpha=rtz1/rho
-            alphm=-alpha
-            call add2s2(x,p ,alpha,n)
-            call add2s2(r,w ,alphm,n)
-        
-        !        Generate tridiagonal matrix for Lanczos scheme
-            if (iter == 1) then
-                krylov = krylov+1
-                diagt(iter) = rho/rtz1
-            elseif (iter <= maxcg) then
-                krylov = krylov+1
-                diagt(iter)    = (beta**2 * rho0 + rho ) / rtz1
-                upper(iter-1)  = -beta * rho0 / sqrt(rtz2 * rtz1)
-            endif
-            1000 enddo
-            niter = iter-1
-        
-            if (nid == 0) write (6,3001) istep,niter,name,rbn2,rbn0,tol
-            3000 format(4x,i7,4x,'Hmholtz ',a4,': ',I6,1p6E13.4)
-            3001 format(2i6,' **ERROR**: Failed in HMHOLTZ: ',a4,1p6E13.4)
-            3002 format(i3,i6,' Helmholtz ',a4,1x,l4,':',1p6E13.4)
-            9999 continue
-            niterhm = niter
-            ifsolv = .FALSE. 
-        
-        
-        !     Call eigenvalue routine for Lanczos scheme:
-        !          two work arrays are req'd if you want to save "diag & upper"
-        
-        !     if (iter.ge.3) then
-        !        niter = iter-1
-        !        call calc (diagt,upper,w,z,krylov,dmax,dmin)
-        !        cond = dmax/dmin
-        !        if (nid.eq.0) write(6,6) istep,cond,dmin,dmax,' lambda'
-        !     endif
-        !   6 format(i9,1p3e12.4,4x,a7)
-        
-        !     if (n.gt.0) write(6,*) 'quit in cggo'
-        !     if (n.gt.0) call exitt
-        !     call exitt
-            return
-            end subroutine cggo
-        !=======================================================================
-            function vlsc32(r,b,m,n)
-            real :: r(1),b(1),m(1)
-            s = 0.
-            do i=1,n
-                s = s + b(i)*m(i)*r(i)*r(i)
-            enddo
-            vlsc32 = s
-            return
-            end function vlsc32
-        !=======================================================================
-            subroutine set_fdm_prec_h1b(d,h1,h2,nel)
-            use size_m
-            use fdmh1
-            use geom
-            use input
-            real :: d (nx1,ny1,nz1,1)
-            real :: h1(nx1,ny1,nz1,1)
-            real :: h2(nx1,ny1,nz1,1)
-        
-        !     Set up diagonal for FDM for each spectral element
-        
-            nxyz = nx1*ny1*nz1
-            if (if3d) then
-                do ie=1,nel
-                    h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
-                    h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
-                    k1 = ktype(ie,1,kfldfdm)
-                    k2 = ktype(ie,2,kfldfdm)
-                    k3 = ktype(ie,3,kfldfdm)
-                    vol = elsize(1,ie)*elsize(2,ie)*elsize(3,ie)
-                    vl1 = elsize(2,ie)*elsize(3,ie)/elsize(1,ie)
-                    vl2 = elsize(1,ie)*elsize(3,ie)/elsize(2,ie)
-                    vl3 = elsize(1,ie)*elsize(2,ie)/elsize(3,ie)
-                    do i3=1,nz1
-                        do i2=1,ny1
-                            do i1=1,nx1
-                                den = h1b*(vl1*dd(i1,k1) + vl2*dd(i2,k2) + vl3*dd(i3,k3)) &
-                                + h2b*vol
-                                if (ifbhalf) den = den/vol
-                                if (den /= 0) then
-                                    d(i1,i2,i3,ie) = 1./den
-                                else
-                                    d(i1,i2,i3,ie) = 0.
-                                
-                                !                 write(6,3) 'd=0:'
-                                !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2),dd(i3,k3)
-                                !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2,k3
-                                    3 format(a4,1p4e12.4,8i8)
-                                
-                                endif
-                            enddo
-                        enddo
-                    enddo
-                enddo
-            else
-                do ie=1,nel
-                    if (ifaxis) then
-                        h1b = vlsc2(h1(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
-                        h2b = vlsc2(h2(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
-                    else
-                        h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
-                        h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
-                    endif
-                    k1 = ktype(ie,1,kfldfdm)
-                    k2 = ktype(ie,2,kfldfdm)
-                    vol = elsize(1,ie)*elsize(2,ie)
-                    vl1 = elsize(2,ie)/elsize(1,ie)
-                    vl2 = elsize(1,ie)/elsize(2,ie)
-                    i3=1
-                    do i2=1,ny1
-                        do i1=1,nx1
-                            den = h1b*( vl1*dd(i1,k1) + vl2*dd(i2,k2) ) &
-                            + h2b*vol
-                            if (ifbhalf) den = den/vol
-                            if (den /= 0) then
-                                d(i1,i2,i3,ie) = 1./den
-                            !                 write(6,3) 'dn0:'
-                            !    $                 ,d(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
-                            !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
-                            else
-                                d(i1,i2,i3,ie) = 0.
-                            !                 write(6,3) 'd=0:'
-                            !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
-                            !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
-                                2 format(a4,1p3e12.4,8i8)
-                            endif
-                        !           write(6,1) ie,i1,i2,k1,k2,'d:',d(i1,i2,i3,ie),vol,vl1,vl2
-                        !   1       format(5i3,2x,a2,1p4e12.4)
-                        enddo
-                    enddo
-                enddo
-            endif
-        
-            return
-            end subroutine set_fdm_prec_h1b
-        !-----------------------------------------------------------------------
-            subroutine generalev(a,b,lam,n,w)
-        
-        !     Solve the generalized eigenvalue problem  A x = lam B x
-        
-        !     A -- symm.
-        !     B -- symm., pos. definite
-        
-        !     "SIZE" is included here only to deduce WDSIZE, the working
-        !     precision, in bytes, so as to know whether dsygv or ssygv
-        !     should be called.
-        
-            use size_m
-            use parallel
-        
-            real :: a(n,n),b(n,n),lam(n),w(n,n)
-            real :: aa(100),bb(100)
-        
-            parameter (lbw=4*lx1*ly1*lz1*lelv)
-            common /bigw/ bw(lbw)
-        
-            lw = n*n
-        !     write(6,*) 'in generalev, =',info,n,ninf
-        
-        !     call outmat2(a,n,n,n,'aa  ')
-        !     call outmat2(b,n,n,n,'bb  ')
-        
-            call copy(aa,a,100)
-            call copy(bb,b,100)
-        
-            if (ifdblas) then
-                call dsygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
-            else
-                call ssygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
-            endif
-        
-        !     call outmat2(a,n,n,n,'Aeig')
-        !     call outmat2(lam,1,n,n,'Deig')
-        
-            if (info /= 0) then
-            
-                if (nid == 0) then
-                    call outmat2(aa ,n,n,n,'aa  ')
-                    call outmat2(bb ,n,n,n,'bb  ')
-                    call outmat2(a  ,n,n,n,'Aeig')
-                    call outmat2(lam,1,n,n,'Deig')
-                endif
-            
-                ninf = n-info
-                write(6,*) 'Error in generalev, info=',info,n,ninf
-                call exitt
-            endif
-        
-            return
-            end subroutine generalev
-        !-----------------------------------------------------------------------
-            subroutine outmat2(a,m,n,k,name)
-            use size_m
-            real :: a(m,n)
-            character(4) :: name
-        
-            n2 = min(n,8)
-            write(6,2) nid,name,m,n,k
-            do i=1,m
-                write(6,1) nid,name,(a(i,j),j=1,n2)
-            enddo
-        !   1 format(i3,1x,a4,16f6.2)
-            1 format(i3,1x,a4,1p8e14.5)
-            2 format(/,'Matrix: ',i3,1x,a4,3i8)
-            return
-            end subroutine outmat2
-        !-----------------------------------------------------------------------
+    n2 = min(n,8)
+    write(6,2) nid,name,m,n,k
+    do i=1,m
+        write(6,1) nid,name,(a(i,j),j=1,n2)
+    enddo
+!   1 format(i3,1x,a4,16f6.2)
+    1 format(i3,1x,a4,1p8e14.5)
+    2 format(/,'Matrix: ',i3,1x,a4,3i8)
+    return
+    end subroutine outmat2
+!-----------------------------------------------------------------------

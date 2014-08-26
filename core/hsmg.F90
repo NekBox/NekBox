@@ -1794,6 +1794,7 @@
     return
     end subroutine mg_mask_e
 !-----------------------------------------------------------------------
+#if 0
     subroutine axe &
     (w,p,h1,h2,g,ng,b,nx,ny,nz,ur,us,ut,ifh2,ifrz,e)
 
@@ -1854,6 +1855,7 @@
 
     return
     end subroutine axe
+#endif
 !----------------------------------------------------------------------
     subroutine hsmg_tnsr1(v,nv,nu,A,At)
 

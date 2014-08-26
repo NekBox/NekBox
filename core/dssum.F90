@@ -30,68 +30,65 @@
     return
     end subroutine setupds
 !-----------------------------------------------------------------------
-    subroutine dssum(u,nx,ny,nz)
-    use ctimer
-    use size_m
-    use input
-    use noncon
-    use parallel
-    use tstep
-    real :: u(1)
+subroutine dssum(u,nx,ny,nz)
+  use ctimer
+  use size_m
+  use input
+  use noncon
+  use parallel
+  use tstep
+  real :: u(1)
 
-    parameter (lface=lx1*ly1)
-    common /nonctmp/ uin(lface,2*ldim),uout(lface)
+  parameter (lface=lx1*ly1)
 
-    ifldt = ifield
-!     if (ifldt.eq.0)       ifldt = 1
-    if (ifldt == ifldmhd) ifldt = 1
-!     write(6,*) ifldt,ifield,gsh_fld(ifldt),imesh,' ifldt'
+  ifldt = ifield
+!   if (ifldt.eq.0)       ifldt = 1
+  if (ifldt == ifldmhd) ifldt = 1
+!   write(6,*) ifldt,ifield,gsh_fld(ifldt),imesh,' ifldt'
 
-    if (ifsync) call nekgsync()
+  if (ifsync) call nekgsync()
 
 #ifndef NOTIMER
-    if (icalld == 0) then
-        tdsmx=0.
-        tdsmn=0.
-    endif
-    icalld=icalld+1
-    etime1=dnekclock()
+  if (icalld == 0) then
+      tdsmx=0.
+      tdsmn=0.
+  endif
+  icalld=icalld+1
+  etime1=dnekclock()
 #endif
 
 
-!                 T         ~  ~T  T
-!     Implement QQ   :=   J Q  Q  J
+!               T         ~  ~T  T
+!   Implement QQ   :=   J Q  Q  J
 
 
-!                  T
-!     This is the J  part,  translating child data
-
-!      call apply_Jt(u,nx,ny,nz,nel)
-
-
-
-!                 ~ ~T
-!     This is the Q Q  part
-
-    call gs_op(gsh_fld(ifldt),u,1,1,0)  ! 1 ==> +
+!                T
+!   This is the J  part,  translating child data
+!    call apply_Jt(u,nx,ny,nz,nel)
 
 
 
-!     This is the J  part,  interpolating parent solution onto child
+!               ~ ~T
+!   This is the Q Q  part
 
-!      call apply_J(u,nx,ny,nz,nel)
+  call gs_op(gsh_fld(ifldt),u,1,1,0)  ! 1 ==> +
+
+
+
+!   This is the J  part,  interpolating parent solution onto child
+!    call apply_J(u,nx,ny,nz,nel)
 
 
 #ifndef NOTIMER
-    timee=(dnekclock()-etime1)
-    tdsum=tdsum+timee
-    ndsum=icalld
-    tdsmx=max(timee,tdsmx)
-    tdsmn=min(timee,tdsmn)
+  timee=(dnekclock()-etime1)
+  tdsum=tdsum+timee
+  ndsum=icalld
+  tdsmx=max(timee,tdsmx)
+  tdsmn=min(timee,tdsmn)
 #endif
 
-    return
-    end subroutine dssum
+  return
+end subroutine dssum
 !-----------------------------------------------------------------------
     subroutine dsop(u,op,nx,ny,nz)
     use ctimer

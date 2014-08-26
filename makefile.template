@@ -48,7 +48,7 @@ map2.o ic.o ssolv.o math.o mxm_wrapper.o \
 hmholtz.o \
 subs1.o subs2.o \
 gmres.o hsmg.o convect.o induct.o \
-fast3d.o fasts.o calcz.o \
+fast3d.o fasts.o  \
 byte.o \
 chelpers.o \
 byte_mpi.o \
@@ -60,6 +60,7 @@ papi.o \
 gauss.o \
 makeq.o makeq_aux.o \
 genbox.o \
+#calcz.o \
 #mvmesh.o  \
 #navier7.o \
 #navier2.o \

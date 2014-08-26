@@ -100,48 +100,6 @@
     return
     end subroutine arcsrf
 !-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-#if 0
-    subroutine intrsc(x3,x2,x1,delt,ie,iface)
-
-    DIMENSION X1(3),X2(3),X3(3)
-    COMMON /SRFCEI/ IEL,IFCE
-    COMMON /SRFCER/ X0(3),DX(3)
-    COMMON /SRFCEL/ SUCCES
-    LOGICAL :: SUCCES
-    COMMON /TOLRNC/ TOL
-
-!     Load parameters for surface function FNC
-
-    IEL   = IE
-    IFCE  = IFACE
-    X0(1) = X1(1)
-    X0(2) = X1(2)
-    X0(3) = X1(3)
-    DX(1) = X2(1)-X1(1)
-    DX(2) = X2(2)-X1(2)
-    DX(3) = X2(3)-X1(3)
-    DIST  = SQRT ( DX(1)**2 + DX(2)**2 + DX(3)**2 )
-
-!     Initial guess for bracket is given by size of element face (DELT).
-
-    ETA2  = 1.0
-    ETA1  = ETA2 - DELT/DIST
-    ETA1  = MAX(ETA1,0.0)
-    CALL ZBRAC(ETA1,ETA2,SUCCES)
-
-    TOL    = 1.0E-5
-    TOLSRF = TOL*(ETA2-ETA1)
-    IF (SUCCES) ETA3 = ZBRENT(ETA1,ETA2,TOLSRF)
-
-    X3(1) = X0(1) + DX(1)*ETA3
-    X3(2) = X0(2) + DX(2)*ETA3
-    X3(3) = X0(3) + DX(3)*ETA3
-
-    return
-    end subroutine intrsc
-#endif
-!-----------------------------------------------------------------------
     subroutine zbrac(x1,x2,succes)
 
 !     Given a function FNC and an initial guess (X1,X2), the routine

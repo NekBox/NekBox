@@ -1765,63 +1765,6 @@
     return
     end subroutine h1mg_solve
 !-----------------------------------------------------------------------
-#if 0
-    subroutine h1mg_axml &
-    (w,p,h1,h2,nx,ny,nz,nel,g,ng,b,mask,ifh2)
-
-!     w  := aw*w + ap*H*p, level l, with mask and dssum
-
-!     Hu := div. h1 grad u + h2 u
-
-!        ~= h1 A u + h2 B u
-
-
-    use size_m
-    use hsmg
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    real :: w (nx*ny*nz,nel), p (nx*ny*nz,nel) &
-    , h1(nx*ny*nz,nel), h2(nx*ny*nz,nel) &
-    , b (nx*ny*nz,nel), g (ng*nx*ny*nz,nel)
-    integer :: mask(1)
-
-    logical :: ifh2
-
-    parameter (lxyz=lx1*ly1*lz1)
-    common /ctmp0/ ur(lxyz),us(lxyz),ut(lxyz)
-
-    integer :: e
-
-    do e=1,nel
-
-        call axe(w(1,e),p(1,e),h1(1,e),h2(1,e),g(1,e),ng,b(1,e) &
-        ,nx,ny,nz,ur,us,ut,ifh2,ifrzer(e),e)
-           
-        im = mask(e)
-        call mg_mask_e(w,mask(im)) ! Zero out Dirichlet conditions
-
-    enddo
-
-    return
-    end subroutine h1mg_axml
-#endif
-!-----------------------------------------------------------------------
     subroutine h1mg_mask(w,mask,nel)
     use size_m
 

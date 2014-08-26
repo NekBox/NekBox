@@ -1479,7 +1479,7 @@
     10 END DO
     return
     end subroutine tauinit
-
+#if 0
     subroutine velinit (vel1,vel2,vel3,ilag)
 !-------------------------------------------------------------------
 
@@ -1500,6 +1500,7 @@
     ENDIF
     return
     end subroutine velinit
+#endif
 
     subroutine velconv (vxn,vyn,vzn,tau)
 !--------------------------------------------------------------------
@@ -1613,6 +1614,7 @@
     return
     end subroutine lagvel
 
+#if 0
     subroutine hypmsk3 (hv1msk,hv2msk,hv3msk)
 !---------------------------------------------------------------------
 
@@ -1659,6 +1661,7 @@
 
     return
     end subroutine hypmsk3
+#endif
 
     subroutine setordbd
 !----------------------------------------------------------------------
@@ -2439,6 +2442,7 @@
     end subroutine uzawa
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
+#if 0
     subroutine specmp(b,nb,a,na,ba,ab,w)
 
 !     -  Spectral interpolation from A to B via tensor products
@@ -2469,6 +2473,7 @@
     endif
     return
     end subroutine specmp
+#endif
 !-----------------------------------------------------------------------
     subroutine setmap(n1,nd)
 
@@ -2663,6 +2668,7 @@
     return
     end subroutine convop
 !-----------------------------------------------------------------------
+#if 0
     subroutine conv1rk(du,dv,dw,u,v,w)
 
     use size_m
@@ -3132,6 +3138,7 @@
 
     return
     end subroutine hypmsk3v
+#endif
 !-----------------------------------------------------------------------
     subroutine opdiv(outfld,inpx,inpy,inpz)
 !---------------------------------------------------------------------
@@ -3201,6 +3208,7 @@
     return
     end subroutine opgradt
 !-----------------------------------------------------------------------
+#if 0
     subroutine setproj(n1,nd)
 
     use size_m
@@ -3225,6 +3233,7 @@
 
     return
     end subroutine setproj
+#endif
 !-----------------------------------------------------------------------
     subroutine set_PNDoi(Pt,P,LkNt,N,D)
 

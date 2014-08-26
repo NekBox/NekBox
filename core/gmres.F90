@@ -580,6 +580,7 @@
     return
     end subroutine hmh_gmres
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_up_fast_1D_sem_op_a(g,b0,b1,l &
     ,r,ll,lm,lr,ah)
 !            -1 T
@@ -736,6 +737,7 @@
 
     return
     end subroutine set_up_fast_1D_sem_op_b
+#endif
 !-----------------------------------------------------------------------
     subroutine rzero_g(a,e,nx,ny,nz)
 

@@ -1015,6 +1015,7 @@
     return
     end subroutine flush_io
 !-----------------------------------------------------------------------
+#if 0
     subroutine ttrst (ff,fr,fs,ft,ta)
 
     use size_m
@@ -1046,6 +1047,7 @@
 
     return
     end subroutine ttrst
+#endif
 !-----------------------------------------------------------------------
     subroutine setaxdy (ifaxdy)
 

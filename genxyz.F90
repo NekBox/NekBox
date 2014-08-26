@@ -100,39 +100,6 @@
     return
     end subroutine arcsrf
 !-----------------------------------------------------------------------
-#if 0
-    subroutine zbrac(x1,x2,succes)
-
-!     Given a function FNC and an initial guess (X1,X2), the routine
-!     expands the range geometrically until a root is bracketed by the
-!     returned range (X1,X2) [SUCCES=.TRUE.], or until the range becomes
-!     unacceptably large [SUCCES=.FALSE.].
-!     ( Numerical Recipes, p. 245; pff 9 Aug 1989 09:00:20 )
-
-    PARAMETER (FACTOR=1.08,NTRY=50)
-    LOGICAL :: SUCCES
-
-    SUCCES = .TRUE. 
-
-    IF (X1 == X2)  X1 = .99*X1
-    IF (X1 == 0.0) X1 = 1.0E-04
-
-    F1 = FNC(X1)
-    F2 = FNC(X2)
-    DO 100 J=1,NTRY
-        IF (F1*F2 < 0.0) return
-        IF (ABS(F1) < ABS(F2)) THEN
-            X1 = X1 + FACTOR*(X1-X2)
-            F1 = FNC(X1)
-        ELSE
-            X2 = X2 + FACTOR*(X2-X1)
-            F2 = FNC(X2)
-        ENDIF
-    100 END DO
-    SUCCES = .FALSE. 
-    return
-    end subroutine zbrac
-#endif
     FUNCTION ZBRENT(X1,X2,TOL)
 
 !     Using the Van Wijngaarden-Dekker-Brent Method, find the root

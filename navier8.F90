@@ -425,66 +425,6 @@
     end function iftuple_ianeb
 
 !-----------------------------------------------------------------------
-#if 0
-    subroutine a_crs_3d(a,h1,h2,xc,yc,zc,ie)
-
-!     Generate stiffness matrix for 3D coarse grid problem.
-
-!     This is done by using two tetrahedrizations of each
-!     hexahedral subdomain (element) such that each of the
-!     6 panels (faces) on the sides of an element has a big X.
-
-
-    real :: a(0:7,0:7),h1(0:7),h2(0:7)
-    real :: xc(0:7),yc(0:7),zc(0:7)
-
-    real :: a_loc(4,4)
-    real :: xt(4),yt(4),zt(4)
-
-    integer :: vertex(4,5,2)
-    save    vertex
-    data    vertex / 000 ,  001 , 010 , 100 &
-    , 000 ,  001 , 011 , 101 &
-    , 011 ,  010 , 000 , 110 &
-    , 011 ,  010 , 001 , 111 &
-    , 000 ,  110 , 101 , 011 &
-
-    , 101 ,  100 , 110 , 000 &
-    , 101 ,  100 , 111 , 001 &
-    , 110 ,  111 , 100 , 010 &
-    , 110 ,  111 , 101 , 011 &
-    , 111 ,  001 , 100 , 010  /
-
-    integer :: icalld
-    save    icalld
-    data    icalld/0/
-
-    if (icalld == 0) then
-        do i=1,40
-            call bindec(vertex(i,1,1))
-        enddo
-    endif
-    icalld=icalld+1
-
-    call rzero(a,64)
-    do k=1,10
-        do iv=1,4
-            xt(iv) = xc(vertex(iv,k,1))
-            yt(iv) = yc(vertex(iv,k,1))
-            zt(iv) = zc(vertex(iv,k,1))
-        enddo
-        call get_local_A_tet(a_loc,xt,yt,zt,k,ie)
-        do j=1,4
-            jj = vertex(j,k,1)
-            do i=1,4
-                ii = vertex(i,k,1)
-                a(ii,jj) = a(ii,jj) + 0.5*a_loc(i,j)
-            enddo
-        enddo
-    enddo
-    return
-    end subroutine a_crs_3d
-#endif
 !-----------------------------------------------------------------------
 
     subroutine bindec(bin_in)
@@ -602,81 +542,6 @@
     end subroutine get_local_A_tet
 
 !-----------------------------------------------------------------------
-#if 0
-    subroutine a_crs_2d(a,h1,h2,x,y,ie)
-
-    use size_m
-    use domain
-    use geom
-    use input
-    use parallel
-    use tstep
-
-!     Generate local triangle-based stiffnes matrix for quad
-
-    real :: a(4,4),h1(1),h2(1)
-    real :: x(1),y(1)
-
-!     Triangle to Square pointers
-
-    integer :: elem(3,2)
-    save    elem
-    data    elem / 1,2,4  ,  1,4,3 /
-
-    real :: a_loc(3,3)
-
-
-    call rzero(a,16)
-
-    do i=1,2
-        j1 = elem(1,i)
-        j2 = elem(2,i)
-        j3 = elem(3,i)
-        x1=x(j1)
-        y1=y(j1)
-        x2=x(j2)
-        y2=y(j2)
-        x3=x(j3)
-        y3=y(j3)
-    
-        y23=y2-y3
-        y31=y3-y1
-        y12=y1-y2
-    
-        x32=x3-x2
-        x13=x1-x3
-        x21=x2-x1
-    
-    !        area4 = 1/(4*area)
-        area4 = 0.50/(x21*y31 - y12*x13)
-    
-        a_loc(1, 1) = area4*( y23*y23+x32*x32 )
-        a_loc(1, 2) = area4*( y23*y31+x32*x13 )
-        a_loc(1, 3) = area4*( y23*y12+x32*x21 )
-    
-        a_loc(2, 1) = area4*( y31*y23+x13*x32 )
-        a_loc(2, 2) = area4*( y31*y31+x13*x13 )
-        a_loc(2, 3) = area4*( y31*y12+x13*x21 )
-    
-        a_loc(3, 1) = area4*( y12*y23+x21*x32 )
-        a_loc(3, 2) = area4*( y12*y31+x21*x13 )
-        a_loc(3, 3) = area4*( y12*y12+x21*x21 )
-    
-    !        Store in "4 x 4" format
-    
-        do il=1,3
-            iv = elem(il,i)
-            do jl=1,3
-                jv = elem(jl,i)
-                a(iv,jv) = a(iv,jv) + a_loc(il,jl)
-            enddo
-        enddo
-    enddo
-
-    return
-    end subroutine a_crs_2d
-#endif
-
 !-----------------------------------------------------------------------
 
     subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)
@@ -1216,53 +1081,6 @@
 
     return
     end subroutine gen_crs_basis
-!-----------------------------------------------------------------------
-#if 0
-    subroutine gen_crs_basis2(b,j) ! bi- tri-quadratic
-
-    use size_m
-    real :: b(nx1,ny1,nz1)
-
-    real :: z0(lx1),z1(lx1),z2(lx1)
-    real :: zr(lx1),zs(lx1),zt(lx1)
-
-    integer :: p,q,r
-
-    call zwgll(zr,zs,nx1)
-
-    do i=1,nx1
-        z0(i) = .5*(zr(i)-1)*zr(i)  ! 1-->0   ! Lagrangian, ordered
-        z1(i) = 4.*(1+zr(i))*(1-zr(i))        ! lexicographically
-        z2(i) = .5*(zr(i)+1)*zr(i)  ! 0-->1   !
-    enddo
-
-    call copy(zr,z0,nx1)
-    call copy(zs,z0,nx1)
-    call copy(zt,z0,nx1)
-
-    if (mod(j,2) == 0)                        call copy(zr,z1,nx1)
-    if (j == 3 .OR. j == 4 .OR. j == 7 .OR. j == 8) call copy(zs,z1,nx1)
-    if (j > 4)                               call copy(zt,z1,nx1)
-
-    if (ndim == 3) then
-        do r=1,nx1
-            do q=1,nx1
-                do p=1,nx1
-                    b(p,q,r) = zr(p)*zs(q)*zt(r)
-                enddo
-            enddo
-        enddo
-    else
-        do q=1,nx1
-            do p=1,nx1
-                b(p,q,1) = zr(p)*zs(q)
-            enddo
-        enddo
-    endif
-
-    return
-    end subroutine gen_crs_basis2
-#endif
 !-----------------------------------------------------------------------
     subroutine get_vertex
     use size_m

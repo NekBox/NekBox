@@ -797,7 +797,6 @@ subroutine swap_lengths()
   implicit none
 
   real, allocatable :: l(:,:,:,:)
-!  common /swaplengths/ l(lx1,ly1,lz1,lelv)
   common /ctmpf/  lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &
   , llr(lelt),lls(lelt),llt(lelt) &
   , lmr(lelt),lms(lelt),lmt(lelt) &

@@ -284,7 +284,6 @@ subroutine nek_advance
   implicit none
 
   integer :: igeom
-  common /cgeom/ igeom
 
   call nekgsync
   IF (IFTRAN) CALL SETTIME

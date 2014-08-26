@@ -343,7 +343,7 @@
     character(1) :: excode(30)
     character(10) :: frmat
 
-    common /nopenf/ nopen(99)
+    integer, save :: nopen(99)
 
     common /rdump/ ntdump
     data ndumps / 0 /

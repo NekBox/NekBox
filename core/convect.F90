@@ -618,6 +618,7 @@
     return
     end subroutine get_dgl_ptr
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_ct_cvx(ct,c,m,u,v,w,tau,nc,mc,nelc,ifnew)
     use size_m
     use input  ! ifcons
@@ -657,6 +658,7 @@
 
     return
     end subroutine set_ct_cvx
+#endif
 !-----------------------------------------------------------------------
     subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
 

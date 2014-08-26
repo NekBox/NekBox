@@ -1,4 +1,5 @@
 !-----------------------------------------------------------------------
+#if 0
     subroutine econj(kprev,h1,h2,h2inv,ierr)
 
 !     Orthogonalize the rhs wrt previous rhs's for which we already
@@ -65,6 +66,7 @@
 
     RETURN
     end subroutine econj
+#endif
 !-----------------------------------------------------------------------
     subroutine chkptol
 !--------------------------------------------------------------------

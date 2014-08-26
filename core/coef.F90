@@ -919,6 +919,7 @@ subroutine geodat1
     RETURN
     end subroutine setarea
 
+#if 0
     subroutine setwgtr (wgtr1,wgtr2,wgtr3,wgtr4)
 
     use size_m
@@ -972,6 +973,7 @@ subroutine geodat1
 
     RETURN
     end subroutine setwgtr
+#endif
 
 !--------------------------------------------------------------------
 !!>brief Compute areas, normals and tangents (3D geom.)
@@ -1162,8 +1164,9 @@ subroutine geodat1
     return
     end subroutine setinvm
 !---------------------------------------------------------------
-!> \breif Map the elemental array X from mesh M3 to mesh M1
+!> \brief Map the elemental array X from mesh M3 to mesh M1
 !---------------------------------------------------------------
+#if 0
 subroutine map31 (y,x,iel)
 
     use size_m
@@ -1201,6 +1204,7 @@ subroutine map31 (y,x,iel)
 
     RETURN
     end subroutine map31
+#endif
 
     subroutine map13 (y,x,iel)
 !---------------------------------------------------------------

@@ -384,6 +384,7 @@
     return
     end subroutine plane_space2
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_up_1D_geom(dx,lbc,rbc,ll,lm,lr,z,nz)
 
     real :: dx(0:1),ll,lm,lr,z(2)
@@ -624,6 +625,7 @@
     call transpose(sft,n,sf,n)
     return
     end subroutine gen_eigs_A_fem
+#endif
 !-----------------------------------------------------------------------
     subroutine get_fast_bc(lbr,rbr,lbs,rbs,lbt,rbt,e,bsym,ierr)
 
@@ -728,6 +730,7 @@
     return
     end subroutine outmat
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_up_1D_geom_ax(dx,lbc,rbc,ll,lm,lr,z,y,nz)
 
     real :: dx(0:1),ll,lm,lr,z(2),y(1)
@@ -968,6 +971,7 @@
     call transpose(sft,n,sf,n)
     return
     end subroutine gen_eigs_A_fem_ax
+#endif
 !-----------------------------------------------------------------------
     subroutine load_semhat_weighted    !   Fills the SEMHAT arrays
 

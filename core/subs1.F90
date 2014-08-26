@@ -518,44 +518,6 @@
     return
     end subroutine cumax
 
-#if 0
-    FUNCTION FACDOT(A,B,IFACE1)
-
-!     Take the dot product of A and B on the surface IFACE1 of element IE.
-
-!         IFACE1 is in the preprocessor notation
-!         IFACE  is the dssum notation.
-!         5 Jan 1989 15:12:22      PFF
-
-    use size_m
-    use topol
-    DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1)
-
-!     Set up counters
-
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-
-    SUM=0.0
-    I = 0
-    DO 100 J2=JS2,JF2,JSKIP2
-        DO 100 J1=JS1,JF1,JSKIP1
-            I = I+1
-            SUM = SUM + A(J1,J2,1)*B(I,1)
-    100 END DO
-
-    FACDOT = SUM
-
-    return
-    END FUNCTION FACDOT
-#endif
-
     subroutine fcaver(xaver,a,iel,iface1)
 !------------------------------------------------------------------------
 
@@ -1053,80 +1015,6 @@
     return
     end subroutine flush_io
 !-----------------------------------------------------------------------
-#if 0
-    subroutine ttxyz (ff,tx,ty,tz,nel)
-
-    use size_m
-    use dxyz
-    use geom
-    use input
-    use tstep
-    use wz_m
-
-    DIMENSION TX(LX1,LY1,LZ1,1) &
-    , TY(LX1,LY1,LZ1,1) &
-    , TZ(LX1,LY1,LZ1,1) &
-    , FF(LX1*LY1*LZ1,1)
-
-    common /scrsf/ fr(lx1*ly1*lz1,lelt) &
-    , fs(lx1*ly1*lz1,lelt) &
-    , ft(lx1*ly1*lz1,lelt)
-    real ::           wa(lx1,ly1,lz1,lelt)
-    equivalence   (wa,ft)
-    real :: ys(lx1)
-
-    NXYZ1 = NX1*NY1*NZ1
-    NTOT1 = NXYZ1*NEL
-
-    CALL COL3    (FR,RXM1,TX,NTOT1)
-    CALL ADDCOL3 (FR,RYM1,TY,NTOT1)
-    CALL COL3    (FS,SXM1,TX,NTOT1)
-    CALL ADDCOL3 (FS,SYM1,TY,NTOT1)
-
-    IF (NDIM == 3) THEN
-        CALL ADDCOL3 (FR,RZM1,TZ,NTOT1)
-        CALL ADDCOL3 (FS,SZM1,TZ,NTOT1)
-        CALL COL3    (FT,TXM1,TX,NTOT1)
-        CALL ADDCOL3 (FT,TYM1,TY,NTOT1)
-        CALL ADDCOL3 (FT,TZM1,TZ,NTOT1)
-    endif
-
-    IF (IFAXIS) THEN
-        DO 100 IEL=1,NEL
-            IF ( IFRZER(IEL) ) THEN
-                CALL MXM (YM1(1,1,1,IEL),NX1,DATM1,NY1,YS,1)
-                DO 120 IX=1,NX1
-                    IY = 1
-                    WA(IX,IY,1,IEL)=YS(IX)*W2AM1(IX,IY)
-                    DO 120 IY=2,NY1
-                        DNR = 1.0 + ZAM1(IY)
-                        WA(IX,IY,1,IEL)=YM1(IX,IY,1,IEL)*W2AM1(IX,IY)/DNR
-                120 END DO
-            ELSE
-                CALL COL3 (WA(1,1,1,IEL),YM1(1,1,1,IEL),W2CM1,NXYZ1)
-            endif
-        100 END DO
-        CALL COL2 (FR,WA,NTOT1)
-        CALL COL2 (FS,WA,NTOT1)
-    else
-        do 180 iel=1,nel
-            call col2(fr(1,iel),w3m1,nxyz1)
-            call col2(fs(1,iel),w3m1,nxyz1)
-            call col2(ft(1,iel),w3m1,nxyz1)
-        180 END DO
-    endif
-
-
-    DO 200 IEL=1,NEL
-        IF (IFAXIS) CALL SETAXDY ( IFRZER(IEL) )
-        CALL TTRST (FF(1,IEL),FR(1,IEL),FS(1,IEL), &
-        FT(1,IEL),FR(1,IEL)) ! FR work array
-    200 END DO
-
-    return
-    end subroutine ttxyz
-#endif
-!-----------------------------------------------------------------------
     subroutine ttrst (ff,fr,fs,ft,ta)
 
     use size_m
@@ -1158,40 +1046,6 @@
 
     return
     end subroutine ttrst
-!-----------------------------------------------------------------------
-#if 0
-    subroutine axitzz (vfy,tzz,nel)
-
-    use size_m
-    use dxyz
-    use geom
-    use wz_m
-    common /ctmp0/ phi(lx1,ly1)
-
-    DIMENSION VFY(LX1,LY1,LZ1,1) &
-    , TZZ(LX1,LY1,LZ1,1)
-
-    NXYZ1 = NX1*NY1*NZ1
-
-    DO 100 IEL=1,NEL
-        CALL SETAXW1 ( IFRZER(IEL) )
-        CALL COL4 (PHI,TZZ(1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
-        IF ( IFRZER(IEL) ) THEN
-            DO 120 IX=1,NX1
-                DO 120 IY=2,NY1
-                    DNR = PHI(IX,IY)/( 1.0 + ZAM1(IY) )
-                    DDS = WXM1(IX) * WAM1(1) * DATM1(IY,1) * &
-                    JACM1(IX,1,1,IEL) * TZZ(IX,1,1,IEL)
-                    VFY(IX,IY,1,IEL)=VFY(IX,IY,1,IEL) + DNR + DDS
-            120 END DO
-        ELSE
-            CALL ADD2 (VFY(1,1,1,IEL),PHI,NXYZ1)
-        endif
-    100 END DO
-
-    return
-    end subroutine axitzz
-#endif
 !-----------------------------------------------------------------------
     subroutine setaxdy (ifaxdy)
 

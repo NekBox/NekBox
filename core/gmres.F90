@@ -580,61 +580,6 @@
     return
     end subroutine hmh_gmres
 !-----------------------------------------------------------------------
-#if 0
-    subroutine set_up_fast_1D_sem_g(s,lam,n,lbc,rbc,ll,lm,lr,ie)
-    use size_m
-    use semhat
-
-    parameter (lr3=2*lxs*lxs)
-    common /fast1dsem/ g(lr3),w(lr3)
-
-    real :: g,w
-    real :: s(1),lam(1),ll,lm,lr
-    integer :: lbc,rbc
-
-    integer :: bb0,bb1,eb0,eb1,n,n1
-    logical :: l,r
-
-    n=nx1-1
-! cs on E are from normal vel component
-    if(lbc == 2 .OR. lbc == 3) then !wall,sym  - Neumann
-        eb0=0
-        bb0=0
-    else !outflow,element                      - Dirichlet
-        eb0=1
-        bb0=1
-    endif
-    if(rbc == 2 .OR. rbc == 3) then !wall,sym  - Neumann
-        eb1=n
-        bb1=n
-    else !outflow,element                      - Dirichlet
-        eb1=n-1
-        bb1=n-1
-    endif
-    l = (lbc == 0)
-    r = (rbc == 0)
-
-!     calculate A tilde operator
-    call set_up_fast_1D_sem_op_a(s,eb0,eb1,l,r,ll,lm,lr,ah)
-!     calculate B tilde operator
-    call set_up_fast_1D_sem_op_b(g,bb0,bb1,l,r,ll,lm,lr,bh)
-
-    n=n+3
-!     call outmat   (s,n,n,'  A   ',ie)
-!     call outmat   (g,n,n,'  B   ',ie)
-    call generalev(s,g,lam,n,w)
-    if( .NOT. l) call row_zero(s,n,n,1)
-    if( .NOT. r) call row_zero(s,n,n,n)
-    call transpose(s(n*n+1),n,s,n) ! compute the transpose of s
-!     call outmat   (s,n,n,'  S   ',ie)
-!     call outmat   (s(n*n+1),n,n,'  St  ',1)
-!     call exitt
-
-
-    return
-    end subroutine set_up_fast_1D_sem_g
-#endif
-!-----------------------------------------------------------------------
     subroutine set_up_fast_1D_sem_op_a(g,b0,b1,l &
     ,r,ll,lm,lr,ah)
 !            -1 T

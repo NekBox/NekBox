@@ -1027,32 +1027,3 @@
             return
             end subroutine outmat2
         !-----------------------------------------------------------------------
-#if 0
-            subroutine rescale_abhalf (a,b,w,n)
-            real :: a(n,n),b(n,n),w(n)
-        
-        !             -1/2      -1/2
-        !     Set A = B    A  B
-        
-        
-        !     NOTE:   B is *diagonal*
-        
-        
-            do i=1,n
-                w(i) = 1./sqrt(b(i,i))
-            enddo
-        
-            do j=1,n
-                do i=1,n
-                    a(i,j) = a(i,j)*w(i)*w(j)
-                enddo
-            enddo
-        
-        !     duh....  don't forget to change B ...  duh...
-        
-            call ident(b,n)
-        
-            return
-            end subroutine rescale_abhalf
-#endif
-        !-----------------------------------------------------------------------

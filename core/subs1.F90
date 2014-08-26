@@ -1015,40 +1015,6 @@
     return
     end subroutine flush_io
 !-----------------------------------------------------------------------
-#if 0
-    subroutine ttrst (ff,fr,fs,ft,ta)
-
-    use size_m
-    use dxyz
-    use tstep
-
-    DIMENSION FF(LX1,LY1,LZ1) &
-    , FR(LX1,LY1,LZ1) &
-    , FS(LX1,LY1,LZ1) &
-    , FT(LX1,LY1,LZ1) &
-    , TA(LX1,LY1,LZ1)
-
-    NXY1  = NX1*NY1
-    NYZ1  = NY1*NZ1
-    NXYZ1 = NXY1*NZ1
-
-    CALL MXM (DXTM1,NX1,FR,NX1,FF,NYZ1)
-    IF (NDIM == 2) THEN
-        CALL MXM  (FS,NX1,DYM1,NY1,TA,NY1)
-        CALL ADD2 (FF,TA,NXYZ1)
-    ELSE
-        DO 10 IZ=1,NZ1
-            CALL MXM  (FS(1,1,IZ),NX1,DYM1,NY1,TA(1,1,IZ),NY1)
-        10 END DO
-        CALL ADD2 (FF,TA,NXYZ1)
-        CALL MXM  (FT,NXY1,DZM1,NZ1,TA,NZ1)
-        CALL ADD2 (FF,TA,NXYZ1)
-    endif
-
-    return
-    end subroutine ttrst
-#endif
-!-----------------------------------------------------------------------
     subroutine setaxdy (ifaxdy)
 
     use size_m

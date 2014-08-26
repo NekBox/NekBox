@@ -542,43 +542,47 @@
     return
     end subroutine lim_chk
 !-----------------------------------------------------------------------
-    subroutine get_int_ptr (ip,mx,md) ! GLL-->GL pointer
+!> \brief Get pointer to jgl() for interpolation pair (mx,md)
+subroutine get_int_ptr (ip,mx,md) ! GLL-->GL pointer
+  use kinds, only : DP
+  use size_m
+  implicit none
 
-!     Get pointer to jgl() for interpolation pair (mx,md)
+  integer, intent(in) :: mx, md
+  integer, intent(out) :: ip
 
-    use size_m
+  integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
+  real(DP) :: d, dt, dg, dgt, jgl, jgt, wkd
+  common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
+  , wkd(lwkd)
 
-    parameter (ldg=lxd**3,lwkd=4*lxd*lxd)
-    common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
-    , wkd(lwkd)
-    real :: jgl,jgt
+  integer, parameter :: ld=2*lxd
+!  integer, save :: pd(0:ld*ld) = 0
+!  integer, save :: pdg(0:ld*ld) = 0
+  integer, save :: pjgl(0:ld*ld) = 0
 
-    parameter (ld=2*lxd)
-    common /igrad/ pd    (0:ld*ld) &
-    , pdg   (0:ld*ld) &
-    , pjgl  (0:ld*ld)
-    integer :: pd , pdg , pjgl
+  integer :: ij, nstore, nwrkd
 
-    ij = md + ld*(mx-1)
-    ip = pjgl(ij)
+  ij = md + ld*(mx-1)
+  ip = pjgl(ij)
 
-    if (ip == 0) then
-    
-        nstore   = pjgl(0)
-        pjgl(ij) = nstore+1
-        nstore   = nstore + md*mx
-        pjgl(0)  = nstore
-        ip       = pjgl(ij)
-    
-        nwrkd = mx + md
-        call lim_chk(nstore,ldg ,'jgl  ','ldg  ','get_int_pt')
-        call lim_chk(nwrkd ,lwkd,'wkd  ','lwkd ','get_int_pt')
-    
-        call gen_int(jgl(ip),jgt(ip),md,mx,wkd)
-    endif
+  if (ip == 0) then
+  
+      nstore   = pjgl(0)
+      pjgl(ij) = nstore+1
+      nstore   = nstore + md*mx
+      pjgl(0)  = nstore
+      ip       = pjgl(ij)
+  
+      nwrkd = mx + md
+      call lim_chk(nstore,ldg ,'jgl  ','ldg  ','get_int_pt')
+      call lim_chk(nwrkd ,lwkd,'wkd  ','lwkd ','get_int_pt')
+  
+      call gen_int(jgl(ip),jgt(ip),md,mx,wkd)
+  endif
 
-    return
-    end subroutine get_int_ptr
+  return
+end subroutine get_int_ptr
 !-----------------------------------------------------------------------
     subroutine get_dgl_ptr (ip,mx,md)
 

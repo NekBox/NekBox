@@ -1765,6 +1765,7 @@
     return
     end subroutine h1mg_solve
 !-----------------------------------------------------------------------
+#if 0
     subroutine h1mg_axml &
     (w,p,h1,h2,nx,ny,nz,nel,g,ng,b,mask,ifh2)
 
@@ -1819,6 +1820,7 @@
 
     return
     end subroutine h1mg_axml
+#endif
 !-----------------------------------------------------------------------
     subroutine h1mg_mask(w,mask,nel)
     use size_m

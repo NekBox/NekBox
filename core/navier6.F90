@@ -113,6 +113,7 @@
     return
     end subroutine set_overlap
 !-----------------------------------------------------------------------
+#if 0
     subroutine iunswap(b,ind,n,temp)
     integer :: b(1),ind(1),temp(1)
 
@@ -160,6 +161,7 @@
 
     return
     end subroutine map_face12
+#endif
 !-----------------------------------------------------------------------
     subroutine map_one_face12(x2,x1,iface,i12,i12t,w1,w2)
     use size_m
@@ -219,6 +221,7 @@
     return
     end subroutine map_one_face12
 !-----------------------------------------------------------------------
+#if 0
     subroutine dface_add1sa(x)
 !     Compute |face-interior|
 
@@ -284,4 +287,5 @@
     100 END DO
     RETURN
     end subroutine faces
+#endif
 !-----------------------------------------------------------------------

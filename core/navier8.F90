@@ -425,7 +425,7 @@
     end function iftuple_ianeb
 
 !-----------------------------------------------------------------------
-
+#if 0
     subroutine a_crs_enriched(a,h1,h2,x1,y1,z1,nxc,if3d,ie)
 
 !     This sets up a matrix for a single array of tensor-product
@@ -514,7 +514,7 @@
 
     return
     end subroutine a_crs_enriched
-
+#endif
 !-----------------------------------------------------------------------
 
     subroutine a_crs_3d(a,h1,h2,xc,yc,zc,ie)
@@ -768,7 +768,7 @@
     end subroutine a_crs_2d
 
 !-----------------------------------------------------------------------
-
+#if 0
     subroutine map_m_to_n(a,na,b,nb,if3d,w,ldw)
 
 !     Input:   b
@@ -804,7 +804,7 @@
 
     return
     end subroutine map_m_to_n
-
+#endif
 !-----------------------------------------------------------------------
 
     subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)

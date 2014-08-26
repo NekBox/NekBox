@@ -253,6 +253,7 @@
     return
     end subroutine vec_dsop
 !-----------------------------------------------------------------------
+#if 0
     subroutine matvec3(uout,Jmat,uin,iftrsp,n1,n2)
 
     use size_m
@@ -314,6 +315,7 @@
 
     return
     end subroutine matvect
+#endif
 !-----------------------------------------------------------------------
 !      subroutine opq_in_place(a,b,c)
 !      use size_m

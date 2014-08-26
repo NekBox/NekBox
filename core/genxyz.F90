@@ -100,6 +100,7 @@
     return
     end subroutine arcsrf
 !-----------------------------------------------------------------------
+#if 0
     subroutine zbrac(x1,x2,succes)
 
 !     Given a function FNC and an initial guess (X1,X2), the routine
@@ -131,6 +132,7 @@
     SUCCES = .FALSE. 
     return
     end subroutine zbrac
+#endif
     FUNCTION ZBRENT(X1,X2,TOL)
 
 !     Using the Van Wijngaarden-Dekker-Brent Method, find the root

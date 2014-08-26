@@ -580,6 +580,7 @@
     return
     end subroutine hmh_gmres
 !-----------------------------------------------------------------------
+#if 0
     subroutine set_up_fast_1D_sem_g(s,lam,n,lbc,rbc,ll,lm,lr,ie)
     use size_m
     use semhat
@@ -632,6 +633,7 @@
 
     return
     end subroutine set_up_fast_1D_sem_g
+#endif
 !-----------------------------------------------------------------------
     subroutine set_up_fast_1D_sem_op_a(g,b0,b1,l &
     ,r,ll,lm,lr,ah)

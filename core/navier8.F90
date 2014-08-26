@@ -425,7 +425,7 @@
     end function iftuple_ianeb
 
 !-----------------------------------------------------------------------
-
+#if 0
     subroutine a_crs_3d(a,h1,h2,xc,yc,zc,ie)
 
 !     Generate stiffness matrix for 3D coarse grid problem.
@@ -484,7 +484,7 @@
     enddo
     return
     end subroutine a_crs_3d
-
+#endif
 !-----------------------------------------------------------------------
 
     subroutine bindec(bin_in)
@@ -602,7 +602,7 @@
     end subroutine get_local_A_tet
 
 !-----------------------------------------------------------------------
-
+#if 0
     subroutine a_crs_2d(a,h1,h2,x,y,ie)
 
     use size_m
@@ -675,6 +675,7 @@
 
     return
     end subroutine a_crs_2d
+#endif
 
 !-----------------------------------------------------------------------
 
@@ -1216,6 +1217,7 @@
     return
     end subroutine gen_crs_basis
 !-----------------------------------------------------------------------
+#if 0
     subroutine gen_crs_basis2(b,j) ! bi- tri-quadratic
 
     use size_m
@@ -1260,6 +1262,7 @@
 
     return
     end subroutine gen_crs_basis2
+#endif
 !-----------------------------------------------------------------------
     subroutine get_vertex
     use size_m

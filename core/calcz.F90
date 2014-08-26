@@ -1,4 +1,5 @@
 !-----------------------------------------------------------------------
+#if 0
     subroutine calcz(d,e,n,dmax,dmin,z,ierr)
 
 !     Num. Rec. 2nd Ed., p.473
@@ -124,6 +125,7 @@
     ierr=0
     return
     end subroutine calcz
+#endif
 !-----------------------------------------------------------------------
     function pythag(a,b)
 

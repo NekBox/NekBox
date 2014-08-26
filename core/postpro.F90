@@ -168,6 +168,7 @@
     return
     end subroutine zuni
 !-----------------------------------------------------------------------
+#if 0
     subroutine gen_rea_midside_e(e)
 
     use size_m
@@ -241,4 +242,5 @@
 
     return
     end subroutine gen_rea_midside_e
+#endif
 !-----------------------------------------------------------------------

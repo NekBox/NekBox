@@ -518,6 +518,7 @@
     return
     end subroutine cumax
 
+#if 0
     FUNCTION FACDOT(A,B,IFACE1)
 
 !     Take the dot product of A and B on the surface IFACE1 of element IE.
@@ -553,6 +554,7 @@
 
     return
     END FUNCTION FACDOT
+#endif
 
     subroutine fcaver(xaver,a,iel,iface1)
 !------------------------------------------------------------------------
@@ -1051,6 +1053,7 @@
     return
     end subroutine flush_io
 !-----------------------------------------------------------------------
+#if 0
     subroutine ttxyz (ff,tx,ty,tz,nel)
 
     use size_m
@@ -1122,6 +1125,7 @@
 
     return
     end subroutine ttxyz
+#endif
 !-----------------------------------------------------------------------
     subroutine ttrst (ff,fr,fs,ft,ta)
 
@@ -1155,6 +1159,7 @@
     return
     end subroutine ttrst
 !-----------------------------------------------------------------------
+#if 0
     subroutine axitzz (vfy,tzz,nel)
 
     use size_m
@@ -1186,6 +1191,7 @@
 
     return
     end subroutine axitzz
+#endif
 !-----------------------------------------------------------------------
     subroutine setaxdy (ifaxdy)
 

@@ -74,50 +74,7 @@
 
     RETURN
     END SUBROUTINE STNRINV
-    SUBROUTINE FACEXS (A,B,IFACE1,IOP)
 
-!     IOP = 0
-!     Extract scalar A from B on face IFACE1.
-
-!     IOP = 1
-!     Extract scalar B from A on face IFACE1.
-
-!     A has the (NX,NY,NFACE) data structure
-!     B has the (NX,NY,NZ)    data structure
-!     IFACE1 is in the preprocessor notation
-!     IFACE  is the dssum notation.
-
-    use size_m
-    use topol
-
-    DIMENSION A(LX1,LY1),B(LX1,LY1,LZ1)
-
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-
-    I = 0
-    IF (IOP == 0) THEN
-        DO 100 J2=JS2,JF2,JSKIP2
-            DO 100 J1=JS1,JF1,JSKIP1
-                I = I+1
-                A(I,1) = B(J1,J2,1)
-        100 END DO
-    ELSE
-        DO 150 J2=JS2,JF2,JSKIP2
-            DO 150 J1=JS1,JF1,JSKIP1
-                I = I+1
-                B(J1,J2,1) = A(I,1)
-        150 END DO
-    ENDIF
-
-    RETURN
-    END SUBROUTINE FACEXS
     SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
 
 !     IOP = 0
@@ -167,42 +124,6 @@
 
     RETURN
     END SUBROUTINE FACEXV
-    SUBROUTINE FACSUB2 (A1,A2,A3,B1,B2,B3,IFACE1)
-
-!     Subtract B1,B2,B3 from A1,A2,A3 on surface IFACE1 of element IE.
-
-!     A1, A2, A3 have the (NX,NY,NZ)    data structure
-!     B1, B2, B3 have the (NX,NY,NFACE) data structure
-!     IFACE1 is in the preprocessor notation
-!     IFACE  is the dssum notation.
-
-    use size_m
-    use topol
-
-    DIMENSION A1(LX1,LY1,LZ1),A2(LX1,LY1,LZ1),A3(LX1,LY1,LZ1), &
-    B1(LX1,LY1),B2(LX1,LY1),B3(LX1,LY1)
-
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-
-    I = 0
-    DO 100 J2=JS2,JF2,JSKIP2
-        DO 100 J1=JS1,JF1,JSKIP1
-            I = I+1
-            A1(J1,J2,1) = A1(J1,J2,1) - B1(I,1)
-            A2(J1,J2,1) = A2(J1,J2,1) - B2(I,1)
-            A3(J1,J2,1) = A3(J1,J2,1) - B3(I,1)
-    100 END DO
-
-    RETURN
-    END SUBROUTINE FACSUB2
-
 
     SUBROUTINE CMULT2 (A,B,CONST,N)
     DIMENSION A(1),B(1)
@@ -252,52 +173,6 @@
     call exitt
     RETURN
     END SUBROUTINE EMERXIT
-    SUBROUTINE FACCVS (A1,A2,A3,B,IFACE1)
-
-!     Collocate scalar B with vector A, components A1,A2,A3,
-!     on the surface IFACE1 of an element.
-
-!         A1,A2,A3 have the (NX,NY,NZ) data structure
-!         B has the (NX,NY,IFACE) data structure
-!         IFACE1 is in the preprocessor notation
-!         IFACE  is the dssum notation.
-
-    use size_m
-    use topol
-    DIMENSION A1(LX1,LY1,LZ1),A2(LX1,LY1,LZ1),A3(LX1,LY1,LZ1), &
-    B(LX1,LY1)
-
-!     Set up counters
-
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-    I = 0
-
-    IF (NDIM == 2) THEN
-        DO 100 J2=JS2,JF2,JSKIP2
-            DO 100 J1=JS1,JF1,JSKIP1
-                I = I+1
-                A1(J1,J2,1) = A1(J1,J2,1)*B(I,1)
-                A2(J1,J2,1) = A2(J1,J2,1)*B(I,1)
-        100 END DO
-    ELSE
-        DO 200 J2=JS2,JF2,JSKIP2
-            DO 200 J1=JS1,JF1,JSKIP1
-                I = I+1
-                A1(J1,J2,1) = A1(J1,J2,1)*B(I,1)
-                A2(J1,J2,1) = A2(J1,J2,1)*B(I,1)
-                A3(J1,J2,1) = A3(J1,J2,1)*B(I,1)
-        200 END DO
-    ENDIF
-
-    RETURN
-    END SUBROUTINE FACCVS
 
     SUBROUTINE VSOLN (UX,UY,UZ,X,Y,Z,PI)
 

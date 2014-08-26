@@ -966,60 +966,65 @@ end subroutine cggo
     return
     end subroutine set_fdm_prec_h1b
 !-----------------------------------------------------------------------
-    subroutine generalev(a,b,lam,n,w)
+!> \brief Solve the generalized eigenvalue problem  A x = lam B x
+!!
+!! A -- symm.
+!! B -- symm., pos. definite
+!!
+!! "SIZE" is included here only to deduce WDSIZE, the working
+!! precision, in bytes, so as to know whether dsygv or ssygv
+!! should be called.
+subroutine generalev(a,b,lam,n,w)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nid
+  use parallel, only : ifdblas
+  implicit none
 
-!     Solve the generalized eigenvalue problem  A x = lam B x
+  real :: a(n,n),b(n,n),lam(n),w(n,n)
+  real :: aa(100),bb(100)
+  integer, intent(in) :: n
 
-!     A -- symm.
-!     B -- symm., pos. definite
+  integer, parameter :: lbw=4*lx1*ly1*lz1*lelv
+  real(DP), allocatable :: bw(:)
 
-!     "SIZE" is included here only to deduce WDSIZE, the working
-!     precision, in bytes, so as to know whether dsygv or ssygv
-!     should be called.
+  integer :: info, ninf, lw
 
-    use size_m
-    use parallel
+  allocate(bw(lbw))
 
-    real :: a(n,n),b(n,n),lam(n),w(n,n)
-    real :: aa(100),bb(100)
+  lw = n*n
+!   write(6,*) 'in generalev, =',info,n,ninf
 
-    parameter (lbw=4*lx1*ly1*lz1*lelv)
-    common /bigw/ bw(lbw)
+!   call outmat2(a,n,n,n,'aa  ')
+!   call outmat2(b,n,n,n,'bb  ')
 
-    lw = n*n
-!     write(6,*) 'in generalev, =',info,n,ninf
+  call copy(aa,a,100)
+  call copy(bb,b,100)
 
-!     call outmat2(a,n,n,n,'aa  ')
-!     call outmat2(b,n,n,n,'bb  ')
+  if (ifdblas) then
+      call dsygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
+  else
+      call ssygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
+  endif
 
-    call copy(aa,a,100)
-    call copy(bb,b,100)
+!   call outmat2(a,n,n,n,'Aeig')
+!   call outmat2(lam,1,n,n,'Deig')
 
-    if (ifdblas) then
-        call dsygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
-    else
-        call ssygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
-    endif
+  if (info /= 0) then
+  
+      if (nid == 0) then
+          call outmat2(aa ,n,n,n,'aa  ')
+          call outmat2(bb ,n,n,n,'bb  ')
+          call outmat2(a  ,n,n,n,'Aeig')
+          call outmat2(lam,1,n,n,'Deig')
+      endif
+  
+      ninf = n-info
+      write(6,*) 'Error in generalev, info=',info,n,ninf
+      call exitt
+  endif
 
-!     call outmat2(a,n,n,n,'Aeig')
-!     call outmat2(lam,1,n,n,'Deig')
-
-    if (info /= 0) then
-    
-        if (nid == 0) then
-            call outmat2(aa ,n,n,n,'aa  ')
-            call outmat2(bb ,n,n,n,'bb  ')
-            call outmat2(a  ,n,n,n,'Aeig')
-            call outmat2(lam,1,n,n,'Deig')
-        endif
-    
-        ninf = n-info
-        write(6,*) 'Error in generalev, info=',info,n,ninf
-        call exitt
-    endif
-
-    return
-    end subroutine generalev
+  return
+end subroutine generalev
 !-----------------------------------------------------------------------
     subroutine outmat2(a,m,n,k,name)
     use size_m

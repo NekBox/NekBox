@@ -22,7 +22,7 @@
     parameter (ktot = lx1*ly1*lz1*lelt)
     parameter (laxt = mxprev)
 
-    common /trthoi/ napprox(2)
+    integer, save :: napprox(2) = 0
     common /trthov/ approx(ktot,0:laxt)
     character(4) ::     name4
 

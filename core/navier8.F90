@@ -80,44 +80,53 @@
 !      end
 !-----------------------------------------------------------------------
 
-    subroutine set_up_h1_crs
+subroutine set_up_h1_crs
+  use kinds, only : DP
+  use size_m
+  use domain
+  use geom
+  use input
+  use parallel
+  use tstep
+  implicit none
 
-    use size_m
-    use domain
-    use geom
-    use input
-    use parallel
-    use tstep
+  integer :: mid, mp, nekcomm, nekgroup, nekreal
+  common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
 
-    common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
+  common /ivrtx/ vertex ((2**ldim)*lelt)
+  integer :: vertex
 
-    common /ivrtx/ vertex ((2**ldim)*lelt)
-    integer :: vertex
+  integer :: gs_handle
+  integer :: null_space,e
 
-    integer :: gs_handle
-    integer :: null_space,e
+  character(3) :: cb
+  real(DP) :: cmlt, mask
+  common /scrxxt/ cmlt(lcr,lelv),mask(lcr,lelv)
+  integer, allocatable :: ia(:,:,:), ja(:,:,:)
+  real :: z
 
-    character(3) :: cb
-    common /scrxxt/ cmlt(lcr,lelv),mask(lcr,lelv)
-    common /scrxxti/ ia(lcr,lcr,lelv), ja(lcr,lcr,lelv)
-    real :: mask
-    integer :: ia,ja
-    real :: z
+  integer :: key(2),aa(2)
+  real(DP), allocatable :: a(:)
+  integer :: iwork
+  common /scrch/ iwork(2,lx1*ly1*lz1*lelv)
+  common /scrns/ w(7*lx1*ly1*lz1*lelv)
+  integer :: w
+  real :: wr(1)
+  equivalence (wr,w)
+ 
+  real(DP), allocatable :: h1(:), h2(:), w1(:), w2(:)
 
-    integer :: key(2),aa(2)
-    common /scrch/ iwork(2,lx1*ly1*lz1*lelv)
-    common /scrns/ w(7*lx1*ly1*lz1*lelv)
-    common /vptsol/ a(27*lx1*ly1*lz1*lelv)
-    integer :: w
-    real :: wr(1)
-    equivalence (wr,w)
+  integer*8 :: ngv
 
-    common /scrvhx/ h1(lx1*ly1*lz1*lelv),h2(lx1*ly1*lz1*lelv)
-    common /scrmgx/ w1(lx1*ly1*lz1*lelv),w2(lx1*ly1*lz1*lelv)
+  real(DP) :: t0
+  integer :: nxc, ncr, ntot, nzc, nfaces, ie, iface, nz, n
+  real(DP), external :: dnekclock
 
-    integer*8 :: ngv
-
-    t0 = dnekclock()
+  allocate(ia(lcr,lcr,lelv), ja(lcr,lcr,lelv))
+  allocate(a(27*lx1*ly1*lz1*lelv))
+  allocate(h1(lx1*ly1*lz1*lelv),h2(lx1*ly1*lz1*lelv))
+  allocate(w1(lx1*ly1*lz1*lelv),w2(lx1*ly1*lz1*lelv))
+  t0 = dnekclock()
 
 !     nxc is order of coarse grid space + 1, nxc=2, linear, 3=quad,etc.
 !     nxc=param(82)
@@ -127,94 +136,94 @@
 !     endif
 !     if (nxc.lt.2) nxc=2
 
-    nxc     = 2
-    nx_crs  = nxc
+  nxc     = 2
+  nx_crs  = nxc
 
-    if(nid == 0) write(6,*) 'setup h1 coarse grid, nx_crs=', nx_crs
+  if(nid == 0) write(6,*) 'setup h1 coarse grid, nx_crs=', nx_crs
 
-    ncr     = nxc**ndim
-    nxyz_c  = ncr
+  ncr     = nxc**ndim
+  nxyz_c  = ncr
 
-!     Set SEM_to_GLOB
+!   Set SEM_to_GLOB
 
-    call get_vertex
-    call set_vert(se_to_gcrs,ngv,nxc,nelv,vertex, .TRUE. )
+  call get_vertex
+  call set_vert(se_to_gcrs,ngv,nxc,nelv,vertex, .TRUE. )
 
-!     Set mask
-    z=0
-    ntot=nelv*nxyz_c
-    nzc=1
-    if (if3d) nzc=nxc
-    call rone(mask,ntot)
-    call rone(cmlt,ntot)
-    nfaces=2*ndim
-!     ifield=1			!c? avo: set in set_overlap through 'TSTEP'?
+!   Set mask
+  z=0
+  ntot=nelv*nxyz_c
+  nzc=1
+  if (if3d) nzc=nxc
+  call rone(mask,ntot)
+  call rone(cmlt,ntot)
+  nfaces=2*ndim
+!   ifield=1			!c? avo: set in set_overlap through 'TSTEP'?
 
-    if (ifield == 1) then
-        do ie=1,nelv
-            do iface=1,nfaces
-                cb=cbc(iface,ie,ifield)
-                if (cb == 'O  '  .OR.  cb == 'ON '  .OR.  cb == 'MM '  .OR. &
-                cb == 'mm '  .OR.  cb == 'ms '  .OR.  cb == 'MS ') &
-                call facev(mask,ie,iface,z,nxc,nxc,nzc) ! 'S* ' & 's* ' ?avo?
-            enddo
-        enddo
-    elseif (ifield == ifldmhd) then   ! no ifmhd ?avo?
-        do ie=1,nelv
-            do iface=1,nfaces
-                cb=cbc(iface,ie,ifield)
-                if (cb == 'ndd'  .OR.  cb == 'dnd'  .OR.  cb == 'ddn') &
-                call facev(mask,ie,iface,z,nxc,nxc,nzc)
-            enddo
-        enddo
-    endif
+  if (ifield == 1) then
+      do ie=1,nelv
+          do iface=1,nfaces
+              cb=cbc(iface,ie,ifield)
+              if (cb == 'O  '  .OR.  cb == 'ON '  .OR.  cb == 'MM '  .OR. &
+              cb == 'mm '  .OR.  cb == 'ms '  .OR.  cb == 'MS ') &
+              call facev(mask,ie,iface,z,nxc,nxc,nzc) ! 'S* ' & 's* ' ?avo?
+          enddo
+      enddo
+  elseif (ifield == ifldmhd) then   ! no ifmhd ?avo?
+      do ie=1,nelv
+          do iface=1,nfaces
+              cb=cbc(iface,ie,ifield)
+              if (cb == 'ndd'  .OR.  cb == 'dnd'  .OR.  cb == 'ddn') &
+              call facev(mask,ie,iface,z,nxc,nxc,nzc)
+          enddo
+      enddo
+  endif
 
-!     Set global index of dirichlet nodes to zero; xxt will ignore them
+!   Set global index of dirichlet nodes to zero; xxt will ignore them
 
-    call gs_setup(gs_handle,se_to_gcrs,ntot,nekcomm,mp)
-    call gs_op   (gs_handle,mask,1,2,0)  !  "*"
-    call gs_op   (gs_handle,cmlt,1,1,0)  !  "+"
-    call gs_free (gs_handle)
-    call set_jl_crs_mask(ntot,mask,se_to_gcrs)
+  call gs_setup(gs_handle,se_to_gcrs,ntot,nekcomm,mp)
+  call gs_op   (gs_handle,mask,1,2,0)  !  "*"
+  call gs_op   (gs_handle,cmlt,1,1,0)  !  "+"
+  call gs_free (gs_handle)
+  call set_jl_crs_mask(ntot,mask,se_to_gcrs)
 
-    call invcol1(cmlt,ntot)
+  call invcol1(cmlt,ntot)
 
-!     Setup local SEM-based Neumann operators (for now, just full...)
+!   Setup local SEM-based Neumann operators (for now, just full...)
 
-!      if (param(51).eq.1) then     ! old coarse grid
-!         nxyz1=nx1*ny1*nz1
-!         lda = 27*nxyz1*lelt
-!         ldw =  7*nxyz1*lelt
-!         call get_local_crs(a,lda,nxc,h1,h2,w,ldw)
-!      else
-!        NOTE: a(),h1,...,w2() must all be large enough
-    n = nx1*ny1*nz1*nelv
-    call rone (h1,n)
-    call rzero(h2,n)
-    call get_local_crs_galerkin(a,ncr,nxc,h1,h2,w1,w2)
-!      endif
+!    if (param(51).eq.1) then     ! old coarse grid
+!       nxyz1=nx1*ny1*nz1
+!       lda = 27*nxyz1*lelt
+!       ldw =  7*nxyz1*lelt
+!       call get_local_crs(a,lda,nxc,h1,h2,w,ldw)
+!    else
+!      NOTE: a(),h1,...,w2() must all be large enough
+  n = nx1*ny1*nz1*nelv
+  call rone (h1,n)
+  call rzero(h2,n)
+  call get_local_crs_galerkin(a,ncr,nxc,h1,h2,w1,w2)
+!    endif
 
-    call set_mat_ij(ia,ja,ncr,nelv)
-    null_space=0
-    if (ifield == 1) then
-        if (ifvcor)  null_space=1
-    elseif (ifield == ifldmhd) then
-        if (ifbcor)  null_space=1
-    endif
+  call set_mat_ij(ia,ja,ncr,nelv)
+  null_space=0
+  if (ifield == 1) then
+      if (ifvcor)  null_space=1
+  elseif (ifield == ifldmhd) then
+      if (ifbcor)  null_space=1
+  endif
 
-    nz=ncr*ncr*nelv
-    call crs_setup(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
-    nz,ia,ja,a, null_space)
-!     call crs_stats(xxth(ifield))
+  nz=ncr*ncr*nelv
+  call crs_setup(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
+  nz,ia,ja,a, null_space)
+!   call crs_stats(xxth(ifield))
 
-    t0 = dnekclock()-t0
-    if (nid == 0) then
-        write(6,*) 'done :: setup h1 coarse grid ',t0, ' sec'
-        write(6,*) ' '
-    endif
+  t0 = dnekclock()-t0
+  if (nid == 0) then
+      write(6,*) 'done :: setup h1 coarse grid ',t0, ' sec'
+      write(6,*) ' '
+  endif
 
-    return
-    end subroutine set_up_h1_crs
+  return
+end subroutine set_up_h1_crs
 
 !-----------------------------------------------------------------------
     subroutine set_jl_crs_mask(n, mask, se_to_gcrs)

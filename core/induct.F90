@@ -8,6 +8,7 @@
 
 
 !-----------------------------------------------------------------------
+#if 0
     subroutine induct (igeom)
 
 !     Solve the convection-diffusion equation for the B-field, with
@@ -708,6 +709,7 @@
 
     return
     end subroutine elsasserh
+#endif
 !--------------------------------------------------------------------
     subroutine compute_cfl(cfl,u,v,w,dt)
 
@@ -814,6 +816,7 @@
     return
     end subroutine getdr
 !-----------------------------------------------------------------------
+#if 0
     subroutine ophinv_pr(o1,o2,o3,i1,i2,i3,h1,h2,tolh,nmxhi)
 
 !     Ok = (H1*A+H2*B)-1 * Ik  (implicit)
@@ -1322,6 +1325,7 @@
 
     return
     end subroutine advab_elsasser_fast
+#endif
 !-----------------------------------------------------------------------
     subroutine set_dealias_rx
 
@@ -1407,6 +1411,7 @@
     return
     end subroutine set_dealias_rx
 !-----------------------------------------------------------------------
+#if 0
     subroutine cfl_check
 
     use size_m
@@ -1439,4 +1444,5 @@
 
     return
     end subroutine cfl_check
+#endif
 !--------------------------------------------------------------------

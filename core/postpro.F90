@@ -1,4 +1,5 @@
 !-----------------------------------------------------------------------
+#if 0
     subroutine comp_sije(gije)
 
 !     Compute symmetric part of a tensor G_ij for element e
@@ -40,6 +41,7 @@
 
     return
     end subroutine comp_sije
+#endif
 !-----------------------------------------------------------------------
     subroutine map2reg(ur,n,u,nel)
 

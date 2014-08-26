@@ -91,9 +91,6 @@
     if (istep < 2 .AND. nid == 0) write(6,10) iesolv,solver_type
     10 format(2X,'E-solver strategy: ',I2,1X,A)
 
-
-
-
     RETURN
     END SUBROUTINE ESTRAT
     SUBROUTINE EINIT
@@ -113,6 +110,7 @@
     RETURN
     END SUBROUTINE EINIT
 !-----------------------------------------------------------------------
+#if 0
     subroutine p_outvec_ir(ia,a,lda,name9)
     use size_m
     use dealias
@@ -184,4 +182,5 @@
 
     return
     end subroutine p_outvec_ir
+#endif
 !-----------------------------------------------------------------------

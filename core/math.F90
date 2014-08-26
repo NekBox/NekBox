@@ -1895,3 +1895,17 @@
     return
     end subroutine col2s2
 !-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+subroutine ident(a,n)
+  use kinds, only : DP
+  implicit none
+  integer :: n, i
+  real(DP) ::  a(n,n)
+
+  a = 0._dp
+  do i=1,n
+      a(i,i) = 1._dp
+  enddo
+  return
+end subroutine ident
+!-----------------------------------------------------------------------

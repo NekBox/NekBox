@@ -1696,12 +1696,12 @@
     ierr = 0
     if (nid == pid0) then
 #ifdef MPIIO 
-    call byte_close_mpi(ifh_mbyte,ierr)
+      call byte_close_mpi(ifh_mbyte,ierr)
 #else 
-    call byte_close(ierr)
+      call byte_close(ierr)
 #endif
-    call err_chk(ierr,'Error closing file in mfo_outfld. Abort. $')
     endif
+    call err_chk(ierr,'Error closing file in mfo_outfld. Abort. $')
 
     tio = dnekclock_sync()-tiostart
     dnbyte = glsum(dnbyte,1)

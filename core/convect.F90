@@ -618,48 +618,6 @@
     return
     end subroutine get_dgl_ptr
 !-----------------------------------------------------------------------
-#if 0
-    subroutine set_ct_cvx(ct,c,m,u,v,w,tau,nc,mc,nelc,ifnew)
-    use size_m
-    use input  ! ifcons
-
-    real :: ct(0:1),c(m,1)
-    real :: u(1),v(1),w(1)
-    logical :: ifnew
-
-    if (ifnew) then
-
-    !        Shift existing convecting fields
-    !        Note:  "1" entry is most recent
-
-        nc = nc+1
-        nc = min(nc,mc)
-        ct(0) = nc
-
-        do i=nc,2,-1
-            call copy(c(1,i),c(1,i-1),m)
-            ct(i) = ct(i-1)
-        enddo
-    endif
-
-!     Save time and map the current velocity to rst coordinates.
-
-    ix = 1
-    iy = ix + nxd*nyd*nzd*nelc
-    iz = iy + nxd*nyd*nzd*nelc
-
-    if (ifcons) then
-!        call set_convect_cons(c(ix,1),c(iy,1),c(iz,1),u,v,w)
-    else
-        call set_convect_new (c(ix,1),c(iy,1),c(iz,1),u,v,w)
-    endif
-
-    ct(1) = tau
-
-    return
-    end subroutine set_ct_cvx
-#endif
-!-----------------------------------------------------------------------
     subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
 
     use size_m

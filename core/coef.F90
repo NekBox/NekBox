@@ -919,62 +919,6 @@ subroutine geodat1
     RETURN
     end subroutine setarea
 
-#if 0
-    subroutine setwgtr (wgtr1,wgtr2,wgtr3,wgtr4)
-
-    use size_m
-    use geom
-    use input
-    use wz_m
-
-!     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
-!           share the same array structure in Scratch Common /SCRNS/.
-
-    COMMON /SCRNS/ XRM1(LX1,LY1,LZ1,LELT) &
-    ,             YRM1(LX1,LY1,LZ1,LELT) &
-    ,             XSM1(LX1,LY1,LZ1,LELT) &
-    ,             YSM1(LX1,LY1,LZ1,LELT)
-
-    DIMENSION WGTR1(LX1,1) &
-    ,        WGTR2(LY1,1) &
-    ,        WGTR3(LX1,1) &
-    ,        WGTR4(LY1,1)
-
-    IF (IFAXIS) THEN
-        DO 100 IEL=1,NELT
-            DO 120 IX=1,NX1
-                WGTR1(IX,IEL) = YM1(IX,  1,1,IEL) * WXM1(IX)
-                WGTR3(IX,IEL) = YM1(IX,NY1,1,IEL) * WXM1(IX)
-            120 END DO
-            IF ( IFRZER(IEL) ) THEN
-                IY = 1
-                WGTR2(IY,IEL) = YSM1(NX1,IY,1,IEL) * WAM1(IY)
-                WGTR4(IY,IEL) = YSM1(  1,IY,1,IEL) * WAM1(IY)
-                DO 160 IY=2,NY1
-                    DNR = 1. + ZAM1(IY)
-                    WGTR2(IY,IEL) = YM1(NX1,IY,1,IEL) * WAM1(IY) / DNR
-                    WGTR4(IY,IEL) = YM1(  1,IY,1,IEL) * WAM1(IY) / DNR
-                160 END DO
-            ELSE
-                DO 180 IY=1,NY1
-                    WGTR2(IY,IEL) = YM1(NX1,IY,1,IEL) * WYM1(IY)
-                    WGTR4(IY,IEL) = YM1(  1,IY,1,IEL) * WYM1(IY)
-                180 END DO
-            ENDIF
-        100 END DO
-    ELSE
-        DO 200 IEL=1,NELT
-            CALL COPY (WGTR1(1,IEL),WXM1,NX1)
-            CALL COPY (WGTR2(1,IEL),WYM1,NY1)
-            CALL COPY (WGTR3(1,IEL),WXM1,NX1)
-            CALL COPY (WGTR4(1,IEL),WYM1,NY1)
-        200 END DO
-    ENDIF
-
-    RETURN
-    end subroutine setwgtr
-#endif
-
 !--------------------------------------------------------------------
 !!>brief Compute areas, normals and tangents (3D geom.)
 !--------------------------------------------------------------------
@@ -1163,49 +1107,6 @@ subroutine geodat1
 
     return
     end subroutine setinvm
-!---------------------------------------------------------------
-!> \brief Map the elemental array X from mesh M3 to mesh M1
-!---------------------------------------------------------------
-#if 0
-subroutine map31 (y,x,iel)
-
-    use size_m
-    use geom
-    use input
-    use ixyz
-
-    REAL :: X(LX3,LY3,LZ3)
-    REAL :: Y(LX1,LY1,LZ1)
-
-    COMMON /CTMP0/ XA(LX1,LY3,LZ3), XB(LX1,LY1,LZ3)
-
-    NYZ3 = NY3*NZ3
-    NXY1 = NX1*NY1
-
-!     Use the appropriate derivative- and interpolation operator in
-!     the y-direction (= radial direction if axisymmetric).
-
-    IF (IFAXIS) THEN
-        NY31   = NY1*NY3
-        IF (IFRZER(IEL))      CALL COPY (IYTM31,IATM31,NY31)
-        IF ( .NOT. IFRZER(IEL)) CALL COPY (IYTM31,ICTM31,NY31)
-    ENDIF
-
-    IF (IF3D) THEN
-        CALL MXM (IXM31,NX1,X,NX3,XA,NYZ3)
-        DO 100 IZ=1,NZ3
-            CALL MXM (XA(1,1,IZ),NX1,IYTM31,NY3,XB(1,1,IZ),NY1)
-        100 END DO
-        CALL MXM (XB,NXY1,IZTM31,NZ3,Y,NZ1)
-    ELSE
-        CALL MXM (IXM31,NX1,X,NX3,XA,NYZ3)
-        CALL MXM (XA,NX1,IYTM31,NY3,Y,NY1)
-    ENDIF
-
-    RETURN
-    end subroutine map31
-#endif
-
     subroutine map13 (y,x,iel)
 !---------------------------------------------------------------
 

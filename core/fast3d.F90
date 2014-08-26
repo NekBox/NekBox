@@ -787,81 +787,87 @@
     return
     end subroutine set_up_fast_1D_sem_op
 !-----------------------------------------------------------------------
-    subroutine swap_lengths
+subroutine swap_lengths()
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv
+  use size_m, only : nx1, nelv, lelt
+  use geom, only : xm1, ym1, zm1
+  use input, only : if3d
+  use wz_m, only : wxm1
+  implicit none
 
-    use size_m
-    use geom
-    use input
-    use wz_m
-    common /swaplengths/ l(lx1,ly1,lz1,lelv)
-    common /ctmpf/  lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &
-    , llr(lelt),lls(lelt),llt(lelt) &
-    , lmr(lelt),lms(lelt),lmt(lelt) &
-    , lrr(lelt),lrs(lelt),lrt(lelt)
-    real :: lr ,ls ,lt
-    real :: llr,lls,llt
-    real :: lmr,lms,lmt
-    real :: lrr,lrs,lrt
+  real, allocatable :: l(:,:,:,:)
+!  common /swaplengths/ l(lx1,ly1,lz1,lelv)
+  common /ctmpf/  lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &
+  , llr(lelt),lls(lelt),llt(lelt) &
+  , lmr(lelt),lms(lelt),lmt(lelt) &
+  , lrr(lelt),lrs(lelt),lrt(lelt)
+  real(DP) :: lr ,ls ,lt
+  real(DP) :: llr,lls,llt
+  real(DP) :: lmr,lms,lmt
+  real(DP) :: lrr,lrs,lrt
 
-    real :: l,l2d
-    integer :: e
+  real :: l2d
+  integer :: e, n2, nz0, nzn, nx, n, j, k
 
-    n2 = nx1-1
-    nz0 = 1
-    nzn = 1
-    nx  = nx1-2
-    if (if3d) then
-        nz0 = 0
-        nzn = n2
-    endif
-    call plane_space(lmr,lms,lmt,0,n2,wxm1,xm1,ym1,zm1,nx,n2,nz0,nzn)
+  allocate(l(lx1, ly1, lz1, lelv))
 
-    n=n2+1
-    if (if3d) then
-        do e=1,nelv
-            do j=2,n2
-                do k=2,n2
-                    l(1,k,j,e) = lmr(e)
-                    l(n,k,j,e) = lmr(e)
-                    l(k,1,j,e) = lms(e)
-                    l(k,n,j,e) = lms(e)
-                    l(k,j,1,e) = lmt(e)
-                    l(k,j,n,e) = lmt(e)
-                enddo
-            enddo
-        enddo
-        call dssum(l,n,n,n)
-        do e=1,nelv
-            llr(e) = l(1,2,2,e)-lmr(e)
-            lrr(e) = l(n,2,2,e)-lmr(e)
-            lls(e) = l(2,1,2,e)-lms(e)
-            lrs(e) = l(2,n,2,e)-lms(e)
-            llt(e) = l(2,2,1,e)-lmt(e)
-            lrt(e) = l(2,2,n,e)-lmt(e)
-        enddo
-    else
-        do e=1,nelv
-            do j=2,n2
-                l(1,j,1,e) = lmr(e)
-                l(n,j,1,e) = lmr(e)
-                l(j,1,1,e) = lms(e)
-                l(j,n,1,e) = lms(e)
-            !           call outmat(l(1,1,1,e),n,n,' L    ',e)
-            enddo
-        enddo
-    !        call outmat(l(1,1,1,25),n,n,' L    ',25)
-        call dssum(l,n,n,1)
-    !        call outmat(l(1,1,1,25),n,n,' L    ',25)
-        do e=1,nelv
-        !           call outmat(l(1,1,1,e),n,n,' L    ',e)
-            llr(e) = l(1,2,1,e)-lmr(e)
-            lrr(e) = l(n,2,1,e)-lmr(e)
-            lls(e) = l(2,1,1,e)-lms(e)
-            lrs(e) = l(2,n,1,e)-lms(e)
-        enddo
-    endif
-    return
-    end subroutine swap_lengths
+  n2 = nx1-1
+  nz0 = 1
+  nzn = 1
+  nx  = nx1-2
+  if (if3d) then
+      nz0 = 0
+      nzn = n2
+  endif
+  call plane_space(lmr,lms,lmt,0,n2,wxm1,xm1,ym1,zm1,nx,n2,nz0,nzn)
+
+  n=n2+1
+  if (if3d) then
+      do e=1,nelv
+          do j=2,n2
+              do k=2,n2
+                  l(1,k,j,e) = lmr(e)
+                  l(n,k,j,e) = lmr(e)
+                  l(k,1,j,e) = lms(e)
+                  l(k,n,j,e) = lms(e)
+                  l(k,j,1,e) = lmt(e)
+                  l(k,j,n,e) = lmt(e)
+              enddo
+          enddo
+      enddo
+      call dssum(l,n,n,n)
+      do e=1,nelv
+          llr(e) = l(1,2,2,e)-lmr(e)
+          lrr(e) = l(n,2,2,e)-lmr(e)
+          lls(e) = l(2,1,2,e)-lms(e)
+          lrs(e) = l(2,n,2,e)-lms(e)
+          llt(e) = l(2,2,1,e)-lmt(e)
+          lrt(e) = l(2,2,n,e)-lmt(e)
+      enddo
+  else
+      do e=1,nelv
+          do j=2,n2
+              l(1,j,1,e) = lmr(e)
+              l(n,j,1,e) = lmr(e)
+              l(j,1,1,e) = lms(e)
+              l(j,n,1,e) = lms(e)
+          !           call outmat(l(1,1,1,e),n,n,' L    ',e)
+          enddo
+      enddo
+  !        call outmat(l(1,1,1,25),n,n,' L    ',25)
+      call dssum(l,n,n,1)
+  !        call outmat(l(1,1,1,25),n,n,' L    ',25)
+      do e=1,nelv
+      !           call outmat(l(1,1,1,e),n,n,' L    ',e)
+          llr(e) = l(1,2,1,e)-lmr(e)
+          lrr(e) = l(n,2,1,e)-lmr(e)
+          lls(e) = l(2,1,1,e)-lms(e)
+          lrs(e) = l(2,n,1,e)-lms(e)
+      enddo
+  endif
+  return
+end subroutine swap_lengths
 !----------------------------------------------------------------------
     subroutine row_zero(a,m,n,e)
     integer :: m,n,e

@@ -847,56 +847,6 @@ end subroutine set_up_h1_crs
     end subroutine out_se0
 
 !-----------------------------------------------------------------------
-
-    subroutine crs_solve_h1(uf,vf)
-
-!     Given an input vector v, this generates the H1 coarse-grid solution
-
-    use ctimer
-    use size_m
-    use domain
-    use geom
-    use input
-    use parallel
-    use soln
-    use tstep
-
-    real :: uf(1),vf(1)
-    common /scrpre/ uc(lcr*lelt)
-    common /scrpr2/ vc(lcr*lelt)
-    common /scrxxt/ cmlt(lcr,lelv),mask(lcr,lelv)
-
-    integer :: icalld1
-    save    icalld1
-    data    icalld1 /0/
-
-          
-    if (icalld1 == 0) then ! timer info
-        ncrsl=0
-        tcrsl=0.0
-        icalld1=1
-    endif
-    ncrsl  = ncrsl  + 1
-
-    ntot = nelv*nx1*ny1*nz1
-    call col3(uf,vf,vmult,ntot)
-
-    call map_f_to_c_h1_bilin(vc,uf)   ! additive Schwarz
-
-#ifndef NOTIMER
-    etime1=dnekclock()
-#endif
-    call crs_solve(xxth(ifield),uc,vc)
-#ifndef NOTIMER
-    tcrsl=tcrsl+dnekclock()-etime1
-#endif
-
-    call map_c_to_f_h1_bilin(uf,uc)
-
-
-    return
-    end subroutine crs_solve_h1
-!-----------------------------------------------------------------------
     subroutine set_h1_basis_bilin
 
     use size_m

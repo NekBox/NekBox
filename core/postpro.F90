@@ -1,48 +1,4 @@
 !-----------------------------------------------------------------------
-#if 0
-    subroutine comp_sije(gije)
-
-!     Compute symmetric part of a tensor G_ij for element e
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    real :: gije(lx1*ly1*lz1,ldim,ldim)
-
-    nxyz = nx1*ny1*nz1
-
-    k = 1
-
-    do j=1,ndim
-        do i=k,ndim
-            do l=1,nxyz
-                gije(l,i,j) = 0.5*(gije(l,i,j)+gije(l,j,i))
-                gije(l,j,i) = gije(l,i,j)
-            enddo
-        enddo
-        k = k + 1
-    enddo
-
-    return
-    end subroutine comp_sije
-#endif
-!-----------------------------------------------------------------------
     subroutine map2reg(ur,n,u,nel)
 
 !     Map scalar field u() to regular n x n x n array ur

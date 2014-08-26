@@ -283,18 +283,6 @@
     end subroutine uzawa_gmres_split
 
 !-----------------------------------------------------------------------
-#if 0
-    subroutine uzawa_gmres_temp(a,b,n)
-    integer :: n
-    real :: a(n),b(n)
-    integer :: i
-    do i=1,n
-        a(i)=sqrt(b(i))*a(i)
-    enddo
-    return
-    end subroutine uzawa_gmres_temp
-#endif
-!-----------------------------------------------------------------------
     subroutine ax(w,x,h1,h2,n)
     use size_m
     use dealias
@@ -581,23 +569,5 @@
 
     return
     end subroutine hmh_gmres
-!-----------------------------------------------------------------------
-#if 0
-    subroutine rzero_g(a,e,nx,ny,nz)
-
-    real :: a(nx,ny,nz,1)
-    integer :: e
-
-    do  i=1,nx
-        do  j=1,ny
-            do  k=1,nz
-                a(i,j,k,e) = 0.0
-            enddo
-        enddo
-    enddo
-
-    return
-    end subroutine rzero_g
-#endif
 !-----------------------------------------------------------------------
 

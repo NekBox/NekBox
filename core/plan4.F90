@@ -1,56 +1,66 @@
 !-----------------------------------------------------------------------
-    subroutine plan4
+!> \brief Splitting scheme A.G. Tomboulides et al.
+!! Journal of Sci.Comp.,Vol. 12, No. 2, 1998
+!!
+!! NOTE: QTL denotes the so called thermal
+!!       divergence and has to be provided
+!!       by an external subroutine e.g qthermal
+subroutine plan4
+  use kinds, only : DP
+  use size_m, only : nid, mxprev
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx2, ly2, lz2, lelv
+  use size_m, only : nx1, ny1, nz1, nelv
+  use ctimer, only : icalld, tpres, npres, etime1, dnekclock
+  use mass, only : binvm1, bm1, volvm1
+  use soln, only : qtl, usrdiv, vx, vy, vz, v1mask, v2mask, v3mask
+  use soln, only : vtrans, pmask, vmult, pr
+  use tstep, only : imesh, nmxh, tolhv
+  implicit none
 
-!     Splitting scheme A.G. Tomboulides et al.
-!     Journal of Sci.Comp.,Vol. 12, No. 2, 1998
+  integer, parameter :: ktot = lx1*ly1*lz1*lelt
+  integer, parameter :: laxt = mxprev
 
-!     NOTE: QTL denotes the so called thermal
-!           divergence and has to be provided
-!           by an external subroutine e.g qthermal
+  integer, save :: napprox(2)
+  real(DP), allocatable, save :: approx(:,:)
 
-    use ctimer
-    use size_m
-    use geom
-    use input
-    use mass
-    use soln
-    use tstep
-!max    INCLUDE 'ORTHOP'
+  real(DP) :: res1, res2, res3, dv1, dv2, dv3, respr
+  real(DP) :: h1, h2
+  real(DP) :: vext
+  COMMON /SCRNS/ RES1  (LX1,LY1,LZ1,LELV) &
+  ,             RES2  (LX1,LY1,LZ1,LELV) &
+  ,             RES3  (LX1,LY1,LZ1,LELV) &
+  ,             DV1   (LX1,LY1,LZ1,LELV) &
+  ,             DV2   (LX1,LY1,LZ1,LELV) &
+  ,             DV3   (LX1,LY1,LZ1,LELV) &
+  ,             RESPR (LX2,LY2,LZ2,LELV)
+  common /scrvh/ h1    (lx1,ly1,lz1,lelv) &
+  ,             h2    (lx1,ly1,lz1,lelv)
+  COMMON /SCRSF/ VEXT  (LX1*LY1*LZ1*LELV,3)
+  REAL(DP) ::           DPR   (LX2,LY2,LZ2,LELV)
+  EQUIVALENCE   (DPR,DV1)
+  LOGICAL ::        IFSTSP
 
-    parameter (ktot = lx1*ly1*lz1*lelt)
-    parameter (laxt = mxprev)
+  REAL(DP) :: DVC (LX1,LY1,LZ1,LELV), DFC(LX1,LY1,LZ1,LELV)
+  REAL(DP) :: DIV1, DIV2, DIF1, DIF2, QTL1, QTL2
+  real(DP) :: tolspl
+  real(DP), external :: glsum
 
-    common /prthoi/ napprox(2)
-    common /orthov/ approx(ktot,0:laxt)
+  integer :: intype, ntot1 
 
-    COMMON /SCRNS/ RES1  (LX1,LY1,LZ1,LELV) &
-    ,             RES2  (LX1,LY1,LZ1,LELV) &
-    ,             RES3  (LX1,LY1,LZ1,LELV) &
-    ,             DV1   (LX1,LY1,LZ1,LELV) &
-    ,             DV2   (LX1,LY1,LZ1,LELV) &
-    ,             DV3   (LX1,LY1,LZ1,LELV) &
-    ,             RESPR (LX2,LY2,LZ2,LELV)
-    common /scrvh/ h1    (lx1,ly1,lz1,lelv) &
-    ,             h2    (lx1,ly1,lz1,lelv)
-    COMMON /SCRSF/ VEXT  (LX1*LY1*LZ1*LELV,3)
-    REAL ::           DPR   (LX2,LY2,LZ2,LELV)
-    EQUIVALENCE   (DPR,DV1)
-    LOGICAL ::        IFSTSP
+  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
 
-    REAL :: DVC (LX1,LY1,LZ1,LELV), DFC(LX1,LY1,LZ1,LELV)
-    REAL :: DIV1, DIV2, DIF1, DIF2, QTL1, QTL2
-
-    INTYPE = -1
-    NTOT1  = NX1*NY1*NZ1*NELV
+  INTYPE = -1
+  NTOT1  = NX1*NY1*NZ1*NELV
 
 ! add user defined divergence to qtl
-    call add2 (qtl,usrdiv,ntot1)
+  call add2 (qtl,usrdiv,ntot1)
 
-    CALL V_EXTRAP(vext)
+  CALL V_EXTRAP(vext)
 
 ! compute explicit contributions bfx,bfy,bfz
-    CALL MAKEF
-    CALL LAGVEL
+  CALL MAKEF
+  CALL LAGVEL
 
 ! split viscosity into explicit/implicit part
 !    if (ifexplvis) call split_vis
@@ -58,84 +68,83 @@
 ! extrapolate velocity
 
 ! mask Dirichlet boundaries
-    CALL BCDIRVC  (VX,VY,VZ,v1mask,v2mask,v3mask)
+  CALL BCDIRVC  (VX,VY,VZ,v1mask,v2mask,v3mask)
 
 !     first, compute pressure
 #ifndef NOTIMER
-    if (icalld == 0) tpres=0.0
-    icalld=icalld+1
-    npres=icalld
-    etime1=dnekclock()
+  if (icalld == 0) tpres=0.0
+  icalld=icalld+1
+  npres=icalld
+  etime1=dnekclock()
 #endif
 
-    call crespsp  (respr)
-    call invers2  (h1,vtrans,ntot1)
-    call rzero    (h2,ntot1)
-    call ctolspl  (tolspl,respr)
-    napprox(1) = laxt
-    call hsolve   ('PRES',dpr,respr,h1,h2 &
-    ,pmask,vmult &
-    ,imesh,tolspl,nmxh,1 &
-    ,approx,napprox,binvm1)
-    call add2    (pr,dpr,ntot1)
-    call ortho   (pr)
+  call crespsp  (respr)
+  call invers2  (h1,vtrans,ntot1)
+  call rzero    (h2,ntot1)
+  call ctolspl  (tolspl,respr)
+  napprox(1) = laxt
+  call hsolve   ('PRES',dpr,respr,h1,h2 &
+  ,pmask,vmult &
+  ,imesh,tolspl,nmxh,1 &
+  ,approx,napprox,binvm1)
+  call add2    (pr,dpr,ntot1)
+  call ortho   (pr)
 #ifndef NOTIMER
-    tpres=tpres+(dnekclock()-etime1)
+  tpres=tpres+(dnekclock()-etime1)
 #endif
 
 !     Compute velocity
-    call cresvsp (res1,res2,res3,h1,h2)
-    call ophinv  (dv1,dv2,dv3,res1,res2,res3,h1,h2,tolhv,nmxh)
-    call opadd2  (vx,vy,vz,dv1,dv2,dv3)
+  call cresvsp (res1,res2,res3,h1,h2)
+  call ophinv  (dv1,dv2,dv3,res1,res2,res3,h1,h2,tolhv,nmxh)
+  call opadd2  (vx,vy,vz,dv1,dv2,dv3)
 
 !    if (ifexplvis) call redo_split_vis
 
 ! Below is just for diagnostics...
 
 !     Calculate Divergence norms of new VX,VY,VZ
-    CALL OPDIV   (DVC,VX,VY,VZ)
-    CALL DSSUM   (DVC,NX1,NY1,NZ1)
-    CALL COL2    (DVC,BINVM1,NTOT1)
+  CALL OPDIV   (DVC,VX,VY,VZ)
+  CALL DSSUM   (DVC,NX1,NY1,NZ1)
+  CALL COL2    (DVC,BINVM1,NTOT1)
 
-    CALL COL3    (DV1,DVC,BM1,NTOT1)
-    DIV1 = GLSUM (DV1,NTOT1)/VOLVM1
+  CALL COL3    (DV1,DVC,BM1,NTOT1)
+  DIV1 = GLSUM (DV1,NTOT1)/VOLVM1
 
-    CALL COL3    (DV2,DVC,DVC,NTOT1)
-    CALL COL2    (DV2,BM1   ,NTOT1)
-    DIV2 = GLSUM (DV2,NTOT1)/VOLVM1
-    DIV2 = SQRT  (DIV2)
+  CALL COL3    (DV2,DVC,DVC,NTOT1)
+  CALL COL2    (DV2,BM1   ,NTOT1)
+  DIV2 = GLSUM (DV2,NTOT1)/VOLVM1
+  DIV2 = SQRT  (DIV2)
 !     Calculate Divergence difference norms
-    CALL SUB3    (DFC,DVC,QTL,NTOT1)
-    CALL COL3    (DV1,DFC,BM1,NTOT1)
-    DIF1 = GLSUM (DV1,NTOT1)/VOLVM1
-      
-    CALL COL3    (DV2,DFC,DFC,NTOT1)
-    CALL COL2    (DV2,BM1   ,NTOT1)
-    DIF2 = GLSUM (DV2,NTOT1)/VOLVM1
-    DIF2 = SQRT  (DIF2)
+  CALL SUB3    (DFC,DVC,QTL,NTOT1)
+  CALL COL3    (DV1,DFC,BM1,NTOT1)
+  DIF1 = GLSUM (DV1,NTOT1)/VOLVM1
+    
+  CALL COL3    (DV2,DFC,DFC,NTOT1)
+  CALL COL2    (DV2,BM1   ,NTOT1)
+  DIF2 = GLSUM (DV2,NTOT1)/VOLVM1
+  DIF2 = SQRT  (DIF2)
 
-    CALL COL3    (DV1,QTL,BM1,NTOT1)
-    QTL1 = GLSUM (DV1,NTOT1)/VOLVM1
-      
-    CALL COL3    (DV2,QTL,QTL,NTOT1)
-    CALL COL2    (DV2,BM1   ,NTOT1)
-    QTL2 = GLSUM (DV2,NTOT1)/VOLVM1
-    QTL2 = SQRT  (QTL2)
+  CALL COL3    (DV1,QTL,BM1,NTOT1)
+  QTL1 = GLSUM (DV1,NTOT1)/VOLVM1
+    
+  CALL COL3    (DV2,QTL,QTL,NTOT1)
+  CALL COL2    (DV2,BM1   ,NTOT1)
+  QTL2 = GLSUM (DV2,NTOT1)/VOLVM1
+  QTL2 = SQRT  (QTL2)
 
-    IF (NID == 0) THEN
-        WRITE(6,'(15X,A,1p2e13.4)') &
-        'L1/L2 DIV(V)    :',DIV1,DIV2
-        WRITE(6,'(15X,A,1p2e13.4)') &
-        'L1/L2 QTL       :',QTL1,QTL2
-        WRITE(6,'(15X,A,1p2e13.4)') &
-        'L1/L2 DIV(V)-QTL:',DIF1,DIF2
-        IF (DIF2 > 0.1) WRITE(6,'(15X,A)') &
-        'WARNING: DIV(V)-QTL too large!'
-    ENDIF
-     
-     
-    return
-    end subroutine plan4
+  IF (NID == 0) THEN
+      WRITE(6,'(15X,A,1p2e13.4)') &
+      'L1/L2 DIV(V)    :',DIV1,DIV2
+      WRITE(6,'(15X,A,1p2e13.4)') &
+      'L1/L2 QTL       :',QTL1,QTL2
+      WRITE(6,'(15X,A,1p2e13.4)') &
+      'L1/L2 DIV(V)-QTL:',DIF1,DIF2
+      IF (DIF2 > 0.1) WRITE(6,'(15X,A)') &
+      'WARNING: DIV(V)-QTL too large!'
+  ENDIF 
+   
+  return
+end subroutine plan4
 
 !-----------------------------------------------------------------------
     subroutine crespsp (respr)

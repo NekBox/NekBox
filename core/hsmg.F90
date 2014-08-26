@@ -1794,69 +1794,6 @@
     return
     end subroutine mg_mask_e
 !-----------------------------------------------------------------------
-#if 0
-    subroutine axe &
-    (w,p,h1,h2,g,ng,b,nx,ny,nz,ur,us,ut,ifh2,ifrz,e)
-
-    use size_m
-    use input   ! if3d
-    logical :: ifh2,ifrz
-
-    real :: w (nx*ny*nz), p (nx*ny*nz) &
-    , h1(nx*ny*nz), h2(nx*ny*nz) &
-    , b (nx*ny*nz), g (ng,nx*ny*nz) &
-    , ur(nx*ny*nz), us(nx*ny*nz), ut(nx*ny*nz)
-    integer :: e
-
-    nxyz = nx*ny*nz
-
-    call gradl_rst(ur,us,ut,p,nx,if3d)
-!     if (e.eq.1) then
-!        call outmat(p ,nx,ny,'ur A p',e)
-!        call outmat(ur,nx,ny,'ur A r',e)
-!        call outmat(us,nx,ny,'ur A s',e)
-!     endif
-
-    if (if3d) then
-        do i=1,nxyz
-            wr = g(1,i)*ur(i) + g(4,i)*us(i) + g(5,i)*ut(i)
-            ws = g(4,i)*ur(i) + g(2,i)*us(i) + g(6,i)*ut(i)
-            wt = g(5,i)*ur(i) + g(6,i)*us(i) + g(3,i)*ut(i)
-            ur(i) = wr*h1(i)
-            us(i) = ws*h1(i)
-            ut(i) = wt*h1(i)
-        enddo
-    elseif (ifaxis) then
-        call exitti('Blame Paul for no gradl_rst support yet$',nx)
-    else
-        do i=1,nxyz
-            wr = g(1,i)*ur(i) + g(3,i)*us(i)
-            ws = g(3,i)*ur(i) + g(2,i)*us(i)
-        !           write(6,3) i,ur(i),wr,g(1,i)/b(i),b(i)
-        ! 3         format(i5,1p4e12.4,' wrws')
-            ur(i) = wr*h1(i)
-            us(i) = ws*h1(i)
-        enddo
-    endif
-
-    call gradl_rst_t(w,ur,us,ut,nx,if3d)
-
-!     if (e.eq.1) then
-!        call outmat(w ,nx,ny,'ur B w',e)
-!        call outmat(ur,nx,ny,'ur B r',e)
-!        call outmat(us,nx,ny,'ur B s',e)
-!     endif
-
-    if (ifh2) then
-        do i=1,nxyz
-            w(i)=w(i)+h2(i)*b(i)*p(i)
-        enddo
-    endif
-
-    return
-    end subroutine axe
-#endif
-!----------------------------------------------------------------------
     subroutine hsmg_tnsr1(v,nv,nu,A,At)
 
 !     v = [A (x) A] u      or

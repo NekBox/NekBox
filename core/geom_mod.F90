@@ -164,6 +164,8 @@ module geom
     ,IFNSKP(8,LELT) &
     )
 
+    IFLMSF = .False.
+
   end subroutine init_geom
 
 end module geom

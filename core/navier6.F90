@@ -113,6 +113,7 @@
     return
     end subroutine set_overlap
 !-----------------------------------------------------------------------
+#if 0
     subroutine map_one_face12(x2,x1,iface,i12,i12t,w1,w2)
     use size_m
     use input
@@ -170,4 +171,5 @@
 
     return
     end subroutine map_one_face12
+#endif
 !-----------------------------------------------------------------------

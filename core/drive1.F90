@@ -288,7 +288,7 @@ subroutine nek_advance
 
   call nekgsync
   IF (IFTRAN) CALL SETTIME
-  if (ifmhd ) call cfl_check
+!max  if (ifmhd ) call cfl_check
   CALL SETSOLV
   CALL COMMENT
 

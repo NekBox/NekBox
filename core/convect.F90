@@ -1,17 +1,11 @@
 !-----------------------------------------------------------------------
-
 !    Stability limits:
-
 !    AB3:    .7236                     w/safety (1.2):   .603
-
 !    RK3:    1.73   (sqrt 3)           w/safety (1.2):   1.44
-
 !    RK4:    2.828                     w/safety (1.2):   2.36
-
 !    SEM Safety factor:  1.52 for N=3
 !                     <  1.20 for N=16
 !                     ~  1.16 for N=256
-
 !-----------------------------------------------------------------------
     subroutine setup_convect(igeom)
     use size_m
@@ -68,144 +62,145 @@
     return
     end subroutine setup_convect
 !-----------------------------------------------------------------------
-    subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
+!> \brief GLL interpolation from mx to md.
+!! If idir ^= 0, then apply transpose operator  (md to mx)
+subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
+  use kinds, only : DP
+  use size_m, only : lxd, ldim
+  implicit none
 
-!     GLL interpolation from mx to md.
+  real(DP) ::    ju(1),u(1)
+  integer :: mx, md, idir
+  logical :: if3d
 
-!     If idir ^= 0, then apply transpose operator  (md to mx)
+  integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
+  real(DP) :: jgl(ldg), jgt(ldg)
 
-    use size_m
+  integer, parameter :: ld=2*lxd
+  real(DP) :: w
+  common /ctmp0/ w(ld**ldim,2)
+  integer :: ldw, i
 
-    real ::    ju(1),u(1)
-    logical :: if3d
+  call lim_chk(md,ld,'md   ','ld   ','grad_rstd ')
+  call lim_chk(mx,ld,'mx   ','ld   ','grad_rstd ')
 
-    parameter (ldg=lxd**3,lwkd=4*lxd*lxd)
-    common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
-    , wkd(lwkd)
-    real :: jgl,jgt
+  ldw = 2*(ld**ldim)
 
-    parameter (ld=2*lxd)
-    common /ctmp0/ w(ld**ldim,2)
+  call get_int_ptr (i, jgl, jgt, mx,md)
 
-    call lim_chk(md,ld,'md   ','ld   ','grad_rstd ')
-    call lim_chk(mx,ld,'mx   ','ld   ','grad_rstd ')
+  if (idir == 0) then
+      call specmpn(ju,md,u,mx,jgl(i),jgt(i),if3d,w,ldw)
+  else
+      call specmpn(ju,mx,u,md,jgt(i),jgl(i),if3d,w,ldw)
+  endif
 
-    ldw = 2*(ld**ldim)
-
-    call get_int_ptr (i,mx,md)
-
-    if (idir == 0) then
-        call specmpn(ju,md,u,mx,jgl(i),jgt(i),if3d,w,ldw)
-    else
-        call specmpn(ju,mx,u,md,jgt(i),jgl(i),if3d,w,ldw)
-    endif
-
-    return
-    end subroutine intp_rstd
+  return
+end subroutine intp_rstd
 !-----------------------------------------------------------------------
-    subroutine gen_int(jgl,jgt,mp,np,w)
+!> \brief Generate interpolation from np GLL points to mp GL points
+!!   jgl  = interpolation matrix, mapping from velocity nodes to pressure
+!!   jgt  = transpose of interpolation matrix
+!!   w    = work array of size (np+mp)
+!!   np   = number of points on GLL grid
+!!   mp   = number of points on GL  grid
+subroutine gen_int(jgl,jgt,mp,np,w)
+  use kinds, only : DP
+  implicit none
 
-!     Generate interpolation from np GLL points to mp GL points
+  real(DP) :: jgl(mp,np),jgt(np*mp),w(1)
+  integer, intent(in) :: mp, np
 
-!        jgl  = interpolation matrix, mapping from velocity nodes to pressure
-!        jgt  = transpose of interpolation matrix
-!        w    = work array of size (np+mp)
+  integer :: iz, id, n, i, j
 
-!        np   = number of points on GLL grid
-!        mp   = number of points on GL  grid
+  iz = 1
+  id = iz + np
 
+  call zwgll (w(iz),jgt,np)
+  call zwgl  (w(id),jgt,mp)
 
-    real :: jgl(mp,np),jgt(np*mp),w(1)
+  n  = np-1
+  do i=1,mp
+      call fd_weights_full(w(id+i-1),w(iz),n,0,jgt)
+      do j=1,np
+          jgl(i,j) = jgt(j)                  !  Interpolation matrix
+      enddo
+  enddo
 
-    iz = 1
-    id = iz + np
+  call transpose(jgt,np,jgl,mp)
 
-    call zwgll (w(iz),jgt,np)
-    call zwgl  (w(id),jgt,mp)
-
-    n  = np-1
-    do i=1,mp
-        call fd_weights_full(w(id+i-1),w(iz),n,0,jgt)
-        do j=1,np
-            jgl(i,j) = jgt(j)                  !  Interpolation matrix
-        enddo
-    enddo
-
-    call transpose(jgt,np,jgl,mp)
-
-    return
-    end subroutine gen_int
+  return
+end subroutine gen_int
 !-----------------------------------------------------------------------
-    subroutine gen_dgl(dgl,dgt,mp,np,w)
+!> \brief Generate derivative from np GL points onto mp GL points
+!!  dgl  = interpolation matrix, mapping from velocity nodes to pressure
+!!  dgt  = transpose of interpolation matrix
+!!  w    = work array of size (3*np+mp)
+!!  np   = number of points on GLL grid
+!!  mp   = number of points on GL  grid
+subroutine gen_dgl(dgl,dgt,mp,np,w)
+  use kinds, only : DP
+  implicit none
 
-!     Generate derivative from np GL points onto mp GL points
+  integer, intent(in) :: mp, np
+  real(DP) :: dgl(mp,np),dgt(np*mp),w(1)
 
-!        dgl  = interpolation matrix, mapping from velocity nodes to pressure
-!        dgt  = transpose of interpolation matrix
-!        w    = work array of size (3*np+mp)
+  integer :: iz, id, ndgt, ldgt, n, i, j
 
-!        np   = number of points on GLL grid
-!        mp   = number of points on GL  grid
+  iz = 1
+  id = iz + np
 
+  call zwgl  (w(iz),dgt,np)  ! GL points
+  call zwgl  (w(id),dgt,mp)  ! GL points
 
+  ndgt = 2*np
+  ldgt = mp*np
+  call lim_chk(ndgt,ldgt,'ldgt ','dgt  ','gen_dgl   ')
 
-    real :: dgl(mp,np),dgt(np*mp),w(1)
+  n  = np-1
+  do i=1,mp
+      call fd_weights_full(w(id+i-1),w(iz),n,1,dgt) ! 1=1st deriv.
+      do j=1,np
+          dgl(i,j) = dgt(np+j)                       ! Derivative matrix
+      enddo
+  enddo
 
+  call transpose(dgt,np,dgl,mp)
 
-    iz = 1
-    id = iz + np
-
-    call zwgl  (w(iz),dgt,np)  ! GL points
-    call zwgl  (w(id),dgt,mp)  ! GL points
-
-    ndgt = 2*np
-    ldgt = mp*np
-    call lim_chk(ndgt,ldgt,'ldgt ','dgt  ','gen_dgl   ')
-
-    n  = np-1
-    do i=1,mp
-        call fd_weights_full(w(id+i-1),w(iz),n,1,dgt) ! 1=1st deriv.
-        do j=1,np
-            dgl(i,j) = dgt(np+j)                       ! Derivative matrix
-        enddo
-    enddo
-
-    call transpose(dgt,np,dgl,mp)
-
-    return
-    end subroutine gen_dgl
+  return
+end subroutine gen_dgl
 !-----------------------------------------------------------------------
-    subroutine lim_chk(n,m,avar5,lvar5,sub_name10)
-    use size_m            ! need nid
-    character(5) ::  avar5,lvar5
-    character(10) :: sub_name10
+!> Check array limits
+subroutine lim_chk(n,m,avar5,lvar5,sub_name10)
+  use size_m, only : nid            ! need nid
+  implicit none
+  character(5), intent(in) ::  avar5,lvar5
+  character(10), intent(in) :: sub_name10
+  integer, intent(in) :: n, m
 
-    if (n > m) then
-        write(6,1) nid,n,m,avar5,lvar5,sub_name10
-        1 format(i8,' ERROR: :',2i12,2(1x,a5),1x,a10)
-        call exitti('lim_chk problem. $',n)
-    endif
+  if (n > m) then
+      write(6,1) nid,n,m,avar5,lvar5,sub_name10
+      1 format(i8,' ERROR: :',2i12,2(1x,a5),1x,a10)
+      call exitti('lim_chk problem. $',n)
+  endif
 
-    return
-    end subroutine lim_chk
+  return
+end subroutine lim_chk
 !-----------------------------------------------------------------------
 !> \brief Get pointer to jgl() for interpolation pair (mx,md)
-subroutine get_int_ptr (ip,mx,md) ! GLL-->GL pointer
+subroutine get_int_ptr (ip, jgl, jgt, mx,md) ! GLL-->GL pointer
   use kinds, only : DP
   use size_m
   implicit none
 
-  integer, intent(in) :: mx, md
-  integer, intent(out) :: ip
-
   integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
-  real(DP) :: d, dt, dg, dgt, jgl, jgt, wkd
-  common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
-  , wkd(lwkd)
+
+  integer, intent(out) :: ip
+  real(DP), intent(out) :: jgl(ldg), jgt(ldg)
+  integer, intent(in) :: mx, md
+
+  real(DP) :: wkd(lwkd)
 
   integer, parameter :: ld=2*lxd
-!  integer, save :: pd(0:ld*ld) = 0
-!  integer, save :: pdg(0:ld*ld) = 0
   integer, save :: pjgl(0:ld*ld) = 0
 
   integer :: ij, nstore, nwrkd
@@ -232,19 +227,17 @@ subroutine get_int_ptr (ip,mx,md) ! GLL-->GL pointer
 end subroutine get_int_ptr
 !-----------------------------------------------------------------------
 !> \brief Get pointer to GL-GL interpolation dgl() for pair (mx,md)
-subroutine get_dgl_ptr (ip,mx,md)
+subroutine get_dgl_ptr (ip, dg, dgt, wkd, mx,md)
   use kinds, only : DP
   use size_m, only : lxd 
   implicit none
 
-  integer :: ip, mx, md
-
   integer, parameter :: ld=2*lxd
   integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
 
-  real(DP) :: d, dt, dg, dgt, jgl, jgt, wkd
-  common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
-  , wkd(lwkd)
+  integer, intent(out) :: ip
+  real(DP), intent(out) :: dg(ldg), dgt(ldg), wkd(lwkd)
+  integer, intent(in) :: mx, md
 
   integer, save ::  pdg   (0:ld*ld)
 
@@ -271,29 +264,29 @@ subroutine get_dgl_ptr (ip,mx,md)
   return
 end subroutine get_dgl_ptr
 !-----------------------------------------------------------------------
-    subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
+subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
+  use kinds, only : DP
+  use size_m
+  implicit none
 
-    use size_m
-    use dxyz
+  real(DP) ::    ur(1),us(1),ut(1),u(1)
+  integer, intent(in) :: md
+  logical :: if3d
 
-    real ::    ur(1),us(1),ut(1),u(1)
-    logical :: if3d
+  integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
+  real(DP) :: dg(ldg), dgt(ldg), wkd(lwkd)
+  integer :: m0, ip
 
-    parameter (ldg=lxd**3,lwkd=4*lxd*lxd)
-    common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
-    , wkd(lwkd)
-    real :: jgl,jgt
-
-    m0 = md-1
-    call get_dgl_ptr (ip,md,md)
-    if (if3d) then
-        call local_grad3(ur,us,ut,u,m0,1,dg(ip),dgt(ip))
-    else
+  m0 = md-1
+  call get_dgl_ptr (ip, dg, dgt, wkd, md,md)
+  if (if3d) then
+      call local_grad3(ur,us,ut,u,m0,1,dg(ip),dgt(ip))
+  else
 !max        call local_grad2(ur,us   ,u,m0,1,dg(ip),dgt(ip))
-    endif
+  endif
 
-    return
-    end subroutine grad_rst
+  return
+end subroutine grad_rst
 !-----------------------------------------------------------------------
 !> \brief Compute dealiased form:  J^T Bf *JC .grad Ju w/ correct Jacobians
 subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)

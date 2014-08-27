@@ -1152,21 +1152,23 @@
     return
     end function glsc23
 !-----------------------------------------------------------------------
-    real function gl2norm(a,n)
+!> \brief global 2-norm
+real function gl2norm(a,n)
+  use kinds, only : DP
+  use mass, only : bm1, volvm1
+  implicit none
 
-    use size_m
-    use mass
+  real(DP) :: a(1)
+  integer :: n
+  real(DP), external :: glsum
+  real(DP) :: w1(n)
 
-    real :: a(1)
+  call col3 (w1,a,a,n)
+  call col2 (w1,bm1,n)
+  gl2norm = sqrt(glsum (w1,n)/volvm1)
 
-    common /scrsf/ w1 (lx1,ly1,lz1,lelt)
-
-    call col3 (w1,a,a,n)
-    call col2 (w1,bm1,n)
-    gl2norm = sqrt(glsum (w1,n)/volvm1)
-
-    return
-    end function gl2norm
+  return
+end function gl2norm
 !-----------------------------------------------------------------------
     function glsum (x,n)
     DIMENSION X(1)

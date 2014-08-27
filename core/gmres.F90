@@ -112,7 +112,8 @@
             if(param(43) == 1) then
                 call uzprec(z(1,j),w,h1,h2,intype,wp)
             else                                  !       -1
-                call hsmg_solve(z(1,j),w)          ! z  = M   w
+                write(*,*) "Oops: param(43)"
+!max                call hsmg_solve(z(1,j),w)          ! z  = M   w
             !              call copy(z(1,j),w,ntot2)          ! z  = M   w
             endif
             etime_p = etime_p + dnekclock()-etime2

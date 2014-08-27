@@ -415,63 +415,63 @@
     return
     end subroutine hmhzpf
 !-----------------------------------------------------------------------
-    subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
+!> \brief Either std. Helmholtz solve, or a projection + Helmholtz solve
+subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
     ,approx,napprox,bi)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, mxprev
+  use input, only : ifflow, param
+  use tstep, only : ifield, nelfld, istep
+  implicit none
 
-!     Either std. Helmholtz solve, or a projection + Helmholtz solve
+  CHARACTER(4) ::    NAME
+  REAL(DP) ::           U    (LX1,LY1,LZ1,1)
+  REAL(DP) ::           R    (LX1,LY1,LZ1,1)
+  REAL(DP) ::           H1   (LX1,LY1,LZ1,1)
+  REAL(DP) ::           H2   (LX1,LY1,LZ1,1)
+  REAL(DP) ::           vmk  (LX1,LY1,LZ1,1)
+  REAL(DP) ::           vml  (LX1,LY1,LZ1,1)
+  REAL(DP) ::           bi   (LX1,LY1,LZ1,1)
+  REAL(DP) ::           approx (1)
+  integer ::        napprox(1)
+  integer :: imsh, maxit, isd
+  real(DP) :: tol
 
-    use ctimer
-    use size_m
-    use fdmh1
-    use input
-    use mass
-    use tstep
+  real(DP) :: w1(lx1,ly1,lz1,lelt), w2(2+2*mxprev)
 
-    CHARACTER(4) ::    NAME
-    REAL ::           U    (LX1,LY1,LZ1,1)
-    REAL ::           R    (LX1,LY1,LZ1,1)
-    REAL ::           H1   (LX1,LY1,LZ1,1)
-    REAL ::           H2   (LX1,LY1,LZ1,1)
-    REAL ::           vmk  (LX1,LY1,LZ1,1)
-    REAL ::           vml  (LX1,LY1,LZ1,1)
-    REAL ::           bi   (LX1,LY1,LZ1,1)
-    REAL ::           approx (1)
-    integer ::        napprox(1)
-    common /ctmp2/ w1   (lx1,ly1,lz1,lelt)
-    common /ctmp3/ w2   (2+2*mxprev)
+  logical :: ifstdh
+  character(4) ::  cname
+  integer :: n
 
-    logical :: ifstdh
-    character(4) ::  cname
+  call chcopy(cname,name,4)
+  call capit (cname,4)
 
-    call chcopy(cname,name,4)
-    call capit (cname,4)
+  ifstdh = .TRUE. 
 
-    ifstdh = .TRUE. 
+  if ( .NOT. ifflow) ifstdh = .FALSE. 
 
-    if ( .NOT. ifflow) ifstdh = .FALSE. 
+  if (param(95) /= 0 .AND. istep > param(95)) then
+      if (cname == 'PRES') ifstdh = .FALSE. 
+  elseif (param(94) /= 0 .AND. istep > param(94)) then
+      ifstdh = .FALSE. 
+  endif
 
-    if (param(95) /= 0 .AND. istep > param(95)) then
-        if (cname == 'PRES') ifstdh = .FALSE. 
-    elseif (param(94) /= 0 .AND. istep > param(94)) then
-        ifstdh = .FALSE. 
-    endif
+  if (param(93) == 0) ifstdh = .TRUE. 
 
-    if (param(93) == 0) ifstdh = .TRUE. 
+  if (ifstdh) then
+      call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
+  else
 
-    if (ifstdh) then
-        call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
-    else
+      n = nx1*ny1*nz1*nelfld(ifield)
 
-        n = nx1*ny1*nz1*nelfld(ifield)
+      call dssum  (r,nx1,ny1,nz1)
+      call col2   (r,vmk,n)
+      call projh  (r,h1,h2,bi,vml,vmk,approx,napprox,w1,w2,name)
+      call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
+      call gensh  (u,h1,h2,vml,vmk,approx,napprox,w1,w2,name)
 
-        call dssum  (r,nx1,ny1,nz1)
-        call col2   (r,vmk,n)
-        call projh  (r,h1,h2,bi,vml,vmk,approx,napprox,w1,w2,name)
-        call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
-        call gensh  (u,h1,h2,vml,vmk,approx,napprox,w1,w2,name)
+  endif
 
-    endif
-
-    return
-    end subroutine hsolve
+  return
+  end subroutine hsolve
 !-----------------------------------------------------------------------

@@ -1052,30 +1052,7 @@
     return
     end subroutine makeabf
 
-!-----------------------------------------------------------------------
-    subroutine setab3 (ab0,ab1,ab2)
-
-!     Set coefficients for 3rd order Adams-Bashforth scheme
-!     (variable time step).
-
-    use size_m
-    use tstep
-
-    IF (ISTEP <= 2) THEN
-        AB0 = 1.
-        AB1 = 0.
-        AB2 = 0.
-    ELSE
-        DT0 = DTLAG(1)
-        DT1 = DTLAG(2)
-        DT2 = DTLAG(3)
-        AB2  = (DT0/DT2)*((DT0/3.+DT1/2.)/(DT1+DT2))
-        AB1  = -(DT0/DT1)*(0.5+(DT0/3.+DT1/2.)/DT2)
-        AB0  = 1.-AB1-AB2
-    ENDIF
-    return
-    end subroutine setab3
-
+!----------------------------------------------------------------------
     subroutine setabbd (ab,dtlag,nab,nbd)
 !-----------------------------------------------------------------------
 
@@ -1516,12 +1493,6 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   return
 end subroutine normvc
 
-    subroutine convsp (ifstsp)
-    LOGICAL :: IFSTSP
-    IFSTSP = .FALSE. 
-    return
-    end subroutine convsp
-
     subroutine opmask (res1,res2,res3)
 !----------------------------------------------------------------------
 
@@ -1578,44 +1549,6 @@ end subroutine normvc
     return
     end subroutine opsub2
 
-    subroutine opcolv3(a1,a2,a3,b1,b2,b3,c)
-    use size_m
-    use opctr
-    REAL :: A1(1),A2(1),A3(1)
-    REAL :: B1(1),B2(1),B3(1)
-    REAL :: C (1)
-
-    NTOT1=NX1*NY1*NZ1*NELV
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'opcolv'
-    endif
-
-    isbcnt = ntot1*ndim
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    IF (NDIM == 3) THEN
-        DO 100 I=1,NTOT1
-            A1(I)=B1(I)*C(I)
-            A2(I)=B2(I)*C(I)
-            A3(I)=B3(I)*C(I)
-        100 END DO
-    ELSE
-        DO 200 I=1,NTOT1
-            A1(I)=B1(I)*C(I)
-            A2(I)=B2(I)*C(I)
-        200 END DO
-    ENDIF
-    return
-    end subroutine opcolv3
-
     subroutine opcolv (a1,a2,a3,c)
     use size_m
     use opctr
@@ -1651,16 +1584,6 @@ end subroutine normvc
     ENDIF
     return
     end subroutine opcolv
-
-    subroutine opcol2 (a1,a2,a3,b1,b2,b3)
-    use size_m
-    REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
-    NTOT1=NX1*NY1*NZ1*NELV
-    CALL COL2(A1,B1,NTOT1)
-    CALL COL2(A2,B2,NTOT1)
-    IF(NDIM == 3)CALL COL2(A3,B3,NTOT1)
-    return
-    end subroutine opcol2
 
     subroutine opchsgn (a,b,c)
     use size_m
@@ -1833,84 +1756,6 @@ end subroutine normvc
     return
     end subroutine oprzero
 !-----------------------------------------------------------------------
-    subroutine opcolv2c(a1,a2,a3,b1,b2,c)
-    use size_m
-    use opctr
-    REAL :: A1(1),A2(1),A3(1)
-    REAL :: B1(1),B2(1)
-
-    NTOT1=NX1*NY1*NZ1*NELV
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'opcv2c'
-    endif
-
-    isbcnt = ntot1*(ndim+2)
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    IF (NDIM == 3) THEN
-        DO 100 I=1,NTOT1
-            tmp = c*b1(i)*b2(i)
-            A1(I)=A1(I)*tmp
-            A2(I)=A2(I)*tmp
-            A3(I)=A3(I)*tmp
-        100 END DO
-    ELSE
-        DO 200 I=1,NTOT1
-            tmp = c*b1(i)*b2(i)
-            A1(I)=A1(I)*tmp
-            A2(I)=A2(I)*tmp
-        200 END DO
-    ENDIF
-    return
-    end subroutine opcolv2c
-!-----------------------------------------------------------------------
-    subroutine opcolv2(a1,a2,a3,b1,b2)
-    use size_m
-    use opctr
-    REAL :: A1(1),A2(1),A3(1)
-    REAL :: B1(1),B2(1)
-
-    NTOT1=NX1*NY1*NZ1*NELV
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'opclv2'
-    endif
-
-    isbcnt = ntot1*(ndim+1)
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    IF (NDIM == 3) THEN
-        DO 100 I=1,NTOT1
-            tmp = b1(i)*b2(i)
-            A1(I)=A1(I)*tmp
-            A2(I)=A2(I)*tmp
-            A3(I)=A3(I)*tmp
-        100 END DO
-    ELSE
-        DO 200 I=1,NTOT1
-            tmp = b1(i)*b2(i)
-            A1(I)=A1(I)*tmp
-            A2(I)=A2(I)*tmp
-        200 END DO
-    ENDIF
-    return
-    end subroutine opcolv2
-!-----------------------------------------------------------------------
     subroutine opadd2col(a1,a2,a3,b1,b2,b3,c)
     use size_m
     use opctr
@@ -1985,27 +1830,6 @@ end subroutine normvc
     ENDIF
     return
     end subroutine opcolv3c
-!-----------------------------------------------------------------------
-    subroutine setmap(n1,nd)
-
-    use size_m
-    use dealias
-
-    parameter(lx=80)
-    real :: z1(lx),zd(lx),w(lx)
-
-    if (n1 > lx .OR. nd > lx) then
-        write(6,*)'ERROR: increase lx in setmap to max:',n1,nd
-        call exitt
-    endif
-
-    call zwgll(z1,w,n1)
-    call zwgll(zd,w,nd)
-    call igllm(im1d,im1dt,z1,zd,n1,nd,n1,nd)
-    call igllm(imd1,imd1t,zd,z1,nd,n1,nd,n1)
-
-    return
-    end subroutine setmap
 !-----------------------------------------------------------------------
     subroutine transpose(a,lda,b,ldb)
     real :: a(lda,1),b(ldb,1)
@@ -2158,36 +1982,6 @@ end subroutine convop
 
     return
     end subroutine opgradt
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-    subroutine set_PNDoi(Pt,P,LkNt,N,D)
-
-    use size_m   ! for write stmt
-
-
-!     Set up operators for overintegration and interpolation
-
-    integer :: N,D
-    real ::    Pt(N,D),P(D,N),LkNt(N,0:N-1)
-
-    parameter(lx=80)
-    real :: zN(lx),zD(lx),wN(lx),wD(lx)
-
-!     Compute Lagrangian interpolant points
-
-    call zwgll(zN,wN,N)
-    call zwgll(zD,wD,D)
-
-    if (nid == 0) write(6,*) 'dealias, pndoi:',N,D
-    call IGLLM (P,Pt,ZN,ZD,N,D,N,D)
-
-    do j=1,D
-        do i=1,N
-            Pt(i,j) = wD(j)*Pt(i,j)/wN(i)
-        enddo
-    enddo
-    return
-    end subroutine set_PNDoi
 !-----------------------------------------------------------------------
     subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
 

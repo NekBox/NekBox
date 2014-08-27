@@ -402,123 +402,130 @@
     return
     end subroutine setdtc
 
-    subroutine cumax (v1,v2,v3,umax)
+subroutine cumax (v1,v2,v3,umax)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv, ndim
+  use geom, only : rxm1, rym1, sxm1, sym1, rzm1, szm1, txm1, tym1, tzm1
+  use input, only : ifaxis
+  use wz_m, only : zgm1
+  implicit none
 
-    use size_m
-    use geom
-    use input
-    use wz_m
+  real(DP) :: V1(LX1,LY1,LZ1,1), V2(LX1,LY1,LZ1,1), V3(LX1,LY1,LZ1,1)
+  real(DP) :: umax
 
-    common /scrns/ xrm1 (lx1,ly1,lz1,lelv) &
-    ,             xsm1 (lx1,ly1,lz1,lelv) &
-    ,             xtm1 (lx1,ly1,lz1,lelv) &
-    ,             yrm1 (lx1,ly1,lz1,lelv) &
-    ,             ysm1 (lx1,ly1,lz1,lelv) &
-    ,             ytm1 (lx1,ly1,lz1,lelv)
-    common /scrmg/ zrm1 (lx1,ly1,lz1,lelv) &
-    ,             zsm1 (lx1,ly1,lz1,lelv) &
-    ,             ztm1 (lx1,ly1,lz1,lelv)
-    common /ctmp1/ u    (lx1,ly1,lz1,lelv) &
-    ,             v    (lx1,ly1,lz1,lelv) &
-    ,             w    (lx1,ly1,lz1,lelv)
-    common /ctmp0/ x    (lx1,ly1,lz1,lelv) &
-    ,             r    (lx1,ly1,lz1,lelv)
-    common /delrst/ drst(lx1),drsti(lx1)
+  real(DP) :: xrm1, xsm1, xtm1, yrm1, ysm1, ytm1, zrm1, zsm1, ztm1
+  common /scrns/ xrm1 (lx1,ly1,lz1,lelv) &
+  ,             xsm1 (lx1,ly1,lz1,lelv) &
+  ,             xtm1 (lx1,ly1,lz1,lelv) &
+  ,             yrm1 (lx1,ly1,lz1,lelv) &
+  ,             ysm1 (lx1,ly1,lz1,lelv) &
+  ,             ytm1 (lx1,ly1,lz1,lelv)
+  common /scrmg/ zrm1 (lx1,ly1,lz1,lelv) &
+  ,             zsm1 (lx1,ly1,lz1,lelv) &
+  ,             ztm1 (lx1,ly1,lz1,lelv)
 
-    DIMENSION V1(LX1,LY1,LZ1,1) &
-    , V2(LX1,LY1,LZ1,1) &
-    , V3(LX1,LY1,LZ1,1)
-    DIMENSION U3(3)
-    INTEGER :: ICALLD
-    SAVE    ICALLD
-    DATA    ICALLD /0/
+  real(DP) :: u, v, w, x, r
+  common /ctmp1/ u    (lx1,ly1,lz1,lelv) &
+  ,             v    (lx1,ly1,lz1,lelv) &
+  ,             w    (lx1,ly1,lz1,lelv)
+  common /ctmp0/ x    (lx1,ly1,lz1,lelv) &
+  ,             r    (lx1,ly1,lz1,lelv)
 
-    NTOT  = NX1*NY1*NZ1*NELV
-    NTOTL = LX1*LY1*LZ1*LELV
-    NTOTD = NTOTL*NDIM
+  real(DP) :: drst(lx1), drsti(lx1)
 
-!     Compute isoparametric partials.
+  real(DP) :: U3(3)
+  INTEGER, save :: ICALLD = 0
 
-    CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, &
-    IFAXIS)
+  integer :: ntot, ntotl, ntotd
+  integer :: i, ie, ix, iy, iz
+  real(DP), external :: vlmax, glmax
 
-!     Compute maximum U/DX
+  NTOT  = NX1*NY1*NZ1*NELV
+  NTOTL = LX1*LY1*LZ1*LELV
+  NTOTD = NTOTL*NDIM
 
-    IF (ICALLD == 0) THEN
-        ICALLD=1
-        DRST (1)=ABS(ZGM1(2,1)-ZGM1(1,1))
-        DRSTI(1)=1.0/DRST(1)
-        DO 400 I=2,NX1-1
-            DRST (I)=ABS(ZGM1(I+1,1)-ZGM1(I-1,1))/2.0
-            DRSTI(I)=1.0/DRST(I)
-        400 END DO
-        DRST (NX1)=DRST(1)
-        DRSTI(NX1)=1.0/DRST(NX1)
-    endif
+!   Compute isoparametric partials.
 
-!     Zero out scratch arrays U,V,W for ALL declared elements...
+  CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, &
+  IFAXIS)
 
-    CALL RZERO3 (U,V,W,NTOTL)
+!   Compute maximum U/DX
 
-    IF (NDIM == 2) THEN
+  IF (ICALLD == 0) THEN
+      ICALLD=1
+      DRST (1)=ABS(ZGM1(2,1)-ZGM1(1,1))
+      DRSTI(1)=1.0/DRST(1)
+      DO 400 I=2,NX1-1
+          DRST (I)=ABS(ZGM1(I+1,1)-ZGM1(I-1,1))/2.0
+          DRSTI(I)=1.0/DRST(I)
+      400 END DO
+      DRST (NX1)=DRST(1)
+      DRSTI(NX1)=1.0/DRST(NX1)
+  endif
 
-        CALL VDOT2  (U,V1  ,V2  ,RXM1,RYM1,NTOT)
-        CALL VDOT2  (R,RXM1,RYM1,RXM1,RYM1,NTOT)
-        CALL VDOT2  (X,XRM1,YRM1,XRM1,YRM1,NTOT)
-        CALL COL2   (R,X,NTOT)
-        CALL VSQRT  (R,NTOT)
-        CALL INVCOL2(U,R,NTOT)
-    
-        CALL VDOT2  (V,V1  ,V2  ,SXM1,SYM1,NTOT)
-        CALL VDOT2  (R,SXM1,SYM1,SXM1,SYM1,NTOT)
-        CALL VDOT2  (X,XSM1,YSM1,XSM1,YSM1,NTOT)
-        CALL COL2   (R,X,NTOT)
-        CALL VSQRT  (R,NTOT)
-        CALL INVCOL2(V,R,NTOT)
-    
-    ELSE
-    
-        CALL VDOT3  (U,V1  ,V2  ,V3  ,RXM1,RYM1,RZM1,NTOT)
-        CALL VDOT3  (R,RXM1,RYM1,RZM1,RXM1,RYM1,RZM1,NTOT)
-        CALL VDOT3  (X,XRM1,YRM1,ZRM1,XRM1,YRM1,ZRM1,NTOT)
-        CALL COL2   (R,X,NTOT)
-        CALL VSQRT  (R,NTOT)
-        CALL INVCOL2(U,R,NTOT)
-    
-        CALL VDOT3  (V,V1  ,V2  ,V3  ,SXM1,SYM1,SZM1,NTOT)
-        CALL VDOT3  (R,SXM1,SYM1,SZM1,SXM1,SYM1,SZM1,NTOT)
-        CALL VDOT3  (X,XSM1,YSM1,ZSM1,XSM1,YSM1,ZSM1,NTOT)
-        CALL COL2   (R,X,NTOT)
-        CALL VSQRT  (R,NTOT)
-        CALL INVCOL2(V,R,NTOT)
-    
-        CALL VDOT3  (W,V1  ,V2  ,V3  ,TXM1,TYM1,TZM1,NTOT)
-        CALL VDOT3  (R,TXM1,TYM1,TZM1,TXM1,TYM1,TZM1,NTOT)
-        CALL VDOT3  (X,XTM1,YTM1,ZTM1,XTM1,YTM1,ZTM1,NTOT)
-        CALL COL2   (R,X,NTOT)
-        CALL VSQRT  (R,NTOT)
-        CALL INVCOL2(W,R,NTOT)
-    
-    endif
+!   Zero out scratch arrays U,V,W for ALL declared elements...
 
-    DO 500 IE=1,NELV
-        DO 500 IX=1,NX1
-            DO 500 IY=1,NY1
-                DO 500 IZ=1,NZ1
-                    U(IX,IY,IZ,IE)=ABS( U(IX,IY,IZ,IE)*DRSTI(IX) )
-                    V(IX,IY,IZ,IE)=ABS( V(IX,IY,IZ,IE)*DRSTI(IY) )
-                    W(IX,IY,IZ,IE)=ABS( W(IX,IY,IZ,IE)*DRSTI(IZ) )
-    500 END DO
+  CALL RZERO3 (U,V,W,NTOTL)
 
-    U3(1)   = VLMAX(U,NTOT)
-    U3(2)   = VLMAX(V,NTOT)
-    U3(3)   = VLMAX(W,NTOT)
-    UMAX    = GLMAX(U3,3)
+  IF (NDIM == 2) THEN
 
-    return
-    end subroutine cumax
+      CALL VDOT2  (U,V1  ,V2  ,RXM1,RYM1,NTOT)
+      CALL VDOT2  (R,RXM1,RYM1,RXM1,RYM1,NTOT)
+      CALL VDOT2  (X,XRM1,YRM1,XRM1,YRM1,NTOT)
+      CALL COL2   (R,X,NTOT)
+      CALL VSQRT  (R,NTOT)
+      CALL INVCOL2(U,R,NTOT)
+  
+      CALL VDOT2  (V,V1  ,V2  ,SXM1,SYM1,NTOT)
+      CALL VDOT2  (R,SXM1,SYM1,SXM1,SYM1,NTOT)
+      CALL VDOT2  (X,XSM1,YSM1,XSM1,YSM1,NTOT)
+      CALL COL2   (R,X,NTOT)
+      CALL VSQRT  (R,NTOT)
+      CALL INVCOL2(V,R,NTOT)
+  
+  ELSE
+  
+      CALL VDOT3  (U,V1  ,V2  ,V3  ,RXM1,RYM1,RZM1,NTOT)
+      CALL VDOT3  (R,RXM1,RYM1,RZM1,RXM1,RYM1,RZM1,NTOT)
+      CALL VDOT3  (X,XRM1,YRM1,ZRM1,XRM1,YRM1,ZRM1,NTOT)
+      CALL COL2   (R,X,NTOT)
+      CALL VSQRT  (R,NTOT)
+      CALL INVCOL2(U,R,NTOT)
+  
+      CALL VDOT3  (V,V1  ,V2  ,V3  ,SXM1,SYM1,SZM1,NTOT)
+      CALL VDOT3  (R,SXM1,SYM1,SZM1,SXM1,SYM1,SZM1,NTOT)
+      CALL VDOT3  (X,XSM1,YSM1,ZSM1,XSM1,YSM1,ZSM1,NTOT)
+      CALL COL2   (R,X,NTOT)
+      CALL VSQRT  (R,NTOT)
+      CALL INVCOL2(V,R,NTOT)
+  
+      CALL VDOT3  (W,V1  ,V2  ,V3  ,TXM1,TYM1,TZM1,NTOT)
+      CALL VDOT3  (R,TXM1,TYM1,TZM1,TXM1,TYM1,TZM1,NTOT)
+      CALL VDOT3  (X,XTM1,YTM1,ZTM1,XTM1,YTM1,ZTM1,NTOT)
+      CALL COL2   (R,X,NTOT)
+      CALL VSQRT  (R,NTOT)
+      CALL INVCOL2(W,R,NTOT)
+  
+  endif
 
-    subroutine fcaver(xaver,a,iel,iface1)
+  DO 500 IE=1,NELV
+      DO 500 IX=1,NX1
+          DO 500 IY=1,NY1
+              DO 500 IZ=1,NZ1
+                  U(IX,IY,IZ,IE)=ABS( U(IX,IY,IZ,IE)*DRSTI(IX) )
+                  V(IX,IY,IZ,IE)=ABS( V(IX,IY,IZ,IE)*DRSTI(IY) )
+                  W(IX,IY,IZ,IE)=ABS( W(IX,IY,IZ,IE)*DRSTI(IZ) )
+  500 END DO
+
+  U3(1)   = VLMAX(U,NTOT)
+  U3(2)   = VLMAX(V,NTOT)
+  U3(3)   = VLMAX(W,NTOT)
+  UMAX    = GLMAX(U3,3)
+
+  return
+  end subroutine cumax
+
+  subroutine fcaver(xaver,a,iel,iface1)
 !------------------------------------------------------------------------
 
 !     Compute the average of A over the face IFACE1 in element IEL.

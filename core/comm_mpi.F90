@@ -569,7 +569,7 @@
   use wz_m
   use wzf
     include 'mpif.h'
-    common /happycallflag/ icall
+
 
     real*4 :: papi_mflops
     integer*8 :: papi_flops
@@ -577,7 +577,8 @@
 
 
 !     Communicate unhappiness to the other session
-    if (ifneknek .AND. icall == 0) call happy_check(0)
+!    if (ifneknek .AND. icall == 0) call happy_check(0)
+    if (ifneknek) call happy_check(0)
 
     call nekgsync()
 

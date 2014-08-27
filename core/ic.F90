@@ -1,381 +1,387 @@
 !-----------------------------------------------------------------------
-    subroutine setics
+!> \brief Set initial conditions.
 !-----------------------------------------------------------------------
+subroutine setics
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, lx2, ly2, ldimt, ldimt1
+  use size_m, only : nx1, ny1, nz1, nelt, nx2, ny2, nz2, nelv
+  use size_m, only : nid, lpert, npert, nfield
+  use geom, only : ifvcor, xm1, ym1, zm1
+  use input, only : ifheat, ifsplit, ifflow, ifmhd, ifpert, ifmodel, ifkeps
+  use input, only : param, ifmvbd, npscal
+  use input, only : iftmsh, ifldmhd, ifadvc
+  use mvgeom, only : wx, wy, wz
+  use parallel, only : nelgv
+  use soln, only : vx, vy, vz, pr, t, jp, vmult, bx, by, bz
+  use soln, only : tmult, vxp, vyp, vzp, tp
+  use tstep, only : ifield, nbdinp, time, timeio, nelfld
+  implicit none
+   
+  logical  iffort(  ldimt1,0:lpert) &
+  , ifrest(0:ldimt1,0:lpert) &
+  , ifprsl(  ldimt1,0:lpert)
+   
+  LOGICAL ::  IFANYP
+  integer :: ntdump
+  common /rdump/ ntdump
+  real(DP) :: work, ta1, ta2
+  common /ctmp1/ work(lx1,ly1,lz1,lelv) &
+  ,             ta1 (lx2,ly1,lz1) &
+  ,             ta2 (lx2,ly2,lz1)
+  integer*8 :: ntotg,nn
 
-!     Set initial conditions.
+  real :: psmax(LDIMT)
 
-!-----------------------------------------------------------------------
-    use size_m
-    use dealias
-    use geom
-    use input
-    use ixyz
-    use mass
-    use mvgeom
-    use parallel
-    use soln
-    use tstep
-     
-    logical  iffort(  ldimt1,0:lpert) &
-    , ifrest(0:ldimt1,0:lpert) &
-    , ifprsl(  ldimt1,0:lpert)
-     
-    LOGICAL ::  IFANYP
-    common /rdump/ ntdump
-    common /inelr/ nelrr
-    common /ctmp1/ work(lx1,ly1,lz1,lelv) &
-    ,             ta1 (lx2,ly1,lz1) &
-    ,             ta2 (lx2,ly2,lz1)
-    integer*8 :: ntotg,nn
+  integer :: nxyz2, ntot2, nxyz1, ntott, ntotv, ifld, irst, maxfld, mfldt
+  integer :: itest, nbdmax, nbdsav, i, ntot, ifldsave, nfiles
+  real(DP) :: rdif, rtotg, vxmax, vymax, vzmax, prmax, ttmax, small
+  real(DP) :: xxmax, yymax, zzmax
+  real(DP), external :: glsum, glamax, glmin, glmax
 
-    real :: psmax(LDIMT)
+  if(nid == 0) write(6,*) 'set initial conditions'
 
-    if(nid == 0) write(6,*) 'set initial conditions'
+!   Initialize all fields:
+  nxyz2=nx2*ny2*nz2
+  ntot2=nxyz2*nelv
+  nxyz1=nx1*ny1*nz1
+  ntott=nelt*nxyz1
+  ntotv=nelv*nxyz1
 
-!     Initialize all fields:
+  call rzero(vx,ntott)
+  call rzero(vy,ntott)
+  call rzero(vz,ntott)
+  call rzero(pr,nxyz2*nelt)
+  do 10 ifld=1,ldimt
+      call rzero(t(1,1,1,1,ifld),ntott)
+  10 END DO
 
-    nxyz2=nx2*ny2*nz2
-    ntot2=nxyz2*nelv
-    nxyz1=nx1*ny1*nz1
-    ntott=nelt*nxyz1
-    ntotv=nelv*nxyz1
+  jp = 0                  ! set counter for perturbation analysis
+
+  irst = param(46)        ! for lee's restart (rarely used)
+  if (irst > 0)  call setup_convect(2)
 
 
-    call rzero(vx,ntott)
-    call rzero(vy,ntott)
-    call rzero(vz,ntott)
-    call rzero(pr,nxyz2*nelt)
-    do 10 ifld=1,ldimt
-        call rzero(t(1,1,1,1,ifld),ntott)
-    10 END DO
-
-    jp = 0                  ! set counter for perturbation analysis
-
-    irst = param(46)        ! for lee's restart (rarely used)
-    if (irst > 0)  call setup_convect(2)
-
-
-!     If moving geometry then add a perturbation to the
-!     mesh coordinates (see Subroutine INIGEOM)
+!   If moving geometry then add a perturbation to the
+!   mesh coordinates (see Subroutine INIGEOM)
 
 !max    if (ifmvbd) call ptbgeom
 
-!     Find out what type of i.c. is requested
-!     Current options:
+!   Find out what type of i.c. is requested
+!   Current options:
 
-!     (1) - User specified fortran function (default is zero i.c.)
-!     (2) - Restart from file(s)
-!     (3) - Activate pre-solver => steady diffusion / steady Stokes
+!   (1) - User specified fortran function (default is zero i.c.)
+!   (2) - Restart from file(s)
+!   (3) - Activate pre-solver => steady diffusion / steady Stokes
 
-!     If option (2) is requested, also return with the name of the
-!     restart file(s) together with the associated dump number
+!   If option (2) is requested, also return with the name of the
+!   restart file(s) together with the associated dump number
 
-    call slogic (iffort,ifrest,ifprsl,nfiles)
+  call slogic (iffort,ifrest,ifprsl,nfiles)
 
-!     Set up proper initial values for turbulence model arrays
+!   Set up proper initial values for turbulence model arrays
 #if 0
-    IF (IFMODEL) CALL PRETMIC
+  IF (IFMODEL) CALL PRETMIC
 #endif
 
-!      ***** TEMPERATURE AND PASSIVE SCALARS ******
+!    ***** TEMPERATURE AND PASSIVE SCALARS ******
 
-!     Check if any pre-solv necessary for temperature/passive scalars
+!   Check if any pre-solv necessary for temperature/passive scalars
 
-    IFANYP = .FALSE. 
-    DO 100 IFIELD=2,NFIELD
-        IF (IFPRSL(IFIELD,jp)) THEN
-            IF (NID == 0) WRITE(6,101) IFIELD
-            IFANYP = .TRUE. 
-        ENDIF
-    100 END DO
-    101 FORMAT(2X,'Using PRESOLVE option for field',I2,'.')
+  IFANYP = .FALSE. 
+  DO 100 IFIELD=2,NFIELD
+      IF (IFPRSL(IFIELD,jp)) THEN
+          IF (NID == 0) WRITE(6,101) IFIELD
+          IFANYP = .TRUE. 
+      ENDIF
+  100 END DO
+  101 FORMAT(2X,'Using PRESOLVE option for field',I2,'.')
 
-!     Fortran function initial conditions for temp/pass. scalars.
-    maxfld = nfield
-    if (ifmodel .AND. ifkeps) maxfld = nfield-2
-    if (ifmhd) maxfld = npscal+3
+!   Fortran function initial conditions for temp/pass. scalars.
+  maxfld = nfield
+  if (ifmodel .AND. ifkeps) maxfld = nfield-2
+  if (ifmhd) maxfld = npscal+3
 
-!     Always call nekuic (pff, 12/7/11)
-    do ifield=1,maxfld
-        if (nid == 0) write(6,*) 'nekuic (1) for ifld ', ifield
-        call nekuic
-    enddo
+!   Always call nekuic (pff, 12/7/11)
+  do ifield=1,maxfld
+      if (nid == 0) write(6,*) 'nekuic (1) for ifld ', ifield
+      call nekuic
+  enddo
 
-!     If any pre-solv, do pre-solv for all temperatur/passive scalar fields
+!   If any pre-solv, do pre-solv for all temperatur/passive scalar fields
 !max    if (ifanyp) call prsolvt
 
-    jp = 0 ! jp=0 --> base field, not perturbation field
-    do 200 ifield=2,maxfld
-        if (iffort(ifield,jp)) then
-            if (nid == 0) write(6,*) 'call nekuic for ifld ', ifield
-            call nekuic
-        endif
-    200 END DO
+  jp = 0 ! jp=0 --> base field, not perturbation field
+  do 200 ifield=2,maxfld
+      if (iffort(ifield,jp)) then
+          if (nid == 0) write(6,*) 'call nekuic for ifld ', ifield
+          call nekuic
+      endif
+  200 END DO
 
-    if (ifpert) then
-        ifield=2
-        do jp=1,npert
-            if (nid == 0) write(6,*) 'nekuicP',ifield,jp,iffort(ifield,jp)
-            if (iffort(ifield,jp)) call nekuic
-        enddo
-    endif
-    jp = 0
-         
+  if (ifpert) then
+      ifield=2
+      do jp=1,npert
+          if (nid == 0) write(6,*) 'nekuicP',ifield,jp,iffort(ifield,jp)
+          if (iffort(ifield,jp)) call nekuic
+      enddo
+  endif
+  jp = 0
+       
 
-    call nekgsync()
-    call restart_driver(nfiles) !  Check restart files
-    call nekgsync()
+  call nekgsync()
+  call restart_driver(nfiles) !  Check restart files
+  call nekgsync()
 
 
-!      ***** VELOCITY ******
-!     (If restarting for V, we're done,
-!     ...else, do pre-solv for fluid if requested.)
+!    ***** VELOCITY ******
+!   (If restarting for V, we're done,
+!   ...else, do pre-solv for fluid if requested.)
 
-    ifield = 1
+  ifield = 1
 !max    if (ifprsl(ifield,jp)) call prsolvv
 
 
-!     Fortran function initial conditions for velocity.
-    ifield = 1
-    if (iffort(ifield,jp)) then
-        if (nid == 0) write(6,*) 'call nekuic for vel  '
-        call nekuic
-    endif
+!   Fortran function initial conditions for velocity.
+  ifield = 1
+  if (iffort(ifield,jp)) then
+      if (nid == 0) write(6,*) 'call nekuic for vel  '
+      call nekuic
+  endif
 
-    if (ifpert) then
-        ifield=1
-        do jp=1,npert
-            if (iffort(ifield,jp)) call nekuic
-            if (nid == 0) write(6,*) 'ic vel pert:',iffort(1,jp),jp
-        enddo
-    endif
-    jp = 0
+  if (ifpert) then
+      ifield=1
+      do jp=1,npert
+          if (iffort(ifield,jp)) call nekuic
+          if (nid == 0) write(6,*) 'ic vel pert:',iffort(1,jp),jp
+      enddo
+  endif
+  jp = 0
 
-    ntotv = nx1*ny1*nz1*nelv
+  ntotv = nx1*ny1*nz1*nelv
 
-!     Fortran function initial conditions for turbulence k-e model
-    if (ifmodel .AND. ifkeps) then
-        mfldt = nfield - 1
-        do 300 ifield=mfldt,nfield
-            if (iffort(ifield,jp)) call nekuic
-        300 END DO
-    endif
+!   Fortran function initial conditions for turbulence k-e model
+  if (ifmodel .AND. ifkeps) then
+      mfldt = nfield - 1
+      do 300 ifield=mfldt,nfield
+          if (iffort(ifield,jp)) call nekuic
+      300 END DO
+  endif
 
-!     Initial mesh velocities
-    if (ifmvbd) call opcopy (wx,wy,wz,vx,vy,vz)
+!   Initial mesh velocities
+  if (ifmvbd) call opcopy (wx,wy,wz,vx,vy,vz)
 !max    if (ifmvbd .AND. .NOT. ifrest(0,jp)) call meshv (2)
 
-!     Compute additional initial values for turbulence model arrays
-!     based on I.C.
+!   Compute additional initial values for turbulence model arrays
+!   based on I.C.
 #if 0
-    if (ifmodel) call postmic
+  if (ifmodel) call postmic
 #endif
 
-!     If convection-diffusion of a passive scalar with a fixed velocity field,
-!     make sure to fill up lagged arrays since this will not be done in
-!     the time-stepping procedure (no flow calculation) (01/18/91 -EMR).
+!   If convection-diffusion of a passive scalar with a fixed velocity field,
+!   make sure to fill up lagged arrays since this will not be done in
+!   the time-stepping procedure (no flow calculation) (01/18/91 -EMR).
 
-    if ( .NOT. ifflow .AND. ifheat) then
-        ITEST=0
-        DO 400 IFIELD=2,NFIELD
-            IF (IFADVC(IFIELD)) ITEST=1
-        400 END DO
-        IF (ITEST == 1) THEN
-            NBDMAX = 3
-            NBDSAV = NBDINP
-            NBDINP = NBDMAX
-            DO 500 I=1,NBDMAX
-                CALL LAGVEL
-            500 END DO
-            NBDINP = NBDSAV
-        ENDIF
-    ENDIF
-         
-!     Ensure that all processors have the same time as node 0.
-    if (nid /= 0) time=0.0
-    time=glsum(time,1)
-    ntdump=0
-    if (timeio /= 0.0) ntdump = int( time/timeio )
+  if ( .NOT. ifflow .AND. ifheat) then
+      ITEST=0
+      DO 400 IFIELD=2,NFIELD
+          IF (IFADVC(IFIELD)) ITEST=1
+      400 END DO
+      IF (ITEST == 1) THEN
+          NBDMAX = 3
+          NBDSAV = NBDINP
+          NBDINP = NBDMAX
+          DO 500 I=1,NBDMAX
+              CALL LAGVEL
+          500 END DO
+          NBDINP = NBDSAV
+      ENDIF
+  ENDIF
+       
+!   Ensure that all processors have the same time as node 0.
+  if (nid /= 0) time=0.0
+  time=glsum(time,1)
+  ntdump=0
+  if (timeio /= 0.0) ntdump = int( time/timeio )
 
-!     Ensure that initial field is continuous!
+!   Ensure that initial field is continuous!
 
-    nxyz1=nx1*ny1*nz1
-    ntott=nelt*nxyz1
-    ntotv=nelv*nxyz1
-    nn = nxyz1
-    ntotg=nelgv*nn
+  nxyz1=nx1*ny1*nz1
+  ntott=nelt*nxyz1
+  ntotv=nelv*nxyz1
+  nn = nxyz1
+  ntotg=nelgv*nn
 
-    ifield = 2
-    if (ifflow) ifield = 1
-    call rone(work,ntotv)
-    ifield = 1
-    call dssum(work,nx1,ny1,nz1)
-    call col2(work,vmult,ntotv)
-    rdif = glsum(work,ntotv)
-    rtotg = ntotg
-    rdif = (rdif-rtotg)/rtotg
-    if (abs(rdif) > 1e-14) then
-        if (nid == 0) write(*,*) 'ERROR: dssum test has failed!',rdif
-        call exitt
-    endif
+  ifield = 2
+  if (ifflow) ifield = 1
+  call rone(work,ntotv)
+  ifield = 1
+  call dssum(work,nx1,ny1,nz1)
+  call col2(work,vmult,ntotv)
+  rdif = glsum(work,ntotv)
+  rtotg = ntotg
+  rdif = (rdif-rtotg)/rtotg
+  if (abs(rdif) > 1e-14) then
+      if (nid == 0) write(*,*) 'ERROR: dssum test has failed!',rdif
+      call exitt
+  endif
 
-    vxmax = glamax(vx,ntotv)
-    vymax = glamax(vy,ntotv)
-    vzmax = glamax(vz,ntotv)
-    prmax = glamax(pr,ntot2)
+  vxmax = glamax(vx,ntotv)
+  vymax = glamax(vy,ntotv)
+  vzmax = glamax(vz,ntotv)
+  prmax = glamax(pr,ntot2)
 
-    ntot = nxyz1*nelfld(2)
-    ttmax = glamax(t ,ntot)
+  ntot = nxyz1*nelfld(2)
+  ttmax = glamax(t ,ntot)
 
-    do i=1,NPSCAL
-        ntot = nx1*ny1*nz1*nelfld(i+2)
-        psmax(i) = glamax(T(1,1,1,1,i+1),ntot)
-    enddo
+  do i=1,NPSCAL
+      ntot = nx1*ny1*nz1*nelfld(i+2)
+      psmax(i) = glamax(T(1,1,1,1,i+1),ntot)
+  enddo
 
-    small=1.0E-20
-    ifldsave = ifield
-!    if (vxmax == 0.0) call perturb(vx,1,small)
-!    if (vymax == 0.0) call perturb(vy,1,small)
-!    if (vzmax == 0.0) call perturb(vz,1,small)
-!    if (prmax == 0.0 .AND. ifsplit) call perturb(pr,1,small)
-!    if (ttmax == 0.0) call perturb(t ,2,small)
+  small=1.0E-20
+  ifldsave = ifield
+!  if (vxmax == 0.0) call perturb(vx,1,small)
+!  if (vymax == 0.0) call perturb(vy,1,small)
+!  if (vzmax == 0.0) call perturb(vz,1,small)
+!  if (prmax == 0.0 .AND. ifsplit) call perturb(pr,1,small)
+!  if (ttmax == 0.0) call perturb(t ,2,small)
 
-    do i=1,npscal
-        ntot = nxyz1*nelfld(i+2)
-!        if(psmax(i) == 0) call perturb(t(1,1,1,1,1+i),i+2,small)
-    enddo
-    ifield = ifldsave
-        
-    if(ifflow) then
-        ifield = 1
-        call opdssum(vx,vy,vz)
-        call opcolv (vx,vy,vz,vmult)
-        if (ifsplit) call dsavg(pr)  ! continuous pressure
-        if (ifvcor)  call ortho(pr)  ! remove any mean
-    endif
+  do i=1,npscal
+      ntot = nxyz1*nelfld(i+2)
+!      if(psmax(i) == 0) call perturb(t(1,1,1,1,1+i),i+2,small)
+  enddo
+  ifield = ifldsave
+      
+  if(ifflow) then
+      ifield = 1
+      call opdssum(vx,vy,vz)
+      call opcolv (vx,vy,vz,vmult)
+      if (ifsplit) call dsavg(pr)  ! continuous pressure
+      if (ifvcor)  call ortho(pr)  ! remove any mean
+  endif
 
-    if (ifmhd) then
-        ifield = ifldmhd
-        call opdssum(bx,by,bz)
-        call opcolv (bx,by,bz,vmult)
-    endif
+  if (ifmhd) then
+      ifield = ifldmhd
+      call opdssum(bx,by,bz)
+      call opcolv (bx,by,bz,vmult)
+  endif
 
-    if (ifheat) then
-        ifield = 2
-        call dssum(t ,nx1,ny1,nz1)
-        call col2 (t ,tmult,ntott)
-        do ifield=3,nfield
-            call dssum(t(1,1,1,1,i-1),nx1,ny1,nz1)
-            if(iftmsh(ifield)) then
-                call col2 (t(1,1,1,1,i-1),tmult,ntott)
-            else
-                call col2 (t(1,1,1,1,i-1),vmult,ntotv)
-            endif
-        enddo
-    endif
+  if (ifheat) then
+      ifield = 2
+      call dssum(t ,nx1,ny1,nz1)
+      call col2 (t ,tmult,ntott)
+      do ifield=3,nfield
+          call dssum(t(1,1,1,1,i-1),nx1,ny1,nz1)
+          if(iftmsh(ifield)) then
+              call col2 (t(1,1,1,1,i-1),tmult,ntott)
+          else
+              call col2 (t(1,1,1,1,i-1),vmult,ntotv)
+          endif
+      enddo
+  endif
 
-    if (ifpert) then
-        do jp=1,npert
-            ifield = 1
-            call opdssum(vxp(1,jp),vyp(1,jp),vzp(1,jp))
-            call opcolv (vxp(1,jp),vyp(1,jp),vzp(1,jp),vmult)
-            ifield = 2
-            call dssum(tp(1,1,jp),nx1,ny1,nz1)
-            call col2 (tp(1,1,jp),tmult,ntotv)
-        !           note... must be updated for addl pass. scal's. pff 4/26/04
-            vxmax = glamax(vxp(1,jp),ntotv)
-            vymax = glamax(vyp(1,jp),ntotv)
-            if (nid == 0) write(6,111) jp,vxmax,vymax
-            111 format(i5,1p2e12.4,' max pert vel')
-        enddo
-    endif
-    jp = 0
+  if (ifpert) then
+      do jp=1,npert
+          ifield = 1
+          call opdssum(vxp(1,jp),vyp(1,jp),vzp(1,jp))
+          call opcolv (vxp(1,jp),vyp(1,jp),vzp(1,jp),vmult)
+          ifield = 2
+          call dssum(tp(1,1,jp),nx1,ny1,nz1)
+          call col2 (tp(1,1,jp),tmult,ntotv)
+      !           note... must be updated for addl pass. scal's. pff 4/26/04
+          vxmax = glamax(vxp(1,jp),ntotv)
+          vymax = glamax(vyp(1,jp),ntotv)
+          if (nid == 0) write(6,111) jp,vxmax,vymax
+          111 format(i5,1p2e12.4,' max pert vel')
+      enddo
+  endif
+  jp = 0
 
 ! print min values
-    xxmax = glmin(xm1,ntott)
-    yymax = glmin(ym1,ntott)
-    zzmax = glmin(zm1,ntott)
+  xxmax = glmin(xm1,ntott)
+  yymax = glmin(ym1,ntott)
+  zzmax = glmin(zm1,ntott)
 
-    vxmax = glmin(vx,ntotv)
-    vymax = glmin(vy,ntotv)
-    vzmax = glmin(vz,ntotv)
-    prmax = glmin(pr,ntot2)
+  vxmax = glmin(vx,ntotv)
+  vymax = glmin(vy,ntotv)
+  vzmax = glmin(vz,ntotv)
+  prmax = glmin(pr,ntot2)
 
-    ntot = nxyz1*nelfld(2)
-    ttmax = glmin(t ,ntott)
+  ntot = nxyz1*nelfld(2)
+  ttmax = glmin(t ,ntott)
 
-    do i=1,ldimt-1
-        ntot = nxyz1*nelfld(i+2)
-        psmax(i) = glmin(T(1,1,1,1,i+1),ntot)
-    enddo
+  do i=1,ldimt-1
+      ntot = nxyz1*nelfld(i+2)
+      psmax(i) = glmin(T(1,1,1,1,i+1),ntot)
+  enddo
 
-    if (nid == 0) then
-        write(6,19) xxmax,yymax,zzmax
-        19 format(' xyz min  ',5g13.5)
-    endif
-    if (nid == 0) then
-        write(6,20) vxmax,vymax,vzmax,prmax,ttmax
-        20 format(' uvwpt min',5g13.5)
-    endif
-    if (ldimt-1 > 0) then
-        if (nid == 0) write(6,21) (psmax(i),i=1,LDIMT-1)
-        21 format(' PS min   ',50g13.5)
-    endif
+  if (nid == 0) then
+      write(6,19) xxmax,yymax,zzmax
+      19 format(' xyz min  ',5g13.5)
+  endif
+  if (nid == 0) then
+      write(6,20) vxmax,vymax,vzmax,prmax,ttmax
+      20 format(' uvwpt min',5g13.5)
+  endif
+  if (ldimt-1 > 0) then
+      if (nid == 0) write(6,21) (psmax(i),i=1,LDIMT-1)
+      21 format(' PS min   ',50g13.5)
+  endif
 
 ! print max values
-    xxmax = glmax(xm1,ntott)
-    yymax = glmax(ym1,ntott)
-    zzmax = glmax(zm1,ntott)
+  xxmax = glmax(xm1,ntott)
+  yymax = glmax(ym1,ntott)
+  zzmax = glmax(zm1,ntott)
 
-    vxmax = glmax(vx,ntotv)
-    vymax = glmax(vy,ntotv)
-    vzmax = glmax(vz,ntotv)
-    prmax = glmax(pr,ntot2)
+  vxmax = glmax(vx,ntotv)
+  vymax = glmax(vy,ntotv)
+  vzmax = glmax(vz,ntotv)
+  prmax = glmax(pr,ntot2)
 
-    ntot = nxyz1*nelfld(2)
-    ttmax = glmax(t ,ntott)
+  ntot = nxyz1*nelfld(2)
+  ttmax = glmax(t ,ntott)
 
-    do i=1,ldimt-1
-        ntot = nxyz1*nelfld(i+2)
-        psmax(i) = glmax(T(1,1,1,1,i+1),ntot)
-    enddo
+  do i=1,ldimt-1
+      ntot = nxyz1*nelfld(i+2)
+      psmax(i) = glmax(T(1,1,1,1,i+1),ntot)
+  enddo
 
-    if (nid == 0) then
-        write(6,16) xxmax,yymax,zzmax
-        16 format(' xyz max  ',5g13.5)
-    endif
+  if (nid == 0) then
+      write(6,16) xxmax,yymax,zzmax
+      16 format(' xyz max  ',5g13.5)
+  endif
 
-    if (nid == 0) then
-        write(6,17) vxmax,vymax,vzmax,prmax,ttmax
-        17 format(' uvwpt max',5g13.5)
-    endif
+  if (nid == 0) then
+      write(6,17) vxmax,vymax,vzmax,prmax,ttmax
+      17 format(' uvwpt max',5g13.5)
+  endif
 
-    if (ldimt-1 > 0) then
-        if (nid == 0)  then
-            write(6,18) (psmax(i),i=1,ldimt-1)
-            18 format(' PS max   ',50g13.5)
-        endif
-    endif
+  if (ldimt-1 > 0) then
+      if (nid == 0)  then
+          write(6,18) (psmax(i),i=1,ldimt-1)
+          18 format(' PS max   ',50g13.5)
+      endif
+  endif
 
 
-    if (ifrest(0,jp)) then !  mesh has been read in.
-        if (nid == 0) write(6,*) 'Restart: recompute geom. factors.'
-        call geom_reset(1)  !  recompute geometric factors
-    endif
+  if (ifrest(0,jp)) then !  mesh has been read in.
+      if (nid == 0) write(6,*) 'Restart: recompute geom. factors.'
+      call geom_reset(1)  !  recompute geometric factors
+  endif
 
-!     ! save velocity on fine mesh for dealiasing
-    call setup_convect(2)
+!   ! save velocity on fine mesh for dealiasing
+  call setup_convect(2)
 
-!     call outpost(vx,vy,vz,pr,t,'   ')
-!     call exitti('setic exit$',nelv)
+!   call outpost(vx,vy,vz,pr,t,'   ')
+!   call exitti('setic exit$',nelv)
 
-    if(nid == 0) then
-        write(6,*) 'done :: set initial conditions'
-        write(6,*) ' '
-    endif
+  if(nid == 0) then
+      write(6,*) 'done :: set initial conditions'
+      write(6,*) ' '
+  endif
 
-    return
-    end subroutine setics
+  return
+  end subroutine setics
 
 !-----------------------------------------------------------------------
     subroutine slogic (iffort,ifrest,ifprsl,nfiles)
@@ -509,562 +515,559 @@
     return
     end subroutine slogic
 !-----------------------------------------------------------------------
-    subroutine restart_driver(nfiles)
+!> \brief driver for restarts
+!!  (1) Open restart file(s)
+!!  (2) Check previous spatial discretization
+!!  (3) Map (K1,N1) => (K2,N2) if necessary
+!!  nfiles > 1 has several implications:
+!!  i.   For std. run, data is taken from last file in list, unless
+!!       explicitly specified in argument list of filename
+!!  ii.  For MHD and perturbation cases, 1st file is for U,P,T;
+!!       subsequent files are for B-field or perturbation fields
 !----------------------------------------------------------------------
+subroutine restart_driver(nfiles)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, lelt, ldimt, ldimt1
+  use size_m, only : nid, nx1, ny1, nz1, nx2, ny2, nz2, nelv
+  use restart, only : nxr, nyr, nzr
+  use restart, only : ifgetx, ifgetz, ifgetu, ifgetw, ifgetp, ifgett, ifgtim
+  use restart, only : ifgtps
+  use geom, only : xm1, ym1, zm1
+  use input, only : ifaxis, ifsplit, ifpert, ifmhd, if3d, npscal, param, initc
+  use parallel, only : nelgt, isize, gllnid
+  use soln, only : vx, vy, vz, t, vxp, vyp, vzp, prp, tp, pm
+  use soln, only : bx, by, bz
+  use tstep, only : time
+  implicit none
 
-!     (1) Open restart file(s)
-!     (2) Check previous spatial discretization
-!     (3) Map (K1,N1) => (K2,N2) if necessary
+  integer, intent(in) :: nfiles
 
-!     nfiles > 1 has several implications:
+  integer :: nelrr
 
-!     i.   For std. run, data is taken from last file in list, unless
-!          explicitly specified in argument list of filename
+  integer, parameter :: LXR=LX1+6
+  integer, parameter :: LYR=LY1+6
+  integer, parameter :: LZR=LZ1+6
+  integer, parameter :: LXYZR=LXR*LYR*LZR
+  integer, parameter :: LXYZT=LX1*LY1*LZ1*LELT
+  integer, parameter :: LPSC9=LDIMT+9
 
-!     ii.  For MHD and perturbation cases, 1st file is for U,P,T;
-!          subsequent files are for B-field or perturbation fields
+  real(DP) :: pm1
+  common /scrcg/ pm1(lx1*ly1*lz1,lelv)
+  real(DP) :: sdump
+  COMMON /SCRNS/ SDUMP(LXYZT,7)
+  integer :: mesg(40)
 
+!   note, this usage of CTMP1 will be less than elsewhere if NELT ~> 9.
+  real*4 ::         tdump
+  COMMON /CTMP1/ TDUMP(LXYZR,LPSC9)
 
-!----------------------------------------------------------------------
-    use size_m
-    use restart
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  REAL :: SDMP2(LXYZT,LDIMT)
 
-    common /inelr/ nelrr
+!   cdump comes in via PARALLEL (->TOTAL)
 
-    PARAMETER (LXR=LX1+6)
-    PARAMETER (LYR=LY1+6)
-    PARAMETER (LZR=LZ1+6)
-    PARAMETER (LXYZR=LXR*LYR*LZR)
-    PARAMETER (LXYZT=LX1*LY1*LZ1*LELT)
-    PARAMETER (LPSC9=LDIMT+9)
+  character(30) :: excoder
+  character(1) ::  excoder1(30)
+  equivalence (excoder,excoder1)
 
-    common /scrcg/ pm1(lx1*ly1*lz1,lelv)
-    COMMON /SCRNS/ SDUMP(LXYZT,7)
-    integer :: mesg(40)
+  character(132) :: fname
+  character(1) ::  fname1(132)
+  equivalence (fname1,fname)
 
-!     note, this usage of CTMP1 will be less than elsewhere if NELT ~> 9.
-    COMMON /CTMP1/ TDUMP(LXYZR,LPSC9)
-    real*4 ::         tdump
+  integer ::       hnami (30)
+  character(132) :: hname
+  character(1) ::   hname1(132)
+  equivalence  (hname,hname1)
+  equivalence  (hname,hnami )
 
-    REAL :: SDMP2(LXYZT,LDIMT)
+  CHARACTER(132) :: header
 
-!     cdump comes in via PARALLEL (->TOTAL)
+!   Local logical flags to determine whether to copy data or not.
+  logical :: ifok,iffmat
+  integer :: iposx,iposz,iposu,iposw,iposp,ipost,ipsps(ldimt1)
 
-    character(30) :: excoder
-    character(1) ::  excoder1(30)
-    equivalence (excoder,excoder1)
+  logical :: ifbytsw, if_byte_swap_test
+  real*4 ::   bytetest
 
+  real(DP) :: p67, rstime, cdump
+  integer :: ifile, ndumps, ierr, len, idump, neltr, istepr, i, icase, ipass
+  integer :: nxyz2, mid, ieg, nerr, ips, ii, nxyzr, ixyzz, nouts
+  integer :: jxyz, ie2, ie1, ie, j, iiel, iel, ntotv, ntott
+  integer :: nxyz1, lname, is, nps0, nps1, i1_from_char, i1, iposv, iposy, nps
+  integer, external :: ltrunc
 
-    character(132) :: fname
-    character(1) ::  fname1(132)
-    equivalence (fname1,fname)
+  ifok= .FALSE. 
+  ifbytsw = .FALSE. 
 
-    integer ::       hnami (30)
-    character(132) :: hname
-    character(1) ::   hname1(132)
-    equivalence  (hname,hname1)
-    equivalence  (hname,hnami )
-
-    CHARACTER(132) :: header
-
-!     Local logical flags to determine whether to copy data or not.
-    logical :: ifok,iffmat
-    integer :: iposx,iposz,iposu,iposw,iposp,ipost,ipsps(ldimt1)
-
-    logical :: ifbytsw, if_byte_swap_test
-    real*4 ::   bytetest
-
-
-    ifok= .FALSE. 
-    ifbytsw = .FALSE. 
-
-    if(nfiles < 1) return
-    if(nid == 0) write(6,*) 'Reading checkpoint data'
+  if(nfiles < 1) return
+  if(nid == 0) write(6,*) 'Reading checkpoint data'
 
 ! use new reader (only binary support)
-    p67 = abs(param(67))
-    if (p67 == 6.0) then
-      write(*,*) "Oops: p67"
+  p67 = abs(param(67))
+  if (p67 == 6.0) then
+    write(*,*) "Oops: p67"
 #if 0
-        do ifile=1,nfiles
-            call sioflag(ndumps,fname,initc(ifile))
-            call mfi(fname,ifile)
-        enddo
-        call setup_convect(3)
-        if (nid /= 0) time=0
-        time = glmax(time,1) ! Sync time across processors
+      do ifile=1,nfiles
+          call sioflag(ndumps,fname,initc(ifile))
+          call mfi(fname,ifile)
+      enddo
+      call setup_convect(3)
+      if (nid /= 0) time=0
+      time = glmax(time,1) ! Sync time across processors
 #endif
-        return
-    endif
+      return
+  endif
 
 ! use old reader (for ASCII + old binary support)
           
-    if (param(67) < 1.0) then  ! zero only. should be abs.
-        iffmat= .TRUE.  ! ascii
-    else
-        iffmat= .FALSE. ! binary
-    endif
+  if (param(67) < 1.0) then  ! zero only. should be abs.
+      iffmat= .TRUE.  ! ascii
+  else
+      iffmat= .FALSE. ! binary
+  endif
 
-    do 6000 ifile=1,nfiles
-        call sioflag(ndumps,fname,initc(ifile))
-        ierr = 0
-        if (nid == 0) then
+  do 6000 ifile=1,nfiles
+      call sioflag(ndumps,fname,initc(ifile))
+      ierr = 0
+      if (nid == 0) then
 
-            if (iffmat) then
-                open (unit=91,file=fname,status='old',err=500)
-            else
-                len= ltrunc(fname,79)
-                call izero (hnami,20)
-                call chcopy(hname1,fname,len)
-            !           test for presence of file
-                open (unit=91,file=hname &
-                ,form='unformatted',status='old',err=500)
-                close(unit=91)
-                call byte_open(hname,ierr)
-                if(ierr /= 0) goto 500
-            ENDIF
-            ifok = .TRUE. 
-        endif
+          if (iffmat) then
+              open (unit=91,file=fname,status='old',err=500)
+          else
+              len= ltrunc(fname,79)
+              call izero (hnami,20)
+              call chcopy(hname1,fname,len)
+          !           test for presence of file
+              open (unit=91,file=hname &
+              ,form='unformatted',status='old',err=500)
+              close(unit=91)
+              call byte_open(hname,ierr)
+              if(ierr /= 0) goto 500
+          ENDIF
+          ifok = .TRUE. 
+      endif
 
-        500 continue
-        call lbcast(ifok)
-        if ( .NOT. ifok) goto 5000
-                 
-        ndumps = 1
-    
-    !        Only NODE 0 reads from the disk.
-    
-        DO 1000 IDUMP=1,NDUMPS
+      500 continue
+      call lbcast(ifok)
+      if ( .NOT. ifok) goto 5000
+               
+      ndumps = 1
+  
+  !        Only NODE 0 reads from the disk.
+  
+      DO 1000 IDUMP=1,NDUMPS
 
-            IF (NID == 0) THEN
-            ! read header
-                if (iffmat) then
-                    ierr = 2
-                    if(mod(param(67),1.0) == 0) then ! old header format
-                        if(nelgt < 10000) then
-                            read(91,91,err=10,end=10) &
-                            neltr,nxr,nyr,nzr,rstime,istepr,(excoder1(i),i=1,30)
-                            91 format(4i4,1x,g13.4,i5,1x,30a1)
-                            ierr=0
-                        else
-                            read(91,92,err=10,end=10) &
-                            neltr,nxr,nyr,nzr,rstime,istepr,(excoder1(i),i=1,30)
-                            92 format(i10,3i4,1P1e18.9,i9,1x,30a1)
-                            ierr=0
-                        endif
-                    else                          ! new head format
-                        read(91,'(A132)',err=10,end=10) header
-                        read(header,*) &
-                        neltr,nxr,nyr,nzr,rstime,istepr,excoder
-                        ierr=0
-                    endif
-                else
-                    if(mod(param(67),1.0) == 0) then  ! old header format
-                        call byte_read(hnami,20,ierr)
-                        if(ierr /= 0) goto 10
-                        icase = 2
-                        if (nelgt < 10000) icase = 1
-                        ipass = 0
-                        93 continue  ! test each possible case  UGLY (7/31/07)
-                        if(ipass < 2) then
-                            ipass = ipass+1
-                            if(icase == 1) then
-                                read(hname,'(4i4,1x,g13.4,i5,1x,30a1)', &
-                                err=94,end=94) &
-                                neltr,nxr,nyr,nzr,rstime,istepr, &
-                                (excoder1(i),i=1,30)
-                                goto 95
-                            else
-                                read(hname,'(i10,3i4,1P1e18.9,i9,1x,30a1)', &
-                                err=94,end=94) &
-                                neltr,nxr,nyr,nzr,rstime,istepr, &
-                                (excoder1(i),i=1,30)
-                                goto 95
-                            endif
-                            94 icase = 3-icase  !  toggle: 2-->1  1-->2
-                            goto 93
-                        else
-                            ierr=2
-                            goto 10
-                        endif
-                        95 continue
-                    else                         ! new head format
-                        call byte_read(header,20,ierr)
-                        if(ierr /= 0) goto 10
-                        read(header,*) &
-                        neltr,nxr,nyr,nzr,rstime,istepr,excoder
-                    endif
-                    call byte_read(bytetest,1,ierr)
-                !                call byte_read2(bytetest,1,ierr)
-                    if(ierr /= 0) goto 10
-                    ifbytsw = if_byte_swap_test(bytetest,ierr)
-                    if(ierr /= 0) goto 10
-                endif
-                mesg(1) = neltr
-                mesg(2) = nxr
-                mesg(3) = nyr
-                mesg(4) = nzr
-                write(6,*)  'Read mode: ', param(67)
-                write(6,333)'neltr,nxr,nyr,nzr: ', neltr,nxr,nyr,nzr
-                333 format(A,i9,3i4)
-                call chcopy(mesg(5),excoder1,20)
-                len  = 14*isize
-            endif
-            10 call err_chk(ierr,'Error reading restart header. Abort.$')
+          IF (NID == 0) THEN
+          ! read header
+              if (iffmat) then
+                  ierr = 2
+                  if(mod(param(67),1.0) == 0) then ! old header format
+                      if(nelgt < 10000) then
+                          read(91,91,err=10,end=10) &
+                          neltr,nxr,nyr,nzr,rstime,istepr,(excoder1(i),i=1,30)
+                          91 format(4i4,1x,g13.4,i5,1x,30a1)
+                          ierr=0
+                      else
+                          read(91,92,err=10,end=10) &
+                          neltr,nxr,nyr,nzr,rstime,istepr,(excoder1(i),i=1,30)
+                          92 format(i10,3i4,1P1e18.9,i9,1x,30a1)
+                          ierr=0
+                      endif
+                  else                          ! new head format
+                      read(91,'(A132)',err=10,end=10) header
+                      read(header,*) &
+                      neltr,nxr,nyr,nzr,rstime,istepr,excoder
+                      ierr=0
+                  endif
+              else
+                  if(mod(param(67),1.0) == 0) then  ! old header format
+                      call byte_read(hnami,20,ierr)
+                      if(ierr /= 0) goto 10
+                      icase = 2
+                      if (nelgt < 10000) icase = 1
+                      ipass = 0
+                      93 continue  ! test each possible case  UGLY (7/31/07)
+                      if(ipass < 2) then
+                          ipass = ipass+1
+                          if(icase == 1) then
+                              read(hname,'(4i4,1x,g13.4,i5,1x,30a1)', &
+                              err=94,end=94) &
+                              neltr,nxr,nyr,nzr,rstime,istepr, &
+                              (excoder1(i),i=1,30)
+                              goto 95
+                          else
+                              read(hname,'(i10,3i4,1P1e18.9,i9,1x,30a1)', &
+                              err=94,end=94) &
+                              neltr,nxr,nyr,nzr,rstime,istepr, &
+                              (excoder1(i),i=1,30)
+                              goto 95
+                          endif
+                          94 icase = 3-icase  !  toggle: 2-->1  1-->2
+                          goto 93
+                      else
+                          ierr=2
+                          goto 10
+                      endif
+                      95 continue
+                  else                         ! new head format
+                      call byte_read(header,20,ierr)
+                      if(ierr /= 0) goto 10
+                      read(header,*) &
+                      neltr,nxr,nyr,nzr,rstime,istepr,excoder
+                  endif
+                  call byte_read(bytetest,1,ierr)
+              !                call byte_read2(bytetest,1,ierr)
+                  if(ierr /= 0) goto 10
+                  ifbytsw = if_byte_swap_test(bytetest,ierr)
+                  if(ierr /= 0) goto 10
+              endif
+              mesg(1) = neltr
+              mesg(2) = nxr
+              mesg(3) = nyr
+              mesg(4) = nzr
+              write(6,*)  'Read mode: ', param(67)
+              write(6,333)'neltr,nxr,nyr,nzr: ', neltr,nxr,nyr,nzr
+              333 format(A,i9,3i4)
+              call chcopy(mesg(5),excoder1,20)
+              len  = 14*isize
+          endif
+          10 call err_chk(ierr,'Error reading restart header. Abort.$')
 
-            IF (IDUMP == 1) THEN
-                len  = 14*isize
-                call bcast(mesg,len)
-                neltr = mesg(1)
-                nxr   = mesg(2)
-                nyr   = mesg(3)
-                nzr   = mesg(4)
-                call   chcopy(excoder1,mesg(5),20)
+          IF (IDUMP == 1) THEN
+              len  = 14*isize
+              call bcast(mesg,len)
+              neltr = mesg(1)
+              nxr   = mesg(2)
+              nyr   = mesg(3)
+              nzr   = mesg(4)
+              call   chcopy(excoder1,mesg(5),20)
 
-                call lbcast(ifbytsw)
+              call lbcast(ifbytsw)
 
-            !              Bounds checking on mapped data.
-                IF (NXR > LXR) THEN
-                    WRITE(6,20) NXR,NX1
-                    20 FORMAT(//,2X, &
-                    'ABORT:  Attempt to map from',I3, &
-                    ' to N=',I3,'.',/,2X, &
-                    'NEK5000 currently supports mapping from N+6 or less.' &
-                    ,/,2X,'Increase N or LXR in IC.FOR.')
-                    CALL EXITT
-                ENDIF
-            
-            !              Figure out position of data in file "IFILE"
-            
-                NOUTS=0
-                IPOSX=0
-                IPOSY=0
-                IPOSZ=0
-                IPOSU=0
-                IPOSV=0
-                IPOSW=0
-                IPOSP=0
-                IPOST=0
-                DO 40 I=1,NPSCAL
-                    IPSPS(I)=0
-                40 END DO
+          !              Bounds checking on mapped data.
+              IF (NXR > LXR) THEN
+                  WRITE(6,20) NXR,NX1
+                  20 FORMAT(//,2X, &
+                  'ABORT:  Attempt to map from',I3, &
+                  ' to N=',I3,'.',/,2X, &
+                  'NEK5000 currently supports mapping from N+6 or less.' &
+                  ,/,2X,'Increase N or LXR in IC.FOR.')
+                  CALL EXITT
+              ENDIF
+          
+          !              Figure out position of data in file "IFILE"
+          
+              NOUTS=0
+              IPOSX=0
+              IPOSY=0
+              IPOSZ=0
+              IPOSU=0
+              IPOSV=0
+              IPOSW=0
+              IPOSP=0
+              IPOST=0
+              DO 40 I=1,NPSCAL
+                  IPSPS(I)=0
+              40 END DO
 
-                IPS = 0
-                NPS = 0
-                DO 50 I=1, 30
-                    IF (excoder1(i) == 'X') THEN
-                        NOUTS=NOUTS + 1
-                        IPOSX=NOUTS
-                        NOUTS=NOUTS+1
-                        IPOSY=NOUTS
-                        IF (IF3D) THEN
-                            NOUTS=NOUTS + 1
-                            IPOSZ=NOUTS
-                        ENDIF
-                    ENDIF
-                    IF (excoder1(i) == 'U') THEN
-                        NOUTS=NOUTS + 1
-                        IPOSU=NOUTS
-                        NOUTS=NOUTS+1
-                        IPOSV=NOUTS
-                        IF (IF3D) THEN
-                            NOUTS=NOUTS + 1
-                            IPOSW=NOUTS
-                        ENDIF
-                    ENDIF
-                    IF (excoder1(i) == 'P') THEN
-                        NOUTS=NOUTS + 1
-                        IPOSP=NOUTS
-                    ENDIF
-                    IF (excoder1(i) == 'T') THEN
-                        NOUTS=NOUTS + 1
-                        IPOST=NOUTS
-                    ENDIF
-                    IF(mod(param(67),1.0) == 0.0) THEN
-                        i1 = i1_from_char(excoder1(i))
-                        if (0 < i1 .AND. i1 < 10) then
-                            if (i1 <= ldimt1) then
-                                nouts=nouts + 1
-                                ipsps(i1)=nouts
-                            else
-                                if (nid == 0) write(6,2) i1,i,excoder1(i)
-                                2 format(2i4,a1,' PROBLEM W/ RESTART DATA')
-                            endif
-                        endif
-                    ELSE
-                        IF(excoder1(i) == 'S') THEN
-                            READ(excoder1(i+1),'(I1)') NPS1
-                            READ(excoder1(i+2),'(I1)') NPS0
-                            NPS=10*NPS1 + NPS0
-                            DO IS = 1, NPS
-                                NOUTS=NOUTS + 1
-                                IPSPS(IS)=NOUTS
-                            ENDDO
-                            GOTO 50
-                        ENDIF
-                    ENDIF
-                50 END DO
-                 
-                IF (NPS > (LDIMT-1)) THEN
-                    IF (NID == 0) THEN
-                        WRITE(*,'(A)') &
-                        'ERROR: restart file has a NSPCAL > LDIMT'
-                        WRITE(*,'(A,I2)') &
-                        'Change LDIMT in SIZE'
-                    ENDIF
-                    CALL EXITT
-                ENDIF
+              IPS = 0
+              NPS = 0
+              DO 50 I=1, 30
+                  IF (excoder1(i) == 'X') THEN
+                      NOUTS=NOUTS + 1
+                      IPOSX=NOUTS
+                      NOUTS=NOUTS+1
+                      IPOSY=NOUTS
+                      IF (IF3D) THEN
+                          NOUTS=NOUTS + 1
+                          IPOSZ=NOUTS
+                      ENDIF
+                  ENDIF
+                  IF (excoder1(i) == 'U') THEN
+                      NOUTS=NOUTS + 1
+                      IPOSU=NOUTS
+                      NOUTS=NOUTS+1
+                      IPOSV=NOUTS
+                      IF (IF3D) THEN
+                          NOUTS=NOUTS + 1
+                          IPOSW=NOUTS
+                      ENDIF
+                  ENDIF
+                  IF (excoder1(i) == 'P') THEN
+                      NOUTS=NOUTS + 1
+                      IPOSP=NOUTS
+                  ENDIF
+                  IF (excoder1(i) == 'T') THEN
+                      NOUTS=NOUTS + 1
+                      IPOST=NOUTS
+                  ENDIF
+                  IF(mod(param(67),1.0) == 0.0) THEN
+                      i1 = i1_from_char(excoder1(i))
+                      if (0 < i1 .AND. i1 < 10) then
+                          if (i1 <= ldimt1) then
+                              nouts=nouts + 1
+                              ipsps(i1)=nouts
+                          else
+                              if (nid == 0) write(6,2) i1,i,excoder1(i)
+                              2 format(2i4,a1,' PROBLEM W/ RESTART DATA')
+                          endif
+                      endif
+                  ELSE
+                      IF(excoder1(i) == 'S') THEN
+                          READ(excoder1(i+1),'(I1)') NPS1
+                          READ(excoder1(i+2),'(I1)') NPS0
+                          NPS=10*NPS1 + NPS0
+                          DO IS = 1, NPS
+                              NOUTS=NOUTS + 1
+                              IPSPS(IS)=NOUTS
+                          ENDDO
+                          GOTO 50
+                      ENDIF
+                  ENDIF
+              50 END DO
+               
+              IF (NPS > (LDIMT-1)) THEN
+                  IF (NID == 0) THEN
+                      WRITE(*,'(A)') &
+                      'ERROR: restart file has a NSPCAL > LDIMT'
+                      WRITE(*,'(A,I2)') &
+                      'Change LDIMT in SIZE'
+                  ENDIF
+                  CALL EXITT
+              ENDIF
 
-                lname=ltrunc(fname,132)
-                if (nid == 0) write(6,61) (fname1(i),i=1,lname)
-                if (nid == 0) write(6,62) &
-                iposu,iposv,iposw,iposp,ipost,nps,nouts
-                61 FORMAT(/,2X,'Restarting from file ',132A1)
-                62 FORMAT(2X,'Columns for restart data U,V,W,P,T,S,N: ',7I4)
+              lname=ltrunc(fname,132)
+              if (nid == 0) write(6,61) (fname1(i),i=1,lname)
+              if (nid == 0) write(6,62) &
+              iposu,iposv,iposw,iposp,ipost,nps,nouts
+              61 FORMAT(/,2X,'Restarting from file ',132A1)
+              62 FORMAT(2X,'Columns for restart data U,V,W,P,T,S,N: ',7I4)
 
-            !              Make sure the requested data is present in this file....
-                if (iposx == 0) ifgetx= .FALSE. 
-                if (iposy == 0) ifgetx= .FALSE. 
-                if (iposz == 0) ifgetz= .FALSE. 
-                if (iposu == 0) ifgetu= .FALSE. 
-                if (iposv == 0) ifgetu= .FALSE. 
-                if (iposw == 0) ifgetw= .FALSE. 
-                if (iposp == 0) ifgetp= .FALSE. 
-                if (ipost == 0) ifgett= .FALSE. 
-                do 65 i=1,npscal
-                    if (ipsps(i) == 0) ifgtps(i)= .FALSE. 
-                65 END DO
+          !              Make sure the requested data is present in this file....
+              if (iposx == 0) ifgetx= .FALSE. 
+              if (iposy == 0) ifgetx= .FALSE. 
+              if (iposz == 0) ifgetz= .FALSE. 
+              if (iposu == 0) ifgetu= .FALSE. 
+              if (iposv == 0) ifgetu= .FALSE. 
+              if (iposw == 0) ifgetw= .FALSE. 
+              if (iposp == 0) ifgetp= .FALSE. 
+              if (ipost == 0) ifgett= .FALSE. 
+              do 65 i=1,npscal
+                  if (ipsps(i) == 0) ifgtps(i)= .FALSE. 
+              65 END DO
 
-            !              End of restart file header evaluation.
+          !              End of restart file header evaluation.
 
-            ENDIF
-        
-        !           Read the error estimators
-        !           not supported at the moment => just do dummy reading
-        
-            ifok = .FALSE. 
-            IF(NID == 0)THEN
-                if (iffmat) &
-                READ(91,'(6G11.4)',END=15)(CDUMP,I=1,NELTR)
-                ifok = .TRUE. 
-            ENDIF
-            15 continue
-            call lbcast(ifok)
-            if( .NOT. ifok) goto 1600
-        
-        !           Read the current dump, double buffer so that we can
-        !           fit the data on a distributed memory machine,
-        !           and so we won't have to read the restart file twice
-        !           in case of an incomplete data file.
-        
-            NXYZR = NXR*NYR*NZR
-        
-        !           Read the data
-        
-            nelrr = min(nelgt,neltr) ! # of elements to _really_read
-        ! why not just neltr?
-            do 200 ieg=1,nelrr
-                ifok = .FALSE. 
-                IF (NID == 0) THEN
-                    IF (MOD(IEG,10000) == 1) WRITE(6,*) 'Reading',IEG
-                    IF (iffmat) THEN
-                        READ(91,*,ERR=70,END=70) &
-                        ((tdump(IXYZZ,II),II=1,NOUTS),IXYZZ=1,NXYZR)
-                    ELSE
-                        do ii=1,nouts
-                            call byte_read(tdump(1,II),nxyzr,ierr)
-                            if(ierr /= 0) then
-                                write(6,*) "Error reading xyz restart data"
-                                goto 70
-                            endif
-                        enddo
-                    ENDIF
-                    IFOK= .TRUE. 
-                ENDIF
-            
-            !              Notify other processors that we've read the data OK.
-            
-                70 continue
-                call lbcast(ifok)
-                IF ( .NOT. IFOK) GOTO 1600
-            
-            !              MAPDMP maps data from NXR to NX1
-            !              (and sends data to the appropriate processor.)
-            
-            !              The buffer SDUMP is used so that if an incomplete dump
-            !              file is found (e.g. due to UNIX io buffering!), then
-            !              the previous read data stored in VX,VY,.., is not corrupted.
-            
-                IF (IFGETX) CALL MAPDMP &
-                (SDUMP(1,1),TDUMP(1,IPOSX),IEG,NXR,NYR,NZR,ifbytsw)
-                IF (IFGETX) CALL MAPDMP &
-                (SDUMP(1,2),TDUMP(1,IPOSY),IEG,NXR,NYR,NZR,ifbytsw)
-                IF (IFGETZ) CALL MAPDMP &
-                (SDUMP(1,3),TDUMP(1,IPOSZ),IEG,NXR,NYR,NZR,ifbytsw)
-                IF (IFGETU) CALL MAPDMP &
-                (SDUMP(1,4),TDUMP(1,IPOSU),IEG,NXR,NYR,NZR,ifbytsw)
-                IF (IFGETU) CALL MAPDMP &
-                (SDUMP(1,5),TDUMP(1,IPOSV),IEG,NXR,NYR,NZR,ifbytsw)
-                IF (IFGETW) CALL MAPDMP &
-                (SDUMP(1,6),TDUMP(1,IPOSW),IEG,NXR,NYR,NZR,ifbytsw)
-                IF (IFGETP) CALL MAPDMP &
-                (SDUMP(1,7),TDUMP(1,IPOSP),IEG,NXR,NYR,NZR,ifbytsw)
-                IF (IFGETT) CALL MAPDMP &
-                (SDMP2(1,1),TDUMP(1,IPOST),IEG,NXR,NYR,NZR,ifbytsw)
+          ENDIF
+      
+      !           Read the error estimators
+      !           not supported at the moment => just do dummy reading
+      
+          ifok = .FALSE. 
+          IF(NID == 0)THEN
+              if (iffmat) &
+              READ(91,'(6G11.4)',END=15)(CDUMP,I=1,NELTR)
+              ifok = .TRUE. 
+          ENDIF
+          15 continue
+          call lbcast(ifok)
+          if( .NOT. ifok) goto 1600
+      
+      !           Read the current dump, double buffer so that we can
+      !           fit the data on a distributed memory machine,
+      !           and so we won't have to read the restart file twice
+      !           in case of an incomplete data file.
+      
+          NXYZR = NXR*NYR*NZR
+      
+      !           Read the data
+      
+          nelrr = min(nelgt,neltr) ! # of elements to _really_read
+      ! why not just neltr?
+          do 200 ieg=1,nelrr
+              ifok = .FALSE. 
+              IF (NID == 0) THEN
+                  IF (MOD(IEG,10000) == 1) WRITE(6,*) 'Reading',IEG
+                  IF (iffmat) THEN
+                      READ(91,*,ERR=70,END=70) &
+                      ((tdump(IXYZZ,II),II=1,NOUTS),IXYZZ=1,NXYZR)
+                  ELSE
+                      do ii=1,nouts
+                          call byte_read(tdump(1,II),nxyzr,ierr)
+                          if(ierr /= 0) then
+                              write(6,*) "Error reading xyz restart data"
+                              goto 70
+                          endif
+                      enddo
+                  ENDIF
+                  IFOK= .TRUE. 
+              ENDIF
+          
+          !              Notify other processors that we've read the data OK.
+          
+              70 continue
+              call lbcast(ifok)
+              IF ( .NOT. IFOK) GOTO 1600
+          
+          !              MAPDMP maps data from NXR to NX1
+          !              (and sends data to the appropriate processor.)
+          
+          !              The buffer SDUMP is used so that if an incomplete dump
+          !              file is found (e.g. due to UNIX io buffering!), then
+          !              the previous read data stored in VX,VY,.., is not corrupted.
+          
+              IF (IFGETX) CALL MAPDMP &
+              (SDUMP(1,1),TDUMP(1,IPOSX),IEG,NXR,NYR,NZR,ifbytsw)
+              IF (IFGETX) CALL MAPDMP &
+              (SDUMP(1,2),TDUMP(1,IPOSY),IEG,NXR,NYR,NZR,ifbytsw)
+              IF (IFGETZ) CALL MAPDMP &
+              (SDUMP(1,3),TDUMP(1,IPOSZ),IEG,NXR,NYR,NZR,ifbytsw)
+              IF (IFGETU) CALL MAPDMP &
+              (SDUMP(1,4),TDUMP(1,IPOSU),IEG,NXR,NYR,NZR,ifbytsw)
+              IF (IFGETU) CALL MAPDMP &
+              (SDUMP(1,5),TDUMP(1,IPOSV),IEG,NXR,NYR,NZR,ifbytsw)
+              IF (IFGETW) CALL MAPDMP &
+              (SDUMP(1,6),TDUMP(1,IPOSW),IEG,NXR,NYR,NZR,ifbytsw)
+              IF (IFGETP) CALL MAPDMP &
+              (SDUMP(1,7),TDUMP(1,IPOSP),IEG,NXR,NYR,NZR,ifbytsw)
+              IF (IFGETT) CALL MAPDMP &
+              (SDMP2(1,1),TDUMP(1,IPOST),IEG,NXR,NYR,NZR,ifbytsw)
 
-            !              passive scalars
-                do 100 ips=1,npscal
-                    if (ifgtps(ips)) call mapdmp(sdmp2(1,ips+1) &
-                    ,tdump(1,ipsps(ips)),ieg,nxr,nyr,nzr,IFBYTSW)
-                100 END DO
-                 
-            200 END DO
-        
-        !           Successfully read a complete field, store it.
-        
-            nerr = 0              ! Count number of elements rec'd by nid
-            do ieg=1,nelrr
-                mid = gllnid(ieg)
-                if (mid == nid) nerr = nerr+1
-            enddo
+          !              passive scalars
+              do 100 ips=1,npscal
+                  if (ifgtps(ips)) call mapdmp(sdmp2(1,ips+1) &
+                  ,tdump(1,ipsps(ips)),ieg,nxr,nyr,nzr,IFBYTSW)
+              100 END DO
+               
+          200 END DO
+      
+      !           Successfully read a complete field, store it.
+      
+          nerr = 0              ! Count number of elements rec'd by nid
+          do ieg=1,nelrr
+              mid = gllnid(ieg)
+              if (mid == nid) nerr = nerr+1
+          enddo
 
-            nxyz2=nx2*ny2*nz2
-            nxyz1=nx1*ny1*nz1
-            ntott=nerr*nxyz1
-            ntotv=nerr*nxyz1   ! Problem for differing Vel. and Temp. counts!
-        ! for now we read nelt dataset
+          nxyz2=nx2*ny2*nz2
+          nxyz1=nx1*ny1*nz1
+          ntott=nerr*nxyz1
+          ntotv=nerr*nxyz1   ! Problem for differing Vel. and Temp. counts!
+      ! for now we read nelt dataset
 
-            if (ifmhd .AND. ifile == 2) then
-                if (ifgetu) call copy(bx,sdump(1,4),ntott)
-                if (ifgetu) call copy(by,sdump(1,5),ntott)
-                if (ifgetw) call copy(bz,sdump(1,6),ntott)
-                if (ifgetp) then
-                    if (nid == 0) write(6,*) 'getting restart pressure'
-                    if (ifsplit) then
-                        call copy( pm,sdump(1,7),ntotv)
-                    else
-                        do iel=1,nelv
-                            iiel = (iel-1)*nxyz1+1
-                            call map12 (pm(1,1,1,iel),sdump(iiel,7),iel)
-                        enddo
-                    endif
-                endif
-                if (ifaxis .AND. ifgett) &
-                call copy(t(1,1,1,1,2),sdmp2(1,1),ntott)
-            elseif (ifpert .AND. ifile >= 2) then
-                j=ifile-1  ! pointer to perturbation field
-                if (ifgetu) call copy(vxp(1,j),sdump(1,4),ntotv)
-                if (ifgetu) call copy(vyp(1,j),sdump(1,5),ntotv)
-                if (ifgetw) call copy(vzp(1,j),sdump(1,6),ntotv)
-                if (ifgetp) then
-                    if (nid == 0) write(6,*) 'getting restart pressure'
-                    if (ifsplit) then
-                        call copy(prp(1,j),sdump(1,7),ntotv)
-                    else
-                        do ie=1,nelv
-                            ie1 = (ie-1)*nxyz1+1
-                            ie2 = (ie-1)*nxyz2+1
-                            call map12 (prp(ie2,j),sdump(ie1,7),ie)
-                        enddo
-                    endif
-                endif
-                if (ifgett) call copy(tp(1,1,j),sdmp2(1,1),ntott)
-            !              passive scalars
-                do ips=1,NPSCAL
-                    if (ifgtps(ips)) &
-                    call copy(tp(1,ips+1,j),sdmp2(1,ips+1),ntott)
-                enddo
+          if (ifmhd .AND. ifile == 2) then
+              if (ifgetu) call copy(bx,sdump(1,4),ntott)
+              if (ifgetu) call copy(by,sdump(1,5),ntott)
+              if (ifgetw) call copy(bz,sdump(1,6),ntott)
+              if (ifgetp) then
+                  if (nid == 0) write(6,*) 'getting restart pressure'
+                  if (ifsplit) then
+                      call copy( pm,sdump(1,7),ntotv)
+                  else
+                      do iel=1,nelv
+                          iiel = (iel-1)*nxyz1+1
+                          call map12 (pm(1,1,1,iel),sdump(iiel,7),iel)
+                      enddo
+                  endif
+              endif
+              if (ifaxis .AND. ifgett) &
+              call copy(t(1,1,1,1,2),sdmp2(1,1),ntott)
+          elseif (ifpert .AND. ifile >= 2) then
+              j=ifile-1  ! pointer to perturbation field
+              if (ifgetu) call copy(vxp(1,j),sdump(1,4),ntotv)
+              if (ifgetu) call copy(vyp(1,j),sdump(1,5),ntotv)
+              if (ifgetw) call copy(vzp(1,j),sdump(1,6),ntotv)
+              if (ifgetp) then
+                  if (nid == 0) write(6,*) 'getting restart pressure'
+                  if (ifsplit) then
+                      call copy(prp(1,j),sdump(1,7),ntotv)
+                  else
+                      do ie=1,nelv
+                          ie1 = (ie-1)*nxyz1+1
+                          ie2 = (ie-1)*nxyz2+1
+                          call map12 (prp(ie2,j),sdump(ie1,7),ie)
+                      enddo
+                  endif
+              endif
+              if (ifgett) call copy(tp(1,1,j),sdmp2(1,1),ntott)
+          !              passive scalars
+              do ips=1,NPSCAL
+                  if (ifgtps(ips)) &
+                  call copy(tp(1,ips+1,j),sdmp2(1,ips+1),ntott)
+              enddo
 
-            else  ! Std. Case
-                if (ifgetx) call copy(xm1,sdump(1,1),ntott)
-                if (ifgetx) call copy(ym1,sdump(1,2),ntott)
-                if (ifgetz) call copy(zm1,sdump(1,3),ntott)
-                if (ifgetu) call copy(vx ,sdump(1,4),ntotv)
-                if (ifgetu) call copy(vy ,sdump(1,5),ntotv)
-                if (ifgetw) call copy(vz ,sdump(1,6),ntotv)
-                if (ifgetp) call copy(pm1,sdump(1,7),ntotv)
-                if (ifgett) call copy(t,sdmp2(1,1),ntott)
-            !              passive scalars
-                do i=1,NPSCAL
-                    if (ifgtps(i)) &
-                    call copy(t(1,1,1,1,i+1),sdmp2(1,i+1),ntott)
-                enddo
+          else  ! Std. Case
+              if (ifgetx) call copy(xm1,sdump(1,1),ntott)
+              if (ifgetx) call copy(ym1,sdump(1,2),ntott)
+              if (ifgetz) call copy(zm1,sdump(1,3),ntott)
+              if (ifgetu) call copy(vx ,sdump(1,4),ntotv)
+              if (ifgetu) call copy(vy ,sdump(1,5),ntotv)
+              if (ifgetw) call copy(vz ,sdump(1,6),ntotv)
+              if (ifgetp) call copy(pm1,sdump(1,7),ntotv)
+              if (ifgett) call copy(t,sdmp2(1,1),ntott)
+          !              passive scalars
+              do i=1,NPSCAL
+                  if (ifgtps(i)) &
+                  call copy(t(1,1,1,1,i+1),sdmp2(1,i+1),ntott)
+              enddo
 
-                if (ifaxis) call axis_interp_ic(pm1)      ! Interpolate to axi mesh
-                if (ifgetp) call map_pm1_to_pr(pm1,ifile) ! Interpolate pressure
+              if (ifaxis) call axis_interp_ic(pm1)      ! Interpolate to axi mesh
+              if (ifgetp) call map_pm1_to_pr(pm1,ifile) ! Interpolate pressure
 
-                if (ifgtim) time=rstime
-            endif
+              if (ifgtim) time=rstime
+          endif
 
-        1000 END DO
-        GOTO 1600
-         
-        1600 CONTINUE
-    
-        IF (IDUMP == 1 .AND. NID == 0) THEN
-            write(6,1700) fname
-            write(6,1701) ieg,ixyzz
-            write(6,1702) &
-            ((tdump(jxyz,ii),ii=1,nouts),jxyz=ixyzz-1,ixyzz)
-            1700 FORMAT(5X,'WARNING:  No data read in for file ',A132)
-            1701 FORMAT(5X,'Failed on  element',I4,',  point',I5,'.')
-            1702 FORMAT(5X,'Last read dump:',/,5G15.7)
-            write(6,*) nid,'call exitt 1702a',idump
-            call exitt
-        ELSEIF (IDUMP == 1) THEN
-            write(6,*) nid,'call exitt 1702b',idump
-            call exitt
-        ELSE
-            IDUMP=IDUMP-1
-            IF (NID == 0) WRITE(6,1800) IDUMP
-            1800 FORMAT(2X,'Successfully read data from dump number',I3,'.')
-        ENDIF
-        if (iffmat) then
-            if (nid == 0) close(unit=91)
-        else
-            ierr = 0
-            if (nid == 0) call byte_close(ierr)
-            call err_chk(ierr,'Error closing restart file in restart$')
-        endif
-        GOTO 6000
+      1000 END DO
+      GOTO 1600
+       
+      1600 CONTINUE
+  
+      IF (IDUMP == 1 .AND. NID == 0) THEN
+          write(6,1700) fname
+          write(6,1701) ieg,ixyzz
+          write(6,1702) &
+          ((tdump(jxyz,ii),ii=1,nouts),jxyz=ixyzz-1,ixyzz)
+          1700 FORMAT(5X,'WARNING:  No data read in for file ',A132)
+          1701 FORMAT(5X,'Failed on  element',I4,',  point',I5,'.')
+          1702 FORMAT(5X,'Last read dump:',/,5G15.7)
+          write(6,*) nid,'call exitt 1702a',idump
+          call exitt
+      ELSEIF (IDUMP == 1) THEN
+          write(6,*) nid,'call exitt 1702b',idump
+          call exitt
+      ELSE
+          IDUMP=IDUMP-1
+          IF (NID == 0) WRITE(6,1800) IDUMP
+          1800 FORMAT(2X,'Successfully read data from dump number',I3,'.')
+      ENDIF
+      if (iffmat) then
+          if (nid == 0) close(unit=91)
+      else
+          ierr = 0
+          if (nid == 0) call byte_close(ierr)
+          call err_chk(ierr,'Error closing restart file in restart$')
+      endif
+      GOTO 6000
 
-    !        Can't open file...
-        5000 CONTINUE
-        if (nid == 0) write(6,5001) fname
-        5001 FORMAT(2X,'   *******   ERROR   *******    ' &
-        ,/,2X,'   *******   ERROR   *******    ' &
-        ,/,2X,'   Could not open restart file:' &
-        ,/,A132 &
-        ,//,2X,'Quitting in routine RESTART.')
-        CLOSE(UNIT=91)
-        call exitt
-        5002 CONTINUE
-        IF (NID == 0) WRITE(6,5001) HNAME
-        call exitt
-    
-    
-    !     End of IFILE loop
-    6000 END DO
+  !        Can't open file...
+      5000 CONTINUE
+      if (nid == 0) write(6,5001) fname
+      5001 FORMAT(2X,'   *******   ERROR   *******    ' &
+      ,/,2X,'   *******   ERROR   *******    ' &
+      ,/,2X,'   Could not open restart file:' &
+      ,/,A132 &
+      ,//,2X,'Quitting in routine RESTART.')
+      CLOSE(UNIT=91)
+      call exitt
+      5002 CONTINUE
+      IF (NID == 0) WRITE(6,5001) HNAME
+      call exitt
+  
+  
+  !     End of IFILE loop
+  6000 END DO
 
-    return
-    end subroutine restart_driver
+  return
+  end subroutine restart_driver
 
 !-----------------------------------------------------------------------
     subroutine sioflag(ndumps,fname,rsopts)

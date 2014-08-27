@@ -38,7 +38,8 @@
             if (param(42) == 1 .OR. solver_type == 'pdm') then
                 CALL UZAWA (RES,H1,H2,H2INV,INTYPE,ICG)
             else
-                call uzawa_gmres(res,h1,h2,h2inv,intype,icg)
+              write(*,*) "Oops: param(42) or solver_type"
+!max                call uzawa_gmres(res,h1,h2,h2inv,intype,icg)
             endif
         endif
     else

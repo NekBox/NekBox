@@ -27,89 +27,90 @@
 
 !===============================================================================
 
-    subroutine set_overlap
+!> \brief Set up arrays for overlapping Schwartz algorithm *for pressure solver*
+subroutine set_overlap
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, lbelv, lelt, nid
+  use domain, only : ltotd
+  use input, only : param, ifaxis, ifmgrid, ifmhd, ifsplit, ifldmhd
+  use tstep, only : ifield
+  implicit none
 
-!     Set up arrays for overlapping Schwartz algorithm *for pressure solver*
+  REAL*8 :: dnekclock,t0
 
-    use size_m
-    use domain
-    use esolv
-    use input
-    use tstep
+  integer, parameter :: n_tri = 7*ltotd
+  common /scrns/  tri (n_tri)
+  integer ::         tri,elem
 
-    REAL*8 :: dnekclock,t0
+  real(DP) :: x, y, z
+  common /screv/ x(2*ltotd)
+  common /scrvh/ y(2*ltotd)
+  common /scrch/ z(2*ltotd)
 
-    parameter (          n_tri = 7*ltotd )
-    common /scrns/  tri (n_tri)
-    integer ::         tri,elem
+  integer :: nv_to_t
+  common /ctmp0/ nv_to_t(2*ltotd)
 
-    common /screv/ x(2*ltotd)
-    common /scrvh/ y(2*ltotd)
-    common /scrch/ z(2*ltotd)
+  integer, parameter :: lia = ltotd - 2 - 2*lelt
+  integer :: ntri, nmask, ia
+  common /scrcg/ ntri(lelt+1),nmask(lelt+1) &
+  , ia(lia)
 
-    common /ctmp0/ nv_to_t(2*ltotd)
+  real(DP) :: color, ddmask
+  integer :: mask
+  common /scruz/ color   (4*ltotd)
+  common /scrmg/ ddmask  (4*ltotd)
+  common /ctmp1/ mask    (4*ltotd)
 
-    parameter (lia = ltotd - 2 - 2*lelt)
-    common /scrcg/ ntri(lelt+1),nmask(lelt+1) &
-    , ia(lia)
-
-    common /scruz/ color   (4*ltotd)
-    common /scrmg/ ddmask  (4*ltotd)
-    common /ctmp1/ mask    (4*ltotd)
-
-    parameter(lxx=lx1*lx1, levb=lelv+lbelv)
-    common /fastd/  df(lx1*ly1*lz1,levb) &
-    ,  sr(lxx*2,levb),ss(lxx*2,levb),st(lxx*2,levb)
+  integer, parameter :: lxx=lx1*lx1, levb=lelv+lbelv
+  integer :: e, npass, ipass
 
 
-    integer :: e
+  if (lx1 == 2) param(43)=1.
+  if (lx1 == 2 .AND. nid == 0) write(6,*) 'No mgrid for lx1=2!'
 
-    if (lx1 == 2) param(43)=1.
-    if (lx1 == 2 .AND. nid == 0) write(6,*) 'No mgrid for lx1=2!'
+  if (ifaxis) ifmgrid = .FALSE. 
+  if (param(43) /= 0) ifmgrid = .FALSE. 
 
-    if (ifaxis) ifmgrid = .FALSE. 
-    if (param(43) /= 0) ifmgrid = .FALSE. 
+  npass = 1
+  if (ifmhd) npass = 2
+  do ipass=1,npass
+      ifield = 1
 
-    npass = 1
-    if (ifmhd) npass = 2
-    do ipass=1,npass
-        ifield = 1
+      if (ifsplit .AND. ifmgrid) then
 
-        if (ifsplit .AND. ifmgrid) then
+          if (ipass > 1) ifield = ifldmhd
 
-            if (ipass > 1) ifield = ifldmhd
+          call swap_lengths
+          call gen_fast_spacing(x,y,z)
+           
+          call hsmg_setup
+          call h1mg_setup
 
-            call swap_lengths
-            call gen_fast_spacing(x,y,z)
-             
-            call hsmg_setup
-            call h1mg_setup
-
-        elseif ( .NOT. ifsplit) then ! Pn-Pn-2
+      elseif ( .NOT. ifsplit) then ! Pn-Pn-2
 #if 0
-            if (ipass > 1) ifield = ifldmhd
+          if (ipass > 1) ifield = ifldmhd
 
-            if (param(44) == 1) then !  Set up local overlapping solves
-                call set_fem_data_l2(nel_proc,ndom,n_o,x,y,z,tri)
-            else
-                call swap_lengths
-            endif
-             
-            e = 1
-            if (ifield > 1) e = nelv+1
+          if (param(44) == 1) then !  Set up local overlapping solves
+              call set_fem_data_l2(nel_proc,ndom,n_o,x,y,z,tri)
+          else
+              call swap_lengths
+          endif
+           
+          e = 1
+          if (ifield > 1) e = nelv+1
 
-            call gen_fast_spacing(x,y,z)
-            call gen_fast(df(1,e),sr(1,e),ss(1,e),st(1,e),x,y,z)
+          call gen_fast_spacing(x,y,z)
+          call gen_fast(df(1,e),sr(1,e),ss(1,e),st(1,e),x,y,z)
 
-            call init_weight_op
-            if (param(43) == 0) call hsmg_setup
+          call init_weight_op
+          if (param(43) == 0) call hsmg_setup
 #endif
-        endif
+      endif
 
-        call set_up_h1_crs
+      call set_up_h1_crs
 
-    enddo
-     
-    return
-    end subroutine set_overlap
+  enddo
+   
+  return
+end subroutine set_overlap
 !-----------------------------------------------------------------------

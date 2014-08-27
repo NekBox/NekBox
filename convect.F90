@@ -584,43 +584,45 @@ subroutine get_int_ptr (ip,mx,md) ! GLL-->GL pointer
   return
 end subroutine get_int_ptr
 !-----------------------------------------------------------------------
-    subroutine get_dgl_ptr (ip,mx,md)
+!> \brief Get pointer to GL-GL interpolation dgl() for pair (mx,md)
+subroutine get_dgl_ptr (ip,mx,md)
+  use kinds, only : DP
+  use size_m, only : lxd 
+  implicit none
 
-!     Get pointer to GL-GL interpolation dgl() for pair (mx,md)
+  integer :: ip, mx, md
 
-    use size_m
+  integer, parameter :: ld=2*lxd
+  integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
 
-    parameter (ldg=lxd**3,lwkd=4*lxd*lxd)
-    common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
-    , wkd(lwkd)
-    real :: jgl,jgt
+  real(DP) :: d, dt, dg, dgt, jgl, jgt, wkd
+  common /dgrad/ d(ldg),dt(ldg),dg(ldg),dgt(ldg),jgl(ldg),jgt(ldg) &
+  , wkd(lwkd)
 
-    parameter (ld=2*lxd)
-    common /jgrad/ pd    (0:ld*ld) &
-    , pdg   (0:ld*ld) &
-    , pjgl  (0:ld*ld)
-    integer :: pd , pdg , pjgl
+  integer, save ::  pdg   (0:ld*ld)
 
-    ij = md + ld*(mx-1)
-    ip = pdg (ij)
+  integer :: ij, nstore, nwrkd
 
-    if (ip == 0) then
+  ij = md + ld*(mx-1)
+  ip = pdg (ij)
 
-        nstore   = pdg (0)
-        pdg (ij) = nstore+1
-        nstore   = nstore + md*mx
-        pdg (0)  = nstore
-        ip       = pdg (ij)
-    
-        nwrkd = mx + md
-        call lim_chk(nstore,ldg ,'dg   ','ldg  ','get_dgl_pt')
-        call lim_chk(nwrkd ,lwkd,'wkd  ','lwkd ','get_dgl_pt')
-    
-        call gen_dgl(dg (ip),dgt(ip),md,mx,wkd)
-    endif
+  if (ip == 0) then
 
-    return
-    end subroutine get_dgl_ptr
+      nstore   = pdg (0)
+      pdg (ij) = nstore+1
+      nstore   = nstore + md*mx
+      pdg (0)  = nstore
+      ip       = pdg (ij)
+  
+      nwrkd = mx + md
+      call lim_chk(nstore,ldg ,'dg   ','ldg  ','get_dgl_pt')
+      call lim_chk(nwrkd ,lwkd,'wkd  ','lwkd ','get_dgl_pt')
+  
+      call gen_dgl(dg (ip),dgt(ip),md,mx,wkd)
+  endif
+
+  return
+end subroutine get_dgl_ptr
 !-----------------------------------------------------------------------
     subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
 

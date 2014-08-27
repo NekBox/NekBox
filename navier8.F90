@@ -713,46 +713,48 @@ end subroutine set_up_h1_crs
     end subroutine set_h1_basis_bilin
 
 !-----------------------------------------------------------------------
-    subroutine get_local_crs_galerkin(a,ncl,nxc,h1,h2,w1,w2)
+!> \brief This routine generates Nelv submatrices of order ncl using
+!! Galerkin projection
+subroutine get_local_crs_galerkin(a,ncl,nxc,h1,h2,w1,w2)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, lx1, ldim
+  implicit none
 
-!     This routine generates Nelv submatrices of order ncl using
-!     Galerkin projection
+  integer :: ncl, nxc
+  real ::    a(ncl,ncl,1),h1(1),h2(1)
+  real ::    w1(nx1*ny1*nz1,nelv),w2(nx1*ny1*nz1,nelv)
 
-    use size_m
+  integer, parameter :: lcrd=lx1**ldim
+  real(DP) :: b(lcrd,8)
 
-    real ::    a(ncl,ncl,1),h1(1),h2(1)
-    real ::    w1(nx1*ny1*nz1,nelv),w2(nx1*ny1*nz1,nelv)
+  integer :: e, i, j, isd, imsh, nxyz
+  real(DP), external :: vlsc2
 
-    parameter (lcrd=lx1**ldim)
-    common /ctmp1z/ b(lcrd,8)
+  do j=1,ncl
+      call gen_crs_basis(b(1,j),j) ! bi- or tri-linear interpolant
+  enddo
 
-    integer :: e
+  isd  = 1
+  imsh = 1
 
-    do j=1,ncl
-        call gen_crs_basis(b(1,j),j) ! bi- or tri-linear interpolant
-    enddo
+  nxyz = nx1*ny1*nz1
+  do j = 1,ncl
+      do e = 1,nelv
+          call copy(w1(1,e),b(1,j),nxyz)
+      enddo
 
-    isd  = 1
-    imsh = 1
+      call axhelm (w2,w1,h1,h2,imsh,isd)        ! A^e * bj
 
-    nxyz = nx1*ny1*nz1
-    do j = 1,ncl
-        do e = 1,nelv
-            call copy(w1(1,e),b(1,j),nxyz)
-        enddo
+      do e = 1,nelv
+          do i = 1,ncl
+              a(i,j,e) = vlsc2(b(1,i),w2(1,e),nxyz)  ! bi^T * A^e * bj
+          enddo
+      enddo
 
-        call axhelm (w2,w1,h1,h2,imsh,isd)        ! A^e * bj
+  enddo
 
-        do e = 1,nelv
-            do i = 1,ncl
-                a(i,j,e) = vlsc2(b(1,i),w2(1,e),nxyz)  ! bi^T * A^e * bj
-            enddo
-        enddo
-
-    enddo
-
-    return
-    end subroutine get_local_crs_galerkin
+  return
+end subroutine get_local_crs_galerkin
 !-----------------------------------------------------------------------
     subroutine gen_crs_basis(b,j) ! bi- tri-linear
 

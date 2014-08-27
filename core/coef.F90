@@ -432,7 +432,6 @@ subroutine glmapm1
   integer :: nxy1, nyz1, nxyz1, ntot1
   integer :: ie, ierr, kerr
   integer, external :: iglsum
-  write(*,*) "MAX: glmapm1"
 
   NXY1  = NX1*NY1
   NYZ1  = NY1*NZ1

@@ -1180,59 +1180,6 @@ subroutine geodat1
 
     RETURN
     end subroutine map12
-
-!---------------------------------------------------------------
-!> \brief     Map the elemental array X from mesh M2 to mesh M1
-!---------------------------------------------------------------
-    subroutine map21e (y,x,iel)
-
-    use size_m
-    use geom
-    use input
-    use ixyz
-
-    REAL :: X(LX2,LY2,LZ2)
-    REAL :: Y(LX1,LY1,LZ1)
-
-    COMMON /CTMP0/ XA(LX1,LY2,LZ2), XB(LX1,LY1,LZ2)
-
-    NYZ2 = NY2*NZ2
-    NXY1 = NX1*NY1
-
-!     Use the appropriate derivative- and interpolation operator in
-!     the y-direction (= radial direction if axisymmetric).
-
-    IF (IFAXIS) THEN
-        NY21   = NY1*NY2
-        IF (IFRZER(IEL))      CALL COPY (IYM12,IAM12,NY21)
-        IF ( .NOT. IFRZER(IEL)) CALL COPY (IYM12,ICM12,NY21)
-    ENDIF
-
-    CALL MXM (IXTM12,NX1,X,NX2,XA,NYZ2)
-    DO 100 IZ=1,NZ2
-        CALL MXM (XA(1,1,IZ),NX1,IYM12,NY2,XB(1,1,IZ),NY1)
-    100 END DO
-    CALL MXM (XB,NXY1,IZM12,NZ2,Y,NZ1)
-
-    RETURN
-    end subroutine map21e
-!-----------------------------------------------------------------------
-    subroutine out_fld_el(x,e,c2)
-    use size_m
-    real :: x(lx1,ly1,lz1,lelt)
-    integer :: e
-    character(2) :: c2
-
-    write(6,1) c2,e
-    nx8 = min(nx1,8)
-    do k=1,nz1
-        do j=1,ny1
-            write(6,1) c2,e,(x(i,j,k,e),i=1,nx8)
-        enddo
-    enddo
-    1 format(a2,i6,1p8e11.3)
-    return
-    end subroutine out_fld_el
 !-----------------------------------------------------------------------
     SUBROUTINE INVMT(A,B,AA,N)
 

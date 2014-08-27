@@ -725,88 +725,91 @@
     RETURN
     END SUBROUTINE BCDIRVC
 !-----------------------------------------------------------------------
-    SUBROUTINE BCDIRSC(S)
+!> \brief Apply Dirichlet boundary conditions to surface of scalar, S.
+!! Use IFIELD as a guide to which boundary conditions are to be applied.
+SUBROUTINE BCDIRSC(S)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, ndim, nfield
+  use ctimer, only : icalld, tusbc, nusbc, etime1, dnekclock
+  use input, only : cbc, bc
+  use soln, only : tmask
+  use tstep, only : ifield, nelfld
+  implicit none
 
-!     Apply Dirichlet boundary conditions to surface of scalar, S.
-!     Use IFIELD as a guide to which boundary conditions are to be applied.
+  real(DP) :: S(LX1,LY1,LZ1,LELT)
+  real(DP) :: tmp(LX1,LY1,LZ1,LELT) 
 
-    use ctimer
-    use size_m
-    use input
-    use soln
-    use topol
-    use tstep
+  CHARACTER CB*3
+  common  /nekcb/ cb
 
-    DIMENSION S(LX1,LY1,LZ1,LELT)
-    COMMON /SCRSF/ TMP(LX1,LY1,LZ1,LELT) &
-    , TMA(LX1,LY1,LZ1,LELT) &
-    , SMU(LX1,LY1,LZ1,LELT)
-    common  /nekcb/ cb
-    CHARACTER CB*3
+  integer :: ifld, nfaces, nxyz, nel, ntot, nvldt, isweep, ie, iface, nfldt
+  real(DP) :: BC1, BC2, BC3, BC4, BCK, BCE
 
 #ifndef NOTIMER
-    if (icalld == 0) then
-        tusbc=0.0
-        nusbc=0
-        icalld=icalld+1
-    endif
-    nusbc=nusbc+1
-    etime1=dnekclock()
+  if (icalld == 0) then
+      tusbc=0.0
+      nusbc=0
+      icalld=icalld+1
+  endif
+  nusbc=nusbc+1
+  etime1=dnekclock()
 #endif
 
-    IFLD   = 1
-    NFACES = 2*NDIM
-    NXYZ   = NX1*NY1*NZ1
-    NEL    = NELFLD(IFIELD)
-    NTOT   = NXYZ*NEL
-    NFLDT  = NFIELD - 1
+  IFLD   = 1
+  NFACES = 2*NDIM
+  NXYZ   = NX1*NY1*NZ1
+  NEL    = NELFLD(IFIELD)
+  NTOT   = NXYZ*NEL
+  NFLDT  = NFIELD - 1
 
-    CALL RZERO(TMP,NTOT)
+  CALL RZERO(TMP,NTOT)
 
 !     Temperature boundary condition
 
-    DO 2100 ISWEEP=1,2
+  DO ISWEEP=1,2
     
 #if 0
-        IF (IFMODEL .AND. IFKEPS .AND. IFIELD >= NFLDT) &
-        CALL TURBWBC (TMP,TMA,SMU)
+      IF (IFMODEL .AND. IFKEPS .AND. IFIELD >= NFLDT) &
+      CALL TURBWBC (TMP,TMA,SMU)
 #endif
     
-        DO 2010 IE=1,NEL
-            DO 2010 IFACE=1,NFACES
-                CB=CBC(IFACE,IE,IFIELD)
-                BC1=BC(1,IFACE,IE,IFIELD)
-                BC2=BC(2,IFACE,IE,IFIELD)
-                BC3=BC(3,IFACE,IE,IFIELD)
-                BC4=BC(4,IFACE,IE,IFIELD)
-                BCK=BC(4,IFACE,IE,IFLD)
-                BCE=BC(5,IFACE,IE,IFLD)
-                IF (CB == 'T  ') CALL FACEV (TMP,IE,IFACE,BC1,NX1,NY1,NZ1)
-                IF (CB == 'MCI') CALL FACEV (TMP,IE,IFACE,BC4,NX1,NY1,NZ1)
-                IF (CB == 'MLI') CALL FACEV (TMP,IE,IFACE,BC4,NX1,NY1,NZ1)
-                IF (CB == 'KD ') CALL FACEV (TMP,IE,IFACE,BCK,NX1,NY1,NZ1)
-                IF (CB == 'ED ') CALL FACEV (TMP,IE,IFACE,BCE,NX1,NY1,NZ1)
-                IF (CB == 't  ' .OR. CB == 'kd ' .OR. CB == 'ed ') &
-                CALL FACEIS (CB,TMP(1,1,1,IE),IE,IFACE,NX1,NY1,NZ1)
-        2010 END DO
-    
-    !        Take care of Neumann-Dirichlet shared edges...
-    
-        IF (ISWEEP == 1) CALL DSOP(TMP,'MXA',NX1,NY1,NZ1)
-        IF (ISWEEP == 2) CALL DSOP(TMP,'MNA',NX1,NY1,NZ1)
-    2100 END DO
+      DO IE=1,NEL
+          DO IFACE=1,NFACES
+              CB=CBC(IFACE,IE,IFIELD)
+              BC1=BC(1,IFACE,IE,IFIELD)
+              BC2=BC(2,IFACE,IE,IFIELD)
+              BC3=BC(3,IFACE,IE,IFIELD)
+              BC4=BC(4,IFACE,IE,IFIELD)
+              BCK=BC(4,IFACE,IE,IFLD)
+              BCE=BC(5,IFACE,IE,IFLD)
+              IF (CB == 'T  ') CALL FACEV (TMP,IE,IFACE,BC1,NX1,NY1,NZ1)
+              IF (CB == 'MCI') CALL FACEV (TMP,IE,IFACE,BC4,NX1,NY1,NZ1)
+              IF (CB == 'MLI') CALL FACEV (TMP,IE,IFACE,BC4,NX1,NY1,NZ1)
+              IF (CB == 'KD ') CALL FACEV (TMP,IE,IFACE,BCK,NX1,NY1,NZ1)
+              IF (CB == 'ED ') CALL FACEV (TMP,IE,IFACE,BCE,NX1,NY1,NZ1)
+              IF (CB == 't  ' .OR. CB == 'kd ' .OR. CB == 'ed ') &
+              CALL FACEIS (CB,TMP(1,1,1,IE),IE,IFACE,NX1,NY1,NZ1)
+          END DO
+      enddo
+  
+  !        Take care of Neumann-Dirichlet shared edges...
+  
+      IF (ISWEEP == 1) CALL DSOP(TMP,'MXA',NX1,NY1,NZ1)
+      IF (ISWEEP == 2) CALL DSOP(TMP,'MNA',NX1,NY1,NZ1)
+  END DO
 
 !     Copy temporary array to temperature array.
 
-    CALL COL2(S,TMASK(1,1,1,1,IFIELD-1),NTOT)
-    CALL ADD2(S,TMP,NTOT)
+  CALL COL2(S,TMASK(1,1,1,1,IFIELD-1),NTOT)
+  CALL ADD2(S,TMP,NTOT)
 
 #ifndef NOTIMER
-    tusbc=tusbc+(dnekclock()-etime1)
+  tusbc=tusbc+(dnekclock()-etime1)
 #endif
 
-    RETURN
-    END SUBROUTINE BCDIRSC
+  RETURN
+END SUBROUTINE BCDIRSC
 
 !-----------------------------------------------------------------------
     SUBROUTINE BCNEUSC(S,ITYPE)

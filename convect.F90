@@ -648,188 +648,157 @@ end subroutine get_dgl_ptr
     return
     end subroutine grad_rst
 !-----------------------------------------------------------------------
-    subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
+!> \brief Compute dealiased form:  J^T Bf *JC .grad Ju w/ correct Jacobians
+subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
+  use kinds, only : DP
+  use size_m, only : nelv
+  use size_m, only : lx1, ly1, lz1, lxd, lyd, lzd
+  use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd
+  use geom, only : rx
+  use input, only : if3d
+  implicit none
 
-!     Compute dealiased form:  J^T Bf *JC .grad Ju w/ correct Jacobians
+  real(DP) :: bdu(1),u(1),cx(1),cy(1),cz(1)
+  logical :: ifuf,ifcf            ! u and/or c already on fine mesh?
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
+  real(DP) :: ur(ltd), us(ltd), ut(ltd), tr(ltd,3), uf(ltd)
 
-    real :: bdu(1),u(1),cx(1),cy(1),cz(1)
-    logical :: ifuf,ifcf            ! u and/or c already on fine mesh?
+  integer :: e, iu, ic, ib, i
+  integer :: nxyz1, nxyzd, nxyzu, nxyzc
 
-    parameter (lxy=lx1*ly1*lz1,ltd=lxd*lyd*lzd)
-    common /scrcv/ fx(ltd),fy(ltd),fz(ltd) &
-    , ur(ltd),us(ltd),ut(ltd) &
-    , tr(ltd,3),uf(ltd)
+  call set_dealias_rx()
 
-    integer :: e
+  nxyz1 = nx1*ny1*nz1
+  nxyzd = nxd*nyd*nzd
 
-    call set_dealias_rx
+  nxyzu = nxyz1
+  if (ifuf) nxyzu = nxyzd
 
-    nxyz1 = nx1*ny1*nz1
-    nxyzd = nxd*nyd*nzd
+  nxyzc = nxyz1
+  if (ifcf) nxyzc = nxyzd
 
-    nxyzu = nxyz1
-    if (ifuf) nxyzu = nxyzd
-
-    nxyzc = nxyz1
-    if (ifcf) nxyzc = nxyzd
-
-    iu = 1    ! pointer to scalar field u
-    ic = 1    ! pointer to vector field C
-    ib = 1    ! pointer to scalar field Bdu
+  iu = 1    ! pointer to scalar field u
+  ic = 1    ! pointer to vector field C
+  ib = 1    ! pointer to scalar field Bdu
 
 
-    do e=1,nelv
+  do e=1,nelv
 
-        if (ifcf) then
+      if (ifcf) then
+          call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
+          call copy(tr(1,2),cy(ic),nxyzd)
+          if (if3d) call copy(tr(1,3),cz(ic),nxyzd)
 
-            call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
-            call copy(tr(1,2),cy(ic),nxyzd)
-            if (if3d) call copy(tr(1,3),cz(ic),nxyzd)
+      else  ! map coarse velocity to fine mesh (C-->F)
+        write(*,*) "Oops: ifcf"
+#if 0
+          call intp_rstd(fx,cx(ic),nx1,nxd,if3d,0) ! 0 --> forward
+          call intp_rstd(fy,cy(ic),nx1,nxd,if3d,0) ! 0 --> forward
+          if (if3d) call intp_rstd(fz,cz(ic),nx1,nxd,if3d,0) ! 0 --> forward
 
-        else  ! map coarse velocity to fine mesh (C-->F)
+          if (if3d) then  ! Convert convector F to r-s-t coordinates
 
-            call intp_rstd(fx,cx(ic),nx1,nxd,if3d,0) ! 0 --> forward
-            call intp_rstd(fy,cy(ic),nx1,nxd,if3d,0) ! 0 --> forward
-            if (if3d) call intp_rstd(fz,cz(ic),nx1,nxd,if3d,0) ! 0 --> forward
+              do i=1,nxyzd
+                  tr(i,1)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
+                  tr(i,2)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
+                  tr(i,3)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
+              enddo
 
-            if (if3d) then  ! Convert convector F to r-s-t coordinates
+          else
 
-                do i=1,nxyzd
-                    tr(i,1)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
-                    tr(i,2)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
-                    tr(i,3)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
-                enddo
+              do i=1,nxyzd
+                  tr(i,1)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)
+                  tr(i,2)=rx(i,3,e)*fx(i)+rx(i,4,e)*fy(i)
+              enddo
 
-            else
+          endif
+#endif
+      endif
 
-                do i=1,nxyzd
-                    tr(i,1)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)
-                    tr(i,2)=rx(i,3,e)*fx(i)+rx(i,4,e)*fy(i)
-                enddo
+      if (ifuf) then
+          call grad_rst(ur,us,ut,u(iu),nxd,if3d)
+      else
+          call intp_rstd(uf,u(iu),nx1,nxd,if3d,0) ! 0 --> forward
+          call grad_rst(ur,us,ut,uf,nxd,if3d)
+      endif
 
-            endif
+      if (if3d) then
+          do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
+              uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
+          enddo
+      else
+          do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
+              uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)
+          enddo
+      endif
+      call intp_rstd(bdu(ib),uf,nx1,nxd,if3d,1) ! Project back to coarse
 
-        endif
+      ic = ic + nxyzc
+      iu = iu + nxyzu
+      ib = ib + nxyz1
 
-        if (ifuf) then
-            call grad_rst(ur,us,ut,u(iu),nxd,if3d)
-        else
-            call intp_rstd(uf,u(iu),nx1,nxd,if3d,0) ! 0 --> forward
-            call grad_rst(ur,us,ut,uf,nxd,if3d)
-        endif
+  enddo
 
-        if (if3d) then
-            do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
-                uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
-            enddo
-        else
-            do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
-                uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)
-            enddo
-        endif
-        call intp_rstd(bdu(ib),uf,nx1,nxd,if3d,1) ! Project back to coarse
-
-        ic = ic + nxyzc
-        iu = iu + nxyzu
-        ib = ib + nxyz1
-
-    enddo
-
-    return
-    end subroutine convect_new
+  return
+  end subroutine convect_new
 !-----------------------------------------------------------------------
-    subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
+!> \brief Put vxd,vyd,vzd into rst form on fine mesh
+!! For rst form, see eq. (4.8.5) in Deville, Fischer, Mund (2002).
+subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lxd, lyd, lzd
+  use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, nelv
+  use geom, only : rx
+  use input, only : if3d
+  implicit none
 
-!     Put vxd,vyd,vzd into rst form on fine mesh
+  integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
 
-!     For rst form, see eq. (4.8.5) in Deville, Fischer, Mund (2002).
+  real :: cr(ltd,1),cs(ltd,1),ct(ltd,1)
+  real :: ux(lxy,1),uy(lxy,1),uz(lxy,1)
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  real(DP) :: fx(ltd), fy(ltd), fz(ltd)!, ur, us, ut, tr, uf
 
-    parameter (lxy=lx1*ly1*lz1,ltd=lxd*lyd*lzd)
+  integer :: e, nxyz1, nxyzd, ic, i
 
-    real :: cr(ltd,1),cs(ltd,1),ct(ltd,1)
-    real :: ux(lxy,1),uy(lxy,1),uz(lxy,1)
+  call set_dealias_rx()
 
-    common /scrcv/ fx(ltd),fy(ltd),fz(ltd) &
-    , ur(ltd),us(ltd),ut(ltd) &
-    , tr(ltd,3),uf(ltd)
+  nxyz1 = nx1*ny1*nz1
+  nxyzd = nxd*nyd*nzd
 
-    integer :: e
+  ic = 1    ! pointer to vector field C
 
-    call set_dealias_rx
+  do e=1,nelv
 
-    nxyz1 = nx1*ny1*nz1
-    nxyzd = nxd*nyd*nzd
+  !        Map coarse velocity to fine mesh (C-->F)
 
-    ic = 1    ! pointer to vector field C
+      call intp_rstd(fx,ux(1,e),nx1,nxd,if3d,0) ! 0 --> forward
+      call intp_rstd(fy,uy(1,e),nx1,nxd,if3d,0) ! 0 --> forward
+      if (if3d) call intp_rstd(fz,uz(1,e),nx1,nxd,if3d,0) ! 0 --> forward
 
-    do e=1,nelv
+  !        Convert convector F to r-s-t coordinates
 
-    !        Map coarse velocity to fine mesh (C-->F)
+      if (if3d) then
 
-        call intp_rstd(fx,ux(1,e),nx1,nxd,if3d,0) ! 0 --> forward
-        call intp_rstd(fy,uy(1,e),nx1,nxd,if3d,0) ! 0 --> forward
-        if (if3d) call intp_rstd(fz,uz(1,e),nx1,nxd,if3d,0) ! 0 --> forward
+          do i=1,nxyzd
+              cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
+              cs(i,e)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
+              ct(i,e)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
+          enddo
 
-    !        Convert convector F to r-s-t coordinates
+      else
 
-        if (if3d) then
+          do i=1,nxyzd
+              cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)
+              cs(i,e)=rx(i,3,e)*fx(i)+rx(i,4,e)*fy(i)
+          enddo
 
-            do i=1,nxyzd
-                cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
-                cs(i,e)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
-                ct(i,e)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
-            enddo
+      endif
+  enddo
 
-        else
-
-            do i=1,nxyzd
-                cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)
-                cs(i,e)=rx(i,3,e)*fx(i)+rx(i,4,e)*fy(i)
-            enddo
-
-        endif
-    enddo
-
-    return
-    end subroutine set_convect_new
+  return
+end subroutine set_convect_new
 !-----------------------------------------------------------------------
     subroutine set_char_mask(mask,u,v,w) ! mask for hyperbolic system
 

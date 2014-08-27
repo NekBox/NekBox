@@ -30,30 +30,6 @@
     return
     end subroutine set_vert
 
-!-----------------------------------------------------------------------
-!      subroutine test_h1_crs
-!      use size_m
-!      use domain
-!      common /scrxxt/ x(lcr*lelv),b(lcr*lelv)
-!      common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
-!      real x,b
-!      ntot=nelv*nxyz_c
-!      do i=1,12
-!         call rzero(b,ntot)
-!         if(mp.eq.1) then
-!            b(i)=1
-!         else if(mid.eq.0) then
-!            if(i.gt.8) b(i-8)=1
-!         else
-!            if(i.le.8) b(i)=1
-!         endif
-!         call hsmg_coarse_solve(x,b)
-!         print *, 'Column ',i,':',(x(j),j=1,ntot)
-!      enddo
-!      return
-!      end
-!-----------------------------------------------------------------------
-
 subroutine set_up_h1_crs
   use kinds, only : DP
   use size_m
@@ -74,8 +50,7 @@ subroutine set_up_h1_crs
   integer :: null_space,e
 
   character(3) :: cb
-  real(DP) :: cmlt, mask
-  common /scrxxt/ cmlt(lcr,lelv),mask(lcr,lelv)
+  real(DP) :: cmlt(lcr,lelv),mask(lcr,lelv)
   integer, allocatable :: ia(:,:,:), ja(:,:,:)
   real :: z
 

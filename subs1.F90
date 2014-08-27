@@ -2,14 +2,14 @@
     subroutine setdt
 
 !     Set the new time step. All cases covered.
-
+    use kinds, only : DP
     use size_m
     use input
     use soln
     use tstep
     common /cprint/ ifprint
     logical ::         ifprint
-    common /udxmax/ umax
+    real(DP), save :: umax = 0._dp
     REAL ::     DTOLD
     SAVE     DTOLD
     DATA     DTOLD /0.0/
@@ -43,7 +43,7 @@
 
 !     Find DT=DTCFL based on CFL-condition (if applicable)
 
-    CALL SETDTC
+    CALL SETDTC(umax)
     DTCFL = DT
 
 !     Find DTFS based on surface tension (if applicable)
@@ -199,7 +199,7 @@
     return
     end subroutine unorm
 
-    subroutine setdtc
+    subroutine setdtc(umax)
 !--------------------------------------------------------------
 
 !     Compute new timestep based on CFL-condition
@@ -218,7 +218,6 @@
     ,             w(lx1,ly1,lz1,lelv)
     common /ctmp0/ x(lx1,ly1,lz1,lelv) &
     ,             r(lx1,ly1,lz1,lelv)
-    common /udxmax/ umax
 
 
     REAL :: VCOUR

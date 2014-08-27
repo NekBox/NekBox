@@ -1290,6 +1290,7 @@
     ENDIF
     return
     end subroutine mapdmp
+#if 0
 !---------------------------------------------------------------
 !> \brief Interpolate Y(NXR,NYR,NZR,NEL) to X(NX1,NY1,NZ1,NEL)
 !! (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
@@ -1353,7 +1354,7 @@ subroutine mapab(x,y,nxr,nel)
 
   return
   end subroutine mapab
-
+#endif
 !---------------------------------------------------------------
 !> Interpolate Y(NXR,NYR,NZR,NEL) to X(NX1,NY1,NZ1,NEL)
 !! (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
@@ -1886,132 +1887,6 @@ end subroutine mapab4R
 
     return
     end subroutine map13_all
-!-----------------------------------------------------------------------
-    subroutine parse_std_hdr(hdr)
-    use size_m
-    use input
-    use parallel
-    use restart
-
-    character(132) :: hdr
-    character(4) :: dummy
-
-    read(hdr,*,err=99) dummy &
-    ,  wdsizr,nxr,nyr,nzr,nelr,nelgr,timer,istpr &
-    ,  ifiler,nfiler &
-    ,  rdcode      ! 74+20=94
-
-#ifdef MPIIO
-    if ((nelr/np + np) > lelr) then
-        write(6,'(A,I6)') 'ABORT: nelr>lelr on rank',nid
-        call exitt
-    endif
-#else
-    if (nelr > lelr) then
-        write(6,'(A,I6)') 'ABORT: nelr>lelr on rank',nid
-        call exitt
-    endif
-#endif
-
-    ifgtim  = .TRUE.  ! always get time
-    ifgetxr = .FALSE. 
-    ifgetur = .FALSE. 
-    ifgetpr = .FALSE. 
-    ifgettr = .FALSE. 
-    do k=1,ldimt-1
-        ifgtpsr(k) = .FALSE. 
-    enddo
-
-    NPSR = 0
-    do i=1,10
-        if (rdcode1(i) == 'X') ifgetxr = .TRUE. 
-        if (rdcode1(i) == 'U') ifgetur = .TRUE. 
-        if (rdcode1(i) == 'P') ifgetpr = .TRUE. 
-        if (rdcode1(i) == 'T') ifgettr = .TRUE. 
-        if (rdcode1(i) == 'S') then
-            read(rdcode1(i+1),'(I1)') NPS1
-            read(rdcode1(i+2),'(I1)') NPS0
-            NPSR = 10*NPS1+NPS0
-            NPS  = NPSR
-            if(NPSR > ldimt-1) NPS=ldimt-1
-            do k=1,NPS
-                ifgtpsr(k) = .TRUE. 
-            enddo
-        ! nothing will follow
-            GOTO 50
-        endif
-    enddo
-
-    50 if (NPS < NPSR) then
-        if (nid == 0) then
-            write(*,'(A,/,A)') &
-            'WARNING: restart file has a NSPCAL > LDIMT', &
-            'read only part of the fld-data!'
-        endif
-    endif
-
-    if (NPS < NPSCAL) then
-        if (nid == 0) then
-            write(*,'(A,/,A)') &
-            'WARNING: NPSCAL read from restart file differs from ', &
-            'currently used NPSCAL!'
-        endif
-    endif
-
-    return
-
-    99 continue   !  If we got here, then the May 2008 variant of std hdr
-!  failed and we may have an older input file.
-
-    call parse_std_hdr_2006(hdr,rdcode)  ! try the original header format
-
-    return
-    end subroutine parse_std_hdr
-!-----------------------------------------------------------------------
-    subroutine parse_std_hdr_2006(hdr,rlcode)
-    use size_m
-    use input
-    use restart
-
-    character(132) :: hdr
-    character(1) :: rlcode(20)
-
-!                4  7  10  13   23    33    53    62     68     74
-    read(hdr,1) wdsizr,nxr,nyr,nzr,nelr,nelgr,timer,istpr &
-    , ifiler,nfiler &
-    , (rlcode(k),k=1,20)                   ! 74+20=94
-    1 format(4x,i2,3i3,2i10,e20.13,i9,2i6,20a1)
-
-
-    if (nid == 0) write(6,*) 'WARNING: reading depreacted header!'
-
-    if (nelr > lelr) then
-        write(6,*)nid,nelr,lelr,'parse_std_hdr06: inc. lelr in RESTART'
-        call exitt
-    endif
-
-!     Assign read conditions, according to rdcode
-!     NOTE: In the old hdr format: what you see in file is what you get.
-    ifgtim  = .TRUE.  ! always get time
-    ifgetxr = .FALSE. 
-    ifgetur = .FALSE. 
-    ifgetpr = .FALSE. 
-    ifgettr = .FALSE. 
-    do k=1,npscal
-        ifgtpsr(k) = .FALSE. 
-    enddo
-
-    if (rlcode(1) == 'X') ifgetxr = .TRUE. 
-    if (rlcode(2) == 'U') ifgetur = .TRUE. 
-    if (rlcode(3) == 'P') ifgetpr = .TRUE. 
-    if (rlcode(4) == 'T') ifgettr = .TRUE. 
-    do k=1,npscal
-        if (rlcode(4+k) /= ' ') ifgtpsr(k) = .TRUE. 
-    enddo
-
-
-    return
-    end subroutine parse_std_hdr_2006
 !-----------------------------------------------------------------------
     subroutine mbyte_open(hname,fid,ierr) ! open  blah000.fldnn
     use size_m

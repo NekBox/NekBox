@@ -32,12 +32,13 @@
 
 subroutine set_up_h1_crs
   use kinds, only : DP
-  use size_m
-  use domain
-  use geom
-  use input
-  use parallel
-  use tstep
+  use size_m, only : nx1, ny1, nz1, nelv, ndim, nid
+  use size_m, only : lx1, ly1, lz1, lelv, lelt, ldim
+  use domain, only : nx_crs, nxyz_c, se_to_gcrs, lcr
+  use geom, only : ifvcor, ifbcor
+  use input, only : if3d, ifldmhd, cbc
+  use parallel, only : xxth
+  use tstep, only : ifield
   implicit none
 
   integer :: mid, mp, nekcomm, nekgroup, nekreal
@@ -56,8 +57,7 @@ subroutine set_up_h1_crs
 
   integer :: key(2),aa(2)
   real(DP), allocatable :: a(:)
-  integer :: iwork
-  common /scrch/ iwork(2,lx1*ly1*lz1*lelv)
+  integer :: iwork(2,lx1*ly1*lz1*lelv)
   common /scrns/ w(7*lx1*ly1*lz1*lelv)
   integer :: w
   real :: wr(1)

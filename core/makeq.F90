@@ -46,14 +46,18 @@
             endif
         else
             if (ifmvbd) then       ! ifchar is false
+            write(*,*) "Oops: ifmvbd"
 #if 0
                 call admesht
                 call makeabq
                 call makebdq
 #endif
             elseif (ifchar .AND. ifadvc(ifield)) then
+            write(*,*) "Oops: ifchar and ifadvc"
+#if 0
                 call makeabq
                 call convch
+#endif
             else
                 call makeabq
                 call makebdq

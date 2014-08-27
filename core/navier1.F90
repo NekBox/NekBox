@@ -885,7 +885,7 @@
     if (iftran)                               call makeabf
     if ((iftran .AND. .NOT. ifchar) .OR. &
     (iftran .AND. .NOT. ifnav .AND. ifchar))   call makebdf
-    if (ifnav .AND. ifchar .AND. ( .NOT. ifmvbd))   call advchar
+!max    if (ifnav .AND. ifchar .AND. ( .NOT. ifmvbd))   call advchar
 #if 0
     if (ifmodel)                              call twallsh
 #endif

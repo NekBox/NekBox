@@ -42,18 +42,14 @@ subroutine set_overlap
   common /scrns/  tri (n_tri)
   integer ::         tri,elem
 
-  real(DP) :: x, y, z
-  common /screv/ x(2*ltotd)
-  common /scrvh/ y(2*ltotd)
-  common /scrch/ z(2*ltotd)
+  real(DP) :: x(2*ltotd), y(2*ltotd), z(2*ltotd)
 
   integer :: nv_to_t
   common /ctmp0/ nv_to_t(2*ltotd)
 
   integer, parameter :: lia = ltotd - 2 - 2*lelt
   integer :: ntri, nmask, ia
-  common /scrcg/ ntri(lelt+1),nmask(lelt+1) &
-  , ia(lia)
+  common /scrcg/ ntri(lelt+1),nmask(lelt+1), ia(lia)
 
   real(DP) :: color, ddmask
   integer :: mask
@@ -63,7 +59,6 @@ subroutine set_overlap
 
   integer, parameter :: lxx=lx1*lx1, levb=lelv+lbelv
   integer :: e, npass, ipass
-
 
   if (lx1 == 2) param(43)=1.
   if (lx1 == 2 .AND. nid == 0) write(6,*) 'No mgrid for lx1=2!'
@@ -77,7 +72,7 @@ subroutine set_overlap
       ifield = 1
 
       if (ifsplit .AND. ifmgrid) then
-
+          write(*,*) "MAX: ifmgrid"
           if (ipass > 1) ifield = ifldmhd
 
           call swap_lengths

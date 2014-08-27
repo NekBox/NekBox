@@ -111,11 +111,15 @@
 
     COMMON /SCRVH/ H1 (LX1,LY1,LZ1,LELT) &
     ,             H2 (LX1,LY1,LZ1,LELT)
-    COMMON /SCRHI/ H2INV (LX1,LY1,LZ1,LELV)
+!    C!OMMON /SCRHI/ H2INV (LX1,LY1,LZ1,LELV)
+
+    write(*,*) "MAX: EIGENV"
 
     NTOT1  = NX1*NY1*NZ1*NELV
 
     IF (IFAA) THEN
+       write(*,*) "Oops: IFAA"
+#if 0
         NTOT1  = NX1*NY1*NZ1*NELV
         CALL RONE    (H1,NTOT1)
         CALL RZERO   (H2,NTOT1)
@@ -127,58 +131,77 @@
             EIGAA = MIN  (EIGAA,EIGAA3)
         ENDIF
         IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAA = ',EIGAA
+#endif
     ENDIF
 
     IF (IFAS) THEN
+       write(*,*) "Oops: IFAA"
+#if 0
         INLOC = 0
         CALL RONE    (H1,NTOT1)
         CALL RZERO   (H2,NTOT1)
         CALL RZERO   (H2INV,NTOT1)
         CALL ALPHAM2  (EIGAS,H1,H2,H2INV,INLOC)
         IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAS = ',EIGAS
+#endif
     ENDIF
 
     IF (IFAE) THEN
+       write(*,*) "Oops: IFAE"
+#if 0
         INLOC = 1
         CALL RZERO   (H1,NTOT1)
         CALL RONE    (H2,NTOT1)
         CALL RONE    (H2INV,NTOT1)
         CALL ALPHAM2  (EIGAE,H1,H2,H2INV,INLOC)
         IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAE = ',EIGAE
+#endif
     ENDIF
 
     IF (IFAST) THEN
+       write(*,*) "Oops: IFAST"
+#if 0
         INLOC = -1
         CALL SETHLM  (H1,H2,INLOC)
         CALL INVERS2 (H2INV,H2,NTOT1)
         CALL ALPHAM2  (EIGAST,H1,H2,H2INV,INLOC)
         IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAST = ',EIGAST
+#endif
     ENDIF
 
     IF (IFGS) THEN
+       write(*,*) "Oops: IFGS"
+#if 0
         INLOC = 0
         CALL RONE    (H1,NTOT1)
         CALL RZERO   (H2,NTOT1)
         CALL RZERO   (H2INV,NTOT1)
         CALL GAMMAM2 (EIGGS,H1,H2,H2INV,INLOC)
         IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGS = ',EIGGS
+#endif
     ENDIF
 
     IF (IFGE) THEN
+       write(*,*) "Oops: IFGE"
+#if 0
         INLOC = 1
         CALL RZERO   (H1,NTOT1)
         CALL RONE    (H2,NTOT1)
         CALL RONE    (H2INV,NTOT1)
         CALL GAMMAM2 (EIGGE,H1,H2,H2INV,INLOC)
         IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGE = ',EIGGE
+#endif
     ENDIF
 
     IF (IFGST) THEN
+       write(*,*) "Oops: IFGST"
+#if 0
         INLOC = -1
         CALL SETHLM  (H1,H2,INLOC)
         CALL INVERS2 (H2INV,H2,NTOT1)
         CALL GAMMAM2 (EIGGST,H1,H2,H2INV,INLOC)
         IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGST = ',EIGGST
+#endif
     ENDIF
 
     IF (IFGA) THEN

@@ -3,97 +3,98 @@
 !        Differing BC's imposed for ophinv, incomprn, etc.
 !        1-shot Fast solver for Helmholtz and pressure
 !-----------------------------------------------------------------------
+!> \brief Given velocity field (u,v,w) and dt, compute current CFL number.
+subroutine compute_cfl(cfl,u,v,w,dt)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, lx1, ly1, lz1
+  use geom, only : rxm1, rym1, rzm1, jacmi, sxm1, sym1, szm1, txm1, tym1, tzm1
+  use input, only : if3d
+  use soln, only : cflf
+  use wz_m, only : zgm1
+  implicit none
 
-    subroutine compute_cfl(cfl,u,v,w,dt)
+  real(DP) :: cfl, dt
+  real(DP) :: u(nx1,ny1,nz1,nelv),v(nx1,ny1,nz1,nelv),w(nx1,ny1,nz1,nelv)
 
-!     Given velocity field (u,v,w) and dt, compute current CFL number.
+!   Store the inverse jacobian to speed up this operation
+  real(DP) :: dri(lx1), dsi(ly1), dti(lz1)
 
-    use size_m
-    use geom
-    use input
-    use soln
-    use wz_m
+  integer :: e, i, j, k, l, nxyz
+  integer, save :: icalld = 0
+  real(DP) :: ur, us, ut, cflr, cfls, cflt, cflm
+  real(DP), external :: glmax
 
-    real :: u(nx1,ny1,nz1,nelv),v(nx1,ny1,nz1,nelv),w(nx1,ny1,nz1,nelv)
 
-!     Store the inverse jacobian to speed up this operation
+  if (icalld == 0) then
+      icalld=1
+      call getdr(dri,zgm1(1,1),nx1)
+      call getdr(dsi,zgm1(1,2),ny1)
+      if (if3d) call getdr(dti,zgm1(1,3),nz1)
+  endif
 
-    common /cfldx/ dri(lx1),dsi(ly1),dti(lz1)
+  cfl = 0.
+  l   = 0
 
-    integer :: e
+  if (if3d) then
+      nxyz = nx1*ny1*nz1
+      do e=1,nelv
+          do k=1,nz1
+              do j=1,ny1
+                  do i=1,nx1
+                      l = l+1
+                      ur = ( u(i,j,k,e)*rxm1(i,j,k,e) &
+                      +   v(i,j,k,e)*rym1(i,j,k,e) &
+                      +   w(i,j,k,e)*rzm1(i,j,k,e) ) * jacmi(l,1)
+                      us = ( u(i,j,k,e)*sxm1(i,j,k,e) &
+                      +   v(i,j,k,e)*sym1(i,j,k,e) &
+                      +   w(i,j,k,e)*szm1(i,j,k,e) ) * jacmi(l,1)
+                      ut = ( u(i,j,k,e)*txm1(i,j,k,e) &
+                      +   v(i,j,k,e)*tym1(i,j,k,e) &
+                      +   w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(l,1)
+                       
+                      cflr = abs(dt*ur*dri(i))
+                      cfls = abs(dt*us*dsi(j))
+                      cflt = abs(dt*ut*dti(k))
+                       
+                      cflm = cflr + cfls + cflt
+                      cfl  = max(cfl,cflm)
 
-    integer :: icalld
-    save    icalld
-    data    icalld /0/
+                      cflf(i,j,k,e) = cflm
+                       
+                  enddo
+              enddo
+          enddo
+      enddo
+  else
+#if 0
+      nxyz = nx1*ny1
+      do e=1,nelv
+          do j=1,ny1
+              do i=1,nx1
+                  l = l+1
+                  ur = ( u(i,j,1,e)*rxm1(i,j,1,e) &
+                  +   v(i,j,1,e)*rym1(i,j,1,e) ) * jacmi(l,1)
+                  us = ( u(i,j,1,e)*sxm1(i,j,1,e) &
+                  +   v(i,j,1,e)*sym1(i,j,1,e) ) * jacmi(l,1)
 
-    if (icalld == 0) then
-        icalld=1
-        call getdr(dri,zgm1(1,1),nx1)
-        call getdr(dsi,zgm1(1,2),ny1)
-        if (if3d) call getdr(dti,zgm1(1,3),nz1)
-    endif
+                  cflr = abs(dt*ur*dri(i))
+                  cfls = abs(dt*us*dsi(j))
 
-    cfl = 0.
-    l   = 0
+                  cflm = cflr + cfls
+                  cfl  = max(cfl,cflm)
 
-    if (if3d) then
-        nxyz = nx1*ny1*nz1
-        do e=1,nelv
-            do k=1,nz1
-                do j=1,ny1
-                    do i=1,nx1
-                        l = l+1
-                        ur = ( u(i,j,k,e)*rxm1(i,j,k,e) &
-                        +   v(i,j,k,e)*rym1(i,j,k,e) &
-                        +   w(i,j,k,e)*rzm1(i,j,k,e) ) * jacmi(l,1)
-                        us = ( u(i,j,k,e)*sxm1(i,j,k,e) &
-                        +   v(i,j,k,e)*sym1(i,j,k,e) &
-                        +   w(i,j,k,e)*szm1(i,j,k,e) ) * jacmi(l,1)
-                        ut = ( u(i,j,k,e)*txm1(i,j,k,e) &
-                        +   v(i,j,k,e)*tym1(i,j,k,e) &
-                        +   w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(l,1)
-                         
-                        cflr = abs(dt*ur*dri(i))
-                        cfls = abs(dt*us*dsi(j))
-                        cflt = abs(dt*ut*dti(k))
-                         
-                        cflm = cflr + cfls + cflt
-                        cfl  = max(cfl,cflm)
+                  cflf(i,j,1,e) = cflm
 
-                        cflf(i,j,k,e) = cflm
-                         
-                    enddo
-                enddo
-            enddo
-        enddo
-    else
-        nxyz = nx1*ny1
-        do e=1,nelv
-            do j=1,ny1
-                do i=1,nx1
-                    l = l+1
-                    ur = ( u(i,j,1,e)*rxm1(i,j,1,e) &
-                    +   v(i,j,1,e)*rym1(i,j,1,e) ) * jacmi(l,1)
-                    us = ( u(i,j,1,e)*sxm1(i,j,1,e) &
-                    +   v(i,j,1,e)*sym1(i,j,1,e) ) * jacmi(l,1)
+              enddo
+          enddo
+      enddo
+#endif
+  endif
 
-                    cflr = abs(dt*ur*dri(i))
-                    cfls = abs(dt*us*dsi(j))
+  cfl = glmax(cfl,1)
 
-                    cflm = cflr + cfls
-                    cfl  = max(cfl,cflm)
-
-                    cflf(i,j,1,e) = cflm
-
-                enddo
-            enddo
-        enddo
-    endif
-
-    cfl = glmax(cfl,1)
-
-    return
-    end subroutine compute_cfl
+  return
+  end subroutine compute_cfl
 !-----------------------------------------------------------------------
     subroutine getdr(dri,zgm1,nx1)
     real :: dri(nx1),zgm1(nx1)
@@ -167,7 +168,7 @@ subroutine set_dealias_rx
       enddo
 
   else ! 2D
-  
+#if 0  
       do e=1,nelv
 
       !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
@@ -188,7 +189,7 @@ subroutine set_dealias_rx
               enddo
           enddo
       enddo
-
+#endif
   endif
 
   return

@@ -1,70 +1,51 @@
 !-----------------------------------------------------------------------
-    subroutine setup_topo
+!> \brief Parallel compatible routine to find connectivity of element structure.
+!! On Processor 0:
+!! .Verify right-handedness of elements.
+!! .Verify element-to-element reciprocity of BC's
+!! .Verify correlation between E-E BC's and physical coincidence
+!! .Set rotations
+!! .Determine multiplicity
+!! .Set up direct stiffness summation arrays.
+!! All Processors:
+!! .Disperse/Receive BC and MULT temporary data read from preprocessor.
+subroutine setup_topo()
+  use kinds, only : DP
+  use size_m, only : nid, ndim, nx1, ny1, nz1, nelv, nelt, nfield
+  use size_m, only : lx1, ly1, lz1, lx3, ly3, lz3, lelt, lelv, ldim
+  use input, only : ifaxis, ifflow, ifmvbd, ifheat
+  use mvgeom, only : wmult
+  use parallel, only : nelgv, nelgt, gsh_fld, nelg
+  use soln, only : vmult, tmult
+  use tstep, only : ifield
+  use zper, only : ifgtp
+  implicit none
 
-!     Parallel compatible routine to find
-!     connectivity of element structure.
+  integer*8, allocatable :: glo_num(:)
+  common /ivrtx/ vertex ((2**ldim)*lelt)
+  integer :: vertex
 
-!     On Processor 0:
+  integer :: nxl, nyl, nzl, mfield, ncrnr, ntotv, ntott
+  real(DP) :: vmltmax, ivmltmax
+  real(DP), external :: glmax
 
-!     .Verify right-handedness of elements.
-!     .Verify element-to-element reciprocity of BC's
-!     .Verify correlation between E-E BC's and physical coincidence
-!     .Set rotations
-!     .Determine multiplicity
-!     .Set up direct stiffness summation arrays.
+  allocate(glo_num(lx1*ly1*lz1*lelv))
 
-!     All Processors:
+  if(nid == 0) write(6,*) 'setup mesh topology'
 
-!     .Disperse/Receive BC and MULT temporary data read from preprocessor.
+!   Initialize key arrays for Direct Stiffness SUM.
 
+  NXL=3
+  NYL=3
+  NZL=1+2*(NDIM-2)
 
-    use size_m
-    use noncon
-    use scratch
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    use zper
-
-    COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
-    ,             YM3 (LX3,LY3,LZ3,LELT) &
-    ,             ZM3 (LX3,LY3,LZ3,LELT)
-
-    common /c_is1/ glo_num(1*lx1*ly1*lz1*lelv)
-    integer*8 :: glo_num
-    common /ivrtx/ vertex ((2**ldim)*lelt)
-    integer :: vertex
-
-    if(nid == 0) write(6,*) 'setup mesh topology'
-
-!     Initialize key arrays for Direct Stiffness SUM.
-
-    NXL=3
-    NYL=3
-    NZL=1+2*(NDIM-2)
-
-    call initds
-    call dsset (nx1,ny1,nz1)
-    call setedge
+  call initds
+  call dsset (nx1,ny1,nz1)
+  call setedge
 
 !=================================================
 !     Establish (global) domain topology
 !=================================================
-
 !     .Generate topologically correct mesh data.
 !     .Set up element centers, face centers, etc.
 !     .Check  right handedness of elements.
@@ -72,120 +53,113 @@
 !     .Establish Element-Element rotations
 !     .Construct the element to processor map and
 
-    call genxyzl
-    call setside
-    call verify
+  call genxyzl
+  call setside
+  call verify
 
-    CALL SETCDOF
-    IF (IFAXIS            ) CALL SETRZER
+  CALL SETCDOF
+  IF (IFAXIS            ) CALL SETRZER
 !max    IF (IFMVBD            ) CALL CBCMESH
 #if 0
-    IF (IFMODEL .AND. IFKEPS) CALL CBCTURB
+  IF (IFMODEL .AND. IFKEPS) CALL CBCTURB
 #endif
-    CALL CHKAXCB
+  CALL CHKAXCB
 
 !========================================================================
 !     Set up element-processor mapping and establish global numbering
 !========================================================================
 
-    mfield=2
-    if (ifflow) mfield=1
-    if (ifmvbd) mfield=0
+  mfield=2
+  if (ifflow) mfield=1
+  if (ifmvbd) mfield=0
 
-    ncrnr = 2**ndim
+  ncrnr = 2**ndim
 
-    if (nelgv == nelgt) then
-        if (ifgtp) then
-            call gen_gtp_vertex    (vertex, ncrnr)
-        else
-            call get_vert
-        endif
-        call setupds(gsh_fld(1),nx1,ny1,nz1,nelv,nelgv,vertex,glo_num)
-        gsh_fld(2)=gsh_fld(1)
+  if (nelgv == nelgt) then
+      if (ifgtp) then
+          call gen_gtp_vertex    (vertex, ncrnr)
+      else
+          call get_vert
+      endif
+      call setupds(gsh_fld(1),nx1,ny1,nz1,nelv,nelgv,vertex,glo_num)
+      gsh_fld(2)=gsh_fld(1)
 
-    !        call gs_counter(glo_num,gsh_fld(1))
+  !        call gs_counter(glo_num,gsh_fld(1))
 
-    else
+  else
 
-    
-    !        For conjugate heat transfer, it is assumed that fluid
-    !        elements are listed both globally and locally with lower
-    !        element numbers than the solid elements.
-    
-    !        We currently assume that there is at least one fluid elem.
-    !        per processor.
-    
+  !        For conjugate heat transfer, it is assumed that fluid
+  !        elements are listed both globally and locally with lower
+  !        element numbers than the solid elements.
+  !        We currently assume that there is at least one fluid elem.
+  !        per processor.
+  
 
-        call get_vert
-    !        call outmati(vertex,4,nelv,'vrtx V')
-        call setupds(gsh_fld(1),nx1,ny1,nz1,nelv,nelgv,vertex,glo_num)
+      call get_vert
+  !        call outmati(vertex,4,nelv,'vrtx V')
+      call setupds(gsh_fld(1),nx1,ny1,nz1,nelv,nelgv,vertex,glo_num)
 
-    !        call get_vert  (vertex, ncrnr, nelgt, '.mp2')  !  LATER !
-    !        call outmati(vertex,4,nelt,'vrtx T')
-        call setupds(gsh_fld(2),nx1,ny1,nz1,nelt,nelgt,vertex,glo_num)
+  !        call get_vert  (vertex, ncrnr, nelgt, '.mp2')  !  LATER !
+  !        call outmati(vertex,4,nelt,'vrtx T')
+      call setupds(gsh_fld(2),nx1,ny1,nz1,nelt,nelgt,vertex,glo_num)
 
-    
-    !        Feb 20, 2012:  It appears that we do not need this restriction: (pff)
-    
-    !        check if there is a least one fluid element on each processor
-    !        do iel = 1,nelt
-    !           ieg = lglel(iel)
-    !           if (ieg.le.nelgv) goto 101
-    !        enddo
-    !        if(nid.eq.0) write(6,*)
-    !    &     'ERROR: each domain must contain at least one fluid element!'
-    !        call exitt
-    ! 101   continue
+  
+  !        Feb 20, 2012:  It appears that we do not need this restriction: (pff)
+  !        check if there is a least one fluid element on each processor
+  !        do iel = 1,nelt
+  !           ieg = lglel(iel)
+  !           if (ieg.le.nelgv) goto 101
+  !        enddo
+  !        if(nid.eq.0) write(6,*)
+  !    &     'ERROR: each domain must contain at least one fluid element!'
+  !        call exitt
+  ! 101   continue
 
-    endif
+  endif
 
-
-!     if (ifmvbd) call setup_mesh_dssum ! Set up dssum for mesh
-
+!max     if (ifmvbd) call setup_mesh_dssum ! Set up dssum for mesh
 
 !========================================================================
 !     Set up multiplicity and direct stiffness arrays for each IFIELD
 !========================================================================
 
-    ntotv = nx1*ny1*nz1*nelv
-    ntott = nx1*ny1*nz1*nelt
+  ntotv = nx1*ny1*nz1*nelv
+  ntott = nx1*ny1*nz1*nelt
 
+  if (ifflow) then
+      ifield = 1
+      call rone    (vmult,ntotv)
+      call dssum   (vmult,nx1,ny1,nz1)
+      vmltmax=glmax(vmult,ntotv)
+      ivmltmax=vmltmax
+      if (nid == 0) write(6,*) ivmltmax,' max multiplicity'
+      call invcol1 (vmult,ntotv)
+  endif
+  if (ifheat) then
+      ifield = 2
+      call rone    (tmult,ntott)
+      call dssum   (tmult,nx1,ny1,nz1)
+      call invcol1 (tmult,ntott)
+  endif
+  if ( .NOT. ifflow) call copy(vmult,tmult,ntott)
+  if (ifmvbd)  call copy (wmult,vmult,ntott)
+  do ifield=3,nfield                  ! Additional pass. scalrs.
+      if (nelg(ifield) == nelgv) then
+          gsh_fld(ifield) = gsh_fld(1)
+          call copy (tmult(1,1,1,1,ifield-1),vmult,ntotv)
+      else
+          gsh_fld(ifield) = gsh_fld(2)
+          call copy (tmult(1,1,1,1,ifield-1),tmult,ntott)
+      endif
+  enddo
 
+  if(nid == 0) then
+      write(6,*) 'done :: setup mesh topology'
+      write(6,*) ' '
+  endif
 
-    if (ifflow) then
-        ifield = 1
-        call rone    (vmult,ntotv)
-        call dssum   (vmult,nx1,ny1,nz1)
-        vmltmax=glmax(vmult,ntotv)
-        ivmltmax=vmltmax
-        if (nid == 0) write(6,*) ivmltmax,' max multiplicity'
-        call invcol1 (vmult,ntotv)
-    endif
-    if (ifheat) then
-        ifield = 2
-        call rone    (tmult,ntott)
-        call dssum   (tmult,nx1,ny1,nz1)
-        call invcol1 (tmult,ntott)
-    endif
-    if ( .NOT. ifflow) call copy(vmult,tmult,ntott)
-    if (ifmvbd)  call copy (wmult,vmult,ntott)
-    do ifield=3,nfield                  ! Additional pass. scalrs.
-        if (nelg(ifield) == nelgv) then
-            gsh_fld(ifield) = gsh_fld(1)
-            call copy (tmult(1,1,1,1,ifield-1),vmult,ntotv)
-        else
-            gsh_fld(ifield) = gsh_fld(2)
-            call copy (tmult(1,1,1,1,ifield-1),tmult,ntott)
-        endif
-    enddo
-
-    if(nid == 0) then
-        write(6,*) 'done :: setup mesh topology'
-        write(6,*) ' '
-    endif
-
-    return
-    end subroutine setup_topo
+  return
+end subroutine setup_topo
 !-----------------------------------------------------------------------
     subroutine initds
 

@@ -137,40 +137,43 @@
     return
     end subroutine hsmg_setup_intpm
 !----------------------------------------------------------------------
-    subroutine hsmg_setup_dssum
-    use size_m
-    use input
-    use hsmg
-    use parallel
-    parameter (lxyz=(lx1+2)*(ly1+2)*(lz1+2))
-    common /c_is1/ glo_num(lxyz*lelv)
-    common /ivrtx/ vertex ((2**ldim)*lelt)
+subroutine hsmg_setup_dssum
+  use size_m, only : lx1, ly1, lz1, lelv, lelt, ldim, nelv, ndim
+  use input, only : if3d
+  use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
+  use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
+  use parallel, only : nelgv
+  implicit none
 
-    integer*8 :: glo_num
-    integer :: vertex
-    integer :: nx,ny,nz
-    integer :: l
-          
+  integer, parameter :: lxyz=(lx1+2)*(ly1+2)*(lz1+2)
+  common /ivrtx/ vertex ((2**ldim)*lelt)
+
+  integer*8, allocatable :: glo_num(:)
+  integer :: vertex
+  integer :: nx,ny,nz, ncrnr
+  integer :: l
+       
+  allocate(glo_num(lxyz*lelv))
+
 !     set up direct stiffness summation for each level
-    ncrnr = 2**ndim
-    call get_vert
+  ncrnr = 2**ndim
+  call get_vert()
 
 !++   write(6,*) mg_fld,' mgfld in hsmg_setup_dssum'
-
-    do l=1,mg_lmax-1
-        nx=mg_nh(l)
-        ny=mg_nh(l)
-        nz=mg_nhz(l)
-        call setupds(mg_gsh_handle(l,mg_fld),nx,ny,nz &
-        ,nelv,nelgv,vertex,glo_num)
-        nx=nx+2
-        ny=ny+2
-        nz=nz+2
-        if( .NOT. if3d) nz=1
-        call setupds(mg_gsh_schwarz_handle(l,mg_fld),nx,ny,nz &
-        ,nelv,nelgv,vertex,glo_num)
-    enddo
-    end subroutine hsmg_setup_dssum
+  do l=1,mg_lmax-1
+      nx=mg_nh(l)
+      ny=mg_nh(l)
+      nz=mg_nhz(l)
+      call setupds(mg_gsh_handle(l,mg_fld),nx,ny,nz &
+      ,nelv,nelgv,vertex,glo_num)
+      nx=nx+2
+      ny=ny+2
+      nz=nz+2
+      if( .NOT. if3d) nz=1
+      call setupds(mg_gsh_schwarz_handle(l,mg_fld),nx,ny,nz &
+      ,nelv,nelgv,vertex,glo_num)
+  enddo
+end subroutine hsmg_setup_dssum
 !----------------------------------------------------------------------
     subroutine h1mg_setup_wtmask
     use size_m
@@ -1724,40 +1727,43 @@
     enddo
     end subroutine h1mg_setup_semhat
 !----------------------------------------------------------------------
-    subroutine h1mg_setup_dssum
-    use size_m
-    use input
-    use hsmg
-    use parallel
-    parameter (lxyz=(lx1+2)*(ly1+2)*(lz1+2))
-    common /c_is1/ glo_num(lxyz*lelt)
-    common /ivrtx/ vertex ((2**ldim)*lelt)
+subroutine h1mg_setup_dssum
+  use size_m, only : lx1, ly1, lz1, lelt, ldim, nelv, ndim
+  use input, only : if3d
+  use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
+  use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
+  use parallel, only : nelgv
+  implicit none
 
-    integer*8 :: glo_num
-    integer :: vertex
-    integer :: nx,ny,nz
-    integer :: l
-          
-    ncrnr = 2**ndim
-    call get_vert
+  integer, parameter :: lxyz=(lx1+2)*(ly1+2)*(lz1+2)
+  common /ivrtx/ vertex ((2**ldim)*lelt)
 
+  integer*8, allocatable :: glo_num(:)
+  integer :: vertex
+  integer :: nx,ny,nz, ncrnr
+  integer :: l
+  
+  allocate(glo_num(lxyz*lelt)) 
+ 
+  ncrnr = 2**ndim
+  call get_vert()
 
-    do l=1,mg_lmax  ! set up direct stiffness summation for each level
-        nx=mg_nh(l)
-        ny=mg_nh(l)
-        nz=mg_nhz(l)
-        call setupds(mg_gsh_handle(l,mg_fld),nx,ny,nz &
-        ,nelv,nelgv,vertex,glo_num)
-        nx=nx+2
-        ny=ny+2
-        nz=nz+2
-        if( .NOT. if3d) nz=1
-        call setupds(mg_gsh_schwarz_handle(l,mg_fld),nx,ny,nz &
-        ,nelv,nelgv,vertex,glo_num)
-    enddo
+  do l=1,mg_lmax  ! set up direct stiffness summation for each level
+      nx=mg_nh(l)
+      ny=mg_nh(l)
+      nz=mg_nhz(l)
+      call setupds(mg_gsh_handle(l,mg_fld),nx,ny,nz &
+      ,nelv,nelgv,vertex,glo_num)
+      nx=nx+2
+      ny=ny+2
+      nz=nz+2
+      if( .NOT. if3d) nz=1
+      call setupds(mg_gsh_schwarz_handle(l,mg_fld),nx,ny,nz &
+      ,nelv,nelgv,vertex,glo_num)
+  enddo
 
-    return
-    end subroutine h1mg_setup_dssum
+  return
+end subroutine h1mg_setup_dssum
 !----------------------------------------------------------------------
     subroutine mg_set_msk(p_msk ,l0)
     use size_m

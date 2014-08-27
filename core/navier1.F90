@@ -849,6 +849,8 @@
         CALL COL2        (RPCG,H1M2,NTOT2)
         CALL ADD2        (RPCG,WP,NTOT2)
     ELSEIF (INTYPE == 1) THEN
+        write(*,*) "Oops: intype"
+#if 0
         if (ifanls) then
             CALL EPREC2      (RPCG,RCG)
             DTBD = BD(1)/DT
@@ -857,6 +859,7 @@
             CALL EPREC2      (RPCG,RCG)
         !           CALL COL2        (RPCG,H2M2,NTOT2)
         endif
+#endif
     ELSE
         CALL COPY        (RPCG,RCG,NTOT2)
     ENDIF

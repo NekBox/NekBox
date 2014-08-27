@@ -69,220 +69,222 @@
     end subroutine hmholtz
 
 !=======================================================================
-    subroutine axhelm (au,u,helm1,helm2,imesh,isd)
 !------------------------------------------------------------------
-
-!     Compute the (Helmholtz) matrix-vector product,
-!     AU = helm1*[A]u + helm2*[B]u, for NEL elements.
-
+!> \brief Compute the (Helmholtz) matrix-vector product,
+!!  AU = helm1*[A]u + helm2*[B]u, for NEL elements.
 !------------------------------------------------------------------
-    use ctimer
-    use size_m
-    use dxyz
-    use geom
-    use input
-    use mass
-    use parallel
-    use wz_m
+subroutine axhelm (au,u,helm1,helm2,imesh,isd)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelt, nelv, ndim
+  use ctimer, only : icalld, taxhm, naxhm, etime1, dnekclock
+  use geom, only : g4m1, g5m1, g6m1, ifrzer
+  use dxyz, only : wddx, wddyt, wddzt
+  use input, only : ifaxis
+  use mass, only : bm1
+  implicit none
 
-    COMMON /FASTAX/ WDDX(LX1,LX1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1)
-    COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-    LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
+  integer :: imesh, isd
+  LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
+  COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
 
-    REAL ::           AU    (LX1,LY1,LZ1,1) &
-    ,             U     (LX1,LY1,LZ1,1) &
-    ,             HELM1 (LX1,LY1,LZ1,1) &
-    ,             HELM2 (LX1,LY1,LZ1,1)
-    COMMON /CTMP1/ DUDR  (LX1,LY1,LZ1) &
-    ,             DUDS  (LX1,LY1,LZ1) &
-    ,             DUDT  (LX1,LY1,LZ1) &
-    ,             TMP1  (LX1,LY1,LZ1) &
-    ,             TMP2  (LX1,LY1,LZ1) &
-    ,             TMP3  (LX1,LY1,LZ1)
+  REAL(DP) ::           AU    (LX1,LY1,LZ1,1) &
+  ,             U     (LX1,LY1,LZ1,1) &
+  ,             HELM1 (LX1,LY1,LZ1,1) &
+  ,             HELM2 (LX1,LY1,LZ1,1)
+  real(DP) :: dudr, duds, dudt, tmp1, tmp2, tmp3
+  COMMON /CTMP1/ DUDR  (LX1,LY1,LZ1) &
+  ,             DUDS  (LX1,LY1,LZ1) &
+  ,             DUDT  (LX1,LY1,LZ1) &
+  ,             TMP1  (LX1,LY1,LZ1) &
+  ,             TMP2  (LX1,LY1,LZ1) &
+  ,             TMP3  (LX1,LY1,LZ1)
 
-    REAL ::           TM1   (LX1,LY1,LZ1)
-    REAL ::           TM2   (LX1,LY1,LZ1)
-    REAL ::           TM3   (LX1,LY1,LZ1)
-    REAL ::           DUAX  (LX1)
-    REAL ::           YSM1  (LX1)
-    EQUIVALENCE    (DUDR,TM1),(DUDS,TM2),(DUDT,TM3)
+  REAL(DP) ::           TM1   (LX1,LY1,LZ1)
+  REAL(DP) ::           TM2   (LX1,LY1,LZ1)
+  REAL(DP) ::           TM3   (LX1,LY1,LZ1)
+  REAL(DP) ::           DUAX  (LX1)
+  REAL(DP) ::           YSM1  (LX1)
+  EQUIVALENCE    (DUDR,TM1),(DUDS,TM2),(DUDT,TM3)
 
-    integer :: e
+  integer :: nel, nxy, nyz, nxz, nxyz, ntot
+  real(DP) :: h1 
+  integer :: e, iz
 
-    nel=nelt
-    if (imesh == 1) nel=nelv
+  nel=nelt
+  if (imesh == 1) nel=nelv
 
-    NXY=NX1*NY1
-    NYZ=NY1*NZ1
-    NXZ=NX1*NZ1
-    NXYZ=NX1*NY1*NZ1
-    NTOT=NXYZ*NEL
+  NXY=NX1*NY1
+  NYZ=NY1*NZ1
+  NXZ=NX1*NZ1
+  NXYZ=NX1*NY1*NZ1
+  NTOT=NXYZ*NEL
 
-    if (icalld == 0) taxhm=0.0
-    icalld=icalld+1
-    naxhm=icalld
-    etime1=dnekclock()
+  if (icalld == 0) taxhm=0.0
+  icalld=icalld+1
+  naxhm=icalld
+  etime1=dnekclock()
 
-    IF ( .NOT. IFSOLV) CALL SETFAST(HELM1,HELM2,IMESH)
-    CALL RZERO (AU,NTOT)
+  IF ( .NOT. IFSOLV) CALL SETFAST(HELM1,HELM2,IMESH)
+  CALL RZERO (AU,NTOT)
 
-    do 100 e=1,nel
-    
-        if (ifaxis) call setaxdy ( ifrzer(e) )
-    
-        IF (NDIM == 2) THEN
-            write(*,*) "Whoops! axhelm"
+  do 100 e=1,nel
+  
+      if (ifaxis) call setaxdy ( ifrzer(e) )
+  
+      IF (NDIM == 2) THEN
+          write(*,*) "Whoops! axhelm"
 #if 0
-        
-        !       2-d case ...............
-        
-            if (iffast(e)) then
-            
-            !          Fast 2-d mode: constant properties and undeformed element
-            
-                h1 = helm1(1,1,1,e)
-                call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
-                call mxm   (u(1,1,1,e),nx1,wddyt,ny1,tm2,ny1)
-                call col2  (tm1,g4m1(1,1,1,e),nxyz)
-                call col2  (tm2,g5m1(1,1,1,e),nxyz)
-                call add3  (au(1,1,1,e),tm1,tm2,nxyz)
-                call cmult (au(1,1,1,e),h1,nxyz)
-            
-            else
-            
-            !          General case, speed-up for undeformed elements
-            
-                call mxm  (dxm1,nx1,u(1,1,1,e),nx1,dudr,nyz)
-                call mxm  (u(1,1,1,e),nx1,dytm1,ny1,duds,ny1)
-                call col3 (tmp1,dudr,g1m1(1,1,1,e),nxyz)
-                call col3 (tmp2,duds,g2m1(1,1,1,e),nxyz)
-                if (ifdfrm(e)) then
-                    call addcol3 (tmp1,duds,g4m1(1,1,1,e),nxyz)
-                    call addcol3 (tmp2,dudr,g4m1(1,1,1,e),nxyz)
-                endif
-                call col2 (tmp1,helm1(1,1,1,e),nxyz)
-                call col2 (tmp2,helm1(1,1,1,e),nxyz)
-                call mxm  (dxtm1,nx1,tmp1,nx1,tm1,nyz)
-                call mxm  (tmp2,nx1,dym1,ny1,tm2,ny1)
-                call add2 (au(1,1,1,e),tm1,nxyz)
-                call add2 (au(1,1,1,e),tm2,nxyz)
+      
+      !       2-d case ...............
+      
+          if (iffast(e)) then
+          
+          !          Fast 2-d mode: constant properties and undeformed element
+          
+              h1 = helm1(1,1,1,e)
+              call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
+              call mxm   (u(1,1,1,e),nx1,wddyt,ny1,tm2,ny1)
+              call col2  (tm1,g4m1(1,1,1,e),nxyz)
+              call col2  (tm2,g5m1(1,1,1,e),nxyz)
+              call add3  (au(1,1,1,e),tm1,tm2,nxyz)
+              call cmult (au(1,1,1,e),h1,nxyz)
+          
+          else
+          
+          !          General case, speed-up for undeformed elements
+          
+              call mxm  (dxm1,nx1,u(1,1,1,e),nx1,dudr,nyz)
+              call mxm  (u(1,1,1,e),nx1,dytm1,ny1,duds,ny1)
+              call col3 (tmp1,dudr,g1m1(1,1,1,e),nxyz)
+              call col3 (tmp2,duds,g2m1(1,1,1,e),nxyz)
+              if (ifdfrm(e)) then
+                  call addcol3 (tmp1,duds,g4m1(1,1,1,e),nxyz)
+                  call addcol3 (tmp2,dudr,g4m1(1,1,1,e),nxyz)
+              endif
+              call col2 (tmp1,helm1(1,1,1,e),nxyz)
+              call col2 (tmp2,helm1(1,1,1,e),nxyz)
+              call mxm  (dxtm1,nx1,tmp1,nx1,tm1,nyz)
+              call mxm  (tmp2,nx1,dym1,ny1,tm2,ny1)
+              call add2 (au(1,1,1,e),tm1,nxyz)
+              call add2 (au(1,1,1,e),tm2,nxyz)
 
-            endif
-        
+          endif
+      
 #endif
-        else
-        
-        !       3-d case ...............
-        
-            if (iffast(e)) then
-            
-            !          Fast 3-d mode: constant properties and undeformed element
-            
-                h1 = helm1(1,1,1,e)
+      else
+      
+      !       3-d case ...............
+      
+          if (iffast(e)) then
+          
+          !          Fast 3-d mode: constant properties and undeformed element
+          
+              h1 = helm1(1,1,1,e)
 
-                call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
-                do 5 iz=1,nz1
-                    call mxm   (u(1,1,iz,e),nx1,wddyt,ny1,tm2(1,1,iz),ny1)
-                5 END DO
-                call mxm   (u(1,1,1,e),nxy,wddzt,nz1,tm3,nz1)
+              call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
+              do 5 iz=1,nz1
+                  call mxm   (u(1,1,iz,e),nx1,wddyt,ny1,tm2(1,1,iz),ny1)
+              5 END DO
+              call mxm   (u(1,1,1,e),nxy,wddzt,nz1,tm3,nz1)
 #if 0
-                call col2  (tm1,g4m1(1,1,1,e),nxyz)
-                call col2  (tm2,g5m1(1,1,1,e),nxyz)
-                call col2  (tm3,g6m1(1,1,1,e),nxyz)
+              call col2  (tm1,g4m1(1,1,1,e),nxyz)
+              call col2  (tm2,g5m1(1,1,1,e),nxyz)
+              call col2  (tm3,g6m1(1,1,1,e),nxyz)
 
-                call add3  (au(1,1,1,e),tm1,tm2,nxyz)
-                call add2  (au(1,1,1,e),tm3,nxyz)
+              call add3  (au(1,1,1,e),tm1,tm2,nxyz)
+              call add2  (au(1,1,1,e),tm3,nxyz)
 
-                call cmult (au(1,1,1,e),h1,nxyz)
+              call cmult (au(1,1,1,e),h1,nxyz)
 #else
                  
-                au(:,:,:,e) = &
-                h1 * ( &
-                au(:,:,:,e) + tm1*g4m1(:,:,:,e) &
-                + tm2*g5m1(:,:,:,e) + tm3*g6m1(:,:,:,e) &
-                )
+              au(:,:,:,e) = &
+              h1 * ( &
+              au(:,:,:,e) + tm1*g4m1(:,:,:,e) &
+              + tm2*g5m1(:,:,:,e) + tm3*g6m1(:,:,:,e) &
+              )
 #endif
 
             
-            else
-                write(*,*) "Woops! axhelm"
+          else
+              write(*,*) "Woops! axhelm"
 #if 0
-            
-            !          General case, speed-up for undeformed elements
-            
-                call mxm(dxm1,nx1,u(1,1,1,e),nx1,dudr,nyz)
-                do 10 iz=1,nz1
-                    call mxm(u(1,1,iz,e),nx1,dytm1,ny1,duds(1,1,iz),ny1)
-                10 END DO
-                call mxm     (u(1,1,1,e),nxy,dztm1,nz1,dudt,nz1)
-                call col3    (tmp1,dudr,g1m1(1,1,1,e),nxyz)
-                call col3    (tmp2,duds,g2m1(1,1,1,e),nxyz)
-                call col3    (tmp3,dudt,g3m1(1,1,1,e),nxyz)
-                if (ifdfrm(e)) then
-                    call addcol3 (tmp1,duds,g4m1(1,1,1,e),nxyz)
-                    call addcol3 (tmp1,dudt,g5m1(1,1,1,e),nxyz)
-                    call addcol3 (tmp2,dudr,g4m1(1,1,1,e),nxyz)
-                    call addcol3 (tmp2,dudt,g6m1(1,1,1,e),nxyz)
-                    call addcol3 (tmp3,dudr,g5m1(1,1,1,e),nxyz)
-                    call addcol3 (tmp3,duds,g6m1(1,1,1,e),nxyz)
-                endif
-                call col2 (tmp1,helm1(1,1,1,e),nxyz)
-                call col2 (tmp2,helm1(1,1,1,e),nxyz)
-                call col2 (tmp3,helm1(1,1,1,e),nxyz)
-                call mxm  (dxtm1,nx1,tmp1,nx1,tm1,nyz)
-                do 20 iz=1,nz1
-                    call mxm(tmp2(1,1,iz),nx1,dym1,ny1,tm2(1,1,iz),ny1)
-                20 END DO
-                call mxm  (tmp3,nxy,dzm1,nz1,tm3,nz1)
-                call add2 (au(1,1,1,e),tm1,nxyz)
-                call add2 (au(1,1,1,e),tm2,nxyz)
-                call add2 (au(1,1,1,e),tm3,nxyz)
+          
+          !          General case, speed-up for undeformed elements
+          
+              call mxm(dxm1,nx1,u(1,1,1,e),nx1,dudr,nyz)
+              do 10 iz=1,nz1
+                  call mxm(u(1,1,iz,e),nx1,dytm1,ny1,duds(1,1,iz),ny1)
+              10 END DO
+              call mxm     (u(1,1,1,e),nxy,dztm1,nz1,dudt,nz1)
+              call col3    (tmp1,dudr,g1m1(1,1,1,e),nxyz)
+              call col3    (tmp2,duds,g2m1(1,1,1,e),nxyz)
+              call col3    (tmp3,dudt,g3m1(1,1,1,e),nxyz)
+              if (ifdfrm(e)) then
+                  call addcol3 (tmp1,duds,g4m1(1,1,1,e),nxyz)
+                  call addcol3 (tmp1,dudt,g5m1(1,1,1,e),nxyz)
+                  call addcol3 (tmp2,dudr,g4m1(1,1,1,e),nxyz)
+                  call addcol3 (tmp2,dudt,g6m1(1,1,1,e),nxyz)
+                  call addcol3 (tmp3,dudr,g5m1(1,1,1,e),nxyz)
+                  call addcol3 (tmp3,duds,g6m1(1,1,1,e),nxyz)
+              endif
+              call col2 (tmp1,helm1(1,1,1,e),nxyz)
+              call col2 (tmp2,helm1(1,1,1,e),nxyz)
+              call col2 (tmp3,helm1(1,1,1,e),nxyz)
+              call mxm  (dxtm1,nx1,tmp1,nx1,tm1,nyz)
+              do 20 iz=1,nz1
+                  call mxm(tmp2(1,1,iz),nx1,dym1,ny1,tm2(1,1,iz),ny1)
+              20 END DO
+              call mxm  (tmp3,nxy,dzm1,nz1,tm3,nz1)
+              call add2 (au(1,1,1,e),tm1,nxyz)
+              call add2 (au(1,1,1,e),tm2,nxyz)
+              call add2 (au(1,1,1,e),tm3,nxyz)
             
 #endif
-            endif
-        
-        endif
-    
-    100 END DO
+          endif
+      
+      endif
+  
+  100 END DO
 
-    call addcol4 (au,helm2,bm1,u,ntot)
+  call addcol4 (au,helm2,bm1,u,ntot)
 
-!     If axisymmetric, add a diagonal term in the radial direction (ISD=2)
+!   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
 
-    if (ifaxis .AND. (isd == 2)) then
-        write(*,*) "Whoops! axhelm 3"
+  if (ifaxis .AND. (isd == 2)) then
+      write(*,*) "Whoops! axhelm 3"
 #if 0
-        do 200 e=1,nel
-        
-            if (ifrzer(e)) then
-                call mxm(u  (1,1,1,e),nx1,datm1,ny1,duax,1)
-                call mxm(ym1(1,1,1,e),nx1,datm1,ny1,ysm1,1)
-            endif
-        
-            do 190 j=1,ny1
-                do 190 i=1,nx1
-                !               if (ym1(i,j,1,e).ne.0.) then
-                    if (ifrzer(e)) then
-                        term1 = 0.0
-                        if(j /= 1) &
-                        term1 = bm1(i,j,1,e)*u(i,j,1,e)/ym1(i,j,1,e)**2
-                        term2 =  wxm1(i)*wam1(1)*dam1(1,j)*duax(i) &
-                        *jacm1(i,1,1,e)/ysm1(i)
-                    else
-                        term1 = bm1(i,j,1,e)*u(i,j,1,e)/ym1(i,j,1,e)**2
-                        term2 = 0.
-                    endif
-                    au(i,j,1,e) = au(i,j,1,e) &
-                    + helm1(i,j,1,e)*(term1+term2)
-                !               endif
-            190 END DO
-        200 END DO
+      do 200 e=1,nel
+      
+          if (ifrzer(e)) then
+              call mxm(u  (1,1,1,e),nx1,datm1,ny1,duax,1)
+              call mxm(ym1(1,1,1,e),nx1,datm1,ny1,ysm1,1)
+          endif
+      
+          do 190 j=1,ny1
+              do 190 i=1,nx1
+              !               if (ym1(i,j,1,e).ne.0.) then
+                  if (ifrzer(e)) then
+                      term1 = 0.0
+                      if(j /= 1) &
+                      term1 = bm1(i,j,1,e)*u(i,j,1,e)/ym1(i,j,1,e)**2
+                      term2 =  wxm1(i)*wam1(1)*dam1(1,j)*duax(i) &
+                      *jacm1(i,1,1,e)/ysm1(i)
+                  else
+                      term1 = bm1(i,j,1,e)*u(i,j,1,e)/ym1(i,j,1,e)**2
+                      term2 = 0.
+                  endif
+                  au(i,j,1,e) = au(i,j,1,e) &
+                  + helm1(i,j,1,e)*(term1+term2)
+              !               endif
+          190 END DO
+      200 END DO
 #endif
-    endif
+  endif
 
-    taxhm=taxhm+(dnekclock()-etime1)
-    return
-    end subroutine axhelm
+  taxhm=taxhm+(dnekclock()-etime1)
+  return
+end subroutine axhelm
 
 !=======================================================================
     subroutine setfast (helm1,helm2,imesh)
@@ -333,75 +335,77 @@
     return
     end subroutine setfast
 
-!=======================================================================
-    subroutine sfastax
 !----------------------------------------------------------------------
-
-!     For undeformed elements, set up appropriate elemental matrices
-!     and geometric factors for fast evaluation of Ax.
-
+!> \brief For undeformed elements, set up appropriate elemental matrices
+!!        and geometric factors for fast evaluation of Ax.
 !----------------------------------------------------------------------
-    use size_m
-    use dxyz
-    use geom
-    use wz_m
-    COMMON /FASTAX/ WDDX(LX1,LY1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1)
-    COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-    LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-    LOGICAL :: IFIRST
-    SAVE    IFIRST
-    DATA    IFIRST / .TRUE. /
+subroutine sfastax()
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelt, ndim
+  use dxyz, only : dxm1, dym1, dzm1
+  use dxyz, only : wddx, wddyt, wddzt
+  use geom, only : g1m1, g2m1, g3m1, g4m1, g5m1, g6m1
+  use wz_m, only : wxm1, wym1, wzm1
+  implicit none
 
-    NXX=NX1*NX1
-    IF (IFIRST) THEN
-        CALL RZERO(WDDX,NXX)
-        DO 100 I=1,NX1
-            DO 100 J=1,NX1
-                DO 100 IP=1,NX1
-                    WDDX(I,J) = WDDX(I,J) + WXM1(IP)*DXM1(IP,I)*DXM1(IP,J)
-        100 END DO
-        NYY=NY1*NY1
-        CALL RZERO(WDDYT,NYY)
-        DO 200 I=1,NY1
-            DO 200 J=1,NY1
-                DO 200 IP=1,NY1
-                    WDDYT(J,I) = WDDYT(J,I) + WYM1(IP)*DYM1(IP,I)*DYM1(IP,J)
-        200 END DO
-        NZZ=NZ1*NZ1
-        CALL RZERO(WDDZT,NZZ)
-        DO 300 I=1,NZ1
-            DO 300 J=1,NZ1
-                DO 300 IP=1,NZ1
-                    WDDZT(J,I) = WDDZT(J,I) + WZM1(IP)*DZM1(IP,I)*DZM1(IP,J)
-        300 END DO
-        IFIRST= .FALSE. 
-    ENDIF
+  LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
+  COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
 
-    IF (NDIM == 3) THEN
-        DO 1001 IE=1,NELT
-            IF ( .NOT. IFDFRM(IE)) THEN
-                DO 1000 IZ=1,NZ1
-                    DO 1000 IY=1,NY1
-                        DO 1000 IX=1,NX1
-                            G4M1(IX,IY,IZ,IE)=G1M1(IX,IY,IZ,IE)/WXM1(IX)
-                            G5M1(IX,IY,IZ,IE)=G2M1(IX,IY,IZ,IE)/WYM1(IY)
-                            G6M1(IX,IY,IZ,IE)=G3M1(IX,IY,IZ,IE)/WZM1(IZ)
-                1000 END DO
-            ENDIF
-        1001 END DO
-    ELSE
-        DO 2001 IE=1,NELT
-            IF ( .NOT. IFDFRM(IE)) THEN
-                DO 2000 IY=1,NY1
-                    DO 2000 IX=1,NX1
-                        G4M1(IX,IY,1,IE)=G1M1(IX,IY,1,IE)/WXM1(IX)
-                        G5M1(IX,IY,1,IE)=G2M1(IX,IY,1,IE)/WYM1(IY)
-                2000 END DO
-            ENDIF
-        2001 END DO
-    ENDIF
-    return
-    end subroutine sfastax
+  logical, save :: IFIRST = .TRUE.
+  integer :: nxx, nyy, nzz
+  integer :: i, j, ip, ie, ix, iy, iz
+
+  NXX=NX1*NX1
+  IF (IFIRST) THEN
+      CALL RZERO(WDDX,NXX)
+      DO 100 I=1,NX1
+          DO 100 J=1,NX1
+              DO 100 IP=1,NX1
+                  WDDX(I,J) = WDDX(I,J) + WXM1(IP)*DXM1(IP,I)*DXM1(IP,J)
+      100 END DO
+      NYY=NY1*NY1
+      CALL RZERO(WDDYT,NYY)
+      DO 200 I=1,NY1
+          DO 200 J=1,NY1
+              DO 200 IP=1,NY1
+                  WDDYT(J,I) = WDDYT(J,I) + WYM1(IP)*DYM1(IP,I)*DYM1(IP,J)
+      200 END DO
+      NZZ=NZ1*NZ1
+      CALL RZERO(WDDZT,NZZ)
+      DO 300 I=1,NZ1
+          DO 300 J=1,NZ1
+              DO 300 IP=1,NZ1
+                  WDDZT(J,I) = WDDZT(J,I) + WZM1(IP)*DZM1(IP,I)*DZM1(IP,J)
+      300 END DO
+      IFIRST= .FALSE. 
+  ENDIF
+
+  IF (NDIM == 3) THEN
+      DO 1001 IE=1,NELT
+          IF ( .NOT. IFDFRM(IE)) THEN
+              DO 1000 IZ=1,NZ1
+                  DO 1000 IY=1,NY1
+                      DO 1000 IX=1,NX1
+                          G4M1(IX,IY,IZ,IE)=G1M1(IX,IY,IZ,IE)/WXM1(IX)
+                          G5M1(IX,IY,IZ,IE)=G2M1(IX,IY,IZ,IE)/WYM1(IY)
+                          G6M1(IX,IY,IZ,IE)=G3M1(IX,IY,IZ,IE)/WZM1(IZ)
+              1000 END DO
+          ENDIF
+      1001 END DO
+  ELSE
+      DO 2001 IE=1,NELT
+          IF ( .NOT. IFDFRM(IE)) THEN
+              DO 2000 IY=1,NY1
+                  DO 2000 IX=1,NX1
+                      G4M1(IX,IY,1,IE)=G1M1(IX,IY,1,IE)/WXM1(IX)
+                      G5M1(IX,IY,1,IE)=G2M1(IX,IY,1,IE)/WYM1(IY)
+              2000 END DO
+          ENDIF
+      2001 END DO
+  ENDIF
+  return
+  end subroutine sfastax
 
 !=======================================================================
     subroutine setprec (dpcm1,helm1,helm2,imsh,isd)

@@ -21,6 +21,8 @@ module dxyz
     ,DAM12, DATM12 &
     ,DAM3,  DATM3
 
+  real(DP), allocatable :: WDDX(:,:), WDDYT(:,:), WDDZT(:,:) 
+
   contains
 
   subroutine init_dxyz()
@@ -44,6 +46,8 @@ module dxyz
     ,DAM12(LY2,LY1), DATM12(LY1,LY2) &
     ,DAM3(LY3,LY3),  DATM3(LY3,LY3) &
             )
+
+    allocate(WDDX(LX1,LY1),WDDYT(LY1,LY1),WDDZT(LZ1,LZ1))
 
   end subroutine init_dxyz
 

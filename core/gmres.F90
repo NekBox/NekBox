@@ -1,253 +1,4 @@
 !-----------------------------------------------------------------------
-    subroutine uzawa_gmres(res,h1,h2,h2inv,intype,iter)
-
-!     Solve the pressure equation by right-preconditioned
-!     GMRES iteration.
-!     intype =  0  (steady)
-!     intype =  1  (explicit)
-!     intype = -1  (implicit)
-
-    use size_m
-    use gmres
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    common  /ctolpr/ divex
-    common  /cprint/ ifprint
-    logical ::          ifprint
-    real ::             res  (lx2*ly2*lz2*lelv)
-    real ::             h1   (lx1,ly1,lz1,lelv)
-    real ::             h2   (lx1,ly1,lz1,lelv)
-    real ::             h2inv(lx1,ly1,lz1,lelv)
-
-    common /scrmg/    wp (lx2,ly2,lz2,lelv)
-
-    common /ctmp0/   wk1(lgmres),wk2(lgmres)
-    common /cgmres1/ y(lgmres)
-
-    real :: alpha, l, temp
-    integer :: j,m
-
-    logical :: iflag
-    save    iflag
-    data    iflag / .FALSE. /
-    real ::    norm_fac
-    save    norm_fac
-
-    real*8 :: etime1,dnekclock
-
-    if( .NOT. iflag) then
-        iflag= .TRUE. 
-        call uzawa_gmres_split0(ml,mu,bm2,bm2inv,nx2*ny2*nz2*nelv)
-        norm_fac = 1./sqrt(volvm2)
-    endif
-
-    etime1 = dnekclock()
-    etime_p = 0.
-    divex = 0.
-    iter  = 0
-    m = lgmres
-
-    call chktcg2(tolps,res,iconv)
-    if (param(21) > 0 .AND. tolps > abs(param(21))) &
-    tolps = abs(param(21))
-!     if (param(21).lt.0) tolps = abs(param(21))
-    if (istep == 0) tolps = 1.e-4
-    tolpss = tolps
-
-    ntot2  = nx2*ny2*nz2*nelv
-
-    iconv = 0
-    call rzero(x,ntot2)
-
-    do while(iconv == 0 .AND. iter < 100)
-
-        if(iter == 0) then
-        !      -1
-            call col3(r,ml,res,ntot2)             ! r = L  res
-        !           call copy(r,res,ntot2)
-        else
-        ! pdate residual
-            call copy(r,res,ntot2)                ! r = res
-            call cdabdtp(w,x,h1,h2,h2inv,intype)  ! w = A x
-            call add2s2(r,w,-1.,ntot2)            ! r = r - w
-        !      -1
-            call col2(r,ml,ntot2)                 ! r = L   r
-        endif
-    !            ______
-        gamma(1) = sqrt(glsc2(r,r,ntot2))        ! gamma  = \/ (r,r)
-    !      1
-        if(iter == 0) then
-            div0 = gamma(1)*norm_fac
-            if (param(21) < 0) tolpss=abs(param(21))*div0
-        endif
-
-    ! heck for lucky convergence
-        rnorm = 0.
-        if(gamma(1) == 0.) goto 9000
-        temp = 1./gamma(1)
-        call cmult2(v(1,1),r,temp,ntot2)         ! v  = r / gamma
-    !  1            1
-        do j=1,m
-            iter = iter+1
-        !       -1
-            call col3(w,mu,v(1,j),ntot2)          ! w  = U   v
-        !           j
-                        
-            etime2 = dnekclock()
-            if(param(43) == 1) then
-                call uzprec(z(1,j),w,h1,h2,intype,wp)
-            else                                  !       -1
-                write(*,*) "Oops: param(43)"
-!max                call hsmg_solve(z(1,j),w)          ! z  = M   w
-            !              call copy(z(1,j),w,ntot2)          ! z  = M   w
-            endif
-            etime_p = etime_p + dnekclock()-etime2
-                 
-            call cdabdtp(w,z(1,j),                 & ! w = A z
-            h1,h2,h2inv,intype)      !        j
-                 
-        !      -1
-            call col2(w,ml,ntot2)                 ! w = L   w
-
-        !           !modified Gram-Schmidt
-        !           do i=1,j
-        !              h(i,j)=glsc2(w,v(1,i),ntot2)       ! h    = (w,v )
-        !                                                 !  i,j       i
-        !              call add2s2(w,v(1,i),-h(i,j),ntot2)! w = w - h    v
-        !           enddo                                 !          i,j  i
-
-
-        !           2-PASS GS, 1st pass:
-
-            do i=1,j
-                h(i,j)=vlsc2(w,v(1,i),ntot2)       ! h    = (w,v )
-            enddo                                 !  i,j       i
-
-            call gop(h(1,j),wk1,'+  ',j)          ! sum over P procs
-
-            do i=1,j
-                call add2s2(w,v(1,i),-h(i,j),ntot2)! w = w - h    v
-            enddo                                 !          i,j  i
-
-
-        !           2-PASS GS, 2nd pass:
-        
-        !           do i=1,j
-        !              wk1(i)=vlsc2(w,v(1,i),ntot2)       ! h    = (w,v )
-        !           enddo                                 !  i,j       i
-        !                                                 !
-        !           call gop(wk1,wk2,'+  ',j)             ! sum over P procs
-        
-        !           do i=1,j
-        !              call add2s2(w,v(1,i),-wk1(i),ntot2)! w = w - h    v
-        !              h(i,j) = h(i,j) + wk1(i)           !          i,j  i
-        !           enddo
-
-
-        ! pply Givens rotations to new column
-            do i=1,j-1
-                temp = h(i,j)
-                h(i  ,j)=  c(i)*temp + s(i)*h(i+1,j)
-                h(i+1,j)= -s(i)*temp + c(i)*h(i+1,j)
-            enddo
-        !            ______
-            alpha = sqrt(glsc2(w,w,ntot2))        ! alpha =  \/ (w,w)
-            rnorm = 0.
-            if(alpha == 0.) goto 900  !converged
-            l = sqrt(h(j,j)*h(j,j)+alpha*alpha)
-            temp = 1./l
-            c(j) = h(j,j) * temp
-            s(j) = alpha  * temp
-            h(j,j) = l
-            gamma(j+1) = -s(j) * gamma(j)
-            gamma(j)   =  c(j) * gamma(j)
-
-        !            call outmat(h,m,j,' h    ',j)
-                        
-            rnorm = abs(gamma(j+1))*norm_fac
-            ratio = rnorm/div0
-            if (ifprint .AND. nid == 0) &
-            write (6,66) iter,tolpss,rnorm,div0,ratio,istep
-            66 format(i5,1p4e12.5,i8,' Divergence')
-
-#ifndef TST_WSCAL
-            if (rnorm < tolpss) goto 900  !converged
-#else
-            if (iter > param(151)-1) goto 900
-#endif
-            if (j == m) goto 1000 !not converged, restart
-
-            temp = 1./alpha
-            call cmult2(v(1,j+1),w,temp,ntot2)   ! v    = w / alpha
-        !  j+1
-        enddo
-        900 iconv = 1
-        1000 continue
-    ! ack substitution
-    !     -1
-    !c = H   gamma
-        do k=j,1,-1
-            temp = gamma(k)
-            do i=j,k+1,-1
-                temp = temp - h(k,i)*c(i)
-            enddo
-            c(k) = temp/h(k,k)
-        enddo
-    ! um up Arnoldi vectors
-        do i=1,j
-            call add2s2(x,z(1,i),c(i),ntot2)     ! x = x + c  z
-        !          i  i
-        enddo
-    !        if(iconv.eq.1) call dbg_write(x,nx2,ny2,nz2,nelv,'esol',3)
-    enddo
-    9000 continue
-
-    divex = rnorm
-!     iter = iter - 1
-
-!     DIAGNOSTICS
-!      call copy   (w,x,ntot2)
-    call ortho  (w) ! Orthogonalize wrt null space, if present
-!      call copy(r,res,ntot2) !r = res
-!      call cdabdtp(r,w,h1,h2,h2inv,intype)  ! r = A w
-!      do i=1,ntot2
-!         r(i) = res(i) - r(i)               ! r = res - r
-!      enddo
-!      call uzawa_gmres_temp(r,bm2inv,ntot2)
-!                                               !            ______
-!      gamma(1) = sqrt(glsc2(r,r,ntot2)/volvm2) ! gamma  = \/ (r,r)
-!                                               !      1
-!      print *, 'GMRES end resid:',gamma(1)
-!     END DIAGNOSTICS
-    call copy(res,x,ntot2)
-
-    call ortho (res)  ! Orthogonalize wrt null space, if present
-
-    etime1 = dnekclock()-etime1
-    if (nid == 0) write(6,9999) istep,iter,divex,tolpss,div0,etime_p, &
-    etime1
-!     call flush_hack
-    9999 format(i10,' U-PRES gmres:',I7,1p5e12.4)
-
-    return
-    end subroutine uzawa_gmres
-
-!-----------------------------------------------------------------------
 
     subroutine uzawa_gmres_split0(l,u,b,binv,n)
     integer :: n
@@ -320,255 +71,247 @@
     return
     end subroutine ax
 !-----------------------------------------------------------------------
-    subroutine hmh_gmres(res,h1,h2,wt,iter)
+!> \brief Solve the Helmholtz equation by right-preconditioned
+!! GMRES iteration.
+subroutine hmh_gmres(res,h1,h2,wt,iter)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, lgmres
+  use size_m, only : nx1, ny1, nz1, nelv, nid
+  use gmres, only : c, s, h, gamma, ml, mu, x, r, w, v, z
+  use input, only : param, ifmgrid
+  use mass, only : bm1, binvm1, volvm1
+  use soln, only : pmask, vmult
+  use tstep, only : tolps, istep
+  implicit none
 
-!     Solve the Helmholtz equation by right-preconditioned
-!     GMRES iteration.
+  real(DP) ::             res  (lx1*ly1*lz1*lelv)
+  real(DP) ::             h1   (lx1,ly1,lz1,lelv)
+  real(DP) ::             h2   (lx1,ly1,lz1,lelv)
+  real(DP) ::             wt   (lx1,ly1,lz1,lelv)
+  integer :: iter
 
-         
-    use size_m
-    use fdmh1
-    use gmres
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    common  /ctolpr/ divex
-    common  /cprint/ ifprint
-    logical ::          ifprint
-    real ::             res  (lx1*ly1*lz1*lelv)
-    real ::             h1   (lx1,ly1,lz1,lelv)
-    real ::             h2   (lx1,ly1,lz1,lelv)
-    real ::             wt   (lx1,ly1,lz1,lelv)
+  real(DP) :: divex
+  common  /ctolpr/ divex
+  logical ::          ifprint
+  common  /cprint/ ifprint
+  real(DP) :: d, wk
+  common /scrcg/ d(lx1*ly1*lz1*lelv),wk(lx1*ly1*lz1*lelv)
 
-    common /scrcg/ d(lx1*ly1*lz1*lelv),wk(lx1*ly1*lz1*lelv)
+  real(DP) :: wk1, wk2
+  common /ctmp0/   wk1(lgmres),wk2(lgmres)
 
-    common /cgmres1/ y(lgmres)
-    common /ctmp0/   wk1(lgmres),wk2(lgmres)
-    real :: alpha, l, temp
-    integer :: outer
+  real(DP) :: alpha, l, temp
+  integer :: outer
 
-    logical :: iflag,if_hyb
-    save    iflag,if_hyb
-!     data    iflag,if_hyb  /.false. , .true. /
-    data    iflag,if_hyb  / .FALSE. , .FALSE. /
-    real ::    norm_fac
-    save    norm_fac
+  logical, save :: iflag = .false., if_hyb = .false.
+!   data    iflag,if_hyb  /.false. , .true. /
+  real, save ::  norm_fac
 
-    real*8 :: etime1,dnekclock
+  real(DP) :: etime1, etime2, etime_p, dnekclock
+  real(DP) :: rnorm, tolpss, div0, ratio
+  real(DP), external :: glsc3, vlsc3
 
+  integer :: m, n
+  integer :: i, j, k, iconv
 
-    n = nx1*ny1*nz1*nelv
+  n = nx1*ny1*nz1*nelv
 
-    etime1 = dnekclock()
-    etime_p = 0.
-    divex = 0.
-    iter  = 0
-    m     = lgmres
+  etime1 = dnekclock()
+  etime_p = 0.
+  divex = 0.
+  iter  = 0
+  m     = lgmres
 
-    if( .NOT. iflag) then
-        iflag= .TRUE. 
-        call uzawa_gmres_split(ml,mu,bm1,binvm1,nx1*ny1*nz1*nelv)
-        norm_fac = 1./sqrt(volvm1)
-    endif
+  if( .NOT. iflag) then
+      iflag= .TRUE. 
+      call uzawa_gmres_split(ml,mu,bm1,binvm1,nx1*ny1*nz1*nelv)
+      norm_fac = 1./sqrt(volvm1)
+  endif
 
-    if (param(100) /= 2) call set_fdm_prec_h1b(d,h1,h2,nelv)
+  if (param(100) /= 2) call set_fdm_prec_h1b(d,h1,h2,nelv)
 
-    call chktcg1(tolps,res,h1,h2,pmask,vmult,1,1)
-    if (param(21) > 0 .AND. tolps > abs(param(21))) &
-    tolps = abs(param(21))
-    if (istep == 0) tolps = 1.e-4
-    tolpss = tolps
+  call chktcg1(tolps,res,h1,h2,pmask,vmult,1,1)
+  if (param(21) > 0 .AND. tolps > abs(param(21))) &
+  tolps = abs(param(21))
+  if (istep == 0) tolps = 1.e-4
+  tolpss = tolps
 
-    iconv = 0
-    call rzero(x,n)
+  iconv = 0
+  call rzero(x,n)
 
-    outer = 0
-    do while (iconv == 0 .AND. iter < 500)
-        outer = outer+1
+  outer = 0
+  do while (iconv == 0 .AND. iter < 500)
+      outer = outer+1
 
-        if(iter == 0) then               !      -1
-            call col3(r,ml,res,n)         ! r = L  res
-        !           call copy(r,res,n)
-        else
-        ! pdate residual
-            call copy  (r,res,n)                  ! r = res
-            call ax    (w,x,h1,h2,n)              ! w = A x
-            call add2s2(r,w,-1.,n)                ! r = r - w
-        !      -1
-            call col2(r,ml,n)                     ! r = L   r
-        endif
-    !            ______
-        gamma(1) = sqrt(glsc3(r,r,wt,n))         ! gamma  = \/ (r,r)
-    !      1
-        if(iter == 0) then
-            div0 = gamma(1)*norm_fac
-            if (param(21) < 0) tolpss=abs(param(21))*div0
-        endif
+      if(iter == 0) then               !      -1
+          call col3(r,ml,res,n)         ! r = L  res
+      !           call copy(r,res,n)
+      else
+      ! pdate residual
+          call copy  (r,res,n)                  ! r = res
+          call ax    (w,x,h1,h2,n)              ! w = A x
+          call add2s2(r,w,-1.,n)                ! r = r - w
+      !      -1
+          call col2(r,ml,n)                     ! r = L   r
+      endif
+  !            ______
+      gamma(1) = sqrt(glsc3(r,r,wt,n))         ! gamma  = \/ (r,r)
+  !      1
+      if(iter == 0) then
+          div0 = gamma(1)*norm_fac
+          if (param(21) < 0) tolpss=abs(param(21))*div0
+      endif
 
-    ! heck for lucky convergence
-        rnorm = 0.
-        if(gamma(1) == 0.) goto 9000
-        temp = 1./gamma(1)
-        call cmult2(v(1,1),r,temp,n)             ! v  = r / gamma
-    !  1            1
-        do j=1,m
-            iter = iter+1
-        !       -1
-            call col3(w,mu,v(1,j),n)              ! w  = U   v
-        !           j
+  ! heck for lucky convergence
+      rnorm = 0.
+      if(gamma(1) == 0.) goto 9000
+      temp = 1./gamma(1)
+      call cmult2(v(1,1),r,temp,n)             ! v  = r / gamma
+  !  1            1
+      do j=1,m
+          iter = iter+1
+      !       -1
+          call col3(w,mu,v(1,j),n)              ! w  = U   v
+      !           j
 
-        ! . . . . . Overlapping Schwarz + coarse-grid . . . . . . .
+      ! . . . . . Overlapping Schwarz + coarse-grid . . . . . . .
 
-            etime2 = dnekclock()
+          etime2 = dnekclock()
 
-        !           if (outer.gt.2) if_hyb = .true.       ! Slow outer convergence
-            if (ifmgrid) then
-                call h1mg_solve(z(1,j),w,if_hyb)   ! z  = M   w
-            else                                  !  j
-                write(*,*) "Oops: ifmgrid"
+      !           if (outer.gt.2) if_hyb = .true.       ! Slow outer convergence
+          if (ifmgrid) then
+              call h1mg_solve(z(1,j),w,if_hyb)   ! z  = M   w
+          else                                  !  j
+              write(*,*) "Oops: ifmgrid"
 #if 0
-                kfldfdm = ndim+1
-                if (param(100) == 2) then
-                    call h1_overlap_2 (z(1,j),w,pmask)
-                else
-                    call fdm_h1 &
-                    (z(1,j),w,d,pmask,vmult,nelv,ktype(1,1,kfldfdm),wk)
-                endif
-                call crs_solve_h1 (wk,w)           ! z  = M   w
-                call add2         (z(1,j),wk,n)    !  j
+              kfldfdm = ndim+1
+              if (param(100) == 2) then
+                  call h1_overlap_2 (z(1,j),w,pmask)
+              else
+                  call fdm_h1 &
+                  (z(1,j),w,d,pmask,vmult,nelv,ktype(1,1,kfldfdm),wk)
+              endif
+              call crs_solve_h1 (wk,w)           ! z  = M   w
+              call add2         (z(1,j),wk,n)    !  j
 #endif
-            endif
+          endif
 
 
-            call ortho        (z(1,j)) ! Orthogonalize wrt null space, if present
-            etime_p = etime_p + dnekclock()-etime2
-        ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+          call ortho        (z(1,j)) ! Orthogonalize wrt null space, if present
+          etime_p = etime_p + dnekclock()-etime2
+      ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-                 
-            call ax  (w,z(1,j),h1,h2,n)           ! w = A z
-        !        j
-                 
-        !      -1
-            call col2(w,ml,n)                     ! w = L   w
+               
+          call ax  (w,z(1,j),h1,h2,n)           ! w = A z
+      !        j
+               
+      !      -1
+          call col2(w,ml,n)                     ! w = L   w
 
-        !           !modified Gram-Schmidt
+      !           !modified Gram-Schmidt
 
-        !           do i=1,j
-        !              h(i,j)=glsc3(w,v(1,i),wt,n)        ! h    = (w,v )
-        !                                                 !  i,j       i
+      !           do i=1,j
+      !              h(i,j)=glsc3(w,v(1,i),wt,n)        ! h    = (w,v )
+      !                                                 !  i,j       i
 
-        !              call add2s2(w,v(1,i),-h(i,j),n)    ! w = w - h    v
-        !           enddo                                 !          i,j  i
+      !              call add2s2(w,v(1,i),-h(i,j),n)    ! w = w - h    v
+      !           enddo                                 !          i,j  i
 
-        !           2-PASS GS, 1st pass:
+      !           2-PASS GS, 1st pass:
 
-            do i=1,j
-                h(i,j)=vlsc3(w,v(1,i),wt,n)        ! h    = (w,v )
-            enddo                                 !  i,j       i
+          do i=1,j
+              h(i,j)=vlsc3(w,v(1,i),wt,n)        ! h    = (w,v )
+          enddo                                 !  i,j       i
 
-            call gop(h(1,j),wk1,'+  ',j)          ! sum over P procs
+          call gop(h(1,j),wk1,'+  ',j)          ! sum over P procs
 
-            do i=1,j
-                call add2s2(w,v(1,i),-h(i,j),n)    ! w = w - h    v
-            enddo                                 !          i,j  i
+          do i=1,j
+              call add2s2(w,v(1,i),-h(i,j),n)    ! w = w - h    v
+          enddo                                 !          i,j  i
 
 
-        !           2-PASS GS, 2nd pass:
-        
-        !           do i=1,j
-        !              wk1(i)=vlsc3(w,v(1,i),wt,n)        ! h    = (w,v )
-        !           enddo                                 !  i,j       i
-        !                                                 !
-        !           call gop(wk1,wk2,'+  ',j)             ! sum over P procs
-        
-        !           do i=1,j
-        !              call add2s2(w,v(1,i),-wk1(i),n)    ! w = w - h    v
-        !              h(i,j) = h(i,j) + wk1(i)           !          i,j  i
-        !           enddo
+      !           2-PASS GS, 2nd pass:
+      
+      !           do i=1,j
+      !              wk1(i)=vlsc3(w,v(1,i),wt,n)        ! h    = (w,v )
+      !           enddo                                 !  i,j       i
+      !                                                 !
+      !           call gop(wk1,wk2,'+  ',j)             ! sum over P procs
+      
+      !           do i=1,j
+      !              call add2s2(w,v(1,i),-wk1(i),n)    ! w = w - h    v
+      !              h(i,j) = h(i,j) + wk1(i)           !          i,j  i
+      !           enddo
 
-        ! pply Givens rotations to new column
-            do i=1,j-1
-                temp = h(i,j)
-                h(i  ,j)=  c(i)*temp + s(i)*h(i+1,j)
-                h(i+1,j)= -s(i)*temp + c(i)*h(i+1,j)
-            enddo
-        !            ______
-            alpha = sqrt(glsc3(w,w,wt,n))        ! alpha =  \/ (w,w)
-            rnorm = 0.
-            if(alpha == 0.) goto 900  !converged
-            l = sqrt(h(j,j)*h(j,j)+alpha*alpha)
-            temp = 1./l
-            c(j) = h(j,j) * temp
-            s(j) = alpha  * temp
-            h(j,j) = l
-            gamma(j+1) = -s(j) * gamma(j)
-            gamma(j)   =  c(j) * gamma(j)
+      ! pply Givens rotations to new column
+          do i=1,j-1
+              temp = h(i,j)
+              h(i  ,j)=  c(i)*temp + s(i)*h(i+1,j)
+              h(i+1,j)= -s(i)*temp + c(i)*h(i+1,j)
+          enddo
+      !            ______
+          alpha = sqrt(glsc3(w,w,wt,n))        ! alpha =  \/ (w,w)
+          rnorm = 0.
+          if(alpha == 0.) goto 900  !converged
+          l = sqrt(h(j,j)*h(j,j)+alpha*alpha)
+          temp = 1./l
+          c(j) = h(j,j) * temp
+          s(j) = alpha  * temp
+          h(j,j) = l
+          gamma(j+1) = -s(j) * gamma(j)
+          gamma(j)   =  c(j) * gamma(j)
 
-            rnorm = abs(gamma(j+1))*norm_fac
-            ratio = rnorm/div0
-            if (ifprint .AND. nid == 0) &
-            write (6,66) iter,tolpss,rnorm,div0,ratio,istep
-            66 format(i5,1p4e12.5,i8,' Divergence')
+          rnorm = abs(gamma(j+1))*norm_fac
+          ratio = rnorm/div0
+          if (ifprint .AND. nid == 0) &
+          write (6,66) iter,tolpss,rnorm,div0,ratio,istep
+          66 format(i5,1p4e12.5,i8,' Divergence')
 
 #ifndef TST_WSCAL
-            if (rnorm < tolpss) goto 900  !converged
+          if (rnorm < tolpss) goto 900  !converged
 #else
-            if (iter > param(151)-1) goto 900
+          if (iter > param(151)-1) goto 900
 #endif
-            if (j == m) goto 1000 !not converged, restart
+          if (j == m) goto 1000 !not converged, restart
 
-            temp = 1./alpha
-            call cmult2(v(1,j+1),w,temp,n)   ! v    = w / alpha
-        !  j+1
-        enddo
-        900 iconv = 1
-        1000 continue
-    ! ack substitution
-    !     -1
-    !c = H   gamma
-        do k=j,1,-1
-            temp = gamma(k)
-            do i=j,k+1,-1
-                temp = temp - h(k,i)*c(i)
-            enddo
-            c(k) = temp/h(k,k)
-        enddo
-    ! um up Arnoldi vectors
-        do i=1,j
-            call add2s2(x,z(1,i),c(i),n)     ! x = x + c  z
-        enddo                               !          i  i
-    !        if(iconv.eq.1) call dbg_write(x,nx1,ny1,nz1,nelv,'esol',3)
-    enddo
-    9000 continue
+          temp = 1./alpha
+          call cmult2(v(1,j+1),w,temp,n)   ! v    = w / alpha
+      !  j+1
+      enddo
+      900 iconv = 1
+      1000 continue
+  ! ack substitution
+  !     -1
+  !c = H   gamma
+      do k=j,1,-1
+          temp = gamma(k)
+          do i=j,k+1,-1
+              temp = temp - h(k,i)*c(i)
+          enddo
+          c(k) = temp/h(k,k)
+      enddo
+  ! um up Arnoldi vectors
+      do i=1,j
+          call add2s2(x,z(1,i),c(i),n)     ! x = x + c  z
+      enddo                               !          i  i
+  !        if(iconv.eq.1) call dbg_write(x,nx1,ny1,nz1,nelv,'esol',3)
+  enddo
+  9000 continue
 
-    divex = rnorm
-    call copy(res,x,n)
+  divex = rnorm
+  call copy(res,x,n)
 
-    call ortho   (res) ! Orthogonalize wrt null space, if present
+  call ortho   (res) ! Orthogonalize wrt null space, if present
 
-    etime1 = dnekclock()-etime1
-    if (nid == 0) write(6,9999) istep,iter,divex,tolpss,div0,etime_p, &
-    etime1,if_hyb
-!     call flush_hack
-    9999 format(i9,' PRES gmres:',i5,1p5e12.4,1x,l4)
+  etime1 = dnekclock()-etime1
+  if (nid == 0) write(6,9999) istep,iter,divex,tolpss,div0,etime_p, &
+  etime1,if_hyb
+!   call flush_hack
+  9999 format(i9,' PRES gmres:',i5,1p5e12.4,1x,l4)
 
-    if (outer <= 2) if_hyb = .FALSE. 
+  if (outer <= 2) if_hyb = .FALSE. 
 
-    return
-    end subroutine hmh_gmres
+  return
+end subroutine hmh_gmres
 !-----------------------------------------------------------------------
 

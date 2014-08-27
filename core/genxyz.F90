@@ -971,7 +971,8 @@
 
         if (lx1 == 2) ifmid = .FALSE. 
         if (ifmid) then
-            call xyzquad(xl(1,e),yl(1,e),zl(1,e),nxl,nyl,nzl,e)
+          write(*,*) "Oops: ifmid"
+!max            call xyzquad(xl(1,e),yl(1,e),zl(1,e),nxl,nyl,nzl,e)
         else
             call xyzlin (xl(1,e),yl(1,e),zl(1,e),nxl,nyl,nzl,e,ifaxis)
         endif
@@ -980,171 +981,69 @@
     return
     end subroutine linquad
 !-----------------------------------------------------------------------
-    subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
-!     Generate bi- or trilinear mesh
+!> \brief Generate bi- or trilinear mesh
+subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
+  use kinds, only : DP
+  use size_m
+  use input
+  implicit none
 
-    use size_m
-    use input
+  integer :: nxl, nyl, nzl, e
+  real(DP) :: xl(nxl,nyl,nzl),yl(nxl,nyl,nzl),zl(nxl,nyl,nzl)
+  logical :: ifaxl ! local ifaxis specification
 
-    real :: xl(nxl,nyl,nzl),yl(nxl,nyl,nzl),zl(nxl,nyl,nzl)
-    integer :: e
-    logical :: ifaxl ! local ifaxis specification
+! Preprocessor Corner notation:      Symmetric Corner notation:
 
-!   Preprocessor Corner notation:      Symmetric Corner notation:
+!         4+-----+3    ^ s                    3+-----+4    ^ s
+!         /     /|     |                      /     /|     |
+!        /     / |     |                     /     / |     |
+!      8+-----+7 +2    +----> r            7+-----+8 +2    +----> r
+!       |     | /     /                     |     | /     /
+!       |     |/     /                      |     |/     /
+!      5+-----+6    t                      5+-----+6    t
 
-!           4+-----+3    ^ s                    3+-----+4    ^ s
-!           /     /|     |                      /     /|     |
-!          /     / |     |                     /     / |     |
-!        8+-----+7 +2    +----> r            7+-----+8 +2    +----> r
-!         |     | /     /                     |     | /     /
-!         |     |/     /                      |     |/     /
-!        5+-----+6    t                      5+-----+6    t
+  integer, save :: indx(8) = (/ 1,2,4,3,5,6,8,7 /)
 
-    integer :: indx(8)
-    save    indx
-    data    indx / 1,2,4,3,5,6,8,7 /
+  integer, parameter :: ldw=4*lx1*ly1*lz1
+  real(DP) :: xcb, ycb, zcb, w
+  common /ctmp0/ xcb(2,2,2),ycb(2,2,2),zcb(2,2,2),w(ldw)
 
-    parameter (ldw=4*lx1*ly1*lz1)
-    common /ctmp0/ xcb(2,2,2),ycb(2,2,2),zcb(2,2,2),w(ldw)
+!  real(DP) :: zgml, jx,jy,jz,jxt,jyt,jzt, zlin
+  real(DP) :: zgml(lx1,3),jx (lx1*2),jy (lx1*2),jz (lx1*2)
+  real(DP) :: jxt(lx1*2),jyt(lx1*2),jzt(lx1*2),zlin(2)
 
-    common /cxyzl/ zgml(lx1,3),jx (lx1*2),jy (lx1*2),jz (lx1*2) &
-    ,jxt(lx1*2),jyt(lx1*2),jzt(lx1*2) &
-    ,zlin(2)
-    real :: jx,jy,jz,jxt,jyt,jzt
+  integer :: i, k, ix, ndim2
 
-    call setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
+  call setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
 
-    zlin(1) = -1
-    zlin(2) =  1
+  zlin(1) = -1
+  zlin(2) =  1
 
-    k = 1
-    do i=1,nxl
-        call fd_weights_full(zgml(i,1),zlin,1,0,jxt(k))
-        call fd_weights_full(zgml(i,2),zlin,1,0,jyt(k))
-        call fd_weights_full(zgml(i,3),zlin,1,0,jzt(k))
-        k=k+2
-    enddo
-    call transpose(jx,nxl,jxt,2)
+  k = 1
+  do i=1,nxl
+      call fd_weights_full(zgml(i,1),zlin,1,0,jxt(k))
+      call fd_weights_full(zgml(i,2),zlin,1,0,jyt(k))
+      call fd_weights_full(zgml(i,3),zlin,1,0,jzt(k))
+      k=k+2
+  enddo
+  call transpose(jx,nxl,jxt,2)
 
-    ndim2 = 2**ndim
-    do ix=1,ndim2          ! Convert prex notation to lexicographical
-        i=indx(ix)
-        xcb(ix,1,1)=xc(i,e)
-        ycb(ix,1,1)=yc(i,e)
-        zcb(ix,1,1)=zc(i,e)
-    enddo
+  ndim2 = 2**ndim
+  do ix=1,ndim2          ! Convert prex notation to lexicographical
+      i=indx(ix)
+      xcb(ix,1,1)=xc(i,e)
+      ycb(ix,1,1)=yc(i,e)
+      zcb(ix,1,1)=zc(i,e)
+  enddo
 
-!     Map R-S-T space into physical X-Y-Z space.
+!   Map R-S-T space into physical X-Y-Z space.
 
 ! NOTE:  Assumes nxl=nyl=nzl !
 
-    call tensr3(xl,nxl,xcb,2,jx,jyt,jzt,w)
-    call tensr3(yl,nxl,ycb,2,jx,jyt,jzt,w)
-    call tensr3(zl,nxl,zcb,2,jx,jyt,jzt,w)
+  call tensr3(xl,nxl,xcb,2,jx,jyt,jzt,w)
+  call tensr3(yl,nxl,ycb,2,jx,jyt,jzt,w)
+  call tensr3(zl,nxl,zcb,2,jx,jyt,jzt,w)
 
-    return
-    end subroutine xyzlin
-!-----------------------------------------------------------------------
-    subroutine xyzquad(xl,yl,zl,nxl,nyl,nzl,e)
-!     Generate bi- or trilinear mesh
-
-    use size_m
-    use input
-
-    real :: xl(nxl,nyl,nzl),yl(nxl,nyl,nzl),zl(nxl,nyl,nzl)
-    real :: xq(27),yq(27),zq(27)
-    integer :: e
-
-    parameter (ldw=4*lx1*ly1*lz1)
-    common /ctmp0/ w(ldw,2),zg(3)
-
-!     Note : CTMP1 is used in this format in several subsequent routines
-
-    integer :: eindx(12)  ! index of 12 edges into 3x3x3 tensor
-    save    eindx      ! Follows preprocessor notation..
-    data    eindx /  2 ,  6 ,  8 ,  4 &
-    , 20 , 24 , 26 , 22 &
-    , 10 , 12 , 18 , 16  /  ! preproc. vtx notation
-
-    common /cxyzl/ zgml(lx1,3),jx (lx1*3),jy (lx1*3),jz (lx1*3) &
-    ,jxt(lx1*3),jyt(lx1*3),jzt(lx1*3) &
-    ,zquad(3)
-    real :: jx,jy,jz,jxt,jyt,jzt
-
-    call xyzlin(xq,yq,zq,3,3,3,e, .FALSE. ) ! map bilin to 3x3x3
-
-    nedge = 4 + 8*(ndim-2)
-
-    do k=1,nedge
-        if (ccurve(k,e) == 'm') then
-            j = eindx(k)
-            xq(j) = curve(1,k,e)
-            yq(j) = curve(2,k,e)
-            zq(j) = curve(3,k,e)
-        endif
-    enddo
-
-    zg(1) = -1
-    zg(2) =  0
-    zg(3) =  1
-
-    if (if3d) then
-        call gh_face_extend(xq,zg,3,2,w(1,1),w(1,2)) ! 2 --> edge extend
-        call gh_face_extend(yq,zg,3,2,w(1,1),w(1,2))
-        call gh_face_extend(zq,zg,3,2,w(1,1),w(1,2))
-    else
-        call gh_face_extend_2d(xq,zg,3,2,w(1,1),w(1,2)) ! 2 --> edge extend
-        call gh_face_extend_2d(yq,zg,3,2,w(1,1),w(1,2))
-    endif
-    call clean_xyzq(xq,yq,zq,if3d) ! verify that midside node is in "middle"
-
-
-!     Map R-S-T space into physical X-Y-Z space.
-! NOTE:  Assumes nxl=nyl=nzl !
-
-    zquad(1) = -1
-    zquad(2) =  0
-    zquad(3) =  1
-
-    call setzgml (zgml,e,nxl,nyl,nzl,ifaxis)  ! Here we address axisymm.
-
-    k = 1
-    do i=1,nxl
-        call fd_weights_full(zgml(i,1),zquad,2,0,jxt(k))
-        call fd_weights_full(zgml(i,2),zquad,2,0,jyt(k))
-        call fd_weights_full(zgml(i,3),zquad,2,0,jzt(k))
-        k=k+3
-    enddo
-    call transpose(jx,nxl,jxt,3)
-
-    call tensr3(xl,nxl,xq,3,jx,jyt,jzt,w)
-    call tensr3(yl,nxl,yq,3,jx,jyt,jzt,w)
-    call tensr3(zl,nxl,zq,3,jx,jyt,jzt,w)
-
-    return
-    end subroutine xyzquad
-!-----------------------------------------------------------------------
-    subroutine clean_xyzq(x,y,z,if3d) ! verify that midside node is in "middle"
-
-    real :: x(3,3,3),y(3,3,3),z(3,3,3)
-    logical :: if3d
-
-    integer :: eindx(12)  ! index of 12 edges into 3x3x3 tensor
-    save    eindx      ! Follows preprocessor notation..
-    data    eindx /  2 ,  6 ,  8 ,  4 &
-    , 20 , 24 , 26 , 22 &
-    , 10 , 12 , 18 , 16  /  ! preproc. vtx notation
-
-
-!     if (if3d) then ! 12 edges
-!     else
-!     endif
-
-!     Here - see routine "fix_m_curve" in prenek for indexing strategy
-
-!     Note that "fix_m_curve" does not yet perform the actual fix, and
-!     it too should be updated.
-
-    return
-    end subroutine clean_xyzq
+  return
+end subroutine xyzlin
 !-----------------------------------------------------------------------

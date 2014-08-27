@@ -94,20 +94,13 @@
 
     RETURN
     END SUBROUTINE ESTRAT
-    SUBROUTINE EINIT
-!-----------------------------------------------------------------------------
-
-!     Initialize E-solver
 
 !-----------------------------------------------------------------------------
-    use size_m
-    use esolv
-    use soln
-    use tstep
-    COMMON /SCRHI/  H2INV (LX1,LY1,LZ1,LELV)
-    LOGICAL :: IFNEWP
-
-    CALL ESTRAT
-    RETURN
-    END SUBROUTINE EINIT
+!> \brief Initialize E-solver
+!-----------------------------------------------------------------------------
+SUBROUTINE EINIT
+  implicit none
+  CALL ESTRAT
+  RETURN
+END SUBROUTINE EINIT
 !-----------------------------------------------------------------------

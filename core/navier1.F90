@@ -794,253 +794,6 @@
     return
     end subroutine opbinv1
 !-----------------------------------------------------------------------
-    subroutine uzprec (rpcg,rcg,h1m1,h2m1,intype,wp)
-!--------------------------------------------------------------------
-
-!     Uzawa preconditioner
-
-!--------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use mass
-    use parallel
-    use tstep
-
-    REAL ::           RPCG (LX2,LY2,LZ2,LELV)
-    REAL ::           RCG  (LX2,LY2,LZ2,LELV)
-    REAL ::           WP   (LX2,LY2,LZ2,LELV)
-    REAL ::           H1M1 (LX1,LY1,LZ1,LELV)
-    REAL ::           H2M1 (LX1,LY1,LZ1,LELV)
-    COMMON /SCRCH/ H1M2 (LX2,LY2,LZ2,LELV) &
-    ,             H2M2 (LX2,LY2,LZ2,LELV)
-
-    integer :: kstep
-    save    kstep
-    data    kstep/-1/
-
-    integer*8 :: ntotg,nxyz2
-
-
-    if (solver_type == 'pdm') then
-        write(*,*) "Oops, gfdm"
-#if 0
-        call gfdm_pres_solv(rpcg,rcg,h1m2,h2m2, .TRUE. ,0.0)
-        return
-#endif
-    endif
-
-    NTOT2 = NX2*NY2*NZ2*NELV
-    if (istep /= kstep .AND. .NOT. ifanls) then
-        kstep=istep
-        DO 100 IE=1,NELV
-            CALL MAP12 (H1M2(1,1,1,IE),H1M1(1,1,1,IE),IE)
-            CALL MAP12 (H2M2(1,1,1,IE),H2M1(1,1,1,IE),IE)
-        100 END DO
-    endif
-
-    IF (INTYPE == 0) THEN
-        CALL COL3        (WP,RCG,H1M2,NTOT2)
-        CALL COL3        (RPCG,WP,BM2INV,NTOT2)
-    ELSEIF (INTYPE == -1) THEN
-        CALL EPREC       (WP,RCG)
-        CALL COL2        (WP,H2M2,NTOT2)
-        CALL COL3        (RPCG,RCG,BM2INV,NTOT2)
-        CALL COL2        (RPCG,H1M2,NTOT2)
-        CALL ADD2        (RPCG,WP,NTOT2)
-    ELSEIF (INTYPE == 1) THEN
-        write(*,*) "Oops: intype"
-#if 0
-        if (ifanls) then
-            CALL EPREC2      (RPCG,RCG)
-            DTBD = BD(1)/DT
-            CALL cmult       (RPCG,DTBD,ntot2)
-        else
-            CALL EPREC2      (RPCG,RCG)
-        !           CALL COL2        (RPCG,H2M2,NTOT2)
-        endif
-#endif
-    ELSE
-        CALL COPY        (RPCG,RCG,NTOT2)
-    ENDIF
-
-    call ortho (rpcg)
-
-    return
-    end subroutine uzprec
-
-    subroutine eprec (z2,r2)
-!----------------------------------------------------------------
-
-!     Precondition the explicit pressure operator (E) with
-!     a Neumann type (H1) Laplace operator: JT*A*J.
-!     Invert A by conjugate gradient iteration or multigrid.
-
-!     NOTE: SCRNS is used.
-
-!----------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use mass
-    use parallel
-    use soln
-    use tstep
-    REAL ::           Z2   (LX2,LY2,LZ2,LELV)
-    REAL ::           R2   (LX2,LY2,LZ2,LELV)
-    COMMON /SCRNS/ MASK (LX1,LY1,LZ1,LELV) &
-    ,R1   (LX1,LY1,LZ1,LELV) &
-    ,X1   (LX1,LY1,LZ1,LELV) &
-    ,W2   (LX2,LY2,LZ2,LELV) &
-    ,H1   (LX1,LY1,LZ1,LELV) &
-    ,H2   (LX1,LY1,LZ1,LELV)
-    REAL ::    MASK
-    COMMON /CPRINT/ IFPRINT, IFHZPC
-    LOGICAL ::         IFPRINT, IFHZPC
-    integer*8 :: ntotg,nxyz
-     
-    nxyz   = nx1*ny1*nz1
-    ntotg  = nxyz*nelgv
-    ntot1  = nxyz*nelv
-    ntot2  = nx2*ny2*nz2*nelv
-    nfaces = 2*ndim
-
-!     Set the tolerance for the preconditioner
-
-    CALL COL3 (W2,R2,BM2INV,NTOT2)
-    RINIT  = SQRT(GLSC2(W2,R2,NTOT2)/VOLVM2)
-    EPS    = 0.02
-    TOL    = EPS*RINIT
-!     if (param(91).gt.0) tol=param(91)*rinit
-!     if (param(91).lt.0) tol=-param(91)
-
-    DO 100 IEL=1,NELV
-        CALL MAP21E (R1(1,1,1,IEL),R2(1,1,1,IEL),IEL)
-    100 END DO
-
-    if (ifvcor) then
-        otr1 = glsum (r1,ntot1)
-        call rone  (x1,ntot1)
-        c2   = -otr1/ntotg
-        call add2s2 (r1,x1,c2,ntot1)
-    
-        OTR1 = GLSUM (R1,NTOT1)
-        TOLMIN = 10.*ABS(OTR1)
-        IF (TOL < TOLMIN) THEN
-            if (nid == 0) &
-            write(6,*) 'Resetting tol in EPREC:(old,new)',tol,tolmin
-            TOL = TOLMIN
-        ENDIF
-    ENDIF
-
-    CALL RONE    (H1,NTOT1)
-    CALL RZERO   (H2,NTOT1)
-    IFHZPC = .TRUE. 
-    CALL HMHOLTZ ('PREC',X1,R1,H1,H2,PMASK,VMULT,IMESH,TOL,NMXH,1)
-    IFHZPC = .FALSE. 
-
-    DO 200 IEL=1,NELV
-        CALL MAP12 (Z2(1,1,1,IEL),X1(1,1,1,IEL),IEL)
-    200 END DO
-
-    return
-    end subroutine eprec
-
-    subroutine convprn (iconv,rbnorm,rrpt,res,z,tol)
-!-----------------------------------------------------------------
-!                                               T
-!     Convergence test for the pressure step;  r z
-
-!-----------------------------------------------------------------
-    use size_m
-    use mass
-    REAL ::           RES  (1)
-    REAL ::           Z    (1)
-    REAL ::           wrk1(2),wrk2(2)
-
-    ntot2   = nx2*ny2*nz2*nelv
-    wrk1(1) = vlsc21 (res,bm2inv,ntot2)  !  res*bm2inv*res
-    wrk1(2) = vlsc2  (res,z     ,ntot2)  !  res*z
-    call gop(wrk1,wrk2,'+  ',2)
-    rbnorm  = sqrt(wrk1(1)/volvm2)
-    rrpt    = wrk1(2)
-
-!     CALL CONVPR (RCG,tolpss,ICONV,RNORM)
-!     RRP1 = GLSC2 (RPCG,RCG,NTOT2)
-!     RBNORM = SQRT (GLSC2 (BM2,TB,NTOT2)/VOLVM2)
-
-    ICONV  = 0
-    IF (RBNORM < TOL) ICONV=1
-    return
-    end subroutine convprn
-
-    subroutine chktcg2 (tol,res,iconv)
-!-------------------------------------------------------------------
-
-!     Check that the tolerances are not too small for the CG-solver.
-!     Important when calling the CG-solver (Gauss  mesh) with
-!     all Dirichlet velocity b.c. (zero Neumann for the pressure).
-
-!-------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use mass
-    use tstep
-    REAL ::           RES (LX2,LY2,LZ2,LELV)
-    COMMON /CTMP0/ TA  (LX2,LY2,LZ2,LELV) &
-    ,             TB  (LX2,LY2,LZ2,LELV)
-    COMMON /CPRINT/ IFPRINT
-    LOGICAL ::         IFPRINT
-
-    ICONV = 0
-
-!     Single or double precision???
-
-    DELTA = 1.E-9
-    X     = 1.+DELTA
-    Y     = 1.
-    DIFF  = ABS(X-Y)
-    IF (DIFF == 0.) EPS = 1.E-5
-    IF (DIFF > 0.) EPS = 1.E-10
-
-!     Relaxed pressure iteration; maximum decrease in the residual (ER)
-
-    IF (PRELAX /= 0.) EPS = PRELAX
-
-    NTOT2 = NX2*NY2*NZ2*NELV
-    CALL COL3     (TA,RES,BM2INV,NTOT2)
-    CALL COL3     (TB,TA,TA,NTOT2)
-    CALL COL2     (TB,BM2,NTOT2)
-    RINIT = SQRT( GLSUM (TB,NTOT2)/VOLVM2 )
-    IF (RINIT < TOL) THEN
-        ICONV = 1
-        return
-    ENDIF
-    IF (TOLPDF > 0.) THEN
-        RMIN = TOLPDF
-    ELSE
-        RMIN  = EPS*RINIT
-    ENDIF
-    IF (TOL < RMIN) THEN
-        TOLOLD = TOL
-        TOL = RMIN
-        IF (NID == 0 .AND. IFPRINT) WRITE (6,*) &
-        'New CG2-tolerance (RINIT*10-5/10-10) = ',TOL,TOLOLD
-    ENDIF
-    IF (IFVCOR) THEN
-        OTR = GLSUM (RES,NTOT2)
-        TOLMIN = ABS(OTR)*100.
-        IF (TOL < TOLMIN) THEN
-            TOLOLD = TOL
-            TOL = TOLMIN
-            IF (NID == 0 .AND. IFPRINT) &
-            WRITE (6,*) 'New CG2-tolerance (OTR) = ',TOLMIN,TOLOLD
-        ENDIF
-    ENDIF
-    return
-    end subroutine chktcg2
-
     subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
 !--------------------------------------------------------------
 
@@ -1680,82 +1433,88 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   return
 end subroutine normsc
 
-    subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
-!---------------------------------------------------------------
-
-!     Compute error norms of a (vector) field variable (X1,X2,X3)
-!     defined on mesh 1 (velocity mesh only !)
-!     The error norms are normalized with respect to the volume
-!     (except for Linf).
 
 !---------------------------------------------------------------
-    use size_m
-    use mass
+!> \brief Compute error norms of a (vector) field variable (X1,X2,X3)
+! defined on mesh 1 (velocity mesh only !)
+! The error norms are normalized with respect to the volume
+! (except for Linf).
+!---------------------------------------------------------------
+subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  use size_m, only : lx1, ly1, lz1, lelt
+  use mass, only : volvm1, bm1
+  implicit none
 
-    REAL ::           X1 (LX1,LY1,LZ1,1)
-    REAL ::           X2 (LX1,LY1,LZ1,1)
-    REAL ::           X3 (LX1,LY1,LZ1,1)
-    COMMON /SCRMG/ Y1 (LX1,LY1,LZ1,LELT) &
-    ,Y2 (LX1,LY1,LZ1,LELT) &
-    ,Y3 (LX1,LY1,LZ1,LELT) &
-    ,TA1(LX1,LY1,LZ1,LELT)
-    COMMON /SCRCH/ TA2(LX1,LY1,LZ1,LELT)
-    REAL :: H1,SEMI,L2,LINF
-    REAL :: LENGTH
+  REAL(DP) :: H1,SEMI,L2,LINF
+  REAL(DP) ::           X1 (LX1,LY1,LZ1,1)
+  REAL(DP) ::           X2 (LX1,LY1,LZ1,1)
+  REAL(DP) ::           X3 (LX1,LY1,LZ1,1)
+  real(DP) :: y1, y2, y3, ta1
+  COMMON /SCRMG/ Y1 (LX1,LY1,LZ1,LELT) &
+  ,Y2 (LX1,LY1,LZ1,LELT) &
+  ,Y3 (LX1,LY1,LZ1,LELT) &
+  ,TA1(LX1,LY1,LZ1,LELT)
+  real(DP) :: TA2(LX1,LY1,LZ1,LELT)
+  REAL :: LENGTH
+  integer :: imesh, nel, nxyz1, ntot1
+  real(DP) :: vol
+  real(DP), external :: glamax, glsum
 
-    IMESH  = 1
-    NEL    = NELV
-    VOL    = VOLVM1
-    LENGTH = VOL**(1./(NDIM))
-    NXYZ1  = NX1*NY1*NZ1
-    NTOT1  = NXYZ1*NEL
+  IMESH  = 1
+  NEL    = NELV
+  VOL    = VOLVM1
+  LENGTH = VOL**(1./(NDIM))
+  NXYZ1  = NX1*NY1*NZ1
+  NTOT1  = NXYZ1*NEL
 
-    H1     = 0.
-    SEMI   = 0.
-    L2     = 0.
-    LINF   = 0.
+  H1     = 0.
+  SEMI   = 0.
+  L2     = 0.
+  LINF   = 0.
 
-    CALL COL3 (TA1,X1,X1,NTOT1)
-    CALL COL3 (TA2,X2,X2,NTOT1)
-    CALL ADD2 (TA1,TA2,NTOT1)
-    IF (NDIM == 3) THEN
-        CALL COL3 (TA2,X3,X3,NTOT1)
-        CALL ADD2 (TA1,TA2,NTOT1)
-    ENDIF
-    LINF = GLAMAX (TA1,NTOT1)
-    LINF = SQRT( LINF )
+  CALL COL3 (TA1,X1,X1,NTOT1)
+  CALL COL3 (TA2,X2,X2,NTOT1)
+  CALL ADD2 (TA1,TA2,NTOT1)
+  IF (NDIM == 3) THEN
+      CALL COL3 (TA2,X3,X3,NTOT1)
+      CALL ADD2 (TA1,TA2,NTOT1)
+  ENDIF
+  LINF = GLAMAX (TA1,NTOT1)
+  LINF = SQRT( LINF )
 
-    CALL COL3 (TA1,X1,X1,NTOT1)
-    CALL COL3 (TA2,X2,X2,NTOT1)
-    CALL ADD2 (TA1,TA2,NTOT1)
-    IF (NDIM == 3) THEN
-        CALL COL3 (TA2,X3,X3,NTOT1)
-        CALL ADD2 (TA1,TA2,NTOT1)
-    ENDIF
-    CALL COL2 (TA1,BM1,NTOT1)
-    L2 = GLSUM  (TA1,NTOT1)
-    IF (L2 < 0.0) L2 = 0.
+  CALL COL3 (TA1,X1,X1,NTOT1)
+  CALL COL3 (TA2,X2,X2,NTOT1)
+  CALL ADD2 (TA1,TA2,NTOT1)
+  IF (NDIM == 3) THEN
+      CALL COL3 (TA2,X3,X3,NTOT1)
+      CALL ADD2 (TA1,TA2,NTOT1)
+  ENDIF
+  CALL COL2 (TA1,BM1,NTOT1)
+  L2 = GLSUM  (TA1,NTOT1)
+  IF (L2 < 0.0) L2 = 0.
 
-    CALL RONE  (TA1,NTOT1)
-    CALL RZERO (TA2,NTOT1)
-    CALL OPHX  (Y1,Y2,Y3,X1,X2,X3,TA1,TA2)
-    CALL COL3  (TA1,Y1,X1,NTOT1)
-    CALL COL3  (TA2,Y2,X2,NTOT1)
-    CALL ADD2  (TA1,TA2,NTOT1)
-    IF (NDIM == 3) THEN
-        CALL COL3  (TA2,Y3,X3,NTOT1)
-        CALL ADD2  (TA1,TA2,NTOT1)
-    ENDIF
-    SEMI = GLSUM (TA1,NTOT1)
-    IF (SEMI < 0.0) SEMI = 0.
+  CALL RONE  (TA1,NTOT1)
+  CALL RZERO (TA2,NTOT1)
+  CALL OPHX  (Y1,Y2,Y3,X1,X2,X3,TA1,TA2)
+  CALL COL3  (TA1,Y1,X1,NTOT1)
+  CALL COL3  (TA2,Y2,X2,NTOT1)
+  CALL ADD2  (TA1,TA2,NTOT1)
+  IF (NDIM == 3) THEN
+      CALL COL3  (TA2,Y3,X3,NTOT1)
+      CALL ADD2  (TA1,TA2,NTOT1)
+  ENDIF
+  SEMI = GLSUM (TA1,NTOT1)
+  IF (SEMI < 0.0) SEMI = 0.
 
-    H1   = SQRT((SEMI*LENGTH**2+L2)/VOL)
-    SEMI = SQRT(SEMI/VOL)
-    L2   = SQRT(L2  /VOL)
-    IF (H1 < 0.) H1 = 0.
+  H1   = SQRT((SEMI*LENGTH**2+L2)/VOL)
+  SEMI = SQRT(SEMI/VOL)
+  L2   = SQRT(L2  /VOL)
+  IF (H1 < 0.) H1 = 0.
 
-    return
-    end subroutine normvc
+  return
+end subroutine normvc
 
     subroutine convsp (ifstsp)
     LOGICAL :: IFSTSP
@@ -2227,159 +1986,6 @@ end subroutine normsc
     return
     end subroutine opcolv3c
 !-----------------------------------------------------------------------
-
-    subroutine uzawa (rcg,h1,h2,h2inv,intype,iter)
-!-----------------------------------------------------------------------
-
-!     Solve the pressure equation by (nested) preconditioned
-!     conjugate gradient iteration.
-!     INTYPE =  0  (steady)
-!     INTYPE =  1  (explicit)
-!     INTYPE = -1  (implicit)
-
-!-----------------------------------------------------------------------
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    COMMON  /CTOLPR/ DIVEX
-    COMMON  /CPRINT/ IFPRINT
-    LOGICAL ::          IFPRINT
-    REAL ::             RCG  (LX2,LY2,LZ2,LELV)
-    REAL ::             H1   (LX1,LY1,LZ1,LELV)
-    REAL ::             H2   (LX1,LY1,LZ1,LELV)
-    REAL ::             H2INV(LX1,LY1,LZ1,LELV)
-    COMMON /SCRUZ/   WP   (LX2,LY2,LZ2,LELV) &
-    ,               XCG  (LX2,LY2,LZ2,LELV) &
-    ,               PCG  (LX2,LY2,LZ2,LELV) &
-    ,               RPCG (LX2,LY2,LZ2,LELV)
-     
-    real*8 :: etime1,dnekclock
-    integer*8 :: ntotg,nxyz2
-
-
-    etime1 = dnekclock()
-    DIVEX = 0.
-    ITER  = 0
-
-    CALL CHKTCG2 (TOLPS,RCG,ICONV)
-    if (param(21) > 0 .AND. tolps > abs(param(21))) &
-    TOLPS = abs(param(21))
-
-!      IF (ICONV.EQ.1) THEN
-!         IF (NID.EQ.0) WRITE(6,9999) ITER,DIVEX,TOLPS
-!         return
-!      ENDIF
-
-    nxyz2 = nx2*ny2*nz2
-    ntot2 = nxyz2*nelv
-    ntotg = nxyz2*nelgv
-
-    CALL UZPREC  (RPCG,RCG,H1,H2,INTYPE,WP)
-    RRP1 = GLSC2 (RPCG,RCG,NTOT2)
-    CALL COPY    (PCG,RPCG,NTOT2)
-    CALL RZERO   (XCG,NTOT2)
-    if (rrp1 == 0) return
-    BETA = 0.
-    div0=0.
-
-    tolpss = tolps
-    DO 1000 ITER=1,NMXP
-    
-    !        CALL CONVPR  (RCG,tolpss,ICONV,RNORM)
-        call convprn (iconv,rnorm,rrp1,rcg,rpcg,tolpss)
-
-        if (iter == 1)      div0   = rnorm
-        if (param(21) < 0) tolpss = abs(param(21))*div0
-
-        ratio = rnorm/div0
-        IF (IFPRINT .AND. NID == 0) &
-        WRITE (6,66) iter,tolpss,rnorm,div0,ratio,istep
-        66 format(i5,1p4e12.5,i8,' Divergence')
-    
-        IF (ICONV == 1 .AND. iter > 1) GOTO 9000
-    !        IF (ICONV.EQ.1.and.(iter.gt.1.or.istep.le.2)) GOTO 9000
-    !        IF (ICONV.EQ.1) GOTO 9000
-    !        if (ratio.le.1.e-5) goto 9000
-
-
-        IF (ITER /= 1) THEN
-            BETA = RRP1/RRP2
-            CALL ADD2S1 (PCG,RPCG,BETA,NTOT2)
-        ENDIF
-
-        CALL CDABDTP  (WP,PCG,H1,H2,H2INV,INTYPE)
-        PAP   = GLSC2 (PCG,WP,NTOT2)
-
-        IF (PAP /= 0.) THEN
-            ALPHA = RRP1/PAP
-        ELSE
-            pcgmx = glamax(pcg,ntot2)
-            wp_mx = glamax(wp ,ntot2)
-            ntot1 = nx1*ny1*nz1*nelv
-            h1_mx = glamax(h1 ,ntot1)
-            h2_mx = glamax(h2 ,ntot1)
-            if (nid == 0) write(6,*) 'ERROR: pap=0 in uzawa.' &
-            ,iter,pcgmx,wp_mx,h1_mx,h2_mx
-            call exitt
-        ENDIF
-        CALL ADD2S2 (XCG,PCG,ALPHA,NTOT2)
-        CALL ADD2S2 (RCG,WP,-ALPHA,NTOT2)
-
-        if (iter == -1) then
-            call convprn (iconv,rnrm1,rrpx,rcg,rpcg,tolpss)
-            if (iconv == 1) then
-                rnorm = rnrm1
-                ratio = rnrm1/div0
-                if (nid == 0) &
-                write (6,66) iter,tolpss,rnrm1,div0,ratio,istep
-                goto 9000
-            endif
-        endif
-
-        call ortho(rcg)
-
-        RRP2 = RRP1
-        CALL UZPREC  (RPCG,RCG,H1,H2,INTYPE,WP)
-    !        RRP1 = GLSC2 (RPCG,RCG,NTOT2)
-
-    1000 END DO
-    if (nid == 0) WRITE (6,3001) ITER,RNORM,tolpss
-    if (istep > 20) CALL EMERXIT
-    3001 FORMAT(I6,' **ERROR**: Failed to converge in UZAWA:',6E13.4)
-    9000 CONTINUE
-
-    divex = rnorm
-    iter  = iter-1
-
-    if (iter > 0) call copy (rcg,xcg,ntot2)
-    call ortho(rcg)
-
-    etime1 = dnekclock()-etime1
-    IF (NID == 0) WRITE(6,9999) ISTEP,ITER,DIVEX,tolpss,div0,etime1
-    9999 FORMAT(I10,' U-Press std. : ',I6,1p4E13.4)
-    19999 FORMAT(I10,' U-Press 1.e-5: ',I6,1p4E13.4)
-
-
-    return
-    end subroutine uzawa
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
     subroutine setmap(n1,nd)
 
     use size_m
@@ -2412,100 +2018,78 @@ end subroutine normsc
     return
     end subroutine transpose
 !-----------------------------------------------------------------------
-    subroutine convop(conv,fi)
-
-!     Compute the convective term CONV for a passive scalar field FI
-!     using the skew-symmetric formulation.
-!     The field variable FI is defined on mesh M1 (GLL) and
-!     the velocity field is assumed given.
-
-!     IMPORTANT NOTE: Use the scratch-arrays carefully!!!!!
-
-!     The common-block SCRNS is used in CONV1 and CONV2.
-!     The common-blocks CTMP0 and CTMP1 are also used as scratch-arrays
-!     since there is no direct stiffness summation or Helmholtz-solves.
-
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-!     Use the common blocks CTMP0 and CTMP1 as work space.
-
-    COMMON /SCRCH/  CMASK1 (LX1,LY1,LZ1,LELV) &
-    ,              CMASK2 (LX1,LY1,LZ1,LELV)
-    COMMON /CTMP1/  MFI    (LX1,LY1,LZ1,LELV) &
-    ,              DMFI   (LX1,LY1,LZ1,LELV) &
-    ,              MDMFI  (LX1,LY1,LZ1,LELV)
-    REAL ::   MFI,DMFI,MDMFI
+!> \brief Compute the convective term CONV for a passive scalar field FI
+! using the skew-symmetric formulation.
+! The field variable FI is defined on mesh M1 (GLL) and
+! the velocity field is assumed given.
+! IMPORTANT NOTE: Use the scratch-arrays carefully!!!!!
+! The common-block SCRNS is used in CONV1 and CONV2.
+! The common-blocks CTMP0 and CTMP1 are also used as scratch-arrays
+! since there is no direct stiffness summation or Helmholtz-solves.
+subroutine convop(conv,fi)
+  use kinds, only : DP
+  use ctimer, only : icalld, tadvc, nadvc, etime1, dnekclock
+  use size_m, only : lx1, ly1, lz1, lelv
+  use size_m, only : nx1, ny1, nz1, nelv
+  use dealias, only : vxd, vyd, vzd
+  use input, only : param, ifpert
+  use mass, only : bm1
+  use soln, only : vx, vy, vz
+  use tstep, only : nelfld, ifield
+  implicit none
 
 !     Arrays in parameter list
+  REAL(DP) :: CONV (LX1,LY1,LZ1,1)
+  REAL(DP) :: FI   (LX1,LY1,LZ1,1)
 
-    REAL ::    CONV (LX1,LY1,LZ1,1)
-    REAL ::    FI   (LX1,LY1,LZ1,1)
+  integer :: nxyz1, ntot1, ntotz
 
 #ifndef NOTIMER
-    if (icalld == 0) tadvc=0.0
-    icalld=icalld+1
-    nadvc=icalld
-    etime1=dnekclock()
+  if (icalld == 0) tadvc=0.0
+  icalld=icalld+1
+  nadvc=icalld
+  etime1=dnekclock()
 #endif
 
-    NXYZ1 = NX1*NY1*NZ1
-    NTOT1 = NX1*NY1*NZ1*NELV
-    NTOTZ = NX1*NY1*NZ1*nelfld(ifield)
+  NXYZ1 = NX1*NY1*NZ1
+  NTOT1 = NX1*NY1*NZ1*NELV
+  NTOTZ = NX1*NY1*NZ1*nelfld(ifield)
 
-    CALL RZERO  (CONV,NTOTZ)
+  CALL RZERO  (CONV,NTOTZ)
 
-    if (param(86) /= 0.0) then  ! skew-symmetric form
+  if (param(86) /= 0.0) then  ! skew-symmetric form
 !max        call convopo(conv,fi)
-        goto 100
-    endif
+      goto 100
+  endif
 
 !     write(6,*) istep,param(99),' CONVOP',ifpert
 !     ip99 = param(99)
 !     if (istep.gt.5) call exitti(' CONVOP dbg: $',ip99)
 
-    if (param(99) == 2 .OR. param(99) == 3) then
+  if (param(99) == 2 .OR. param(99) == 3) then
 !max        call conv1d(conv,fi)  !    use dealiased form
-    elseif (param(99) == 4) then
-        if (ifpert) then
-            call convect_new (conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
-        else
-            call convect_new (conv,fi, .FALSE. ,vxd,vyd,vzd, .TRUE. )
-        endif
-        call invcol2     (conv,bm1,ntot1)  ! local mass inverse
-    elseif (param(99) == 5) then
+  elseif (param(99) == 4) then
+      if (ifpert) then
+          call convect_new (conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
+      else
+          call convect_new (conv,fi, .FALSE. ,vxd,vyd,vzd, .TRUE. )
+      endif
+      call invcol2     (conv,bm1,ntot1)  ! local mass inverse
+  elseif (param(99) == 5) then
 !max        call convect_cons(conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
-        call invcol2     (conv,bm1,ntot1)  ! local mass inverse
-    else
+      call invcol2     (conv,bm1,ntot1)  ! local mass inverse
+  else
 !max        call conv1 (conv,fi)  !    use the convective form
-    endif
+  endif
 
-    100 continue
+  100 continue
 
 #ifndef NOTIMER
-    tadvc=tadvc+(dnekclock()-etime1)
+  tadvc=tadvc+(dnekclock()-etime1)
 #endif
 
-    return
-    end subroutine convop
-!-----------------------------------------------------------------------
+  return
+end subroutine convop
 !-----------------------------------------------------------------------
     subroutine opdiv(outfld,inpx,inpy,inpz)
 !---------------------------------------------------------------------

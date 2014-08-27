@@ -109,87 +109,88 @@
     return
     end subroutine getdr
 !-----------------------------------------------------------------------
-    subroutine set_dealias_rx
+!> \brief  Eulerian scheme, add convection term to forcing function
+! at current time step.
+subroutine set_dealias_rx
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, lxd, nelv
+  use geom, only : ifgeom, rx
+  use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
+  use input, only : if3d
+  use tstep , only : istep 
+  implicit none
 
-!     Eulerian scheme, add convection term to forcing function
-!     at current time step.
+  real(DP) ::  zd(lxd),wd(lxd)
+  integer :: e, i, j, k, l, ii
+  integer :: nxyz1, nxyzd
+  real(DP) :: w
 
-    use size_m
-    use geom
-    use input
-    use tstep ! for istep
+  integer, save :: ilstep = -1
 
-    common /dealias1/ zd(lxd),wd(lxd)
-    integer :: e
+  if ( .NOT. ifgeom .AND. ilstep > 1) return  ! already computed
+  if (ifgeom .AND. ilstep == istep)  return  ! already computed
+  ilstep = istep
 
-    integer :: ilstep
-    save    ilstep
-    data    ilstep /-1/
+  nxyz1 = nx1*ny1*nz1
+  nxyzd = nxd*nyd*nzd
 
-    if ( .NOT. ifgeom .AND. ilstep > 1) return  ! already computed
-    if (ifgeom .AND. ilstep == istep)  return  ! already computed
-    ilstep = istep
+  call zwgl (zd,wd,nxd)  ! zwgl -- NOT zwgll!
 
-    nxyz1 = nx1*ny1*nz1
-    nxyzd = nxd*nyd*nzd
+  if (if3d) then
+  
+      do e=1,nelv
 
-    call zwgl (zd,wd,nxd)  ! zwgl -- NOT zwgll!
+      !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
 
-    if (if3d) then
-    
-        do e=1,nelv
+          call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,2,e),rym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,3,e),rzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,4,e),sxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,5,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,6,e),szm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,7,e),txm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,8,e),tym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,9,e),tzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
 
-        !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
+          l = 0
+          do k=1,nzd
+              do j=1,nyd
+                  do i=1,nxd
+                      l = l+1
+                      w = wd(i)*wd(j)*wd(k)
+                      do ii=1,9
+                          rx(l,ii,e) = w*rx(l,ii,e)
+                      enddo
+                  enddo
+              enddo
+          enddo
+      enddo
 
-            call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,2,e),rym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,3,e),rzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,4,e),sxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,5,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,6,e),szm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,7,e),txm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,8,e),tym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,9,e),tzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+  else ! 2D
+  
+      do e=1,nelv
 
-            l = 0
-            do k=1,nzd
-                do j=1,nyd
-                    do i=1,nxd
-                        l = l+1
-                        w = wd(i)*wd(j)*wd(k)
-                        do ii=1,9
-                            rx(l,ii,e) = w*rx(l,ii,e)
-                        enddo
-                    enddo
-                enddo
-            enddo
-        enddo
+      !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
 
-    else ! 2D
-    
-        do e=1,nelv
+          call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,2,e),rym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,3,e),sxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          call intp_rstd(rx(1,4,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
 
-        !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
+          l = 0
+          do j=1,nyd
+              do i=1,nxd
+                  l = l+1
+                  w = wd(i)*wd(j)
+                  do ii=1,4
+                      rx(l,ii,e) = w*rx(l,ii,e)
+                  enddo
+              enddo
+          enddo
+      enddo
 
-            call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,2,e),rym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,3,e),sxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,4,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+  endif
 
-            l = 0
-            do j=1,nyd
-                do i=1,nxd
-                    l = l+1
-                    w = wd(i)*wd(j)
-                    do ii=1,4
-                        rx(l,ii,e) = w*rx(l,ii,e)
-                    enddo
-                enddo
-            enddo
-        enddo
-
-    endif
-
-    return
-    end subroutine set_dealias_rx
+  return
+end subroutine set_dealias_rx
 !-----------------------------------------------------------------------

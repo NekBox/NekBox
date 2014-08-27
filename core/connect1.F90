@@ -14,6 +14,7 @@ subroutine setup_topo()
   use size_m, only : nid, ndim, nx1, ny1, nz1, nelv, nelt, nfield
   use size_m, only : lx1, ly1, lz1, lx3, ly3, lz3, lelt, lelv, ldim
   use input, only : ifaxis, ifflow, ifmvbd, ifheat
+  use mesh, only : vertex
   use mvgeom, only : wmult
   use parallel, only : nelgv, nelgt, gsh_fld, nelg
   use soln, only : vmult, tmult
@@ -22,8 +23,6 @@ subroutine setup_topo()
   implicit none
 
   integer*8, allocatable :: glo_num(:)
-  common /ivrtx/ vertex ((2**ldim)*lelt)
-  integer :: vertex
 
   integer :: nxl, nyl, nzl, mfield, ncrnr, ntotv, ntott
   real(DP) :: vmltmax, ivmltmax

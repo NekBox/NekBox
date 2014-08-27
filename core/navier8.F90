@@ -37,15 +37,13 @@ subroutine set_up_h1_crs
   use domain, only : nx_crs, nxyz_c, se_to_gcrs, lcr
   use geom, only : ifvcor, ifbcor
   use input, only : if3d, ifldmhd, cbc
+  use mesh, only : vertex
   use parallel, only : xxth
   use tstep, only : ifield
   implicit none
 
   integer :: mid, mp, nekcomm, nekgroup, nekreal
   common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
-
-  common /ivrtx/ vertex ((2**ldim)*lelt)
-  integer :: vertex
 
   integer :: gs_handle
   integer :: null_space,e
@@ -785,6 +783,7 @@ end subroutine get_local_crs_galerkin
   use input
   use ixyz
   use mass
+  use mesh, only : vertex
   use mvgeom
   use parallel
   use soln
@@ -796,12 +795,11 @@ end subroutine get_local_crs_galerkin
   use wzf
     use zper
 
-    common /ivrtx/ vertex ((2**ldim)*lelt)
-    integer :: vertex
-
     integer :: icalld
     save    icalld
     data    icalld  /0/
+
+    write(*,*) "MAX: get_vertex"
 
     if (icalld > 0) return
     icalld = 1
@@ -910,6 +908,7 @@ end subroutine get_local_crs_galerkin
   use input
   use ixyz
   use mass
+  use mesh, only : vertex
   use mvgeom
   use parallel
   use soln
@@ -921,14 +920,14 @@ end subroutine get_local_crs_galerkin
   use wzf
     use zper
 
-    common /ivrtx/ vertex ((2**ldim),lelt)
-    integer :: vertex
-
     integer :: e,eg
 
     integer :: icalld
     save    icalld
     data    icalld  /0/
+
+    write(*,*) "MAX: get_vert"
+
     if (icalld > 0) return
     icalld = 1
 

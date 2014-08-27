@@ -50,8 +50,7 @@
     integer ::        fldfilei( 60)
     equivalence   (fldfilei,fldfile2)
 
-    common /doit/ ifdoit
-    logical ::       ifdoit
+    logical, save :: ifdoit = .FALSE.
     logical ::       ifdoin
 
     real :: hdump(25)

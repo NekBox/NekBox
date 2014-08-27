@@ -113,8 +113,6 @@
     ,             H2 (LX1,LY1,LZ1,LELT)
 !    C!OMMON /SCRHI/ H2INV (LX1,LY1,LZ1,LELV)
 
-    write(*,*) "MAX: EIGENV"
-
     NTOT1  = NX1*NY1*NZ1*NELV
 
     IF (IFAA) THEN

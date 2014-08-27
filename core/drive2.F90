@@ -786,7 +786,7 @@ subroutine fluid (igeom)
 #if 0
       call twalluz (igeom) ! Turbulence model
 #endif
-      call chkptol         ! check pressure tolerance
+!max      call chkptol         ! check pressure tolerance
 !max      if (param(55) /= 0) call vol_flow        ! check for fixed flow rate
 
   elseif (iftran) then

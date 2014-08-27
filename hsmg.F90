@@ -138,18 +138,17 @@
     end subroutine hsmg_setup_intpm
 !----------------------------------------------------------------------
 subroutine hsmg_setup_dssum
-  use size_m, only : lx1, ly1, lz1, lelv, lelt, ldim, nelv, ndim
+  use size_m, only : lx1, ly1, lz1, lelv, ldim, nelv, ndim
   use input, only : if3d
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
+  use mesh, only : vertex
   use parallel, only : nelgv
   implicit none
 
   integer, parameter :: lxyz=(lx1+2)*(ly1+2)*(lz1+2)
-  common /ivrtx/ vertex ((2**ldim)*lelt)
 
   integer*8, allocatable :: glo_num(:)
-  integer :: vertex
   integer :: nx,ny,nz, ncrnr
   integer :: l
        
@@ -159,7 +158,6 @@ subroutine hsmg_setup_dssum
   ncrnr = 2**ndim
   call get_vert()
 
-!++   write(6,*) mg_fld,' mgfld in hsmg_setup_dssum'
   do l=1,mg_lmax-1
       nx=mg_nh(l)
       ny=mg_nh(l)
@@ -1715,23 +1713,23 @@ subroutine h1mg_setup_dssum
   use input, only : if3d
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
+  use mesh, only : vertex
   use parallel, only : nelgv
   implicit none
 
   integer, parameter :: lxyz=(lx1+2)*(ly1+2)*(lz1+2)
-  common /ivrtx/ vertex ((2**ldim)*lelt)
 
   integer*8, allocatable :: glo_num(:)
-  integer :: vertex
   integer :: nx,ny,nz, ncrnr
   integer :: l
   
   allocate(glo_num(lxyz*lelt)) 
  
+!     set up direct stiffness summation for each level
   ncrnr = 2**ndim
   call get_vert()
 
-  do l=1,mg_lmax  ! set up direct stiffness summation for each level
+  do l=1,mg_lmax 
       nx=mg_nh(l)
       ny=mg_nh(l)
       nz=mg_nhz(l)
@@ -1744,8 +1742,6 @@ subroutine h1mg_setup_dssum
       call setupds(mg_gsh_schwarz_handle(l,mg_fld),nx,ny,nz &
       ,nelv,nelgv,vertex,glo_num)
   enddo
-
-  return
 end subroutine h1mg_setup_dssum
 !----------------------------------------------------------------------
     subroutine mg_set_msk(p_msk ,l0)

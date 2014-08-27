@@ -1353,72 +1353,69 @@ end subroutine hsmg_setup_dssum
     return
     end subroutine hsmg_index_0
 !----------------------------------------------------------------------
-    subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
-    use ctimer
-
 !     Assumes that preprocessing has been completed via h1mg_setup()
+subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, lelt
+  use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
+  use tstep, only : nelfld, ifield
+  implicit none
 
+  real(DP) :: z(1),rhs(1)
+  logical :: if_hybrid
+       
+  real(DP) :: h1, h2 
+  common /scrvh/ h1    (lx1,ly1,lz1,lelv), &
+  h2    (lx1,ly1,lz1,lelv)
+  integer, parameter :: lt=lx1*ly1*lz1*lelt
+  real(DP) :: e, w, r
+  common /scrmg/ e(2*lt),w(lt),r(lt)
+  integer :: p_msk,p_b
 
-    use size_m
-    use geom
-    use input
-    use hsmg       ! Same array space as HSMG
-    use mass
-    use parallel
-    use soln
-    use tstep
-
-    real :: z(1),rhs(1)
-          
-    common /scrhi/ h2inv (lx1,ly1,lz1,lelv)
-    common /scrvh/ h1    (lx1,ly1,lz1,lelv), &
-    h2    (lx1,ly1,lz1,lelv)
-    parameter (lt=lx1*ly1*lz1*lelt)
-    common /scrmg/ e(2*lt),w(lt),r(lt)
-    integer :: p_msk,p_b
-    logical :: if_hybrid
+  real(DP) :: op, om, sigma
+  integer :: nel, l, n, is, im, i1, i
 
 !     if_hybrid = .true.    ! Control this from gmres, according
 !     if_hybrid = .false.   ! to convergence efficiency
 
-    nel   = nelfld(ifield)
+  nel   = nelfld(ifield)
 
-    op    =  1.                                     ! Coefficients for h1mg_ax
-    om    = -1.
-    sigma =  1.
-    if (if_hybrid) sigma = 2./3.
+  op    =  1.                                     ! Coefficients for h1mg_ax
+  om    = -1.
+  sigma =  1.
+  if (if_hybrid) sigma = 2./3.
 
-    l     = mg_h1_lmax
-    n     = mg_h1_n(l,mg_fld)
-    is    = 1                                       ! solve index
+  l     = mg_h1_lmax
+  n     = mg_h1_n(l,mg_fld)
+  is    = 1                                       ! solve index
 
-    call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M       rhs
+  call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M       rhs
 !               Schwarz
-    call copy(r,rhs,n)                              ! r  := rhs
+  call copy(r,rhs,n)                              ! r  := rhs
 !max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
 !  l
 
-    do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
-        is = is + n
-        n  = mg_h1_n(l,mg_fld)
-    !          T
-        call h1mg_rstr(r,l, .TRUE. )                   ! r   :=  J r
-    !  l         l+1
-    !        OVERLAPPING Schwarz exchange and solve:
-        call h1mg_schwarz(e(is),r,sigma,l)           ! e := sigma W M       r
-    !  l            Schwarz l
+  do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
+      is = is + n
+      n  = mg_h1_n(l,mg_fld)
+  !          T
+      call h1mg_rstr(r,l, .TRUE. )                   ! r   :=  J r
+  !  l         l+1
+  !        OVERLAPPING Schwarz exchange and solve:
+      call h1mg_schwarz(e(is),r,sigma,l)           ! e := sigma W M       r
+  !  l            Schwarz l
 
 !max        if(if_hybrid)call h1mg_axm(r,e(is),op,om,l,w)! r  := r - A e
-    !  l           l
-    enddo
-    is = is+n
+  !  l           l
+  enddo
+  is = is+n
 !         T
-    call h1mg_rstr(r,1, .FALSE. )                     ! r  :=  J  r
+  call h1mg_rstr(r,1, .FALSE. )                     ! r  :=  J  r
 !  l         l+1
-    p_msk = p_mg_msk(l,mg_fld)
-    call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
-    call hsmg_coarse_solve ( e(is) , r )            ! e  := A   r
-    call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
+  p_msk = p_mg_msk(l,mg_fld)
+  call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
+  call hsmg_coarse_solve ( e(is) , r )            ! e  := A   r
+  call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
 
 !     nx = mg_nh(1)
 !     call outnxfld (e(is),nx,nelv,'ecrsb4',is)
@@ -1426,29 +1423,29 @@ end subroutine hsmg_setup_dssum
 !     call outnxfld (e(is),nx,nelv,'ecrsaf',is)
 !     call exitt
 
-    do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
-        im = is
-        is = is - n
-        n  = mg_h1_n(l,mg_fld)
-        call hsmg_intp (w,e(im),l-1)                 ! w   :=  J e
-        i1=is-1                                      !            l-1
-        do i=1,n
-            e(i1+i) = e(i1+i) + w(i)                  ! e   :=  e  + w
-        enddo                                        !  l       l
-    enddo
+  do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
+      im = is
+      is = is - n
+      n  = mg_h1_n(l,mg_fld)
+      call hsmg_intp (w,e(im),l-1)                 ! w   :=  J e
+      i1=is-1                                      !            l-1
+      do i=1,n
+          e(i1+i) = e(i1+i) + w(i)                  ! e   :=  e  + w
+      enddo                                        !  l       l
+  enddo
 
-    l  = mg_h1_lmax
-    n  = mg_h1_n(l,mg_fld)
-    im = is  ! solve index
-    call hsmg_intp(w,e(im),l-1)                     ! w   :=  J e
-    do i = 1,n                                      !            l-1
-        z(i) = z(i) + w(i)                           ! z := z + w
-    enddo
+  l  = mg_h1_lmax
+  n  = mg_h1_n(l,mg_fld)
+  im = is  ! solve index
+  call hsmg_intp(w,e(im),l-1)                     ! w   :=  J e
+  do i = 1,n                                      !            l-1
+      z(i) = z(i) + w(i)                           ! z := z + w
+  enddo
 
-    call dsavg(z) ! Emergency hack --- to ensure continuous z!
+  call dsavg(z) ! Emergency hack --- to ensure continuous z!
 
-    return
-    end subroutine h1mg_solve
+  return
+end subroutine h1mg_solve
 !-----------------------------------------------------------------------
     subroutine h1mg_mask(w,mask,nel)
     use size_m
@@ -1585,59 +1582,45 @@ end subroutine hsmg_setup_dssum
     return
     end subroutine h1mg_rstr
 !----------------------------------------------------------------------
-    subroutine h1mg_setup()
-    use size_m
-    use hsmg
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+subroutine h1mg_setup()
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nelt
+  use hsmg, only : mg_h1_lmax
+  use input, only : param
+  implicit none
 
-    common /scrhi/ h2inv (lx1,ly1,lz1,lelt)
-    common /scrvh/ h1    (lx1,ly1,lz1,lelt), &
-    h2    (lx1,ly1,lz1,lelt)
+!  c!ommon /scrhi/ h2inv (lx1,ly1,lz1,lelt)
+  real(DP) :: h1, h2
+  common /scrvh/ h1    (lx1,ly1,lz1,lelt), &
+  h2    (lx1,ly1,lz1,lelt)
 
-    integer :: p_h1,p_h2,p_g,p_b,p_msk
+  integer :: p_h1,p_h2,p_g,p_b,p_msk, n, l
 
+  param(59) = 1
+  call geom_reset(1)  ! Recompute g1m1 etc. with deformed only
 
-    param(59) = 1
-    call geom_reset(1)  ! Recompute g1m1 etc. with deformed only
+  n = nx1*ny1*nz1*nelt
+  call rone (h1   ,n)
+  call rzero(h2   ,n)
+!max  call rzero(h2inv,n)
 
-    n = nx1*ny1*nz1*nelt
-    call rone (h1   ,n)
-    call rzero(h2   ,n)
-    call rzero(h2inv,n)
+  call h1mg_setup_mg_nx
+  call h1mg_setup_semhat ! SEM hat matrices for each level
+  call hsmg_setup_intp   ! Interpolation operators
+  call h1mg_setup_dssum  ! set direct stiffness summation handles
+  call h1mg_setup_wtmask ! set restriction weight matrices and bc masks
+  call h1mg_setup_fdm    ! set up fast diagonalization method
+  call h1mg_setup_schwarz_wt( .FALSE. )
+  call hsmg_setup_solve  ! set up the solver
 
-    call h1mg_setup_mg_nx
-    call h1mg_setup_semhat ! SEM hat matrices for each level
-    call hsmg_setup_intp   ! Interpolation operators
-    call h1mg_setup_dssum  ! set direct stiffness summation handles
-    call h1mg_setup_wtmask ! set restriction weight matrices and bc masks
-    call h1mg_setup_fdm    ! set up fast diagonalization method
-    call h1mg_setup_schwarz_wt( .FALSE. )
-    call hsmg_setup_solve  ! set up the solver
+  l=mg_h1_lmax
+  call mg_set_h1  (p_h1 ,l)
+  call mg_set_h2  (p_h2 ,l)
+  call mg_set_gb  (p_g,p_b,l)
+  call mg_set_msk (p_msk,l)
 
-    l=mg_h1_lmax
-    call mg_set_h1  (p_h1 ,l)
-    call mg_set_h2  (p_h2 ,l)
-    call mg_set_gb  (p_g,p_b,l)
-    call mg_set_msk (p_msk,l)
-
-    return
-    end subroutine h1mg_setup
+  return
+end subroutine h1mg_setup
 !-----------------------------------------------------------------------
     subroutine h1mg_setup_mg_nx()
     use size_m

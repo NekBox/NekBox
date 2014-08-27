@@ -3,6 +3,7 @@
 
 !     Solve the convection-diffusion equation for passive scalar IPSCAL
 
+    use kinds, only : DP
     use size_m
     use geom
     use input
@@ -23,10 +24,12 @@
     parameter (laxt = mxprev)
 
     integer, save :: napprox(2) = 0
-    common /trthov/ approx(ktot,0:laxt)
+    real(DP), allocatable, save :: approx(:,:)
     character(4) ::     name4
 
 !max    include 'ORTHOT'
+
+    if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
 
     napprox(1) = laxt
 

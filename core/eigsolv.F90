@@ -329,51 +329,6 @@
     RETURN
     END SUBROUTINE GAMMAM1
 
-    SUBROUTINE ALPHAM2 (ALPHA,H1,H2,H2INV,INLOC)
-!----------------------------------------------------------------------
-
-!     Compute minimum eigenvalue, ALPHA, of one of the matrices
-!     defined on the pressure mesh:
-!     INLOC =  0  : DA-1DT
-!     INLOC =  1  : DB-1DT
-!     INLOC = -1  : D(A+B/DT)-1DT
-
-!----------------------------------------------------------------------
-    use size_m
-    use mass
-    use tstep
-
-    REAL ::           H1   (LX1,LY1,LZ1,1)
-    REAL ::           H2   (LX1,LY1,LZ1,1)
-    REAL ::           H2INV(LX1,LY1,LZ1,1)
-    COMMON /SCREV/ X2   (LX2,LY2,LZ2,LELV) &
-    ,             Y2   (LX2,LY2,LZ2,LELV)
-
-    NTOT2  = NX2*NY2*NZ2*NELV
-    EVNEW  = 0.
-    CALL STARTX2 (X2,Y2)
-
-    DO 1000 ITER=1,NMXE
-        CALL CDABDTP (Y2,X2,H1,H2,H2INV,INLOC)
-        RQ = GLSC2  (X2,Y2,NTOT2)
-        EVOLD  = EVNEW
-        EVNEW  = RQ
-    !        write (6,*) 'new eigenvalue ************* eigas = ',evnew
-        CRIT   = ABS((EVNEW-EVOLD)/EVNEW)
-        IF (CRIT < TOLEV)                GOTO 2000
-        CALL COL2   (X2,BM2,NTOT2)
-        CALL UZAWA  (X2,H1,H2,H2INV,INLOC,ICG)
-        CALL COL3   (Y2,BM2,X2,NTOT2)
-        XX = GLSC2 (X2,Y2,NTOT2)
-        XNORM = 1./SQRT(XX)
-        CALL CMULT  (X2,XNORM,NTOT2)
-    1000 END DO
-    2000 CONTINUE
-
-    ALPHA = RQ
-    RETURN
-    END SUBROUTINE ALPHAM2
-
     SUBROUTINE GAMMAM2 (GAMMA,H1,H2,H2INV,INLOC)
 !-------------------------------------------------------------------
 

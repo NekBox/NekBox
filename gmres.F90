@@ -91,7 +91,6 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   integer :: iter
 
   real(DP) :: divex
-  common  /ctolpr/ divex
   logical ::          ifprint
   common  /cprint/ ifprint
   real(DP) :: d, wk

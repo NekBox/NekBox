@@ -72,7 +72,6 @@ subroutine set_overlap
       ifield = 1
 
       if (ifsplit .AND. ifmgrid) then
-          write(*,*) "MAX: ifmgrid"
           if (ipass > 1) ifield = ifldmhd
 
           call swap_lengths

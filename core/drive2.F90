@@ -44,14 +44,9 @@ subroutine initdat
   use tstep,    only : if_full_pres
   implicit none
 
-  LOGICAL ::       IFDOIT
-  COMMON /DOIT/ IFDOIT
-
   integer :: nel8, ntot
 
 !     Set default logicals
-
-  IFDOIT    = .FALSE. 
   IFCVODE   = .FALSE. 
   IFEXPLVIS = .FALSE. 
 

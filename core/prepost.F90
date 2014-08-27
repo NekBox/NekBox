@@ -1348,10 +1348,13 @@ end subroutine prepost_map
         offs = offs0 + ndim*strideB
         call byte_set_view(offs,ifh_mbyte)
         if (ifreguo) then
+          write(*,*) "Oops: ifreguo"
+#if 0
             call map2reg(ur1,nrg,xm1,nout)
             call map2reg(ur2,nrg,ym1,nout)
             if (if3d) call map2reg(ur3,nrg,zm1,nout)
             call mfo_outv(ur1,ur2,ur3,nout,nxo,nyo,nzo)
+#endif
         else
             call mfo_outv(xm1,ym1,zm1,nout,nxo,nyo,nzo)
         endif
@@ -1361,10 +1364,13 @@ end subroutine prepost_map
         offs = offs0 + ioflds*stride + ndim*strideB
         call byte_set_view(offs,ifh_mbyte)
         if (ifreguo) then
+          write(*,*) "Oops: ifreguo"
+#if 0
             call map2reg(ur1,nrg,vx,nout)
             call map2reg(ur2,nrg,vy,nout)
             if (if3d) call map2reg(ur3,nrg,vz,nout)
             call mfo_outv(ur1,ur2,ur3,nout,nxo,nyo,nzo)
+#endif
         else
             call mfo_outv(vx,vy,vz,nout,nxo,nyo,nzo)  ! B-field handled thru outpost
         endif
@@ -1374,8 +1380,11 @@ end subroutine prepost_map
         offs = offs0 + ioflds*stride + strideB
         call byte_set_view(offs,ifh_mbyte)
         if (ifreguo) then
+          write(*,*) "Oops: ifreguo"
+#if 0
             call map2reg(ur1,nrg,pm1,nout)
             call mfo_outs(ur1,nout,nxo,nyo,nzo)
+#endif
         else
             call mfo_outs(pm1,nout,nxo,nyo,nzo)
         endif
@@ -1385,8 +1394,11 @@ end subroutine prepost_map
         offs = offs0 + ioflds*stride + strideB
         call byte_set_view(offs,ifh_mbyte)
         if (ifreguo) then
+          write(*,*) "Oops: ifreguo"
+#if 0
             call map2reg(ur1,nrg,t,nout)
             call mfo_outs(ur1,nout,nxo,nyo,nzo)
+#endif
         else
             call mfo_outs(t,nout,nxo,nyo,nzo)
         endif
@@ -1397,8 +1409,11 @@ end subroutine prepost_map
             offs = offs0 + ioflds*stride + strideB
             call byte_set_view(offs,ifh_mbyte)
             if (ifreguo) then
+          write(*,*) "Oops: ifreguo"
+#if 0
                 call map2reg(ur1,nrg,t(1,1,1,1,k+1),nout)
                 call mfo_outs(ur1,nout,nxo,nyo,nzo)
+#endif
             else
                 call mfo_outs(t(1,1,1,1,k+1),nout,nxo,nyo,nzo)
             endif

@@ -28,52 +28,6 @@
 
     RETURN
     END SUBROUTINE SETAXW2
-    SUBROUTINE STNRINV
-
-!     Calculate 2nd and 3rd strain-rate invariants
-
-    use size_m
-    use soln
-    use tstep
-    common /screv/ ei2(lx1,ly1,lz1,lelt) &
-    , ei3(lx1,ly1,lz1,lelt)
-    common /ctmp1/ exx(lx1,ly1,lz1,lelt) &
-    , exy(lx1,ly1,lz1,lelt) &
-    , eyy(lx1,ly1,lz1,lelt) &
-    , ezz(lx1,ly1,lz1,lelt)
-    common /ctmp0/ exz(lx1,ly1,lz1,lelt) &
-    , eyz(lx1,ly1,lz1,lelt)
-
-    NTOT1  = NX1*NY1*NZ1*NELV
-    CALL RZERO (EI2,NTOT1)
-    CALL RZERO (EI3,NTOT1)
-    IF (ISTEP == 0) RETURN
-
-    MATMOD = 0
-    CALL STNRATE (VX,VY,VZ,NELV,MATMOD)
-
-    IF (NDIM == 2) THEN
-        CALL COL3    (EI2,EXX,EYY,NTOT1)
-        CALL SUBCOL3 (EI2,EXY,EXY,NTOT1)
-        CALL RZERO   (EI3,NTOT1)
-    ELSE
-        CONST = 2.0
-        CALL COL4    (EI3,EXX,EYY,EZZ,NTOT1)
-        CALL COL4    (EI2,EXY,EXZ,EYZ,NTOT1)
-        CALL ADD2S2  (EI3,EI2,CONST,NTOT1)
-        CALL SUBCOL4 (EI3,EXX,EYZ,EYZ,NTOT1)
-        CALL SUBCOL4 (EI3,EYY,EXZ,EXZ,NTOT1)
-        CALL SUBCOL4 (EI3,EZZ,EXY,EXY,NTOT1)
-        CALL COL3    (EI2,EXX,EYY,NTOT1)
-        CALL ADDCOL3 (EI2,EXX,EZZ,NTOT1)
-        CALL ADDCOL3 (EI2,EYY,EZZ,NTOT1)
-        CALL SUBCOL3 (EI2,EXY,EXY,NTOT1)
-        CALL SUBCOL3 (EI2,EXZ,EXZ,NTOT1)
-        CALL SUBCOL3 (EI2,EYZ,EYZ,NTOT1)
-    ENDIF
-
-    RETURN
-    END SUBROUTINE STNRINV
 
     SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
 

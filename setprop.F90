@@ -43,7 +43,7 @@ subroutine setprop
   ifld = ifield
 
   DO IFIELD=MFIELD,nfldt
-      IF (IFSTRS .AND. IFIELD == 1) CALL STNRINV ! expensive !
+!max      IF (IFSTRS .AND. IFIELD == 1) CALL STNRINV ! expensive !
 
       CALL VPROPS
 

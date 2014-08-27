@@ -26,7 +26,6 @@ subroutine plan4
 
   real(DP) :: res1, res2, res3, dv1, dv2, dv3, respr
   real(DP) :: h1, h2
-  real(DP) :: vext
   COMMON /SCRNS/ RES1  (LX1,LY1,LZ1,LELV) &
   ,             RES2  (LX1,LY1,LZ1,LELV) &
   ,             RES3  (LX1,LY1,LZ1,LELV) &
@@ -36,7 +35,7 @@ subroutine plan4
   ,             RESPR (LX2,LY2,LZ2,LELV)
   common /scrvh/ h1    (lx1,ly1,lz1,lelv) &
   ,             h2    (lx1,ly1,lz1,lelv)
-  COMMON /SCRSF/ VEXT  (LX1*LY1*LZ1*LELV,3)
+  real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
   REAL(DP) ::           DPR   (LX2,LY2,LZ2,LELV)
   EQUIVALENCE   (DPR,DV1)
   LOGICAL ::        IFSTSP
@@ -78,7 +77,7 @@ subroutine plan4
   etime1=dnekclock()
 #endif
 
-  call crespsp  (respr)
+  call crespsp  (respr, vext)
   call invers2  (h1,vtrans,ntot1)
   call rzero    (h2,ntot1)
   call ctolspl  (tolspl,respr)
@@ -147,141 +146,137 @@ subroutine plan4
 end subroutine plan4
 
 !-----------------------------------------------------------------------
-    subroutine crespsp (respr)
+!> \brief Compute start residual/right-hand-side in the pressure
+subroutine crespsp (respr, vext)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  use geom, only : rxm2, sxm2, txm2, rym2, sym2, tym2, rzm2, szm2, tzm2
+  use geom, only : unx, uny, unz, area
+  use input, only : ifaxis, if3d, cbc
+  use mass, only : bm1, binvm1
+  use soln, only : vx, vy, vz, bfx, bfy, bfz, pr
+  use soln, only : vtrans, vdiff, qtl, omask
+  use tstep, only : imesh, bd, dt, ifield
+  implicit none
 
-!     Compute start residual/right-hand-side in the pressure
+  REAL(DP) ::           RESPR (LX2*LY2*LZ2*LELV)
+  real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  real(DP) :: ta1, ta2, ta3, wa1, wa2, wa3
+  COMMON /SCRNS/ TA1   (LX1*LY1*LZ1,LELV) &
+  ,             TA2   (LX1*LY1*LZ1,LELV) &
+  ,             TA3   (LX1*LY1*LZ1,LELV) &
+  ,             WA1   (LX1*LY1*LZ1*LELV) &
+  ,             WA2   (LX1*LY1*LZ1*LELV) &
+  ,             WA3   (LX1*LY1*LZ1*LELV)
+  real(DP) :: w1, w2
+  COMMON /SCRMG/ W1    (LX1*LY1*LZ1*LELV) &
+  ,             W2    (LX1*LY1*LZ1*LELV)
+  CHARACTER CB*3
 
-    REAL ::           RESPR (LX2*LY2*LZ2*LELV)
+  integer :: nxyz1, ntot1, nfaces       
+  integer :: i, n, ifc, iel
+  real(DP) :: scale, dtbd
+ 
+  NXYZ1  = NX1*NY1*NZ1
+  NTOT1  = NXYZ1*NELV
+  NFACES = 2*NDIM
 
-    COMMON /SCRNS/ TA1   (LX1*LY1*LZ1,LELV) &
-    ,             TA2   (LX1*LY1*LZ1,LELV) &
-    ,             TA3   (LX1*LY1*LZ1,LELV) &
-    ,             WA1   (LX1*LY1*LZ1*LELV) &
-    ,             WA2   (LX1*LY1*LZ1*LELV) &
-    ,             WA3   (LX1*LY1*LZ1*LELV)
-    COMMON /SCRMG/ W1    (LX1*LY1*LZ1*LELV) &
-    ,             W2    (LX1*LY1*LZ1*LELV)
-    COMMON /SCRSF/ VEXT  (LX1*LY1*LZ1*LELV,3)
+!   -mu*curl(curl(v))
+  call op_curl (ta1,ta2,ta3,vext(1,1),vext(1,2),vext(1,3), &
+   .TRUE. ,w1,w2)
+  if(IFAXIS) then
+      CALL COL2 (TA2, OMASK,NTOT1)
+      CALL COL2 (TA3, OMASK,NTOT1)
+  endif
+  call op_curl  (wa1,wa2,wa3,ta1,ta2,ta3, .TRUE. ,w1,w2)
+  if(IFAXIS) then
+      CALL COL2  (WA2, OMASK,NTOT1)
+      CALL COL2  (WA3, OMASK,NTOT1)
+  endif
+  call opcolv   (wa1,wa2,wa3,bm1)
 
-    CHARACTER CB*3
-          
-    NXYZ1  = NX1*NY1*NZ1
-    NTOT1  = NXYZ1*NELV
-    NFACES = 2*NDIM
+  call opgrad   (ta1,ta2,ta3,QTL)
+  if(IFAXIS) then
+      CALL COL2  (ta2, OMASK,ntot1)
+      CALL COL2  (ta3, OMASK,ntot1)
+  endif
+  scale = -4./3.
+  call opadd2cm (wa1,wa2,wa3,ta1,ta2,ta3,scale)
+  call invcol3  (w1,vdiff,vtrans,ntot1)
+  call opcolv   (wa1,wa2,wa3,w1)
 
-!     -mu*curl(curl(v))
-    call op_curl (ta1,ta2,ta3,vext(1,1),vext(1,2),vext(1,3), &
-     .TRUE. ,w1,w2)
-    if(IFAXIS) then
-        CALL COL2 (TA2, OMASK,NTOT1)
-        CALL COL2 (TA3, OMASK,NTOT1)
-    endif
-    call op_curl  (wa1,wa2,wa3,ta1,ta2,ta3, .TRUE. ,w1,w2)
-    if(IFAXIS) then
-        CALL COL2  (WA2, OMASK,NTOT1)
-        CALL COL2  (WA3, OMASK,NTOT1)
-    endif
-    call opcolv   (wa1,wa2,wa3,bm1)
+!   add old pressure term because we solve for delta p
+  CALL INVERS2 (TA1,VTRANS,NTOT1)
+  CALL RZERO   (TA2,NTOT1)
+  CALL AXHELM  (RESPR,PR,TA1,TA2,IMESH,1)
+  CALL CHSIGN  (RESPR,NTOT1)
 
-    call opgrad   (ta1,ta2,ta3,QTL)
-    if(IFAXIS) then
-        CALL COL2  (ta2, OMASK,ntot1)
-        CALL COL2  (ta3, OMASK,ntot1)
-    endif
-    scale = -4./3.
-    call opadd2cm (wa1,wa2,wa3,ta1,ta2,ta3,scale)
-    call invcol3  (w1,vdiff,vtrans,ntot1)
-    call opcolv   (wa1,wa2,wa3,w1)
+!   add explicit (NONLINEAR) terms
+  n = nx1*ny1*nz1*nelv
+  do i=1,n
+      ta1(i,1) = bfx(i,1,1,1)/vtrans(i,1,1,1,1)-wa1(i)
+      ta2(i,1) = bfy(i,1,1,1)/vtrans(i,1,1,1,1)-wa2(i)
+      ta3(i,1) = bfz(i,1,1,1)/vtrans(i,1,1,1,1)-wa3(i)
+  enddo
+  call opdssum (ta1,ta2,ta3)
+  do i=1,n
+      ta1(i,1) = ta1(i,1)*binvm1(i,1,1,1)
+      ta2(i,1) = ta2(i,1)*binvm1(i,1,1,1)
+      ta3(i,1) = ta3(i,1)*binvm1(i,1,1,1)
+  enddo
+  if (if3d) then
+      call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
+      call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
+      call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
+      do i=1,n
+          respr(i) = respr(i)+wa1(i)+wa2(i)+wa3(i)
+      enddo
+  else
+      call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
+      call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
+      do i=1,n
+          respr(i) = respr(i)+wa1(i)+wa2(i)
+      enddo
+  endif
 
-!     add old pressure term because we solve for delta p
-    CALL INVERS2 (TA1,VTRANS,NTOT1)
-    CALL RZERO   (TA2,NTOT1)
-    CALL AXHELM  (RESPR,PR,TA1,TA2,IMESH,1)
-    CALL CHSIGN  (RESPR,NTOT1)
+!   add thermal divergence
+  dtbd = BD(1)/DT
+  call admcol3(respr,QTL,bm1,dtbd,ntot1)
+   
+!   surface terms
+  DO 300 IFC=1,NFACES
+      CALL RZERO  (TA1,NTOT1)
+      CALL RZERO  (TA2,NTOT1)
+      IF (NDIM == 3) &
+      CALL RZERO  (TA3,NTOT1)
+      DO 100 IEL=1,NELV
+          CB = CBC(IFC,IEL,IFIELD)
+          IF (CB(1:1) == 'V' .OR. CB(1:1) == 'v') THEN
+              CALL FACCL3 &
+              (TA1(1,IEL),VX(1,1,1,IEL),UNX(1,1,IFC,IEL),IFC)
+              CALL FACCL3 &
+              (TA2(1,IEL),VY(1,1,1,IEL),UNY(1,1,IFC,IEL),IFC)
+              IF (NDIM == 3) &
+              CALL FACCL3 &
+              (TA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
+          ENDIF
+          CALL ADD2   (TA1(1,IEL),TA2(1,IEL),NXYZ1)
+          IF (NDIM == 3) &
+          CALL ADD2   (TA1(1,IEL),TA3(1,IEL),NXYZ1)
+          CALL FACCL2 (TA1(1,IEL),AREA(1,1,IFC,IEL),IFC)
+      100 END DO
+      CALL CMULT(TA1,dtbd,NTOT1)
+      CALL SUB2 (RESPR,TA1,NTOT1)
+  300 END DO
 
-!     add explicit (NONLINEAR) terms
-    n = nx1*ny1*nz1*nelv
-    do i=1,n
-        ta1(i,1) = bfx(i,1,1,1)/vtrans(i,1,1,1,1)-wa1(i)
-        ta2(i,1) = bfy(i,1,1,1)/vtrans(i,1,1,1,1)-wa2(i)
-        ta3(i,1) = bfz(i,1,1,1)/vtrans(i,1,1,1,1)-wa3(i)
-    enddo
-    call opdssum (ta1,ta2,ta3)
-    do i=1,n
-        ta1(i,1) = ta1(i,1)*binvm1(i,1,1,1)
-        ta2(i,1) = ta2(i,1)*binvm1(i,1,1,1)
-        ta3(i,1) = ta3(i,1)*binvm1(i,1,1,1)
-    enddo
-    if (if3d) then
-        call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
-        call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
-        call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
-        do i=1,n
-            respr(i) = respr(i)+wa1(i)+wa2(i)+wa3(i)
-        enddo
-    else
-        call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
-        call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
-        do i=1,n
-            respr(i) = respr(i)+wa1(i)+wa2(i)
-        enddo
-    endif
+!   Assure that the residual is orthogonal to (1,1,...,1)T
+!   (only if all Dirichlet b.c.)
+  CALL ORTHO (RESPR)
 
-!     add thermal divergence
-    dtbd = BD(1)/DT
-    call admcol3(respr,QTL,bm1,dtbd,ntot1)
-     
-!     surface terms
-    DO 300 IFC=1,NFACES
-        CALL RZERO  (TA1,NTOT1)
-        CALL RZERO  (TA2,NTOT1)
-        IF (NDIM == 3) &
-        CALL RZERO  (TA3,NTOT1)
-        DO 100 IEL=1,NELV
-            CB = CBC(IFC,IEL,IFIELD)
-            IF (CB(1:1) == 'V' .OR. CB(1:1) == 'v') THEN
-                CALL FACCL3 &
-                (TA1(1,IEL),VX(1,1,1,IEL),UNX(1,1,IFC,IEL),IFC)
-                CALL FACCL3 &
-                (TA2(1,IEL),VY(1,1,1,IEL),UNY(1,1,IFC,IEL),IFC)
-                IF (NDIM == 3) &
-                CALL FACCL3 &
-                (TA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
-            ENDIF
-            CALL ADD2   (TA1(1,IEL),TA2(1,IEL),NXYZ1)
-            IF (NDIM == 3) &
-            CALL ADD2   (TA1(1,IEL),TA3(1,IEL),NXYZ1)
-            CALL FACCL2 (TA1(1,IEL),AREA(1,1,IFC,IEL),IFC)
-        100 END DO
-        CALL CMULT(TA1,dtbd,NTOT1)
-        CALL SUB2 (RESPR,TA1,NTOT1)
-    300 END DO
-
-!     Assure that the residual is orthogonal to (1,1,...,1)T
-!     (only if all Dirichlet b.c.)
-    CALL ORTHO (RESPR)
-
-    return
-    end subroutine crespsp
+  return
+  end subroutine crespsp
 !----------------------------------------------------------------------
     subroutine cresvsp (resv1,resv2,resv3,h1,h2)
 

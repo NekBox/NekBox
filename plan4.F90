@@ -275,62 +275,51 @@ subroutine crespsp (respr, vext)
   return
   end subroutine crespsp
 !----------------------------------------------------------------------
-    subroutine cresvsp (resv1,resv2,resv3,h1,h2)
+!> \brief Compute the residual for the velocity
+subroutine cresvsp (resv1,resv2,resv3,h1,h2)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv
+  use size_m, only : lx1, ly1, lz1, lelv
+  use input, only : ifaxis
+  use soln, only : vx, vy, vz, vdiff, qtl, pr, omask, bfx, bfy, bfz
+  implicit none
 
-!     Compute the residual for the velocity
+  real(DP) :: resv1(lx1,ly1,lz1,lelv) &
+  , resv2(lx1,ly1,lz1,lelv) &
+  , resv3(lx1,ly1,lz1,lelv) &
+  , h1   (lx1,ly1,lz1,lelv) &
+  , h2   (lx1,ly1,lz1,lelv)
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  real(DP) :: TA1   (LX1,LY1,LZ1,LELV) &
+  ,             TA2   (LX1,LY1,LZ1,LELV) &
+  ,             TA3   (LX1,LY1,LZ1,LELV) &
+  ,             TA4   (LX1,LY1,LZ1,LELV)
 
-    real :: resv1(lx1,ly1,lz1,lelv) &
-    , resv2(lx1,ly1,lz1,lelv) &
-    , resv3(lx1,ly1,lz1,lelv) &
-    , h1   (lx1,ly1,lz1,lelv) &
-    , h2   (lx1,ly1,lz1,lelv)
+  integer :: ntot, intype
+  real(DP) :: scale
 
-    COMMON /SCRUZ/ TA1   (LX1,LY1,LZ1,LELV) &
-    ,             TA2   (LX1,LY1,LZ1,LELV) &
-    ,             TA3   (LX1,LY1,LZ1,LELV) &
-    ,             TA4   (LX1,LY1,LZ1,LELV)
+  NTOT = NX1*NY1*NZ1*NELV
+  INTYPE = -1
 
-    NTOT = NX1*NY1*NZ1*NELV
-    INTYPE = -1
+  CALL SETHLM  (H1,H2,INTYPE)
 
-    CALL SETHLM  (H1,H2,INTYPE)
+  CALL OPHX    (RESV1,RESV2,RESV3,VX,VY,VZ,H1,H2)
+  CALL OPCHSGN (RESV1,RESV2,RESV3)
 
-    CALL OPHX    (RESV1,RESV2,RESV3,VX,VY,VZ,H1,H2)
-    CALL OPCHSGN (RESV1,RESV2,RESV3)
+  scale = -1./3.
+  call col3    (ta4,vdiff,qtl,ntot)
+  call add2s1  (ta4,pr,scale,ntot)
+  call opgrad  (ta1,ta2,ta3,TA4)
+  if(IFAXIS) then
+      CALL COL2 (TA2, OMASK,NTOT)
+      CALL COL2 (TA3, OMASK,NTOT)
+  endif
 
-    scale = -1./3.
-    call col3    (ta4,vdiff,qtl,ntot)
-    call add2s1  (ta4,pr,scale,ntot)
-    call opgrad  (ta1,ta2,ta3,TA4)
-    if(IFAXIS) then
-        CALL COL2 (TA2, OMASK,NTOT)
-        CALL COL2 (TA3, OMASK,NTOT)
-    endif
+  call opsub2  (resv1,resv2,resv3,ta1,ta2,ta3)
+  call opadd2  (resv1,resv2,resv3,bfx,bfy,bfz)
 
-    call opsub2  (resv1,resv2,resv3,ta1,ta2,ta3)
-    call opadd2  (resv1,resv2,resv3,bfx,bfy,bfz)
-
-    return
-    end subroutine cresvsp
+  return
+end subroutine cresvsp
 
 !-----------------------------------------------------------------------
     subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)

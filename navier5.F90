@@ -1,189 +1,173 @@
 !-----------------------------------------------------------------------
-    subroutine q_filter(wght)
+!> \brief filter vx,vy,vz, and p by simple interpolation
+subroutine q_filter(wght)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lx2, lelt, lelv
+  use size_m, only : nx1, ny1, nz1, nx2, nid, npert, ndim
+  use input, only : ifflow, ifbase, if3d, ifsplit, ifldmhd, ifpert, ifheat
+  use input, only : ifcvode, param, ifmhd, iflomach, npscal
+  use soln, only : vx, vy, vz, pr, bx, by, bz, vxp, vyp, vzp, tp, t
+  use tstep, only : ifield, istep
+  use wz_m, only : zgm1, zgm2
+  implicit none
 
-!     filter vx,vy,vz, and p by simple interpolation
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
+  real(DP) :: wght
 
 !     These are the dimensions that we interpolate onto for v and p:
-    parameter(lxv=lx1-1)
-    parameter(lxp=lx2-1)
+  integer, parameter :: lxv=lx1-1
+  integer, parameter :: lxp=lx2-1
 
-    real :: intdv(lx1,lx1)
-    real :: intuv(lx1,lx1)
-    real :: intdp(lx1,lx1)
-    real :: intup(lx1,lx1)
-    real :: intv(lx1,lx1)
-    real :: intp(lx1,lx1)
+  real(DP), save :: intdv(lx1,lx1)
+  real(DP), save :: intuv(lx1,lx1)
+  real(DP), save :: intdp(lx1,lx1)
+  real(DP), save :: intup(lx1,lx1)
+  real(DP), save :: intv(lx1,lx1)
+  real(DP), save :: intp(lx1,lx1)
 
-    save intdv
-    save intuv
-    save intdp
-    save intup
-    save intv
-    save intp
+  real(DP) :: intw(lx1,lx1)
+  real(DP) :: intt(lx1,lx1)
+  real(DP) :: wk1  (lx1,lx1,lx1,lelt)
+  real(DP) :: wk2  (lx1,lx1,lx1)
+  real(DP) :: zgmv(lx1),wgtv(lx1),zgmp(lx1),wgtp(lx1)
+  real(DP) :: tmax, omax
+  common /ctmp0/ intw,intt &
+  , wk1,wk2 &
+  , zgmv,wgtv,zgmp,wgtp,tmax(100),omax(103)
 
-    common /ctmp0/ intw,intt &
-    , wk1,wk2 &
-    , zgmv,wgtv,zgmp,wgtp,tmax(100),omax(103)
+!   outpost arrays
+  integer, parameter :: lt=lx1*ly1*lz1*lelv
 
-    real :: intw(lx1,lx1)
-    real :: intt(lx1,lx1)
-    real :: wk1  (lx1,lx1,lx1,lelt)
-    real :: wk2  (lx1,lx1,lx1)
-    real :: zgmv(lx1),wgtv(lx1),zgmp(lx1),wgtp(lx1)
+  character(18) :: sfmt
 
-!     outpost arrays
-    parameter (lt=lx1*ly1*lz1*lelv)
-    common /scruz/ w1(lt),w2(lt),w3(lt),wt(lt)
+  integer, save :: icalld = 0
 
-    character(18) :: sfmt
+  integer :: imax, jmax, ncut, ifldt, j, mmax, nfldt, ifld, k
+  integer, external :: iglmax
+  real(DP) :: w0, umax, vmax, wmax, pmax
+  real(DP), external :: glmax
+  logical :: if_fltv
 
-    integer :: icalld
-    save    icalld
-    data    icalld /0/
+  imax = nid
+  imax = iglmax(imax,1)
+  jmax = iglmax(imax,1)
+  if (icalld == 0) then
+      icalld = 1
+      ncut = param(101)+1
+      call build_new_filter(intv,zgm1,nx1,ncut,wght,nid)
+  elseif (icalld < 0) then   ! old (std.) filter
+      icalld = 1
+      call zwgll(zgmv,wgtv,lxv)
+      call igllm(intuv,intw,zgmv,zgm1,lxv,nx1,lxv,nx1)
+      call igllm(intdv,intw,zgm1,zgmv,nx1,lxv,nx1,lxv)
+  
+      call zwgl (zgmp,wgtp,lxp)
+      call iglm (intup,intw,zgmp,zgm2,lxp,nx2,lxp,nx2)
+      call iglm (intdp,intw,zgm2,zgmp,nx2,lxp,nx2,lxp)
+  
+  !        Multiply up and down interpolation into single operator
+  
+      call mxm(intup,nx2,intdp,lxp,intp,nx2)
+      call mxm(intuv,nx1,intdv,lxv,intv,nx1)
+  
+  !        Weight the filter to make it a smooth (as opposed to truncated)
+  !        decay in wave space
 
-    logical :: if_fltv
+      w0 = 1.-wght
+      call ident(intup,nx2)
+      call add2sxy(intp,wght,intup,w0,nx2*nx2)
 
-    imax = nid
-    imax = iglmax(imax,1)
-    jmax = iglmax(imax,1)
-    if (icalld == 0) then
-        icalld = 1
-        ncut = param(101)+1
-        call build_new_filter(intv,zgm1,nx1,ncut,wght,nid)
-    elseif (icalld < 0) then   ! old (std.) filter
-        icalld = 1
-        call zwgll(zgmv,wgtv,lxv)
-        call igllm(intuv,intw,zgmv,zgm1,lxv,nx1,lxv,nx1)
-        call igllm(intdv,intw,zgm1,zgmv,nx1,lxv,nx1,lxv)
-    
-        call zwgl (zgmp,wgtp,lxp)
-        call iglm (intup,intw,zgmp,zgm2,lxp,nx2,lxp,nx2)
-        call iglm (intdp,intw,zgm2,zgmp,nx2,lxp,nx2,lxp)
-    
-    !        Multiply up and down interpolation into single operator
-    
-        call mxm(intup,nx2,intdp,lxp,intp,nx2)
-        call mxm(intuv,nx1,intdv,lxv,intv,nx1)
-    
-    !        Weight the filter to make it a smooth (as opposed to truncated)
-    !        decay in wave space
+      call ident   (intuv,nx1)
+      call add2sxy (intv ,wght,intuv,w0,nx1*nx1)
 
-        w0 = 1.-wght
-        call ident(intup,nx2)
-        call add2sxy(intp,wght,intup,w0,nx2*nx2)
+  endif
 
-        call ident   (intuv,nx1)
-        call add2sxy (intv ,wght,intuv,w0,nx1*nx1)
+  ifldt  = ifield
+!   ifield = 1
 
-    endif
+  if_fltv = .FALSE. 
+  if ( ifflow .AND. .NOT. ifmhd ) if_fltv = .TRUE. 
+  if ( ifield == 1  .AND. ifmhd ) if_fltv = .TRUE. 
 
-    ifldt  = ifield
-!     ifield = 1
+!   Adam Peplinski; to take into account freezing of base flow
+  if ( .NOT. ifbase             ) if_fltv = .FALSE. ! base-flow frozen
 
-    if_fltv = .FALSE. 
-    if ( ifflow .AND. .NOT. ifmhd ) if_fltv = .TRUE. 
-    if ( ifield == 1  .AND. ifmhd ) if_fltv = .TRUE. 
+  if ( if_fltv ) then
+      call filterq(vx,intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
+      call filterq(vy,intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
+      if (if3d) &
+      call filterq(vz,intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
+      if (ifsplit .AND. .NOT. iflomach) &
+      call filterq(pr,intv,nx1,nz1,wk1,wk2,intt,if3d,pmax)
+  endif
 
-!     Adam Peplinski; to take into account freezing of base flow
-    if ( .NOT. ifbase             ) if_fltv = .FALSE. ! base-flow frozen
+  if (ifmhd .AND. ifield == ifldmhd) then
+      call filterq(bx,intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
+      call filterq(by,intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
+      if (if3d) &
+      call filterq(bz,intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
+  endif
 
-    if ( if_fltv ) then
-        call filterq(vx,intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
-        call filterq(vy,intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
-        if (if3d) &
-        call filterq(vz,intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
-        if (ifsplit .AND. .NOT. iflomach) &
-        call filterq(pr,intv,nx1,nz1,wk1,wk2,intt,if3d,pmax)
-    endif
+  if (ifpert) then
+      do j=1,npert
 
-    if (ifmhd .AND. ifield == ifldmhd) then
-        call filterq(bx,intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
-        call filterq(by,intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
-        if (if3d) &
-        call filterq(bz,intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
-    endif
+          ifield = 1
+          call filterq(vxp(1,j),intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
+          call filterq(vyp(1,j),intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
+          if (if3d) &
+          call filterq(vzp(1,j),intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
 
-    if (ifpert) then
-        do j=1,npert
+          ifield = 2
+          if (ifheat .AND. .NOT. ifcvode) &
+          call filterq(tp(1,j,1),intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
 
-            ifield = 1
-            call filterq(vxp(1,j),intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
-            call filterq(vyp(1,j),intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
-            if (if3d) &
-            call filterq(vzp(1,j),intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
+      enddo
+  endif
 
-            ifield = 2
-            if (ifheat .AND. .NOT. ifcvode) &
-            call filterq(tp(1,j,1),intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
+  mmax = 0
+  if (ifflow) then
+  !        pmax    = glmax(pmax,1)
+      omax(1) = glmax(umax,1)
+      omax(2) = glmax(vmax,1)
+      omax(3) = glmax(wmax,1)
+      mmax = ndim
+  endif
+           
 
-        enddo
-    endif
+  nfldt = 1+npscal
+  if (ifheat .AND. .NOT. ifcvode) then
+      do ifld=1,nfldt
+          ifield = ifld + 1
+          call filterq(t(1,1,1,1,ifld),intv &
+          ,nx1,nz1,wk1,wk2,intt,if3d,tmax(ifld))
+          mmax = mmax+1
+          omax(mmax) = glmax(tmax(ifld),1)
+      enddo
+  endif
 
-    mmax = 0
-    if (ifflow) then
-    !        pmax    = glmax(pmax,1)
-        omax(1) = glmax(umax,1)
-        omax(2) = glmax(vmax,1)
-        omax(3) = glmax(wmax,1)
-        mmax = ndim
-    endif
-             
+  if (nid == 0) then
+      if (npscal == 0) then
+      !           write(6,101) mmax
+      !           write(sfmt,101) mmax
+      ! 101       format('''(i8,1p',i1,'e12.4,a6)''')
+      !           write(6,sfmt) istep,(omax(k),k=1,mmax),' qfilt'
+      !         write(6,'(i8,1p4e12.4,a6)') istep,(omax(k),k=1,mmax),' qfilt'
+      else
+          if (if3d) then
+              write(6,1) istep,ifield,umax,vmax,wmax
+          else
+              write(6,1) istep,ifield,umax,vmax
+          endif
+          1 format(4x,i7,i3,' qfilt:',1p3e12.4)
+          if(ifheat .AND. .NOT. ifcvode) &
+          write(6,'(1p50e12.4)') (tmax(k),k=1,nfldt)
+      endif
+  endif
 
-    nfldt = 1+npscal
-    if (ifheat .AND. .NOT. ifcvode) then
-        do ifld=1,nfldt
-            ifield = ifld + 1
-            call filterq(t(1,1,1,1,ifld),intv &
-            ,nx1,nz1,wk1,wk2,intt,if3d,tmax(ifld))
-            mmax = mmax+1
-            omax(mmax) = glmax(tmax(ifld),1)
-        enddo
-    endif
-
-    if (nid == 0) then
-        if (npscal == 0) then
-        !           write(6,101) mmax
-        !           write(sfmt,101) mmax
-        ! 101       format('''(i8,1p',i1,'e12.4,a6)''')
-        !           write(6,sfmt) istep,(omax(k),k=1,mmax),' qfilt'
-        !         write(6,'(i8,1p4e12.4,a6)') istep,(omax(k),k=1,mmax),' qfilt'
-        else
-            if (if3d) then
-                write(6,1) istep,ifield,umax,vmax,wmax
-            else
-                write(6,1) istep,ifield,umax,vmax
-            endif
-            1 format(4x,i7,i3,' qfilt:',1p3e12.4)
-            if(ifheat .AND. .NOT. ifcvode) &
-            write(6,'(1p50e12.4)') (tmax(k),k=1,nfldt)
-        endif
-    endif
-
-    ifield = ifldt   ! RESTORE ifield
+  ifield = ifldt   ! RESTORE ifield
 
 
-    return
-    end subroutine q_filter
+  return
+  end subroutine q_filter
 !-----------------------------------------------------------------------
     subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
 

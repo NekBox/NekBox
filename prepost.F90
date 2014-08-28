@@ -168,14 +168,6 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
   real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
 
 !   Work arrays and temporary arrays
-
-  real(DP) :: vxax, vyax, prax, yax
-  common /scruz/ vxax   (lx1,ly1,lelv) &
-  , vyax   (lx1,ly1,lelv) &
-  , prax   (lx2,ly2,lelv) &
-  , yax    (lx1,ly1,lelt)
-!  real(DP), save :: tax(lx1,ly1,lelt,ldimt)
-
   real(DP) :: pa(lx1,ly2,lz2),pb(lx1,ly1,lz2)
   integer :: e
   integer :: ntotm1, ntotm2, ifldt, ntot1, nyz2, nxy1, nxyz, nxyz2, iz, ntot2 
@@ -1076,11 +1068,6 @@ subroutine mfo_outfld(prefix, pm1)
 
   integer*8 :: offs0,offs,nbyte,stride,strideB,nxyzo8
   logical :: ifxyo_s
-
-  real(DP) :: ur1, ur2, ur3   
-  common /SCRUZ/  ur1(lxo*lxo*lxo*lelt) &
-  , ur2(lxo*lxo*lxo*lelt) &
-  , ur3(lxo*lxo*lxo*lelt)
 
   real(DP) :: tiostart, dnbyte, tio
   real(DP), external :: dnekclock_sync, glsum

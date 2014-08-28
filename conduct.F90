@@ -206,55 +206,57 @@ subroutine cdscal (igeom)
     return
     end subroutine nekuq
 !-----------------------------------------------------------------------
-    subroutine convab
+!> \brief Eulerian scheme, add convection term to forcing function
+!!  at current time step.
 !---------------------------------------------------------------
+subroutine convab()
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, lelt
+  use mass, only : bm1
+  use soln, only : t, vtrans, bq
+  use tstep, only : ifield, nelfld
+  implicit none
 
-!     Eulerian scheme, add convection term to forcing function
-!     at current time step.
+  real(DP) :: TA (LX1,LY1,LZ1,LELT)
+  integer :: nel, ntot1
 
-!---------------------------------------------------------------
-    use size_m
-    use mass
-    use soln
-    use tstep
+  NEL = NELFLD(IFIELD)
+  NTOT1 = NX1*NY1*NZ1*NEL
+  CALL CONVOP  (TA,T(1,1,1,1,IFIELD-1))
+  CALL COL2    (TA,VTRANS(1,1,1,1,IFIELD),NTOT1)
+  CALL SUBCOL3 (BQ(1,1,1,1,IFIELD-1),BM1,TA,NTOT1)
 
-    COMMON /SCRUZ/ TA (LX1,LY1,LZ1,LELT)
-
-    NEL = NELFLD(IFIELD)
-    NTOT1 = NX1*NY1*NZ1*NEL
-    CALL CONVOP  (TA,T(1,1,1,1,IFIELD-1))
-    CALL COL2    (TA,VTRANS(1,1,1,1,IFIELD),NTOT1)
-    CALL SUBCOL3 (BQ(1,1,1,1,IFIELD-1),BM1,TA,NTOT1)
-
-    return
-    end subroutine convab
+  return
+end subroutine convab
 !-----------------------------------------------------------------------
-    subroutine makeabq
+!> \brief Sum up contributions to 3rd order Adams-Bashforth scheme.
+subroutine makeabq
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, lelt
+  use soln, only : vgradt1, vgradt2, bq
+  use tstep, only : ab, ifield, nelfld
+  implicit none
 
-!     Sum up contributions to 3rd order Adams-Bashforth scheme.
+  real(DP) :: TA (LX1,LY1,LZ1,LELT)
+  real(DP) :: ab0, ab1, ab2
+  integer :: nel, ntot1
 
-    use size_m
-    use soln
-    use tstep
+  AB0   = AB(1)
+  AB1   = AB(2)
+  AB2   = AB(3)
+  NEL   = NELFLD(IFIELD)
+  NTOT1 = NX1*NY1*NZ1*NEL
 
-    COMMON /SCRUZ/ TA (LX1,LY1,LZ1,LELT)
+  CALL ADD3S2 (TA,VGRADT1(1,1,1,1,IFIELD-1), &
+  VGRADT2(1,1,1,1,IFIELD-1),AB1,AB2,NTOT1)
+  CALL COPY   (   VGRADT2(1,1,1,1,IFIELD-1), &
+  VGRADT1(1,1,1,1,IFIELD-1),NTOT1)
+  CALL COPY   (   VGRADT1(1,1,1,1,IFIELD-1), &
+  BQ(1,1,1,1,IFIELD-1),NTOT1)
+  CALL ADD2S1 (BQ(1,1,1,1,IFIELD-1),TA,AB0,NTOT1)
 
-    AB0   = AB(1)
-    AB1   = AB(2)
-    AB2   = AB(3)
-    NEL   = NELFLD(IFIELD)
-    NTOT1 = NX1*NY1*NZ1*NEL
-
-    CALL ADD3S2 (TA,VGRADT1(1,1,1,1,IFIELD-1), &
-    VGRADT2(1,1,1,1,IFIELD-1),AB1,AB2,NTOT1)
-    CALL COPY   (   VGRADT2(1,1,1,1,IFIELD-1), &
-    VGRADT1(1,1,1,1,IFIELD-1),NTOT1)
-    CALL COPY   (   VGRADT1(1,1,1,1,IFIELD-1), &
-    BQ(1,1,1,1,IFIELD-1),NTOT1)
-    CALL ADD2S1 (BQ(1,1,1,1,IFIELD-1),TA,AB0,NTOT1)
-
-    return
-    end subroutine makeabq
+  return
+end subroutine makeabq
 !-----------------------------------------------------------------------
     subroutine makebdq
 !-----------------------------------------------------------------------

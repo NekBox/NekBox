@@ -1400,94 +1400,6 @@ end subroutine normvc
     end subroutine opcopy
 
 !-----------------------------------------------------------------------
-    subroutine rotate_cyc(r1,r2,r3,idir)
-
-    use size_m
-    use geom
-    use input
-    use parallel
-    use tstep
-
-    real :: r1(lx1,ly1,lz1,1) &
-    , r2(lx1,ly1,lz1,1) &
-    , r3(lx1,ly1,lz1,1)
-
-    integer :: e,f
-    logical :: ifxy
-     
-     
-!     (1) Face n-t transformation
-
-
-    nface = 2*ndim
-    do e=1,nelfld(ifield)
-        do f=1,nface
-
-            if(cbc(f,e,ifield) == 'P  ' .OR. cbc(f,e,ifield) == 'p  ')then
-                write(*,*) "Oops: cyclic"
-!                call facind2 (js1,jf1,jskip1,js2,jf2,jskip2,f)
-                if (idir == 1) then
-                    k=0
-                    do j2=js2,jf2,jskip2
-                        do j1=js1,jf1,jskip1
-                            k=k+1
-
-                            dotprod = unx(k,1,f,e)*ym1(j1,j2,1,e) &
-                            -uny(k,1,f,e)*xm1(j1,j2,1,e)
-                            ifxy = .FALSE. 
-                            if (abs(unz(k,1,f,e)) < 0.0001) ifxy = .TRUE. 
-
-                            cost =  unx(k,1,f,e)
-                            sint =  uny(k,1,f,e)
-                            rnor = ( r1(j1,j2,1,e)*cost + r2(j1,j2,1,e)*sint )
-                            rtn1 = (-r1(j1,j2,1,e)*sint + r2(j1,j2,1,e)*cost )
-
-                            if (ifxy .AND. dotprod >= 0.0) then
-                                r1(j1,j2,1,e) = rnor
-                                r2(j1,j2,1,e) = rtn1
-                            elseif (ifxy) then
-                                r1(j1,j2,1,e) =-rnor
-                                r2(j1,j2,1,e) =-rtn1
-                            endif
-                        enddo
-                    enddo
-
-                else    ! reverse rotate
-
-                    k=0
-                    do j2=js2,jf2,jskip2
-                        do j1=js1,jf1,jskip1
-                            k=k+1
-
-                            dotprod = unx(k,1,f,e)*ym1(j1,j2,1,e) &
-                            -uny(k,1,f,e)*xm1(j1,j2,1,e)
-                            ifxy = .FALSE. 
-                            if (abs(unz(k,1,f,e)) < 0.0001) ifxy = .TRUE. 
-
-                            cost =  unx(k,1,f,e)
-                            sint =  uny(k,1,f,e)
-                            rnor = ( r1(j1,j2,1,e)*cost - r2(j1,j2,1,e)*sint )
-                            rtn1 = ( r1(j1,j2,1,e)*sint + r2(j1,j2,1,e)*cost )
-
-                            if(ifxy .AND. dotprod >= 0.0) then
-                                r1(j1,j2,1,e) = rnor
-                                r2(j1,j2,1,e) = rtn1
-                            elseif (ifxy) then
-                                r1(j1,j2,1,e) =-rnor
-                                r2(j1,j2,1,e) =-rtn1
-                            endif
-                        enddo
-                    enddo
-                endif
-
-            endif
-
-        enddo
-    enddo
-
-    return
-    end subroutine rotate_cyc
-!-----------------------------------------------------------------------
     subroutine opdssum (a,b,c)! NOTE: opdssum works on FLUID/MHD arrays only!
 
     use size_m
@@ -1499,9 +1411,12 @@ end subroutine normvc
     real :: a(1),b(1),c(1)
 
     if (ifcyclic) then
+      write(*,*) "Oops: ifcyclic"
+#if 0
         call rotate_cyc  (a,b,c,1)
         call vec_dssum   (a,b,c,nx1,ny1,nz1)
         call rotate_cyc  (a,b,c,0)
+#endif
     else
         call vec_dssum   (a,b,c,nx1,ny1,nz1)
     endif
@@ -1526,9 +1441,12 @@ end subroutine normvc
         if (op == '*  ' .OR. op == 'mul' .OR. op == 'MUL') then
             call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
         else
+            write(*,*) "Oops: op"
+#if 0
             call rotate_cyc  (a,b,c,1)
             call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
             call rotate_cyc  (a,b,c,0)
+#endif
         endif
 
     else

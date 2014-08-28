@@ -1014,7 +1014,6 @@ subroutine generalev(a,b,lam,n,w)
 !   call outmat2(lam,1,n,n,'Deig')
 
   if (info /= 0) then
-  
       if (nid == 0) then
           call outmat2(aa ,n,n,n,'aa  ')
           call outmat2(bb ,n,n,n,'bb  ')
@@ -1030,19 +1029,23 @@ subroutine generalev(a,b,lam,n,w)
   return
 end subroutine generalev
 !-----------------------------------------------------------------------
-    subroutine outmat2(a,m,n,k,name)
-    use size_m
-    real :: a(m,n)
-    character(4) :: name
+subroutine outmat2(a,m,n,k,name)
+  use size_m, only : nid
+  use kinds, only : DP
+  implicit none
+  real(DP) :: a(m,n)
+  integer :: m,n,k
+  character(4) :: name
+  integer :: n2, i, j
 
-    n2 = min(n,8)
-    write(6,2) nid,name,m,n,k
-    do i=1,m
-        write(6,1) nid,name,(a(i,j),j=1,n2)
-    enddo
-!   1 format(i3,1x,a4,16f6.2)
-    1 format(i3,1x,a4,1p8e14.5)
-    2 format(/,'Matrix: ',i3,1x,a4,3i8)
-    return
-    end subroutine outmat2
+  n2 = min(n,8)
+  write(6,2) nid,name,m,n,k
+  do i=1,m
+      write(6,1) nid,name,(a(i,j),j=1,n2)
+  enddo
+!  1 format(i3,1x,a4,16f6.2)
+  1 format(i3,1x,a4,1p8e14.5)
+  2 format(/,'Matrix: ',i3,1x,a4,3i8)
+  return
+end subroutine outmat2
 !-----------------------------------------------------------------------

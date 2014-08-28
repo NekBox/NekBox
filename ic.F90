@@ -955,6 +955,8 @@ subroutine restart_driver(nfiles)
       ! for now we read nelt dataset
 
           if (ifmhd .AND. ifile == 2) then
+            write(*,*) "Oops: ifmhd"
+#if 0
               if (ifgetu) call copy(bx,sdump(1,4),ntott)
               if (ifgetu) call copy(by,sdump(1,5),ntott)
               if (ifgetw) call copy(bz,sdump(1,6),ntott)
@@ -971,7 +973,10 @@ subroutine restart_driver(nfiles)
               endif
               if (ifaxis .AND. ifgett) &
               call copy(t(1,1,1,1,2),sdmp2(1,1),ntott)
+#endif
           elseif (ifpert .AND. ifile >= 2) then
+            write(*,*) "Oops: ifpert"
+#if 0
               j=ifile-1  ! pointer to perturbation field
               if (ifgetu) call copy(vxp(1,j),sdump(1,4),ntotv)
               if (ifgetu) call copy(vyp(1,j),sdump(1,5),ntotv)
@@ -994,7 +999,7 @@ subroutine restart_driver(nfiles)
                   if (ifgtps(ips)) &
                   call copy(tp(1,ips+1,j),sdmp2(1,ips+1),ntott)
               enddo
-
+#endif
           else  ! Std. Case
               if (ifgetx) call copy(xm1,sdump(1,1),ntott)
               if (ifgetx) call copy(ym1,sdump(1,2),ntott)
@@ -1010,8 +1015,8 @@ subroutine restart_driver(nfiles)
                   call copy(t(1,1,1,1,i+1),sdmp2(1,i+1),ntott)
               enddo
 
-              if (ifaxis) call axis_interp_ic(pm1)      ! Interpolate to axi mesh
-              if (ifgetp) call map_pm1_to_pr(pm1,ifile) ! Interpolate pressure
+!max              if (ifaxis) call axis_interp_ic(pm1)      ! Interpolate to axi mesh
+!max              if (ifgetp) call map_pm1_to_pr(pm1,ifile) ! Interpolate pressure
 
               if (ifgtim) time=rstime
           endif
@@ -1714,40 +1719,6 @@ end subroutine mapab4R
     return
     END FUNCTION IFGTIL
 !-----------------------------------------------------------------------
-    subroutine vcospf(x,y,n)
-    real :: x(1),y(1)
-    do i=1,n
-        x(i) = cos(1000.*y(i))
-    enddo
-    return
-    end subroutine vcospf
-!-----------------------------------------------------------------------
-    subroutine vbyte_swap(x,n)
-    character(1) :: x(0:3,1),tmp0,tmp1
-    character(1) :: in (0:3), out(0:3)
-    real*4 ::      in4     , out4
-    equivalence (in ,in4 )
-    equivalence (out,out4)
-
-    do i=1,n
-        do j=0,3
-            in (j) = x(j,i)
-        enddo
-        tmp0   = x(0,i)
-        tmp1   = x(1,i)
-        x(0,i) = x(3,i)
-        x(1,i) = x(2,i)
-        x(2,i) = tmp1
-        x(3,i) = tmp0
-        do j=0,3
-            out(j) = x(j,i)
-        enddo
-        write(6,*) 'swap:',i,in4,out4
-    enddo
-
-    return
-    end subroutine vbyte_swap
-!-----------------------------------------------------------------------
     logical function if_byte_swap_test(bytetest,ierr)
     use size_m
      
@@ -1940,124 +1911,4 @@ end subroutine mapab4R
 
     return
     end subroutine mbyte_open
-!-----------------------------------------------------------------------
-    subroutine axis_interp_ic(pm1)
-
-    use size_m
-    use restart
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    real :: pm1(lx1,ly1,lz1,lelv)
-
-    common /ctmp0/ axism1 (lx1,ly1)
-    integer :: e
-
-    if ( .NOT. ifaxis) return
-
-    do e=1,nelv
-        if (ifrzer(e)) then
-            if (ifgetx) then
-                call mxm   (xm1(1,1,1,e),nx1,iatlj1,ny1,axism1,ny1)
-                call copy  (xm1(1,1,1,e),axism1,nx1*ny1)
-                call mxm   (ym1(1,1,1,e),nx1,iatlj1,ny1,axism1,ny1)
-                call copy  (ym1(1,1,1,e),axism1,nx1*ny1)
-            endif
-            if (ifgetu) then
-                call mxm    (vx(1,1,1,e),nx1,iatlj1,ny1,axism1,ny1)
-                call copy   (vx(1,1,1,e),axism1,nx1*ny1)
-                call mxm    (vy(1,1,1,e),nx1,iatlj1,ny1,axism1,ny1)
-                call copy   (vy(1,1,1,e),axism1,nx1*ny1)
-            endif
-            if (ifgetw) then
-                call mxm    (vz(1,1,1,e),nx1,iatlj1,ny1,axism1,ny1)
-                call copy   (vz(1,1,1,e),axism1,nx1*ny1)
-            endif
-            if (ifgetp) then
-                call mxm    (pm1(1,1,1,e),nx1,iatlj1,ny1,axism1,ny1)
-                call copy   (pm1(1,1,1,e),axism1,nx1*ny1)
-            endif
-            if (ifgett) then
-                call mxm  (t (1,1,1,e,1),nx1,iatlj1,ny1,axism1,ny1)
-                call copy (t (1,1,1,e,1),axism1,nx1*ny1)
-            endif
-            do ips=1,npscal
-                is1 = ips + 1
-                if (ifgtps(ips)) then
-                    call mxm (t(1,1,1,e,is1),nx1,iatlj1,ny1,axism1,ny1)
-                    call copy(t(1,1,1,e,is1),axism1,nx1*ny1)
-                endif
-            enddo
-        endif
-    enddo
-       
-    return
-    end subroutine axis_interp_ic
-!-----------------------------------------------------------------------
-    subroutine map_pm1_to_pr(pm1,ifile)
-
-    use size_m
-    use restart
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    logical :: if_full_pres_tmp
-
-    real :: pm1(lx1*ly1*lz1,lelv)
-    integer :: e
-
-    nxyz2 = nx2*ny2*nz2
-
-    if (ifmhd .AND. ifile == 2) then
-        do e=1,nelv
-            if (if_full_pres) then
-                call copy  (pm(1,1,1,e),pm1(1,e),nxyz2)
-            else
-                call map12 (pm(1,1,1,e),pm1(1,e),e)
-            endif
-        enddo
-    elseif (ifsplit) then
-        call copy (pr,pm1,nx1*ny1*nz1*nelv)
-    else
-        do e=1,nelv
-            if (if_full_pres) then
-                call copy  (pr(1,1,1,e),pm1(1,e),nxyz2)
-            else
-                call map12 (pr(1,1,1,e),pm1(1,e),e)
-            endif
-        enddo
-    endif
-       
-    return
-    end subroutine map_pm1_to_pr
 !-----------------------------------------------------------------------

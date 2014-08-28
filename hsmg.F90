@@ -47,6 +47,7 @@
     integer :: nf,nc,nr
     integer :: nx,ny,nz
 
+
     mg_fld = 1
     if (ifield > 1) mg_fld = 2
     if (ifield == 1) call hsmg_index_0 ! initialize index sets
@@ -126,8 +127,8 @@
     use size_m
     integer :: nf,nc
     real :: jh(nf,nc),zf(1),zc(1)
-
     real :: w(2*lx1+2)
+
     do i=1,nf
         call fd_weights_full(zf(i),zc,nc-1,1,w)
         do j=1,nc
@@ -226,7 +227,6 @@ end subroutine hsmg_setup_dssum
     use hsmg
     real :: uf(1),uc(1)
     integer :: l
-
     call hsmg_tnsr(uf,mg_nh(l+1),uc,mg_nh(l),mg_jh(1,l),mg_jht(1,l))
     return
     end subroutine hsmg_intp
@@ -434,7 +434,7 @@ end subroutine hsmg_tnsr3d_el
     if (if3d) then ! extended array
         call hsmg_schwarz_toext3d(mg_work,r,mg_nh(l))
     else
-        call hsmg_schwarz_toext2d(mg_work,r,mg_nh(l))
+!max        call hsmg_schwarz_toext2d(mg_work,r,mg_nh(l))
     endif
 
     enx=mg_nh(l)+2
@@ -467,31 +467,6 @@ end subroutine hsmg_tnsr3d_el
 
     return
     end subroutine h1mg_schwarz_part1
-!----------------------------------------------------------------------
-    subroutine hsmg_schwarz_toext2d(a,b,n)
-    use size_m
-    integer :: n
-    real :: a(0:n+1,0:n+1,nelv),b(n,n,nelv)
-          
-    integer :: i,j,ie
-!      call rzero(a,(n+2)*(n+2)*nelv)
-    do ie=1,nelv
-        do i=0,n+1
-            a(i,0,ie)=0.
-        enddo
-        do j=1,n
-            a(0  ,j,ie)=0.
-            do i=1,n
-                a(i,j,ie)=b(i,j,ie)
-            enddo
-            a(n+1,j,ie)=0.
-        enddo
-        do i=0,n+1
-            a(i,n+1,ie)=0.
-        enddo
-    enddo
-    return
-    end subroutine hsmg_schwarz_toext2d
 !----------------------------------------------------------------------
     subroutine hsmg_schwarz_toext3d(a,b,n)
     use size_m
@@ -2203,59 +2178,6 @@ end subroutine mg_set_h2
 
     return
     end subroutine gxfer_e
-!-----------------------------------------------------------------------
-    subroutine chkr(name3,ii)
-    use size_m
-    use hsmg
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    character(3) :: name3
-
-    write(6,*) mg_h1_lmax,ii,' ',name3,' CHKR'
-
-    return
-    end subroutine chkr
-!-----------------------------------------------------------------------
-    subroutine outmatz(a,m,n,name6,ie)
-    real :: a(m,n)
-    character(6) :: name6
-
-    sum=0.
-    sua=0.
-    do i=1,m*n
-        sum=sum+    a(i,1)
-        sua=sua+abs(a(i,1))
-    enddo
-    sum=sum/(m*n)
-    sua=sua/(m*n)
-
-    write(6,*)
-    write(6,1) ie,name6,m,n,sum,sua
-    1 format(i8,' matrix: ',a6,2i5,1p2e12.4)
-
-    n12 = min(m,12)
-    do j=m,1,-1
-        write(6,6) ie,name6,(a(i,j),i=1,n12)
-    enddo
-    6 format(i3,1x,a6,12f9.5)
-!     write(6,*)
-    return
-    end subroutine outmatz
 !-----------------------------------------------------------------------
     subroutine h1mg_setup_schwarz_wt_2(wt,ie,n,work,ifsqrt)
     use size_m

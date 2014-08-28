@@ -281,26 +281,6 @@ end subroutine set_up_h1_crs
 
 !-----------------------------------------------------------------------
 
-    logical function iftuple_altb(a,b,key,nkey)
-    real :: a(1),b(1)
-    integer :: key(nkey)
-
-    do i=1,nkey
-        k=key(i)
-        if (a(k) < b(k)) then
-            iftuple_altb = .TRUE. 
-            return
-        elseif (a(k) > b(k)) then
-            iftuple_altb = .FALSE. 
-            return
-        endif
-    enddo
-    iftuple_altb = .FALSE. 
-    return
-    end function iftuple_altb
-
-!-----------------------------------------------------------------------
-
     logical function iftuple_ianeb(a,b,key,nkey)
     integer :: a(1),b(1)
     integer :: key(nkey)

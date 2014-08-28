@@ -221,153 +221,64 @@
     RETURN
     END SUBROUTINE EIGENV
 
-    SUBROUTINE ALPHAM1 (ALPHA,MASK,MULT,H1,H2,ISD)
 !---------------------------------------------------------------------------
-
-!     Compute minimum eigenvalue, ALPHA, of the discrete Helmholtz operator
-
+!> \brief Compute maximum eigenvalue of the discrete Helmholtz operator
 !---------------------------------------------------------------------------
-    use size_m
-    use mass
-    use tstep
+SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelt, nelv
+  use mass, only : binvm1
+  use tstep, only : imesh, nmxe, tolev
+  implicit none
 
-    REAL ::            MASK (LX1,LY1,LZ1,1)
-    REAL ::            MULT (LX1,LY1,LZ1,1)
-    REAL ::            H1   (LX1,LY1,LZ1,1)
-    REAL ::            H2   (LX1,LY1,LZ1,1)
-    COMMON /SCREV/  X1   (LX1,LY1,LZ1,LELT) &
-    ,              Y1   (LX1,LY1,LZ1,LELT)
-    CHARACTER NAME*4
+  real(DP) :: gamma
+  REAL(DP) ::            MASK (LX1,LY1,LZ1,1)
+  REAL(DP) ::            MULT (LX1,LY1,LZ1,1)
+  REAL(DP) ::            H1   (LX1,LY1,LZ1,1)
+  REAL(DP) ::            H2   (LX1,LY1,LZ1,1)
+  integer :: isd
 
-    IF (IMESH == 1) NEL  = NELV
-    IF (IMESH == 2) NEL  = NELT
-    IF (ISD  == 1) NAME = 'EVVX'
-    IF (ISD  == 2) NAME = 'EVVX'
-    IF (ISD  == 3) NAME = 'EVVX'
+  real(DP) :: X1(LX1,LY1,LZ1,LELT), Y1(LX1,LY1,LZ1,LELT)
 
-    NXYZ1  = NX1*NY1*NZ1
-    NTOT1  = NXYZ1*NEL
-    EVNEW  = 0.
-    CALL STARTX1 (X1,Y1,MASK,MULT,NEL)
+  integer :: nel, nxyz1, ntot1
+  integer :: iter
+  real(DP) :: evnew, rq, evold, crit, xx, xnorm
+  real(DP), external :: glsc3
 
-    DO 1000 ITER=1,NMXE
-        CALL AXHELM (Y1,X1,H1,H2,IMESH,ISD)
-        CALL COL2   (Y1,MASK,NTOT1)
-        CALL DSSUM  (Y1,NX1,NY1,NZ1)
-        RQ     = GLSC3 (X1,Y1,MULT,NTOT1)
-        EVOLD  = EVNEW
-        EVNEW  = RQ
-        write (6,*) 'alphaa = ',rq
-        CRIT   = ABS((EVNEW-EVOLD)/EVNEW)
-        IF (CRIT < TOLEV)                  GOTO 2000
-        CALL COL2    (X1,BM1,NTOT1)
-        CALL HMHOLTZ ('NOMG',Y1,X1,H1,H2,MASK,MULT, &
-        IMESH,TOLHE,NMXH,ISD)
-        CALL COL3    (X1,BM1,Y1,NTOT1)
-        CALL DSSUM   (X1,NX1,NY1,NZ1)
-        YY = GLSC3  (X1,Y1,MULT,NTOT1)
-        YNORM = 1./SQRT(YY)
-        CALL CMULT   (Y1,YNORM,NTOT1)
-        CALL COPY    (X1,Y1,NTOT1)
-    1000 END DO
-    2000 CONTINUE
+  IF (IMESH == 1) NEL = NELV
+  IF (IMESH == 2) NEL = NELT
+  NXYZ1  = NX1*NY1*NZ1
+  NTOT1  = NXYZ1*NEL
+  EVNEW  = 0.
+!   pff (2/15/96)
+  if (isd == 1) CALL STARTX1 (X1,Y1,MASK,MULT,NEL)
 
-    ALPHA = RQ
-    RETURN
-    END SUBROUTINE ALPHAM1
+  DO 1000 ITER=1,NMXE
+      CALL AXHELM (Y1,X1,H1,H2,IMESH,ISD)
+      CALL COL2   (Y1,MASK,NTOT1)
+      CALL DSSUM  (Y1,NX1,NY1,NZ1)
+      RQ     = GLSC3 (X1,Y1,MULT,NTOT1)
+      EVOLD  = EVNEW
+      EVNEW  = RQ
+      CRIT   = ABS((EVNEW-EVOLD)/EVNEW)
+  
+  ! HMT removed
+  
+  !         if (nid.eq.0) then
+  !            write(6,*) iter,' eig_max A:',evnew,crit,tolev
+  !         endif
+      IF (CRIT < TOLEV)                  GOTO 2000
+      CALL COL3 (X1,BINVM1,Y1,NTOT1)
+      XX     = GLSC3 (X1,Y1,MULT,NTOT1)
+      XNORM  = 1./SQRT(XX)
+      CALL CMULT (X1,XNORM,NTOT1)
+  1000 END DO
+  2000 CONTINUE
 
-    SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
-!---------------------------------------------------------------------------
-
-!     Compute maximum eigenvalue of the discrete Helmholtz operator
-
-!---------------------------------------------------------------------------
-    use size_m
-    use mass
-    use tstep
-
-    REAL ::            MASK (LX1,LY1,LZ1,1)
-    REAL ::            MULT (LX1,LY1,LZ1,1)
-    REAL ::            H1   (LX1,LY1,LZ1,1)
-    REAL ::            H2   (LX1,LY1,LZ1,1)
-    COMMON /SCREV/  X1   (LX1,LY1,LZ1,LELT) &
-    ,              Y1   (LX1,LY1,LZ1,LELT)
-
-    IF (IMESH == 1) NEL = NELV
-    IF (IMESH == 2) NEL = NELT
-    NXYZ1  = NX1*NY1*NZ1
-    NTOT1  = NXYZ1*NEL
-    EVNEW  = 0.
-!     pff (2/15/96)
-    if (isd == 1) CALL STARTX1 (X1,Y1,MASK,MULT,NEL)
-
-    DO 1000 ITER=1,NMXE
-        CALL AXHELM (Y1,X1,H1,H2,IMESH,ISD)
-        CALL COL2   (Y1,MASK,NTOT1)
-        CALL DSSUM  (Y1,NX1,NY1,NZ1)
-        RQ     = GLSC3 (X1,Y1,MULT,NTOT1)
-        EVOLD  = EVNEW
-        EVNEW  = RQ
-        CRIT   = ABS((EVNEW-EVOLD)/EVNEW)
-    
-    ! HMT removed
-    
-    !         if (nid.eq.0) then
-    !            write(6,*) iter,' eig_max A:',evnew,crit,tolev
-    !         endif
-        IF (CRIT < TOLEV)                  GOTO 2000
-        CALL COL3 (X1,BINVM1,Y1,NTOT1)
-        XX     = GLSC3 (X1,Y1,MULT,NTOT1)
-        XNORM  = 1./SQRT(XX)
-        CALL CMULT (X1,XNORM,NTOT1)
-    1000 END DO
-    2000 CONTINUE
-
-    GAMMA = RQ
-    RETURN
-    END SUBROUTINE GAMMAM1
-
-    SUBROUTINE GAMMAM2 (GAMMA,H1,H2,H2INV,INLOC)
-!-------------------------------------------------------------------
-
-!     Compute maximum eigenvalue, GAMMA, of one of the matrices
-!     defined on the pressure mesh:
-!     INLOC =  0  : DA-1DT
-!     INLOC =  1  : DB-1DT
-!     INLOC = -1  : D(A+B/DT)-1DT
-
-!-------------------------------------------------------------------
-    use size_m
-    use mass
-    use tstep
-
-    REAL ::           H1    (LX1,LY1,LZ1,1)
-    REAL ::           H2    (LX1,LY1,LZ1,1)
-    REAL ::           H2INV (LX1,LY1,LZ1,1)
-    COMMON /SCREV/ X2 (LX2,LY2,LZ2,LELV) &
-    ,             Y2 (LX2,LY2,LZ2,LELV)
-
-    NTOT2  = NX2*NY2*NZ2*NELV
-    EVNEW  = 0.
-    CALL STARTX2 (X2,Y2)
-
-    DO 1000 ITER=1,NMXE
-        CALL CDABDTP (Y2,X2,H1,H2,H2INV,INLOC)
-        RQ = GLSC2  (X2,Y2,NTOT2)
-        EVOLD  = EVNEW
-        EVNEW  = RQ
-        CRIT   = ABS((EVNEW-EVOLD)/EVNEW)
-        IF (CRIT < TOLEV)                GOTO 2000
-        CALL INVCOL3 (X2,Y2,BM2,NTOT2)
-        XX     = GLSC2  (Y2,X2,NTOT2)
-        XNORM  = 1./SQRT(XX)
-        CALL CMULT   (X2,XNORM,NTOT2)
-    1000 END DO
-    2000 CONTINUE
-
-    GAMMA = RQ
-    RETURN
-    END SUBROUTINE GAMMAM2
+  GAMMA = RQ
+  RETURN
+END SUBROUTINE GAMMAM1
 !-----------------------------------------------------------------------
     SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
 

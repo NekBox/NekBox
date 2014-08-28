@@ -476,19 +476,6 @@
     return
     end subroutine build_new_filter
 !-----------------------------------------------------------------------
-    subroutine get_exyz(ex,ey,ez,eg,nelx,nely,nelz)
-    integer :: ex,ey,ez,eg
-
-    nelxy = nelx*nely
-
-    ez = 1 +  (eg-1)/nelxy
-    ey = mod1 (eg,nelxy)
-    ey = 1 +  (ey-1)/nelx
-    ex = mod1 (eg,nelx)
-
-    return
-    end subroutine get_exyz
-!-----------------------------------------------------------------------
     function ran1(idum)
 
     integer :: idum,ia,im,iq,ir,ntab,ndiv

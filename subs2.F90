@@ -122,23 +122,22 @@
     RETURN
     END SUBROUTINE EMERXIT
 
-    SUBROUTINE UPDMSYS (IFLD)
+SUBROUTINE UPDMSYS (IFLD)
+  use size_m
+  use geom, only : iflmsf
+  implicit none
 
-    use size_m
-    use geom
-    use tstep
-    common /screv/ hfmask(lx1,lz1,6,lelt) &
-    , hvmask(lx1,ly1,lz1,lelt)
+  integer, intent(in) :: ifld
 
-    IF ( .NOT. IFLMSF(IFLD)) RETURN
+  IF ( .NOT. IFLMSF(IFLD)) RETURN
 #if 0
-    NEL  = NELFLD(IFLD)
-    CALL SETHMSK (HVMASK,HFMASK,IFLD,NEL)
-    CALL SETCSYS (HVMASK,HFMASK,NEL)
+  NEL  = NELFLD(IFLD)
+  CALL SETHMSK (HVMASK,HFMASK,IFLD,NEL)
+  CALL SETCSYS (HVMASK,HFMASK,NEL)
 #endif
 
-    RETURN
-    END SUBROUTINE UPDMSYS
+  RETURN
+END SUBROUTINE UPDMSYS
 
     SUBROUTINE SETCDOF
 

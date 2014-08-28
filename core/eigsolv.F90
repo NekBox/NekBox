@@ -87,139 +87,138 @@
     RETURN
     END SUBROUTINE ESTEIG
 
-    SUBROUTINE EIGENV
 !-------------------------------------------------------------------------
-
-!     Compute the following eigenvalues:
-!     EIGAA  = minimum eigenvalue of the matrix A  (=Laplacian)
-!     EIGAE  = minimum eigenvalue of the matrix E  (=DB-1DT)
-!     EIGAS  = minimum eigenvalue of the matrix S  (=DA-1DT)
-!     EIGAST = minimum eigenvalue of the matrix St (=D(A+B/dt)-1DT
-!     EIGGA  = maximum eigenvalue of the matrix A
-!     EIGGS  = maximum eigenvalue of the matrix S
-!     EIGGE  = maximum eigenvalue of the matrix E
-!     EIGGST = maximum eigenvalue of the matrix St
-
-!     Method : Power method/Inverse iteration & Rayleigh quotient wo shift
-
+!> \brief Compute the following eigenvalues:.
+!!  EIGAA  = minimum eigenvalue of the matrix A  (=Laplacian)
+!!  EIGAE  = minimum eigenvalue of the matrix E  (=DB-1DT)
+!!  EIGAS  = minimum eigenvalue of the matrix S  (=DA-1DT)
+!!  EIGAST = minimum eigenvalue of the matrix St (=D(A+B/dt)-1DT
+!!  EIGGA  = maximum eigenvalue of the matrix A
+!!  EIGGS  = maximum eigenvalue of the matrix S
+!!  EIGGE  = maximum eigenvalue of the matrix E
+!!  EIGGST = maximum eigenvalue of the matrix St
+!!  Method : Power method/Inverse iteration & Rayleigh quotient wo shift
 !-------------------------------------------------------------------------
-    use size_m
-    use eigen
-    use input
-    use soln
-    use tstep
+SUBROUTINE EIGENV
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nelv, ndim
+  use eigen, only : ifaa, ifas, ifae, ifast, ifgs, ifge, ifgst, ifga, eigga
+  use input, only : ifstrs
+  use soln, only : vmult, v1mask, v2mask, v3mask
+  implicit none
 
-    COMMON /SCRVH/ H1 (LX1,LY1,LZ1,LELT) &
-    ,             H2 (LX1,LY1,LZ1,LELT)
+  real(DP) :: H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT)
 !    C!OMMON /SCRHI/ H2INV (LX1,LY1,LZ1,LELV)
+  integer :: ntot1
+  real(DP) :: eigga1, eigga2, eigga3
+  
+  NTOT1  = NX1*NY1*NZ1*NELV
 
-    NTOT1  = NX1*NY1*NZ1*NELV
-
-    IF (IFAA) THEN
-       write(*,*) "Oops: IFAA"
+  IF (IFAA) THEN
+     write(*,*) "Oops: IFAA"
 #if 0
-        NTOT1  = NX1*NY1*NZ1*NELV
-        CALL RONE    (H1,NTOT1)
-        CALL RZERO   (H2,NTOT1)
-        CALL ALPHAM1 (EIGAA1,V1MASK,VMULT,H1,H2,1)
-        CALL ALPHAM1 (EIGAA2,V2MASK,VMULT,H1,H2,2)
-        EIGAA = MIN  (EIGAA1,EIGAA2)
-        IF (NDIM == 3) THEN
-            CALL ALPHAM1 (EIGAA3,V3MASK,VMULT,H1,H2,3)
-            EIGAA = MIN  (EIGAA,EIGAA3)
-        ENDIF
-        IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAA = ',EIGAA
+      NTOT1  = NX1*NY1*NZ1*NELV
+      CALL RONE    (H1,NTOT1)
+      CALL RZERO   (H2,NTOT1)
+      CALL ALPHAM1 (EIGAA1,V1MASK,VMULT,H1,H2,1)
+      CALL ALPHAM1 (EIGAA2,V2MASK,VMULT,H1,H2,2)
+      EIGAA = MIN  (EIGAA1,EIGAA2)
+      IF (NDIM == 3) THEN
+          CALL ALPHAM1 (EIGAA3,V3MASK,VMULT,H1,H2,3)
+          EIGAA = MIN  (EIGAA,EIGAA3)
+      ENDIF
+      IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAA = ',EIGAA
 #endif
-    ENDIF
+  ENDIF
 
-    IF (IFAS) THEN
-       write(*,*) "Oops: IFAA"
+  IF (IFAS) THEN
+     write(*,*) "Oops: IFAA"
 #if 0
-        INLOC = 0
-        CALL RONE    (H1,NTOT1)
-        CALL RZERO   (H2,NTOT1)
-        CALL RZERO   (H2INV,NTOT1)
-        CALL ALPHAM2  (EIGAS,H1,H2,H2INV,INLOC)
-        IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAS = ',EIGAS
+      INLOC = 0
+      CALL RONE    (H1,NTOT1)
+      CALL RZERO   (H2,NTOT1)
+      CALL RZERO   (H2INV,NTOT1)
+      CALL ALPHAM2  (EIGAS,H1,H2,H2INV,INLOC)
+      IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAS = ',EIGAS
 #endif
-    ENDIF
+  ENDIF
 
-    IF (IFAE) THEN
-       write(*,*) "Oops: IFAE"
+  IF (IFAE) THEN
+     write(*,*) "Oops: IFAE"
 #if 0
-        INLOC = 1
-        CALL RZERO   (H1,NTOT1)
-        CALL RONE    (H2,NTOT1)
-        CALL RONE    (H2INV,NTOT1)
-        CALL ALPHAM2  (EIGAE,H1,H2,H2INV,INLOC)
-        IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAE = ',EIGAE
+      INLOC = 1
+      CALL RZERO   (H1,NTOT1)
+      CALL RONE    (H2,NTOT1)
+      CALL RONE    (H2INV,NTOT1)
+      CALL ALPHAM2  (EIGAE,H1,H2,H2INV,INLOC)
+      IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAE = ',EIGAE
 #endif
-    ENDIF
+  ENDIF
 
-    IF (IFAST) THEN
-       write(*,*) "Oops: IFAST"
+  IF (IFAST) THEN
+     write(*,*) "Oops: IFAST"
 #if 0
-        INLOC = -1
-        CALL SETHLM  (H1,H2,INLOC)
-        CALL INVERS2 (H2INV,H2,NTOT1)
-        CALL ALPHAM2  (EIGAST,H1,H2,H2INV,INLOC)
-        IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAST = ',EIGAST
+      INLOC = -1
+      CALL SETHLM  (H1,H2,INLOC)
+      CALL INVERS2 (H2INV,H2,NTOT1)
+      CALL ALPHAM2  (EIGAST,H1,H2,H2INV,INLOC)
+      IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGAST = ',EIGAST
 #endif
-    ENDIF
+  ENDIF
 
-    IF (IFGS) THEN
-       write(*,*) "Oops: IFGS"
+  IF (IFGS) THEN
+     write(*,*) "Oops: IFGS"
 #if 0
-        INLOC = 0
-        CALL RONE    (H1,NTOT1)
-        CALL RZERO   (H2,NTOT1)
-        CALL RZERO   (H2INV,NTOT1)
-        CALL GAMMAM2 (EIGGS,H1,H2,H2INV,INLOC)
-        IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGS = ',EIGGS
+      INLOC = 0
+      CALL RONE    (H1,NTOT1)
+      CALL RZERO   (H2,NTOT1)
+      CALL RZERO   (H2INV,NTOT1)
+      CALL GAMMAM2 (EIGGS,H1,H2,H2INV,INLOC)
+      IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGS = ',EIGGS
 #endif
-    ENDIF
+  ENDIF
 
-    IF (IFGE) THEN
-       write(*,*) "Oops: IFGE"
+  IF (IFGE) THEN
+     write(*,*) "Oops: IFGE"
 #if 0
-        INLOC = 1
-        CALL RZERO   (H1,NTOT1)
-        CALL RONE    (H2,NTOT1)
-        CALL RONE    (H2INV,NTOT1)
-        CALL GAMMAM2 (EIGGE,H1,H2,H2INV,INLOC)
-        IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGE = ',EIGGE
+      INLOC = 1
+      CALL RZERO   (H1,NTOT1)
+      CALL RONE    (H2,NTOT1)
+      CALL RONE    (H2INV,NTOT1)
+      CALL GAMMAM2 (EIGGE,H1,H2,H2INV,INLOC)
+      IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGE = ',EIGGE
 #endif
-    ENDIF
+  ENDIF
 
-    IF (IFGST) THEN
-       write(*,*) "Oops: IFGST"
+  IF (IFGST) THEN
+     write(*,*) "Oops: IFGST"
 #if 0
-        INLOC = -1
-        CALL SETHLM  (H1,H2,INLOC)
-        CALL INVERS2 (H2INV,H2,NTOT1)
-        CALL GAMMAM2 (EIGGST,H1,H2,H2INV,INLOC)
-        IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGST = ',EIGGST
+      INLOC = -1
+      CALL SETHLM  (H1,H2,INLOC)
+      CALL INVERS2 (H2INV,H2,NTOT1)
+      CALL GAMMAM2 (EIGGST,H1,H2,H2INV,INLOC)
+      IF (NID == 0 .AND. ISTEP <= 0) WRITE (6,*) 'EIGGST = ',EIGGST
 #endif
-    ENDIF
+  ENDIF
 
-    IF (IFGA) THEN
-        NTOT1  = NX1*NY1*NZ1*NELV
-        CALL RONE    (H1,NTOT1)
-        CALL RZERO   (H2,NTOT1)
-        IF ( .NOT. IFSTRS) THEN
-            CALL GAMMAM1 (EIGGA1,V1MASK,VMULT,H1,H2,1)
-            CALL GAMMAM1 (EIGGA2,V2MASK,VMULT,H1,H2,2)
-            EIGGA3 = 0.
-            IF (NDIM == 3) &
-            CALL GAMMAM1 (EIGGA3,V3MASK,VMULT,H1,H2,3)
-            EIGGA = MAX  (EIGGA1,EIGGA2,EIGGA3)
-        ELSE
+  IF (IFGA) THEN
+      NTOT1  = NX1*NY1*NZ1*NELV
+      CALL RONE    (H1,NTOT1)
+      CALL RZERO   (H2,NTOT1)
+      IF ( .NOT. IFSTRS) THEN
+          CALL GAMMAM1 (EIGGA1,V1MASK,VMULT,H1,H2,1)
+          CALL GAMMAM1 (EIGGA2,V2MASK,VMULT,H1,H2,2)
+          EIGGA3 = 0.
+          IF (NDIM == 3) &
+          CALL GAMMAM1 (EIGGA3,V3MASK,VMULT,H1,H2,3)
+          EIGGA = MAX  (EIGGA1,EIGGA2,EIGGA3)
+      ELSE
 !max            CALL GAMMASF (H1,H2)
-        ENDIF
-    ENDIF
+      ENDIF
+  ENDIF
 
-    RETURN
-    END SUBROUTINE EIGENV
+  RETURN
+END SUBROUTINE EIGENV
 
 !---------------------------------------------------------------------------
 !> \brief Compute maximum eigenvalue of the discrete Helmholtz operator

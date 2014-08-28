@@ -168,8 +168,7 @@ subroutine crespsp (respr, vext)
   ,             WA1   (LX1*LY1*LZ1*LELV) &
   ,             WA2   (LX1*LY1*LZ1*LELV) &
   ,             WA3   (LX1*LY1*LZ1*LELV)
-  real(DP) :: w1, w2
-  COMMON /SCRMG/ W1    (LX1*LY1*LZ1*LELV) &
+  real(DP) ::  W1    (LX1*LY1*LZ1*LELV) &
   ,             W2    (LX1*LY1*LZ1*LELV)
   CHARACTER CB*3
 

@@ -1,169 +1,175 @@
 !-----------------------------------------------------------------------
-    SUBROUTINE SETLOG
+!> \brief Subroutine to initialize logical flags
+SUBROUTINE SETLOG()
+  use kinds, only : DP
+  use size_m, only : ndim, nelv, nelt, nfield, nid, lxd
+  use ctimer, only : ifsync
+  use geom, only : ifvcor, ifgeom, ifsurt, ifwcno, ifeppm, ifqinp, ifmelt
+  use input, only : param, ifadvc, iftmsh, ifneknek, ifmoab, ifkeps, ifmodel
+  use input, only : ifnonl, cbc, ifheat, ifmvbd, ifflow, ifnav, ifstrs
+  use input, only : ifaxis, ifcyclic, ifchar, ifusermv, ifuservp, iflomach
+  use input, only : ifsplit, iftran, nobj, lochis, ifintq, hcode, nhis
+  use tstep, only : ifield, nelfld
+  use turbo, only : ifswall, ifcwuz
+  implicit none
 
-!     Subroutine to initialize logical flags
+  logical :: ifprint
+  COMMON  /CPRINT/ IFPRINT
 
-    use ctimer
-    use size_m
-    use geom
-    use input
-    use tstep
-    use turbo
-    COMMON  /CPRINT/ IFPRINT
+  CHARACTER CB*3
+  LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ
 
-    common  /nekcb/ cb
-    CHARACTER CB*3
-    LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ,IFPRINT
+  integer :: nface, nmxv, nmxt, iel, ifc, iq, ih, iobj
 
-    NFACE  = 2*NDIM
-    NMXV   = NFACE*NELV
-    NMXT   = NFACE*NELT
+  NFACE  = 2*NDIM
+  NMXV   = NFACE*NELV
+  NMXT   = NFACE*NELT
 
-    IFPRINT = .TRUE. 
-    IFVCOR  = .TRUE. 
-    IFGEOM  = .FALSE. 
-    IFINTQ  = .FALSE. 
-    IFSURT  = .FALSE. 
-    IFWCNO  = .FALSE. 
-    IFSWALL = .FALSE. 
-    DO 10 IFIELD=1,NFIELD
-        IFNONL(IFIELD) = .FALSE. 
-    10 END DO
+  IFPRINT = .TRUE. 
+  IFVCOR  = .TRUE. 
+  IFGEOM  = .FALSE. 
+  IFINTQ  = .FALSE. 
+  IFSURT  = .FALSE. 
+  IFWCNO  = .FALSE. 
+  IFSWALL = .FALSE. 
+  DO 10 IFIELD=1,NFIELD
+      IFNONL(IFIELD) = .FALSE. 
+  10 END DO
 
-    CALL LFALSE (IFEPPM,NMXV)
-    CALL LFALSE (IFQINP,NMXV)
+  CALL LFALSE (IFEPPM,NMXV)
+  CALL LFALSE (IFQINP,NMXV)
 
 !max    IF (IFMODEL) CALL SETSHL
 
-    IF (IFMVBD) THEN
-        IFGEOM = .TRUE. 
-        IF ( IFFLOW .AND. .NOT. IFNAV )       IFWCNO          = .TRUE. 
-        IF ( IFMELT .AND. .NOT. IFFLOW )      IFWCNO          = .TRUE. 
-    ENDIF
+  IF (IFMVBD) THEN
+      IFGEOM = .TRUE. 
+      IF ( IFFLOW .AND. .NOT. IFNAV )       IFWCNO          = .TRUE. 
+      IF ( IFMELT .AND. .NOT. IFFLOW )      IFWCNO          = .TRUE. 
+  ENDIF
 
-    IF (IFFLOW) THEN
+  IF (IFFLOW) THEN
 
-    ! k         call check_cyclic  ! fow now; set in .rea file
+  ! k         call check_cyclic  ! fow now; set in .rea file
 
-        IFIELD = 1
-        DO 100 IEL=1,NELV
-            DO 100 IFC=1,NFACE
-                CB = CBC(IFC,IEL,IFIELD)
-                CALL CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFC,IEL)
-                IF ( .NOT. IFSTRS ) CALL CHKCBC  (CB,IEL,IFC,IFALGN)
-                IF  (CB == 'O  ' .OR. CB == 'o  ' .OR. &
-                CB == 'ON ' .OR. CB == 'on ' .OR. &
-                CB == 'S  ' .OR. CB == 's  ' .OR. &
-                CB == 'SL ' .OR. CB == 'sl ' .OR. &
-                CB == 'MM ' .OR. CB == 'mm ' .OR. &
-                CB == 'MS ' .OR. CB == 'ms ')  THEN
-                    IFVCOR          = .FALSE. 
-                    IFEPPM(IFC,IEL) = .TRUE. 
-                ENDIF
-                IF  (CB == 'VL ' .OR. CB == 'vl ' .OR. &
-                CB == 'WSL' .OR. CB == 'wsl' .OR. &
-                CB == 'SL ' .OR. CB == 'sl ' .OR. &
-                CB == 'SHL' .OR. CB == 'shl' .OR. &
-                CB == 'MM ' .OR. CB == 'mm ' .OR. &
-                CB == 'MS ' .OR. CB == 'ms ' .OR. &
-                CB == 'O  ' .OR. CB == 'o  ' .OR. &
-                CB == 'ON ' .OR. CB == 'on ')  THEN
-                    IFQINP(IFC,IEL) = .TRUE. 
-                ENDIF
-                IF  (CB == 'MS ' .OR. CB == 'ms ' .OR. &
-                CB == 'MM ' .OR. CB == 'mm ' .OR. &
-                CB == 'MSI' .OR. CB == 'msi' ) THEN
-                    IFSURT          = .TRUE. 
-                ENDIF
-                IF  (CB == 'WS ' .OR. CB == 'ws ' .OR. &
-                CB == 'WSL' .OR. CB == 'wsl') THEN
-                    IFSWALL         = .TRUE. 
-                    IFCWUZ          = .TRUE. 
-                ENDIF
-        100 END DO
-    ENDIF
+      IFIELD = 1
+      DO 100 IEL=1,NELV
+          DO 100 IFC=1,NFACE
+              CB = CBC(IFC,IEL,IFIELD)
+              CALL CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFC,IEL)
+              IF ( .NOT. IFSTRS ) CALL CHKCBC  (CB,IEL,IFC,IFALGN)
+              IF  (CB == 'O  ' .OR. CB == 'o  ' .OR. &
+              CB == 'ON ' .OR. CB == 'on ' .OR. &
+              CB == 'S  ' .OR. CB == 's  ' .OR. &
+              CB == 'SL ' .OR. CB == 'sl ' .OR. &
+              CB == 'MM ' .OR. CB == 'mm ' .OR. &
+              CB == 'MS ' .OR. CB == 'ms ')  THEN
+                  IFVCOR          = .FALSE. 
+                  IFEPPM(IFC,IEL) = .TRUE. 
+              ENDIF
+              IF  (CB == 'VL ' .OR. CB == 'vl ' .OR. &
+              CB == 'WSL' .OR. CB == 'wsl' .OR. &
+              CB == 'SL ' .OR. CB == 'sl ' .OR. &
+              CB == 'SHL' .OR. CB == 'shl' .OR. &
+              CB == 'MM ' .OR. CB == 'mm ' .OR. &
+              CB == 'MS ' .OR. CB == 'ms ' .OR. &
+              CB == 'O  ' .OR. CB == 'o  ' .OR. &
+              CB == 'ON ' .OR. CB == 'on ')  THEN
+                  IFQINP(IFC,IEL) = .TRUE. 
+              ENDIF
+              IF  (CB == 'MS ' .OR. CB == 'ms ' .OR. &
+              CB == 'MM ' .OR. CB == 'mm ' .OR. &
+              CB == 'MSI' .OR. CB == 'msi' ) THEN
+                  IFSURT          = .TRUE. 
+              ENDIF
+              IF  (CB == 'WS ' .OR. CB == 'ws ' .OR. &
+              CB == 'WSL' .OR. CB == 'wsl') THEN
+                  IFSWALL         = .TRUE. 
+                  IFCWUZ          = .TRUE. 
+              ENDIF
+      100 END DO
+  ENDIF
 
-    IF (IFHEAT) THEN
-    
-        DO 250 IFIELD=2,NFIELD
-            DO 250 IEL=1,NELFLD(IFIELD)
-                DO 250 IFC=1,NFACE
-                    CB=CBC(IFC,IEL,IFIELD)
-                    IF  (CB == 'r  ' .OR. CB == 'R  ') THEN
-                        IFNONL(IFIELD)  = .TRUE. 
-                    ENDIF
-        250 END DO
-    
-    ENDIF
+  IF (IFHEAT) THEN
+  
+      DO 250 IFIELD=2,NFIELD
+          DO 250 IEL=1,NELFLD(IFIELD)
+              DO 250 IFC=1,NFACE
+                  CB=CBC(IFC,IEL,IFIELD)
+                  IF  (CB == 'r  ' .OR. CB == 'R  ') THEN
+                      IFNONL(IFIELD)  = .TRUE. 
+                  ENDIF
+      250 END DO
+  
+  ENDIF
 
 !max    if (ifmhd) call set_ifbcor
 
-    IF (NHIS > 0) THEN
-        IQ = 0
-        DO 300 IH=1,NHIS
-            IF ( HCODE(10,IH) == 'I' ) THEN
-                IFINTQ = .TRUE. 
-                IOBJ   = LOCHIS(1,IH)
-                IQ     = IQ + 1
-                IF (IOBJ > NOBJ .OR. IOBJ < 0)  THEN
-                    WRITE (6,*) &
-                    'ERROR : Undefined Object for integral',IQ
-                    call exitt
-                ENDIF
-            ENDIF
-        300 END DO
-    ENDIF
+  IF (NHIS > 0) THEN
+      IQ = 0
+      DO 300 IH=1,NHIS
+          IF ( HCODE(10,IH) == 'I' ) THEN
+              IFINTQ = .TRUE. 
+              IOBJ   = LOCHIS(1,IH)
+              IQ     = IQ + 1
+              IF (IOBJ > NOBJ .OR. IOBJ < 0)  THEN
+                  WRITE (6,*) &
+                  'ERROR : Undefined Object for integral',IQ
+                  call exitt
+              ENDIF
+          ENDIF
+      300 END DO
+  ENDIF
 
-!     Establish global consistency of LOGICALS amongst all processors.
+!   Establish global consistency of LOGICALS amongst all processors.
 
-    CALL GLLOG(IFVCOR , .FALSE. )
-    CALL GLLOG(IFSURT , .TRUE. )
-    CALL GLLOG(IFSWALL, .TRUE. )
-    CALL GLLOG(IFCWUZ , .TRUE. )
-    CALL GLLOG(IFWCNO , .TRUE. )
-    DO 400 IFIELD=2,NFIELD
-        CALL GLLOG(IFNONL(IFIELD), .TRUE. )
-    400 END DO
+  CALL GLLOG(IFVCOR , .FALSE. )
+  CALL GLLOG(IFSURT , .TRUE. )
+  CALL GLLOG(IFSWALL, .TRUE. )
+  CALL GLLOG(IFCWUZ , .TRUE. )
+  CALL GLLOG(IFWCNO , .TRUE. )
+  DO 400 IFIELD=2,NFIELD
+      CALL GLLOG(IFNONL(IFIELD), .TRUE. )
+  400 END DO
 
-    IF (NID == 0) THEN
-        WRITE (6,*) 'IFTRAN   =',IFTRAN
-        WRITE (6,*) 'IFFLOW   =',IFFLOW
-        WRITE (6,*) 'IFHEAT   =',IFHEAT
-        WRITE (6,*) 'IFSPLIT  =',IFSPLIT
-        WRITE (6,*) 'IFLOMACH =',IFLOMACH
-        WRITE (6,*) 'IFUSERVP =',IFUSERVP
-        WRITE (6,*) 'IFUSERMV =',IFUSERMV
-        WRITE (6,*) 'IFSTRS   =',IFSTRS
-        WRITE (6,*) 'IFCHAR   =',IFCHAR
-        WRITE (6,*) 'IFCYCLIC =',IFCYCLIC
-        WRITE (6,*) 'IFAXIS   =',IFAXIS
-        WRITE (6,*) 'IFMVBD   =',IFMVBD
-        WRITE (6,*) 'IFMELT   =',IFMELT
-        WRITE (6,*) 'IFMODEL  =',IFMODEL
-        WRITE (6,*) 'IFKEPS   =',IFKEPS
-        WRITE (6,*) 'IFMOAB   =',IFMOAB
-        WRITE (6,*) 'IFNEKNEK =',IFNEKNEK
-        WRITE (6,*) 'IFSYNC   =',IFSYNC
-        WRITE (6,*) '  '
-        WRITE (6,*) 'IFVCOR   =',IFVCOR
-        WRITE (6,*) 'IFINTQ   =',IFINTQ
-        WRITE (6,*) 'IFCWUZ   =',IFCWUZ
-        WRITE (6,*) 'IFSWALL  =',IFSWALL
-        WRITE (6,*) 'IFGEOM   =',IFGEOM
-        WRITE (6,*) 'IFSURT   =',IFSURT
-        WRITE (6,*) 'IFWCNO   =',IFWCNO
-        DO 500 IFIELD=1,NFIELD
-            WRITE (6,*) '  '
-            WRITE (6,*) 'IFTMSH for field',IFIELD,'   = ',IFTMSH(IFIELD)
-            WRITE (6,*) 'IFADVC for field',IFIELD,'   = ',IFADVC(IFIELD)
-            WRITE (6,*) 'IFNONL for field',IFIELD,'   = ',IFNONL(IFIELD)
-        500 END DO
-        WRITE (6,*) '  '
-        if (param(99) > 0) write(6,*) 'Dealiasing enabled, lxd=', lxd
-    ENDIF
+  IF (NID == 0) THEN
+      WRITE (6,*) 'IFTRAN   =',IFTRAN
+      WRITE (6,*) 'IFFLOW   =',IFFLOW
+      WRITE (6,*) 'IFHEAT   =',IFHEAT
+      WRITE (6,*) 'IFSPLIT  =',IFSPLIT
+      WRITE (6,*) 'IFLOMACH =',IFLOMACH
+      WRITE (6,*) 'IFUSERVP =',IFUSERVP
+      WRITE (6,*) 'IFUSERMV =',IFUSERMV
+      WRITE (6,*) 'IFSTRS   =',IFSTRS
+      WRITE (6,*) 'IFCHAR   =',IFCHAR
+      WRITE (6,*) 'IFCYCLIC =',IFCYCLIC
+      WRITE (6,*) 'IFAXIS   =',IFAXIS
+      WRITE (6,*) 'IFMVBD   =',IFMVBD
+      WRITE (6,*) 'IFMELT   =',IFMELT
+      WRITE (6,*) 'IFMODEL  =',IFMODEL
+      WRITE (6,*) 'IFKEPS   =',IFKEPS
+      WRITE (6,*) 'IFMOAB   =',IFMOAB
+      WRITE (6,*) 'IFNEKNEK =',IFNEKNEK
+      WRITE (6,*) 'IFSYNC   =',IFSYNC
+      WRITE (6,*) '  '
+      WRITE (6,*) 'IFVCOR   =',IFVCOR
+      WRITE (6,*) 'IFINTQ   =',IFINTQ
+      WRITE (6,*) 'IFCWUZ   =',IFCWUZ
+      WRITE (6,*) 'IFSWALL  =',IFSWALL
+      WRITE (6,*) 'IFGEOM   =',IFGEOM
+      WRITE (6,*) 'IFSURT   =',IFSURT
+      WRITE (6,*) 'IFWCNO   =',IFWCNO
+      DO 500 IFIELD=1,NFIELD
+          WRITE (6,*) '  '
+          WRITE (6,*) 'IFTMSH for field',IFIELD,'   = ',IFTMSH(IFIELD)
+          WRITE (6,*) 'IFADVC for field',IFIELD,'   = ',IFADVC(IFIELD)
+          WRITE (6,*) 'IFNONL for field',IFIELD,'   = ',IFNONL(IFIELD)
+      500 END DO
+      WRITE (6,*) '  '
+      if (param(99) > 0) write(6,*) 'Dealiasing enabled, lxd=', lxd
+  ENDIF
 
-    RETURN
-    END SUBROUTINE SETLOG
+  RETURN
+END SUBROUTINE SETLOG
 
 !-----------------------------------------------------------------------
     SUBROUTINE SETRZER
@@ -326,404 +332,421 @@
     call exitt
     END SUBROUTINE CHKCBC
 !-----------------------------------------------------------------------
-    SUBROUTINE BCMASK
+!> \brief Zero out masks corresponding to Dirichlet boundary points.
+SUBROUTINE BCMASK
+  use size_m, only : nx1, ny1, nz1, nelv, ndim, nfield
+  use input, only : ifmvbd, ifflow, cbc, ifstrs, ifheat, ipscal, ifmhd, ifaziv
+  use input, only : ifldmhd, if3d
+  use soln, only : v1mask, v2mask, v3mask, pmask, omask, tmask, bpmask
+  use soln, only : b1mask, b2mask, b3mask
+  use tstep, only : ifield, nelfld
+  implicit none
 
-!     Zero out masks corresponding to Dirichlet boundary points.
+  character(3) :: cb
+  character(1) :: cb1(3)
+  equivalence (cb1,cb)
 
-    use size_m
-    use input
-    use mvgeom
-    use soln
-    use topol
-    use tstep
+  logical :: ifalgn,ifnorx,ifnory,ifnorz
+  integer :: e,f
 
-    common  /nekcb/ cb
-    character(3) :: cb
-    character(1) :: cb1(3)
-    equivalence (cb1,cb)
+  integer :: nfaces, nxyz, nel, ntot, iel, iface
 
-    logical :: ifalgn,ifnorx,ifnory,ifnorz
-    integer :: e,f
-
-    NFACES=2*NDIM
-    NXYZ  =NX1*NY1*NZ1
+  NFACES=2*NDIM
+  NXYZ  =NX1*NY1*NZ1
 
 
-!     Masks for moving mesh
+!   Masks for moving mesh
 
-    IF (IFMVBD) THEN
+  IF (IFMVBD) THEN
 #if 0
-        IFIELD = 0
-        CALL STSMASK (W1MASK,W2MASK,W3MASK)
-        do e=1,nelv
-            do f=1,nfaces
-                if (cbc(f,e,1) == 'msi' .OR. cbc(f,e,1) == 'msi') then
-                    call facev(w1mask,e,f,0.0,nx1,ny1,nz1)
-                    call facev(w2mask,e,f,0.0,nx1,ny1,nz1)
-                    call facev(w3mask,e,f,0.0,nx1,ny1,nz1)
-                endif
-            enddo
-        enddo
+      IFIELD = 0
+      CALL STSMASK (W1MASK,W2MASK,W3MASK)
+      do e=1,nelv
+          do f=1,nfaces
+              if (cbc(f,e,1) == 'msi' .OR. cbc(f,e,1) == 'msi') then
+                  call facev(w1mask,e,f,0.0,nx1,ny1,nz1)
+                  call facev(w2mask,e,f,0.0,nx1,ny1,nz1)
+                  call facev(w3mask,e,f,0.0,nx1,ny1,nz1)
+              endif
+          enddo
+      enddo
 #endif
-    ENDIF
+  ENDIF
 
-!     Masks for flow variables
+!   Masks for flow variables
 
-    IF (IFFLOW) THEN
-        IFIELD = 1
-        NEL    = NELFLD(IFIELD)
-        NTOT   = NXYZ*NEL
-    
-    !        Pressure mask
-    
-        CALL RONE(PMASK,NTOT)
-        DO 50 IEL=1,NELV
-            DO 50 IFACE=1,NFACES
-                CB=CBC(IFACE,IEL,IFIELD)
-                IF (CB == 'O  ' .OR. CB == 'ON ') &
-                CALL FACEV(PMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-        50 END DO
-    
-    !        Zero out mask at Neumann-Dirichlet interfaces
-    
-        CALL DSOP(PMASK,'MUL',NX1,NY1,NZ1)
-    
-    !        Velocity masks
-    
-    !        write(6,*) 'MASK ifstrs',ifstrs,ifield
-    !        call exitt
-        IF (IFSTRS) THEN
+  IF (IFFLOW) THEN
+      IFIELD = 1
+      NEL    = NELFLD(IFIELD)
+      NTOT   = NXYZ*NEL
+  
+  !        Pressure mask
+  
+      CALL RONE(PMASK,NTOT)
+      DO 50 IEL=1,NELV
+          DO 50 IFACE=1,NFACES
+              CB=CBC(IFACE,IEL,IFIELD)
+              IF (CB == 'O  ' .OR. CB == 'ON ') &
+              CALL FACEV(PMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+      50 END DO
+  
+  !        Zero out mask at Neumann-Dirichlet interfaces
+  
+      CALL DSOP(PMASK,'MUL',NX1,NY1,NZ1)
+  
+  !        Velocity masks
+  
+  !        write(6,*) 'MASK ifstrs',ifstrs,ifield
+  !        call exitt
+      IF (IFSTRS) THEN
 !max            CALL STSMASK (V1MASK,V2MASK,V3MASK)
-        ELSE
-        
-            CALL RONE(V1MASK,NTOT)
-            CALL RONE(V2MASK,NTOT)
-            CALL RONE(V3MASK,NTOT)
-            CALL RONE( OMASK,NTOT)
-        
-            DO 100 IEL=1,NELV
-                DO 100 IFACE=1,NFACES
-                    CB =CBC(IFACE,IEL,IFIELD)
-                    CALL CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFACE,IEL)
-                
-                !            All-Dirichlet boundary conditions
-                
-                    IF (CB == 'v  ' .OR. CB == 'V  ' .OR. CB == 'vl ' .OR. &
-                    CB == 'VL ' .OR. CB == 'W  ') THEN
-                        CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        GOTO 100
-                    ENDIF
-                
-                !        Mixed-Dirichlet-Neumann boundary conditions
-                
-                    IF (CB == 'SYM') THEN
-                        IF ( .NOT. IFALGN .OR. IFNORX ) &
-                        CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        IF ( IFNORY ) &
-                        CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        IF ( IFNORZ ) &
-                        CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        GOTO 100
-                    ENDIF
-                    IF (CB == 'ON ') THEN
-                        IF ( IFNORY .OR. IFNORZ ) &
-                        CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        IF ( .NOT. IFALGN .OR. IFNORX .OR. IFNORZ ) &
-                        CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        IF ( .NOT. IFALGN .OR. IFNORX .OR. IFNORY ) &
-                        CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        GOTO 100
-                    ENDIF
-                    IF (CB == 'A  ') THEN
-                        CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                        CALL FACEV ( OMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                    ENDIF
-            100 END DO
+      ELSE
+      
+          CALL RONE(V1MASK,NTOT)
+          CALL RONE(V2MASK,NTOT)
+          CALL RONE(V3MASK,NTOT)
+          CALL RONE( OMASK,NTOT)
+      
+          DO 100 IEL=1,NELV
+              DO 100 IFACE=1,NFACES
+                  CB =CBC(IFACE,IEL,IFIELD)
+                  CALL CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFACE,IEL)
+              
+              !            All-Dirichlet boundary conditions
+              
+                  IF (CB == 'v  ' .OR. CB == 'V  ' .OR. CB == 'vl ' .OR. &
+                  CB == 'VL ' .OR. CB == 'W  ') THEN
+                      CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      GOTO 100
+                  ENDIF
+              
+              !        Mixed-Dirichlet-Neumann boundary conditions
+              
+                  IF (CB == 'SYM') THEN
+                      IF ( .NOT. IFALGN .OR. IFNORX ) &
+                      CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      IF ( IFNORY ) &
+                      CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      IF ( IFNORZ ) &
+                      CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      GOTO 100
+                  ENDIF
+                  IF (CB == 'ON ') THEN
+                      IF ( IFNORY .OR. IFNORZ ) &
+                      CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      IF ( .NOT. IFALGN .OR. IFNORX .OR. IFNORZ ) &
+                      CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      IF ( .NOT. IFALGN .OR. IFNORX .OR. IFNORY ) &
+                      CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      GOTO 100
+                  ENDIF
+                  IF (CB == 'A  ') THEN
+                      CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                      CALL FACEV ( OMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+                  ENDIF
+          100 END DO
 
-            CALL DSOP  ( OMASK,'MUL',NX1,NY1,NZ1)
-            call opdsop(v1mask,v2mask,v3mask,'MUL') ! no rotation for mul
+          CALL DSOP  ( OMASK,'MUL',NX1,NY1,NZ1)
+          call opdsop(v1mask,v2mask,v3mask,'MUL') ! no rotation for mul
 
 
-        ENDIF
-    
-    ENDIF
+      ENDIF
+  
+  ENDIF
 
-!     Masks for passive scalars +
-!     k and e if k-e turbulence modem:
-!     k = nfield-1
-!     e = nfield
+!   Masks for passive scalars +
+!   k and e if k-e turbulence modem:
+!   k = nfield-1
+!   e = nfield
 
-    IF (IFHEAT) THEN
-    
-        DO 1200 IFIELD=2,NFIELD
-            IPSCAL = IFIELD-1
-            NEL    = NELFLD(IFIELD)
-            NTOT   = NXYZ*NEL
-            CALL RONE (TMASK(1,1,1,1,IPSCAL),NTOT)
-            DO 1100 IEL=1,NEL
-                DO 1100 IFACE=1,NFACES
-                    CB =CBC(IFACE,IEL,IFIELD)
-                
-                !           Assign mask values.
-                
-                    IF  (CB == 'T  ' .OR. CB == 't  ' .OR. &
-                    (CB == 'A  ' .AND. IFAZIV)    .OR. &
-                    CB == 'MCI' .OR. CB == 'MLI' .OR. &
-                    CB == 'KD ' .OR. CB == 'kd ' .OR. &
-                    CB == 'ED ' .OR. CB == 'ed ' .OR. &
-                    CB == 'KW ' .OR. CB == 'KWS' .OR. CB == 'EWS') &
-                    CALL FACEV (TMASK(1,1,1,1,IPSCAL), &
-                    IEL,IFACE,0.0,NX1,NY1,NZ1)
-            1100 END DO
-            CALL DSOP (TMASK(1,1,1,1,IPSCAL),'MUL',NX1,NY1,NZ1)
-        1200 END DO
-    
-    ENDIF
+  IF (IFHEAT) THEN
+  
+      DO 1200 IFIELD=2,NFIELD
+          IPSCAL = IFIELD-1
+          NEL    = NELFLD(IFIELD)
+          NTOT   = NXYZ*NEL
+          CALL RONE (TMASK(1,1,1,1,IPSCAL),NTOT)
+          DO 1100 IEL=1,NEL
+              DO 1100 IFACE=1,NFACES
+                  CB =CBC(IFACE,IEL,IFIELD)
+              
+              !           Assign mask values.
+              
+                  IF  (CB == 'T  ' .OR. CB == 't  ' .OR. &
+                  (CB == 'A  ' .AND. IFAZIV)    .OR. &
+                  CB == 'MCI' .OR. CB == 'MLI' .OR. &
+                  CB == 'KD ' .OR. CB == 'kd ' .OR. &
+                  CB == 'ED ' .OR. CB == 'ed ' .OR. &
+                  CB == 'KW ' .OR. CB == 'KWS' .OR. CB == 'EWS') &
+                  CALL FACEV (TMASK(1,1,1,1,IPSCAL), &
+                  IEL,IFACE,0.0,NX1,NY1,NZ1)
+          1100 END DO
+          CALL DSOP (TMASK(1,1,1,1,IPSCAL),'MUL',NX1,NY1,NZ1)
+      1200 END DO
+  
+  ENDIF
 
-!     Masks for B-field
+!   Masks for B-field
 
-    if (ifmhd) then
-        ifield = ifldmhd
-        nel    = nelfld(ifield)
-        ntot   = nxyz*nel
-    
-    !        B-field pressure mask
-    
-        call rone(bpmask,ntot)
-        do iel=1,nelv
-            do iface=1,nfaces
-                cb=cbc(iface,iel,ifield)
-                if (cb == 'O  ' .OR. cb == 'ON ') &
-                call facev(bpmask,iel,iface,0.0,nx1,ny1,nz1)
-            enddo
-        enddo
-    
-    !        Zero out mask at Neumann-Dirichlet interfaces
-    
-        call dsop(bpmask,'MUL',nx1,ny1,nz1)
-    
-    !        B-field masks
-    
-        if (ifstrs) then
+  if (ifmhd) then
+      ifield = ifldmhd
+      nel    = nelfld(ifield)
+      ntot   = nxyz*nel
+  
+  !        B-field pressure mask
+  
+      call rone(bpmask,ntot)
+      do iel=1,nelv
+          do iface=1,nfaces
+              cb=cbc(iface,iel,ifield)
+              if (cb == 'O  ' .OR. cb == 'ON ') &
+              call facev(bpmask,iel,iface,0.0,nx1,ny1,nz1)
+          enddo
+      enddo
+  
+  !        Zero out mask at Neumann-Dirichlet interfaces
+  
+      call dsop(bpmask,'MUL',nx1,ny1,nz1)
+  
+  !        B-field masks
+  
+      if (ifstrs) then
 !max            call stsmask (b1mask,b2mask,b3mask)
-        else
-        
-            call rone(b1mask,ntot)
-            call rone(b2mask,ntot)
-            call rone(b3mask,ntot)
-        
-            do iel=1,nelv
-                do iface=1,nfaces
-                    cb =cbc(iface,iel,ifield)
-                    call chknord (ifalgn,ifnorx,ifnory,ifnorz,iface,iel)
-                
-                    if (cb == 'v  ' .OR. cb == 'V  ' .OR. cb == 'vl ' .OR. &
-                    cb == 'VL ' .OR. cb == 'W  ') then
-                    
-                    !               All-Dirichlet boundary conditions
-                    
-                        call facev (b1mask,iel,iface,0.0,nx1,ny1,nz1)
-                        call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
-                        call facev (b3mask,iel,iface,0.0,nx1,ny1,nz1)
-                    
-                    elseif (cb == 'SYM') then
-                    
-                    !               Mixed-Dirichlet-Neumann boundary conditions
-                    
-                        if ( .NOT. ifalgn .OR. ifnorx ) &
-                        call facev (b1mask,iel,iface,0.0,nx1,ny1,nz1)
-                        if ( ifnory ) &
-                        call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
-                        if ( ifnorz ) &
-                        call facev (b3mask,iel,iface,0.0,nx1,ny1,nz1)
-                    
-                    elseif (cb == 'ON ') then
-                    
-                    !               Mixed-Dirichlet-Neumann boundary conditions
-                    
-                        if ( ifnory .OR. ifnorz ) &
-                        call facev (b1mask,iel,iface,0.0,nx1,ny1,nz1)
-                        if ( .NOT. ifalgn .OR. ifnorx .OR. ifnorz ) &
-                        call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
-                        if ( .NOT. ifalgn .OR. ifnorx .OR. ifnory ) &
-                        call facev (b3mask,iel,iface,0.0,nx1,ny1,nz1)
-                    
-                    elseif (cb == 'A  ') then
-                    
-                    !               axisymmetric centerline
-                    
-                        call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
-                    
-                    else
-                    
-                        if ( cb1(1) == 'd' ) &
-                        call facev (b1mask,iel,iface,0.0,nx1,ny1,nz1)
-                        if ( cb1(2) == 'd' ) &
-                        call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
-                        if ( cb1(3) == 'd' .AND. if3d ) &
-                        call facev (b3mask,iel,iface,0.0,nx1,ny1,nz1)
-                    
-                    endif
-                enddo
-            enddo
-        
-            call dsop(b1mask,'MUL',nx1,ny1,nz1)
-            call dsop(b2mask,'MUL',nx1,ny1,nz1)
-            if (ndim == 3) call dsop(b3mask,'MUL',nx1,ny1,nz1)
-        endif
-    endif
+      else
+      
+          call rone(b1mask,ntot)
+          call rone(b2mask,ntot)
+          call rone(b3mask,ntot)
+      
+          do iel=1,nelv
+              do iface=1,nfaces
+                  cb =cbc(iface,iel,ifield)
+                  call chknord (ifalgn,ifnorx,ifnory,ifnorz,iface,iel)
+              
+                  if (cb == 'v  ' .OR. cb == 'V  ' .OR. cb == 'vl ' .OR. &
+                  cb == 'VL ' .OR. cb == 'W  ') then
+                  
+                  !               All-Dirichlet boundary conditions
+                  
+                      call facev (b1mask,iel,iface,0.0,nx1,ny1,nz1)
+                      call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
+                      call facev (b3mask,iel,iface,0.0,nx1,ny1,nz1)
+                  
+                  elseif (cb == 'SYM') then
+                  
+                  !               Mixed-Dirichlet-Neumann boundary conditions
+                  
+                      if ( .NOT. ifalgn .OR. ifnorx ) &
+                      call facev (b1mask,iel,iface,0.0,nx1,ny1,nz1)
+                      if ( ifnory ) &
+                      call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
+                      if ( ifnorz ) &
+                      call facev (b3mask,iel,iface,0.0,nx1,ny1,nz1)
+                  
+                  elseif (cb == 'ON ') then
+                  
+                  !               Mixed-Dirichlet-Neumann boundary conditions
+                  
+                      if ( ifnory .OR. ifnorz ) &
+                      call facev (b1mask,iel,iface,0.0,nx1,ny1,nz1)
+                      if ( .NOT. ifalgn .OR. ifnorx .OR. ifnorz ) &
+                      call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
+                      if ( .NOT. ifalgn .OR. ifnorx .OR. ifnory ) &
+                      call facev (b3mask,iel,iface,0.0,nx1,ny1,nz1)
+                  
+                  elseif (cb == 'A  ') then
+                  
+                  !               axisymmetric centerline
+                  
+                      call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
+                  
+                  else
+                  
+                      if ( cb1(1) == 'd' ) &
+                      call facev (b1mask,iel,iface,0.0,nx1,ny1,nz1)
+                      if ( cb1(2) == 'd' ) &
+                      call facev (b2mask,iel,iface,0.0,nx1,ny1,nz1)
+                      if ( cb1(3) == 'd' .AND. if3d ) &
+                      call facev (b3mask,iel,iface,0.0,nx1,ny1,nz1)
+                  
+                  endif
+              enddo
+          enddo
+      
+          call dsop(b1mask,'MUL',nx1,ny1,nz1)
+          call dsop(b2mask,'MUL',nx1,ny1,nz1)
+          if (ndim == 3) call dsop(b3mask,'MUL',nx1,ny1,nz1)
+      endif
+  endif
 
-    RETURN
-    END SUBROUTINE BCMASK
+  RETURN
+END SUBROUTINE BCMASK
 !-----------------------------------------------------------------------
-    SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
+!> \brief Apply Dirichlet boundary conditions to surface of vector (V1,V2,V3).
+!! Use IFIELD as a guide to which boundary conditions are to be applied.
+SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, ndim, lelv, lx1, ly1, lz1
+  use ctimer, only : icalld, tusbc, nusbc, etime1, dnekclock
+  use geom, only : ifqinp
+  use input, only : if3d, cbc, bc, ifstrs
+  use tstep, only : ifield, nelfld
+  implicit none
 
-!     Apply Dirichlet boundary conditions to surface of vector (V1,V2,V3).
-!     Use IFIELD as a guide to which boundary conditions are to be applied.
+  REAL(DP) :: V1(NX1,NY1,NZ1,LELV),V2(NX1,NY1,NZ1,LELV) &
+  ,V3(NX1,NY1,NZ1,LELV)
+  real(DP) :: mask1(nx1,ny1,nz1,lelv),mask2(nx1,ny1,nz1,lelv) &
+  ,mask3(nx1,ny1,nz1,lelv)
 
-    use ctimer
-    use size_m
-    use geom
-    use input
-    use soln
-    use topol
-    use tstep
-    COMMON /SCRUZ/ TMP1(LX1,LY1,LZ1,LELV) &
-    , TMP2(LX1,LY1,LZ1,LELV) &
-    , TMP3(LX1,LY1,LZ1,LELV)
-    COMMON /SCRMG/ TMQ1(LX1,LY1,LZ1,LELV) &
-    , TMQ2(LX1,LY1,LZ1,LELV) &
-    , TMQ3(LX1,LY1,LZ1,LELV)
 
-    REAL :: V1(NX1,NY1,NZ1,LELV),V2(NX1,NY1,NZ1,LELV) &
-    ,V3(NX1,NY1,NZ1,LELV)
-    real :: mask1(nx1,ny1,nz1,lelv),mask2(nx1,ny1,nz1,lelv) &
-    ,mask3(nx1,ny1,nz1,lelv)
+  real(DP) :: tmp1, tmp2, tmp3
+  COMMON /SCRUZ/ TMP1(LX1,LY1,LZ1,LELV) &
+  , TMP2(LX1,LY1,LZ1,LELV) &
+  , TMP3(LX1,LY1,LZ1,LELV)
+  real(DP) :: tmq1, tmq2, tmq3
+  COMMON /SCRMG/ TMQ1(LX1,LY1,LZ1,LELV) &
+  , TMQ2(LX1,LY1,LZ1,LELV) &
+  , TMQ3(LX1,LY1,LZ1,LELV)
 
-    common  /nekcb/ cb
-    character cb*3
-    character(1) :: cb1(3)
-    equivalence (cb1,cb)
 
-    logical :: ifonbc
+  character cb*3
+  character(1) :: cb1(3)
+  equivalence (cb1,cb)
 
-    ifonbc = .FALSE. 
+  logical :: ifonbc
+
+  integer :: nfaces, nxyz, nel, ntot, isweep, ie, iface
+  real(DP) :: bc1, bc2, bc3
+
+  ifonbc = .FALSE. 
 
 #ifndef NOTIMER
-    if (icalld == 0) then
-        tusbc=0.0
-        nusbc=0
-        icalld=icalld+1
-    endif
-    nusbc=nusbc+1
-    etime1=dnekclock()
+  if (icalld == 0) then
+      tusbc=0.0
+      nusbc=0
+      icalld=icalld+1
+  endif
+  nusbc=nusbc+1
+  etime1=dnekclock()
 #endif
 
 
-    NFACES=2*NDIM
-    NXYZ  =NX1*NY1*NZ1
-    NEL   =NELFLD(IFIELD)
-    NTOT  =NXYZ*NEL
+  NFACES=2*NDIM
+  NXYZ  =NX1*NY1*NZ1
+  NEL   =NELFLD(IFIELD)
+  NTOT  =NXYZ*NEL
 
-    CALL RZERO(TMP1,NTOT)
-    CALL RZERO(TMP2,NTOT)
-    IF (IF3D) CALL RZERO(TMP3,NTOT)
+  CALL RZERO(TMP1,NTOT)
+  CALL RZERO(TMP2,NTOT)
+  IF (IF3D) CALL RZERO(TMP3,NTOT)
 
-!     Velocity boundary conditions
+!   Velocity boundary conditions
 
-!     write(6,*) 'BCDIRV: ifield',ifield
-    DO 2100 ISWEEP=1,2
-        DO 2000 IE=1,NEL
-            DO 2000 IFACE=1,NFACES
-                CB  = CBC(IFACE,IE,IFIELD)
-                BC1 = BC(1,IFACE,IE,IFIELD)
-                BC2 = BC(2,IFACE,IE,IFIELD)
-                BC3 = BC(3,IFACE,IE,IFIELD)
+!   write(6,*) 'BCDIRV: ifield',ifield
+  DO 2100 ISWEEP=1,2
+      DO 2000 IE=1,NEL
+          DO 2000 IFACE=1,NFACES
+              CB  = CBC(IFACE,IE,IFIELD)
+              BC1 = BC(1,IFACE,IE,IFIELD)
+              BC2 = BC(2,IFACE,IE,IFIELD)
+              BC3 = BC(3,IFACE,IE,IFIELD)
 
-                IF (CB == 'V  ' .OR. CB == 'VL '  .OR. &
-                CB == 'WS ' .OR. CB == 'WSL') THEN
-                    CALL FACEV (TMP1,IE,IFACE,BC1,NX1,NY1,NZ1)
-                    CALL FACEV (TMP2,IE,IFACE,BC2,NX1,NY1,NZ1)
-                    IF (IF3D) CALL FACEV (TMP3,IE,IFACE,BC3,NX1,NY1,NZ1)
-                    IF ( IFQINP(IFACE,IE) ) &
-                    CALL GLOBROT (TMP1(1,1,1,IE),TMP2(1,1,1,IE), &
-                    TMP3(1,1,1,IE),IE,IFACE)
-                ENDIF
-
-                IF (CB == 'v  ' .OR. CB == 'vl ' .OR. &
-                CB == 'ws ' .OR. CB == 'wsl' .OR. &
-                CB == 'mv ' .OR. CB == 'mvn' .OR. &
-                cb1(1) == 'd' .OR. cb1(2) == 'd' .OR. cb1(3) == 'd') then
-
-                    call faceiv (cb,tmp1(1,1,1,ie),tmp2(1,1,1,ie), &
-                    tmp3(1,1,1,ie),ie,iface,nx1,ny1,nz1)
-
-                    IF ( IFQINP(IFACE,IE) ) &
-                    CALL GLOBROT (TMP1(1,1,1,IE),TMP2(1,1,1,IE), &
-                    TMP3(1,1,1,IE),IE,IFACE)
-                ENDIF
-
-                IF (CB == 'ON ' .OR. CB == 'on ') then   ! 5/21/01 pff
-                    ifonbc = .TRUE. 
-                    CALL FACEIV ('v  ',TMP1(1,1,1,IE),TMP2(1,1,1,IE), &
-                    TMP3(1,1,1,IE),IE,IFACE,NX1,NY1,NZ1)
-                ENDIF
-
-        2000 END DO
-        DO 2010 IE=1,NEL
-            DO 2010 IFACE=1,NFACES
-                IF (CBC(IFACE,IE,IFIELD) == 'W  ') THEN
-                    CALL FACEV (TMP1,IE,IFACE,0.0,NX1,NY1,NZ1)
-                    CALL FACEV (TMP2,IE,IFACE,0.0,NX1,NY1,NZ1)
-                    IF (IF3D) CALL FACEV (TMP3,IE,IFACE,0.0,NX1,NY1,NZ1)
-                ENDIF
-        2010 END DO
-    
-    !        Take care of Neumann-Dirichlet shared edges...
-    
-        if (isweep == 1) then
-            call opdsop(tmp1,tmp2,tmp3,'MXA')
-        else
-            call opdsop(tmp1,tmp2,tmp3,'MNA')
-        endif
-    2100 END DO
-
-!     Copy temporary array to velocity arrays.
-
-    IF ( .NOT. IFSTRS ) THEN
-        CALL COL2(V1,mask1,NTOT)
-        CALL COL2(V2,mask2,NTOT)
-        IF (IF3D) CALL COL2(V3,mask3,NTOT)
-        if (ifonbc) then
-            call antimsk1(tmp1,mask1,ntot)
-            call antimsk1(tmp2,mask2,ntot)
-            if (if3d) call antimsk1(tmp3,mask3,ntot)
-        endif
-    ELSE
+              IF (CB == 'V  ' .OR. CB == 'VL '  .OR. &
+              CB == 'WS ' .OR. CB == 'WSL') THEN
+                  write(*,*) "Oops: CB = v, vl, ws, wsl"
 #if 0
-        IF (IFMODEL) THEN
-            CALL COPY (TMQ1,TMP1,NTOT)
-            CALL COPY (TMQ2,TMP2,NTOT)
-            IF (NDIM == 3) CALL COPY (TMQ3,TMP3,NTOT)
-            CALL AMASK (TMP1,TMP2,TMP3,TMQ1,TMQ2,TMQ3,NELV)
-        ENDIF
-        CALL RMASK (V1,V2,V3,NELV)
+                  CALL FACEV (TMP1,IE,IFACE,BC1,NX1,NY1,NZ1)
+                  CALL FACEV (TMP2,IE,IFACE,BC2,NX1,NY1,NZ1)
+                  IF (IF3D) CALL FACEV (TMP3,IE,IFACE,BC3,NX1,NY1,NZ1)
+                  IF ( IFQINP(IFACE,IE) ) &
+                  CALL GLOBROT (TMP1(1,1,1,IE),TMP2(1,1,1,IE), &
+                  TMP3(1,1,1,IE),IE,IFACE)
 #endif
-    ENDIF
+              ENDIF
 
-    CALL ADD2(V1,TMP1,NTOT)
-    CALL ADD2(V2,TMP2,NTOT)
-    IF (IF3D) CALL ADD2(V3,TMP3,NTOT)
+              IF (CB == 'v  ' .OR. CB == 'vl ' .OR. &
+              CB == 'ws ' .OR. CB == 'wsl' .OR. &
+              CB == 'mv ' .OR. CB == 'mvn' .OR. &
+              cb1(1) == 'd' .OR. cb1(2) == 'd' .OR. cb1(3) == 'd') then
+                  write(*,*) "Oops: CB = something bad"
+#if 0
+                  call faceiv (cb,tmp1(1,1,1,ie),tmp2(1,1,1,ie), &
+                  tmp3(1,1,1,ie),ie,iface,nx1,ny1,nz1)
+
+                  IF ( IFQINP(IFACE,IE) ) &
+                  CALL GLOBROT (TMP1(1,1,1,IE),TMP2(1,1,1,IE), &
+                  TMP3(1,1,1,IE),IE,IFACE)
+#endif
+              ENDIF
+
+              IF (CB == 'ON ' .OR. CB == 'on ') then   ! 5/21/01 pff
+                  write(*,*) "Oops: CB = ON"
+#if 0
+                  ifonbc = .TRUE. 
+                  CALL FACEIV ('v  ',TMP1(1,1,1,IE),TMP2(1,1,1,IE), &
+                  TMP3(1,1,1,IE),IE,IFACE,NX1,NY1,NZ1)
+#endif
+              ENDIF
+
+      2000 END DO
+      DO 2010 IE=1,NEL
+          DO 2010 IFACE=1,NFACES
+              IF (CBC(IFACE,IE,IFIELD) == 'W  ') THEN
+                  CALL FACEV (TMP1,IE,IFACE,0.0,NX1,NY1,NZ1)
+                  CALL FACEV (TMP2,IE,IFACE,0.0,NX1,NY1,NZ1)
+                  IF (IF3D) CALL FACEV (TMP3,IE,IFACE,0.0,NX1,NY1,NZ1)
+              ENDIF
+      2010 END DO
+  
+  !        Take care of Neumann-Dirichlet shared edges...
+  
+      if (isweep == 1) then
+          call opdsop(tmp1,tmp2,tmp3,'MXA')
+      else
+          call opdsop(tmp1,tmp2,tmp3,'MNA')
+      endif
+  2100 END DO
+
+!   Copy temporary array to velocity arrays.
+
+  IF ( .NOT. IFSTRS ) THEN
+      CALL COL2(V1,mask1,NTOT)
+      CALL COL2(V2,mask2,NTOT)
+      IF (IF3D) CALL COL2(V3,mask3,NTOT)
+      if (ifonbc) then
+        write(*,*) "Oops: ifonbc"
+#if 0
+          call antimsk1(tmp1,mask1,ntot)
+          call antimsk1(tmp2,mask2,ntot)
+          if (if3d) call antimsk1(tmp3,mask3,ntot)
+#endif
+      endif
+  ELSE
+    write(*,*) "Oops: ifstrs"
+#if 0
+      IF (IFMODEL) THEN
+          CALL COPY (TMQ1,TMP1,NTOT)
+          CALL COPY (TMQ2,TMP2,NTOT)
+          IF (NDIM == 3) CALL COPY (TMQ3,TMP3,NTOT)
+          CALL AMASK (TMP1,TMP2,TMP3,TMQ1,TMQ2,TMQ3,NELV)
+      ENDIF
+      CALL RMASK (V1,V2,V3,NELV)
+#endif
+  ENDIF
+
+  CALL ADD2(V1,TMP1,NTOT)
+  CALL ADD2(V2,TMP2,NTOT)
+  IF (IF3D) CALL ADD2(V3,TMP3,NTOT)
 
 
 #ifndef NOTIMER
-    tusbc=tusbc+(dnekclock()-etime1)
+  tusbc=tusbc+(dnekclock()-etime1)
 #endif
 
-    RETURN
-    END SUBROUTINE BCDIRVC
+  RETURN
+END SUBROUTINE BCDIRVC
 !-----------------------------------------------------------------------
 !> \brief Apply Dirichlet boundary conditions to surface of scalar, S.
 !! Use IFIELD as a guide to which boundary conditions are to be applied.
@@ -741,7 +764,6 @@ SUBROUTINE BCDIRSC(S)
   real(DP) :: tmp(LX1,LY1,LZ1,LELT) 
 
   CHARACTER CB*3
-  common  /nekcb/ cb
 
   integer :: ifld, nfaces, nxyz, nel, ntot, nvldt, isweep, ie, iface, nfldt
   real(DP) :: BC1, BC2, BC3, BC4, BCK, BCE
@@ -788,8 +810,10 @@ SUBROUTINE BCDIRSC(S)
               IF (CB == 'MLI') CALL FACEV (TMP,IE,IFACE,BC4,NX1,NY1,NZ1)
               IF (CB == 'KD ') CALL FACEV (TMP,IE,IFACE,BCK,NX1,NY1,NZ1)
               IF (CB == 'ED ') CALL FACEV (TMP,IE,IFACE,BCE,NX1,NY1,NZ1)
-              IF (CB == 't  ' .OR. CB == 'kd ' .OR. CB == 'ed ') &
-              CALL FACEIS (CB,TMP(1,1,1,IE),IE,IFACE,NX1,NY1,NZ1)
+              IF (CB == 't  ' .OR. CB == 'kd ' .OR. CB == 'ed ') then
+                write(*,*) "Oops: CB = t, kd, or ed"
+!max              CALL FACEIS (CB,TMP(1,1,1,IE),IE,IFACE,NX1,NY1,NZ1)
+              ENDIF
           END DO
       enddo
   
@@ -812,351 +836,150 @@ SUBROUTINE BCDIRSC(S)
 END SUBROUTINE BCDIRSC
 
 !-----------------------------------------------------------------------
-    SUBROUTINE BCNEUSC(S,ITYPE)
+!> \brief Apply Neumann boundary conditions to surface of scalar, S.
+!!  Use IFIELD as a guide to which boundary conditions are to be applied.
+!!  If ITYPE = 1, then S is returned as the rhs contribution to the
+!!                volumetric flux.
+!!  If ITYPE =-1, then S is returned as the lhs contribution to the
+!!                diagonal of A.
+SUBROUTINE BCNEUSC(S,ITYPE)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, ndim
+  use ctimer, only : icalld, tusbc, nusbc, etime1, dnekclock
+  use nekuse, only : hc, tinf, hrad, flux
+  use geom, only : area
+  use input, only : cbc, bc
+  use mass, only : bm1
+  use parallel, only : lglel
+  use soln, only : t
+  use tstep, only : ifield, nelfld
+  implicit none
 
-!     Apply Neumann boundary conditions to surface of scalar, S.
-!     Use IFIELD as a guide to which boundary conditions are to be applied.
+  real(DP) :: S(LX1,LY1,LZ1,LELT)
+  integer :: itype
 
-!     If ITYPE = 1, then S is returned as the rhs contribution to the
-!                   volumetric flux.
+  CHARACTER CB*3
 
-!     If ITYPE =-1, then S is returned as the lhs contribution to the
-!                   diagonal of A.
-
-
-    use ctimer
-    use size_m
-    use nekuse
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    DIMENSION S(LX1,LY1,LZ1,LELT)
-    common  /nekcb/ cb
-    CHARACTER CB*3
+  real(DP) :: ts
+  integer :: nfaces, nxyz, nel, ntot
+  integer :: ie, iface, ieg, ia, ix, iy, iz
+  integer :: kx1, kx2, ky1, ky2, kz1, kz2
 
 #ifndef NOTIMER
-    if (icalld == 0) then
-        tusbc=0.0
-        nusbc=0
-        icalld=icalld+1
-    endif
-    nusbc=nusbc+1
-    etime1=dnekclock()
+  if (icalld == 0) then
+      tusbc=0.0
+      nusbc=0
+      icalld=icalld+1
+  endif
+  nusbc=nusbc+1
+  etime1=dnekclock()
 #endif
 
-    NFACES=2*NDIM
-    NXYZ  =NX1*NY1*NZ1
-    NEL   =NELFLD(IFIELD)
-    NTOT  =NXYZ*NEL
-    CALL RZERO(S,NTOT)
+  NFACES=2*NDIM
+  NXYZ  =NX1*NY1*NZ1
+  NEL   =NELFLD(IFIELD)
+  NTOT  =NXYZ*NEL
+  CALL RZERO(S,NTOT)
 
-    IF (ITYPE == -1) THEN
-    
-    !        Compute diagonal contributions to accomodate Robin boundary conditions
-    
-        DO 1000 IE=1,NEL
-            DO 1000 IFACE=1,NFACES
-                ieg=lglel(ie)
-                CB =CBC(IFACE,IE,IFIELD)
-                IF (CB == 'C  ' .OR. CB == 'c  ' .OR. &
-                CB == 'R  ' .OR. CB == 'r  ') THEN
-                
-                    IF (CB == 'C  ') HC   = BC(2,IFACE,IE,IFIELD)
-                    IF (CB == 'R  ') THEN
-                        TINF = BC(1,IFACE,IE,IFIELD)
-                        HRAD = BC(2,IFACE,IE,IFIELD)
-                    ENDIF
-                    IA=0
-                
-                ! IA is areal counter, assumes advancing fastest index first. (IX...IY...IZ)
-                
-                    CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX1,NY1,NZ1,IFACE)
-                    DO 100 IZ=KZ1,KZ2
-                        DO 100 IY=KY1,KY2
-                            DO 100 IX=KX1,KX2
-                                IA = IA + 1
-                                TS = T(IX,IY,IZ,IE,IFIELD-1)
-                                IF (CB == 'c  ' .OR. CB == 'r  ') THEN
-                                    CALL NEKASGN (IX,IY,IZ,IE)
-                                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                                ENDIF
-                                IF (CB == 'r  ' .OR. CB == 'R  ') &
-                                HC = HRAD * (TINF**2 + TS**2) * (TINF + TS)
-                                S(IX,IY,IZ,IE) = S(IX,IY,IZ,IE) + &
-                                HC*AREA(IA,1,IFACE,IE)/BM1(IX,IY,IZ,IE)
-                    100 END DO
-                ENDIF
-        1000 END DO
-    ENDIF
-    IF (ITYPE == 1) THEN
-    
-    !        Add passive scalar fluxes to rhs
-    
-        DO 2000 IE=1,NEL
-            DO 2000 IFACE=1,NFACES
-                ieg=lglel(ie)
-                CB =CBC(IFACE,IE,IFIELD)
-                IF (CB == 'F  ' .OR. CB == 'f  ' .OR. &
-                CB == 'C  ' .OR. CB == 'c  ' .OR. &
-                CB == 'R  ' .OR. CB == 'r  ' ) THEN
-                
-                    IF (CB == 'F  ') FLUX=BC(1,IFACE,IE,IFIELD)
-                    IF (CB == 'C  ') FLUX=BC(1,IFACE,IE,IFIELD) &
-                    *BC(2,IFACE,IE,IFIELD)
-                    IF (CB == 'R  ') THEN
-                        TINF=BC(1,IFACE,IE,IFIELD)
-                        HRAD=BC(2,IFACE,IE,IFIELD)
-                    ENDIF
-                
-                !              Add local weighted flux values to rhs, S.
-                
-                ! IA is areal counter, assumes advancing fastest index first. (IX...IY...IZ)
-                    IA=0
-                    CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX1,NY1,NZ1,IFACE)
-                    DO 200 IZ=KZ1,KZ2
-                        DO 200 IY=KY1,KY2
-                            DO 200 IX=KX1,KX2
-                                IA = IA + 1
-                                TS = T(IX,IY,IZ,IE,IFIELD-1)
-                                IF (CB == 'f  ') THEN
-                                    CALL NEKASGN (IX,IY,IZ,IE)
-                                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                                ENDIF
-                                IF (CB == 'c  ') THEN
-                                    CALL NEKASGN (IX,IY,IZ,IE)
-                                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                                    FLUX = TINF*HC
-                                ENDIF
-                                IF (CB == 'r  ') THEN
-                                    CALL NEKASGN (IX,IY,IZ,IE)
-                                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                                ENDIF
-                                IF (CB == 'R  ' .OR. CB == 'r  ') &
-                                FLUX = HRAD*(TINF**2 + TS**2)*(TINF + TS) * TINF
-                            
-                            !                 Add computed fluxes to boundary surfaces:
-                            
-                                S(IX,IY,IZ,IE) = S(IX,IY,IZ,IE) &
-                                + FLUX*AREA(IA,1,IFACE,IE)
-                    200 END DO
-                ENDIF
-        2000 END DO
-    ENDIF
+  IF (ITYPE == -1) THEN
+  
+  !        Compute diagonal contributions to accomodate Robin boundary conditions
+  
+      DO 1000 IE=1,NEL
+          DO 1000 IFACE=1,NFACES
+              ieg=lglel(ie)
+              CB =CBC(IFACE,IE,IFIELD)
+              IF (CB == 'C  ' .OR. CB == 'c  ' .OR. &
+              CB == 'R  ' .OR. CB == 'r  ') THEN
+              
+                  IF (CB == 'C  ') HC   = BC(2,IFACE,IE,IFIELD)
+                  IF (CB == 'R  ') THEN
+                      TINF = BC(1,IFACE,IE,IFIELD)
+                      HRAD = BC(2,IFACE,IE,IFIELD)
+                  ENDIF
+                  IA=0
+              
+              ! IA is areal counter, assumes advancing fastest index first. (IX...IY...IZ)
+              
+                  CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX1,NY1,NZ1,IFACE)
+                  DO 100 IZ=KZ1,KZ2
+                      DO 100 IY=KY1,KY2
+                          DO 100 IX=KX1,KX2
+                              IA = IA + 1
+                              TS = T(IX,IY,IZ,IE,IFIELD-1)
+                              IF (CB == 'c  ' .OR. CB == 'r  ') THEN
+                                  CALL NEKASGN (IX,IY,IZ,IE)
+                                  CALL USERBC  (IX,IY,IZ,IFACE,IEG)
+                              ENDIF
+                              IF (CB == 'r  ' .OR. CB == 'R  ') &
+                              HC = HRAD * (TINF**2 + TS**2) * (TINF + TS)
+                              S(IX,IY,IZ,IE) = S(IX,IY,IZ,IE) + &
+                              HC*AREA(IA,1,IFACE,IE)/BM1(IX,IY,IZ,IE)
+                  100 END DO
+              ENDIF
+      1000 END DO
+  ENDIF
+  IF (ITYPE == 1) THEN
+  
+  !        Add passive scalar fluxes to rhs
+  
+      DO 2000 IE=1,NEL
+          DO 2000 IFACE=1,NFACES
+              ieg=lglel(ie)
+              CB =CBC(IFACE,IE,IFIELD)
+              IF (CB == 'F  ' .OR. CB == 'f  ' .OR. &
+              CB == 'C  ' .OR. CB == 'c  ' .OR. &
+              CB == 'R  ' .OR. CB == 'r  ' ) THEN
+              
+                  IF (CB == 'F  ') FLUX=BC(1,IFACE,IE,IFIELD)
+                  IF (CB == 'C  ') FLUX=BC(1,IFACE,IE,IFIELD) &
+                  *BC(2,IFACE,IE,IFIELD)
+                  IF (CB == 'R  ') THEN
+                      TINF=BC(1,IFACE,IE,IFIELD)
+                      HRAD=BC(2,IFACE,IE,IFIELD)
+                  ENDIF
+              
+              !              Add local weighted flux values to rhs, S.
+              
+              ! IA is areal counter, assumes advancing fastest index first. (IX...IY...IZ)
+                  IA=0
+                  CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX1,NY1,NZ1,IFACE)
+                  DO 200 IZ=KZ1,KZ2
+                      DO 200 IY=KY1,KY2
+                          DO 200 IX=KX1,KX2
+                              IA = IA + 1
+                              TS = T(IX,IY,IZ,IE,IFIELD-1)
+                              IF (CB == 'f  ') THEN
+                                  CALL NEKASGN (IX,IY,IZ,IE)
+                                  CALL USERBC  (IX,IY,IZ,IFACE,IEG)
+                              ENDIF
+                              IF (CB == 'c  ') THEN
+                                  CALL NEKASGN (IX,IY,IZ,IE)
+                                  CALL USERBC  (IX,IY,IZ,IFACE,IEG)
+                                  FLUX = TINF*HC
+                              ENDIF
+                              IF (CB == 'r  ') THEN
+                                  CALL NEKASGN (IX,IY,IZ,IE)
+                                  CALL USERBC  (IX,IY,IZ,IFACE,IEG)
+                              ENDIF
+                              IF (CB == 'R  ' .OR. CB == 'r  ') &
+                              FLUX = HRAD*(TINF**2 + TS**2)*(TINF + TS) * TINF
+                          
+                          !                 Add computed fluxes to boundary surfaces:
+                          
+                              S(IX,IY,IZ,IE) = S(IX,IY,IZ,IE) &
+                              + FLUX*AREA(IA,1,IFACE,IE)
+                  200 END DO
+              ENDIF
+      2000 END DO
+  ENDIF
 
 #ifndef NOTIMER
     tusbc=tusbc+(dnekclock()-etime1)
 #endif
 
-    RETURN
-    END SUBROUTINE BCNEUSC
-!-----------------------------------------------------------------------
-    SUBROUTINE FACEIS (CB,S,IEL,IFACE,NX,NY,NZ)
-
-!     Assign inflow boundary conditions to face(IE,IFACE)
-!     for scalar S.
-
-    use size_m
-    use nekuse
-    use parallel
-    use soln      ! tmask()   11/19/2010
-    use tstep     ! ifield    11/19/2010
-
-    DIMENSION S(LX1,LY1,LZ1)
-    CHARACTER CB*3
-
-    common  /nekcb/ cb3
-    character(3) :: cb3
-    cb3 = cb
-
-    ifld1 = ifield-1
-
-
-!     Passive scalar term
-
-    ieg = lglel(iel)
-    CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX,NY,NZ,IFACE)
-
-    IF (CB == 't  ') THEN
-
-        DO 100 IZ=KZ1,KZ2                           !  11/19/2010: The tmask() screen
-            DO 100 IY=KY1,KY2                           !  added here so users can leave
-                DO 100 IX=KX1,KX2                           !  certain points to be Neumann,
-                    if (tmask(ix,iy,iz,iel,ifld1) == 0) then !  if desired.
-                        CALL NEKASGN (IX,IY,IZ,IEL)
-                        CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                        S(IX,IY,IZ) = TEMP
-                    endif
-        100 END DO
-        RETURN
-    
-    ELSEIF (CB == 'ms ' .OR. CB == 'msi') THEN
-    
-        DO 200 IZ=KZ1,KZ2
-            DO 200 IY=KY1,KY2
-                DO 200 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    S(IX,IY,IZ) = SIGMA
-        200 END DO
-    
-    ELSEIF (CB == 'kd ') THEN
-    
-        DO 300 IZ=KZ1,KZ2
-            DO 300 IY=KY1,KY2
-                DO 300 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    S(IX,IY,IZ) = TURBK
-        300 END DO
-    
-    ELSEIF (CB == 'ed ') THEN
-    
-        DO 400 IZ=KZ1,KZ2
-            DO 400 IY=KY1,KY2
-                DO 400 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    S(IX,IY,IZ) = TURBE
-        400 END DO
-    
-    ENDIF
-
-    RETURN
-    END SUBROUTINE FACEIS
-!-----------------------------------------------------------------------
-    SUBROUTINE FACEIV (CB,V1,V2,V3,IEL,IFACE,NX,NY,NZ)
-
-!     Assign fortran function boundary conditions to
-!     face IFACE of element IEL for vector (V1,V2,V3).
-
-    use size_m
-    use nekuse
-    use parallel
-
-    dimension v1(nx,ny,nz),v2(nx,ny,nz),v3(nx,ny,nz)
-    character cb*3
-
-    character(1) :: cb1(3)
-
-    common  /nekcb/ cb3
-    character(3) :: cb3
-    cb3 = cb
-
-    call chcopy(cb1,cb,3)
-
-    ieg = lglel(iel)
-    CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX,NY,NZ,IFACE)
-
-    IF (CB == 'v  ' .OR. CB == 'ws ' .OR. CB == 'mv ' .OR. &
-    CB == 'mvn') THEN
-    
-        DO 100 IZ=KZ1,KZ2
-            DO 100 IY=KY1,KY2
-                DO 100 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    V1(IX,IY,IZ) = UX
-                    V2(IX,IY,IZ) = UY
-                    V3(IX,IY,IZ) = UZ
-        100 END DO
-        RETURN
-    
-    elseif (cb1(1) == 'd' .OR. cb1(2) == 'd' .OR. cb1(3) == 'd') then
-    
-        do iz=kz1,kz2
-            do iy=ky1,ky2
-                do ix=kx1,kx2
-                    call nekasgn (ix,iy,iz,iel)
-                    call userbc  (ix,iy,iz,iface,ieg)
-                    if (cb1(1) == 'd') v1(ix,iy,iz) = ux
-                    if (cb1(2) == 'd') v2(ix,iy,iz) = uy
-                    if (cb1(3) == 'd') v3(ix,iy,iz) = uz
-                enddo
-            enddo
-        enddo
-        return
-    
-    ELSEIF (CB == 'vl ' .OR. CB == 'wsl') THEN
-    
-        DO 120 IZ=KZ1,KZ2
-            DO 120 IY=KY1,KY2
-                DO 120 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    V1(IX,IY,IZ) = UN
-                    V2(IX,IY,IZ) = U1
-                    V3(IX,IY,IZ) = U2
-        120 END DO
-        RETURN
-    
-    ELSEIF (CB == 's  ' .OR. CB == 'sh ') THEN
-    
-        DO 200 IZ=KZ1,KZ2
-            DO 200 IY=KY1,KY2
-                DO 200 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    V1(IX,IY,IZ) = TRX
-                    V2(IX,IY,IZ) = TRY
-                    V3(IX,IY,IZ) = TRZ
-        200 END DO
-        RETURN
-    
-    ELSEIF (CB == 'sl ' .OR. CB == 'shl') THEN
-    
-        DO 220 IZ=KZ1,KZ2
-            DO 220 IY=KY1,KY2
-                DO 220 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    V1(IX,IY,IZ) = TRN
-                    V2(IX,IY,IZ) = TR1
-                    V3(IX,IY,IZ) = TR2
-        220 END DO
-    
-    ELSEIF (CB == 'ms ') THEN
-    
-        DO 240 IZ=KZ1,KZ2
-            DO 240 IY=KY1,KY2
-                DO 240 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    V1(IX,IY,IZ) = -PA
-                    V2(IX,IY,IZ) = TR1
-                    V3(IX,IY,IZ) = TR2
-        240 END DO
-    
-    ELSEIF (CB == 'on ' .OR. CB == 'o  ') THEN
-    
-        DO 270 IZ=KZ1,KZ2
-            DO 270 IY=KY1,KY2
-                DO 270 IX=KX1,KX2
-                    CALL NEKASGN (IX,IY,IZ,IEL)
-                    CALL USERBC  (IX,IY,IZ,IFACE,IEG)
-                    V1(IX,IY,IZ) = -PA
-                    V2(IX,IY,IZ) = 0.0
-                    V3(IX,IY,IZ) = 0.0
-        270 END DO
-    
-    ENDIF
-
-    RETURN
-    END SUBROUTINE FACEIV
+  RETURN
+END SUBROUTINE BCNEUSC
 !-----------------------------------------------------------------------
 !> \brief Assign NEKTON variables for definition (by user) of
 !!   boundary conditions at collocation point (IX,IY,IZ)
@@ -1200,7 +1023,6 @@ SUBROUTINE NEKASGN (IX,IY,IZ,IEL)
   integer, intent(in) :: ix, iy, iz, iel
 
   CHARACTER CB*3
-  common  /nekcb/ cb
 
   integer :: ips
 
@@ -1225,97 +1047,6 @@ SUBROUTINE NEKASGN (IX,IY,IZ,IEL)
 
   RETURN
 END SUBROUTINE NEKASGN
-!-----------------------------------------------------------------------
-    SUBROUTINE GLOBROT (R1,R2,R3,IEL,IFC)
-
-!     Rotate vector components R1,R2,R3 at face IFC
-!     of element IEL from local to global system.
-
-!     R1, R2, R3 have the (NX,NY,NZ) data structure
-!     IFACE1 is in the preprocessor notation
-!     IFACE  is the dssum notation.
-
-    use size_m
-    use geom
-    use topol
-
-    DIMENSION R1(LX1,LY1,LZ1) &
-    , R2(LX1,LY1,LZ1) &
-    , R3(LX1,LY1,LZ1)
-
-    CALL DSSET (NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFC)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-    I = 0
-
-    IF (NDIM == 2) THEN
-        DO 200 J2=JS2,JF2,JSKIP2
-            DO 200 J1=JS1,JF1,JSKIP1
-                I = I+1
-                RNORL = R1(J1,J2,1)
-                RTAN1 = R2(J1,J2,1)
-                R1(J1,J2,1) = RNORL*UNX(I,1,IFC,IEL) + &
-                RTAN1*T1X(I,1,IFC,IEL)
-                R2(J1,J2,1) = RNORL*UNY(I,1,IFC,IEL) + &
-                RTAN1*T1Y(I,1,IFC,IEL)
-        200 END DO
-    ELSE
-        DO 300 J2=JS2,JF2,JSKIP2
-            DO 300 J1=JS1,JF1,JSKIP1
-                I = I+1
-                RNORL = R1(J1,J2,1)
-                RTAN1 = R2(J1,J2,1)
-                RTAN2 = R3(J1,J2,1)
-                R1(J1,J2,1) = RNORL*UNX(I,1,IFC,IEL) + &
-                RTAN1*T1X(I,1,IFC,IEL) + &
-                RTAN2*T2X(I,1,IFC,IEL)
-                R2(J1,J2,1) = RNORL*UNY(I,1,IFC,IEL) + &
-                RTAN1*T1Y(I,1,IFC,IEL) + &
-                RTAN2*T2Y(I,1,IFC,IEL)
-                R3(J1,J2,1) = RNORL*UNZ(I,1,IFC,IEL) + &
-                RTAN1*T1Z(I,1,IFC,IEL) + &
-                RTAN2*T2Z(I,1,IFC,IEL)
-        300 END DO
-    ENDIF
-
-    RETURN
-    END SUBROUTINE GLOBROT
-!-----------------------------------------------------------------------
-    SUBROUTINE FACEC2 (A1,A2,B1,B2,IFC)
-
-!     2-D Geometry only
-!     Extract A1,A2 from B1,B2 on surface IFC.
-
-!     A1, A2 have the (NX1,  1,NFACE) data structure
-!     B1, B2 have the (NX1,NY1,    1) data structure
-
-    use size_m
-
-    DIMENSION A1(LX1),A2(LX1),B1(LX1,LY1),B2(LX1,LY1)
-
-    IX=1
-    IY=1
-    IF (IFC == 1 .OR. IFC == 3) THEN
-        IF (IFC == 3) IY = NY1
-        DO 10 IX=1,NX1
-            A1(IX)=B1(IX,IY)
-            A2(IX)=B2(IX,IY)
-        10 END DO
-    ELSE
-        IF (IFC == 2) IX = NX1
-        DO 20 IY=1,NY1
-            A1(IY)=B1(IX,IY)
-            A2(IY)=B2(IX,IY)
-        20 END DO
-    ENDIF
-
-    RETURN
-    END SUBROUTINE FACEC2
 !-----------------------------------------------------------------------
     SUBROUTINE LFALSE (IFA,N)
     LOGICAL :: IFA(1)
@@ -1347,19 +1078,4 @@ END SUBROUTINE NEKASGN
     100 END DO
     RETURN
     END SUBROUTINE UNITVEC
-!-----------------------------------------------------------------------
-    SUBROUTINE ANTIMSK1(X,XMASK,N)
-!------------------------------------------------------------------
-
-!     Return only Dirichlet boundary values of X
-
-!-------------------------------------------------------------------
-    use opctr
-    REAL ::  X(1),XMASK(1)
-
-    DO 100 I=1,N
-        X(I) = X(I)*(1.-XMASK(I))
-    100 END DO
-    RETURN
-    END SUBROUTINE ANTIMSK1
 !-----------------------------------------------------------------------

@@ -46,19 +46,21 @@ navier0.o navier1.o  navier4.o navier5.o navier6.o  navier8.o \
 speclib.o \
 map2.o ic.o ssolv.o math.o mxm_wrapper.o \
 hmholtz.o \
-subs1.o subs2.o \
+subs1.o \
 gmres.o hsmg.o convect.o induct.o \
 fast3d.o fasts.o  \
 byte.o \
 chelpers.o \
 byte_mpi.o \
-postpro.o prepost.o \
+prepost.o \
 nek_comm.o \
 setprop.o \
 qthermal.o  \
 papi.o \
 gauss.o \
 makeq.o makeq_aux.o \
+#postpro.o \
+#subs2.o\
 #genbox.o \
 #navier3.o \
 #calcz.o \

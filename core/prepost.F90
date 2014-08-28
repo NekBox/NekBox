@@ -707,20 +707,6 @@ end subroutine prepost_map
     return
     end subroutine outhis
 !=======================================================================
-
-    FUNCTION SUMFC (FF,SM,IFC)
-    use size_m
-    REAL :: FF(LX1,LY1,LZ1),SM(LX1,LY1,LZ1)
-    SUMFC=0.0
-    CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX1,NY1,NZ1,IFC)
-    DO 70 IZ=KZ1,KZ2
-        DO 70 IY=KY1,KY2
-            DO 70 IX=KX1,KX2
-                SUMFC=SUMFC + FF(IX,IY,IZ)/SM(IX,IY,IZ)
-    70 END DO
-    return
-    END FUNCTION SUMFC
-!=======================================================================
     subroutine file2(nopen,PREFIX)
 !----------------------------------------------------------------------
 
@@ -829,14 +815,6 @@ end subroutine prepost_map
      
     return
     end subroutine file2
-!=======================================================================
-    subroutine rzero4(a,n)
-    real*4 :: A(1)
-    DO 100 I = 1, N
-        A(I ) = 0.0
-    100 END DO
-    return
-    end subroutine rzero4
 !=======================================================================
     subroutine copyX4(a,b,n)
     REAL*4 :: A(1)
@@ -1041,12 +1019,12 @@ end subroutine prepost_map
             ENDIF
         ELSE
             ID=ID+1
-            CALL RZERO4(TDUMP(1,ID),NXYZ)
+            tdump(1:nxyz,id) = 0.
             ID=ID+1
-            CALL RZERO4(TDUMP(1,ID),NXYZ)
+            tdump(1:nxyz,id) = 0.
             IF(IF3D)then
                 ID=ID+1
-                CALL RZERO4(TDUMP(1,ID),NXYZ)
+                tdump(1:nxyz,id) = 0.
             ENDIF
         ENDIF
     ENDIF
@@ -1056,7 +1034,7 @@ end subroutine prepost_map
             CALL COPYx4(TDUMP(1,ID),PM1(1,1,1,IE),NXYZ)
         ELSE
             ID=ID+1
-            CALL RZERO4(TDUMP(1,ID),NXYZ)
+            tdump(1:nxyz,id) = 0.
         ENDIF
     ENDIF
     IF(IFTO)then
@@ -1670,112 +1648,6 @@ endif
 
     return
     end subroutine restart_nfld
-!-----------------------------------------------------------------------
-    subroutine full_restart_save(iosave)
-
-    integer :: iosave,save_size,nfld_save
-
-
-    nfld_save=4  ! For full restart
-    save_size=8  ! For full restart
-
-    call restart_save(iosave,save_size,nfld_save)
-
-    return
-    end subroutine full_restart_save
-!-----------------------------------------------------------------------
-    subroutine restart_save(iosave,save_size,nfldi)
-!     Save current fields for later restart.
-!     Input arguments:
-!       .iosave plays the usual triggering role, like iostep
-!       .save_size = 8 ==> dbl. precision output
-!       .nfldi is the number of rs files to save before overwriting
-
-
-    use size_m
-    use restart
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    integer :: iosave,save_size,nfldi
-    character(3) :: prefix
-
-    character(17) :: kst
-    save         kst
-    data         kst / '0123456789abcdefx' /
-    character(1) ::  ks1(0:16)
-    equivalence (ks1,kst)
-
-    logical :: if_full_pres_tmp
-
-    iosav = iosave
-
-    if (iosav == 0) iosav = iostep
-    if (iosav == 0) return
-
-    iotest = 0
-!     if (iosav.eq.iostep) iotest = 1  ! currently spoiled because of
-!                                      ! incompatible format of .fld
-!                                      ! and multi-file i/o;  the latter
-!                                      ! is the only form used for restart
-
-    nfld  = nfldi*2
-    nfld2 = nfld/2
-    mfld  = min(17,nfld)
-    if (ifmhd) nfld2 = nfld/4
-
-    i2 = iosav/2
-    m1 = istep+iosav-iotest
-    mt = mod(istep+iosav-iotest,iosav)
-    prefix = '   '
-
-    if (istep > iosav/2  .AND. &
-    mod(istep+iosav-iotest,iosav) < nfld2) then ! save
-        write(prefix,3) ks1(mfld)
-        3 format('rs',a1)
-
-        iwdsizo = wdsizo
-        wdsizo  = save_size
-        p66 = param(66)
-        param(66) = 6                       ! force multi-file out
-
-        npscal1 = npscal+1
-        if ( .NOT. ifheat) npscal1 = 0
-
-        if_full_pres_tmp = if_full_pres
-        if (save_size == 8) if_full_pres = .TRUE. !Preserve mesh 2 pressure
-
-        if (ifmhd) call outpost2(bx,by,bz,pm,t,0      ,prefix)  ! first B
-        call outpost2(vx,vy,vz,pr,t,npscal1,prefix)  ! then  U
-
-        wdsizo    = iwdsizo  ! Restore output parameters
-
-        param(66) = p66
-        if_full_pres = if_full_pres_tmp
-
-    endif
-
-!     if (nid.eq.0) write(6,8) istep,prefix,nfld,nfld2,i2,m1,mt
-!  8  format(i8,' prefix ',a3,5i5)
-
-    if_full_pres = .FALSE. 
-    return
-    end subroutine restart_save
 !-----------------------------------------------------------------------
     subroutine outpost(v1,v2,v3,vp,vt,name3)
 

@@ -7,60 +7,47 @@
 !                     <  1.20 for N=16
 !                     ~  1.16 for N=256
 !-----------------------------------------------------------------------
-    subroutine setup_convect(igeom)
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    logical :: ifnew
+subroutine setup_convect(igeom)
+  use kinds, only : DP
+  use size_m, only : lorder
+  use dealias, only : vxd, vyd, vzd
+  use input, only : param, ifchar, ifcons, ifpert
+  use soln, only : vx, vy, vz
+  implicit none
 
-    common /cchar/ ct_vx(0:lorder+1) ! time for each slice in c_vx()
+  integer, intent(in) :: igeom
 
-    if (igeom == 1) return
-    if (param(99) < 0) return ! no dealiasing
+  logical :: ifnew
 
-    if (ifchar) then
+  if (igeom == 1) return
+  if (param(99) < 0) return ! no dealiasing
 
-        nelc = nelv
-        if (ifmhd) nelc = max(nelv,nelfld(ifldmhd))
-        if (ifmhd) call exitti('no characteristics for mhd yet$',istep)
+  if (ifchar) then
+    write(*,*) "Oops: ifchar"
+#if 0
+    nelc = nelv
+    if (ifmhd) nelc = max(nelv,nelfld(ifldmhd))
+    if (ifmhd) call exitti('no characteristics for mhd yet$',istep)
 
-        ifnew = .TRUE. 
-        if (igeom > 2) ifnew = .FALSE. 
+    ifnew = .TRUE. 
+    if (igeom > 2) ifnew = .FALSE. 
+    call set_conv_char(ct_vx,c_vx,vx,vy,vz,nelc,time,ifnew)
+#endif
 
-!max        call set_conv_char(ct_vx,c_vx,vx,vy,vz,nelc,time,ifnew)
+  else
 
-    else
-
-        if ( .NOT. ifpert) then
-            if (ifcons) then
-!                call set_convect_cons (vxd,vyd,vzd,vx,vy,vz)
-            else
-                call set_convect_new  (vxd,vyd,vzd,vx,vy,vz)
-            endif
+    if ( .NOT. ifpert) then
+        if (ifcons) then
+!max                call set_convect_cons (vxd,vyd,vzd,vx,vy,vz)
+        else
+            call set_convect_new  (vxd,vyd,vzd,vx,vy,vz)
         endif
-
     endif
 
-!     write(6,*) istep,' conv',ifnew,igeom,' continu? ',time
-!     read(5,*) dum
+  endif
 
-    return
-    end subroutine setup_convect
+  return
+end subroutine setup_convect
 !-----------------------------------------------------------------------
 !> \brief GLL interpolation from mx to md.
 !! If idir ^= 0, then apply transpose operator  (md to mx)

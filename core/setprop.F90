@@ -1,31 +1,19 @@
 !------------------------------------------------------------------------
-!>     Set variable property arrays
+!> \brief Set variable property arrays
 !------------------------------------------------------------------------
 subroutine setprop
-  use ctimer
-  use size_m
-  use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield
+  use ctimer, only : icalld, tspro, nspro, etime1, dnekclock
+  use input, only : ifflow, ifmhd
+  use mass, only : bm1
+  use soln, only : vdiff, vtrans
+  use tstep, only : ifield, nelfld, volfld, avdiff, avtran
+  implicit none
 
-!     Caution: 2nd and 3rd strainrate invariants residing in scratch
-!              common /SCREV/ are used in STNRINV and NEKASGN
-
-  common /screv/ sii (lx1,ly1,lz1,lelt),siii(lx1,ly1,lz1,lelt)
+  integer :: nxyz1, mfield, nfldt, ifld, nel, ntot1
+  real(DP) :: vol
+  real(DP), external :: glsc2
 
 #ifndef NOTIMER
   if (icalld == 0) tspro=0.0
@@ -65,4 +53,3 @@ subroutine setprop
 
   RETURN
 end subroutine setprop
-

@@ -1158,77 +1158,73 @@ END SUBROUTINE BCDIRSC
     RETURN
     END SUBROUTINE FACEIV
 !-----------------------------------------------------------------------
-    SUBROUTINE NEKASGN (IX,IY,IZ,IEL)
+!> \brief Assign NEKTON variables for definition (by user) of
+!!   boundary conditions at collocation point (IX,IY,IZ)
+!!   of element IEL.
+!!     X             X-coordinate
+!!     Y             Y-coordinate
+!!     Z             Z-coordinate
+!!     UX            X-velocity
+!!     UY            Y-velocity
+!!     UZ            Z-velocity
+!!     TEMP          Temperature
+!!     PS1           Passive scalar No. 1
+!!     PS2           Passive scalar No. 2
+!!      .             .
+!!      .             .
+!!     PS9           Passive scalar No. 9
+!!     SI2           Strainrate invariant II
+!!     SI3           Strainrate invariant III
+!!   Variables to be defined by user for imposition of
+!!   boundary conditions :
+!!     SH1           Shear component No. 1
+!!     SH2           Shear component No. 2
+!!     TRX           X-traction
+!!     TRY           Y-traction
+!!     TRZ           Z-traction
+!!     SIGMA         Surface-tension coefficient
+!!     FLUX          Flux
+!!     HC            Convection heat transfer coefficient
+!!     HRAD          Radiation  heat transfer coefficient
+!!     TINF          Temperature at infinity
+SUBROUTINE NEKASGN (IX,IY,IZ,IEL)
+  use kinds, only : DP
+  use size_m
+  use geom
+  use input
+  use nekuse
+  use soln
+  use tstep
+  implicit none
 
-!     Assign NEKTON variables for definition (by user) of
-!     boundary conditions at collocation point (IX,IY,IZ)
-!     of element IEL.
+  integer, intent(in) :: ix, iy, iz, iel
 
-!       X             X-coordinate
-!       Y             Y-coordinate
-!       Z             Z-coordinate
-!       UX            X-velocity
-!       UY            Y-velocity
-!       UZ            Z-velocity
-!       TEMP          Temperature
-!       PS1           Passive scalar No. 1
-!       PS2           Passive scalar No. 2
-!        .             .
-!        .             .
-!       PS9           Passive scalar No. 9
-!       SI2           Strainrate invariant II
-!       SI3           Strainrate invariant III
+  CHARACTER CB*3
+  common  /nekcb/ cb
 
-!     Variables to be defined by user for imposition of
-!     boundary conditions :
+  integer :: ips
 
-!       SH1           Shear component No. 1
-!       SH2           Shear component No. 2
-!       TRX           X-traction
-!       TRY           Y-traction
-!       TRZ           Z-traction
-!       SIGMA         Surface-tension coefficient
-!       FLUX          Flux
-!       HC            Convection heat transfer coefficient
-!       HRAD          Radiation  heat transfer coefficient
-!       TINF          Temperature at infinity
+  X     = XM1(IX,IY,IZ,IEL)
+  Y     = YM1(IX,IY,IZ,IEL)
+  Z     = ZM1(IX,IY,IZ,IEL)
+  R     = X**2+Y**2
+  IF (R > 0.0) R=SQRT(R)
+  IF (X /= 0.0 .OR. Y /= 0.0) THETA = ATAN2(Y,X)
 
-    use size_m
-    use geom
-    use input
-    use nekuse
-    use soln
-    use tstep
+  UX    = VX(IX,IY,IZ,IEL)
+  UY    = VY(IX,IY,IZ,IEL)
+  UZ    = VZ(IX,IY,IZ,IEL)
+  TEMP  = T(IX,IY,IZ,IEL,1)
+  DO 100 IPS=1,NPSCAL
+      PS(IPS) = T(IX,IY,IZ,IEL,IPS+1)
+  100 END DO
+  UDIFF = VDIFF (IX,IY,IZ,IEL,IFIELD)
+  UTRANS= VTRANS(IX,IY,IZ,IEL,IFIELD)
 
-    common  /nekcb/ cb
-    CHARACTER CB*3
+  cbu   = cb
 
-    COMMON /SCREV / SII (LX1,LY1,LZ1,LELT) &
-    , SIII(LX1,LY1,LZ1,LELT)
-
-    X     = XM1(IX,IY,IZ,IEL)
-    Y     = YM1(IX,IY,IZ,IEL)
-    Z     = ZM1(IX,IY,IZ,IEL)
-    R     = X**2+Y**2
-    IF (R > 0.0) R=SQRT(R)
-    IF (X /= 0.0 .OR. Y /= 0.0) THETA = ATAN2(Y,X)
-
-    UX    = VX(IX,IY,IZ,IEL)
-    UY    = VY(IX,IY,IZ,IEL)
-    UZ    = VZ(IX,IY,IZ,IEL)
-    TEMP  = T(IX,IY,IZ,IEL,1)
-    DO 100 IPS=1,NPSCAL
-        PS(IPS) = T(IX,IY,IZ,IEL,IPS+1)
-    100 END DO
-    SI2   = SII (IX,IY,IZ,IEL)
-    SI3   = SIII(IX,IY,IZ,IEL)
-    UDIFF = VDIFF (IX,IY,IZ,IEL,IFIELD)
-    UTRANS= VTRANS(IX,IY,IZ,IEL,IFIELD)
-
-    cbu   = cb
-
-    RETURN
-    END SUBROUTINE NEKASGN
+  RETURN
+END SUBROUTINE NEKASGN
 !-----------------------------------------------------------------------
     SUBROUTINE TRSTAX (TRX,TRY,SIGST,IEL,IFC)
 

@@ -1348,9 +1348,6 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
   real(DP) :: z(1),rhs(1)
   logical :: if_hybrid
        
-  real(DP) :: h1, h2 
-  common /scrvh/ h1    (lx1,ly1,lz1,lelv), &
-  h2    (lx1,ly1,lz1,lelv)
   integer, parameter :: lt=lx1*ly1*lz1*lelt
   real(DP) :: e, w, r
   common /scrmg/ e(2*lt),w(lt),r(lt)
@@ -1544,20 +1541,12 @@ subroutine h1mg_setup()
   use input, only : param
   implicit none
 
-!  c!ommon /scrhi/ h2inv (lx1,ly1,lz1,lelt)
-  real(DP) :: h1, h2
-  common /scrvh/ h1    (lx1,ly1,lz1,lelt), &
-  h2    (lx1,ly1,lz1,lelt)
-
   integer :: p_h1,p_h2,p_g,p_b,p_msk, n, l
 
   param(59) = 1
   call geom_reset(1)  ! Recompute g1m1 etc. with deformed only
 
   n = nx1*ny1*nz1*nelt
-  call rone (h1   ,n)
-  call rzero(h2   ,n)
-!max  call rzero(h2inv,n)
 
   call h1mg_setup_mg_nx
   call h1mg_setup_semhat ! SEM hat matrices for each level
@@ -1569,6 +1558,8 @@ subroutine h1mg_setup()
   call hsmg_setup_solve  ! set up the solver
 
   l=mg_h1_lmax
+  !> \todo Is it nessesary to set h1 and h2 here?  They aren't inited until
+  !! later
   call mg_set_h1  (p_h1 ,l)
   call mg_set_h2  (p_h2 ,l)
   call mg_set_gb  (p_g,p_b,l)
@@ -1815,84 +1806,85 @@ end subroutine h1mg_setup_dssum
     return
     end subroutine h1mg_setup_mask
 !----------------------------------------------------------------------
-    subroutine mg_set_h1  (p_h1 ,l0)
-    use size_m
-    use hsmg
-    integer :: pf,pc
+subroutine mg_set_h1  (p_h1 ,l0)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv
+  use hsmg, only : mg_h1_lmax, p_mg_h1, mg_h1_n, mg_nh, mg_nhz, mg_fld, mg_h1
+  implicit none
 
-!     As a first pass, rely on the cheesy common-block interface to get h1
+  integer :: p_h1, l0
 
-    common /scrvh/ h1    (lx1,ly1,lz1,lelv) &
-    , h2    (lx1,ly1,lz1,lelv) &
-    , h2inv (lx1,ly1,lz1,lelv)
+!   As a first pass, rely on the cheesy common-block interface to get h1
 
-    integer :: p_h1
+  real(DP) ::  h1    (lx1,ly1,lz1,lelv) 
+  integer :: pf,pc, l, n, nx, ny, nz
 
-    l                 = mg_h1_lmax
-    p_mg_h1(l,mg_fld) = 0
-    n                 = mg_h1_n(l,mg_fld)
+  l                 = mg_h1_lmax
+  p_mg_h1(l,mg_fld) = 0
+  n                 = mg_h1_n(l,mg_fld)
 
-    call copy (mg_h1,h1,n)   ! Fine grid is just original h1
+  call copy (mg_h1,h1,n)   ! Fine grid is just original h1
 
-    nx = mg_nh(l)
-    ny = mg_nh(l)
-    nz = mg_nhz(l)
+  nx = mg_nh(l)
+  ny = mg_nh(l)
+  nz = mg_nhz(l)
 
-    do l=mg_h1_lmax-1,1,-1
+  do l=mg_h1_lmax-1,1,-1
 
-        p_mg_h1(l,mg_fld) = p_mg_h1(l+1,mg_fld) + n
-        n                 = mg_h1_n(l  ,mg_fld)
+      p_mg_h1(l,mg_fld) = p_mg_h1(l+1,mg_fld) + n
+      n                 = mg_h1_n(l  ,mg_fld)
 
-        pf                = p_mg_h1(l+1,mg_fld)
-        pc                = p_mg_h1(l  ,mg_fld)
+      pf                = p_mg_h1(l+1,mg_fld)
+      pc                = p_mg_h1(l  ,mg_fld)
 
-        call hsmg_intp_fc (mg_h1(pc),mg_h1(pf),l)
+      call hsmg_intp_fc (mg_h1(pc),mg_h1(pf),l)
 
-    enddo
+  enddo
 
-    p_h1 = p_mg_h1(l0,mg_fld)
+  p_h1 = p_mg_h1(l0,mg_fld)
 
-    return
-    end subroutine mg_set_h1
+  return
+  end subroutine mg_set_h1
 !-----------------------------------------------------------------------
-    subroutine mg_set_h2  (p_h2 ,l0)
-    use size_m
-    use hsmg
+subroutine mg_set_h2  (p_h2 ,l0)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv
+  use hsmg, only : mg_h1_lmax, p_mg_h2, mg_h1_n, mg_h2, mg_nh, mg_nhz, mg_fld
+  implicit none
 
-!     As a first pass, rely on the cheesy common-block interface to get h2
+  integer :: p_h2, l0
 
-    common /scrvh/ h1    (lx1,ly1,lz1,lelv) &
-    , h2    (lx1,ly1,lz1,lelv) &
-    , h2inv (lx1,ly1,lz1,lelv)
+  real(DP) ::  h1    (lx1,ly1,lz1,lelv) &
+  , h2    (lx1,ly1,lz1,lelv) 
 
-    integer :: p_h2,pf,pc
+  integer :: pf,pc, l, n, nx, ny, nz
 
-    l                 = mg_h1_lmax
-    p_mg_h2(l,mg_fld) = 0
-    n                 = mg_h1_n(l,mg_fld)
+  l                 = mg_h1_lmax
+  p_mg_h2(l,mg_fld) = 0
+  n                 = mg_h1_n(l,mg_fld)
 
-    call copy (mg_h2,h2,n)   ! Fine grid is just original h2
+  call copy (mg_h2,h2,n)   ! Fine grid is just original h2
 
-    nx = mg_nh(l)
-    ny = mg_nh(l)
-    nz = mg_nhz(l)
+  nx = mg_nh(l)
+  ny = mg_nh(l)
+  nz = mg_nhz(l)
 
-    do l=mg_h1_lmax-1,1,-1
+  do l=mg_h1_lmax-1,1,-1
 
-        p_mg_h2(l,mg_fld) = p_mg_h2(l+1,mg_fld) + n
-        n                 = mg_h1_n(l  ,mg_fld)
+      p_mg_h2(l,mg_fld) = p_mg_h2(l+1,mg_fld) + n
+      n                 = mg_h1_n(l  ,mg_fld)
 
-        pf                = p_mg_h2(l+1,mg_fld)
-        pc                = p_mg_h2(l  ,mg_fld)
+      pf                = p_mg_h2(l+1,mg_fld)
+      pc                = p_mg_h2(l  ,mg_fld)
 
-        call hsmg_intp_fc (mg_h2(pc),mg_h2(pf),l)
+      call hsmg_intp_fc (mg_h2(pc),mg_h2(pf),l)
 
-    enddo
+  enddo
 
-    p_h2 = p_mg_h2(l0,mg_fld)
+  p_h2 = p_mg_h2(l0,mg_fld)
 
-    return
-    end subroutine mg_set_h2
+  return
+end subroutine mg_set_h2
 !-----------------------------------------------------------------------
     subroutine hsmg_intp_fc(uc,uf,l) ! l is coarse level
 

@@ -25,7 +25,6 @@ subroutine plan4
   real(DP), allocatable, save :: approx(:,:)
 
   real(DP) :: res1, res2, res3, dv1, dv2, dv3, respr
-  real(DP) :: h1, h2
   COMMON /SCRNS/ RES1  (LX1,LY1,LZ1,LELV) &
   ,             RES2  (LX1,LY1,LZ1,LELV) &
   ,             RES3  (LX1,LY1,LZ1,LELV) &
@@ -33,8 +32,7 @@ subroutine plan4
   ,             DV2   (LX1,LY1,LZ1,LELV) &
   ,             DV3   (LX1,LY1,LZ1,LELV) &
   ,             RESPR (LX2,LY2,LZ2,LELV)
-  common /scrvh/ h1    (lx1,ly1,lz1,lelv) &
-  ,             h2    (lx1,ly1,lz1,lelv)
+  real(DP) :: h1(lx1,ly1,lz1,lelv), h2(lx1,ly1,lz1,lelv)
   real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
   REAL(DP) ::           DPR   (LX2,LY2,LZ2,LELV)
   EQUIVALENCE   (DPR,DV1)

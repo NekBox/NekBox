@@ -883,59 +883,6 @@
     return
     end subroutine get_msg_vol
 !-----------------------------------------------------------------------
-    subroutine gp2_test(ivb)
-
-    use size_m
-    include 'mpif.h'
-
-    common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
-    integer :: status(mpi_status_size)
-
-    parameter  (lt=lx1*ly1*lz1*lelt)
-    parameter (mwd = 3*lt)
-    common /scrns/ x(mwd),y(mwd)
-    common /scruz/ times(2,500)
-
-    call rzero(x,mwd)
-
-    nwds = 1
-    do itest = 1,500
-        call gp2(x,y,'+  ',1,nid,np)
-
-        t0 = mpi_wtime ()
-        call gp2(x,y,'+  ',nwds,nid,np)
-        call gp2(x,y,'+  ',nwds,nid,np)
-        call gp2(x,y,'+  ',nwds,nid,np)
-        call gp2(x,y,'+  ',nwds,nid,np)
-        t1 = mpi_wtime ()
-
-        tmsg = (t1-t0)/4 ! four calls
-        tpwd = tmsg
-        if (nwds > 0) tpwd = tmsg/nwds
-        times(1,itest) = tmsg
-        times(2,itest) = tpwd
-
-        nwds = (nwds+1)*1.016
-        if (nwds > mwd) goto 101
-    enddo
-    101 continue
-
-
-    if (nid == 0) then
-        nwds = 1
-        do itest=1,500
-            if (ivb > 0 .OR. itest == 1) &
-            write(6,1) np,nwds,(times(k,itest),k=1,2)
-            1 format(i12,i12,1p2e16.8,' gp2')
-            nwds = (nwds+1)*1.016
-            if (nwds > mwd) goto 102
-        enddo
-        102 continue
-    endif
-
-    return
-    end subroutine gp2_test
-!-----------------------------------------------------------------------
     integer function xor(m,n)
 
 !  If NOT running on a parallel processor, it is sufficient to

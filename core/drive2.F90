@@ -420,9 +420,7 @@ subroutine gengeom (igeom)
 
   integer, intent(in) :: igeom
   integer :: ntot3, ifieldo
-  real(DP) :: xm3, ym3, zm3
-
-  COMMON /SCRUZ/ XM3 (LX3,LY3,LZ3,LELT) &
+  real(DP) ::  XM3 (LX3,LY3,LZ3,LELT) &
   ,             YM3 (LX3,LY3,LZ3,LELT) &
   ,             ZM3 (LX3,LY3,LZ3,LELT)
 

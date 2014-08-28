@@ -600,9 +600,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   real(DP) :: mask1(nx1,ny1,nz1,lelv),mask2(nx1,ny1,nz1,lelv) &
   ,mask3(nx1,ny1,nz1,lelv)
 
-
-  real(DP) :: tmp1, tmp2, tmp3
-  COMMON /SCRUZ/ TMP1(LX1,LY1,LZ1,LELV) &
+  real(DP) ::  TMP1(LX1,LY1,LZ1,LELV) &
   , TMP2(LX1,LY1,LZ1,LELV) &
   , TMP3(LX1,LY1,LZ1,LELV)
 

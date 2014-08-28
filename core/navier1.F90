@@ -719,7 +719,9 @@ end subroutine dudxyz
 !    if (ifexplvis .AND. ifsplit)                call explstrs
     if (ifnav .AND. ( .NOT. ifchar))              call advab
 !    if (ifmvbd)                               call admeshv
-    if (iftran)                               call makeabf
+    if (iftran) then
+      call makeabf
+    endif
     if ((iftran .AND. .NOT. ifchar) .OR. &
     (iftran .AND. .NOT. ifnav .AND. ifchar))   call makebdf
 !max    if (ifnav .AND. ifchar .AND. ( .NOT. ifmvbd))   call advchar
@@ -771,38 +773,40 @@ end subroutine dudxyz
     return
     end subroutine nekuf
 
-    subroutine advab
 !---------------------------------------------------------------
-
-!     Eulerian scheme, add convection term to forcing function
-!     at current time step.
-
+!> \brief Eulerian scheme, add convection term to forcing function
+!! at current time step.
 !---------------------------------------------------------------
-    use size_m
-    use mass
-    use soln
-    use tstep
+subroutine advab()
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, lx1, ly1, lz1, lelv, ndim
+  use mass, only : bm1
+  use soln, only : vx, vy, vz, bfx, bfy, bfz
+  implicit none
 
-    COMMON /SCRUZ/ TA1 (LX1,LY1,LZ1,LELV) &
-    ,             TA2 (LX1,LY1,LZ1,LELV) &
-    ,             TA3 (LX1,LY1,LZ1,LELV)
+  real(DP) ::   TA1 (LX1,LY1,LZ1,LELV) &
+  ,             TA2 (LX1,LY1,LZ1,LELV) &
+  ,             TA3 (LX1,LY1,LZ1,LELV)
 
-    NTOT1 = NX1*NY1*NZ1*NELV
-    CALL CONVOP  (TA1,VX)
-    CALL CONVOP  (TA2,VY)
-    CALL SUBCOL3 (BFX,BM1,TA1,NTOT1)
-    CALL SUBCOL3 (BFY,BM1,TA2,NTOT1)
-    IF (NDIM == 2) THEN
-        CALL RZERO (TA3,NTOT1)
-    ELSE
-        CALL CONVOP  (TA3,VZ)
-        CALL SUBCOL3 (BFZ,BM1,TA3,NTOT1)
-    ENDIF
+  integer :: ntot1
+ 
+  NTOT1 = NX1*NY1*NZ1*NELV
+  CALL CONVOP  (TA1,VX)
+  CALL CONVOP  (TA2,VY)
+  CALL SUBCOL3 (BFX,BM1,TA1,NTOT1)
+  CALL SUBCOL3 (BFY,BM1,TA2,NTOT1)
+  IF (NDIM == 2) THEN
+      CALL RZERO (TA3,NTOT1)
+  ELSE
+      CALL CONVOP  (TA3,VZ)
+      CALL SUBCOL3 (BFZ,BM1,TA3,NTOT1)
+  ENDIF
 
+  return
+end subroutine advab
 
-    return
-    end subroutine advab
 !-----------------------------------------------------------------------
+!called
     subroutine makebdf
 
 !     Add contributions to F from lagged BD terms.
@@ -821,6 +825,7 @@ end subroutine dudxyz
     ,             TB2(LX1,LY1,LZ1,LELV) &
     ,             TB3(LX1,LY1,LZ1,LELV) &
     ,             H2 (LX1,LY1,LZ1,LELV)
+
 
     NTOT1 = NX1*NY1*NZ1*NELV
     CONST = 1./DT
@@ -846,50 +851,50 @@ end subroutine dudxyz
     return
     end subroutine makebdf
 !-----------------------------------------------------------------------
-    subroutine makeabf
+!> \brief Sum up contributions to kth order extrapolation scheme.
+!! NOTE: rho^{n+1} should multiply all the Sum_q{beta_q} term
+!!       if rho is not constant!
 !-----------------------------------------------------------------------
+subroutine makeabf
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  use size_m, only : lx1, ly1, lz1, lelv
+  use soln, only : abx1, aby1, abz1, abx2, aby2, abz2, bfx, bfy, bfz, vtrans
+  use tstep, only : ab
+  implicit none
 
-!     Sum up contributions to kth order extrapolation scheme.
-!     NOTE: rho^{n+1} should multiply all the Sum_q{beta_q} term
-!           if rho is not constant!
+  real(DP) :: TA1 (LX1,LY1,LZ1,LELV) &
+  ,             TA2 (LX1,LY1,LZ1,LELV) &
+  ,             TA3 (LX1,LY1,LZ1,LELV)
 
+  integer :: ntot1
+  real(DP) :: ab0, ab1, ab2
+  NTOT1 = NX1*NY1*NZ1*NELV
 
+  AB0 = AB(1)
+  AB1 = AB(2)
+  AB2 = AB(3)
+  CALL ADD3S2 (TA1,ABX1,ABX2,AB1,AB2,NTOT1)
+  CALL ADD3S2 (TA2,ABY1,ABY2,AB1,AB2,NTOT1)
+  CALL COPY   (ABX2,ABX1,NTOT1)
+  CALL COPY   (ABY2,ABY1,NTOT1)
+  CALL COPY   (ABX1,BFX,NTOT1)
+  CALL COPY   (ABY1,BFY,NTOT1)
+  CALL ADD2S1 (BFX,TA1,AB0,NTOT1)
+  CALL ADD2S1 (BFY,TA2,AB0,NTOT1)
+  CALL COL2   (BFX,VTRANS,NTOT1)          ! multiply by density
+  CALL COL2   (BFY,VTRANS,NTOT1)
+  IF (NDIM == 3) THEN
+      CALL ADD3S2 (TA3,ABZ1,ABZ2,AB1,AB2,NTOT1)
+      CALL COPY   (ABZ2,ABZ1,NTOT1)
+      CALL COPY   (ABZ1,BFZ,NTOT1)
+      CALL ADD2S1 (BFZ,TA3,AB0,NTOT1)
+      CALL COL2   (BFZ,VTRANS,NTOT1)
+  ENDIF
+
+  return
+end subroutine makeabf
 !-----------------------------------------------------------------------
-    use size_m
-    use soln
-    use tstep
-
-    COMMON /SCRUZ/ TA1 (LX1,LY1,LZ1,LELV) &
-    ,             TA2 (LX1,LY1,LZ1,LELV) &
-    ,             TA3 (LX1,LY1,LZ1,LELV)
-
-    NTOT1 = NX1*NY1*NZ1*NELV
-
-    AB0 = AB(1)
-    AB1 = AB(2)
-    AB2 = AB(3)
-    CALL ADD3S2 (TA1,ABX1,ABX2,AB1,AB2,NTOT1)
-    CALL ADD3S2 (TA2,ABY1,ABY2,AB1,AB2,NTOT1)
-    CALL COPY   (ABX2,ABX1,NTOT1)
-    CALL COPY   (ABY2,ABY1,NTOT1)
-    CALL COPY   (ABX1,BFX,NTOT1)
-    CALL COPY   (ABY1,BFY,NTOT1)
-    CALL ADD2S1 (BFX,TA1,AB0,NTOT1)
-    CALL ADD2S1 (BFY,TA2,AB0,NTOT1)
-    CALL COL2   (BFX,VTRANS,NTOT1)          ! multiply by density
-    CALL COL2   (BFY,VTRANS,NTOT1)
-    IF (NDIM == 3) THEN
-        CALL ADD3S2 (TA3,ABZ1,ABZ2,AB1,AB2,NTOT1)
-        CALL COPY   (ABZ2,ABZ1,NTOT1)
-        CALL COPY   (ABZ1,BFZ,NTOT1)
-        CALL ADD2S1 (BFZ,TA3,AB0,NTOT1)
-        CALL COL2   (BFZ,VTRANS,NTOT1)
-    ENDIF
-
-    return
-    end subroutine makeabf
-
-!----------------------------------------------------------------------
     subroutine setabbd (ab,dtlag,nab,nbd)
 !-----------------------------------------------------------------------
 

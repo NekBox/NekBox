@@ -48,9 +48,6 @@ subroutine set_overlap
   common /ctmp0/ nv_to_t(2*ltotd)
 
   integer, parameter :: lia = ltotd - 2 - 2*lelt
-
-  real(DP) :: color
-  common /scruz/ color   (4*ltotd)
   integer :: mask
   common /ctmp1/ mask    (4*ltotd)
 

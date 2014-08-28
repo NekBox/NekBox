@@ -1737,51 +1737,52 @@ end subroutine mapab4R
     return
     end function if_byte_swap_test
 !-----------------------------------------------------------------------
-    subroutine geom_reset(icall)
+!> \brief Generate geometry data
+subroutine geom_reset(icall)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, lx3
+  use size_m, only : nx1, ny1, nz1, nelt, nid
+  use geom, only : xm1, ym1, zm1
+  use input, only : if3d
+  implicit none
 
-!     Generate geometry data
+  integer :: icall
 
-    use size_m
-    use geom
-    use input
-    use soln
-    use tstep
-    use wz_m
+  real(DP) ::   XM3 (LX1,LY1,LZ1,LELT) &
+  ,             YM3 (LX1,LY1,LZ1,LELT) &
+  ,             ZM3 (LX1,LY1,LZ1,LELT)
 
-    COMMON /scruz/ XM3 (LX1,LY1,LZ1,LELT) &
-    ,             YM3 (LX1,LY1,LZ1,LELT) &
-    ,             ZM3 (LX1,LY1,LZ1,LELT)
+  integer :: ntot 
 
+  if(nid == 0) write(6,*) 'regenerate geometry data',icall
 
-    if(nid == 0) write(6,*) 'regenerate geometry data',icall
+  ntot = nx1*ny1*nz1*nelt
 
-    ntot = nx1*ny1*nz1*nelt
+  if (lx3 == lx1) then
+      call copy(xm3,xm1,ntot)
+      call copy(ym3,ym1,ntot)
+      call copy(zm3,zm1,ntot)
+  else
+      call map13_all(xm3,xm1)
+      call map13_all(ym3,ym1)
+      if (if3d) call map13_all(zm3,zm1)
+  endif
 
-    if (lx3 == lx1) then
-        call copy(xm3,xm1,ntot)
-        call copy(ym3,ym1,ntot)
-        call copy(zm3,zm1,ntot)
-    else
-        call map13_all(xm3,xm1)
-        call map13_all(ym3,ym1)
-        if (if3d) call map13_all(zm3,zm1)
-    endif
+  CALL GEOM1 (XM3,YM3,ZM3)
+  CALL GEOM2
+  CALL UPDMSYS (1)
+  CALL VOLUME
+  CALL SETINVM
+  CALL SETDEF
+  CALL SFASTAX
 
-    CALL GEOM1 (XM3,YM3,ZM3)
-    CALL GEOM2
-    CALL UPDMSYS (1)
-    CALL VOLUME
-    CALL SETINVM
-    CALL SETDEF
-    CALL SFASTAX
+  if(nid == 0) then
+      write(6,*) 'done :: regenerate geometry data',icall
+      write(6,*) ' '
+  endif
 
-    if(nid == 0) then
-        write(6,*) 'done :: regenerate geometry data',icall
-        write(6,*) ' '
-    endif
-
-    return
-    end subroutine geom_reset
+  return
+end subroutine geom_reset
 !-----------------------------------------------------------------------
     subroutine dsavg(u)
 

@@ -243,72 +243,57 @@ end subroutine hsmg_setup_dssum
 
 
     if ( .NOT. if3d) then
-        call hsmg_tnsr2d(v,nv,u,nu,A,At)
+!max        call hsmg_tnsr2d(v,nv,u,nu,A,At)
     else
         call hsmg_tnsr3d(v,nv,u,nu,A,At,At)
     endif
     return
     end subroutine hsmg_tnsr
 !----------------------------------------------------------------------
-!     computes
-!              T
-!     v = A u B
-    subroutine hsmg_tnsr2d(v,nv,u,nu,A,Bt)
-    use size_m
+!> \brief computes:  v = [C (x) B (x) A] u .
+subroutine hsmg_tnsr3d(v,nv,u,nu,A,Bt,Ct)
+  use kinds, only : DP
+  use size_m
+  implicit none
 
-    integer :: nv,nu
-    real :: v(nv*nv,nelv),u(nu*nu,nelv),A(1),Bt(1)
+  integer :: nv,nu
+  real(DP) :: v(nv*nv*nv,nelv),u(nu*nu*nu,nelv),A(1),Bt(1),Ct(1)
 
-    common /hsmgw/ work((lx1+2)*(lx1+2))
-    integer :: ie
-    do ie=1,nelv
-        call mxm(A,nv,u(1,ie),nu,work,nu)
-        call mxm(work,nv,Bt,nu,v(1,ie),nv)
-    enddo
-    return
-    end subroutine hsmg_tnsr2d
+  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
+  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
+  integer :: ie, i
+
+  do ie=1,nelv
+      call mxm(A,nv,u(1,ie),nu,work,nu*nu)
+      do i=0,nu-1
+          call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+      enddo
+      call mxm(work2,nv*nv,Ct,nu,v(1,ie),nv)
+  enddo
+  return
+end subroutine hsmg_tnsr3d
 !----------------------------------------------------------------------
-!     computes
+!> \brief computes  v = [C (x) B (x) A] u
+subroutine hsmg_tnsr3d_el(v,nv,u,nu,A,Bt,Ct)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1
+  implicit none
 
-!     v = [C (x) B (x) A] u
-    subroutine hsmg_tnsr3d(v,nv,u,nu,A,Bt,Ct)
-    use size_m
+  integer :: nv,nu
+  real(DP) :: v(nv*nv*nv),u(nu*nu*nu),A(1),Bt(1),Ct(1)
 
-    integer :: nv,nu
-    real :: v(nv*nv*nv,nelv),u(nu*nu*nu,nelv),A(1),Bt(1),Ct(1)
+  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
+  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
+  integer :: i
 
-    parameter (lwk=(lx1+2)*(ly1+2)*(lz1+2))
-    common /hsmgw/ work(0:lwk-1),work2(0:lwk-1)
-    integer :: ie, i
-    do ie=1,nelv
-        call mxm(A,nv,u(1,ie),nu,work,nu*nu)
-        do i=0,nu-1
-            call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
-        enddo
-        call mxm(work2,nv*nv,Ct,nu,v(1,ie),nv)
-    enddo
-    return
-    end subroutine hsmg_tnsr3d
-!----------------------------------------------------------------------
-!> computes  v = [C (x) B (x) A] u
-    subroutine hsmg_tnsr3d_el(v,nv,u,nu,A,Bt,Ct)
-    use size_m
+  call mxm(A,nv,u,nu,work,nu*nu)
+  do i=0,nu-1
+      call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+  enddo
+  call mxm(work2,nv*nv,Ct,nu,v,nv)
 
-    integer :: nv,nu
-    real :: v(nv*nv*nv),u(nu*nu*nu),A(1),Bt(1),Ct(1)
-
-    parameter (lwk=(lx1+2)*(ly1+2)*(lz1+2))
-    common /hsmgw/ work(0:lwk-1),work2(0:lwk-1)
-    integer :: i
-
-    call mxm(A,nv,u,nu,work,nu*nu)
-    do i=0,nu-1
-        call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
-    enddo
-    call mxm(work2,nv*nv,Ct,nu,v,nv)
-
-    return
-    end subroutine hsmg_tnsr3d_el
+  return
+end subroutine hsmg_tnsr3d_el
 !----------------------------------------------------------------------
     subroutine hsmg_dssum(u,l)
     use ctimer
@@ -613,6 +598,7 @@ end subroutine hsmg_setup_dssum
     return
     end subroutine hsmg_setup_fdm
 !----------------------------------------------------------------------
+! called
     subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
     use size_m
     use input
@@ -633,7 +619,7 @@ end subroutine hsmg_setup_dssum
     integer :: ie,il,nr,ns,nt
     integer :: lbr,rbr,lbs,rbs,lbt,rbt,two
     real :: eps,diag
-          
+
     two  = 2
     ierr = 0
     do ie=1,nelv
@@ -1474,6 +1460,7 @@ end subroutine h1mg_solve
     return
     end subroutine mg_mask_e
 !-----------------------------------------------------------------------
+! called
     subroutine hsmg_tnsr1(v,nv,nu,A,At)
 
 !     v = [A (x) A] u      or
@@ -1486,99 +1473,69 @@ end subroutine h1mg_solve
     real :: v(1),A(1),At(1)
 
     if ( .NOT. if3d) then
-        call hsmg_tnsr1_2d(v,nv,nu,A,At)
+!max        call hsmg_tnsr1_2d(v,nv,nu,A,At)
     else
         call hsmg_tnsr1_3d(v,nv,nu,A,At,At)
     endif
     return
     end subroutine hsmg_tnsr1
 !-------------------------------------------------------T--------------
-    subroutine hsmg_tnsr1_2d(v,nv,nu,A,Bt) ! u = A u B
-    use size_m
+subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct) ! v = [C (x) B (x) A] u
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nelv
+  implicit none
 
-    integer :: nv,nu
-    real :: v(1),A(1),Bt(1)
+  integer :: nv,nu
+  real(DP) :: v(1),A(1),Bt(1),Ct(1)
 
-    common /hsmgw/ work(lx1*lx1)
-    integer :: e
+  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
+  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
+  integer :: e,e0,ee,es
+  integer :: nu3, nv3, iu, iv, i
 
-    nv2 = nv*nv
-    nu2 = nu*nu
+  e0=1
+  es=1
+  ee=nelv
 
-    if (nv <= nu) then
-        iv=1
-        iu=1
-        do e=1,nelv
-            call mxm(A,nv,v(iu),nu,work,nu)
-            call mxm(work,nv,Bt,nu,v(iv),nv)
-            iv = iv + nv2
-            iu = iu + nu2
-        enddo
-    else
-        do e=nelv,1,-1
-            iu=1+nu2*(e-1)
-            iv=1+nv2*(e-1)
-            call mxm(A,nv,v(iu),nu,work,nu)
-            call mxm(work,nv,Bt,nu,v(iv),nv)
-        enddo
-    endif
+  if (nv > nu) then
+      e0=nelv
+      es=-1
+      ee=1
+  endif
 
-    return
-    end subroutine hsmg_tnsr1_2d
-!----------------------------------------------------------------------
-    subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct) ! v = [C (x) B (x) A] u
-    use size_m
+  nu3 = nu**3
+  nv3 = nv**3
 
-    integer :: nv,nu
-    real :: v(1),A(1),Bt(1),Ct(1)
+  do e=e0,ee,es
+      iu = 1 + (e-1)*nu3
+      iv = 1 + (e-1)*nv3
+      call mxm(A,nv,v(iu),nu,work,nu*nu)
+      do i=0,nu-1
+          call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+      enddo
+      call mxm(work2,nv*nv,Ct,nu,v(iv),nv)
+  enddo
 
-    parameter (lwk=(lx1+2)*(ly1+2)*(lz1+2))
-    common /hsmgw/ work(0:lwk-1),work2(0:lwk-1)
-    integer :: e,e0,ee,es
-
-    e0=1
-    es=1
-    ee=nelv
-
-    if (nv > nu) then
-        e0=nelv
-        es=-1
-        ee=1
-    endif
-
-    nu3 = nu**3
-    nv3 = nv**3
-
-    do e=e0,ee,es
-        iu = 1 + (e-1)*nu3
-        iv = 1 + (e-1)*nv3
-        call mxm(A,nv,v(iu),nu,work,nu*nu)
-        do i=0,nu-1
-            call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
-        enddo
-        call mxm(work2,nv*nv,Ct,nu,v(iv),nv)
-    enddo
-
-    return
-    end subroutine hsmg_tnsr1_3d
+  return
+end subroutine hsmg_tnsr1_3d
 !------------------------------------------   T  -----------------------
-    subroutine h1mg_rstr(r,l,ifdssum) ! r =J r,   l is coarse level
-    use size_m
-    use hsmg
-    logical :: ifdssum
+subroutine h1mg_rstr(r,l,ifdssum) ! r =J r,   l is coarse level
+  use size_m
+  use hsmg
+  logical :: ifdssum
 
-    real :: r(1)
-    integer :: l
+  real :: r(1)
+  integer :: l
 
-    call hsmg_do_wt(r,mg_rstr_wt(mg_rstr_wt_index(l+1,mg_fld)) &
-    ,mg_nh(l+1),mg_nh(l+1),mg_nhz(l+1))
+  call hsmg_do_wt(r,mg_rstr_wt(mg_rstr_wt_index(l+1,mg_fld)) &
+  ,mg_nh(l+1),mg_nh(l+1),mg_nhz(l+1))
 
-    call hsmg_tnsr1(r,mg_nh(l),mg_nh(l+1),mg_jht(1,l),mg_jh(1,l))
+  call hsmg_tnsr1(r,mg_nh(l),mg_nh(l+1),mg_jht(1,l),mg_jh(1,l))
 
-    if (ifdssum) call hsmg_dssum(r,l)
+  if (ifdssum) call hsmg_dssum(r,l)
 
-    return
-    end subroutine h1mg_rstr
+  return
+end subroutine h1mg_rstr
 !----------------------------------------------------------------------
 subroutine h1mg_setup()
   use kinds, only : DP

@@ -82,12 +82,10 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   use dxyz, only : wddx, wddyt, wddzt
   use input, only : ifaxis
   use mass, only : bm1
+  use mesh, only : iffast, ifsolv
   implicit none
 
   integer :: imesh, isd
-  LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-  COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-
   REAL(DP) ::           AU    (LX1,LY1,LZ1,1) &
   ,             U     (LX1,LY1,LZ1,1) &
   ,             HELM1 (LX1,LY1,LZ1,1) &
@@ -287,53 +285,55 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
 end subroutine axhelm
 
 !=======================================================================
-    subroutine setfast (helm1,helm2,imesh)
+!> \brief Set logicals for fast evaluation of A*x
 !-------------------------------------------------------------------
+subroutine setfast (helm1,helm2,imesh)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelt, nelv, lelt
+  use input, only : ifaxis, ifmodel
+  use mesh, only : iffast, ifdfrm
+  implicit none
 
-!     Set logicals for fast evaluation of A*x
+  integer :: imesh
+  REAL(DP) :: HELM1(NX1,NY1,NZ1,1), HELM2(NX1,NY1,NZ1,1)
+ 
+  integer :: nel, nxyz, ntot, ie 
+  real(DP) :: delta, x, y, diff, epsm, h1min, h1max, testh1, testh2
+  real(DP) :: den
+  real(DP), external :: vlmin, vlmax, vlamax
 
-!-------------------------------------------------------------------
-    use size_m
-    use input
-    COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-    LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-    REAL :: HELM1(NX1,NY1,NZ1,1), HELM2(NX1,NY1,NZ1,1)
+  IF (IMESH == 1) NEL=NELV
+  IF (IMESH == 2) NEL=NELT
+  NXYZ = NX1*NY1*NZ1
+  NTOT = NXYZ*NEL
 
-    IF (IMESH == 1) NEL=NELV
-    IF (IMESH == 2) NEL=NELT
-    NXYZ = NX1*NY1*NZ1
-    NTOT = NXYZ*NEL
+  DELTA = 1.E-9
+  X    = 1.+DELTA
+  Y    = 1.
+  DIFF = ABS(X-Y)
+  IF (DIFF == 0.0) EPSM = 1.E-6
+  IF (DIFF > 0.0) EPSM = 1.E-13
 
-    DELTA = 1.E-9
-    X    = 1.+DELTA
-    Y    = 1.
-    DIFF = ABS(X-Y)
-    IF (DIFF == 0.0) EPSM = 1.E-6
-    IF (DIFF > 0.0) EPSM = 1.E-13
+  DO 100 ie=1,NEL
+      IFFAST(ie) = .FALSE. 
+      IF (IFDFRM(ie) .OR. IFAXIS .OR. IFMODEL ) THEN
+          IFFAST(ie) = .FALSE. 
+      !            write(*,*) IFDFRM(ie), IFAXIS, IFMODEL
+      ELSE
+          H1MIN  = VLMIN(HELM1(1,1,1,ie),NXYZ)
+          H1MAX  = VLMAX(HELM1(1,1,1,ie),NXYZ)
+          den    = abs(h1max)+abs(h1min)
+          if (den > 0) then
+              TESTH1 = ABS((H1MAX-H1MIN)/(H1MAX+H1MIN))
+              IF (TESTH1 < EPSM) IFFAST(ie) = .TRUE. 
+          else
+              iffast(ie) = .TRUE. 
+          endif
+      ENDIF
+  100 END DO
 
-    DO 100 ie=1,NEL
-        IFFAST(ie) = .FALSE. 
-        IF (IFDFRM(ie) .OR. IFAXIS .OR. IFMODEL ) THEN
-            IFFAST(ie) = .FALSE. 
-        !            write(*,*) IFDFRM(ie), IFAXIS, IFMODEL
-        ELSE
-            H1MIN  = VLMIN(HELM1(1,1,1,ie),NXYZ)
-            H1MAX  = VLMAX(HELM1(1,1,1,ie),NXYZ)
-            den    = abs(h1max)+abs(h1min)
-            if (den > 0) then
-                TESTH1 = ABS((H1MAX-H1MIN)/(H1MAX+H1MIN))
-                IF (TESTH1 < EPSM) IFFAST(ie) = .TRUE. 
-            else
-                iffast(ie) = .TRUE. 
-            endif
-        ENDIF
-    100 END DO
-
-    IFH2   = .FALSE. 
-    TESTH2 =  VLAMAX(HELM2,NTOT)
-    IF (TESTH2 > 0.) IFH2 = .TRUE. 
-    return
-    end subroutine setfast
+  return
+  end subroutine setfast
 
 !----------------------------------------------------------------------
 !> \brief For undeformed elements, set up appropriate elemental matrices
@@ -346,11 +346,9 @@ subroutine sfastax()
   use dxyz, only : dxm1, dym1, dzm1
   use dxyz, only : wddx, wddyt, wddzt
   use geom, only : g1m1, g2m1, g3m1, g4m1, g5m1, g6m1
+  use mesh, only : ifdfrm
   use wz_m, only : wxm1, wym1, wzm1
   implicit none
-
-  LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-  COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
 
   logical, save :: IFIRST = .TRUE.
   integer :: nxx, nyy, nzz
@@ -408,157 +406,160 @@ subroutine sfastax()
   end subroutine sfastax
 
 !=======================================================================
-    subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
+!> \brief Generate diagonal preconditioner for the Helmholtz operator.
 !-------------------------------------------------------------------
+subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, lelt, nelt, nelv, ndim
+  use dxyz, only : dxtm1, dytm1, dztm1, datm1, dam1
+  use geom, only : ifrzer, g1m1, g2m1, g3m1, ym1, jacm1
+  use input, only : ifaxis
+  use mass, only : bm1
+  use mesh, only : ifdfrm
+  use wz_m, only : wxm1, wam1
+  implicit none
 
-!     Generate diagonal preconditioner for the Helmholtz operator.
+  REAL(DP) ::            DPCM1 (LX1,LY1,LZ1,1)
+  REAL(DP) ::            HELM1(NX1,NY1,NZ1,1), HELM2(NX1,NY1,NZ1,1)
+  integer :: imsh, isd
 
-!-------------------------------------------------------------------
-    use size_m
-    use dxyz
-    use geom
-    use input
-    use mass
-    use tstep
-    use wz_m
-    REAL ::            DPCM1 (LX1,LY1,LZ1,1)
-    COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-    LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-    REAL ::            HELM1(NX1,NY1,NZ1,1), HELM2(NX1,NY1,NZ1,1)
-    REAL :: YSM1(LY1)
+  REAL(DP) :: YSM1(LY1)
 
-    nel=nelt
-    if (imsh == 1) nel=nelv
+  integer :: nel, ntot, ie, iq, iz, iy, ix, j, i, iel
+  real(DP) :: term1, term2
 
-    ntot = nel*nx1*ny1*nz1
+  nel=nelt
+  if (imsh == 1) nel=nelv
 
-!     The following lines provide a convenient debugging option
-!     call rone(dpcm1,ntot)
-!     if (ifield.eq.1) call copy(dpcm1,binvm1,ntot)
-!     if (ifield.eq.2) call copy(dpcm1,bintm1,ntot)
-!     return
+  ntot = nel*nx1*ny1*nz1
 
-    CALL RZERO(DPCM1,NTOT)
-    DO 1000 IE=1,NEL
+!   The following lines provide a convenient debugging option
+!   call rone(dpcm1,ntot)
+!   if (ifield.eq.1) call copy(dpcm1,binvm1,ntot)
+!   if (ifield.eq.2) call copy(dpcm1,bintm1,ntot)
+!   return
 
-        IF (IFAXIS) CALL SETAXDY ( IFRZER(IE) )
+  CALL RZERO(DPCM1,NTOT)
+  DO 1000 IE=1,NEL
 
-        DO 320 IQ=1,NX1
-            DO 320 IZ=1,NZ1
-                DO 320 IY=1,NY1
-                    DO 320 IX=1,NX1
-                        DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
-                        G1M1(IQ,IY,IZ,IE) * DXTM1(IX,IQ)**2
-        320 END DO
-        DO 340 IQ=1,NY1
-            DO 340 IZ=1,NZ1
-                DO 340 IY=1,NY1
-                    DO 340 IX=1,NX1
-                        DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
-                        G2M1(IX,IQ,IZ,IE) * DYTM1(IY,IQ)**2
-        340 END DO
+      IF (IFAXIS) CALL SETAXDY ( IFRZER(IE) )
 
-        IF (NDIM == 3) THEN
-            DO 360 IQ=1,NZ1
-                DO 360 IZ=1,NZ1
-                    DO 360 IY=1,NY1
-                        DO 360 IX=1,NX1
-                            DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
-                            G3M1(IX,IY,IQ,IE) * DZTM1(IZ,IQ)**2
-            360 END DO
-        
-        !       Add cross terms if element is deformed.
-        
-            IF (IFDFRM(IE)) THEN
-                write(*,*) "Whoops!"
+      DO 320 IQ=1,NX1
+          DO 320 IZ=1,NZ1
+              DO 320 IY=1,NY1
+                  DO 320 IX=1,NX1
+                      DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
+                      G1M1(IQ,IY,IZ,IE) * DXTM1(IX,IQ)**2
+      320 END DO
+      DO 340 IQ=1,NY1
+          DO 340 IZ=1,NZ1
+              DO 340 IY=1,NY1
+                  DO 340 IX=1,NX1
+                      DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
+                      G2M1(IX,IQ,IZ,IE) * DYTM1(IY,IQ)**2
+      340 END DO
+
+      IF (NDIM == 3) THEN
+          DO 360 IQ=1,NZ1
+              DO 360 IZ=1,NZ1
+                  DO 360 IY=1,NY1
+                      DO 360 IX=1,NX1
+                          DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
+                          G3M1(IX,IY,IQ,IE) * DZTM1(IZ,IQ)**2
+          360 END DO
+      
+      !       Add cross terms if element is deformed.
+      
+          IF (IFDFRM(IE)) THEN
+              write(*,*) "Whoops!"
 #if 0
-                DO 600 IY=1,NY1
-                    DO 600 IZ=1,NZ1
-                        DPCM1(1,IY,IZ,IE) = DPCM1(1,IY,IZ,IE) &
-                        + G4M1(1,IY,IZ,IE) * DXTM1(1,1)*DYTM1(IY,IY) &
-                        + G5M1(1,IY,IZ,IE) * DXTM1(1,1)*DZTM1(IZ,IZ)
-                        DPCM1(NX1,IY,IZ,IE) = DPCM1(NX1,IY,IZ,IE) &
-                        + G4M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DYTM1(IY,IY) &
-                        + G5M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DZTM1(IZ,IZ)
-                600 END DO
-                DO 700 IX=1,NX1
-                    DO 700 IZ=1,NZ1
-                        DPCM1(IX,1,IZ,IE) = DPCM1(IX,1,IZ,IE) &
-                        + G4M1(IX,1,IZ,IE) * DYTM1(1,1)*DXTM1(IX,IX) &
-                        + G6M1(IX,1,IZ,IE) * DYTM1(1,1)*DZTM1(IZ,IZ)
-                        DPCM1(IX,NY1,IZ,IE) = DPCM1(IX,NY1,IZ,IE) &
-                        + G4M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DXTM1(IX,IX) &
-                        + G6M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DZTM1(IZ,IZ)
-                700 END DO
-                DO 800 IX=1,NX1
-                    DO 800 IY=1,NY1
-                        DPCM1(IX,IY,1,IE) = DPCM1(IX,IY,1,IE) &
-                        + G5M1(IX,IY,1,IE) * DZTM1(1,1)*DXTM1(IX,IX) &
-                        + G6M1(IX,IY,1,IE) * DZTM1(1,1)*DYTM1(IY,IY)
-                        DPCM1(IX,IY,NZ1,IE) = DPCM1(IX,IY,NZ1,IE) &
-                        + G5M1(IX,IY,NZ1,IE) * DZTM1(NZ1,NZ1)*DXTM1(IX,IX) &
-                        + G6M1(IX,IY,NZ1,IE) * DZTM1(NZ1,NZ1)*DYTM1(IY,IY)
-                800 END DO
+              DO 600 IY=1,NY1
+                  DO 600 IZ=1,NZ1
+                      DPCM1(1,IY,IZ,IE) = DPCM1(1,IY,IZ,IE) &
+                      + G4M1(1,IY,IZ,IE) * DXTM1(1,1)*DYTM1(IY,IY) &
+                      + G5M1(1,IY,IZ,IE) * DXTM1(1,1)*DZTM1(IZ,IZ)
+                      DPCM1(NX1,IY,IZ,IE) = DPCM1(NX1,IY,IZ,IE) &
+                      + G4M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DYTM1(IY,IY) &
+                      + G5M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DZTM1(IZ,IZ)
+              600 END DO
+              DO 700 IX=1,NX1
+                  DO 700 IZ=1,NZ1
+                      DPCM1(IX,1,IZ,IE) = DPCM1(IX,1,IZ,IE) &
+                      + G4M1(IX,1,IZ,IE) * DYTM1(1,1)*DXTM1(IX,IX) &
+                      + G6M1(IX,1,IZ,IE) * DYTM1(1,1)*DZTM1(IZ,IZ)
+                      DPCM1(IX,NY1,IZ,IE) = DPCM1(IX,NY1,IZ,IE) &
+                      + G4M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DXTM1(IX,IX) &
+                      + G6M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DZTM1(IZ,IZ)
+              700 END DO
+              DO 800 IX=1,NX1
+                  DO 800 IY=1,NY1
+                      DPCM1(IX,IY,1,IE) = DPCM1(IX,IY,1,IE) &
+                      + G5M1(IX,IY,1,IE) * DZTM1(1,1)*DXTM1(IX,IX) &
+                      + G6M1(IX,IY,1,IE) * DZTM1(1,1)*DYTM1(IY,IY)
+                      DPCM1(IX,IY,NZ1,IE) = DPCM1(IX,IY,NZ1,IE) &
+                      + G5M1(IX,IY,NZ1,IE) * DZTM1(NZ1,NZ1)*DXTM1(IX,IX) &
+                      + G6M1(IX,IY,NZ1,IE) * DZTM1(NZ1,NZ1)*DYTM1(IY,IY)
+              800 END DO
 #endif
-            ENDIF
-        ELSE
-        
-            IF (IFDFRM(IE)) THEN
-                write(*,*) "Whoops!"
+          ENDIF
+      ELSE
+      
+          IF (IFDFRM(IE)) THEN
+              write(*,*) "Whoops!"
 #if 0
-                IZ=1
-                DO 602 IY=1,NY1
-                    DPCM1(1,IY,IZ,IE) = DPCM1(1,IY,IZ,IE) &
-                    + G4M1(1,IY,IZ,IE) * DXTM1(1,1)*DYTM1(IY,IY)
-                    DPCM1(NX1,IY,IZ,IE) = DPCM1(NX1,IY,IZ,IE) &
-                    + G4M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DYTM1(IY,IY)
-                602 END DO
-                DO 702 IX=1,NX1
-                    DO 702 IZ=1,NZ1
-                        DPCM1(IX,1,IZ,IE) = DPCM1(IX,1,IZ,IE) &
-                        + G4M1(IX,1,IZ,IE) * DYTM1(1,1)*DXTM1(IX,IX)
-                        DPCM1(IX,NY1,IZ,IE) = DPCM1(IX,NY1,IZ,IE) &
-                        + G4M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DXTM1(IX,IX)
-                702 END DO
+              IZ=1
+              DO 602 IY=1,NY1
+                  DPCM1(1,IY,IZ,IE) = DPCM1(1,IY,IZ,IE) &
+                  + G4M1(1,IY,IZ,IE) * DXTM1(1,1)*DYTM1(IY,IY)
+                  DPCM1(NX1,IY,IZ,IE) = DPCM1(NX1,IY,IZ,IE) &
+                  + G4M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DYTM1(IY,IY)
+              602 END DO
+              DO 702 IX=1,NX1
+                  DO 702 IZ=1,NZ1
+                      DPCM1(IX,1,IZ,IE) = DPCM1(IX,1,IZ,IE) &
+                      + G4M1(IX,1,IZ,IE) * DYTM1(1,1)*DXTM1(IX,IX)
+                      DPCM1(IX,NY1,IZ,IE) = DPCM1(IX,NY1,IZ,IE) &
+                      + G4M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DXTM1(IX,IX)
+              702 END DO
 #endif
-            ENDIF
-        ENDIF
-    1000 END DO
+          ENDIF
+      ENDIF
+  1000 END DO
 
-    CALL COL2    (DPCM1,HELM1,NTOT)
-    CALL ADDCOL3 (DPCM1,HELM2,BM1,NTOT)
+  CALL COL2    (DPCM1,HELM1,NTOT)
+  CALL ADDCOL3 (DPCM1,HELM2,BM1,NTOT)
 
-!     If axisymmetric, add a diagonal term in the radial direction (ISD=2)
+!   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
 
-    IF (IFAXIS .AND. (ISD == 2)) THEN
-        DO 1200 IEL=1,NEL
-        
-            IF (IFRZER(IEL)) THEN
-                CALL MXM(YM1(1,1,1,IEL),NX1,DATM1,NY1,YSM1,1)
-            ENDIF
-        
-            DO 1190 J=1,NY1
-                DO 1190 I=1,NX1
-                    IF (YM1(I,J,1,IEL) /= 0.) THEN
-                        TERM1 = BM1(I,J,1,IEL)/YM1(I,J,1,IEL)**2
-                        IF (IFRZER(IEL)) THEN
-                            TERM2 =  WXM1(I)*WAM1(1)*DAM1(1,J) &
-                            *JACM1(I,1,1,IEL)/YSM1(I)
-                        ELSE
-                            TERM2 = 0.
-                        ENDIF
-                        DPCM1(I,J,1,IEL) = DPCM1(I,J,1,IEL) &
-                        + HELM1(I,J,1,IEL)*(TERM1+TERM2)
-                    ENDIF
-            1190 END DO
-        1200 END DO
-    ENDIF
+  IF (IFAXIS .AND. (ISD == 2)) THEN
+      DO 1200 IEL=1,NEL
+      
+          IF (IFRZER(IEL)) THEN
+              CALL MXM(YM1(1,1,1,IEL),NX1,DATM1,NY1,YSM1,1)
+          ENDIF
+      
+          DO 1190 J=1,NY1
+              DO 1190 I=1,NX1
+                  IF (YM1(I,J,1,IEL) /= 0.) THEN
+                      TERM1 = BM1(I,J,1,IEL)/YM1(I,J,1,IEL)**2
+                      IF (IFRZER(IEL)) THEN
+                          TERM2 =  WXM1(I)*WAM1(1)*DAM1(1,J) &
+                          *JACM1(I,1,1,IEL)/YSM1(I)
+                      ELSE
+                          TERM2 = 0.
+                      ENDIF
+                      DPCM1(I,J,1,IEL) = DPCM1(I,J,1,IEL) &
+                      + HELM1(I,J,1,IEL)*(TERM1+TERM2)
+                  ENDIF
+          1190 END DO
+      1200 END DO
+  ENDIF
 
-    CALL DSSUM (DPCM1,NX1,NY1,NZ1)
-    CALL INVCOL1 (DPCM1,NTOT)
+  CALL DSSUM (DPCM1,NX1,NY1,NZ1)
+  CALL INVCOL1 (DPCM1,NTOT)
 
-    return
-    end subroutine setprec
+  return
+end subroutine setprec
 
 !=======================================================================
     subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
@@ -657,6 +658,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param
   use mass, only : volvm1, voltm1, bm1
+  use mesh, only : ifdfrm, ifsolv
   use tstep, only : istep, imesh
   implicit none
 
@@ -668,8 +670,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   COMMON  /CPRINT/ IFPRINT, IFHZPC
   LOGICAL ::          IFPRINT, IFHZPC
 
-  COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-  LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
   logical :: ifmcor,ifprint_hmh
 
   integer, parameter :: lg=lx1*ly1*lz1*lelt

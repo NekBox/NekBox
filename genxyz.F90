@@ -1,162 +1,165 @@
-!-----------------------------------------------------------------------
-    subroutine setdef
 !-------------------------------------------------------------------
-
-!     Set up deformed element logical switches
-
+!> \brief Set up deformed element logical switches
 !-------------------------------------------------------------------
-    use size_m
-    use input
-    DIMENSION XCC(8),YCC(8),ZCC(8)
-    DIMENSION INDX(8)
-    REAL :: VEC(3,12)
-    LOGICAL :: IFVCHK
+subroutine setdef()
+  use kinds, only : DP
+  use size_m, only : nid, nelt, lelt
+  use input, only : param, ifmvbd, if3d, ccurve, xc, yc, zc
+  use mesh, only : ifdfrm
+  implicit none
 
-    COMMON /FASTMD/ IFDFRM(LELT), IFFAST(LELT), IFH2, IFSOLV
-    LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
+  real(DP) :: XCC(8),YCC(8),ZCC(8)
+  integer :: INDX(8)
+  REAL :: VEC(3,12)
+  LOGICAL :: IFVCHK
 
-!   Corner notation:
+  integer :: ie, iedg, i, i1, j, i2
+  real(DP) :: veclen
 
-!                  4+-----+3    ^ Y
-!                  /     /|     |
-!                 /     / |     |
-!               8+-----+7 +2    +----> X
-!                |     | /     /
-!                |     |/     /
-!               5+-----+6    Z
+! Corner notation:
+
+!                4+-----+3    ^ Y
+!                /     /|     |
+!               /     / |     |
+!             8+-----+7 +2    +----> X
+!              |     | /     /
+!              |     |/     /
+!             5+-----+6    Z
 
 
-    DO 10 IE=1,NELT
-        IFDFRM(IE)= .FALSE. 
-    10 END DO
+  DO IE=1,NELT
+      IFDFRM(IE)= .FALSE. 
+  END DO
 
-    IF (IFMVBD) return
+  IF (IFMVBD) return
 
-!     Force IFDFRM=.true. for all elements (for timing purposes only)
+!   Force IFDFRM=.true. for all elements (for timing purposes only)
 
-    IF (param(59) /= 0 .AND. nid == 0) &
-    write(6,*) 'NOTE: All elements deformed , param(59) ^=0'
-    IF (param(59) /= 0) return
+  IF (param(59) /= 0 .AND. nid == 0) &
+  write(6,*) 'NOTE: All elements deformed , param(59) ^=0'
+  IF (param(59) /= 0) return
 
-!     Check against cases which won't allow for savings in HMHOLTZ
+!   Check against cases which won't allow for savings in HMHOLTZ
 
-    INDX(1)=1
-    INDX(2)=2
-    INDX(3)=4
-    INDX(4)=3
-    INDX(5)=5
-    INDX(6)=6
-    INDX(7)=8
-    INDX(8)=7
+  INDX(1)=1
+  INDX(2)=2
+  INDX(3)=4
+  INDX(4)=3
+  INDX(5)=5
+  INDX(6)=6
+  INDX(7)=8
+  INDX(8)=7
 
-!     Check for deformation (rotation is acceptable).
+!   Check for deformation (rotation is acceptable).
 
-    DO 500 IE=1,NELT
-    
-        call rzero(vec,36)
-        IF (IF3D) THEN
-            DO 100 IEDG=1,8
-                IF(CCURVE(IEDG,IE) /= ' ') THEN
-                    IFDFRM(IE)= .TRUE. 
-                    GOTO 500
-                ENDIF
-            100 END DO
-        
-            DO 105 I=1,8
-                XCC(I)=XC(INDX(I),IE)
-                YCC(I)=YC(INDX(I),IE)
-                ZCC(I)=ZC(INDX(I),IE)
-            105 END DO
-        
-            DO 110 I=1,4
-                VEC(1,I)=XCC(2*I)-XCC(2*I-1)
-                VEC(2,I)=YCC(2*I)-YCC(2*I-1)
-                VEC(3,I)=ZCC(2*I)-ZCC(2*I-1)
-            110 END DO
-        
-            I1=4
-            DO 120 I=0,1
-                DO 120 J=0,1
-                    I1=I1+1
-                    I2=4*I+J+3
-                    VEC(1,I1)=XCC(I2)-XCC(I2-2)
-                    VEC(2,I1)=YCC(I2)-YCC(I2-2)
-                    VEC(3,I1)=ZCC(I2)-ZCC(I2-2)
-            120 END DO
-        
-            I1=8
-            DO 130 I=5,8
-                I1=I1+1
-                VEC(1,I1)=XCC(I)-XCC(I-4)
-                VEC(2,I1)=YCC(I)-YCC(I-4)
-                VEC(3,I1)=ZCC(I)-ZCC(I-4)
-            130 END DO
-        
-            DO 140 I=1,12
-                VECLEN = VEC(1,I)**2 + VEC(2,I)**2 + VEC(3,I)**2
-                VECLEN = SQRT(VECLEN)
-                VEC(1,I)=VEC(1,I)/VECLEN
-                VEC(2,I)=VEC(2,I)/VECLEN
-                VEC(3,I)=VEC(3,I)/VECLEN
-            140 END DO
-        
-        !        Check the dot product of the adjacent edges to see that it is zero.
-        
-            IFDFRM(IE)= .FALSE. 
-            IF (  IFVCHK(VEC,1,5, 9)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,1,6,10)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,2,5,11)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,2,6,12)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,3,7, 9)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,3,8,10)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,4,7,11)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,4,8,12)  ) IFDFRM(IE)= .TRUE. 
-        
-        !      Check the 2D case....
-        
-        ELSE
-        
-            DO 200 IEDG=1,4
-                IF(CCURVE(IEDG,IE) /= ' ') THEN
-                    IFDFRM(IE)= .TRUE. 
-                    GOTO 500
-                ENDIF
-            200 END DO
-        
-            DO 205 I=1,4
-                XCC(I)=XC(INDX(I),IE)
-                YCC(I)=YC(INDX(I),IE)
-            205 END DO
-        
-            VEC(1,1)=XCC(2)-XCC(1)
-            VEC(1,2)=XCC(4)-XCC(3)
-            VEC(1,3)=XCC(3)-XCC(1)
-            VEC(1,4)=XCC(4)-XCC(2)
-            VEC(1,5)=0.0
-            VEC(2,1)=YCC(2)-YCC(1)
-            VEC(2,2)=YCC(4)-YCC(3)
-            VEC(2,3)=YCC(3)-YCC(1)
-            VEC(2,4)=YCC(4)-YCC(2)
-            VEC(2,5)=0.0
-        
-            DO 220 I=1,4
-                VECLEN = VEC(1,I)**2 + VEC(2,I)**2
-                VECLEN = SQRT(VECLEN)
-                VEC(1,I)=VEC(1,I)/VECLEN
-                VEC(2,I)=VEC(2,I)/VECLEN
-            220 END DO
-        
-        !        Check the dot product of the adjacent edges to see that it is zero.
-        
-            IFDFRM(IE)= .FALSE. 
-            IF (  IFVCHK(VEC,1,3,5)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,1,4,5)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,2,3,5)  ) IFDFRM(IE)= .TRUE. 
-            IF (  IFVCHK(VEC,2,4,5)  ) IFDFRM(IE)= .TRUE. 
-        ENDIF
-    500 END DO
-    return
-    end subroutine setdef
+  DO 500 IE=1,NELT
+  
+      call rzero(vec,36)
+      IF (IF3D) THEN
+          DO 100 IEDG=1,8
+              IF(CCURVE(IEDG,IE) /= ' ') THEN
+                  IFDFRM(IE)= .TRUE. 
+                  GOTO 500
+              ENDIF
+          100 END DO
+      
+          DO 105 I=1,8
+              XCC(I)=XC(INDX(I),IE)
+              YCC(I)=YC(INDX(I),IE)
+              ZCC(I)=ZC(INDX(I),IE)
+          105 END DO
+      
+          DO 110 I=1,4
+              VEC(1,I)=XCC(2*I)-XCC(2*I-1)
+              VEC(2,I)=YCC(2*I)-YCC(2*I-1)
+              VEC(3,I)=ZCC(2*I)-ZCC(2*I-1)
+          110 END DO
+      
+          I1=4
+          DO 120 I=0,1
+              DO 120 J=0,1
+                  I1=I1+1
+                  I2=4*I+J+3
+                  VEC(1,I1)=XCC(I2)-XCC(I2-2)
+                  VEC(2,I1)=YCC(I2)-YCC(I2-2)
+                  VEC(3,I1)=ZCC(I2)-ZCC(I2-2)
+          120 END DO
+      
+          I1=8
+          DO 130 I=5,8
+              I1=I1+1
+              VEC(1,I1)=XCC(I)-XCC(I-4)
+              VEC(2,I1)=YCC(I)-YCC(I-4)
+              VEC(3,I1)=ZCC(I)-ZCC(I-4)
+          130 END DO
+      
+          DO 140 I=1,12
+              VECLEN = VEC(1,I)**2 + VEC(2,I)**2 + VEC(3,I)**2
+              VECLEN = SQRT(VECLEN)
+              VEC(1,I)=VEC(1,I)/VECLEN
+              VEC(2,I)=VEC(2,I)/VECLEN
+              VEC(3,I)=VEC(3,I)/VECLEN
+          140 END DO
+      
+      !        Check the dot product of the adjacent edges to see that it is zero.
+      
+          IFDFRM(IE)= .FALSE. 
+          IF (  IFVCHK(VEC,1,5, 9)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,1,6,10)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,2,5,11)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,2,6,12)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,3,7, 9)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,3,8,10)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,4,7,11)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,4,8,12)  ) IFDFRM(IE)= .TRUE. 
+      
+      !      Check the 2D case....
+      
+      ELSE
+      
+          DO 200 IEDG=1,4
+              IF(CCURVE(IEDG,IE) /= ' ') THEN
+                  IFDFRM(IE)= .TRUE. 
+                  GOTO 500
+              ENDIF
+          200 END DO
+      
+          DO 205 I=1,4
+              XCC(I)=XC(INDX(I),IE)
+              YCC(I)=YC(INDX(I),IE)
+          205 END DO
+      
+          VEC(1,1)=XCC(2)-XCC(1)
+          VEC(1,2)=XCC(4)-XCC(3)
+          VEC(1,3)=XCC(3)-XCC(1)
+          VEC(1,4)=XCC(4)-XCC(2)
+          VEC(1,5)=0.0
+          VEC(2,1)=YCC(2)-YCC(1)
+          VEC(2,2)=YCC(4)-YCC(3)
+          VEC(2,3)=YCC(3)-YCC(1)
+          VEC(2,4)=YCC(4)-YCC(2)
+          VEC(2,5)=0.0
+      
+          DO 220 I=1,4
+              VECLEN = VEC(1,I)**2 + VEC(2,I)**2
+              VECLEN = SQRT(VECLEN)
+              VEC(1,I)=VEC(1,I)/VECLEN
+              VEC(2,I)=VEC(2,I)/VECLEN
+          220 END DO
+      
+      !        Check the dot product of the adjacent edges to see that it is zero.
+      
+          IFDFRM(IE)= .FALSE. 
+          IF (  IFVCHK(VEC,1,3,5)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,1,4,5)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,2,3,5)  ) IFDFRM(IE)= .TRUE. 
+          IF (  IFVCHK(VEC,2,4,5)  ) IFDFRM(IE)= .TRUE. 
+      ENDIF
+  500 END DO
+  return
+  end subroutine setdef
+
+
     LOGICAL FUNCTION IFVCHK(VEC,I1,I2,I3)
 
 !     Take the dot product of the three components of VEC to see if it's zero.

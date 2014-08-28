@@ -1,120 +1,121 @@
 !-----------------------------------------------------------------------
-    subroutine cdscal (igeom)
+!> \brief Solve the convection-diffusion equation for passive scalar IPSCAL
+subroutine cdscal (igeom)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid, mxprev
+  use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh
+  use mass, only : bintm1, binvm1
+  use soln, only : t, bq, tmask, tmult
+  use tstep, only : nelfld, ifield, nmxnl, imesh, tolht, nmxh
+  implicit none
 
-!     Solve the convection-diffusion equation for passive scalar IPSCAL
+  integer, intent(in) :: igeom
 
-    use kinds, only : DP
-    use size_m
-    use geom
-    use input
-    use mass
-    use mvgeom
-    use soln
-    use tstep
-    COMMON  /CPRINT/ IFPRINT
-    LOGICAL ::          IFPRINT
-    LOGICAL ::          IFCONV
+  LOGICAL ::          IFPRINT
+  COMMON  /CPRINT/ IFPRINT
+  LOGICAL ::          IFCONV
 
-    COMMON /SCRNS/ TA(LX1,LY1,LZ1,LELT) &
-    ,TB(LX1,LY1,LZ1,LELT)
-    COMMON /SCRVH/ H1(LX1,LY1,LZ1,LELT) &
-    ,H2(LX1,LY1,LZ1,LELT)
+  real(DP) :: ta, tb 
+  COMMON /SCRNS/ TA(LX1,LY1,LZ1,LELT) &
+  ,TB(LX1,LY1,LZ1,LELT)
+  real(DP) :: H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT)
 
-    parameter (ktot = lx1*ly1*lz1*lelt)
-    parameter (laxt = mxprev)
+  integer, parameter :: ktot = lx1*ly1*lz1*lelt
+  integer, parameter :: laxt = mxprev
 
-    integer, save :: napprox(2) = 0
-    real(DP), allocatable, save :: approx(:,:)
-    character(4) ::     name4
+  integer, save :: napprox(2) = 0
+  real(DP), allocatable, save :: approx(:,:)
+  character(4) ::     name4
 
+  integer :: nel, ntot, nfldt, if1, isd, iter, intype
 !max    include 'ORTHOT'
 
-    if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
+  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
 
-    napprox(1) = laxt
+  napprox(1) = laxt
 
-    nel    = nelfld(ifield)
-    ntot   = nx1*ny1*nz1*nel
+  nel    = nelfld(ifield)
+  ntot   = nx1*ny1*nz1*nel
 
-    if (igeom == 1) then   ! geometry at t^{n-1}
-        call makeq
-        call lagscal
-    else                   ! geometry at t^n
+  if (igeom == 1) then   ! geometry at t^{n-1}
+      call makeq
+      call lagscal
+  else                   ! geometry at t^n
 
-        IF (IFPRINT) THEN
-            IF (IFMODEL .AND. IFKEPS) THEN
-                NFLDT = NFIELD - 1
-                IF (IFIELD == NFLDT .AND. NID == 0) THEN
-                    WRITE (6,*) ' Turbulence Model - k/epsilon solution'
-                ENDIF
-            ELSE
-                IF (IFIELD == 2 .AND. NID == 0) THEN
-                    WRITE (6,*) ' Temperature/Passive scalar solution'
-                ENDIF
-            ENDIF
-        ENDIF
-        if1=ifield-1
-        write(name4,1) if1-1
-        1 format('PS',i2)
-        if(ifield == 2) write(name4,'(A4)') 'TEMP'
+      IF (IFPRINT) THEN
+          IF (IFMODEL .AND. IFKEPS) THEN
+              NFLDT = NFIELD - 1
+              IF (IFIELD == NFLDT .AND. NID == 0) THEN
+                  WRITE (6,*) ' Turbulence Model - k/epsilon solution'
+              ENDIF
+          ELSE
+              IF (IFIELD == 2 .AND. NID == 0) THEN
+                  WRITE (6,*) ' Temperature/Passive scalar solution'
+              ENDIF
+          ENDIF
+      ENDIF
+      if1=ifield-1
+      write(name4,1) if1-1
+      1 format('PS',i2)
+      if(ifield == 2) write(name4,'(A4)') 'TEMP'
 
-    
-    !        New geometry
-    
-        isd = 1
-        if (ifaxis .AND. ifaziv .AND. ifield == 2) isd = 2
-    !        if (ifaxis.and.ifmhd) isd = 2 !This is a problem if T is to be T!
+  
+  !        New geometry
+  
+      isd = 1
+      if (ifaxis .AND. ifaziv .AND. ifield == 2) isd = 2
+  !        if (ifaxis.and.ifmhd) isd = 2 !This is a problem if T is to be T!
 
-        do 1000 iter=1,nmxnl ! iterate for nonlin. prob. (e.g. radiation b.c.)
+      do 1000 iter=1,nmxnl ! iterate for nonlin. prob. (e.g. radiation b.c.)
 
-            INTYPE = 0
-            IF (IFTRAN) INTYPE = -1
-            CALL SETHLM  (H1,H2,INTYPE)
-            CALL BCNEUSC (TA,-1)
-            CALL ADD2    (H2,TA,NTOT)
-            CALL BCDIRSC (T(1,1,1,1,IFIELD-1))
-            CALL AXHELM  (TA,T(1,1,1,1,IFIELD-1),H1,H2,IMESH,isd)
-            CALL SUB3    (TB,BQ(1,1,1,1,IFIELD-1),TA,NTOT)
-            CALL BCNEUSC (TA,1)
-            CALL ADD2    (TB,TA,NTOT)
+          INTYPE = 0
+          IF (IFTRAN) INTYPE = -1
+          CALL SETHLM  (H1,H2,INTYPE)
+          CALL BCNEUSC (TA,-1)
+          CALL ADD2    (H2,TA,NTOT)
+          CALL BCDIRSC (T(1,1,1,1,IFIELD-1))
+          CALL AXHELM  (TA,T(1,1,1,1,IFIELD-1),H1,H2,IMESH,isd)
+          CALL SUB3    (TB,BQ(1,1,1,1,IFIELD-1),TA,NTOT)
+          CALL BCNEUSC (TA,1)
+          CALL ADD2    (TB,TA,NTOT)
 
-        !        CALL HMHOLTZ (name4,TA,TB,H1,H2
-        !    $                 ,TMASK(1,1,1,1,IFIELD-1)
-        !    $                 ,TMULT(1,1,1,1,IFIELD-1)
-        !    $                 ,IMESH,TOLHT(IFIELD),NMXH,isd)
+      !        CALL HMHOLTZ (name4,TA,TB,H1,H2
+      !    $                 ,TMASK(1,1,1,1,IFIELD-1)
+      !    $                 ,TMULT(1,1,1,1,IFIELD-1)
+      !    $                 ,IMESH,TOLHT(IFIELD),NMXH,isd)
 
-            if(iftmsh(ifield)) then
-                call hsolve  (name4,TA,TB,H1,H2 &
-                ,tmask(1,1,1,1,ifield-1) &
-                ,tmult(1,1,1,1,ifield-1) &
-                ,imesh,tolht(ifield),nmxh,1 &
-                ,approx,napprox,bintm1)
-            else
-                call hsolve  (name4,TA,TB,H1,H2 &
-                ,tmask(1,1,1,1,ifield-1) &
-                ,tmult(1,1,1,1,ifield-1) &
-                ,imesh,tolht(ifield),nmxh,1 &
-                ,approx,napprox,binvm1)
-            endif
+          if(iftmsh(ifield)) then
+              call hsolve  (name4,TA,TB,H1,H2 &
+              ,tmask(1,1,1,1,ifield-1) &
+              ,tmult(1,1,1,1,ifield-1) &
+              ,imesh,tolht(ifield),nmxh,1 &
+              ,approx,napprox,bintm1)
+          else
+              call hsolve  (name4,TA,TB,H1,H2 &
+              ,tmask(1,1,1,1,ifield-1) &
+              ,tmult(1,1,1,1,ifield-1) &
+              ,imesh,tolht(ifield),nmxh,1 &
+              ,approx,napprox,binvm1)
+          endif
 
-            call add2    (t(1,1,1,1,ifield-1),ta,ntot)
+          call add2    (t(1,1,1,1,ifield-1),ta,ntot)
 
-            call cvgnlps (ifconv) ! Check convergence for nonlinear problem
-            if (ifconv) goto 2000
+          call cvgnlps (ifconv) ! Check convergence for nonlinear problem
+          if (ifconv) goto 2000
 
-        !        Radiation case, smooth convergence, avoid flip-flop (ER).
-            CALL CMULT (TA,0.5,NTOT)
-            CALL SUB2  (T(1,1,1,1,IFIELD-1),TA,NTOT)
+      !        Radiation case, smooth convergence, avoid flip-flop (ER).
+          CALL CMULT (TA,0.5,NTOT)
+          CALL SUB2  (T(1,1,1,1,IFIELD-1),TA,NTOT)
 
-        1000 END DO
-        2000 CONTINUE
-        CALL BCNEUSC (TA,1)
-        CALL ADD2 (BQ(1,1,1,1,IFIELD-1),TA,NTOT) ! no idea why... pf
+      1000 END DO
+      2000 CONTINUE
+      CALL BCNEUSC (TA,1)
+      CALL ADD2 (BQ(1,1,1,1,IFIELD-1),TA,NTOT) ! no idea why... pf
 
-    endif
+  endif
 
-    return
-    end subroutine cdscal
+  return
+  end subroutine cdscal
 
 !-----------------------------------------------------------------------
     subroutine makeuq

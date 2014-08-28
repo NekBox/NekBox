@@ -673,8 +673,8 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   logical :: ifmcor,ifprint_hmh
 
   integer, parameter :: lg=lx1*ly1*lz1*lelt
-  real(DP) :: d, scalar, r, w, p, z
-  COMMON /SCRCG/ d (lg) , scalar(2)
+  real(DP) :: d (lg), scalar(2)
+  real(DP) :: r, w, p, z
   common /SCRMG/ r (lg) , w (lg) , p (lg) , z (lg)
 
   integer, parameter :: maxcg=900
@@ -884,6 +884,7 @@ end subroutine cggo
     return
     end function vlsc32
 !=======================================================================
+!called
     subroutine set_fdm_prec_h1b(d,h1,h2,nel)
     use size_m
     use fdmh1

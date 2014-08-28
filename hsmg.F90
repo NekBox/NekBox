@@ -1324,8 +1324,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
   logical :: if_hybrid
        
   integer, parameter :: lt=lx1*ly1*lz1*lelt
-  real(DP) :: e, w, r
-  common /scrmg/ e(2*lt),w(lt),r(lt)
+  real(DP) :: e(2*lt),w(lt),r(lt)
   integer :: p_msk,p_b
 
   real(DP) :: op, om, sigma

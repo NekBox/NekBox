@@ -49,10 +49,9 @@ subroutine set_overlap
 
   integer, parameter :: lia = ltotd - 2 - 2*lelt
 
-  real(DP) :: color, ddmask
-  integer :: mask
+  real(DP) :: color
   common /scruz/ color   (4*ltotd)
-  common /scrmg/ ddmask  (4*ltotd)
+  integer :: mask
   common /ctmp1/ mask    (4*ltotd)
 
   integer, parameter :: lxx=lx1*lx1, levb=lelv+lbelv

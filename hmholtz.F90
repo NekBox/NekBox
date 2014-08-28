@@ -674,8 +674,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   integer, parameter :: lg=lx1*ly1*lz1*lelt
   real(DP) :: d (lg), scalar(2)
-  real(DP) :: r, w, p, z
-  common /SCRMG/ r (lg) , w (lg) , p (lg) , z (lg)
+  real(DP) :: r (lg) , w (lg) , p (lg) , z (lg)
 
   integer, parameter :: maxcg=900
   real(DP), allocatable :: diagt(:), upper(:)

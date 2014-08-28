@@ -605,11 +605,6 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   COMMON /SCRUZ/ TMP1(LX1,LY1,LZ1,LELV) &
   , TMP2(LX1,LY1,LZ1,LELV) &
   , TMP3(LX1,LY1,LZ1,LELV)
-  real(DP) :: tmq1, tmq2, tmq3
-  COMMON /SCRMG/ TMQ1(LX1,LY1,LZ1,LELV) &
-  , TMQ2(LX1,LY1,LZ1,LELV) &
-  , TMQ3(LX1,LY1,LZ1,LELV)
-
 
   character cb*3
   character(1) :: cb1(3)

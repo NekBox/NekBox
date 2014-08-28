@@ -59,7 +59,7 @@ qthermal.o  \
 papi.o \
 gauss.o \
 makeq.o makeq_aux.o \
-genbox.o \
+#genbox.o \
 #navier3.o \
 #calcz.o \
 #mvmesh.o  \

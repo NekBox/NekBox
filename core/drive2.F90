@@ -442,7 +442,7 @@ subroutine gengeom (igeom)
       CALL SETINVM
       CALL SETDEF
       CALL SFASTAX
-      IF (ISTEP >= 1) CALL EINIT
+!max      IF (ISTEP >= 1) CALL EINIT
   ELSEIF (IGEOM == 3) THEN
   
   !        Take direct stiffness avg of mesh

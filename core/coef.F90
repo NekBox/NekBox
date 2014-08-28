@@ -713,7 +713,8 @@ subroutine geodat1
         CALL COPY (ZM2,ZM1,NTOT2)
 
     ELSE
-    
+      write(*,*) "Oops: ifsplit" 
+#if 0
     !     Consistent approximation spaces (UZAWA)
     
         IF (NDIM == 2) THEN
@@ -758,7 +759,7 @@ subroutine geodat1
                 CALL COL2 (BM2(1,1,1,IEL),YM2(1,1,1,IEL),NXYZ2)
             ENDIF
         1000 END DO
-    
+#endif
     ENDIF
 
 !     Compute inverse of mesh 2 mass matrix, pff 3/5/92
@@ -1143,43 +1144,6 @@ subroutine geodat1
 
     RETURN
     end subroutine map13
-    subroutine map12 (y,x,iel)
-!---------------------------------------------------------------
-
-!     Map the elemental array X from mesh M1 to mesh M2
-
-!---------------------------------------------------------------
-
-    use size_m
-    use geom
-    use input
-    use ixyz
-
-    REAL :: X(LX1,LY1,LZ1)
-    REAL :: Y(LX2,LY2,LZ2)
-
-    COMMON /CTMP0/ XA(LX2,LY1,LZ1), XB(LX2,LY2,LZ1)
-
-    NYZ1 = NY1*NZ1
-    NXY2 = NX2*NY2
-
-!     Use the appropriate derivative- and interpolation operator in
-!     the y-direction (= radial direction if axisymmetric).
-
-    IF (IFAXIS) THEN
-        NY12   = NY1*NY2
-        IF (IFRZER(IEL))      CALL COPY (IYTM12,IATM12,NY12)
-        IF ( .NOT. IFRZER(IEL)) CALL COPY (IYTM12,ICTM12,NY12)
-    ENDIF
-
-    CALL MXM (IXM12,NX2,X,NX1,XA,NYZ1)
-    DO 100 IZ=1,NZ1
-        CALL MXM (XA(1,1,IZ),NX2,IYTM12,NY1,XB(1,1,IZ),NY2)
-    100 END DO
-    CALL MXM (XB,NXY2,IZTM12,NZ1,Y,NZ2)
-
-    RETURN
-    end subroutine map12
 !-----------------------------------------------------------------------
     SUBROUTINE INVMT(A,B,AA,N)
 

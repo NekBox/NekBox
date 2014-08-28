@@ -76,7 +76,8 @@ subroutine setup_topo()
 
   if (nelgv == nelgt) then
       if (ifgtp) then
-          call gen_gtp_vertex    (vertex, ncrnr)
+        write(*,*) "Oops: ifgtp"
+!max          call gen_gtp_vertex    (vertex, ncrnr)
       else
           call get_vert
       endif
@@ -1030,38 +1031,6 @@ end subroutine setup_topo
     return
     end subroutine facind
 !-----------------------------------------------------------------------
-    subroutine facindr (kx1,kx2,ky1,ky2,kz1,kz2,nx,ny,nz,iface)
-
-!     restricted index set, iface in preprocessor notation
-
-    kx1=2
-    ky1=2
-    kz1=2
-    kx2=nx-1
-    ky2=ny-1
-    kz2=nz-1
-
-    if (iface == 1) ky1=1
-    if (iface == 1) ky2=1
-
-    if (iface == 2) kx1=nx
-    if (iface == 2) kx2=nx
-
-    if (iface == 3) ky1=ny
-    if (iface == 3) ky2=ny
-
-    if (iface == 4) kx1=1
-    if (iface == 4) kx2=1
-
-    if (iface == 5) kz1=1
-    if (iface == 5) kz2=1
-
-    if (iface == 6) kz1=nz
-    if (iface == 6) kz2=nz
-
-    return
-    end subroutine facindr
-!-----------------------------------------------------------------------
     subroutine facev(a,ie,iface,val,nx,ny,nz)
 
 !     Assign the value VAL to face(IFACE,IE) of array A.
@@ -1077,46 +1046,4 @@ end subroutine setup_topo
     100 END DO
     RETURN
     end subroutine facev
-!-----------------------------------------------------------------------
-    subroutine ifacev(a,ie,iface,val,nx,ny,nz)
-
-!     Assign the value VAL to face(IFACE,IE) of array A.
-!     IFACE is the input in the pre-processor ordering scheme.
-
-    use size_m
-    integer :: a(nx,ny,nz,lelt),val
-    call facind (kx1,kx2,ky1,ky2,kz1,kz2,nx,ny,nz,iface)
-    do 100 iz=kz1,kz2
-        do 100 iy=ky1,ky2
-            do 100 ix=kx1,kx2
-                a(ix,iy,iz,ie)=val
-    100 END DO
-    return
-    end subroutine ifacev
-!-----------------------------------------------------------------------
-    subroutine combin2(glnm1,glnm2,nglob)
-
-    write(6,*) 'Hey, who called combin2???  ABORT'
-    call exitt
-
-    return
-    end subroutine combin2
-!-----------------------------------------------------------------------
-    subroutine checkit(idum)
-    write(6,*) 'continue?'
-    read (5,*) idum
-    return
-    end subroutine checkit
-!-----------------------------------------------------------------------
-    subroutine xfill(x,c,n)
-    real :: x(1)
-
-    tiny = 1.e-14
-    do i=1,n
-        a = i
-        x(i) = tiny*sin(a)
-    enddo
-
-    return
-    end subroutine xfill
 !-----------------------------------------------------------------------

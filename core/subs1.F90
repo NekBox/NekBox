@@ -855,14 +855,16 @@ subroutine cumax (v1,v2,v3,umax)
     return
     end subroutine vprops
 
-    subroutine setsolv
-    use size_m
-    common /fastmd/ ifdfrm(lelt), iffast(lelt), ifh2, ifsolv
-    LOGICAL :: IFDFRM, IFFAST, IFH2, IFSOLV
-    IFSOLV = .FALSE. 
-    return
-    end subroutine setsolv
-
+!-----------------------------------------------------------------------
+!> Set ifsolv = .FALSE.
+subroutine setsolv
+  use size_m, only : lelt
+  use mesh, only : ifsolv
+  implicit none
+    
+  IFSOLV = .FALSE. 
+  return
+end subroutine setsolv
 !-----------------------------------------------------------------------
     subroutine flush_io
     return

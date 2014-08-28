@@ -655,62 +655,6 @@
     return
     end function igl_running_sum
 !-----------------------------------------------------------------------
-    subroutine platform_timer(ivb) ! mxm, ping-pong, and all_reduce timer
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-
-    call mxm_test_all(nid,ivb)  ! measure mxm times
-!     call exitti('done mxm_test_all$',ivb)
-
-    call comm_test(ivb)         ! measure message-passing and all-reduce times
-
-    return
-    end subroutine platform_timer
-!-----------------------------------------------------------------------
-    subroutine comm_test(ivb) ! measure message-passing and all-reduce times
-! ivb = 0 --> minimal verbosity
-! ivb = 1 --> fully verbose
-! ivb = 2 --> smaller sample set(shorter)
-
-    use size_m
-    use parallel
-
-    call gop_test(ivb)   ! added, Jan. 8, 2008
-
-    log_np=log2(np)
-    np2 = 2**log_np
-    if (np2 == np) call gp2_test(ivb)   ! added, Jan. 8, 2008
-
-    io = 6
-    n512 = min(512,np-1)
-
-    do nodeb=1,n512
-        call pingpong(alphas,betas,0,nodeb,.0005,io,ivb)
-        if (nid == 0) write(6,1) nodeb,np,alphas,betas
-        1 format(2i10,1p2e15.7,' alpha beta')
-    enddo
-
-    return
-    end subroutine comm_test
-!-----------------------------------------------------------------------
     subroutine pingpong(alphas,betas,nodea,nodeb,dt,io,ivb)
 
     use size_m
@@ -938,70 +882,6 @@
 
     return
     end subroutine get_msg_vol
-!-----------------------------------------------------------------------
-    subroutine gop_test(ivb)
-    use size_m
-    common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
-    include 'mpif.h'
-    integer :: status(mpi_status_size)
-
-    parameter  (lt=lx1*ly1*lz1*lelt)
-    parameter (mwd = 3*lt)
-    common /scrns/ x(mwd),y(mwd)
-    common /scruz/ times(2,500)
-    common /scrcg/ nwd(500)
-
-    nwds  = 1
-    mtest = 0
-    do itest = 1,500
-        nwds = (nwds+1)*1.016
-        if (nwds > mwd) goto 100
-        mtest = mtest+1
-        nwd(mtest) = nwds
-    enddo
-    100 continue
-
-    nwds = 1
-    do itest = mtest,1,-1
-
-        tiny = 1.e-27
-        call cfill(x,tiny,mwd)
-        nwds = nwd(itest)
-        call nekgsync
-
-        t0 = mpi_wtime ()
-        call gop(x,y,'+  ',nwds)
-        call gop(x,y,'+  ',nwds)
-        call gop(x,y,'+  ',nwds)
-        call gop(x,y,'+  ',nwds)
-        call gop(x,y,'+  ',nwds)
-        call gop(x,y,'+  ',nwds)
-        t1 = mpi_wtime ()
-
-        tmsg = (t1-t0)/6 ! six calls
-        tpwd = tmsg
-        if (nwds > 0) tpwd = tmsg/nwds
-        times(1,itest) = tmsg
-        times(2,itest) = tpwd
-
-    enddo
-    101 continue
-
-
-    if (nid == 0) then
-        nwds = 1
-        do itest=1,500
-            if (ivb > 0 .OR. itest == 1) &
-            write(6,1) np,nwds,(times(k,itest),k=1,2)
-            1 format(i12,i12,1p2e16.8,' gop')
-            nwds = (nwds+1)*1.016
-            if (nwds > mwd) goto 102
-        enddo
-        102 continue
-    endif
-
-    return
-    end subroutine gop_test
 !-----------------------------------------------------------------------
     subroutine gp2_test(ivb)
 

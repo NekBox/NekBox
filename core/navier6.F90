@@ -48,8 +48,6 @@ subroutine set_overlap
   common /ctmp0/ nv_to_t(2*ltotd)
 
   integer, parameter :: lia = ltotd - 2 - 2*lelt
-  integer :: ntri, nmask, ia
-  common /scrcg/ ntri(lelt+1),nmask(lelt+1), ia(lia)
 
   real(DP) :: color, ddmask
   integer :: mask

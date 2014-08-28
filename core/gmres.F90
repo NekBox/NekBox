@@ -93,8 +93,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   real(DP) :: divex
   logical ::          ifprint
   common  /cprint/ ifprint
-  real(DP) :: d, wk
-  common /scrcg/ d(lx1*ly1*lz1*lelv),wk(lx1*ly1*lz1*lelv)
+  real(DP) :: d(lx1*ly1*lz1*lelv)
 
   real(DP) :: wk1, wk2
   common /ctmp0/   wk1(lgmres),wk2(lgmres)
@@ -103,7 +102,6 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   integer :: outer
 
   logical, save :: iflag = .false., if_hyb = .false.
-!   data    iflag,if_hyb  /.false. , .true. /
   real, save ::  norm_fac
 
   real(DP) :: etime1, etime2, etime_p, dnekclock

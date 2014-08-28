@@ -401,6 +401,7 @@
     return
     end subroutine setdtc
 
+! called
 subroutine cumax (v1,v2,v3,umax)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv, ndim
@@ -412,14 +413,15 @@ subroutine cumax (v1,v2,v3,umax)
   real(DP) :: V1(LX1,LY1,LZ1,1), V2(LX1,LY1,LZ1,1), V3(LX1,LY1,LZ1,1)
   real(DP) :: umax
 
-  real(DP) :: xrm1, xsm1, xtm1, yrm1, ysm1, ytm1, zrm1, zsm1, ztm1
+  real(DP) :: xrm1, xsm1, xtm1, yrm1, ysm1, ytm1
   common /scrns/ xrm1 (lx1,ly1,lz1,lelv) &
   ,             xsm1 (lx1,ly1,lz1,lelv) &
   ,             xtm1 (lx1,ly1,lz1,lelv) &
   ,             yrm1 (lx1,ly1,lz1,lelv) &
   ,             ysm1 (lx1,ly1,lz1,lelv) &
   ,             ytm1 (lx1,ly1,lz1,lelv)
-  common /scrmg/ zrm1 (lx1,ly1,lz1,lelv) &
+
+  real(DP) :: zrm1 (lx1,ly1,lz1,lelv) &
   ,             zsm1 (lx1,ly1,lz1,lelv) &
   ,             ztm1 (lx1,ly1,lz1,lelv)
 
@@ -438,6 +440,7 @@ subroutine cumax (v1,v2,v3,umax)
   integer :: ntot, ntotl, ntotd
   integer :: i, ie, ix, iy, iz
   real(DP), external :: vlmax, glmax
+
 
   NTOT  = NX1*NY1*NZ1*NELV
   NTOTL = LX1*LY1*LZ1*LELV

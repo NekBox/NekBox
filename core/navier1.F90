@@ -1,33 +1,40 @@
 !-----------------------------------------------------------------------
-    subroutine ctolspl (tolspl,respr)
+!> \brief Compute the pressure tolerance
+subroutine ctolspl (tolspl,respr)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, lx2, ly2, lz2
+  use size_m, only : nx1, ny1, nz1, nelv, nid
+  use mass, only : bm1, volvm1
+  use tstep, only : dt, tolpdf, tolps, prelax
+  implicit none
 
-!     Compute the pressure tolerance
+  real(DP) :: tolspl
+  REAL(DP) :: RESPR (LX2,LY2,LZ2,LELV)
 
-    use size_m
-    use mass
-    use tstep
-    REAL ::           RESPR (LX2,LY2,LZ2,LELV)
-    COMMON /SCRMG/ WORK  (LX1,LY1,LZ1,LELV)
+  real(DP) :: WORK  (LX1,LY1,LZ1,LELV)
+  integer :: ntot1
+  real(DP) :: rinit, tolmin, tolold
+  real(DP), external :: glsum
 
-    NTOT1 = NX1*NY1*NZ1*NELV
-    CALL INVCOL3 (WORK,RESPR,BM1,NTOT1)
-    CALL COL2    (WORK,RESPR,NTOT1)
-    RINIT  = SQRT (GLSUM (WORK,NTOT1)/VOLVM1)
-    IF (TOLPDF > 0.) THEN
-        TOLSPL = TOLPDF
-        TOLMIN = TOLPDF
-    ELSE
-        TOLSPL = TOLPS/DT
-        TOLMIN = RINIT*PRELAX
-    ENDIF
-    IF (TOLSPL < TOLMIN) THEN
-        TOLOLD = TOLSPL
-        TOLSPL = TOLMIN
-        IF (NID == 0) &
-        WRITE (6,*) 'Relax the pressure tolerance ',TOLSPL,TOLOLD
-    ENDIF
-    return
-    end subroutine ctolspl
+  NTOT1 = NX1*NY1*NZ1*NELV
+  CALL INVCOL3 (WORK,RESPR,BM1,NTOT1)
+  CALL COL2    (WORK,RESPR,NTOT1)
+  RINIT  = SQRT (GLSUM (WORK,NTOT1)/VOLVM1)
+  IF (TOLPDF > 0.) THEN
+      TOLSPL = TOLPDF
+      TOLMIN = TOLPDF
+  ELSE
+      TOLSPL = TOLPS/DT
+      TOLMIN = RINIT*PRELAX
+  ENDIF
+  IF (TOLSPL < TOLMIN) THEN
+      TOLOLD = TOLSPL
+      TOLSPL = TOLMIN
+      IF (NID == 0) &
+      WRITE (6,*) 'Relax the pressure tolerance ',TOLSPL,TOLOLD
+  ENDIF
+  return
+end subroutine ctolspl
 !------------------------------------------------------------------------
     subroutine ortho (respr)
 
@@ -1258,8 +1265,7 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   REAL(DP) ::           X1 (LX1,LY1,LZ1,1)
   REAL(DP) ::           X2 (LX1,LY1,LZ1,1)
   REAL(DP) ::           X3 (LX1,LY1,LZ1,1)
-  real(DP) :: y1, y2, y3, ta1
-  COMMON /SCRMG/ Y1 (LX1,LY1,LZ1,LELT) &
+  real(DP) :: Y1 (LX1,LY1,LZ1,LELT) &
   ,Y2 (LX1,LY1,LZ1,LELT) &
   ,Y3 (LX1,LY1,LZ1,LELT) &
   ,TA1(LX1,LY1,LZ1,LELT)

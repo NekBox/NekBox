@@ -174,8 +174,7 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
   , vyax   (lx1,ly1,lelv) &
   , prax   (lx2,ly2,lelv) &
   , yax    (lx1,ly1,lelt)
-  real(DP) :: tax
-  common /scrmg/ tax    (lx1,ly1,lelt,ldimt)
+!  real(DP), save :: tax(lx1,ly1,lelt,ldimt)
 
   real(DP) :: pa(lx1,ly2,lz2),pb(lx1,ly1,lz2)
   integer :: e
@@ -184,6 +183,8 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
   if (isave == 0) then ! map to GLL grid
 
       if (ifaxis) then
+        write(*,*) "Oops: ifaxis"
+#if 0
           ntotm1 = nx1*ny1*nelt
           call copy (yax,ym1,ntotm1)
           do 5 e=1,nelt
@@ -224,6 +225,7 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
                   endif
               30 END DO
           endif
+#endif
       endif
   !        Map the pressure onto the velocity mesh
   
@@ -252,6 +254,8 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
 
   else       ! map back
       if (ifaxis) then
+        write(*,*) "Oops: ifaxis"
+#if 0
           ntot1 = nx1*ny1*nelt
           call copy (ym1,yax,ntot1)
           if (ifflow) then
@@ -267,6 +271,7 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
                   call copy (t(1,1,1,1,ifldt),tax(1,1,1,ifldt),ntot1)
               3000 END DO
           endif
+#endif
       endif
 
   endif

@@ -551,8 +551,6 @@ subroutine restart_driver(nfiles)
   integer, parameter :: LXYZT=LX1*LY1*LZ1*LELT
   integer, parameter :: LPSC9=LDIMT+9
 
-  real(DP) :: pm1
-  common /scrcg/ pm1(lx1*ly1*lz1,lelv)
   real(DP) :: sdump
   COMMON /SCRNS/ SDUMP(LXYZT,7)
   integer :: mesg(40)
@@ -1007,7 +1005,7 @@ subroutine restart_driver(nfiles)
               if (ifgetu) call copy(vx ,sdump(1,4),ntotv)
               if (ifgetu) call copy(vy ,sdump(1,5),ntotv)
               if (ifgetw) call copy(vz ,sdump(1,6),ntotv)
-              if (ifgetp) call copy(pm1,sdump(1,7),ntotv)
+!max              if (ifgetp) call copy(pm1,sdump(1,7),ntotv)
               if (ifgett) call copy(t,sdmp2(1,1),ntott)
           !              passive scalars
               do i=1,NPSCAL

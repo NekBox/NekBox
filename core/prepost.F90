@@ -1,171 +1,158 @@
 !-----------------------------------------------------------------------
-    subroutine prepost(ifdoin,prefin)
+!> \brief Store results for later postprocessing.
+!!  Recent updates:
+!!  p65 now indicates the number of parallel i/o files; iff p66 >= 6
+subroutine prepost(ifdoin,prefin)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, ldimt1, nid
+  use ctimer, only : icalld, nprep, etime1, dnekclock, tprep
+  use input, only : schfle, ifschclob, ifpsco
+  use tstep, only : iostep, timeio, istep, nsteps, lastep, time
+  implicit none
 
-!     Store results for later postprocessing
+  logical :: ifdoin
+  character(3) :: prefin
 
-!     Recent updates:
+!   note, this usage of CTMP1 will be less than elsewhere if NELT ~> 3.
+  integer, parameter :: lxyz=lx1*ly1*lz1
+  integer, parameter :: lpsc9=ldimt1+9
 
-!     p65 now indicates the number of parallel i/o files; iff p66 >= 6
+  real*4 ::         tdump
+  common /ctmp1/ tdump(lxyz,lpsc9)
+
+  real(DP) ::           tdmp(4)
+  equivalence   (tdump,tdmp)
+
+  real*4 ::         test_pattern
+
+  character(3) :: prefix
+  character(1) ::    fhdfle1(132)
+  character(132) ::   fhdfle
+  equivalence   (fhdfle,fhdfle1)
+  character(1) ::    fldfile2(120)
+  integer ::        fldfilei( 60)
+  equivalence   (fldfilei,fldfile2)
+
+  logical, save :: ifdoit = .FALSE.
+
+  real(DP) :: hdump(25)
+  real(DP) :: xpart(10),ypart(10),zpart(10)
+  character(10) :: frmat
+  integer, save :: nopen(99)
+  data    nopen /99*0/
+
+  integer :: ntdump
+  common /rdump/ ntdump
+  integer ndumps
+  data ndumps / 0 /
+
+  real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
+
+  logical :: ifhis
 
 
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  integer, save :: maxstep = 999999999
+  integer :: ierr, iiidmp, idummy
+  real(DP) :: timdump
 
-!     Work arrays and temporary arrays
+  if (iostep < 0 .OR. timeio < 0) return
 
-    common /scrcg/ pm1 (lx1,ly1,lz1,lelv)
-
-!     note, this usage of CTMP1 will be less than elsewhere if NELT ~> 3.
-    parameter (lxyz=lx1*ly1*lz1)
-    parameter (lpsc9=ldimt1+9)
-    common /ctmp1/ tdump(lxyz,lpsc9)
-    real*4 ::         tdump
-    real ::           tdmp(4)
-    equivalence   (tdump,tdmp)
-
-    real*4 ::         test_pattern
-
-    character(3) ::    prefin,prefix
-    character(1) ::    fhdfle1(132)
-    character(132) ::   fhdfle
-    equivalence   (fhdfle,fhdfle1)
-    character(1) ::    fldfile2(120)
-    integer ::        fldfilei( 60)
-    equivalence   (fldfilei,fldfile2)
-
-    logical, save :: ifdoit = .FALSE.
-    logical ::       ifdoin
-
-    real :: hdump(25)
-    real :: xpart(10),ypart(10),zpart(10)
-    character(10) :: frmat
-    integer :: nopen(99)
-    save    nopen
-    data    nopen /99*0/
-    common /rdump/ ntdump
-    data ndumps / 0 /
-
-    logical :: ifhis
-
-    integer :: maxstep
-    save    maxstep
-    data    maxstep /999999999/
-
-    if (iostep < 0 .OR. timeio < 0) return
-
-    icalld=icalld+1
-    nprep=icalld
+  icalld=icalld+1
+  nprep=icalld
 
 #ifndef NOTIMER
-    etime1=dnekclock()
+  etime1=dnekclock()
 #endif
 
-!     Trigger history output only if prefix = 'his'   pff 8/18/05
-    ifhis  = .FALSE. 
-    prefix = prefin
-    if (prefin == 'his') ifhis  = .TRUE. 
-    if (prefix == 'his') prefix = '   '
+!   Trigger history output only if prefix = 'his'   pff 8/18/05
+  ifhis  = .FALSE. 
+  prefix = prefin
+  if (prefin == 'his') ifhis  = .TRUE. 
+  if (prefix == 'his') prefix = '   '
 
-    if(icalld == 1) then
-        ierr = 0
-        if (nid == 0) then
-            write(6,*) 'schfile:',schfle
-            if (ifschclob) then
-                open(unit=26,file=schfle,err=44,form='formatted')
-            else
-                open(unit=26,file=schfle,err=44,form='formatted', &
-                status='new')
-            endif
-            goto 45
-            44 ierr = 1
-        45 endif
-        call err_chk(ierr,'.sch file already exists. Use IFSCHCLOB=F to &
-        disable this check BUT BEWARE!!!!!!$')
-    endif
+  if(icalld == 1) then
+      ierr = 0
+      if (nid == 0) then
+          write(6,*) 'schfile:',schfle
+          if (ifschclob) then
+              open(unit=26,file=schfle,err=44,form='formatted')
+          else
+              open(unit=26,file=schfle,err=44,form='formatted', &
+              status='new')
+          endif
+          goto 45
+          44 ierr = 1
+      45 endif
+      call err_chk(ierr,'.sch file already exists. Use IFSCHCLOB=F to &
+      disable this check BUT BEWARE!!!!!!$')
+  endif
 
-    call prepost_map(0) ! map pr and axisymm. arrays
+  call prepost_map(0, pm1) ! map pr and axisymm. arrays
 
-    if(istep >= nsteps) lastep=1
+  if(istep >= nsteps) lastep=1
 
-    timdump=0
-    if(timeio /= 0.0)then
-        if(time >= (ntdump + 1) * timeio) then
-            timdump=1.
-            ntdump=ntdump+1
-        endif
-    endif
+  timdump=0
+  if(timeio /= 0.0)then
+      if(time >= (ntdump + 1) * timeio) then
+          timdump=1.
+          ntdump=ntdump+1
+      endif
+  endif
 
-    if (istep > 0 .AND. iostep > 0) then
-        if(mod(istep,iostep) == 0) ifdoit= .TRUE. 
-    endif
+  if (istep > 0 .AND. iostep > 0) then
+      if(mod(istep,iostep) == 0) ifdoit= .TRUE. 
+  endif
 
 
 ! check for io request in file 'ioinfo'
-    iiidmp=0
-    if (nid == 0 .AND. (mod(istep,10) == 0 .OR. istep < 200)) then
-        open(unit=87,file='ioinfo',status='old',err=88)
-        read(87,*,end=87,err=87) idummy
-        if (iiidmp == 0) iiidmp=idummy
-        if (idummy /= 0) then  ! overwrite last i/o request
-            rewind(87)
-            write(87,86)
-            86 format(' 0')
-        endif
-        87 continue
-        close(unit=87)
-        88 continue
-        if (iiidmp /= 0) write(6,*) 'Output:',iiidmp
-    endif
+  iiidmp=0
+  if (nid == 0 .AND. (mod(istep,10) == 0 .OR. istep < 200)) then
+      open(unit=87,file='ioinfo',status='old',err=88)
+      read(87,*,end=87,err=87) idummy
+      if (iiidmp == 0) iiidmp=idummy
+      if (idummy /= 0) then  ! overwrite last i/o request
+          rewind(87)
+          write(87,86)
+          86 format(' 0')
+      endif
+      87 continue
+      close(unit=87)
+      88 continue
+      if (iiidmp /= 0) write(6,*) 'Output:',iiidmp
+  endif
 
-    tdmp(1)=iiidmp
-    call gop(tdmp,tdmp(3),'+  ',1)
-    iiidmp= tdmp(1)
-    if (iiidmp < 0) maxstep=abs(iiidmp)
-    if (istep >= maxstep .OR. iiidmp == -2) lastep=1
-    if (iiidmp == -2) return
-    if (iiidmp < 0) iiidmp = 0
+  tdmp(1)=iiidmp
+  call gop(tdmp,tdmp(3),'+  ',1)
+  iiidmp= tdmp(1)
+  if (iiidmp < 0) maxstep=abs(iiidmp)
+  if (istep >= maxstep .OR. iiidmp == -2) lastep=1
+  if (iiidmp == -2) return
+  if (iiidmp < 0) iiidmp = 0
 
-    if (ifdoin) ifdoit= .TRUE. 
-    if (iiidmp /= 0 .OR. lastep == 1 .OR. timdump == 1.) ifdoit= .TRUE. 
+  if (ifdoin) ifdoit= .TRUE. 
+  if (iiidmp /= 0 .OR. lastep == 1 .OR. timdump == 1.) ifdoit= .TRUE. 
 
 
-    if (ifdoit .AND. nid == 0)write(6,*)'call outfld: ifpsco:',ifpsco(1)
-    if (ifdoit) call outfld(prefix)
+  if (ifdoit .AND. nid == 0)write(6,*)'call outfld: ifpsco:',ifpsco(1)
+  if (ifdoit) call outfld(prefix, pm1)
 
-    call outhis(ifhis)
+  call outhis(ifhis, pm1)
 
-    call prepost_map(1) ! map back axisymm. arrays
+  call prepost_map(1, pm1) ! map back axisymm. arrays
 
-    if (lastep == 1 .AND. nid == 0) close(unit=26)
+  if (lastep == 1 .AND. nid == 0) close(unit=26)
 
 #ifndef NOTIMER
-    tprep=tprep+dnekclock()-etime1
+  tprep=tprep+dnekclock()-etime1
 #endif
 
-    ifdoit= .FALSE. 
-    return
+  ifdoit= .FALSE. 
+  return
 
-    end subroutine prepost
+end subroutine prepost
 !-----------------------------------------------------------------------
 !> \brief Store results for later postprocessing
-subroutine prepost_map(isave) ! isave=0-->fwd, isave=1-->bkwd
+subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, lx2, ly2, lz2, lelt, ldimt
   use size_m, only : nx1, ny1, nz1, nelt, nelv, nx2, ny2, nz2
@@ -178,16 +165,17 @@ subroutine prepost_map(isave) ! isave=0-->fwd, isave=1-->bkwd
   implicit none
 
   integer, intent(in) :: isave
+  real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
 
 !   Work arrays and temporary arrays
 
-  real(DP) :: vxax, vyax, prax, yax, tax, pm1
+  real(DP) :: vxax, vyax, prax, yax
   common /scruz/ vxax   (lx1,ly1,lelv) &
   , vyax   (lx1,ly1,lelv) &
   , prax   (lx2,ly2,lelv) &
   , yax    (lx1,ly1,lelt)
+  real(DP) :: tax
   common /scrmg/ tax    (lx1,ly1,lelt,ldimt)
-  common /scrcg/ pm1    (lx1,ly1,lz1,lelv)
 
   real(DP) :: pa(lx1,ly2,lz2),pb(lx1,ly1,lz2)
   integer :: e
@@ -285,427 +273,403 @@ subroutine prepost_map(isave) ! isave=0-->fwd, isave=1-->bkwd
   return
 end subroutine prepost_map
 !-----------------------------------------------------------------------
-    subroutine outfld(prefix)
+!> \brief output .fld file
+subroutine outfld(prefix, pm1)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, ldimt1, nid
+  use input, only : param
+  use tstep, only : istep, time
+  implicit none
 
-!     output .fld file
+!   Work arrays and temporary arrays
 
-    use size_m
-    use restart
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+!   note, this usage of CTMP1 will be less than elsewhere if NELT ~> 3.
+  integer, parameter :: lxyz=lx1*ly1*lz1
+  integer, parameter :: lpsc9=ldimt1+9
 
-!     Work arrays and temporary arrays
+  real*4 ::         test_pattern
 
-    common /scrcg/ pm1 (lx1,ly1,lz1,lelv)
+  character(3) ::    prefix
+  character(1) ::    fhdfle1(132)
+  character(132) ::   fhdfle
+  equivalence   (fhdfle,fhdfle1)
+  character(1) ::    fldfile2(120)
+  integer ::        fldfilei( 60)
+  equivalence   (fldfilei,fldfile2)
 
-!     note, this usage of CTMP1 will be less than elsewhere if NELT ~> 3.
-    parameter (lxyz=lx1*ly1*lz1)
-    parameter (lpsc9=ldimt1+9)
-    common /ctmp1/ tdump(lxyz,lpsc9)
-    real*4 ::         tdump
-    real ::           tdmp(4)
-    equivalence   (tdump,tdmp)
+  character(1) :: excode(30)
+  character(10) :: frmat
 
-    real*4 ::         test_pattern
+  real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
+  integer, save :: nopen(99)
 
-    character(3) ::    prefix
-    character(1) ::    fhdfle1(132)
-    character(132) ::   fhdfle
-    equivalence   (fhdfle,fhdfle1)
-    character(1) ::    fldfile2(120)
-    integer ::        fldfilei( 60)
-    equivalence   (fldfilei,fldfile2)
 
-    character(1) :: excode(30)
-    character(10) :: frmat
+  logical :: ifxyo_s
 
-    integer, save :: nopen(99)
+  real(DP) :: p66
 
-    common /rdump/ ntdump
-    data ndumps / 0 /
+  if(nid == 0) then
+      WRITE(6,1001) istep,time
+      1001 FORMAT(/,i9,1pe12.4,' Write checkpoint:')
+  endif
+  call nekgsync()
 
-    logical :: ifxyo_s
+  p66 = abs(param(66))
+  if (p66 == 6) then
+      call mfo_outfld(prefix, pm1)
+      call nekgsync                ! avoid race condition w/ outfld
+      return
+  endif
 
-    if(nid == 0) then
-        WRITE(6,1001) istep,time
-        1001 FORMAT(/,i9,1pe12.4,' Write checkpoint:')
-    endif
-    call nekgsync()
+  write(*,*) "Oops: p66 /= 6"
+#if 0
+  ifxyo_s = ifxyo              ! Save ifxyo
 
-    p66 = abs(param(66))
-    if (p66 == 6) then
-        call mfo_outfld(prefix)
-        call nekgsync                ! avoid race condition w/ outfld
-        return
-    endif
+  iprefix = i_find_prefix(prefix,99)
 
-    ifxyo_s = ifxyo              ! Save ifxyo
+  ierr = 0
+  if (nid == 0) then
 
-    iprefix = i_find_prefix(prefix,99)
+  !       Open new file for each dump on /cfs
+      nopen(iprefix)=nopen(iprefix)+1
 
-    ierr = 0
-    if (nid == 0) then
+      if (prefix == '   ' .AND. nopen(iprefix) == 1) ifxyo = .TRUE. ! 1st file
 
-    !       Open new file for each dump on /cfs
-        nopen(iprefix)=nopen(iprefix)+1
+      if (prefix == 'rst' .AND. max_rst > 0) &
+      nopen(iprefix) = mod1(nopen(iprefix),max_rst) ! restart
 
-        if (prefix == '   ' .AND. nopen(iprefix) == 1) ifxyo = .TRUE. ! 1st file
+      call file2(nopen(iprefix),prefix)
+      if (p66 < 1.0) then
+          open(unit=24,file=fldfle,form='formatted',status='unknown')
+      else
+          call  izero    (fldfilei,33)
+          len = ltrunc   (fldfle,131)
+          call chcopy    (fldfile2,fldfle,len)
+          call byte_open (fldfile2,ierr)
+      !          write header as character string
+          call blank(fhdfle,132)
+      endif
+  endif
+  call bcast(ifxyo,lsize)
+  if(p66 >= 1.0) &
+  call err_chk(ierr,'Error opening file in outfld. Abort. $')
 
-        if (prefix == 'rst' .AND. max_rst > 0) &
-        nopen(iprefix) = mod1(nopen(iprefix),max_rst) ! restart
+!   Figure out what goes in EXCODE
+  CALL BLANK(EXCODE,30)
+  NDUMPS=NDUMPS+1
+  i=1
+  if (mod(p66,1.0) == 0.0) then !old header format
+      IF(IFXYO) then
+          EXCODE(1)='X'
+          EXCODE(2)=' '
+          EXCODE(3)='Y'
+          EXCODE(4)=' '
+          i = 5
+          IF(IF3D) THEN
+              EXCODE(i)  ='Z'
+              EXCODE(i+1)=' '
+              i = i + 2
+          ENDIF
+      ENDIF
+      IF(IFVO) then
+          EXCODE(i)  ='U'
+          EXCODE(i+1)=' '
+          i = i + 2
+      ENDIF
+      IF(IFPO) THEN
+          EXCODE(i)='P'
+          EXCODE(i+1)=' '
+          i = i + 2
+      ENDIF
+      IF(IFTO) THEN
+          EXCODE(i)='T '
+          EXCODE(i+1)=' '
+          i = i + 1
+      ENDIF
+      do iip=1,ldimt1
+          if (ifpsco(iip)) then
+              write(excode(iip+I)  ,'(i1)') iip
+              write(excode(iip+I+1),'(a1)') ' '
+              i = i + 1
+          endif
+      enddo
+  else
+  ! ew header format
+      IF (IFXYO) THEN
+          EXCODE(i)='X'
+          i = i + 1
+      ENDIF
+      IF (IFVO) THEN
+          EXCODE(i)='U'
+          i = i + 1
+      ENDIF
+      IF (IFPO) THEN
+          EXCODE(i)='P'
+          i = i + 1
+      ENDIF
+      IF (IFTO) THEN
+          EXCODE(i)='T'
+          i = i + 1
+      ENDIF
+      IF (LDIMT > 1) THEN
+          NPSCALO = 0
+          do k = 1,ldimt-1
+              if(ifpsco(k)) NPSCALO = NPSCALO + 1
+          enddo
+          IF (NPSCALO > 0) THEN
+              EXCODE(i) = 'S'
+              WRITE(EXCODE(i+1),'(I1)') NPSCALO/10
+              WRITE(EXCODE(i+2),'(I1)') NPSCALO-(NPSCALO/10)*10
+          ENDIF
+      ENDIF
+  endif
+       
 
-        call file2(nopen(iprefix),prefix)
-        if (p66 < 1.0) then
-            open(unit=24,file=fldfle,form='formatted',status='unknown')
-        else
-            call  izero    (fldfilei,33)
-            len = ltrunc   (fldfle,131)
-            call chcopy    (fldfile2,fldfle,len)
-            call byte_open (fldfile2,ierr)
-        !          write header as character string
-            call blank(fhdfle,132)
-        endif
-    endif
-    call bcast(ifxyo,lsize)
-    if(p66 >= 1.0) &
-    call err_chk(ierr,'Error opening file in outfld. Abort. $')
+!   Dump header
+  ierr = 0
+  if (nid == 0) call dump_header(excode,p66,ierr)
+  call err_chk(ierr,'Error dumping header in outfld. Abort. $')
 
-!     Figure out what goes in EXCODE
-    CALL BLANK(EXCODE,30)
-    NDUMPS=NDUMPS+1
-    i=1
-    if (mod(p66,1.0) == 0.0) then !old header format
-        IF(IFXYO) then
-            EXCODE(1)='X'
-            EXCODE(2)=' '
-            EXCODE(3)='Y'
-            EXCODE(4)=' '
-            i = 5
-            IF(IF3D) THEN
-                EXCODE(i)  ='Z'
-                EXCODE(i+1)=' '
-                i = i + 2
-            ENDIF
-        ENDIF
-        IF(IFVO) then
-            EXCODE(i)  ='U'
-            EXCODE(i+1)=' '
-            i = i + 2
-        ENDIF
-        IF(IFPO) THEN
-            EXCODE(i)='P'
-            EXCODE(i+1)=' '
-            i = i + 2
-        ENDIF
-        IF(IFTO) THEN
-            EXCODE(i)='T '
-            EXCODE(i+1)=' '
-            i = i + 1
-        ENDIF
-        do iip=1,ldimt1
-            if (ifpsco(iip)) then
-                write(excode(iip+I)  ,'(i1)') iip
-                write(excode(iip+I+1),'(a1)') ' '
-                i = i + 1
-            endif
-        enddo
-    else
-    ! ew header format
-        IF (IFXYO) THEN
-            EXCODE(i)='X'
-            i = i + 1
-        ENDIF
-        IF (IFVO) THEN
-            EXCODE(i)='U'
-            i = i + 1
-        ENDIF
-        IF (IFPO) THEN
-            EXCODE(i)='P'
-            i = i + 1
-        ENDIF
-        IF (IFTO) THEN
-            EXCODE(i)='T'
-            i = i + 1
-        ENDIF
-        IF (LDIMT > 1) THEN
-            NPSCALO = 0
-            do k = 1,ldimt-1
-                if(ifpsco(k)) NPSCALO = NPSCALO + 1
-            enddo
-            IF (NPSCALO > 0) THEN
-                EXCODE(i) = 'S'
-                WRITE(EXCODE(i+1),'(I1)') NPSCALO/10
-                WRITE(EXCODE(i+2),'(I1)') NPSCALO-(NPSCALO/10)*10
-            ENDIF
-        ENDIF
-    endif
-         
+  call get_id(id)
 
-!     Dump header
-    ierr = 0
-    if (nid == 0) call dump_header(excode,p66,ierr)
-    call err_chk(ierr,'Error dumping header in outfld. Abort. $')
+  nxyz  = nx1*ny1*nz1
 
-    call get_id(id)
+  ierr = 0
+  do ieg=1,nelgt
 
-    nxyz  = nx1*ny1*nz1
+      jnid = gllnid(ieg)
+      ie   = gllel (ieg)
 
-    ierr = 0
-    do ieg=1,nelgt
+      if (nid == 0) then
+          if (jnid == 0) then
+              call fill_tmp(tdump,id,ie)
+          else
+              mtype=2000+ieg
+              len=4*id*nxyz
+              dum1=0.
+              call csend (mtype,dum1,wdsize,jnid,nullpid)
+              call crecv (mtype,tdump,len)
+          endif
+          if(ierr == 0) call out_tmp(id,p66,ierr)
+      elseif (nid == jnid) then
+          call fill_tmp(tdump,id,ie)
+          dum1=0.
 
-        jnid = gllnid(ieg)
-        ie   = gllel (ieg)
+          mtype=2000+ieg
+          len=4*id*nxyz
+          call crecv (mtype,dum1,wdsize)
+          call csend (mtype,tdump,len,node0,nullpid)
+      endif
+  enddo
+  call err_chk(ierr,'Error writing file in outfld. Abort. $')
 
-        if (nid == 0) then
-            if (jnid == 0) then
-                call fill_tmp(tdump,id,ie)
-            else
-                mtype=2000+ieg
-                len=4*id*nxyz
-                dum1=0.
-                call csend (mtype,dum1,wdsize,jnid,nullpid)
-                call crecv (mtype,tdump,len)
-            endif
-            if(ierr == 0) call out_tmp(id,p66,ierr)
-        elseif (nid == jnid) then
-            call fill_tmp(tdump,id,ie)
-            dum1=0.
+  ifxyo = ifxyo_s           ! restore ifxyo
 
-            mtype=2000+ieg
-            len=4*id*nxyz
-            call crecv (mtype,dum1,wdsize)
-            call csend (mtype,tdump,len,node0,nullpid)
-        endif
-    enddo
-    call err_chk(ierr,'Error writing file in outfld. Abort. $')
+  if (nid == 0) call close_fld(p66,ierr)
+  call err_chk(ierr,'Error closing file in outfld. Abort. $')
+#endif
 
-    ifxyo = ifxyo_s           ! restore ifxyo
-
-    if (nid == 0) call close_fld(p66,ierr)
-    call err_chk(ierr,'Error closing file in outfld. Abort. $')
-
-    return
-    end subroutine outfld
+  return
+end subroutine outfld
 !-----------------------------------------------------------------------
-    subroutine outhis(ifhis) ! output time history info
+!> \brief output time history info.
+subroutine outhis(ifhis, pm1)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv
+  use size_m, only : nx1, ny1, nz1, nelv, nid
+  use geom, only : xm1, ym1, zm1
+  use input, only : param, nhis, hcode, lochis, if3d, qinteg
+  use parallel, only : gllnid, gllel, np, wdsize, node0, nullpid
+  use soln, only : jp, vx, vy, vz, t
+  use tstep, only : istep, dt, time
+  implicit none
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    common /scrcg/ pm1    (lx1,ly1,lz1,lelv)
+  real(DP) :: pm1    (lx1,ly1,lz1,lelv)
 
-    real :: hdump(25)
-    real :: xpart(10),ypart(10),zpart(10)
-    character(30) :: excode
-    character(10) :: frmat
-    logical :: ifhis
+  real :: hdump(25)
+  real :: xpart(10),ypart(10),zpart(10)
+  character(30) :: excode
+  character(10) :: frmat
+  logical :: ifhis
 
-    integer :: icalld
-    save    icalld
-    data    icalld /0/
+  integer, save :: icalld = 0
+  integer :: iohis, nvar, ih, ii, ihisps, mtype, len, iobj, isk, iq
+  integer :: ipart, i, iel, k, j, i1, ip, kp, ielp, ix, iy, iz, ieg, jnid, ie
+  real(DP) :: rmin, x, y, z, r, one
+  real(DP), external :: glmax
 
-    iohis=1
-    if (param(52) >= 1) iohis=param(52)
-    if (mod(istep,iohis) == 0 .AND. ifhis) then
-        if (nhis > 0) then
-            IPART=0
-            DO 2100 I=1,NHIS
-                IF(HCODE(10,I) == 'P')then       ! Do particle paths
-                    if (ipart <= 10) ipart=ipart+1
-                    if (istep == 0) then          ! Particle has original coordinates
-                    !               Restarts?
-                        XPART(IPART)= &
-                        XM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
-                        YPART(IPART)= &
-                        YM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
-                        ZPART(IPART)= &
-                        ZM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
-                    ELSE
-                    !               Kludge: Find Closest point
-                        RMIN=1.0E7
-                        DO 20 IEL=1,NELV
-                            DO 20 K=1,NZ1
-                                DO 20 J=1,NY1
-                                    DO 20 II=1,NX1
-                                        X = XM1(II,J,K,IEL)
-                                        Y = YM1(II,J,K,IEL)
-                                        Z = ZM1(II,J,K,IEL)
-                                        R=SQRT( (X-XPART(IPART))**2 + (Y-YPART(IPART))**2 &
-                                        +       (Z-ZPART(IPART))**2 )
-                                        IF(R < RMIN) then
-                                            RMIN=R
-                                            IP=II
-                                            JP=J
-                                            KP=K
-                                            IELP=IEL
-                                        ENDIF
-                        20 END DO
-                        XPART(IPART) = XPART(IPART) + DT * VX(IP,JP,KP,IELP)
-                        YPART(IPART) = YPART(IPART) + DT * VY(IP,JP,KP,IELP)
-                        ZPART(IPART) = ZPART(IPART) + DT * VZ(IP,JP,KP,IELP)
-                    ENDIF
-                !            Dump particle data for history point first
-                !            Particle data is Time, x,y,z.
-                    WRITE(26,'(4G14.6,A10)')TIME,XPART(IPART),YPART(IPART) &
-                    ,ZPART(IPART),'  Particle'
-                ENDIF
-            !         Figure out which fields to dump
-                NVAR=0
-                IF(HCODE(10,I) == 'H')then
-                !           Do histories
-                
-                
-                    IX =LOCHIS(1,I)
-                    IY =LOCHIS(2,I)
-                    IZ =LOCHIS(3,I)
-                    IEG=LOCHIS(4,I)
-                    JNID=GLLNID(IEG)
-                    IE  =GLLEL(IEG)
-                
-                !------------------------------------------------------------------------
-                !           On first call, write out XYZ location of history points
-                
-                    if (icalld == 0) then
-                        one = glmax(one,1)           ! Force synch.  pff 04/16/04
-                        IF (NID == JNID) then
-                            IF (NP > 1 .AND. .NOT. IF3D) &
-                            WRITE(6,22) NID,I,IX,IY,ie,IEG &
-                            ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE)
-                            IF (NP > 1 .AND. IF3D) &
-                            WRITE(6,23) NID,I,IX,IY,IZ,ie,IEG,XM1(IX,IY,IZ,IE) &
-                            ,YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE)
-                            IF (NP == 1 .AND. .NOT. IF3D) &
-                            WRITE(6,32) I,IX,IY,ie,IEG &
-                            ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE)
-                            IF (NP == 1 .AND. IF3D) &
-                            WRITE(6,33) I,IX,IY,IZ,ie,IEG,XM1(IX,IY,IZ,IE) &
-                            ,YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE)
-                            22 FORMAT(i6,' History point:',I3,' at (',2(I2,','), &
-                            &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
-                            23 FORMAT(i6,' History point:',I3,' at (',3(I2,','), &
-                            &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
-                            32 FORMAT(2X,' History point:',I3,' at (',2(I2,','), &
-                            &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
-                            33 FORMAT(2X,' History point:',I3,' at (',3(I2,','), &
-                            &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
-                        ENDIF
-                    ENDIF
-                !------------------------------------------------------------------------
-                
-                    IF(HCODE(1,I) == 'U')then
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=VX(IX,IY,IZ,IE)
-                    elseif(HCODE(1,I) == 'X')then
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=XM1(IX,IY,IZ,IE)
-                    ENDIF
-                    IF(HCODE(2,I) == 'V')then
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=VY(IX,IY,IZ,IE)
-                    elseif(HCODE(2,I) == 'Y')then
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=YM1(IX,IY,IZ,IE)
-                    ENDIF
-                    IF(HCODE(3,I) == 'W')then
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=VZ(IX,IY,IZ,IE)
-                    elseif(HCODE(3,I) == 'Z')then
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=ZM1(IX,IY,IZ,IE)
-                    ENDIF
-                    IF(HCODE(4,I) == 'P')then
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=PM1(IX,IY,IZ,IE)
-                    ENDIF
-                    IF(HCODE(5,I) == 'T')then
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=T (IX,IY,IZ,IE,1)
-                    ENDIF
-                    IF(HCODE(6,I) /= ' ' .AND. HCODE(6,I) /= '0') then
-                        READ(HCODE(6,I),'(I1)',ERR=13)IHISPS
-                        13 CONTINUE
-                    !              Passive scalar data here
-                        NVAR=NVAR+1
-                        HDUMP(NVAR)=T (IX,IY,IZ,IE,IHISPS+1)
-                    ENDIF
-                
-                !--------------------------------------------------------------
-                !           Dump out the NVAR values for this history point
-                !--------------------------------------------------------------
-                    MTYPE=2200+I
-                    LEN=WDSIZE*NVAR
-                
-                !           If point on this processor, send data to node 0
-                    IF (NVAR > 0 .AND. NID /= 0 .AND. JNID == NID) &
-                    call csend (mtype,hdump,len,node0,nullpid)
-                
-                !           If processor 0, recv data (unless point resides on node0).
-                    IF (NVAR > 0 .AND. NID == 0 .AND. JNID /= NID) &
-                    call crecv (mtype,hdump,len)
-                
-                    IF (NVAR > 0 .AND. NID == 0) &
-                    WRITE(26,'(1p6e16.8)')TIME,(HDUMP(II),II=1,NVAR)
-                
-                !--------------------------------------------------------------
-                !         End of history points
-                !--------------------------------------------------------------
-                ENDIF
-            2100 END DO
-        !        Now do Integrated quantities (Drag, Lift, Flux, etc.)
-        !        Find out which groups are to be dumped
+  iohis=1
+  if (param(52) >= 1) iohis=param(52)
+  if (mod(istep,iohis) == 0 .AND. ifhis) then
+      if (nhis > 0) then
+          IPART=0
+          DO 2100 I=1,NHIS
+              IF(HCODE(10,I) == 'P')then       ! Do particle paths
+                  if (ipart <= 10) ipart=ipart+1
+                  if (istep == 0) then          ! Particle has original coordinates
+                  !               Restarts?
+                      XPART(IPART)= &
+                      XM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
+                      YPART(IPART)= &
+                      YM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
+                      ZPART(IPART)= &
+                      ZM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
+                  ELSE
+                  !               Kludge: Find Closest point
+                      RMIN=1.0E7
+                      DO 20 IEL=1,NELV
+                          DO 20 K=1,NZ1
+                              DO 20 J=1,NY1
+                                  DO 20 II=1,NX1
+                                      X = XM1(II,J,K,IEL)
+                                      Y = YM1(II,J,K,IEL)
+                                      Z = ZM1(II,J,K,IEL)
+                                      R=SQRT( (X-XPART(IPART))**2 + (Y-YPART(IPART))**2 &
+                                      +       (Z-ZPART(IPART))**2 )
+                                      IF(R < RMIN) then
+                                          RMIN=R
+                                          IP=II
+                                          JP=J
+                                          KP=K
+                                          IELP=IEL
+                                      ENDIF
+                      20 END DO
+                      XPART(IPART) = XPART(IPART) + DT * VX(IP,JP,KP,IELP)
+                      YPART(IPART) = YPART(IPART) + DT * VY(IP,JP,KP,IELP)
+                      ZPART(IPART) = ZPART(IPART) + DT * VZ(IP,JP,KP,IELP)
+                  ENDIF
+              !            Dump particle data for history point first
+              !            Particle data is Time, x,y,z.
+                  WRITE(26,'(4G14.6,A10)')TIME,XPART(IPART),YPART(IPART) &
+                  ,ZPART(IPART),'  Particle'
+              ENDIF
+          !         Figure out which fields to dump
+              NVAR=0
+              IF(HCODE(10,I) == 'H')then
+              !           Do histories
+              
+              
+                  IX =LOCHIS(1,I)
+                  IY =LOCHIS(2,I)
+                  IZ =LOCHIS(3,I)
+                  IEG=LOCHIS(4,I)
+                  JNID=GLLNID(IEG)
+                  IE  =GLLEL(IEG)
+              
+              !------------------------------------------------------------------------
+              !           On first call, write out XYZ location of history points
+              
+                  if (icalld == 0) then
+                      one = glmax(one,1)           ! Force synch.  pff 04/16/04
+                      IF (NID == JNID) then
+                          IF (NP > 1 .AND. .NOT. IF3D) &
+                          WRITE(6,22) NID,I,IX,IY,ie,IEG &
+                          ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE)
+                          IF (NP > 1 .AND. IF3D) &
+                          WRITE(6,23) NID,I,IX,IY,IZ,ie,IEG,XM1(IX,IY,IZ,IE) &
+                          ,YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE)
+                          IF (NP == 1 .AND. .NOT. IF3D) &
+                          WRITE(6,32) I,IX,IY,ie,IEG &
+                          ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE)
+                          IF (NP == 1 .AND. IF3D) &
+                          WRITE(6,33) I,IX,IY,IZ,ie,IEG,XM1(IX,IY,IZ,IE) &
+                          ,YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE)
+                          22 FORMAT(i6,' History point:',I3,' at (',2(I2,','), &
+                          &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
+                          23 FORMAT(i6,' History point:',I3,' at (',3(I2,','), &
+                          &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
+                          32 FORMAT(2X,' History point:',I3,' at (',2(I2,','), &
+                          &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
+                          33 FORMAT(2X,' History point:',I3,' at (',3(I2,','), &
+                          &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
+                      ENDIF
+                  ENDIF
+              !------------------------------------------------------------------------
+              
+                  IF(HCODE(1,I) == 'U')then
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=VX(IX,IY,IZ,IE)
+                  elseif(HCODE(1,I) == 'X')then
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=XM1(IX,IY,IZ,IE)
+                  ENDIF
+                  IF(HCODE(2,I) == 'V')then
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=VY(IX,IY,IZ,IE)
+                  elseif(HCODE(2,I) == 'Y')then
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=YM1(IX,IY,IZ,IE)
+                  ENDIF
+                  IF(HCODE(3,I) == 'W')then
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=VZ(IX,IY,IZ,IE)
+                  elseif(HCODE(3,I) == 'Z')then
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=ZM1(IX,IY,IZ,IE)
+                  ENDIF
+                  IF(HCODE(4,I) == 'P')then
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=PM1(IX,IY,IZ,IE)
+                  ENDIF
+                  IF(HCODE(5,I) == 'T')then
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=T (IX,IY,IZ,IE,1)
+                  ENDIF
+                  IF(HCODE(6,I) /= ' ' .AND. HCODE(6,I) /= '0') then
+                      READ(HCODE(6,I),'(I1)',ERR=13)IHISPS
+                      13 CONTINUE
+                  !              Passive scalar data here
+                      NVAR=NVAR+1
+                      HDUMP(NVAR)=T (IX,IY,IZ,IE,IHISPS+1)
+                  ENDIF
+              
+              !--------------------------------------------------------------
+              !           Dump out the NVAR values for this history point
+              !--------------------------------------------------------------
+                  MTYPE=2200+I
+                  LEN=WDSIZE*NVAR
+              
+              !           If point on this processor, send data to node 0
+                  IF (NVAR > 0 .AND. NID /= 0 .AND. JNID == NID) &
+                  call csend (mtype,hdump,len,node0,nullpid)
+              
+              !           If processor 0, recv data (unless point resides on node0).
+                  IF (NVAR > 0 .AND. NID == 0 .AND. JNID /= NID) &
+                  call crecv (mtype,hdump,len)
+              
+                  IF (NVAR > 0 .AND. NID == 0) &
+                  WRITE(26,'(1p6e16.8)')TIME,(HDUMP(II),II=1,NVAR)
+              
+              !--------------------------------------------------------------
+              !         End of history points
+              !--------------------------------------------------------------
+              ENDIF
+          2100 END DO
+      !        Now do Integrated quantities (Drag, Lift, Flux, etc.)
+      !        Find out which groups are to be dumped
 !max            IF (IFINTQ) CALL INTGLQ
-            DO 2200 IH=1,NHIS
-                IF(HCODE(10,IH) == 'I') then
-                    IOBJ=LOCHIS(1,IH)
-                    ISK=0
-                    DO 2205 IQ=1,3
-                        IF (HCODE(IQ,IH) /= ' ') ISK=ISK + 1
-                    2205 END DO
-                    DO 2207 IQ=5,6
-                        IF (HCODE(IQ,IH) /= ' ') ISK=ISK + 1
-                    2207 END DO
-                    IF (NID == 0) &
-                    WRITE(26,'(1p6e16.8)')TIME,(QINTEG(II,IOBJ),II=1,ISK)
-                ENDIF
-            2200 END DO
-        ENDIF
+          DO 2200 IH=1,NHIS
+              IF(HCODE(10,IH) == 'I') then
+                  IOBJ=LOCHIS(1,IH)
+                  ISK=0
+                  DO 2205 IQ=1,3
+                      IF (HCODE(IQ,IH) /= ' ') ISK=ISK + 1
+                  2205 END DO
+                  DO 2207 IQ=5,6
+                      IF (HCODE(IQ,IH) /= ' ') ISK=ISK + 1
+                  2207 END DO
+                  IF (NID == 0) &
+                  WRITE(26,'(1p6e16.8)')TIME,(QINTEG(II,IOBJ),II=1,ISK)
+              ENDIF
+          2200 END DO
+      ENDIF
 
-    endif
+  endif
 
-    icalld = icalld+1
+  icalld = icalld+1
 
-    return
-    end subroutine outhis
+  return
+end subroutine outhis
 !=======================================================================
     subroutine file2(nopen,PREFIX)
 !----------------------------------------------------------------------
@@ -964,94 +928,6 @@ end subroutine prepost_map
     return
     end subroutine dump_header
 !-----------------------------------------------------------------------
-    subroutine fill_tmp(tdump,id,ie)
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    common /scrcg/ pm1 (lx1,ly1,lz1,lelv)
-
-!     Fill work array
-
-    parameter (lxyz=lx1*ly1*lz1)
-    parameter (lpsc9=ldimt1+9)
-    real*4 :: tdump(lxyz,lpsc9)
-
-    nxyz = nx1*ny1*nz1
-
-    ID=0
-    IF(IFXYO)then
-        ID=ID+1
-        CALL COPYx4(TDUMP(1,ID),XM1(1,1,1,IE),NXYZ)
-        ID=ID+1
-        CALL COPYx4(TDUMP(1,ID),YM1(1,1,1,IE),NXYZ)
-        IF(IF3D) then
-            ID=ID+1
-            CALL COPYx4(TDUMP(1,ID),ZM1(1,1,1,IE),NXYZ)
-        ENDIF
-    ENDIF
-
-    IF(IFVO)then
-        IF (IE <= NELV) then
-            ID=ID+1
-            CALL COPYx4(TDUMP(1,ID),VX(1,1,1,IE),NXYZ)
-            ID=ID+1
-            CALL COPYx4(TDUMP(1,ID),VY(1,1,1,IE),NXYZ)
-            IF(IF3D)then
-                ID=ID+1
-                CALL COPYx4(TDUMP(1,ID),VZ(1,1,1,IE),NXYZ)
-            ENDIF
-        ELSE
-            ID=ID+1
-            tdump(1:nxyz,id) = 0.
-            ID=ID+1
-            tdump(1:nxyz,id) = 0.
-            IF(IF3D)then
-                ID=ID+1
-                tdump(1:nxyz,id) = 0.
-            ENDIF
-        ENDIF
-    ENDIF
-    IF(IFPO)then
-        IF (IE <= NELV) then
-            ID=ID+1
-            CALL COPYx4(TDUMP(1,ID),PM1(1,1,1,IE),NXYZ)
-        ELSE
-            ID=ID+1
-            tdump(1:nxyz,id) = 0.
-        ENDIF
-    ENDIF
-    IF(IFTO)then
-        ID=ID+1
-        CALL COPYx4(TDUMP(1,ID),T(1,1,1,IE,1),NXYZ)
-    ENDIF
-!     PASSIVE SCALARS
-    do iip=1,ldimt1
-        if (ifpsco(iip)) then
-            id=id+1
-            call copyX4(tdump(1,id),t(1,1,1,ie,iip+1),nxyz)
-        endif
-    enddo
-
-    return
-    end subroutine fill_tmp
-!-----------------------------------------------------------------------
     subroutine get_id(id) !  Count amount of data to be shipped
 
     use size_m
@@ -1175,218 +1051,217 @@ end subroutine prepost_map
     return
     end subroutine out_tmp
 !-----------------------------------------------------------------------
-    subroutine mfo_outfld(prefix)  ! muti-file output
+!> \brief mult-file output
+subroutine mfo_outfld(prefix, pm1) 
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, lelt, ldimt, lxo
+  use size_m, only : nx1, ny1, nz1, nelt, nid, ndim
+  use restart, only : nxo, nyo, nzo, nrg, iheadersize, pid0, nelb, wdsizo
+  use restart, only : ifh_mbyte, nfileo
+  use geom, only : xm1, ym1, zm1
+  use input, only : ifxyo, ifxyo_, ifreguo, if3d, ifvo, ifpo, ifto, ifpsco
+  use parallel, only : isize, nelgt, lsize
+  use soln, only : vx, vy, vz, t
+  use tstep, only : istep, time
+  implicit none
 
-    use size_m
-    use restart
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    common /scrcg/ pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
+  character(3) :: prefix
 
-    integer*8 :: offs0,offs,nbyte,stride,strideB,nxyzo8
-    character(3) :: prefix
-    logical :: ifxyo_s
-     
-    common /SCRUZ/  ur1(lxo*lxo*lxo*lelt) &
-    , ur2(lxo*lxo*lxo*lelt) &
-    , ur3(lxo*lxo*lxo*lelt)
+  real(DP) :: pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
 
-    tiostart=dnekclock_sync()
+  integer*8 :: offs0,offs,nbyte,stride,strideB,nxyzo8
+  logical :: ifxyo_s
 
-    ifxyo_s = ifxyo
-    ifxyo_  = ifxyo
-    nout = nelt
-    nxo  = nx1
-    nyo  = ny1
-    nzo  = nz1
-    if (ifreguo) then ! dump on regular (uniform) mesh
-        if (nrg > lxo) then
-            if (nid == 0) write(6,*) &
-            'WARNING: nrg too large, reset to lxo!'
-            nrg = lxo
-        endif
-        nxo  = nrg
-        nyo  = nrg
-        nzo  = 1
-        if(if3d) nzo = nrg
-    endif
-    offs0 = iHeaderSize + 4 + isize*nelgt
+  real(DP) :: ur1, ur2, ur3   
+  common /SCRUZ/  ur1(lxo*lxo*lxo*lelt) &
+  , ur2(lxo*lxo*lxo*lelt) &
+  , ur3(lxo*lxo*lxo*lelt)
 
-    ierr=0
-    if (nid == pid0) then
-        call mfo_open_files(prefix,ierr)         ! open files on i/o nodes
-    endif
-    call err_chk(ierr,'Error opening file in mfo_open_files. $')
-    call bcast(ifxyo_,lsize)
-    ifxyo = ifxyo_
-    call mfo_write_hdr                     ! create element mapping +
+  real(DP) :: tiostart, dnbyte, tio
+  real(DP), external :: dnekclock_sync, glsum
+  integer :: nout, ierr, ioflds, k
 
-!     call exitti('this is wdsizo A:$',wdsizo)
+  tiostart=dnekclock_sync()
+
+  ifxyo_s = ifxyo
+  ifxyo_  = ifxyo
+  nout = nelt
+  nxo  = nx1
+  nyo  = ny1
+  nzo  = nz1
+  if (ifreguo) then ! dump on regular (uniform) mesh
+      if (nrg > lxo) then
+          if (nid == 0) write(6,*) &
+          'WARNING: nrg too large, reset to lxo!'
+          nrg = lxo
+      endif
+      nxo  = nrg
+      nyo  = nrg
+      nzo  = 1
+      if(if3d) nzo = nrg
+  endif
+  offs0 = iHeaderSize + 4 + isize*nelgt
+
+  ierr=0
+  if (nid == pid0) then
+      call mfo_open_files(prefix,ierr)         ! open files on i/o nodes
+  endif
+  call err_chk(ierr,'Error opening file in mfo_open_files. $')
+  call bcast(ifxyo_,lsize)
+  ifxyo = ifxyo_
+  call mfo_write_hdr                     ! create element mapping +
+
+!   call exitti('this is wdsizo A:$',wdsizo)
 ! write hdr
-    nxyzo8  = nxo*nyo*nzo
-    strideB = nelB * nxyzo8*wdsizo
-    stride  = nelgt* nxyzo8*wdsizo
+  nxyzo8  = nxo*nyo*nzo
+  strideB = nelB * nxyzo8*wdsizo
+  stride  = nelgt* nxyzo8*wdsizo
 
-    ioflds = 0
+  ioflds = 0
 ! dump all fields based on the t-mesh to avoid different
 ! topologies in the post-processor
-    if (ifxyo) then
-        offs = offs0 + ndim*strideB
-        call byte_set_view(offs,ifh_mbyte)
-        if (ifreguo) then
-          write(*,*) "Oops: ifreguo"
+  if (ifxyo) then
+      offs = offs0 + ndim*strideB
+      call byte_set_view(offs,ifh_mbyte)
+      if (ifreguo) then
+        write(*,*) "Oops: ifreguo"
 #if 0
-            call map2reg(ur1,nrg,xm1,nout)
-            call map2reg(ur2,nrg,ym1,nout)
-            if (if3d) call map2reg(ur3,nrg,zm1,nout)
-            call mfo_outv(ur1,ur2,ur3,nout,nxo,nyo,nzo)
+          call map2reg(ur1,nrg,xm1,nout)
+          call map2reg(ur2,nrg,ym1,nout)
+          if (if3d) call map2reg(ur3,nrg,zm1,nout)
+          call mfo_outv(ur1,ur2,ur3,nout,nxo,nyo,nzo)
 #endif
-        else
-            call mfo_outv(xm1,ym1,zm1,nout,nxo,nyo,nzo)
-        endif
-        ioflds = ioflds + ndim
-    endif
-    if (ifvo ) then
-        offs = offs0 + ioflds*stride + ndim*strideB
-        call byte_set_view(offs,ifh_mbyte)
-        if (ifreguo) then
-          write(*,*) "Oops: ifreguo"
+      else
+          call mfo_outv(xm1,ym1,zm1,nout,nxo,nyo,nzo)
+      endif
+      ioflds = ioflds + ndim
+  endif
+  if (ifvo ) then
+      offs = offs0 + ioflds*stride + ndim*strideB
+      call byte_set_view(offs,ifh_mbyte)
+      if (ifreguo) then
+        write(*,*) "Oops: ifreguo"
 #if 0
-            call map2reg(ur1,nrg,vx,nout)
-            call map2reg(ur2,nrg,vy,nout)
-            if (if3d) call map2reg(ur3,nrg,vz,nout)
-            call mfo_outv(ur1,ur2,ur3,nout,nxo,nyo,nzo)
+          call map2reg(ur1,nrg,vx,nout)
+          call map2reg(ur2,nrg,vy,nout)
+          if (if3d) call map2reg(ur3,nrg,vz,nout)
+          call mfo_outv(ur1,ur2,ur3,nout,nxo,nyo,nzo)
 #endif
-        else
-            call mfo_outv(vx,vy,vz,nout,nxo,nyo,nzo)  ! B-field handled thru outpost
-        endif
-        ioflds = ioflds + ndim
-    endif
-    if (ifpo ) then
-        offs = offs0 + ioflds*stride + strideB
-        call byte_set_view(offs,ifh_mbyte)
-        if (ifreguo) then
-          write(*,*) "Oops: ifreguo"
+      else
+          call mfo_outv(vx,vy,vz,nout,nxo,nyo,nzo)  ! B-field handled thru outpost
+      endif
+      ioflds = ioflds + ndim
+  endif
+  if (ifpo ) then
+      offs = offs0 + ioflds*stride + strideB
+      call byte_set_view(offs,ifh_mbyte)
+      if (ifreguo) then
+        write(*,*) "Oops: ifreguo"
 #if 0
-            call map2reg(ur1,nrg,pm1,nout)
-            call mfo_outs(ur1,nout,nxo,nyo,nzo)
+          call map2reg(ur1,nrg,pm1,nout)
+          call mfo_outs(ur1,nout,nxo,nyo,nzo)
 #endif
-        else
-            call mfo_outs(pm1,nout,nxo,nyo,nzo)
-        endif
-        ioflds = ioflds + 1
-    endif
-    if (ifto ) then
-        offs = offs0 + ioflds*stride + strideB
-        call byte_set_view(offs,ifh_mbyte)
-        if (ifreguo) then
-          write(*,*) "Oops: ifreguo"
+      else
+          call mfo_outs(pm1,nout,nxo,nyo,nzo)
+      endif
+      ioflds = ioflds + 1
+  endif
+  if (ifto ) then
+      offs = offs0 + ioflds*stride + strideB
+      call byte_set_view(offs,ifh_mbyte)
+      if (ifreguo) then
+        write(*,*) "Oops: ifreguo"
 #if 0
-            call map2reg(ur1,nrg,t,nout)
-            call mfo_outs(ur1,nout,nxo,nyo,nzo)
+          call map2reg(ur1,nrg,t,nout)
+          call mfo_outs(ur1,nout,nxo,nyo,nzo)
 #endif
-        else
-            call mfo_outs(t,nout,nxo,nyo,nzo)
-        endif
-        ioflds = ioflds + 1
-    endif
-    do k=1,ldimt-1
-        if(ifpsco(k)) then
-            offs = offs0 + ioflds*stride + strideB
-            call byte_set_view(offs,ifh_mbyte)
-            if (ifreguo) then
-          write(*,*) "Oops: ifreguo"
+      else
+          call mfo_outs(t,nout,nxo,nyo,nzo)
+      endif
+      ioflds = ioflds + 1
+  endif
+  do k=1,ldimt-1
+      if(ifpsco(k)) then
+          offs = offs0 + ioflds*stride + strideB
+          call byte_set_view(offs,ifh_mbyte)
+          if (ifreguo) then
+        write(*,*) "Oops: ifreguo"
 #if 0
-                call map2reg(ur1,nrg,t(1,1,1,1,k+1),nout)
-                call mfo_outs(ur1,nout,nxo,nyo,nzo)
+              call map2reg(ur1,nrg,t(1,1,1,1,k+1),nout)
+              call mfo_outs(ur1,nout,nxo,nyo,nzo)
 #endif
-            else
-                call mfo_outs(t(1,1,1,1,k+1),nout,nxo,nyo,nzo)
-            endif
-            ioflds = ioflds + 1
-        endif
-    enddo
-    dnbyte = 1.*ioflds*nout*wdsizo*nxo*nyo*nzo
+          else
+              call mfo_outs(t(1,1,1,1,k+1),nout,nxo,nyo,nzo)
+          endif
+          ioflds = ioflds + 1
+      endif
+  enddo
+  dnbyte = 1.*ioflds*nout*wdsizo*nxo*nyo*nzo
 
-    if (if3d) then
-        offs0   = offs0 + ioflds*stride
-        strideB = nelB *2*4   ! min/max single precision
-        stride  = nelgt*2*4
-        ioflds  = 0
-    ! add meta data to the end of the file
-        if (ifxyo) then
-            offs = offs0 + ndim*strideB
-            call byte_set_view(offs,ifh_mbyte)
-            call mfo_mdatav(xm1,ym1,zm1,nout)
-            ioflds = ioflds + ndim
-        endif
-        if (ifvo ) then
-            offs = offs0 + ioflds*stride + ndim*strideB
-            call byte_set_view(offs,ifh_mbyte)
-            call mfo_mdatav(vx,vy,vz,nout)
-            ioflds = ioflds + ndim
-        endif
-        if (ifpo ) then
-            offs = offs0 + ioflds*stride + strideB
-            call byte_set_view(offs,ifh_mbyte)
-            call mfo_mdatas(pm1,nout)
-            ioflds = ioflds + 1
-        endif
-        if (ifto ) then
-            offs = offs0 + ioflds*stride + strideB
-            call byte_set_view(offs,ifh_mbyte)
-            call mfo_mdatas(t,nout)
-            ioflds = ioflds + 1
-        endif
-        do k=1,ldimt-1
-            offs = offs0 + ioflds*stride + strideB
-            call byte_set_view(offs,ifh_mbyte)
-            if(ifpsco(k)) call mfo_mdatas(t(1,1,1,1,k+1),nout)
-            ioflds = ioflds + 1
-        enddo
-        dnbyte = dnbyte + 2.*ioflds*nout*wdsizo
-    endif
+  if (if3d) then
+      offs0   = offs0 + ioflds*stride
+      strideB = nelB *2*4   ! min/max single precision
+      stride  = nelgt*2*4
+      ioflds  = 0
+  ! add meta data to the end of the file
+      if (ifxyo) then
+          offs = offs0 + ndim*strideB
+          call byte_set_view(offs,ifh_mbyte)
+          call mfo_mdatav(xm1,ym1,zm1,nout)
+          ioflds = ioflds + ndim
+      endif
+      if (ifvo ) then
+          offs = offs0 + ioflds*stride + ndim*strideB
+          call byte_set_view(offs,ifh_mbyte)
+          call mfo_mdatav(vx,vy,vz,nout)
+          ioflds = ioflds + ndim
+      endif
+      if (ifpo ) then
+          offs = offs0 + ioflds*stride + strideB
+          call byte_set_view(offs,ifh_mbyte)
+          call mfo_mdatas(pm1,nout)
+          ioflds = ioflds + 1
+      endif
+      if (ifto ) then
+          offs = offs0 + ioflds*stride + strideB
+          call byte_set_view(offs,ifh_mbyte)
+          call mfo_mdatas(t,nout)
+          ioflds = ioflds + 1
+      endif
+      do k=1,ldimt-1
+          offs = offs0 + ioflds*stride + strideB
+          call byte_set_view(offs,ifh_mbyte)
+          if(ifpsco(k)) call mfo_mdatas(t(1,1,1,1,k+1),nout)
+          ioflds = ioflds + 1
+      enddo
+      dnbyte = dnbyte + 2.*ioflds*nout*wdsizo
+  endif
 
-    ierr = 0
-    if (nid == pid0) then
+  ierr = 0
+  if (nid == pid0) then
 #ifdef MPIIO 
-      call byte_close_mpi(ifh_mbyte,ierr)
+    call byte_close_mpi(ifh_mbyte,ierr)
 #else 
-      call byte_close(ierr)
+    call byte_close(ierr)
 #endif
-    endif
-    call err_chk(ierr,'Error closing file in mfo_outfld. Abort. $')
+  endif
+  call err_chk(ierr,'Error closing file in mfo_outfld. Abort. $')
 
-    tio = dnekclock_sync()-tiostart
-    dnbyte = glsum(dnbyte,1)
-    dnbyte = dnbyte + iHeaderSize + 4. + isize*nelgt
-    dnbyte = dnbyte/1024/1024
-    if(nid == 0) write(6,7) istep,time,dnbyte,dnbyte/tio, &
-    nfileo
-    7 format(/,i9,1pe12.4,' done :: Write checkpoint',/, &
-    &        30X,'file size = ',3pG12.2,'MB',/, &
-    &        30X,'avg data-throughput = ',0pf7.1,'MB/s',/, &
-    &        30X,'io-nodes = ',i5,/)
+  tio = dnekclock_sync()-tiostart
+  dnbyte = glsum(dnbyte,1)
+  dnbyte = dnbyte + iHeaderSize + 4. + isize*nelgt
+  dnbyte = dnbyte/1024/1024
+  if(nid == 0) write(6,7) istep,time,dnbyte,dnbyte/tio, &
+  nfileo
+  7 format(/,i9,1pe12.4,' done :: Write checkpoint',/, &
+  &        30X,'file size = ',3pG12.2,'MB',/, &
+  &        30X,'avg data-throughput = ',0pf7.1,'MB/s',/, &
+  &        30X,'io-nodes = ',i5,/)
 
-    ifxyo = ifxyo_s ! restore old value
+  ifxyo = ifxyo_s ! restore old value
 
-    return
-    end subroutine mfo_outfld
+  return
+end subroutine mfo_outfld
 !-----------------------------------------------------------------------
     subroutine io_init ! determine which nodes will output
 

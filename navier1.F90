@@ -64,61 +64,6 @@
     return
     end subroutine ortho
 !------------------------------------------------------------------------
-    subroutine cdabdtp (ap,wp,h1,h2,h2inv,intype)
-
-!     INTYPE= 0  Compute the matrix-vector product    DA(-1)DT*p
-!     INTYPE= 1  Compute the matrix-vector product    D(B/DT)(-1)DT*p
-!     INTYPE=-1  Compute the matrix-vector product    D(A+B/DT)(-1)DT*p
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    REAL ::           AP    (LX2,LY2,LZ2,1)
-    REAL ::           WP    (LX2,LY2,LZ2,1)
-    REAL ::           H1    (LX1,LY1,LZ1,1)
-    REAL ::           H2    (LX1,LY1,LZ1,1)
-    REAL ::           H2INV (LX1,LY1,LZ1,1)
-
-    COMMON /SCRNS/ TA1 (LX1,LY1,LZ1,LELV) &
-    ,             TA2 (LX1,LY1,LZ1,LELV) &
-    ,             TA3 (LX1,LY1,LZ1,LELV) &
-    ,             TB1 (LX1,LY1,LZ1,LELV) &
-    ,             TB2 (LX1,LY1,LZ1,LELV) &
-    ,             TB3 (LX1,LY1,LZ1,LELV)
-
-    CALL OPGRADT (TA1,TA2,TA3,WP)
-    IF ((INTYPE == 0) .OR. (INTYPE == -1)) THEN
-        TOLHIN=TOLHS
-        CALL OPHINV (TB1,TB2,TB3,TA1,TA2,TA3,H1,H2,TOLHIN,NMXH)
-    ELSE
-        if (ifanls) then
-            dtbdi = dt/bd(1)   ! scale by dt*backwd-diff coefficient
-            CALL OPBINV1(TB1,TB2,TB3,TA1,TA2,TA3,dtbdi)
-        else
-            CALL OPBINV (TB1,TB2,TB3,TA1,TA2,TA3,H2INV)
-        endif
-    ENDIF
-    CALL OPDIV  (AP,TB1,TB2,TB3)
-
-    return
-    end subroutine cdabdtp
-
-!-----------------------------------------------------------------------
     subroutine opgrad (out1,out2,out3,inp)
 !---------------------------------------------------------------------
 
@@ -678,121 +623,6 @@
 
     return
     end subroutine ophx
-!-----------------------------------------------------------------------
-    subroutine opbinv (out1,out2,out3,inp1,inp2,inp3,h2inv)
-!--------------------------------------------------------------------
-
-!     Compute OUT = (H2*B)-1 * INP   (explicit)
-
-!--------------------------------------------------------------------
-    use size_m
-    use input
-    use mass
-    use opctr
-    use soln
-
-    REAL :: OUT1  (1)
-    REAL :: OUT2  (1)
-    REAL :: OUT3  (1)
-    REAL :: INP1  (1)
-    REAL :: INP2  (1)
-    REAL :: INP3  (1)
-    REAL :: H2INV (1)
-
-
-
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'opbinv'
-    endif
-
-    call opmask  (inp1,inp2,inp3)
-    call opdssum (inp1,inp2,inp3)
-
-    NTOT=NX1*NY1*NZ1*NELV
-
-    isbcnt = ntot*(1+ndim)
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-
-    call invcol3 (out1,bm1,h2inv,ntot)  ! this is expensive and should
-    call dssum   (out1,nx1,ny1,nz1)     ! be changed (pff, 3/18/09)
-    if (if3d) then
-        do i=1,ntot
-            tmp = 1./out1(i)
-            out1(i)=inp1(i)*tmp
-            out2(i)=inp2(i)*tmp
-            out3(i)=inp3(i)*tmp
-        enddo
-    else
-        do i=1,ntot
-            tmp = 1./out1(i)
-            out1(i)=inp1(i)*tmp
-            out2(i)=inp2(i)*tmp
-        enddo
-    endif
-
-    return
-    end subroutine opbinv
-!-----------------------------------------------------------------------
-    subroutine opbinv1(out1,out2,out3,inp1,inp2,inp3,SCALE)
-!--------------------------------------------------------------------
-
-!     Compute OUT = (B)-1 * INP   (explicit)
-
-!--------------------------------------------------------------------
-    use size_m
-    use input
-    use mass
-    use opctr
-    use soln
-
-    REAL :: OUT1  (1)
-    REAL :: OUT2  (1)
-    REAL :: OUT3  (1)
-    REAL :: INP1  (1)
-    REAL :: INP2  (1)
-    REAL :: INP3  (1)
-
-
-
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'opbnv1'
-    endif
-
-    CALL OPMASK  (INP1,INP2,INP3)
-    CALL OPDSSUM (INP1,INP2,INP3)
-
-    NTOT=NX1*NY1*NZ1*NELV
-
-    isbcnt = ntot*(1+ndim)
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-
-    IF (IF3D) THEN
-        DO 100 I=1,NTOT
-            TMP    =BINVM1(I,1,1,1)*scale
-            OUT1(I)=INP1(I)*TMP
-            OUT2(I)=INP2(I)*TMP
-            OUT3(I)=INP3(I)*TMP
-        100 END DO
-    ELSE
-        DO 200 I=1,NTOT
-            TMP    =BINVM1(I,1,1,1)*scale
-            OUT1(I)=INP1(I)*TMP
-            OUT2(I)=INP2(I)*TMP
-        200 END DO
-    ENDIF
-
-    return
-    end subroutine opbinv1
 !-----------------------------------------------------------------------
     subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
 !--------------------------------------------------------------
@@ -1493,42 +1323,6 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   return
 end subroutine normvc
 
-    subroutine opmask (res1,res2,res3)
-!----------------------------------------------------------------------
-
-!     Mask the residual arrays.
-
-!----------------------------------------------------------------------
-    use size_m
-    use input
-    use soln
-    use tstep
-    REAL :: RES1(1),RES2(1),RES3(1)
-
-    NTOT1 = NX1*NY1*NZ1*NELV
-
-!     sv=glsum(v3mask,ntot1)
-!     sb=glsum(b3mask,ntot1)
-!     write(6,*) istep,' ifld:',ifield,intype,sv,sb
-    IF (IFSTRS) THEN
-!max        CALL RMASK (RES1,RES2,RES3,NELV)
-    ELSE
-        if (ifield == ifldmhd) then
-            CALL COL2 (RES1,B1MASK,NTOT1)
-            CALL COL2 (RES2,B2MASK,NTOT1)
-            IF (NDIM == 3) &
-            CALL COL2 (RES3,B3MASK,NTOT1)
-        else
-            CALL COL2 (RES1,V1MASK,NTOT1)
-            CALL COL2 (RES2,V2MASK,NTOT1)
-            IF (NDIM == 3) &
-            CALL COL2 (RES3,V3MASK,NTOT1)
-        endif
-    ENDIF
-
-    return
-    end subroutine opmask
-
     subroutine opadd2 (a1,a2,a3,b1,b2,b3)
     use size_m
     REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
@@ -1945,43 +1739,6 @@ end subroutine convop
     return
     end subroutine opdiv
 
-!-----------------------------------------------------------------------
-    subroutine opgradt(outx,outy,outz,inpfld)
-!------------------------------------------------------------------------
-
-!     Compute DTx, DTy, DTz of an input field INPFLD
-
-!-----------------------------------------------------------------------
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    real :: outx   (lx1,ly1,lz1,1)
-    real :: outy   (lx1,ly1,lz1,1)
-    real :: outz   (lx1,ly1,lz1,1)
-    real :: inpfld (lx2,ly2,lz2,1)
-
-    call cdtp (outx,inpfld,rxm2,sxm2,txm2,1)
-    call cdtp (outy,inpfld,rym2,sym2,tym2,2)
-    if (ndim == 3) &
-    call cdtp (outz,inpfld,rzm2,szm2,tzm2,3)
-
-    return
-    end subroutine opgradt
 !-----------------------------------------------------------------------
     subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
 

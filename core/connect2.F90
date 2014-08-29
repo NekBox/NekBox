@@ -1385,453 +1385,249 @@
     return
     end subroutine rdobj
 !-----------------------------------------------------------------------
-    subroutine vrdsmsh
 
 !=====================================================================
-!     Verify that mesh and dssum are properly defined by performing
-!        a direct stiffness operation on the X,Y and Z coordinates.
-!     Note that periodic faces are not checked here.
+!> \brief Verify that mesh and dssum are properly defined by performing
+!!    a direct stiffness operation on the X,Y and Z coordinates.
+!! Note that periodic faces are not checked here.
 !=====================================================================
+subroutine vrdsmsh()
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelt, ndim, nid
+  use geom, only : xm1, ym1, zm1
+  use input, only : ifheat, cbc, if3d
+  use parallel, only : lglel
+  use soln, only : tmult, vmult
+  use tstep, only : ifield
+  implicit none
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    COMMON /SCRNS/ TA(LX1,LY1,LZ1,LELT),TB(LX1,LY1,LZ1,LELT) &
-    ,QMASK(LX1,LY1,LZ1,LELT),tmp(2)
-    CHARACTER(3) :: CB
+  real(DP) :: TA(LX1,LY1,LZ1,LELT),TB(LX1,LY1,LZ1,LELT) &
+  ,QMASK(LX1,LY1,LZ1,LELT),tmp(2)
 
-!      call  vrdsmshx  ! verify mesh topology
+  CHARACTER(3) :: CB
+  integer :: ierr, nxyz1, ntot, nfaces, ie, ieg, ix, iy, iz, iface, iel
+  real(DP) :: eps, xmx, xmn, ymx, ymn, zmx, zmn, xscmax, xscmin
+  real(DP) :: scal1, scal2, scal3, xscale, yscmax, yscmin, zscale
+  real(DP) :: yscale, zscmax, zscmin
+  real(DP), external :: glmin, glmax, vlmin, vlmax
+  integer :: iglsum
 
-    if(nid == 0) write(*,*) 'verify mesh topology'
+!    call  vrdsmshx  ! verify mesh topology
 
-    IERR      = 0
-    EPS       = 1.0e-04
-    EPS       = 1.0e-03
-    IFIELD    = 1
-    IF (IFHEAT) IFIELD = 2
-    NXYZ1     = NX1*NY1*NZ1
-    NTOT      = NX1*NY1*NZ1*NELT
-    NFACES    = 2*NDIM
+  if(nid == 0) write(*,*) 'verify mesh topology'
 
-    xmx = glmax(xm1,ntot)
-    xmn = glmin(xm1,ntot)
-    ymx = glmax(ym1,ntot)
-    ymn = glmin(ym1,ntot)
-    zmx = glmax(zm1,ntot)
-    zmn = glmin(zm1,ntot)
-    if (nid == 0) write(6,*) xmn,xmx,' Xrange'
-    if (nid == 0) write(6,*) ymn,ymx,' Yrange'
-    if (nid == 0) write(6,*) zmn,zmx,' Zrange'
-!     return
+  IERR      = 0
+  EPS       = 1.0e-04
+  EPS       = 1.0e-03
+  IFIELD    = 1
+  IF (IFHEAT) IFIELD = 2
+  NXYZ1     = NX1*NY1*NZ1
+  NTOT      = NX1*NY1*NZ1*NELT
+  NFACES    = 2*NDIM
 
-!     First check - use 1/Multiplicity
+  xmx = glmax(xm1,ntot)
+  xmn = glmin(xm1,ntot)
+  ymx = glmax(ym1,ntot)
+  ymn = glmin(ym1,ntot)
+  zmx = glmax(zm1,ntot)
+  zmn = glmin(zm1,ntot)
+  if (nid == 0) write(6,*) xmn,xmx,' Xrange'
+  if (nid == 0) write(6,*) ymn,ymx,' Yrange'
+  if (nid == 0) write(6,*) zmn,zmx,' Zrange'
+!   return
 
-    IF (IFHEAT) THEN
-        CALL COPY(TA,TMULT,NTOT)
-    ELSE
-        CALL COPY(TA,VMULT,NTOT)
-    ENDIF
+!   First check - use 1/Multiplicity
 
-!     write(6,1)
-!    $(nid,'tab4',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)
-!   1 format(i3,a4,i3,16f5.2)
+  IF (IFHEAT) THEN
+      CALL COPY(TA,TMULT,NTOT)
+  ELSE
+      CALL COPY(TA,VMULT,NTOT)
+  ENDIF
 
-    CALL DSSUM(TA,NX1,NY1,NZ1)
+!   write(6,1)
+!  $(nid,'tab4',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)
+! 1 format(i3,a4,i3,16f5.2)
 
-!     write(6,1)
-!    $(nid,'taaf',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)
+  CALL DSSUM(TA,NX1,NY1,NZ1)
 
-    CALL RONE (TB,NTOT)
-    CALL SUB2 (TB,TA,NTOT)
-    DO 1000 IE=1,NELT
-        ieg=lglel(ie)
-        DO 1000 IZ=1,NZ1
-            DO 1000 IY=1,NY1
-                DO 1000 IX=1,NX1
-                    IF (ABS(TB(IX,IY,IZ,IE)) > EPS ) THEN
-                        WRITE(6,1005) IX,IY,IZ,IEG &
-                        ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE) &
-                        ,TA(IX,IY,IZ,IE),eps
-                    !           WRITE(7,1005) IX,IY,IZ,IEG
-                    !    $      ,XM1(IX,IY,IZ,IE),TB(IX,IY,IZ,IE),TA(IX,IY,IZ,IE)
-                    !    $      ,QMASK(IX,IY,IZ,IE)
-                        1005 FORMAT(2X,'WARNING: DSSUM problem at:',/ &
-                        ,1X,'I,J,K,IE:',3I5,i12,/ &
-                        ,2X,'Near X =',3G16.8,', d:',2G16.8)
-                        IERR=4
-                    ENDIF
-    1000 END DO
+!   write(6,1)
+!  $(nid,'taaf',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)
 
-!     Set up QMASK quickly to annihilate checks on periodic bc's
+  CALL RONE (TB,NTOT)
+  CALL SUB2 (TB,TA,NTOT)
+  DO 1000 IE=1,NELT
+      ieg=lglel(ie)
+      DO 1000 IZ=1,NZ1
+          DO 1000 IY=1,NY1
+              DO 1000 IX=1,NX1
+                  IF (ABS(TB(IX,IY,IZ,IE)) > EPS ) THEN
+                      WRITE(6,1005) IX,IY,IZ,IEG &
+                      ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE) &
+                      ,TA(IX,IY,IZ,IE),eps
+                  !           WRITE(7,1005) IX,IY,IZ,IEG
+                  !    $      ,XM1(IX,IY,IZ,IE),TB(IX,IY,IZ,IE),TA(IX,IY,IZ,IE)
+                  !    $      ,QMASK(IX,IY,IZ,IE)
+                      1005 FORMAT(2X,'WARNING: DSSUM problem at:',/ &
+                      ,1X,'I,J,K,IE:',3I5,i12,/ &
+                      ,2X,'Near X =',3G16.8,', d:',2G16.8)
+                      IERR=4
+                  ENDIF
+  1000 END DO
 
-    CALL RONE(QMASK,NTOT)
-    DO 100 IEL=1,NELT
-        DO 100 IFACE=1,NFACES
-            CB =CBC(IFACE,IEL,IFIELD)
-            IF (CB == 'P  ' .OR. cb == 'p  ') &
-            CALL FACEV(QMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-    100 END DO
-    CALL DSOP(QMASK,'MUL',NX1,NY1,NZ1)
+!   Set up QMASK quickly to annihilate checks on periodic bc's
 
-!      xxmin = glmin(xm1,ntot)
-!      yymin = glmin(ym1,ntot)
-!      zzmin = glmin(zm1,ntot)
-!      xxmax = glmax(xm1,ntot)
-!      yymax = glmax(ym1,ntot)
-!      zzmax = glmax(zm1,ntot)
-!      if (nid.eq.0) write(6,7) xxmin,yymin,zzmin,xxmax,yymax,zzmax
-!    7 format('xyz minmx2:',6g13.5)
+  CALL RONE(QMASK,NTOT)
+  DO 100 IEL=1,NELT
+      DO 100 IFACE=1,NFACES
+          CB =CBC(IFACE,IEL,IFIELD)
+          IF (CB == 'P  ' .OR. cb == 'p  ') &
+          CALL FACEV(QMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+  100 END DO
+  CALL DSOP(QMASK,'MUL',NX1,NY1,NZ1)
 
+!    xxmin = glmin(xm1,ntot)
+!    yymin = glmin(ym1,ntot)
+!    zzmin = glmin(zm1,ntot)
+!    xxmax = glmax(xm1,ntot)
+!    yymax = glmax(ym1,ntot)
+!    zzmax = glmax(zm1,ntot)
+!    if (nid.eq.0) write(6,7) xxmin,yymin,zzmin,xxmax,yymax,zzmax
+!  7 format('xyz minmx2:',6g13.5)
 
 
 
-!     X-component
 
-    CALL COPY(TA,XM1,NTOT)
-    CALL COPY(TB,XM1,NTOT)
-    CALL DSOP(TA,'MIN',NX1,NY1,NZ1)
-    CALL DSOP(TB,'MAX',NX1,NY1,NZ1)
-    CALL SUB2(TA,XM1,NTOT)
-    CALL SUB2(TB,XM1,NTOT)
-    CALL COL2(TA,QMASK,NTOT)
-    CALL COL2(TB,QMASK,NTOT)
-    DO 1100 IE=1,NELT
-        XSCMAX = VLMAX(XM1(1,1,1,IE),NXYZ1)
-        XSCMIN = VLMIN(XM1(1,1,1,IE),NXYZ1)
-        SCAL1=ABS(XSCMAX-XSCMIN)
-        SCAL2=ABS(XSCMAX)
-        SCAL3=ABS(XSCMIN)
-        SCAL1=MAX(SCAL1,SCAL2)
-        SCAL1=MAX(SCAL1,SCAL3)
-        XSCALE = 1./SCAL1
-        ieg=lglel(ie)
-        DO 1100 IZ=1,NZ1
-            DO 1100 IY=1,NY1
-                DO 1100 IX=1,NX1
-                    if (abs(ta(ix,iy,iz,ie)*xscale) > eps .OR. &
-                    abs(tb(ix,iy,iz,ie)*xscale) > eps ) then
-                        write(6,1105) ix,iy,iz,ieg &
-                        ,xm1(ix,iy,iz,ie),ym1(ix,iy,iz,ie),zm1(ix,iy,iz,ie) &
-                        ,tb(ix,iy,iz,ie),ta(ix,iy,iz,ie),XSCALE
-                        1105 format(1x,'WARNING1 Element mesh mismatch at:',/ &
-                        ,1x,'i,j,k,ie:',3i5,I12,/ &
-                        ,1X,'Near X =',3G16.8,', d:',3G16.8)
-                        ierr=1
-                    endif
-    1100 END DO
+!   X-component
 
-!     Y-component
+  CALL COPY(TA,XM1,NTOT)
+  CALL COPY(TB,XM1,NTOT)
+  CALL DSOP(TA,'MIN',NX1,NY1,NZ1)
+  CALL DSOP(TB,'MAX',NX1,NY1,NZ1)
+  CALL SUB2(TA,XM1,NTOT)
+  CALL SUB2(TB,XM1,NTOT)
+  CALL COL2(TA,QMASK,NTOT)
+  CALL COL2(TB,QMASK,NTOT)
+  DO 1100 IE=1,NELT
+      XSCMAX = VLMAX(XM1(1,1,1,IE),NXYZ1)
+      XSCMIN = VLMIN(XM1(1,1,1,IE),NXYZ1)
+      SCAL1=ABS(XSCMAX-XSCMIN)
+      SCAL2=ABS(XSCMAX)
+      SCAL3=ABS(XSCMIN)
+      SCAL1=MAX(SCAL1,SCAL2)
+      SCAL1=MAX(SCAL1,SCAL3)
+      XSCALE = 1./SCAL1
+      ieg=lglel(ie)
+      DO 1100 IZ=1,NZ1
+          DO 1100 IY=1,NY1
+              DO 1100 IX=1,NX1
+                  if (abs(ta(ix,iy,iz,ie)*xscale) > eps .OR. &
+                  abs(tb(ix,iy,iz,ie)*xscale) > eps ) then
+                      write(6,1105) ix,iy,iz,ieg &
+                      ,xm1(ix,iy,iz,ie),ym1(ix,iy,iz,ie),zm1(ix,iy,iz,ie) &
+                      ,tb(ix,iy,iz,ie),ta(ix,iy,iz,ie),XSCALE
+                      1105 format(1x,'WARNING1 Element mesh mismatch at:',/ &
+                      ,1x,'i,j,k,ie:',3i5,I12,/ &
+                      ,1X,'Near X =',3G16.8,', d:',3G16.8)
+                      ierr=1
+                  endif
+  1100 END DO
 
-    CALL COPY(TA,YM1,NTOT)
-    CALL COPY(TB,YM1,NTOT)
-    CALL DSOP(TA,'MIN',NX1,NY1,NZ1)
-    CALL DSOP(TB,'MAX',NX1,NY1,NZ1)
-    CALL SUB2(TA,YM1,NTOT)
-    CALL SUB2(TB,YM1,NTOT)
-    CALL COL2(TA,QMASK,NTOT)
-    CALL COL2(TB,QMASK,NTOT)
-    DO 1200 IE=1,NELT
-        YSCMAX = VLMAX(YM1(1,1,1,IE),NXYZ1)
-        YSCMIN = VLMIN(YM1(1,1,1,IE),NXYZ1)
-        SCAL1=ABS(YSCMAX-YSCMIN)
-        SCAL2=ABS(YSCMAX)
-        SCAL3=ABS(YSCMIN)
-        SCAL1=MAX(SCAL1,SCAL2)
-        SCAL1=MAX(SCAL1,SCAL3)
-        YSCALE = 1./SCAL1
-        ieg=lglel(ie)
-        DO 1200 IZ=1,NZ1
-            DO 1200 IY=1,NY1
-                DO 1200 IX=1,NX1
-                    IF (ABS(TA(IX,IY,IZ,IE)*YSCALE) > EPS .OR. &
-                    ABS(TB(IX,IY,IZ,IE)*YSCALE) > EPS ) THEN
-                        WRITE(6,1205) IX,IY,IZ,IEG &
-                        ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE) &
-                        ,TB(IX,IY,IZ,IE),TA(IX,IY,IZ,IE),yscale
-                        1205 FORMAT(1X,'WARNING2 Element mesh mismatch at:',/ &
-                        ,1X,'I,J,K,IE:',3I5,i12,/ &
-                        ,1X,'Near Y =',3G16.8,', d:',3G16.8)
-                        IERR=2
-                    ENDIF
-    1200 END DO
+!   Y-component
 
-!     Z-component
+  CALL COPY(TA,YM1,NTOT)
+  CALL COPY(TB,YM1,NTOT)
+  CALL DSOP(TA,'MIN',NX1,NY1,NZ1)
+  CALL DSOP(TB,'MAX',NX1,NY1,NZ1)
+  CALL SUB2(TA,YM1,NTOT)
+  CALL SUB2(TB,YM1,NTOT)
+  CALL COL2(TA,QMASK,NTOT)
+  CALL COL2(TB,QMASK,NTOT)
+  DO 1200 IE=1,NELT
+      YSCMAX = VLMAX(YM1(1,1,1,IE),NXYZ1)
+      YSCMIN = VLMIN(YM1(1,1,1,IE),NXYZ1)
+      SCAL1=ABS(YSCMAX-YSCMIN)
+      SCAL2=ABS(YSCMAX)
+      SCAL3=ABS(YSCMIN)
+      SCAL1=MAX(SCAL1,SCAL2)
+      SCAL1=MAX(SCAL1,SCAL3)
+      YSCALE = 1./SCAL1
+      ieg=lglel(ie)
+      DO 1200 IZ=1,NZ1
+          DO 1200 IY=1,NY1
+              DO 1200 IX=1,NX1
+                  IF (ABS(TA(IX,IY,IZ,IE)*YSCALE) > EPS .OR. &
+                  ABS(TB(IX,IY,IZ,IE)*YSCALE) > EPS ) THEN
+                      WRITE(6,1205) IX,IY,IZ,IEG &
+                      ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE) &
+                      ,TB(IX,IY,IZ,IE),TA(IX,IY,IZ,IE),yscale
+                      1205 FORMAT(1X,'WARNING2 Element mesh mismatch at:',/ &
+                      ,1X,'I,J,K,IE:',3I5,i12,/ &
+                      ,1X,'Near Y =',3G16.8,', d:',3G16.8)
+                      IERR=2
+                  ENDIF
+  1200 END DO
 
-    IF (IF3D) THEN
-        CALL COPY(TA,ZM1,NTOT)
-        CALL COPY(TB,ZM1,NTOT)
-        CALL DSOP(TA,'MIN',NX1,NY1,NZ1)
-        CALL DSOP(TB,'MAX',NX1,NY1,NZ1)
-        CALL SUB2(TA,ZM1,NTOT)
-        CALL SUB2(TB,ZM1,NTOT)
-        CALL COL2(TA,QMASK,NTOT)
-        CALL COL2(TB,QMASK,NTOT)
-        DO 1300 IE=1,NELT
-            ZSCMAX = VLMAX(ZM1(1,1,1,IE),NXYZ1)
-            ZSCMIN = VLMIN(ZM1(1,1,1,IE),NXYZ1)
-            SCAL1=ABS(ZSCMAX-ZSCMIN)
-            SCAL2=ABS(ZSCMAX)
-            SCAL3=ABS(ZSCMIN)
-            SCAL1=MAX(SCAL1,SCAL2)
-            SCAL1=MAX(SCAL1,SCAL3)
-            ZSCALE = 1./SCAL1
-            ieg=lglel(ie)
-            DO 1300 IZ=1,NZ1
-                DO 1300 IY=1,NY1
-                    DO 1300 IX=1,NX1
-                        IF (ABS(TA(IX,IY,IZ,IE)*ZSCALE) > EPS .OR. &
-                        ABS(TB(IX,IY,IZ,IE)*ZSCALE) > EPS ) THEN
-                            WRITE(6,1305) IX,IY,IZ,IEG &
-                            ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE) &
-                            ,TB(IX,IY,IZ,IE),TA(IX,IY,IZ,IE),zscale
-                            1305 FORMAT(1X,'WARNING3 Element mesh mismatch at:',/ &
-                            ,1X,'I,J,K,IE:',3I5,i12,/ &
-                            ,1X,'Near Z =',3G16.8,', d:',3G16.8)
-                            IERR=3
-                        ENDIF
-        1300 END DO
-    ENDIF
-     
-    ierr = iglsum(ierr,1)
-    IF (IERR > 0) THEN
-        if(nid == 0) WRITE(6,1400)
-        1400 FORMAT &
-        (' Mesh consistency check failed.  EXITING in VRDSMSH.')
-        call exitt
-    ENDIF
-     
-    tmp(1)=ierr
-    CALL GOP(tmp,tmp(2),'M  ',1)
-    IF (tmp(1) >= 4.0) THEN
-        WRITE(6,1400) &
-        (' Mesh consistency check failed.  EXITING in VRDSMSH.')
-        call exitt
-    ENDIF
-     
-    if(nid == 0) then
-        write(6,*) 'done :: verify mesh topology'
-        write(6,*) ' '
-    endif
+!   Z-component
 
-    return
-    end subroutine vrdsmsh
-!-----------------------------------------------------------------------
-    subroutine vrdsmshx  ! verify mesh topology
+  IF (IF3D) THEN
+      CALL COPY(TA,ZM1,NTOT)
+      CALL COPY(TB,ZM1,NTOT)
+      CALL DSOP(TA,'MIN',NX1,NY1,NZ1)
+      CALL DSOP(TB,'MAX',NX1,NY1,NZ1)
+      CALL SUB2(TA,ZM1,NTOT)
+      CALL SUB2(TB,ZM1,NTOT)
+      CALL COL2(TA,QMASK,NTOT)
+      CALL COL2(TB,QMASK,NTOT)
+      DO 1300 IE=1,NELT
+          ZSCMAX = VLMAX(ZM1(1,1,1,IE),NXYZ1)
+          ZSCMIN = VLMIN(ZM1(1,1,1,IE),NXYZ1)
+          SCAL1=ABS(ZSCMAX-ZSCMIN)
+          SCAL2=ABS(ZSCMAX)
+          SCAL3=ABS(ZSCMIN)
+          SCAL1=MAX(SCAL1,SCAL2)
+          SCAL1=MAX(SCAL1,SCAL3)
+          ZSCALE = 1./SCAL1
+          ieg=lglel(ie)
+          DO 1300 IZ=1,NZ1
+              DO 1300 IY=1,NY1
+                  DO 1300 IX=1,NX1
+                      IF (ABS(TA(IX,IY,IZ,IE)*ZSCALE) > EPS .OR. &
+                      ABS(TB(IX,IY,IZ,IE)*ZSCALE) > EPS ) THEN
+                          WRITE(6,1305) IX,IY,IZ,IEG &
+                          ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE) &
+                          ,TB(IX,IY,IZ,IE),TA(IX,IY,IZ,IE),zscale
+                          1305 FORMAT(1X,'WARNING3 Element mesh mismatch at:',/ &
+                          ,1X,'I,J,K,IE:',3I5,i12,/ &
+                          ,1X,'Near Z =',3G16.8,', d:',3G16.8)
+                          IERR=3
+                      ENDIF
+      1300 END DO
+  ENDIF
+   
+  ierr = iglsum(ierr,1)
+  IF (IERR > 0) THEN
+      if(nid == 0) WRITE(6,1400)
+      1400 FORMAT &
+      (' Mesh consistency check failed.  EXITING in VRDSMSH.')
+      call exitt
+  ENDIF
+   
+  tmp(1)=ierr
+  CALL GOP(tmp,tmp(2),'M  ',1)
+  IF (tmp(1) >= 4.0) THEN
+      WRITE(6,1400) &
+      (' Mesh consistency check failed.  EXITING in VRDSMSH.')
+      call exitt
+  ENDIF
+   
+  if(nid == 0) then
+      write(6,*) 'done :: verify mesh topology'
+      write(6,*) ' '
+  endif
 
-!=====================================================================
-!     Verify that mesh and dssum are properly defined by performing
-!        a direct stiffness operation on the X,Y and Z coordinates.
-!     Note that periodic faces are not checked here.
-!=====================================================================
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    common /scrns/ tc(lx1,ly1,lz1,lelt),td(lx1,ly1,lz1,lelt) &
-    , ta(lx1,ly1,lz1,lelt),tb(lx1,ly1,lz1,lelt) &
-    , qmask(lx1,ly1,lz1,lelt)
-    CHARACTER(3) :: CB
-
-    IERR      = 0
-    EPS       = 1.0e-04
-    EPS       = 1.0e-03
-    IFIELD    = 1
-    IF (IFHEAT) IFIELD = 2
-    NXYZ1     = NX1*NY1*NZ1
-    NTOT      = NX1*NY1*NZ1*NELT
-    NFACES    = 2*NDIM
-
-    xmx = glmax(xm1,ntot)
-    xmn = glmin(xm1,ntot)
-    ymx = glmax(ym1,ntot)
-    ymn = glmin(ym1,ntot)
-    zmx = glmax(zm1,ntot)
-    zmn = glmin(zm1,ntot)
-    if (nid == 0) write(6,*) xmn,xmx,' Xrange'
-    if (nid == 0) write(6,*) ymn,ymx,' Yrange'
-    if (nid == 0) write(6,*) zmn,zmx,' Zrange'
-!     return
-
-!     First check - use 1/Multiplicity
-
-    IF (IFHEAT) THEN
-        CALL COPY(TA,TMULT,NTOT)
-    ELSE
-        CALL COPY(TA,VMULT,NTOT)
-    ENDIF
-
-!     write(6,1)
-!    $(nid,'tab4',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)
-!   1 format(i3,a4,i3,16f5.2)
-
-    CALL DSSUM(TA,NX1,NY1,NZ1)
-
-!     write(6,1)
-!    $(nid,'taaf',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)
-
-    CALL RONE (TB,NTOT)
-    CALL SUB2 (TB,TA,NTOT)
-    DO 1000 IE=1,NELT
-        ieg=lglel(ie)
-        DO 1000 IZ=1,NZ1
-            DO 1000 IY=1,NY1
-                DO 1000 IX=1,NX1
-                    IF (ABS(TB(IX,IY,IZ,IE)) > EPS ) THEN
-                        WRITE(6,1005) IX,IY,IZ,IEG &
-                        ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE) &
-                        ,TA(IX,IY,IZ,IE),eps
-                    !           WRITE(7,1005) IX,IY,IZ,IEG
-                    !    $      ,XM1(IX,IY,IZ,IE),TB(IX,IY,IZ,IE),TA(IX,IY,IZ,IE)
-                    !    $      ,QMASK(IX,IY,IZ,IE)
-                        1005 FORMAT(2X,'WARNING: DSSUM problem at:',/ &
-                        ,1X,'I,J,K,IE:',3I5,i12,/ &
-                        ,2X,'Near X =',3G16.8,', d:',2G16.8)
-                        IERR=4
-                    ENDIF
-    1000 END DO
-
-!     Set up QMASK quickly to annihilate checks on periodic bc's
-
-    CALL RONE(QMASK,NTOT)
-    DO 100 IEL=1,NELT
-        DO 100 IFACE=1,NFACES
-            CB =CBC(IFACE,IEL,IFIELD)
-            IF (CB == 'P  ' .OR. cb == 'p  ') &
-            CALL FACEV(QMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-    100 END DO
-    call dsop(QMASK,'MUL',NX1,NY1,NZ1)
-
-    xxmin = glmin(xm1,ntot)
-    yymin = glmin(ym1,ntot)
-    zzmin = glmin(zm1,ntot)
-    xxmax = glmax(xm1,ntot)
-    yymax = glmax(ym1,ntot)
-    zzmax = glmax(zm1,ntot)
-    if (nid == 0) write(6,7) xxmin,yymin,zzmin,xxmax,yymax,zzmax
-    7 format('xyz minmx2:',6g13.5)
-
-
-
-!     X-component
-
-    call copy(ta,xm1,ntot)
-    call copy(tb,xm1,ntot)
-    call dsop(ta,'min',nx1,ny1,nz1)
-    call dsop(tb,'max',nx1,ny1,nz1)
-
-    call copy(tc,xm1,ntot)
-    call copy(td,xm1,ntot)
-    call dsop(tc,'min',nx1,ny1,nz1)
-    call dsop(td,'max',nx1,ny1,nz1)
-
-    xxmin = glmin(xm1,ntot)
-    xxmax = glmax(xm1,ntot)
-    yymax = glmax(ta ,ntot)
-    yymin = glmin(ta ,ntot)
-    zzmin = glmin(tb ,ntot)
-    zzmax = glmax(tb ,ntot)
-    if (nid == 0) write(6,9) xxmin,yymin,zzmin,xxmax,yymax,zzmax
-    9 format('xyz minmx3:',6g13.5)
-
-    CALL SUB2(TA,XM1,NTOT)
-    CALL SUB2(TB,XM1,NTOT)
-
-    xxmin = glmin(qmask,ntot)
-    xxmax = glmax(qmask,ntot)
-    yymax = glmax(ta ,ntot)
-    yymin = glmin(ta ,ntot)
-    zzmin = glmin(tb ,ntot)
-    zzmax = glmax(tb ,ntot)
-    if (nid == 0) write(6,19) xxmin,yymin,zzmin,xxmax,yymax,zzmax
-    19 format('xyz minmx4:',6g13.5)
-
-    CALL COL2(TA,QMASK,NTOT)
-    CALL COL2(TB,QMASK,NTOT)
-
-    xxmin = glmin(qmask,ntot)
-    xxmax = glmax(qmask,ntot)
-    yymax = glmax(ta ,ntot)
-    yymin = glmin(ta ,ntot)
-    zzmin = glmin(tb ,ntot)
-    zzmax = glmax(tb ,ntot)
-    if (nid == 0) write(6,29) xxmin,yymin,zzmin,xxmax,yymax,zzmax
-    29 format('xyz minmx5:',6g13.5)
-
-    DO 1100 IE=1,NELT
-        XSCMAX = VLMAX(XM1(1,1,1,IE),NXYZ1)
-        XSCMIN = VLMIN(XM1(1,1,1,IE),NXYZ1)
-        SCAL1=ABS(XSCMAX-XSCMIN)
-        SCAL2=ABS(XSCMAX)
-        SCAL3=ABS(XSCMIN)
-        SCAL1=MAX(SCAL1,SCAL2)
-        SCAL1=MAX(SCAL1,SCAL3)
-        XSCALE = 1./SCAL1
-        ieg=lglel(ie)
-        DO 1100 IZ=1,NZ1
-            DO 1100 IY=1,NY1
-                DO 1100 IX=1,NX1
-                    if (abs(ta(ix,iy,iz,ie)*xscale) > eps .OR. &
-                    abs(tb(ix,iy,iz,ie)*xscale) > eps ) then
-                        write(6,1105) nid,ix,iy,iz,ie,ieg &
-                        ,xm1(ix,iy,iz,ie),tc(ix,iy,iz,ie),td(ix,iy,iz,ie) &
-                        ,ym1(ix,iy,iz,ie),zm1(ix,iy,iz,ie) &
-                        ,ta(ix,iy,iz,ie),tb(ix,iy,iz,ie),xscale &
-                        ,qmask(ix,iy,iz,ie)
-                        1105 format(i4.4,1x,'ie:',3i3,i10,i10,1p9e11.3)
-                    ! 105       format(i4.4,1x,'ie:',3i3,i6,1p9e11.3)
-                        ierr=1
-                        goto 1101
-                    endif
-    1100 END DO
-    1101 CONTINUE
-
-    xxmin = glmin(xm1,ntot)
-    xxmax = glmax(xm1,ntot)
-    yymax = glmax(ta ,ntot)
-    yymin = glmin(ta ,ntot)
-    zzmin = glmin(tb ,ntot)
-    zzmax = glmax(tb ,ntot)
-    if (nid == 0) write(6,39) xxmin,yymin,zzmin,xxmax,yymax,zzmax
-    39 format('xyz minmx5:',6g13.5)
-
-!     ifvo = .true.
-!     ifpo = .false.
-!     ifto = .true.
-!     call outpost(xm1,ta,tb,pr,qmask,'   ')
-!     call exitt
-
-    return
-    end subroutine vrdsmshx
+  return
+end subroutine vrdsmsh
 !-----------------------------------------------------------------------
     subroutine scale(xyzl,nl)
 

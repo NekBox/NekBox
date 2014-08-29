@@ -167,8 +167,8 @@
 
 #ifdef MPIIO
     include 'mpif.h'
-    common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
-    common /scrns/  irank_io(0:lp-1)
+!    c!ommon /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
+!    c!ommon /scrns/  irank_io(0:lp-1)
 
 #ifdef MPIIO_NOCOL
     if(nid == 0) then

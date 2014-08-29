@@ -221,8 +221,6 @@ subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
   real(DP) :: h(lx1,3,2), zgml(lx1,3)
 
   integer, parameter :: ldw=2*lx1*ly1*lz1
-  real(DP) :: w
-  common /ctmp0/ w(ldw)
 
   character(1) :: ccv
   integer :: ie, nfaces, iface, isid
@@ -409,8 +407,7 @@ subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
   integer, save :: indx(8) = (/ 1,2,4,3,5,6,8,7 /)
 
   integer, parameter :: ldw=4*lx1*ly1*lz1
-  real(DP) :: xcb, ycb, zcb, w
-  common /ctmp0/ xcb(2,2,2),ycb(2,2,2),zcb(2,2,2),w(ldw)
+  real(DP) :: xcb(2,2,2),ycb(2,2,2),zcb(2,2,2),w(ldw)
 
 !  real(DP) :: zgml, jx,jy,jz,jxt,jyt,jzt, zlin
   real(DP) :: zgml(lx1,3),jx (lx1*2),jy (lx1*2),jz (lx1*2)

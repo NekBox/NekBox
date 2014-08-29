@@ -209,335 +209,319 @@ end subroutine setup_topo
     RETURN
     end subroutine initds
 !-----------------------------------------------------------------------
-    subroutine setedge
+!> \brief Initialize EDGE arrays for face and edge specific tasks.
+!!     .NOTE: Sevaral arrays in common are initialized via
+!!            BLOCKDATA EDGEC
+!!     Computed arrays:
+!!     IEDGE  -  Minimal list of wire frame nodes.
+!!               Used to search for all physical
+!!               coincidences.
+!!     IEDGEF - .Ordered list of wire frame nodes
+!!               associated with faces 1 through 6.
+!!              .Each of 4 sides of square frame stored
+!!               individually so that rotations are
+!!               readily handled.
+!!              .Two types of node orderings stored -
+!!               (0) is clockwise marching
+!!               (1) is counter-clockwise marching
+!!                   for image face.
+!!     IFACE         - indicates the face number.  Two notations
+!!                     are currently in use:
+!!                     i) Preprocessor notation:
+!!                                       +--------+     ^ S
+!!                                      /        /|     |
+!!                                     /    3   / |     |
+!!                               4--> /        /  |     |
+!!                                   +--------+ 2 +     +----> R
+!!                                   |        |  /     /
+!!                                   |    6   | /     /
+!!                                   |        |/     /
+!!                                   +--------+     T
+!!                                       1
+!!                    ii) Symmetric notation:
+!!                                       +--------+     ^ S
+!!                                      /        /|     |
+!!                                     /    4   / |     |
+!!                               1--> /        /  |     |
+!!                                   +--------+ 2 +     +----> R
+!!                                   |        |  /     /
+!!                                   |    6   | /     /
+!!                                   |        |/     /
+!!                                   +--------+     T
+!!                                       3
+!!     EFACE(IFACE)  -   Given face number IFACE in symmetric notation,
+!!                       returns preprocessor notation face number.
+!!     EFACE1(IFACE) -   Given face number IFACE in preprocessor notation,
+!!                       returns symmetric notation face number.
+!!  The following variables all take the symmetric
+!!  notation of IFACE as arguments:
+!!     ICFACE(i,IFACE) -   Gives the 4 vertices which reside on face IFACE
+!!                         as depicted below, e.g. ICFACE(i,2)=2,4,6,8.
+!!                        3+-----+4    ^ Y
+!!                        /  2  /|     |
+!!     Edge 1 extends    /     / |     |
+!!       from vertex   7+-----+8 +2    +----> X
+!!       1 to 2.        |  4  | /     /
+!!                      |     |/     /
+!!                     5+-----+6    Z
+!!                         3
+!!     IEDGFC(i,IFACE) -   Gives the 4 edges which border the face IFACE
+!!                         Edge numbering is as follows:
+!!                            Edge = 1,2,3,4     run in +r direction
+!!                            Edge = 5,6,7,8     run in +s direction
+!!                            Edge = 9,10,11,12  run in +t direction
+!!                         Ordering of each edge is such that a monotonically
+!!                         increasing sequence of vertices is associated with
+!!                         the start point of a corresponding set of
+!!                         monotonically increasing edge numbers, e.g.,
+!!     ICEDG(i,IEDGE)  -   Gives 3 variables for determining the stride along
+!!                         a given edge, IEDGE;  i=1 gives the starting vertex
+!!                                               i=2 gives the stopping vertex
+!!                                               i=3 gives the stride size.
+subroutine setedge()
+  use kinds, only : DP
+  use size_m, only : ndim
+  use topol, only : iedgef, iedge, invedg, skpdat, group
+  implicit none
 
-!     .Initialize EDGE arrays for face and edge specific tasks.
+  integer :: ITMP(3,3,3)
+  INTEGER :: ORDER
 
-!     .NOTE: Sevaral arrays in common are initialized via
-!            BLOCKDATA EDGEC
-
-!     Computed arrays:
-
-!     IEDGE  -  Minimal list of wire frame nodes.
-!               Used to search for all physical
-!               coincidences.
-
-
-!     IEDGEF - .Ordered list of wire frame nodes
-!               associated with faces 1 through 6.
-!              .Each of 4 sides of square frame stored
-!               individually so that rotations are
-!               readily handled.
-!              .Two types of node orderings stored -
-!               (0) is clockwise marching
-!               (1) is counter-clockwise marching
-!                   for image face.
-
-
-!     IFACE         - indicates the face number.  Two notations
-!                     are currently in use:
-
-!                     i) Preprocessor notation:
-
-!                                       +--------+     ^ S
-!                                      /        /|     |
-!                                     /    3   / |     |
-!                               4--> /        /  |     |
-!                                   +--------+ 2 +     +----> R
-!                                   |        |  /     /
-!                                   |    6   | /     /
-!                                   |        |/     /
-!                                   +--------+     T
-!                                       1
-
-!                    ii) Symmetric notation:
-
-!                                       +--------+     ^ S
-!                                      /        /|     |
-!                                     /    4   / |     |
-!                               1--> /        /  |     |
-!                                   +--------+ 2 +     +----> R
-!                                   |        |  /     /
-!                                   |    6   | /     /
-!                                   |        |/     /
-!                                   +--------+     T
-!                                       3
-
-!     EFACE(IFACE)  -   Given face number IFACE in symmetric notation,
-!                       returns preprocessor notation face number.
-
-!     EFACE1(IFACE) -   Given face number IFACE in preprocessor notation,
-!                       returns symmetric notation face number.
-
-!  The following variables all take the symmetric
-!  notation of IFACE as arguments:
-
-!     ICFACE(i,IFACE) -   Gives the 4 vertices which reside on face IFACE
-!                         as depicted below, e.g. ICFACE(i,2)=2,4,6,8.
-
-!                        3+-----+4    ^ Y
-!                        /  2  /|     |
-!     Edge 1 extends    /     / |     |
-!       from vertex   7+-----+8 +2    +----> X
-!       1 to 2.        |  4  | /     /
-!                      |     |/     /
-!                     5+-----+6    Z
-!                         3
-
-!     IEDGFC(i,IFACE) -   Gives the 4 edges which border the face IFACE
-!                         Edge numbering is as follows:
-!                            Edge = 1,2,3,4     run in +r direction
-!                            Edge = 5,6,7,8     run in +s direction
-!                            Edge = 9,10,11,12  run in +t direction
-
-!                         Ordering of each edge is such that a monotonically
-!                         increasing sequence of vertices is associated with
-!                         the start point of a corresponding set of
-!                         monotonically increasing edge numbers, e.g.,
-
-!     ICEDG(i,IEDGE)  -   Gives 3 variables for determining the stride along
-!                         a given edge, IEDGE;  i=1 gives the starting vertex
-!                                               i=2 gives the stopping vertex
-!                                               i=3 gives the stride size.
-
-    use size_m
-    use topol
-
-    COMMON /CTMP0/ ITMP(3,3,3)
-    INTEGER :: ORDER
-
-    NXL=3
-    NYL=3
-    NZL=1+2*(NDIM-2)
-    NXY   =NXL*NYL
-    NXYZ  =NXL*NYL*NZL
-    NFACES=2*NDIM
+  integer :: nxl, nyl, nzl, nxy, nxyz, nfaces
+  integer :: i3d, i, i3, iz, i2, iy, i1, ix
+  integer :: j, j1, j2, jskip2
+  integer :: jf2, js2, jskip1, jf1, js1, iface, image, ii
+  NXL=3
+  NYL=3
+  NZL=1+2*(NDIM-2)
+  NXY   =NXL*NYL
+  NXYZ  =NXL*NYL*NZL
+  NFACES=2*NDIM
 
 !----------------------------------------------------------------------
 !     Set up edge arrays (temporary - required only for defining DS)
 !----------------------------------------------------------------------
-
 !     Fill corners - 1 through 8.
 
-    I3D=1
-    IF (NDIM == 2) I3D=0
+  I3D=1
+  IF (NDIM == 2) I3D=0
 
-    I=0
-    DO 10 I3=0,I3D
-        IZ=1+(NZL-1)*I3
-        DO 10 I2=0,1
-            IY=1+(NYL-1)*I2
-            DO 10 I1=0,1
-                IX=1+(NXL-1)*I1
-                I=I+1
-                IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
-    10 END DO
+  I=0
+  DO 10 I3=0,I3D
+      IZ=1+(NZL-1)*I3
+      DO 10 I2=0,1
+          IY=1+(NYL-1)*I2
+          DO 10 I1=0,1
+              IX=1+(NXL-1)*I1
+              I=I+1
+              IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
+  10 END DO
 
-!     Fill X-direction edges.
+!   Fill X-direction edges.
 
-    DO 20 I3=0,I3D
-        IZ=1+(NZL-1)*I3
-        DO 20 I2=0,1
-            IY=1+(NYL-1)*I2
-            DO 20 IX=2,NXL-1
-                I=I+1
-                IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
-    20 END DO
+  DO 20 I3=0,I3D
+      IZ=1+(NZL-1)*I3
+      DO 20 I2=0,1
+          IY=1+(NYL-1)*I2
+          DO 20 IX=2,NXL-1
+              I=I+1
+              IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
+  20 END DO
 
-!     Fill Y-direction edges.
+!   Fill Y-direction edges.
 
-    DO 30 I3=0,I3D
-        IZ=1+(NZL-1)*I3
-        DO 30 I1=0,1
-            IX=1+(NXL-1)*I1
-            DO 30 IY=2,NYL-1
-                I=I+1
-                IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
-    30 END DO
+  DO 30 I3=0,I3D
+      IZ=1+(NZL-1)*I3
+      DO 30 I1=0,1
+          IX=1+(NXL-1)*I1
+          DO 30 IY=2,NYL-1
+              I=I+1
+              IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
+  30 END DO
 
-!     Fill Z-direction edges.
+!   Fill Z-direction edges.
 
-    IF (NDIM == 3) THEN
-        DO 40 I2=0,1
-            IY=1+(NYL-1)*I2
-            DO 40 I1=0,1
-                IX=1+(NXL-1)*I1
-                DO 40 IZ=2,NZL-1
-                    I=I+1
-                    IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
-        40 END DO
-    ENDIF
+  IF (NDIM == 3) THEN
+      DO 40 I2=0,1
+          IY=1+(NYL-1)*I2
+          DO 40 I1=0,1
+              IX=1+(NXL-1)*I1
+              DO 40 IZ=2,NZL-1
+                  I=I+1
+                  IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
+      40 END DO
+  ENDIF
 
-    CALL IZERO(INVEDG,27)
-    DO 44 II=1,20
-        IX=IEDGE(II)
-        INVEDG(IX)=II
-    44 END DO
+  CALL IZERO(INVEDG,27)
+  DO 44 II=1,20
+      IX=IEDGE(II)
+      INVEDG(IX)=II
+  44 END DO
 
 
-!     GENERAL FACE, GENERAL ROTATION EDGE NUMBERS.
+!   GENERAL FACE, GENERAL ROTATION EDGE NUMBERS.
 
-    IF (NDIM == 3) THEN
-    
-    !        Pack 3-D edge numbering:
-    
-    !        Fill temporary array with local index numbers:
-    
-        DO 50 IX=1,NXYZ
-            ITMP(IX,1,1)=IX
-        50 END DO
-    
-    !        Two sets are required, the base cube and the image cube
-    !        which is being summed with it.
-    
-        DO 1000 IMAGE=0,1
-        
-        !        Pack edges for each face, no rotation.
-        
-            DO 500 IFACE=1,NFACES
-                JS1    = SKPDAT(1,IFACE)
-                JF1    = SKPDAT(2,IFACE)
-                JSKIP1 = SKPDAT(3,IFACE)
-                JS2    = SKPDAT(4,IFACE)
-                JF2    = SKPDAT(5,IFACE)
-                JSKIP2 = SKPDAT(6,IFACE)
-            
-            !           Choose proper indexing order according to face type and image.
-            
-                ORDER = (-1)**(GROUP(IFACE)+IMAGE)
-                IF (ORDER == 1) THEN
-                
-                !              Forward ordering:
-                
-                !            +-------------+    ^ v1
-                !            | --------->| |    |
-                !            | ^    2    | |    +-->
-                !            | |         | |      v2
-                !            | |1       3| |
-                !            | |    4    V |
-                !            | |<--------- |
-                !            F-------------I     F is fiducial node.
-                
-                !                                I is location of fiducial node for
-                !                                     image face.
-                
-                !           Load edge 1:
-                
-                    J=0
-                    J2=JS2
-                    DO 100 J1=JS1,JF1-JSKIP1,JSKIP1
-                        J=J+1
-                        IEDGEF(J,1,IFACE,IMAGE)=ITMP(J1,J2,1)
-                    100 END DO
-                
-                !           Load edge 2:
-                
-                    J=0
-                    J1=JF1
-                    DO 200 J2=JS2,JF2-JSKIP2,JSKIP2
-                        J=J+1
-                        IEDGEF(J,2,IFACE,IMAGE)=ITMP(J1,J2,1)
-                    200 END DO
-                
-                
-                !           Load edge 3:
-                
-                    J=0
-                    J2=JF2
-                    DO 300 J1=JF1,JS1+JSKIP1,-JSKIP1
-                        J=J+1
-                        IEDGEF(J,3,IFACE,IMAGE)=ITMP(J1,J2,1)
-                    300 END DO
-                
-                !           Load edge 4:
-                
-                    J=0
-                    J1=JS1
-                    DO 400 J2=JF2,JS2+JSKIP2,-JSKIP2
-                        J=J+1
-                        IEDGEF(J,4,IFACE,IMAGE)=ITMP(J1,J2,1)
-                    400 END DO
-                
-                ELSE
-                
-                !           Reverse ordering:
-                
-                !            +-------------+
-                !            | |<--------- |       ^ v2
-                !            | |    2    ^ |       |
-                !            | |         | |    <--+
-                !            | |3       1| |     v1
-                !            | V    4    | |
-                !            | --------->| |
-                !            I-------------F     F is fiducial node.
-                
-                !                                I is location of fiducial node for
-                !                                     image face.
-                
-                !           Load edge 1:
-                
-                    J=0
-                    J1=JS1
-                    DO 105 J2=JS2,JF2-JSKIP2,JSKIP2
-                        J=J+1
-                        IEDGEF(J,1,IFACE,IMAGE)=ITMP(J1,J2,1)
-                    105 END DO
-                
-                !           Load edge 2:
-                
-                    J=0
-                    J2=JF2
-                    DO 205 J1=JS1,JF1-JSKIP1,JSKIP1
-                        J=J+1
-                        IEDGEF(J,2,IFACE,IMAGE)=ITMP(J1,J2,1)
-                    205 END DO
-                
-                !           Load edge 3:
-                
-                    J=0
-                    J1=JF1
-                    DO 305 J2=JF2,JS2+JSKIP2,-JSKIP2
-                        J=J+1
-                        IEDGEF(J,3,IFACE,IMAGE)=ITMP(J1,J2,1)
-                    305 END DO
-                
-                !           Load edge 4:
-                
-                    J=0
-                    J2=JS2
-                    DO 405 J1=JF1,JS1+JSKIP1,-JSKIP1
-                        J=J+1
-                        IEDGEF(J,4,IFACE,IMAGE)=ITMP(J1,J2,1)
-                    405 END DO
-                ENDIF
-            
-            500 END DO
-        1000 END DO
-    ELSE
-    
-    !        Load edge information for 2-D case
-    
-        IEDGEF(1,1,1,0) = NXY - NXL + 1
-        IEDGEF(1,2,1,0) = 1
-        IEDGEF(1,1,2,0) = NXL
-        IEDGEF(1,2,2,0) = NXY
-        IEDGEF(1,1,3,0) = 1
-        IEDGEF(1,2,3,0) = NXL
-        IEDGEF(1,1,4,0) = NXY
-        IEDGEF(1,2,4,0) = NXY - NXL + 1
-    
-        IEDGEF(1,1,1,1) = 1
-        IEDGEF(1,2,1,1) = NXY - NXL + 1
-        IEDGEF(1,1,2,1) = NXY
-        IEDGEF(1,2,2,1) = NXL
-        IEDGEF(1,1,3,1) = NXL
-        IEDGEF(1,2,3,1) = 1
-        IEDGEF(1,1,4,1) = NXY - NXL + 1
-        IEDGEF(1,2,4,1) = NXY
-    ENDIF
+  IF (NDIM == 3) THEN
+  
+  !        Pack 3-D edge numbering:
+  
+  !        Fill temporary array with local index numbers:
+  
+      DO 50 IX=1,NXYZ
+          ITMP(IX,1,1)=IX
+      50 END DO
+  
+  !        Two sets are required, the base cube and the image cube
+  !        which is being summed with it.
+  
+      DO 1000 IMAGE=0,1
+      
+      !        Pack edges for each face, no rotation.
+      
+          DO 500 IFACE=1,NFACES
+              JS1    = SKPDAT(1,IFACE)
+              JF1    = SKPDAT(2,IFACE)
+              JSKIP1 = SKPDAT(3,IFACE)
+              JS2    = SKPDAT(4,IFACE)
+              JF2    = SKPDAT(5,IFACE)
+              JSKIP2 = SKPDAT(6,IFACE)
+          
+          !           Choose proper indexing order according to face type and image.
+          
+              ORDER = (-1)**(GROUP(IFACE)+IMAGE)
+              IF (ORDER == 1) THEN
+              
+              !              Forward ordering:
+              
+              !            +-------------+    ^ v1
+              !            | --------->| |    |
+              !            | ^    2    | |    +-->
+              !            | |         | |      v2
+              !            | |1       3| |
+              !            | |    4    V |
+              !            | |<--------- |
+              !            F-------------I     F is fiducial node.
+              
+              !                                I is location of fiducial node for
+              !                                     image face.
+              
+              !           Load edge 1:
+              
+                  J=0
+                  J2=JS2
+                  DO 100 J1=JS1,JF1-JSKIP1,JSKIP1
+                      J=J+1
+                      IEDGEF(J,1,IFACE,IMAGE)=ITMP(J1,J2,1)
+                  100 END DO
+              
+              !           Load edge 2:
+              
+                  J=0
+                  J1=JF1
+                  DO 200 J2=JS2,JF2-JSKIP2,JSKIP2
+                      J=J+1
+                      IEDGEF(J,2,IFACE,IMAGE)=ITMP(J1,J2,1)
+                  200 END DO
+              
+              
+              !           Load edge 3:
+              
+                  J=0
+                  J2=JF2
+                  DO 300 J1=JF1,JS1+JSKIP1,-JSKIP1
+                      J=J+1
+                      IEDGEF(J,3,IFACE,IMAGE)=ITMP(J1,J2,1)
+                  300 END DO
+              
+              !           Load edge 4:
+              
+                  J=0
+                  J1=JS1
+                  DO 400 J2=JF2,JS2+JSKIP2,-JSKIP2
+                      J=J+1
+                      IEDGEF(J,4,IFACE,IMAGE)=ITMP(J1,J2,1)
+                  400 END DO
+              
+              ELSE
+              
+              !           Reverse ordering:
+              
+              !            +-------------+
+              !            | |<--------- |       ^ v2
+              !            | |    2    ^ |       |
+              !            | |         | |    <--+
+              !            | |3       1| |     v1
+              !            | V    4    | |
+              !            | --------->| |
+              !            I-------------F     F is fiducial node.
+              
+              !                                I is location of fiducial node for
+              !                                     image face.
+              
+              !           Load edge 1:
+              
+                  J=0
+                  J1=JS1
+                  DO 105 J2=JS2,JF2-JSKIP2,JSKIP2
+                      J=J+1
+                      IEDGEF(J,1,IFACE,IMAGE)=ITMP(J1,J2,1)
+                  105 END DO
+              
+              !           Load edge 2:
+              
+                  J=0
+                  J2=JF2
+                  DO 205 J1=JS1,JF1-JSKIP1,JSKIP1
+                      J=J+1
+                      IEDGEF(J,2,IFACE,IMAGE)=ITMP(J1,J2,1)
+                  205 END DO
+              
+              !           Load edge 3:
+              
+                  J=0
+                  J1=JF1
+                  DO 305 J2=JF2,JS2+JSKIP2,-JSKIP2
+                      J=J+1
+                      IEDGEF(J,3,IFACE,IMAGE)=ITMP(J1,J2,1)
+                  305 END DO
+              
+              !           Load edge 4:
+              
+                  J=0
+                  J2=JS2
+                  DO 405 J1=JF1,JS1+JSKIP1,-JSKIP1
+                      J=J+1
+                      IEDGEF(J,4,IFACE,IMAGE)=ITMP(J1,J2,1)
+                  405 END DO
+              ENDIF
+          
+          500 END DO
+      1000 END DO
+  ELSE
+  
+  !        Load edge information for 2-D case
+  
+      IEDGEF(1,1,1,0) = NXY - NXL + 1
+      IEDGEF(1,2,1,0) = 1
+      IEDGEF(1,1,2,0) = NXL
+      IEDGEF(1,2,2,0) = NXY
+      IEDGEF(1,1,3,0) = 1
+      IEDGEF(1,2,3,0) = NXL
+      IEDGEF(1,1,4,0) = NXY
+      IEDGEF(1,2,4,0) = NXY - NXL + 1
+  
+      IEDGEF(1,1,1,1) = 1
+      IEDGEF(1,2,1,1) = NXY - NXL + 1
+      IEDGEF(1,1,2,1) = NXY
+      IEDGEF(1,2,2,1) = NXL
+      IEDGEF(1,1,3,1) = NXL
+      IEDGEF(1,2,3,1) = 1
+      IEDGEF(1,1,4,1) = NXY - NXL + 1
+      IEDGEF(1,2,4,1) = NXY
+  ENDIF
 
-    RETURN
-    end subroutine setedge
+  RETURN
+end subroutine setedge
 !-----------------------------------------------------------------------
     subroutine dsset(nx,ny,nz)
 
@@ -702,89 +686,93 @@ end subroutine setup_topo
     RETURN
     end subroutine dsset
 !-----------------------------------------------------------------------
-    subroutine genxyzl
+!> \brief Generate xyz coordinates
+subroutine genxyzl()
+  use kinds, only : DP
+  use size_m, only : ndim, nelt
+  use input, only : xc, yc, zc
+  use scratch, only : xml, yml, zml
+  implicit none
 
-!     Generate xyz coordinates
+  real(DP) :: XCB(2,2,2),YCB(2,2,2),ZCB(2,2,2), H(3,3,2)
+  integer :: indx(8)
 
-    use size_m
-    use input
-    use scratch
-    COMMON /CTMP0/ XCB(2,2,2),YCB(2,2,2),ZCB(2,2,2),H(3,3,2),INDX(8)
+  integer :: nxl, nyl, nzl, ntot3
+  integer :: ix, iy, iz, ixt, iyt, izt, i, ie, ndim2
+  NXL=3
+  NYL=3
+  NZL=1+2*(NDIM-2)
+  NTOT3=NXL*NYL*NZL*NELT
 
-    NXL=3
-    NYL=3
-    NZL=1+2*(NDIM-2)
-    NTOT3=NXL*NYL*NZL*NELT
+! Preprocessor Corner notation:      Symmetric Corner notation:
 
-!   Preprocessor Corner notation:      Symmetric Corner notation:
+!         4+-----+3    ^ s                    3+-----+4    ^ s
+!         /     /|     |                      /     /|     |
+!        /     / |     |                     /     / |     |
+!      8+-----+7 +2    +----> r            7+-----+8 +2    +----> r
+!       |     | /     /                     |     | /     /
+!       |     |/     /                      |     |/     /
+!      5+-----+6    t                      5+-----+6    t
 
-!           4+-----+3    ^ s                    3+-----+4    ^ s
-!           /     /|     |                      /     /|     |
-!          /     / |     |                     /     / |     |
-!        8+-----+7 +2    +----> r            7+-----+8 +2    +----> r
-!         |     | /     /                     |     | /     /
-!         |     |/     /                      |     |/     /
-!        5+-----+6    t                      5+-----+6    t
+  DO 10 IX=1,NXL
+      H(IX,1,1)=0.5*FLOAT(3-IX)
+      H(IX,1,2)=0.5*FLOAT(IX-1)
+  10 END DO
+  DO 20 IY=1,NYL
+      H(IY,2,1)=0.5*FLOAT(3-IY)
+      H(IY,2,2)=0.5*FLOAT(IY-1)
+  20 END DO
+  DO 30 IZ=1,NZL
+      H(IZ,3,1)=0.5*FLOAT(3-IZ)
+      H(IZ,3,2)=0.5*FLOAT(IZ-1)
+  30 END DO
 
-    DO 10 IX=1,NXL
-        H(IX,1,1)=0.5*FLOAT(3-IX)
-        H(IX,1,2)=0.5*FLOAT(IX-1)
-    10 END DO
-    DO 20 IY=1,NYL
-        H(IY,2,1)=0.5*FLOAT(3-IY)
-        H(IY,2,2)=0.5*FLOAT(IY-1)
-    20 END DO
-    DO 30 IZ=1,NZL
-        H(IZ,3,1)=0.5*FLOAT(3-IZ)
-        H(IZ,3,2)=0.5*FLOAT(IZ-1)
-    30 END DO
+  INDX(1)=1
+  INDX(2)=2
+  INDX(3)=4
+  INDX(4)=3
+  INDX(5)=5
+  INDX(6)=6
+  INDX(7)=8
+  INDX(8)=7
 
-    INDX(1)=1
-    INDX(2)=2
-    INDX(3)=4
-    INDX(4)=3
-    INDX(5)=5
-    INDX(6)=6
-    INDX(7)=8
-    INDX(8)=7
+  CALL RZERO(XML,NTOT3)
+  CALL RZERO(YML,NTOT3)
+  CALL RZERO(ZML,NTOT3)
+  CALL RZERO(XCB,8)
+  CALL RZERO(YCB,8)
+  CALL RZERO(ZCB,8)
 
-    CALL RZERO(XML,NTOT3)
-    CALL RZERO(YML,NTOT3)
-    CALL RZERO(ZML,NTOT3)
-    CALL RZERO(XCB,8)
-    CALL RZERO(YCB,8)
-    CALL RZERO(ZCB,8)
-
-    DO 5000 IE=1,NELT
-    
-        NDIM2 = 2**NDIM
-        DO 50 IX=1,NDIM2
-            I=INDX(IX)
-            XCB(IX,1,1)=XC(I,IE)
-            YCB(IX,1,1)=YC(I,IE)
-            ZCB(IX,1,1)=ZC(I,IE)
-        50 END DO
-    
-    !        Map R-S-T space into physical X-Y-Z space.
-    
-        DO 100 IZT=1,ndim-1
-            DO 100 IYT=1,2
-                DO 100 IXT=1,2
-                
-                    DO 100 IZ=1,NZL
-                        DO 100 IY=1,NYL
-                            DO 100 IX=1,NXL
-                                XML(IX,IY,IZ,IE)=XML(IX,IY,IZ,IE)+ &
-                                H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*XCB(IXT,IYT,IZT)
-                                YML(IX,IY,IZ,IE)=YML(IX,IY,IZ,IE)+ &
-                                H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*YCB(IXT,IYT,IZT)
-                                ZML(IX,IY,IZ,IE)=ZML(IX,IY,IZ,IE)+ &
-                                H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*ZCB(IXT,IYT,IZT)
-        100 END DO
-    
-    5000 END DO
-    RETURN
-    end subroutine genxyzl
+  DO 5000 IE=1,NELT
+  
+      NDIM2 = 2**NDIM
+      DO 50 IX=1,NDIM2
+          I=INDX(IX)
+          XCB(IX,1,1)=XC(I,IE)
+          YCB(IX,1,1)=YC(I,IE)
+          ZCB(IX,1,1)=ZC(I,IE)
+      50 END DO
+  
+  !        Map R-S-T space into physical X-Y-Z space.
+  
+      DO 100 IZT=1,ndim-1
+          DO 100 IYT=1,2
+              DO 100 IXT=1,2
+              
+                  DO 100 IZ=1,NZL
+                      DO 100 IY=1,NYL
+                          DO 100 IX=1,NXL
+                              XML(IX,IY,IZ,IE)=XML(IX,IY,IZ,IE)+ &
+                              H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*XCB(IXT,IYT,IZT)
+                              YML(IX,IY,IZ,IE)=YML(IX,IY,IZ,IE)+ &
+                              H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*YCB(IXT,IYT,IZT)
+                              ZML(IX,IY,IZ,IE)=ZML(IX,IY,IZ,IE)+ &
+                              H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*ZCB(IXT,IYT,IZT)
+      100 END DO
+  
+  5000 END DO
+  RETURN
+  end subroutine genxyzl
 !-----------------------------------------------------------------------
     subroutine verify
 

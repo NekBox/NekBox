@@ -553,90 +553,98 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   return
 end subroutine setprec
 
-!=======================================================================
-    subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
 !-------------------------------------------------------------------
-
-!     Check that the tolerances are not too small for the CG-solver.
-!     Important when calling the CG-solver (Gauss-Lobatto mesh) with
-!     zero Neumann b.c.
-
+!> \brief Check that the tolerances are not too small for the CG-solver.
+!! Important when calling the CG-solver (Gauss-Lobatto mesh) with
+!! zero Neumann b.c.
 !-------------------------------------------------------------------
-    use size_m
-    use eigen
-    use input
-    use mass
-    COMMON  /CPRINT/ IFPRINT
-    LOGICAL ::          IFPRINT
-    COMMON /CTMP0/ W1   (LX1,LY1,LZ1,LELT) &
-    ,             W2   (LX1,LY1,LZ1,LELT)
-    REAL :: RES  (LX1,LY1,LZ1,1)
-    REAL :: H1   (LX1,LY1,LZ1,1)
-    REAL :: H2   (LX1,LY1,LZ1,1)
-    REAL :: MULT (LX1,LY1,LZ1,1)
-    REAL :: MASK (LX1,LY1,LZ1,1)
+subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelv, nelt, nid
+  use eigen, only : eigaa, eigga
+  use mass, only : volvm1, voltm1, binvm1, bintm1, bm1
+  implicit none
 
-    IF (EIGAA /= 0.) THEN
-        ACONDNO = EIGGA/EIGAA
-    ELSE
-        ACONDNO = 10.
-    ENDIF
+  real(DP) :: tol
+  REAL(DP) :: RES  (LX1,LY1,LZ1,1)
+  REAL(DP) :: H1   (LX1,LY1,LZ1,1)
+  REAL(DP) :: H2   (LX1,LY1,LZ1,1)
+  REAL(DP) :: MASK (LX1,LY1,LZ1,1)
+  REAL(DP) :: MULT (LX1,LY1,LZ1,1)
+  integer :: imesh, isd
 
-!     Single or double precision???
+  LOGICAL ::          IFPRINT
+  COMMON  /CPRINT/ IFPRINT
+  real(DP) :: W1   (LX1,LY1,LZ1,LELT) &
+  ,           W2   (LX1,LY1,LZ1,LELT)
 
-    DELTA = 1.E-9
-    X     = 1.+DELTA
-    Y     = 1.
-    DIFF  = ABS(X-Y)
-    IF (DIFF == 0.) EPS = 1.E-6
-    IF (DIFF > 0.) EPS = 1.E-13
+  real(DP) :: acondno, delta, x, y, diff, eps
+  real(DP) :: vol, rinit, rmin, bcneu1, bcneu2, bctest, bcrob, tolmin
+  integer :: nl, ntot1
+  real(DP), external :: glsc3, glsum
 
-    IF (IMESH == 1) THEN
-        NL  = NELV
-        VOL = VOLVM1
-    ELSEIF (IMESH == 2) THEN
-        NL  = NELT
-        VOL = VOLTM1
-    ENDIF
-    NTOT1 = NX1*NY1*NZ1*NL
-    CALL COPY (W1,RES,NTOT1)
+  IF (EIGAA /= 0.) THEN
+      ACONDNO = EIGGA/EIGAA
+  ELSE
+      ACONDNO = 10.
+  ENDIF
 
-    IF (IMESH == 1) THEN
-        CALL COL3 (W2,BINVM1,W1,NTOT1)
-        RINIT  = SQRT(GLSC3 (W2,W1,MULT,NTOT1)/VOLVM1)
-    ELSE
-        CALL COL3 (W2,BINTM1,W1,NTOT1)
-        RINIT  = SQRT(GLSC3 (W2,W1,MULT,NTOT1)/VOLTM1)
-    ENDIF
-    RMIN   = EPS*RINIT
-    IF (TOL < RMIN) THEN
-        IF (NID == 0 .AND. IFPRINT) &
-        WRITE (6,*) 'New CG1-tolerance (RINIT*epsm) = ',RMIN,TOL
-        TOL = RMIN
-    ENDIF
+!   Single or double precision???
 
-    CALL RONE (W1,NTOT1)
-    BCNEU1 = GLSC3(W1,MASK,MULT,NTOT1)
-    BCNEU2 = GLSC3(W1,W1  ,MULT,NTOT1)
-    BCTEST = ABS(BCNEU1-BCNEU2)
+  DELTA = 1.E-9
+  X     = 1.+DELTA
+  Y     = 1.
+  DIFF  = ABS(X-Y)
+  IF (DIFF == 0.) EPS = 1.E-6
+  IF (DIFF > 0.) EPS = 1.E-13
 
-    CALL AXHELM (W2,W1,H1,H2,IMESH,ISD)
-    CALL COL2   (W2,W2,NTOT1)
-    CALL COL2   (W2,BM1,NTOT1)
-    BCROB  = SQRT(GLSUM(W2,NTOT1)/VOL)
+  IF (IMESH == 1) THEN
+      NL  = NELV
+      VOL = VOLVM1
+  ELSEIF (IMESH == 2) THEN
+      NL  = NELT
+      VOL = VOLTM1
+  ENDIF
+  NTOT1 = NX1*NY1*NZ1*NL
+  CALL COPY (W1,RES,NTOT1)
 
-    IF ((BCTEST < .1) .AND. (BCROB < (EPS*ACONDNO))) THEN
-    !         OTR = GLSC3 (W1,RES,MULT,NTOT1)
-        TOLMIN = RINIT*EPS*10.
-        IF (TOL < TOLMIN) THEN
-            TOL = TOLMIN
-            IF (NID == 0 .AND. IFPRINT) &
-            WRITE(6,*) 'New CG1-tolerance (Neumann) = ',TOLMIN
-        ENDIF
-    ENDIF
+  IF (IMESH == 1) THEN
+      CALL COL3 (W2,BINVM1,W1,NTOT1)
+      RINIT  = SQRT(GLSC3 (W2,W1,MULT,NTOT1)/VOLVM1)
+  ELSE
+      CALL COL3 (W2,BINTM1,W1,NTOT1)
+      RINIT  = SQRT(GLSC3 (W2,W1,MULT,NTOT1)/VOLTM1)
+  ENDIF
+  RMIN   = EPS*RINIT
+  IF (TOL < RMIN) THEN
+      IF (NID == 0 .AND. IFPRINT) &
+      WRITE (6,*) 'New CG1-tolerance (RINIT*epsm) = ',RMIN,TOL
+      TOL = RMIN
+  ENDIF
 
-    return
-    end subroutine chktcg1
+  CALL RONE (W1,NTOT1)
+  BCNEU1 = GLSC3(W1,MASK,MULT,NTOT1)
+  BCNEU2 = GLSC3(W1,W1  ,MULT,NTOT1)
+  BCTEST = ABS(BCNEU1-BCNEU2)
+
+  CALL AXHELM (W2,W1,H1,H2,IMESH,ISD)
+  CALL COL2   (W2,W2,NTOT1)
+  CALL COL2   (W2,BM1,NTOT1)
+  BCROB  = SQRT(GLSUM(W2,NTOT1)/VOL)
+
+  IF ((BCTEST < .1) .AND. (BCROB < (EPS*ACONDNO))) THEN
+  !         OTR = GLSC3 (W1,RES,MULT,NTOT1)
+      TOLMIN = RINIT*EPS*10.
+      IF (TOL < TOLMIN) THEN
+          TOL = TOLMIN
+          IF (NID == 0 .AND. IFPRINT) &
+          WRITE(6,*) 'New CG1-tolerance (Neumann) = ',TOLMIN
+      ENDIF
+  ENDIF
+
+  return
+  end subroutine chktcg1
 !=======================================================================
 !-------------------------------------------------------------------------
 !> \brief Solve the Helmholtz equation, H*U = RHS,

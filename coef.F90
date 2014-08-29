@@ -1131,43 +1131,6 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
     return
     end subroutine setinvm
-    subroutine map13 (y,x,iel)
-!---------------------------------------------------------------
-
-!     Map the elemental array X from mesh M1 to mesh M3
-
-!---------------------------------------------------------------
-
-    use size_m
-    use geom
-    use input
-    use ixyz
-
-    REAL :: X(LX1,LY1,LZ1)
-    REAL :: Y(LX3,LY3,LZ3)
-
-    COMMON /CTMP0/ XA(LX3,LY1,LZ1),  XB(LX3,LY3,LZ1)
-
-    NYZ1 = NY1*NZ1
-    NXY3 = NX3*NY3
-
-!     Use the appropriate derivative- and interpolation operator in
-!     the y-direction (= radial direction if axisymmetric).
-
-    IF (IFAXIS) THEN
-        NY13   = NY1*NY3
-        IF (IFRZER(IEL))      CALL COPY (IYTM13,IATM13,NY13)
-        IF ( .NOT. IFRZER(IEL)) CALL COPY (IYTM13,ICTM13,NY13)
-    ENDIF
-
-    CALL MXM (IXM13,NX3,X,NX1,XA,NYZ1)
-    DO 100 IZ=1,NZ1
-        CALL MXM (XA(1,1,IZ),NX3,IYTM13,NY1,XB(1,1,IZ),NY3)
-    100 END DO
-    CALL MXM (XB,NXY3,IZTM13,NZ1,Y,NZ3)
-
-    RETURN
-    end subroutine map13
 !-----------------------------------------------------------------------
     SUBROUTINE INVMT(A,B,AA,N)
 

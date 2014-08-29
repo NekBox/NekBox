@@ -217,10 +217,6 @@ subroutine setdtc(umax)
   real(DP) :: umax
   real(DP) ::  u(lx1,ly1,lz1,lelv), v(lx1,ly1,lz1,lelv), w(lx1,ly1,lz1,lelv)
 
-  real(DP) :: x, r
-  common /ctmp0/ x(lx1,ly1,lz1,lelv) &
-  ,             r(lx1,ly1,lz1,lelv)
-
   REAL, save :: VCOUR
 
   INTEGER, save :: IFIRST = 0
@@ -427,10 +423,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   ,             ztm1 (lx1,ly1,lz1,lelv)
 
 
-
-  real(DP) :: x, r
-  common /ctmp0/ x    (lx1,ly1,lz1,lelv) &
-  ,             r    (lx1,ly1,lz1,lelv)
+  real(DP) :: x(lx1,ly1,lz1,lelv), r(lx1,ly1,lz1,lelv)
 
   real(DP) :: drst(lx1), drsti(lx1)
 

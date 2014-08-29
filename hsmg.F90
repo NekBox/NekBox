@@ -656,31 +656,31 @@ end subroutine hsmg_tnsr3d_el
     return
     end subroutine hsmg_setup_fast
 !----------------------------------------------------------------------
-    subroutine hsmg_setup_fast1d(s,lam,nl,lbc,rbc,ll,lm,lr,ah,bh,n,ie)
-          
-    use size_m
+subroutine hsmg_setup_fast1d(s,lam,nl,lbc,rbc,ll,lm,lr,ah,bh,n,ie)
+  use kinds, only : DP          
+  use size_m, only : lx1
+  implicit none
 
-    integer :: nl,lbc,rbc,n
-    real :: s(nl,nl,2),lam(nl),ll,lm,lr
-    real :: ah(0:n,0:n),bh(0:n)
+  integer :: nl,lbc,rbc,n, ie
+  real(DP) :: s(nl,nl,2),lam(nl),ll,lm,lr
+  real(DP) :: ah(0:n,0:n),bh(0:n)
 
-
-    parameter(lxm=lx1+2)
-    common /ctmp0/ b(2*lxm*lxm),w(2*lxm*lxm)
+  integer, parameter :: lxm=lx1+2
+  real(DP) :: b(2*lxm*lxm),w(2*lxm*lxm)
+        
+  call hsmg_setup_fast1d_a(s,lbc,rbc,ll,lm,lr,ah,n)
+  call hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
           
-    call hsmg_setup_fast1d_a(s,lbc,rbc,ll,lm,lr,ah,n)
-    call hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
-          
-!     if (nid.eq.0) write(6,*) 'THIS is generalev call',nl,lbc
-    call generalev(s,b,lam,nl,w)
-    if(lbc > 0) call row_zero(s,nl,nl,1)
-    if(lbc == 1) call row_zero(s,nl,nl,2)
-    if(rbc > 0) call row_zero(s,nl,nl,nl)
-    if(rbc == 1) call row_zero(s,nl,nl,nl-1)
-          
-    call transpose(s(1,1,2),nl,s,nl)
-    return
-    end subroutine hsmg_setup_fast1d
+!   if (nid.eq.0) write(6,*) 'THIS is generalev call',nl,lbc
+  call generalev(s,b,lam,nl,w)
+  if(lbc > 0) call row_zero(s,nl,nl,1)
+  if(lbc == 1) call row_zero(s,nl,nl,2)
+  if(rbc > 0) call row_zero(s,nl,nl,nl)
+  if(rbc == 1) call row_zero(s,nl,nl,nl-1)
+        
+  call transpose(s(1,1,2),nl,s,nl)
+  return
+end subroutine hsmg_setup_fast1d
 !----------------------------------------------------------------------
     subroutine hsmg_setup_fast1d_a(a,lbc,rbc,ll,lm,lr,ah,n)
     integer :: lbc,rbc,n
@@ -1987,71 +1987,75 @@ end subroutine mg_set_h2
     return
     end subroutine mg_intp_gfc_e
 !-----------------------------------------------------------------------
-!called
-    subroutine mg_scale_mass (b,g,wt,ng,nx,ny,nz,wk,ifinv)
-    use size_m
-    use input  ! if3d
-    use hsmg
+!> \brief not sure
+subroutine mg_scale_mass (b,g,wt,ng,nx,ny,nz,wk,ifinv)
+  use kinds, only : DP
+  use size_m, only : lx1
+  use input, only : if3d 
+  implicit none
 
-    real :: b(1),g(ng,1),wt(1),wk(1)
-    logical :: ifinv
+  integer :: ng, nx, ny, nz
+  real(DP) :: b(1),g(ng,1),wt(1),wk(1)
+  logical :: ifinv
 
-    common /ctmp0/ wi(2*lx1+4)
+  real(DP) :: wi(2*lx1+4)
 
-    n = nx*ny*nz
+  integer :: n, l, k, j, i, wjk
 
-    if (nx <= 2*lx1) then
-        if (ifinv) then
-            call invers2(wi,wt,nx)
-        else
-            call copy(wi,wt,nx)
-        endif
-    else
-        call exitti('mg_scale_mass: wi too small$',nx)
-    endif
+  n = nx*ny*nz
 
-    if (if3d) then
-        l=0
-        do k=1,nz
-            do j=1,ny
-                wjk=wi(j)*wi(k)
-                do i=1,nx
-                    l=l+1
-                    wk(l) = wjk*wi(i)
-                enddo
-            enddo
-        enddo
+  if (nx <= 2*lx1) then
+      if (ifinv) then
+          call invers2(wi,wt,nx)
+      else
+          call copy(wi,wt,nx)
+      endif
+  else
+      call exitti('mg_scale_mass: wi too small$',nx)
+  endif
 
-        do k=1,n
-            b(k)   = wk(k)*b(k)
-            g(1,k) = wk(k)*g(1,k)
-            g(2,k) = wk(k)*g(2,k)
-            g(3,k) = wk(k)*g(3,k)
-            g(4,k) = wk(k)*g(4,k)
-            g(5,k) = wk(k)*g(5,k)
-            g(6,k) = wk(k)*g(6,k)
-        enddo
+  if (if3d) then
+      l=0
+      do k=1,nz
+          do j=1,ny
+              wjk=wi(j)*wi(k)
+              do i=1,nx
+                  l=l+1
+                  wk(l) = wjk*wi(i)
+              enddo
+          enddo
+      enddo
 
-    else      ! 2D
-        l=0
-        do j=1,ny
-            do i=1,nx
-                l=l+1
-                wk(l) = wi(i)*wi(j)
-            enddo
-        enddo
+      do k=1,n
+          b(k)   = wk(k)*b(k)
+          g(1,k) = wk(k)*g(1,k)
+          g(2,k) = wk(k)*g(2,k)
+          g(3,k) = wk(k)*g(3,k)
+          g(4,k) = wk(k)*g(4,k)
+          g(5,k) = wk(k)*g(5,k)
+          g(6,k) = wk(k)*g(6,k)
+      enddo
 
-        do k=1,n
-            b(k)   = wk(k)*b(k)
-            g(1,k) = wk(k)*g(1,k)
-            g(2,k) = wk(k)*g(2,k)
-            g(3,k) = wk(k)*g(3,k)
-        enddo
+  else      ! 2D
+      l=0
+      do j=1,ny
+          do i=1,nx
+              l=l+1
+              wk(l) = wi(i)*wi(j)
+          enddo
+      enddo
 
-    endif
+      do k=1,n
+          b(k)   = wk(k)*b(k)
+          g(1,k) = wk(k)*g(1,k)
+          g(2,k) = wk(k)*g(2,k)
+          g(3,k) = wk(k)*g(3,k)
+      enddo
 
-    return
-    end subroutine mg_scale_mass
+  endif
+
+  return
+  end subroutine mg_scale_mass
 !-----------------------------------------------------------------------
 subroutine mg_set_gb  (p_g,p_b,l0)
   use kinds, only : DP

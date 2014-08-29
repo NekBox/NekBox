@@ -314,50 +314,55 @@
     return
     end subroutine updrhsh
 !-----------------------------------------------------------------------
-    subroutine hmhzpf(name,u,r,h1,h2,mask,mult,imesh,tli,maxit,isd,bi)
-    use ctimer
-    use size_m
-    use fdmh1
-    use input
-    use mass
+subroutine hmhzpf(name,u,r,h1,h2,mask,mult,imesh,tli,maxit,isd,bi)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelv, nelt, ndim
+  use ctimer, only : etime1, dnekclock, thmhz
+  use fdmh1, only : kfldfdm
+  use input, only : param
+  implicit none
 
-    CHARACTER(4) ::    NAME
-    REAL ::           U    (LX1,LY1,LZ1,1)
-    REAL ::           R    (LX1,LY1,LZ1,1)
-    REAL ::           H1   (LX1,LY1,LZ1,1)
-    REAL ::           H2   (LX1,LY1,LZ1,1)
-    REAL ::           MASK (LX1,LY1,LZ1,1)
-    REAL ::           MULT (LX1,LY1,LZ1,1)
-    REAL ::           bi   (LX1,LY1,LZ1,1)
-    COMMON /CTMP0/ W1   (LX1,LY1,LZ1,LELT) &
-    ,             W2   (LX1,LY1,LZ1,LELT)
+  CHARACTER(4) ::    NAME
+  REAL(DP) ::           U    (LX1,LY1,LZ1,1)
+  REAL(DP) ::           R    (LX1,LY1,LZ1,1)
+  REAL(DP) ::           H1   (LX1,LY1,LZ1,1)
+  REAL(DP) ::           H2   (LX1,LY1,LZ1,1)
+  REAL(DP) ::           MASK (LX1,LY1,LZ1,1)
+  REAL(DP) ::           MULT (LX1,LY1,LZ1,1)
+  REAL(DP) ::           bi   (LX1,LY1,LZ1,1)
+  real(DP) :: tli
+  integer :: imesh, maxit, isd
 
-    etime1=dnekclock()
+  integer :: ntot
+  real(DP) :: tol
 
-    IF (IMESH == 1) NTOT = NX1*NY1*NZ1*NELV
-    IF (IMESH == 2) NTOT = NX1*NY1*NZ1*NELT
+  etime1=dnekclock()
 
-    tol = tli
-    if (param(22) /= 0) tol = abs(param(22))
-    CALL CHKTCG1 (TOL,R,H1,H2,MASK,MULT,IMESH,ISD)
+  IF (IMESH == 1) NTOT = NX1*NY1*NZ1*NELV
+  IF (IMESH == 2) NTOT = NX1*NY1*NZ1*NELT
 
-
-!     Set flags for overlapping Schwarz preconditioner (pff 11/12/98)
-
-    kfldfdm = -1
-!     if (name.eq.'TEMP') kfldfdm =  0
-!     if (name.eq.'VELX') kfldfdm =  1
-!     if (name.eq.'VELY') kfldfdm =  2
-!     if (name.eq.'VELZ') kfldfdm =  3
-    if (name == 'PRES') kfldfdm =  ndim+1
-
-    call cggo &
-    (u,r,h1,h2,mask,mult,imesh,tol,maxit,isd,bi,name)
-    thmhz=thmhz+(dnekclock()-etime1)
+  tol = tli
+  if (param(22) /= 0) tol = abs(param(22))
+  CALL CHKTCG1 (TOL,R,H1,H2,MASK,MULT,IMESH,ISD)
 
 
-    return
-    end subroutine hmhzpf
+!   Set flags for overlapping Schwarz preconditioner (pff 11/12/98)
+
+  kfldfdm = -1
+!   if (name.eq.'TEMP') kfldfdm =  0
+!   if (name.eq.'VELX') kfldfdm =  1
+!   if (name.eq.'VELY') kfldfdm =  2
+!   if (name.eq.'VELZ') kfldfdm =  3
+  if (name == 'PRES') kfldfdm =  ndim+1
+
+  call cggo &
+  (u,r,h1,h2,mask,mult,imesh,tol,maxit,isd,bi,name)
+  thmhz=thmhz+(dnekclock()-etime1)
+
+
+  return
+  end subroutine hmhzpf
 !-----------------------------------------------------------------------
 !> \brief Either std. Helmholtz solve, or a projection + Helmholtz solve
 subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &

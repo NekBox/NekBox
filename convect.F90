@@ -64,8 +64,7 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   real(DP) :: jgl(ldg), jgt(ldg)
 
   integer, parameter :: ld=2*lxd
-  real(DP) :: w
-  common /ctmp0/ w(ld**ldim,2)
+  real(DP) :: w(ld**ldim,2)
   integer :: ldw, i
 
   call lim_chk(md,ld,'md   ','ld   ','grad_rstd ')

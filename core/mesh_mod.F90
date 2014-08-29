@@ -5,6 +5,7 @@ module mesh
   logical, allocatable :: ifdfrm(:) !>!< is the element deformed?
   logical, allocatable :: iffast(:) !>!< can we use a fast method on the element?
   logical :: ifsolv !>!< are ifdfrm and iffast up to date?
+  integer :: niterhm
 
   contains
 

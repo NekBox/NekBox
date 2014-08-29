@@ -1,3 +1,4 @@
+!> cleaned
 module scratch
   use kinds, only : DP
   USE, INTRINSIC :: ISO_C_BINDING
@@ -36,16 +37,17 @@ module scratch
     use size_m
     implicit none
 
-    allocate( rmxs(lelt),rmax(lelt) &
-    ,xcg(lelt),ycg(lelt),zcg(lelt) &
-    ,xgs(lelt),ygs(lelt),zgs(lelt) &
-    ,xml(3,3,lzl,lelt),xms(3,3,lzl,lelt) &
-    ,yml(3,3,lzl,lelt),yms(3,3,lzl,lelt) &
-    ,zml(3,3,lzl,lelt),zms(3,3,lzl,lelt) )
-    allocate(side(4,6,lelt),sides(4,6,lelt))
-    allocate(flag(3,3,lzl,lelt),tmp2(3,3,lzl,lelt) &
-    ,lmult(3,3,lzl,lelt),bcs(5,6,lelt) &
-    ,xyz(3,8,lelt)) 
+    allocate( rmxs(lelt),rmax(lelt)) 
+!    ,xcg(lelt),ycg(lelt),zcg(lelt) &
+!    ,xgs(lelt),ygs(lelt),zgs(lelt) &
+    allocate(xml(3,3,lzl,lelt),xms(3,3,lzl,lelt) & ! verified
+    ,yml(3,3,lzl,lelt),yms(3,3,lzl,lelt) & ! verified
+    ,zml(3,3,lzl,lelt),zms(3,3,lzl,lelt) ) ! verified
+    allocate(side(4,6,lelt),sides(4,6,lelt)) ! verified
+    allocate(xyz(3,8,lelt))  ! verified
+!    allocate(flag(3,3,lzl,lelt))
+!    ,tmp2(3,3,lzl,lelt) &
+!    ,lmult(3,3,lzl,lelt),bcs(5,6,lelt) &
 
 !     nested dissection arrays
 

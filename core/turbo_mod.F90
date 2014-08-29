@@ -1,3 +1,4 @@
+!> cleaned
 module turbo
 !       Common block for turbulence model
   use kinds, only : DP
@@ -20,6 +21,7 @@ module turbo
     use size_m
     implicit none
 
+#if 0
     allocate(VTURB (LX1M,LY1M,LZ1M,LELV) &
     , TURBL (LX1M,LY1M,LZ1M,LELV) &
     , UWALL (LX1M,LZ1M,6,LELV) &
@@ -27,6 +29,7 @@ module turbo
     , TWX   (LX1M,LZ1M,6,LELV) &
     , TWY   (LX1M,LZ1M,6,LELV) &
     , TWZ   (LX1M,LZ1M,6,LELV) )
+#endif
 
     allocate(IFTWSH(6,LELV))
 

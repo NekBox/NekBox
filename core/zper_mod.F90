@@ -1,3 +1,4 @@
+!> Cleaned
 module zper
 !     Eigenvalue arrays and pointers for Global Tensor Product
 !     parameter (lelg_sm=2)
@@ -56,21 +57,25 @@ module zper
     use size_m
     implicit none
 
+#if 0
     allocate(sp(leig2),spt(leig2),eigp(leig), wavep(ltfdm2))
 
     allocate(tpn1(ltfdm2),tpn2(ltfdm2), tpn3(ltfdm2),ind23(ltfdm2))
 
     allocate(xgtp(0:lelx),ygtp(0:lely),zgtp(0:lelz))
     allocate(xmlt(lfdx),ymlt(lfdy),zmlt(lfdz))
+#endif
 
 
 !     Metrics for 2D x tensor-product solver
+#if 0
     allocate(rx2(lx2,ly2,lelv) &
     , ry2  (lx2,ly2,lelv) &
     , sx2  (lx2,ly2,lelv) &
     , sy2  (lx2,ly2,lelv) &
     , w2d  (lx2,ly2,lelv) &
     , bxyi (lx1,ly1,lelv) )
+#endif
 
   end subroutine init_zper
 

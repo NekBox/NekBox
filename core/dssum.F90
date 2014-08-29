@@ -33,15 +33,21 @@ subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
 end subroutine setupds
 !-----------------------------------------------------------------------
 subroutine dssum(u,nx,ny,nz)
-  use ctimer
-  use size_m
-  use input
-  use noncon
-  use parallel
-  use tstep
-  real :: u(1)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1
+  use ctimer, only : ifsync, icalld, tdsmx, tdsmn, etime1, dnekclock
+  use ctimer, only : tdsum, ndsum
+  use input, only : ifldmhd
+  use parallel, only : gsh_fld
+  use tstep, only : ifield
+  implicit none
 
-  parameter (lface=lx1*ly1)
+  real(DP) :: u(1)
+  integer :: nx, ny, nz
+  
+  integer :: ifldt
+  integer, parameter :: lface=lx1*ly1
+  real(DP) :: timee
 
   ifldt = ifield
 !   if (ifldt.eq.0)       ifldt = 1

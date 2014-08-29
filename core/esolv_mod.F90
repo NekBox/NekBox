@@ -12,8 +12,8 @@ module esolv
     use size_m
     implicit none
 
-    allocate(ifalgn(lelv), ifrsxy(lelv))
-    allocate(volel(lelv))
+!    allocate(ifalgn(lelv), ifrsxy(lelv))
+    allocate(volel(lelv)) ! verified
   end subroutine init_esolv
 
 end module esolv

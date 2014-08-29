@@ -1,3 +1,4 @@
+!> cleaned
 module wz_m
 !     Gauss-Labotto and Gauss points
   use kinds, only : DP

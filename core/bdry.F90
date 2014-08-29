@@ -6,15 +6,13 @@ SUBROUTINE SETLOG()
   use ctimer, only : ifsync
   use geom, only : ifvcor, ifgeom, ifsurt, ifwcno, ifeppm, ifqinp, ifmelt
   use input, only : param, ifadvc, iftmsh, ifneknek, ifmoab, ifkeps, ifmodel
-  use input, only : ifnonl, cbc, ifheat, ifmvbd, ifflow, ifnav, ifstrs
+  use input, only : ifnonl, cbc, ifheat, ifmvbd, ifflow, ifnav, ifstrs, ifprint
   use input, only : ifaxis, ifcyclic, ifchar, ifusermv, ifuservp, iflomach
   use input, only : ifsplit, iftran, nobj, lochis, ifintq, hcode, nhis
   use tstep, only : ifield, nelfld
   use turbo, only : ifswall, ifcwuz
   implicit none
 
-  logical :: ifprint
-  COMMON  /CPRINT/ IFPRINT
 
   CHARACTER CB*3
   LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ

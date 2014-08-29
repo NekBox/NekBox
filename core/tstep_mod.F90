@@ -19,7 +19,7 @@ module tstep
     ,NAB,NBD,NBDINP,NTAUBD &
     ,NMXH,NMXP,NMXE,NMXNL,NINTER &
     ,NELFLD(0:LDIMT1) &
-    ,nconv,nconv_max
+    ,nconv,nconv_max, ntdump
 
   real(DP) :: PI, BETAG, GTHETA
   LOGICAL :: IFPRNT,if_full_pres

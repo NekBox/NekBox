@@ -3,7 +3,7 @@
 subroutine cdscal (igeom)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid, mxprev
-  use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh
+  use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh, ifprint
   use mass, only : bintm1, binvm1
   use soln, only : t, bq, tmask, tmult
   use tstep, only : nelfld, ifield, nmxnl, imesh, tolht, nmxh
@@ -11,8 +11,6 @@ subroutine cdscal (igeom)
 
   integer, intent(in) :: igeom
 
-  LOGICAL ::          IFPRINT
-  COMMON  /CPRINT/ IFPRINT
   LOGICAL ::          IFCONV
 
   real(DP) :: TA(LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT)

@@ -1,131 +1,126 @@
 !-----------------------------------------------------------------------
-    subroutine setdt
+!> \brief Set the new time step. All cases covered.
+subroutine setdt
+  use kinds, only : DP
+  use size_m, only : nid
+  use input, only : param, ifflow, ifneknek, ifprint
+  use soln, only : vx, vy, vz
+  use tstep, only : dt, dtinit, time, fintim, lastep, courno, ctarg
+  implicit none
 
-!     Set the new time step. All cases covered.
-    use kinds, only : DP
-    use size_m
-    use input
-    use soln
-    use tstep
-    common /cprint/ ifprint
-    logical ::         ifprint
-    real(DP), save :: umax = 0._dp
-    REAL ::     DTOLD
-    SAVE     DTOLD
-    DATA     DTOLD /0.0/
-    REAL ::     DTOpf
-    SAVE     DTOpf
-    DATA     DTOpf /0.0/
-    logical :: iffxdt
-    save    iffxdt
-    data    iffxdt / .FALSE. /
+  real(DP), save :: umax = 0._dp
+  REAL(DP), save :: DTOLD = 0._dp
+  REAL(DP), save :: DTOpf = 0._dp
+  logical, save :: iffxdt = .FALSE.
 
-    if (param(12) < 0 .OR. iffxdt) then
-        iffxdt    = .TRUE. 
-        param(12) = abs(param(12))
-        dt        = param(12)
-        dtopf     = dt
-        call compute_cfl(umax,vx,vy,vz,1.0)
-        goto 200
-    else IF (PARAM(84) /= 0.0) THEN
-        if (dtold == 0.0) then
-            dt   =param(84)
-            dtold=param(84)
-            dtopf=param(84)
-            return
-        else
-            dtold=dt
-            dtopf=dt
-            dt=dtopf*param(85)
-            dt=min(dt,param(12))
-        endif
-    endif
+  real(DP) :: dtcfl, dtfs, dtmin, dtmax
+  real(DP), external :: uglmin
 
-!     Find DT=DTCFL based on CFL-condition (if applicable)
+  if (param(12) < 0 .OR. iffxdt) then
+      iffxdt    = .TRUE. 
+      param(12) = abs(param(12))
+      dt        = param(12)
+      dtopf     = dt
+      call compute_cfl(umax,vx,vy,vz,1.0)
+      goto 200
+  else IF (PARAM(84) /= 0.0) THEN
+      if (dtold == 0.0) then
+          dt   =param(84)
+          dtold=param(84)
+          dtopf=param(84)
+          return
+      else
+          dtold=dt
+          dtopf=dt
+          dt=dtopf*param(85)
+          dt=min(dt,param(12))
+      endif
+  endif
 
-    CALL SETDTC(umax)
-    DTCFL = DT
+!   Find DT=DTCFL based on CFL-condition (if applicable)
 
-!     Find DTFS based on surface tension (if applicable)
+  CALL SETDTC(umax)
+  DTCFL = DT
 
-!    CALL SETDTFS (DTFS)
+!   Find DTFS based on surface tension (if applicable)
 
-!     Select appropriate DT
+!  CALL SETDTFS (DTFS)
 
-    IF ((DT == 0.) .AND. (DTFS > 0.)) THEN
-        DT = DTFS
-    ELSEIF ((DT > 0.) .AND. (DTFS > 0.)) THEN
-        DT = MIN(DT,DTFS)
-    ELSEIF ((DT == 0.) .AND. (DTFS == 0.)) THEN
-        DT = 0.
-        IF (IFFLOW .AND. NID == 0 .AND. IFPRINT) THEN
-            WRITE (6,*) 'WARNING: CFL-condition & surface tension'
-            WRITE (6,*) '         are not applicable'
-        endif
-    ELSEIF ((DT > 0.) .AND. (DTFS == 0.)) THEN
-        DT = DT
-    ELSE
-        DT = 0.
-        IF (NID == 0) WRITE (6,*) 'WARNING: DT<0 or DTFS<0'
-        IF (NID == 0) WRITE (6,*) '         Reset DT      '
-    endif
+!   Select appropriate DT
 
-!     Check DT against user-specified input, DTINIT=PARAM(12).
+  IF ((DT == 0.) .AND. (DTFS > 0.)) THEN
+      DT = DTFS
+  ELSEIF ((DT > 0.) .AND. (DTFS > 0.)) THEN
+      DT = MIN(DT,DTFS)
+  ELSEIF ((DT == 0.) .AND. (DTFS == 0.)) THEN
+      DT = 0.
+      IF (IFFLOW .AND. NID == 0 .AND. IFPRINT) THEN
+          WRITE (6,*) 'WARNING: CFL-condition & surface tension'
+          WRITE (6,*) '         are not applicable'
+      endif
+  ELSEIF ((DT > 0.) .AND. (DTFS == 0.)) THEN
+      DT = DT
+  ELSE
+      DT = 0.
+      IF (NID == 0) WRITE (6,*) 'WARNING: DT<0 or DTFS<0'
+      IF (NID == 0) WRITE (6,*) '         Reset DT      '
+  endif
 
-    IF ((DT > 0.) .AND. (DTINIT > 0.)) THEN
-        DT = MIN(DT,DTINIT)
-    ELSEIF ((DT == 0.) .AND. (DTINIT > 0.)) THEN
-        DT = DTINIT
-    ELSEIF ((DT > 0.) .AND. (DTINIT == 0.)) THEN
-        DT = DT
-    ELSEIF ( .NOT. iffxdt) THEN
-        DT = 0.001
-        IF(NID == 0)WRITE (6,*) 'WARNING: Set DT=0.001 (arbitrarily)'
-    endif
+!   Check DT against user-specified input, DTINIT=PARAM(12).
 
-!     Check if final time (user specified) has been reached.
+  IF ((DT > 0.) .AND. (DTINIT > 0.)) THEN
+      DT = MIN(DT,DTINIT)
+  ELSEIF ((DT == 0.) .AND. (DTINIT > 0.)) THEN
+      DT = DTINIT
+  ELSEIF ((DT > 0.) .AND. (DTINIT == 0.)) THEN
+      DT = DT
+  ELSEIF ( .NOT. iffxdt) THEN
+      DT = 0.001
+      IF(NID == 0)WRITE (6,*) 'WARNING: Set DT=0.001 (arbitrarily)'
+  endif
 
-    200 IF (TIME+DT >= FINTIM .AND. FINTIM /= 0.0) THEN
-    !        Last step
-        LASTEP = 1
-        DT = FINTIM-TIME
-        IF (NID == 0) WRITE (6,*) 'Final time step = ',DT
-    endif
+!   Check if final time (user specified) has been reached.
 
-    COURNO = DT*UMAX
-    IF (NID == 0 .AND. IFPRINT .AND. DT /= DTOLD) &
-    WRITE (6,100) DT,DTCFL,DTFS,DTINIT
-    100 FORMAT(5X,'DT/DTCFL/DTFS/DTINIT',4E12.3)
+  200 IF (TIME+DT >= FINTIM .AND. FINTIM /= 0.0) THEN
+  !        Last step
+      LASTEP = 1
+      DT = FINTIM-TIME
+      IF (NID == 0) WRITE (6,*) 'Final time step = ',DT
+  endif
 
-!     Put limits on how much DT can change.
+  COURNO = DT*UMAX
+  IF (NID == 0 .AND. IFPRINT .AND. DT /= DTOLD) &
+  WRITE (6,100) DT,DTCFL,DTFS,DTINIT
+  100 FORMAT(5X,'DT/DTCFL/DTFS/DTINIT',4E12.3)
 
-    IF (DTOLD /= 0.0) THEN
-        DTMIN=0.8*DTOLD
-        DTMAX=1.2*DTOLD
-        DT = MIN(DTMAX,DT)
-        DT = MAX(DTMIN,DT)
-    endif
-    DTOLD=DT
+!   Put limits on how much DT can change.
 
-!      IF (PARAM(84).NE.0.0) THEN
-!            dt=dtopf*param(85)
-!            dt=min(dt,param(12))
-!      endif
+  IF (DTOLD /= 0.0) THEN
+      DTMIN=0.8*DTOLD
+      DTMAX=1.2*DTOLD
+      DT = MIN(DTMAX,DT)
+      DT = MAX(DTMIN,DT)
+  endif
+  DTOLD=DT
 
-    if (iffxdt) dt=dtopf
-    COURNO = DT*UMAX
+!    IF (PARAM(84).NE.0.0) THEN
+!          dt=dtopf*param(85)
+!          dt=min(dt,param(12))
+!    endif
+
+  if (iffxdt) dt=dtopf
+  COURNO = DT*UMAX
 
 ! synchronize time step for multiple sessions
-    if (ifneknek) dt=uglmin(dt,1)
+  if (ifneknek) dt=uglmin(dt,1)
 
-    if (iffxdt .AND. abs(courno) > 10.*abs(ctarg)) then
-        if (nid == 0) write(6,*) 'CFL, Ctarg!',courno,ctarg
-        call emerxit
-    endif
+  if (iffxdt .AND. abs(courno) > 10.*abs(ctarg)) then
+      if (nid == 0) write(6,*) 'CFL, Ctarg!',courno,ctarg
+      call emerxit
+  endif
 
-
-    return
-    end subroutine setdt
+  return
+end subroutine setdt
 
 !--------------------------------------------------------
 

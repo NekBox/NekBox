@@ -435,20 +435,12 @@ subroutine swap_lengths()
   use size_m, only : lx1, ly1, lz1, lelv
   use size_m, only : nx1, nelv, lelt
   use geom, only : xm1, ym1, zm1
+  use hsmg, only : lr, llr, lrr, lmr, ls, lls, lms, lrs, lt, llt, lmt, lrt
   use input, only : if3d
   use wz_m, only : wxm1
   implicit none
 
   real, allocatable :: l(:,:,:,:)
-  common /ctmpf/  lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &
-  , llr(lelt),lls(lelt),llt(lelt) &
-  , lmr(lelt),lms(lelt),lmt(lelt) &
-  , lrr(lelt),lrs(lelt),lrt(lelt)
-  real(DP) :: lr ,ls ,lt
-  real(DP) :: llr,lls,llt
-  real(DP) :: lmr,lms,lmt
-  real(DP) :: lrr,lrs,lrt
-
   real :: l2d
   integer :: e, n2, nz0, nzn, nx, n, j, k
 

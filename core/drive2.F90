@@ -100,8 +100,6 @@ subroutine comment
 
   LOGICAL ::  IFCOUR
   SAVE     IFCOUR
-  COMMON  /CPRINT/ IFPRINT
-  LOGICAL ::          IFPRINT
   REAL(DP) :: EETIME0,EETIME1,EETIME2, TTIME_STP
   SAVE   EETIME0,EETIME1,EETIME2
   DATA   EETIME0,EETIME1,EETIME2 /0.0, 0.0, 0.0/
@@ -627,13 +625,11 @@ end subroutine files
 !----------------------------------------------------------------------
 subroutine settime
   use geom,  only : ifsurt
-  use input, only : ifmvbd, param
+  use input, only : ifmvbd, param, ifprint
   use tstep, only : dtlag, ab, abmsh, bd, dt, iocomm
   use tstep, only : istep, nab, nbd, nbdinp, time, timef
   implicit none
 
-  COMMON  /CPRINT/ IFPRINT
-  LOGICAL :: IFPRINT
   integer :: nfldt, ilag, irst, nabmsh, nbdmsh
 
   irst = param(46)

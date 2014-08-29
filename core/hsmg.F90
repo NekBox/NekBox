@@ -573,88 +573,88 @@ end subroutine hsmg_tnsr3d_el
     return
     end subroutine hsmg_setup_fdm
 !----------------------------------------------------------------------
-! called
-    subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
-    use size_m
-    use input
-    use hsmg
-    real :: s(nl*nl,2,ndim,nelv)
-    real :: d(nl**ndim,nelv)
-    real :: ah(1),bh(1)
-    common /ctmpf/  lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &
-    , llr(lelt),lls(lelt),llt(lelt) &
-    , lmr(lelt),lms(lelt),lmt(lelt) &
-    , lrr(lelt),lrs(lelt),lrt(lelt)
-    real :: lr ,ls ,lt
-    real :: llr,lls,llt
-    real :: lmr,lms,lmt
-    real :: lrr,lrs,lrt
-          
-    integer :: i,j,k
-    integer :: ie,il,nr,ns,nt
-    integer :: lbr,rbr,lbs,rbs,lbt,rbt,two
-    real :: eps,diag
+!> \brief not sure    
+subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
+  use kinds, only : DP
+  use hsmg, only : lr, llr, lrr, lmr, ls, lls, lms, lrs, lt, llt, lmt, lrt
+  use size_m, only : nid, lx1, ndim, nelv, lelt
+  use input, only : if3d
+  implicit none
 
-    two  = 2
-    ierr = 0
-    do ie=1,nelv
-        call get_fast_bc(lbr,rbr,lbs,rbs,lbt,rbt,ie,two,ierr)
-        nr=nl
-        ns=nl
-        nt=nl
-        call hsmg_setup_fast1d(s(1,1,1,ie),lr,nr,lbr,rbr &
-        ,llr(ie),lmr(ie),lrr(ie),ah,bh,n,ie)
-        call hsmg_setup_fast1d(s(1,1,2,ie),ls,ns,lbs,rbs &
-        ,lls(ie),lms(ie),lrs(ie),ah,bh,n,ie)
-        if(if3d) call hsmg_setup_fast1d(s(1,1,3,ie),lt,nt,lbt,rbt &
-        ,llt(ie),lmt(ie),lrt(ie),ah,bh,n,ie)
-        il=1
-        if( .NOT. if3d) then
-            eps = 1.e-5*(vlmax(lr(2),nr-2) + vlmax(ls(2),ns-2))
-            do j=1,ns
-                do i=1,nr
-                    diag = lr(i)+ls(j)
-                    if (diag > eps) then
-                        d(il,ie) = 1.0/diag
-                    else
-                    !                 write(6,2) ie,'Reset Eig in hsmg setup fast:',i,j,l
-                    !    $                         ,eps,diag,lr(i),ls(j)
-                        2 format(i6,1x,a21,3i5,1p4e12.4)
-                        d(il,ie) = 0.0
-                    endif
-                    il=il+1
-                enddo
-            enddo
-        else
-            eps = 1.e-5 * (vlmax(lr(2),nr-2) &
-            + vlmax(ls(2),ns-2) + vlmax(lt(2),nt-2))
-            do k=1,nt
-                do j=1,ns
-                    do i=1,nr
-                        diag = lr(i)+ls(j)+lt(k)
-                        if (diag > eps) then
-                            d(il,ie) = 1.0/diag
-                        else
-                        !                 write(6,3) ie,'Reset Eig in hsmg setup fast:',i,j,k,l
-                        !    $                         ,eps,diag,lr(i),ls(j),lt(k)
-                            3 format(i6,1x,a21,4i5,1p5e12.4)
-                            d(il,ie) = 0.0
-                        endif
-                        il=il+1
-                    enddo
-                enddo
-            enddo
-        endif
-    enddo
+  real(DP) :: s(nl*nl,2,ndim,nelv)
+  real(DP) :: d(nl**ndim,nelv)
+  integer :: nl
+  real(DP) :: ah(1),bh(1)
+  integer :: n
+      
+  integer :: i,j,k
+  integer :: ie,il,nr,ns,nt
+  integer :: lbr,rbr,lbs,rbs,lbt,rbt,two
+  integer :: ierr, ierrmx
+  integer, external :: iglmax
+  real(DP), external :: vlmax
+  real(DP) :: eps,diag
 
-    ierrmx = iglmax(ierr,1)
-    if (ierrmx > 0) then
-        if (ierr > 0) write(6,*) nid,ierr,' BC FAIL'
-        call exitti('A INVALID BC FOUND in genfast$',ierrmx)
-    endif
+  two  = 2
+  ierr = 0
+  do ie=1,nelv
+      call get_fast_bc(lbr,rbr,lbs,rbs,lbt,rbt,ie,two,ierr)
+      nr=nl
+      ns=nl
+      nt=nl
+      call hsmg_setup_fast1d(s(1,1,1,ie),lr,nr,lbr,rbr &
+      ,llr(ie),lmr(ie),lrr(ie),ah,bh,n,ie)
+      call hsmg_setup_fast1d(s(1,1,2,ie),ls,ns,lbs,rbs &
+      ,lls(ie),lms(ie),lrs(ie),ah,bh,n,ie)
+      if(if3d) call hsmg_setup_fast1d(s(1,1,3,ie),lt,nt,lbt,rbt &
+      ,llt(ie),lmt(ie),lrt(ie),ah,bh,n,ie)
+      il=1
+      if( .NOT. if3d) then
+          eps = 1.e-5*(vlmax(lr(2),nr-2) + vlmax(ls(2),ns-2))
+          do j=1,ns
+              do i=1,nr
+                  diag = lr(i)+ls(j)
+                  if (diag > eps) then
+                      d(il,ie) = 1.0/diag
+                  else
+                  !                 write(6,2) ie,'Reset Eig in hsmg setup fast:',i,j,l
+                  !    $                         ,eps,diag,lr(i),ls(j)
+                      2 format(i6,1x,a21,3i5,1p4e12.4)
+                      d(il,ie) = 0.0
+                  endif
+                  il=il+1
+              enddo
+          enddo
+      else
+          eps = 1.e-5 * (vlmax(lr(2),nr-2) &
+          + vlmax(ls(2),ns-2) + vlmax(lt(2),nt-2))
+          do k=1,nt
+              do j=1,ns
+                  do i=1,nr
+                      diag = lr(i)+ls(j)+lt(k)
+                      if (diag > eps) then
+                          d(il,ie) = 1.0/diag
+                      else
+                      !                 write(6,3) ie,'Reset Eig in hsmg setup fast:',i,j,k,l
+                      !    $                         ,eps,diag,lr(i),ls(j),lt(k)
+                          3 format(i6,1x,a21,4i5,1p5e12.4)
+                          d(il,ie) = 0.0
+                      endif
+                      il=il+1
+                  enddo
+              enddo
+          enddo
+      endif
+  enddo
 
-    return
-    end subroutine hsmg_setup_fast
+  ierrmx = iglmax(ierr,1)
+  if (ierrmx > 0) then
+      if (ierr > 0) write(6,*) nid,ierr,' BC FAIL'
+      call exitti('A INVALID BC FOUND in genfast$',ierrmx)
+  endif
+
+  return
+end subroutine hsmg_setup_fast
 !----------------------------------------------------------------------
 subroutine hsmg_setup_fast1d(s,lam,nl,lbc,rbc,ll,lm,lr,ah,bh,n,ie)
   use kinds, only : DP          

@@ -4,8 +4,7 @@
 !> Module containing data for HSMG
 !
 module hsmg
-!> Module containing data for HSMG
-!
+  use kinds, only : DP
   use size_m
   implicit none
 
@@ -63,6 +62,11 @@ module hsmg
   integer, allocatable :: mg_h1_n(:,:)
   integer, allocatable, dimension(:,:) :: p_mg_h1,p_mg_h2,p_mg_b,p_mg_g,p_mg_msk
 
+  real(DP), allocatable, dimension(:) :: lr,ls,lt &
+                          , llr,lls,llt &
+                          , lmr,lms,lmt &
+                          , lrr,lrs,lrt
+
   contains
 
   subroutine init_hsmg()
@@ -111,6 +115,11 @@ module hsmg
     , p_mg_h1  (lmgx,ldimt1),p_mg_h2(lmgx,ldimt1) &
     , p_mg_b   (lmgx,ldimt1),p_mg_g (lmgx,ldimt1) &
     , p_mg_msk (lmgx,ldimt1) )
+
+    allocate(lr(2*lx1+4),ls(2*lx1+4),lt(2*lx1+4) &
+  , llr(lelt),lls(lelt),llt(lelt) &
+  , lmr(lelt),lms(lelt),lmt(lelt) &
+  , lrr(lelt),lrs(lelt),lrt(lelt) )
 
   end subroutine init_hsmg
 

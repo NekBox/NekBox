@@ -548,8 +548,7 @@ subroutine restart_driver(nfiles)
   integer, parameter :: LXYZT=LX1*LY1*LZ1*LELT
   integer, parameter :: LPSC9=LDIMT+9
 
-  real(DP) :: sdump
-  COMMON /SCRNS/ SDUMP(LXYZT,7)
+  real(DP) :: SDUMP(LXYZT,7)
   integer :: mesg(40)
 
   real*4, allocatable :: tdump(:,:)

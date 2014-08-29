@@ -24,14 +24,14 @@ subroutine plan4
   integer, save :: napprox(2)
   real(DP), allocatable, save :: approx(:,:)
 
-  real(DP) :: res1, res2, res3, dv1, dv2, dv3, respr
-  COMMON /SCRNS/ RES1  (LX1,LY1,LZ1,LELV) &
+  real(DP) ::   RES1  (LX1,LY1,LZ1,LELV) &
   ,             RES2  (LX1,LY1,LZ1,LELV) &
   ,             RES3  (LX1,LY1,LZ1,LELV) &
   ,             DV1   (LX1,LY1,LZ1,LELV) &
   ,             DV2   (LX1,LY1,LZ1,LELV) &
   ,             DV3   (LX1,LY1,LZ1,LELV) &
   ,             RESPR (LX2,LY2,LZ2,LELV)
+
   real(DP) :: h1(lx1,ly1,lz1,lelv), h2(lx1,ly1,lz1,lelv)
   real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
   REAL(DP) ::           DPR   (LX2,LY2,LZ2,LELV)
@@ -161,13 +161,13 @@ subroutine crespsp (respr, vext)
   REAL(DP) ::           RESPR (LX2*LY2*LZ2*LELV)
   real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
 
-  real(DP) :: ta1, ta2, ta3, wa1, wa2, wa3
-  COMMON /SCRNS/ TA1   (LX1*LY1*LZ1,LELV) &
+  real(DP) ::   TA1   (LX1*LY1*LZ1,LELV) &
   ,             TA2   (LX1*LY1*LZ1,LELV) &
   ,             TA3   (LX1*LY1*LZ1,LELV) &
   ,             WA1   (LX1*LY1*LZ1*LELV) &
   ,             WA2   (LX1*LY1*LZ1*LELV) &
   ,             WA3   (LX1*LY1*LZ1*LELV)
+
   real(DP) ::  W1    (LX1*LY1*LZ1*LELV) &
   ,             W2    (LX1*LY1*LZ1*LELV)
   CHARACTER CB*3

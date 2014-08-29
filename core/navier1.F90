@@ -801,50 +801,53 @@ subroutine advab()
 end subroutine advab
 
 !-----------------------------------------------------------------------
-!called
-    subroutine makebdf
+!> \brief Add contributions to F from lagged BD terms.
+subroutine makebdf()
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv
+  use size_m, only : nx1, ny1, nz1, nelv
+  use geom, only : ifgeom
+  use mass, only : bm1, bm1lag
+  use soln, only : vx, vy, vz, vxlag, vylag, vzlag, bfx, bfy, bfz
+  use soln, only : vtrans
+  use tstep, only : dt, ifield, bd, nbd
+  implicit none
 
-!     Add contributions to F from lagged BD terms.
+  real(DP) ::   TA1(LX1,LY1,LZ1,LELV) &
+  ,             TA2(LX1,LY1,LZ1,LELV) &
+  ,             TA3(LX1,LY1,LZ1,LELV) &
+  ,             TB1(LX1,LY1,LZ1,LELV) &
+  ,             TB2(LX1,LY1,LZ1,LELV) &
+  ,             TB3(LX1,LY1,LZ1,LELV) &
+  ,             H2 (LX1,LY1,LZ1,LELV)
 
-    use size_m
-    use geom
-    use input
-    use mass
-    use soln
-    use tstep
+  integer :: ntot1, ilag
+  real(DP) :: const
 
-    COMMON /SCRNS/ TA1(LX1,LY1,LZ1,LELV) &
-    ,             TA2(LX1,LY1,LZ1,LELV) &
-    ,             TA3(LX1,LY1,LZ1,LELV) &
-    ,             TB1(LX1,LY1,LZ1,LELV) &
-    ,             TB2(LX1,LY1,LZ1,LELV) &
-    ,             TB3(LX1,LY1,LZ1,LELV) &
-    ,             H2 (LX1,LY1,LZ1,LELV)
+  NTOT1 = NX1*NY1*NZ1*NELV
+  CONST = 1./DT
+  CALL CMULT2(H2,vtrans(1,1,1,1,ifield),CONST,NTOT1)
+  CALL OPCOLV3c (TB1,TB2,TB3,VX,VY,VZ,BM1,bd(2))
 
+  DO 100 ILAG=2,NBD
+      IF (IFGEOM) THEN
+          CALL OPCOLV3c(TA1,TA2,TA3,VXLAG (1,1,1,1,ILAG-1), &
+          VYLAG (1,1,1,1,ILAG-1), &
+          VZLAG (1,1,1,1,ILAG-1), &
+          BM1LAG(1,1,1,1,ILAG-1),bd(ilag+1))
+      ELSE
+          CALL OPCOLV3c(TA1,TA2,TA3,VXLAG (1,1,1,1,ILAG-1), &
+          VYLAG (1,1,1,1,ILAG-1), &
+          VZLAG (1,1,1,1,ILAG-1), &
+          BM1                   ,bd(ilag+1))
+      ENDIF
+      CALL OPADD2  (TB1,TB2,TB3,TA1,TA2,TA3)
+  100 END DO
+  CALL OPADD2col (BFX,BFY,BFZ,TB1,TB2,TB3,h2)
 
-    NTOT1 = NX1*NY1*NZ1*NELV
-    CONST = 1./DT
-    CALL CMULT2(H2,vtrans(1,1,1,1,ifield),CONST,NTOT1)
-    CALL OPCOLV3c (TB1,TB2,TB3,VX,VY,VZ,BM1,bd(2))
+  return
+end subroutine makebdf
 
-    DO 100 ILAG=2,NBD
-        IF (IFGEOM) THEN
-            CALL OPCOLV3c(TA1,TA2,TA3,VXLAG (1,1,1,1,ILAG-1), &
-            VYLAG (1,1,1,1,ILAG-1), &
-            VZLAG (1,1,1,1,ILAG-1), &
-            BM1LAG(1,1,1,1,ILAG-1),bd(ilag+1))
-        ELSE
-            CALL OPCOLV3c(TA1,TA2,TA3,VXLAG (1,1,1,1,ILAG-1), &
-            VYLAG (1,1,1,1,ILAG-1), &
-            VZLAG (1,1,1,1,ILAG-1), &
-            BM1                   ,bd(ilag+1))
-        ENDIF
-        CALL OPADD2  (TB1,TB2,TB3,TA1,TA2,TA3)
-    100 END DO
-    CALL OPADD2col (BFX,BFY,BFZ,TB1,TB2,TB3,h2)
-
-    return
-    end subroutine makebdf
 !-----------------------------------------------------------------------
 !> \brief Sum up contributions to kth order extrapolation scheme.
 !! NOTE: rho^{n+1} should multiply all the Sum_q{beta_q} term

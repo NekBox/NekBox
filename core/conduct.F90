@@ -15,9 +15,7 @@ subroutine cdscal (igeom)
   COMMON  /CPRINT/ IFPRINT
   LOGICAL ::          IFCONV
 
-  real(DP) :: ta, tb 
-  COMMON /SCRNS/ TA(LX1,LY1,LZ1,LELT) &
-  ,TB(LX1,LY1,LZ1,LELT)
+  real(DP) :: TA(LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT)
   real(DP) :: H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT)
 
   integer, parameter :: ktot = lx1*ly1*lz1*lelt
@@ -258,49 +256,50 @@ subroutine makeabq
   return
 end subroutine makeabq
 !-----------------------------------------------------------------------
-    subroutine makebdq
+!> \brief Add contributions to F from lagged BD terms.
 !-----------------------------------------------------------------------
+subroutine makebdq()
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1
+  use geom, only : ifgeom
+  use mass, only : bm1, bm1lag
+  use soln, only : vtrans, t, tlag, bq
+  use tstep, only : ifield, nelfld, dt, bd, nbd
+  implicit none
 
-!     Add contributions to F from lagged BD terms.
+  real(DP) ::  TA (LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT) &
+  ,             H2 (LX1,LY1,LZ1,LELT)
 
-!-----------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use mass
-    use soln
-    use tstep
+  integer :: nel, ntot1, ilag
+  real(DP) :: const
 
-    COMMON /SCRNS/ TA (LX1,LY1,LZ1,LELT) &
-    ,             TB (LX1,LY1,LZ1,LELT) &
-    ,             H2 (LX1,LY1,LZ1,LELT)
+  NEL   = NELFLD(IFIELD)
+  NTOT1 = NX1*NY1*NZ1*NEL
+  CONST = 1./DT
+  CALL COPY  (H2,VTRANS(1,1,1,1,IFIELD),NTOT1)
+  CALL CMULT (H2,CONST,NTOT1)
 
-    NEL   = NELFLD(IFIELD)
-    NTOT1 = NX1*NY1*NZ1*NEL
-    CONST = 1./DT
-    CALL COPY  (H2,VTRANS(1,1,1,1,IFIELD),NTOT1)
-    CALL CMULT (H2,CONST,NTOT1)
+  CALL COL3  (TB,BM1,T(1,1,1,1,IFIELD-1),NTOT1)
+  CALL CMULT (TB,BD(2),NTOT1)
 
-    CALL COL3  (TB,BM1,T(1,1,1,1,IFIELD-1),NTOT1)
-    CALL CMULT (TB,BD(2),NTOT1)
+  DO 100 ILAG=2,NBD
+      IF (IFGEOM) THEN
+          CALL COL3 (TA,BM1LAG(1,1,1,1,ILAG-1), &
+          TLAG  (1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
+      ELSE
+          CALL COL3 (TA,BM1, &
+          TLAG  (1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
+      ENDIF
+      CALL CMULT (TA,BD(ILAG+1),NTOT1)
+      CALL ADD2  (TB,TA,NTOT1)
+  100 END DO
 
-    DO 100 ILAG=2,NBD
-        IF (IFGEOM) THEN
-            CALL COL3 (TA,BM1LAG(1,1,1,1,ILAG-1), &
-            TLAG  (1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
-        ELSE
-            CALL COL3 (TA,BM1, &
-            TLAG  (1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
-        ENDIF
-        CALL CMULT (TA,BD(ILAG+1),NTOT1)
-        CALL ADD2  (TB,TA,NTOT1)
-    100 END DO
+  CALL COL2 (TB,H2,NTOT1)
+  CALL ADD2 (BQ(1,1,1,1,IFIELD-1),TB,NTOT1)
 
-    CALL COL2 (TB,H2,NTOT1)
-    CALL ADD2 (BQ(1,1,1,1,IFIELD-1),TB,NTOT1)
-
-    return
-    end subroutine makebdq
+  return
+end subroutine makebdq
 !-----------------------------------------------------------------------
     subroutine tchinit (tch,ilag)
 

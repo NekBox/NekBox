@@ -1926,136 +1926,143 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
   return
 end subroutine mfo_outv
 !-----------------------------------------------------------------------
-    subroutine mfo_write_hdr          ! write hdr, byte key, els.
+!> \brief write hdr, byte key, els.
+subroutine mfo_write_hdr          
+  use kinds, only : DP
+  use size_m, only : nid, nelt, lelt, ldimt
+  use input, only : ifxyo, ifvo, ifpo, ifto, ifpsco
+  use parallel, only : nelgt, lglel
+  use restart, only : nfileo, pid0, pid1, rdcode, rdcode1, wdsizo, nxo, nyo, nzo
+  use restart, only : fid0, iheadersize
+  use tstep, only : istep, time
+  implicit none
 
-    use size_m
-    use input
-    use parallel
-    use restart
-    use tstep
-    real*4 :: test_pattern
-    common /ctmp0/ lglist(0:lelt)
+  real*4 :: test_pattern
+  integer :: lglist(0:lelt)
 
-    character(132) :: hdr
-    integer*8 :: ioff
+  character(132) :: hdr
+  integer*8 :: ioff
 
-    call nekgsync()
-    idum = 1
+  integer :: idum, nfileoo, nelo, j, mtype, inelp, ierr, i, npscalo, k
+  integer :: ibsw_out, len
 
-#ifdef MPIIO
-    nfileoo = 1   ! all data into one file
-    nelo = nelgt
-#else
-    nfileoo = nfileo
-    if(nid == pid0) then                ! how many elements to dump
-        nelo = nelt
-        do j = pid0+1,pid1
-            mtype = j
-            call csend(mtype,idum,4,j,0)   ! handshake
-            call crecv(mtype,inelp,4)
-            nelo = nelo + inelp
-        enddo
-    else
-        mtype = nid
-        call crecv(mtype,idum,4)          ! hand-shake
-        call csend(mtype,nelt,4,pid0,0)   ! u4 :=: u8
-    endif
-#endif
-
-    ierr = 0
-    if(nid == pid0) then
-
-        call blank(hdr,132)              ! write header
-        call blank(rdcode1,10)
-        i = 1
-        IF (IFXYO) THEN
-            rdcode1(i)='X'
-            i = i + 1
-        ENDIF
-        IF (IFVO) THEN
-            rdcode1(i)='U'
-            i = i + 1
-        ENDIF
-        IF (IFPO) THEN
-            rdcode1(i)='P'
-            i = i + 1
-        ENDIF
-        IF (IFTO) THEN
-            rdcode1(i)='T'
-            i = i + 1
-        ENDIF
-        IF (LDIMT > 1) THEN
-            NPSCALO = 0
-            do k = 1,ldimt-1
-                if(ifpsco(k)) NPSCALO = NPSCALO + 1
-            enddo
-            IF (NPSCALO > 0) THEN
-                rdcode1(i) = 'S'
-                WRITE(rdcode1(i+1),'(I1)') NPSCALO/10
-                WRITE(rdcode1(i+2),'(I1)') NPSCALO-(NPSCALO/10)*10
-            ENDIF
-        ENDIF
-         
-        write(hdr,1) wdsizo,nxo,nyo,nzo,nelo,nelgt,time,istep,fid0,nfileoo &
-        ,   (rdcode1(i),i=1,10)        ! 74+20=94
-        1 format('#std',1x,i1,1x,i2,1x,i2,1x,i2,1x,i10,1x,i10,1x,e20.13, &
-        &        1x,i9,1x,i6,1x,i6,1x,10a)
-
-    ! if we want to switch the bytes for output
-    ! switch it again because the hdr is in ASCII
-        call get_bytesw_write(ibsw_out)
-    !      if (ibsw_out.ne.0) call set_bytesw_write(ibsw_out)
-        if (ibsw_out /= 0) call set_bytesw_write(0)
-
-        test_pattern = 6.54321           ! write test pattern for byte swap
+  call nekgsync()
+  idum = 1
 
 #ifdef MPIIO
-    ! only rank0 (pid00) will write hdr + test_pattern
-        call byte_write_mpi(hdr,iHeaderSize/4,pid00,ifh_mbyte,ierr)
-        call byte_write_mpi(test_pattern,1,pid00,ifh_mbyte,ierr)
+  nfileoo = 1   ! all data into one file
+  nelo = nelgt
 #else
-        call byte_write(hdr,iHeaderSize/4,ierr)
-        call byte_write(test_pattern,1,ierr)
+  nfileoo = nfileo
+  if(nid == pid0) then                ! how many elements to dump
+      nelo = nelt
+      do j = pid0+1,pid1
+          mtype = j
+          call csend(mtype,idum,4,j,0)   ! handshake
+          call crecv(mtype,inelp,4)
+          nelo = nelo + inelp
+      enddo
+  else
+      mtype = nid
+      call crecv(mtype,idum,4)          ! hand-shake
+      call csend(mtype,nelt,4,pid0,0)   ! u4 :=: u8
+  endif
 #endif
 
-    endif
+  ierr = 0
+  if(nid == pid0) then
 
-    call err_chk(ierr,'Error writing header in mfo_write_hdr. $')
+      call blank(hdr,132)              ! write header
+      call blank(rdcode1,10)
+      i = 1
+      IF (IFXYO) THEN
+          rdcode1(i)='X'
+          i = i + 1
+      ENDIF
+      IF (IFVO) THEN
+          rdcode1(i)='U'
+          i = i + 1
+      ENDIF
+      IF (IFPO) THEN
+          rdcode1(i)='P'
+          i = i + 1
+      ENDIF
+      IF (IFTO) THEN
+          rdcode1(i)='T'
+          i = i + 1
+      ENDIF
+      IF (LDIMT > 1) THEN
+          NPSCALO = 0
+          do k = 1,ldimt-1
+              if(ifpsco(k)) NPSCALO = NPSCALO + 1
+          enddo
+          IF (NPSCALO > 0) THEN
+              rdcode1(i) = 'S'
+              WRITE(rdcode1(i+1),'(I1)') NPSCALO/10
+              WRITE(rdcode1(i+2),'(I1)') NPSCALO-(NPSCALO/10)*10
+          ENDIF
+      ENDIF
+       
+      write(hdr,1) wdsizo,nxo,nyo,nzo,nelo,nelgt,time,istep,fid0,nfileoo &
+      ,   (rdcode1(i),i=1,10)        ! 74+20=94
+      1 format('#std',1x,i1,1x,i2,1x,i2,1x,i2,1x,i10,1x,i10,1x,e20.13, &
+      &        1x,i9,1x,i6,1x,i6,1x,10a)
+
+  ! if we want to switch the bytes for output
+  ! switch it again because the hdr is in ASCII
+      call get_bytesw_write(ibsw_out)
+  !      if (ibsw_out.ne.0) call set_bytesw_write(ibsw_out)
+      if (ibsw_out /= 0) call set_bytesw_write(0)
+
+      test_pattern = 6.54321           ! write test pattern for byte swap
+
+#ifdef MPIIO
+  ! only rank0 (pid00) will write hdr + test_pattern
+      call byte_write_mpi(hdr,iHeaderSize/4,pid00,ifh_mbyte,ierr)
+      call byte_write_mpi(test_pattern,1,pid00,ifh_mbyte,ierr)
+#else
+      call byte_write(hdr,iHeaderSize/4,ierr)
+      call byte_write(test_pattern,1,ierr)
+#endif
+
+  endif
+
+  call err_chk(ierr,'Error writing header in mfo_write_hdr. $')
 
 ! write global element numbering for this group
-    if(nid == pid0) then
+  if(nid == pid0) then
 #ifdef MPIIO
-        ioff = iHeaderSize + 4 + nelB*isize
-        call byte_set_view (ioff,ifh_mbyte)
-        call byte_write_mpi(lglel,nelt,-1,ifh_mbyte,ierr)
+      ioff = iHeaderSize + 4 + nelB*isize
+      call byte_set_view (ioff,ifh_mbyte)
+      call byte_write_mpi(lglel,nelt,-1,ifh_mbyte,ierr)
 #else
-        call byte_write(lglel,nelt,ierr)
+      call byte_write(lglel,nelt,ierr)
 #endif
-        do j = pid0+1,pid1
-            mtype = j
-            call csend(mtype,idum,4,j,0)   ! handshake
-            len = 4*(lelt+1)
-            call crecv(mtype,lglist,len)
-            if(ierr == 0) then
+      do j = pid0+1,pid1
+          mtype = j
+          call csend(mtype,idum,4,j,0)   ! handshake
+          len = 4*(lelt+1)
+          call crecv(mtype,lglist,len)
+          if(ierr == 0) then
 #ifdef MPIIO
-                call byte_write_mpi(lglist(1),lglist(0),-1,ifh_mbyte,ierr)
+              call byte_write_mpi(lglist(1),lglist(0),-1,ifh_mbyte,ierr)
 #else
-                call byte_write(lglist(1),lglist(0),ierr)
+              call byte_write(lglist(1),lglist(0),ierr)
 #endif
-            endif
-        enddo
-    else
-        mtype = nid
-        call crecv(mtype,idum,4)          ! hand-shake
-                
-        lglist(0) = nelt
-        call icopy(lglist(1),lglel,nelt)
+          endif
+      enddo
+  else
+      mtype = nid
+      call crecv(mtype,idum,4)          ! hand-shake
+              
+      lglist(0) = nelt
+      call icopy(lglist(1),lglel,nelt)
 
-        len = 4*(nelt+1)
-        call csend(mtype,lglist,len,pid0,0)
-    endif
+      len = 4*(nelt+1)
+      call csend(mtype,lglist,len,pid0,0)
+  endif
 
-    call err_chk(ierr,'Error writing global nums in mfo_write_hdr$')
-    return
-    end subroutine mfo_write_hdr
+  call err_chk(ierr,'Error writing global nums in mfo_write_hdr$')
+  return
+end subroutine mfo_write_hdr
 !-----------------------------------------------------------------------

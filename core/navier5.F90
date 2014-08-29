@@ -29,10 +29,7 @@ subroutine q_filter(wght)
   real(DP) :: wk1  (lx1,lx1,lx1,lelt)
   real(DP) :: wk2  (lx1,lx1,lx1)
   real(DP) :: zgmv(lx1),wgtv(lx1),zgmp(lx1),wgtp(lx1)
-  real(DP) :: tmax, omax
-  common /ctmp0/ intw,intt &
-  , wk1,wk2 &
-  , zgmv,wgtv,zgmp,wgtp,tmax(100),omax(103)
+  real(DP) :: tmax(100),omax(103)
 
 !   outpost arrays
   integer, parameter :: lt=lx1*ly1*lz1*lelv

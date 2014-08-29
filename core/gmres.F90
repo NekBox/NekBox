@@ -95,8 +95,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   common  /cprint/ ifprint
   real(DP) :: d(lx1*ly1*lz1*lelv)
 
-  real(DP) :: wk1, wk2
-  common /ctmp0/   wk1(lgmres),wk2(lgmres)
+  real(DP) :: wk1(lgmres)
 
   real(DP) :: alpha, l, temp
   integer :: outer

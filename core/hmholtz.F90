@@ -563,6 +563,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelv, nelt, nid
   use eigen, only : eigaa, eigga
+  use input, only : ifprint
   use mass, only : volvm1, voltm1, binvm1, bintm1, bm1
   implicit none
 
@@ -574,8 +575,6 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   REAL(DP) :: MULT (LX1,LY1,LZ1,1)
   integer :: imesh, isd
 
-  LOGICAL ::          IFPRINT
-  COMMON  /CPRINT/ IFPRINT
   real(DP) :: W1   (LX1,LY1,LZ1,LELT) &
   ,           W2   (LX1,LY1,LZ1,LELT)
 
@@ -656,9 +655,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use size_m, only : nid, nx1, ny1, nz1, nelt, nelv
   use size_m, only : lx1, ly1, lz1, lelt
   use fdmh1, only : kfldfdm
-  use input, only : ifsplit, param
+  use input, only : ifsplit, param, ifprint
   use mass, only : volvm1, voltm1, bm1
-  use mesh, only : ifdfrm, ifsolv
+  use mesh, only : ifdfrm, ifsolv, niterhm
   use tstep, only : istep, imesh
   implicit none
 
@@ -666,9 +665,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   integer :: imsh, isd, maxit
   real(DP) :: tin
   character(4) :: name
-
-  COMMON  /CPRINT/ IFPRINT, IFHZPC
-  LOGICAL ::          IFPRINT, IFHZPC
 
   logical :: ifmcor,ifprint_hmh
 
@@ -678,8 +674,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   integer, parameter :: maxcg=900
   real(DP), allocatable :: diagt(:), upper(:)
-  integer :: niterhm
-  common /iterhm/ niterhm
 
   integer :: n, iter, nxyz, nel, niter, krylov
   real(DP) :: rho, vol, tol, h2max, skmin, smean, rmean

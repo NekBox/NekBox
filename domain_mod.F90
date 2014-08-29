@@ -26,13 +26,11 @@ module domain
     use size_m
     implicit none
 
-    allocate(na(lelt+1), ma(lelt+1), nza(lelt+1))
 
-    allocate(se_to_gcrs(lcr, lelt))
-    allocate(h1_basis(lx1*lxc), h1_basist(lxc*lx1))
-!    allocate(l2_basis(lx2*lxc), l2_basist(lxc*lx2))
-!    l2_basis => h1_basis
-!    l2_basist => h1_basist
+    allocate(se_to_gcrs(lcr, lelt)) !verified
+!    allocate(na(lelt+1), ma(lelt+1), nza(lelt+1))
+!    allocate(h1_basis(lx1*lxc), h1_basist(lxc*lx1))
+
 
   end subroutine init_domain
 

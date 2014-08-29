@@ -137,7 +137,6 @@ module soln
     , BPMASK (LBX1,LBY1,LBZ1,LBELV) )  ! magnetic pressure
 
 !     Solution and data for perturbation fields
-
     allocate(VXP(LPX1*LPY1*LPZ1*LPELV,lpert) &
     , VYP    (LPX1*LPY1*LPZ1*LPELV,lpert) &
     , VZP    (LPX1*LPY1*LPZ1*LPELV,lpert) &

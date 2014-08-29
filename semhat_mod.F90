@@ -1,3 +1,4 @@
+!> cleaned
 module semhat
   use kinds, only : DP
   use size_m

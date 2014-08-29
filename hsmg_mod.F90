@@ -84,7 +84,7 @@ module hsmg
     allocate(mg_jh(lxm*lxm,lmgn) &
     , mg_jht(lxm*lxm,lmgn)      & 
     , mg_jhfc (lxm*lxm,lmgn)    & 
-    , mg_jhfct(lxm*lxm,lmgn)    & 
+    , mg_jhfct(lxm*lxm,lmgn)    &  ! verified
     , mg_ah(lxm*lxm,lmgn)       & 
     , mg_bh(lxm,lmgn)           & 
     , mg_dh(lxm*lxm,lmgn)       & 
@@ -93,22 +93,21 @@ module hsmg
     , mg_rstr_wt   (0:lmgs*lmg_rwt*2*ldim*lelt-1)  & !restriction wt
     , mg_mask      (0:lmgs*lmg_rwt*4*ldim*lelt-1)    & !b.c. mask
     , mg_fast_s    (0:lmgs*lmg_fasts*2*ldim*lelt-1) &
-    , mg_fast_d    (0:lmgs*lmg_fastd*lelt-1) &
-    , mg_schwarz_wt(0:lmgs*lmg_swt*4*ldim*lelt-1) &
-    , mg_solve_e   (0:lmg_solve*lelt-1) &
-    , mg_solve_r   (0:lmg_solve*lelt-1) &
-
+    , mg_fast_d    (0:lmgs*lmg_fastd*lelt-1) & ! verified
+    , mg_schwarz_wt(0:lmgs*lmg_swt*4*ldim*lelt-1) & ! verified
+!    , mg_solve_e   (0:lmg_solve*lelt-1) &
+!    , mg_solve_r   (0:lmg_solve*lelt-1) &
     , mg_h1        (0:lmg_g*lelt-1) &
     , mg_h2        (0:lmg_g*lelt-1) &
-    , mg_b         (0:lmg_g*lelt-1) &
-    , mg_g         (0:lmg_g*((ldim-1)*3)*lelt-1)  & !metrics matrices
+    , mg_b         (0:lmg_g*lelt-1) & ! verified
+    , mg_g         (0:lmg_g*((ldim-1)*3)*lelt-1)  & !metrics matrices (verified)
 
-    , mg_work      (2*lxm*lym*lzm*lelt)  & ! must be able to hold
-    , mg_work2     (lxm*lym*lzm*lelt)    & ! two lower level extended
+    , mg_work      (2*lxm*lym*lzm*lelt)  & ! verified
+!    , mg_work2     (lxm*lym*lzm*lelt)    & ! two lower level extended
     , mg_worke     (lxm*lym*lzm,6) &      ! schwarz arrays
     )
 
-    allocate(mg_imask(0:lmgs*lmg_rwt*4*ldim*lelt-1))
+    allocate(mg_imask(0:lmgs*lmg_rwt*4*ldim*lelt-1)) ! verified
 
 !     Specific to h1 multigrid:
     allocate(mg_h1_n  (lmgx,ldimt1) &

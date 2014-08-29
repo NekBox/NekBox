@@ -22,7 +22,6 @@ subroutine nek_init(intracomm)
   use mass, only : init_mass
   use mesh, only : init_mesh
   use mvgeom, only : init_mvgeom
-  use noncon, only : init_noncon
   use parallel, only : init_parallel
   use scratch, only : init_scratch
   use semhat, only : init_semhat
@@ -71,7 +70,6 @@ subroutine nek_init(intracomm)
   call init_mass()
   call init_mesh()
   call init_mvgeom()
-  call init_noncon()
   call init_parallel()
   call init_scratch()
   call init_semhat()

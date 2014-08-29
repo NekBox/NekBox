@@ -1,3 +1,4 @@
+!> cleaned
 module parallel
 !     Communication information
 !     NOTE: NID is stored in 'SIZE' for greater accessibility

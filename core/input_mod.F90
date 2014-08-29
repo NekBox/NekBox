@@ -1,15 +1,14 @@
+!> \brief Input parameters from preprocessors.
+!!
+!!     Note that in parallel implementations, we distinguish between
+!!     distributed data (LELT) and uniformly distributed data.
+!!     Input common block structure:
+!!     INPUT1:  REAL            INPUT5: REAL      with LELT entries
+!!     INPUT2:  INTEGER         INPUT6: INTEGER   with LELT entries
+!!     INPUT3:  LOGICAL         INPUT7: LOGICAL   with LELT entries
+!!     INPUT4:  CHARACTER       INPUT8: CHARACTER with LELT entries
+!> cleaned
 module input
-!>     Input parameters from preprocessors.
-!
-!     Note that in parallel implementations, we distinguish between
-!     distributed data (LELT) and uniformly distributed data.
-
-!     Input common block structure:
-
-!     INPUT1:  REAL            INPUT5: REAL      with LELT entries
-!     INPUT2:  INTEGER         INPUT6: INTEGER   with LELT entries
-!     INPUT3:  LOGICAL         INPUT7: LOGICAL   with LELT entries
-!     INPUT4:  CHARACTER       INPUT8: CHARACTER with LELT entries
 
 
   use kinds, only : DP

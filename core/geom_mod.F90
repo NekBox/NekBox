@@ -1,4 +1,3 @@
-
 !> Geometry arrays
 module geom
   use kinds, only : DP
@@ -119,7 +118,7 @@ module geom
     ,JACM2 (LX2,LY2,LZ2,LELV) &
     )
 
-    allocate(rx(lxd*lyd*lzd,ldim*ldim,lelv))
+    allocate(rx(lxd*lyd*lzd,ldim*ldim,lelv)) !verified
 
     allocate( &
      G1M1 (LX1,LY1,LZ1,LELT) &
@@ -129,7 +128,6 @@ module geom
     ,G5M1 (LX1,LY1,LZ1,LELT) &
     ,G6M1 (LX1,LY1,LZ1,LELT) &
     )
-
     allocate( &
      UNX (LX1,LZ1,6,LELT) &
     ,UNY (LX1,LZ1,6,LELT) &
@@ -142,7 +140,7 @@ module geom
     ,T2Z (LX1,LZ1,6,LELT) &
     ,AREA (LX1,LZ1,6,LELT) &
     )
-
+#if 0
     allocate( &
      VNX (LX1M,LY1M,LZ1M,LELT) &
     ,VNY (LX1M,LY1M,LZ1M,LELT) &
@@ -154,7 +152,7 @@ module geom
     ,V2Y (LX1M,LY1M,LZ1M,LELT) &
     ,V2Z (LX1M,LY1M,LZ1M,LELT) &
     )
-
+#endif
     allocate( &
      IFRZER(LELT),IFQINP(6,LELV),IFEPPM(6,LELV) &
     ,IFLMSF(0:1),IFLMSE(0:1),IFLMSC(0:1) &

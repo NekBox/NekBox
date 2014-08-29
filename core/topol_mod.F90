@@ -1,5 +1,6 @@
+!> \brief Arrays for direct stiffness summation.
+!! cleaned
 module topol
-!     Arrays for direct stiffness summation
   use size_m
   implicit none
 
@@ -41,10 +42,12 @@ module topol
   subroutine init_topol()
     use size_m
     implicit none
+#if 0
      allocate(NUMSCN(LELT,0:LDIMT1),NUMSED(LELT,0:LDIMT1) &
     ,GCNNUM( 8,LELT,0:LDIMT1),LCNNUM( 8,LELT,0:LDIMT1) &
     ,GEDNUM(12,LELT,0:LDIMT1),LEDNUM(12,LELT,0:LDIMT1) &
     ,GEDTYP(12,LELT,0:LDIMT1))
+#endif
 
   end subroutine init_topol
 

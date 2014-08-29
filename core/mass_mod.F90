@@ -1,3 +1,4 @@
+!> cleaned
 module mass
   use kinds, only : DP
   implicit none
@@ -17,7 +18,7 @@ module mass
     allocate( BM1(LX1,LY1,LZ1,LELT),  BM2(LX2,LY2,LZ2,LELV) &
     ,BINVM1(LX1,LY1,LZ1,LELV),  BINTM1(LX1,LY1,LZ1,LELT) &
     ,BM2INV(LX2,LY2,LZ2,LELT),  BAXM1 (LX1,LY1,LZ1,LELT) &
-    ,BM1LAG(LX1,LY1,LZ1,LELT,LORDER-1) &
+    ,BM1LAG(LX1,LY1,LZ1,LELT,LORDER-1) & ! verified
     ,YINVM1(LX1,LY1,LZ1,LELT))
 
   end subroutine init_mass

@@ -1,3 +1,4 @@
+!> cleaned
 module gmres
   implicit none
 
@@ -20,10 +21,10 @@ module gmres
     , h(lgmres,lgmres), gamma(lgmres+1) &
     , c(lgmres), s(lgmres))
 
-    allocate(v(lx2*ly2*lz2*lelv,lgmres))
-    allocate(z(lx2*ly2*lz2*lelv,lgmres))
+    allocate(v(lx2*ly2*lz2*lelv,lgmres)) ! verified
+    allocate(z(lx2*ly2*lz2*lelv,lgmres)) ! verified
 
-    allocate(ml(lx2*ly2*lz2*lelv), mu(lx2*ly2*lz2*lelv))
+    allocate(ml(lx2*ly2*lz2*lelv), mu(lx2*ly2*lz2*lelv)) ! verified
 
   end subroutine init_gmres
 

@@ -18,9 +18,9 @@ module dealias
   subroutine init_dealias()
     use size_m
     implicit none
-    allocate(vxd(lxd, lyd, lzd, lelv))
-    allocate(vyd(lxd, lyd, lzd, lelv))
-    allocate(vzd(lxd, lyd, lzd, lelv))
+    allocate(vxd(lxd, lyd, lzd, lelv)) !verified
+    allocate(vyd(lxd, lyd, lzd, lelv)) !verified
+    allocate(vzd(lxd, lyd, lzd, lelv)) !verified
 
     allocate(imd1(lx1, lxd))
     allocate(imd1t(lxd, lx1))

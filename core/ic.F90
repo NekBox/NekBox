@@ -1316,9 +1316,6 @@ subroutine mapab(x,y,nxr,nel)
   
   integer :: nxr, nel
 
-  real(DP) :: xa, xb, xc, zgmr, wgtr
-  common /ctmp0/  xa(lxyzr)      ,xb(lx1,ly1,lzr) ,xc(lxyzr) &
-  , zgmr(lxr)      ,wgtr(lxr)
   real, allocatable :: ires(:,:), itres(:,:)
 
   integer :: nzr, nyzr, nxy1
@@ -1379,8 +1376,7 @@ subroutine mapab4R(x,y,nxr,nel)
   integer, parameter :: LXYZR=LXR*LYR*LZR
   integer, parameter :: LXYZ1=LX1*LY1*LZ1
 
-  real(DP) :: xa, xb, xc, zgmr, wgtr
-  common /ctmp0/  xa(lxyzr)      ,xb(lx1,ly1,lzr) ,xc(lxyzr) &
+  real(DP) ::   xa(lxyzr)      ,xb(lx1,ly1,lzr) ,xc(lxyzr) &
   , zgmr(lxr)      ,wgtr(lxr)
   real(DP), allocatable :: ires(:,:), itres(:,:)
 
@@ -1823,39 +1819,6 @@ end subroutine geom_reset
 
     return
     end subroutine dsavg
-!-----------------------------------------------------------------------
-    subroutine map13_all(x3,x1)
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    real :: x3(lx3,ly3,lz3,lelt)
-    real :: x1(lx1,ly1,lz1,lelt)
-
-    integer :: e
-
-    do e=1,nelt
-        call map13 (x3(1,1,1,e),x1(1,1,1,e),e)
-    enddo
-
-    return
-    end subroutine map13_all
 !-----------------------------------------------------------------------
     subroutine mbyte_open(hname,fid,ierr) ! open  blah000.fldnn
     use size_m

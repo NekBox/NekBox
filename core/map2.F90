@@ -93,77 +93,73 @@
     return
     end subroutine mapelpr
 !-----------------------------------------------------------------------
-    subroutine set_proc_map()
+!> \brief Compute element to processor distribution according to (weighted)
+!! physical distribution in an attempt to minimize exposed number of
+!! element interfaces.
+subroutine set_proc_map()
+  use size_m, only : lelt, nid, nelt, nelv
+  use input, only : ifmoab
+  use parallel, only : gllel, nelgt, gllnid, nelgv, lglel
+  use zper, only : ifgtp
+  implicit none
 
-!     Compute element to processor distribution according to (weighted)
-!     physical distribution in an attempt to minimize exposed number of
-!     element interfaces.
+  integer :: iwork(lelt)
 
-    use size_m
-    use input
-    use parallel
-    use scratch
-    use soln
-    use tstep
-    use zper
-    common /ctmp0/ iwork(lelt)
+  REAL*8 :: dnekclock,t0
+  integer :: iel, ieg, npass, k, ipass, m, mid, ie
 
-    REAL*8 :: dnekclock,t0
-
-    t0 = dnekclock()
-!     if (.not.(ifgtp.or.ifgfdm)) then
-    if ( .NOT. ifgtp) then
-    
-    !        rsb element to processor mapping
+  t0 = dnekclock()
+!   if (.not.(ifgtp.or.ifgfdm)) then
+  if ( .NOT. ifgtp) then
+  
+  !        rsb element to processor mapping
     
 !max        if (ifgfdm)       call gfdm_elm_to_proc(gllnid,np) ! gfdm w/ .map
 
-        call get_map
+      call get_map
 
-    endif
+  endif
 
 !max    if(ifzper .OR. ifgtp) call gfdm_elm_to_proc(gllnid,np) ! special processor map
 
-!     compute global to local map (no processor info)
+!   compute global to local map (no processor info)
 
-    if ( .NOT. ifmoab) then
-        IEL=0
-        CALL IZERO(GLLEL,NELGT)
-        DO IEG=1,NELGT
-            IF (GLLNID(IEG) == NID) THEN
-                IEL = IEL + 1
-                GLLEL(IEG)=IEL
-                NELT = IEL
-                if (ieg <= nelgv) NELV = IEL
-            ENDIF
-        !        write(6,*) 'map2 ieg:',ieg,nelv,nelt,nelgv,nelgt
-        ENDDO
-    
-    !     dist. global to local map to all processors
-    
-        npass = 1 + nelgt/lelt
-        k=1
-        do ipass = 1,npass
-            m = nelgt - k + 1
-            m = min(m,lelt)
-            if (m > 0) call igop(gllel(k),iwork,'+  ',m)
-            k = k+m
-        enddo
-    endif
+  if ( .NOT. ifmoab) then
+      IEL=0
+      CALL IZERO(GLLEL,NELGT)
+      DO IEG=1,NELGT
+          IF (GLLNID(IEG) == NID) THEN
+              IEL = IEL + 1
+              GLLEL(IEG)=IEL
+              NELT = IEL
+              if (ieg <= nelgv) NELV = IEL
+          ENDIF
+      !        write(6,*) 'map2 ieg:',ieg,nelv,nelt,nelgv,nelgt
+      ENDDO
+  
+  !     dist. global to local map to all processors
+  
+      npass = 1 + nelgt/lelt
+      k=1
+      do ipass = 1,npass
+          m = nelgt - k + 1
+          m = min(m,lelt)
+          if (m > 0) call igop(gllel(k),iwork,'+  ',m)
+          k = k+m
+      enddo
+  endif
 
-!     compute local to global map
-!     (i.e. returns global element number given local index and proc id)
+!   compute local to global map
+!   (i.e. returns global element number given local index and proc id)
 
-    do ieg=1,nelgt
-        mid  =gllnid(ieg)
-        ie   =gllel (ieg)
-        if (mid == nid) lglel(ie)=ieg
-    enddo
+  do ieg=1,nelgt
+      mid  =gllnid(ieg)
+      ie   =gllel (ieg)
+      if (mid == nid) lglel(ie)=ieg
+  enddo
 
-!     All Done.
-
-    return
-    end subroutine set_proc_map
+  return
+end subroutine set_proc_map
 !-----------------------------------------------------------------------
     subroutine gfdm_set_pst(ip,is,it,nelbox,nstride_box,nxp,nyp,nzp)
 

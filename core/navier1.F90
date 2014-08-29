@@ -1481,10 +1481,6 @@ end subroutine normvc
 ! using the skew-symmetric formulation.
 ! The field variable FI is defined on mesh M1 (GLL) and
 ! the velocity field is assumed given.
-! IMPORTANT NOTE: Use the scratch-arrays carefully!!!!!
-! The common-block SCRNS is used in CONV1 and CONV2.
-! The common-blocks CTMP0 and CTMP1 are also used as scratch-arrays
-! since there is no direct stiffness summation or Helmholtz-solves.
 subroutine convop(conv,fi)
   use kinds, only : DP
   use ctimer, only : icalld, tadvc, nadvc, etime1, dnekclock
@@ -1550,35 +1546,39 @@ subroutine convop(conv,fi)
   return
 end subroutine convop
 !-----------------------------------------------------------------------
-    subroutine opdiv(outfld,inpx,inpy,inpz)
+!> \brief Compute OUTFLD = SUMi Di*INPi.
+!! the divergence of the vector field (INPX,INPY,INPZ)
 !---------------------------------------------------------------------
+subroutine opdiv(outfld,inpx,inpy,inpz)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
+  use size_m, only : nx2, ny2, nz2, nelv, ndim
+  use geom, only : rxm2, rym2, rzm2, sxm2, sym2, szm2, txm2, tym2, tzm2
+  implicit none
 
-!     Compute OUTFLD = SUMi Di*INPi,
-!     the divergence of the vector field (INPX,INPY,INPZ)
+  real(DP) :: outfld (lx2,ly2,lz2,1)
+  real(DP) :: inpx   (lx1,ly1,lz1,1)
+  real(DP) :: inpy   (lx1,ly1,lz1,1)
+  real(DP) :: inpz   (lx1,ly1,lz1,1)
+  
+  real(DP) :: work (lx2,ly2,lz2,lelv)
 
-!---------------------------------------------------------------------
-    use size_m
-    use geom
-    real :: outfld (lx2,ly2,lz2,1)
-    real :: inpx   (lx1,ly1,lz1,1)
-    real :: inpy   (lx1,ly1,lz1,1)
-    real :: inpz   (lx1,ly1,lz1,1)
-    common /ctmp0/ work (lx2,ly2,lz2,lelv)
+  integer :: iflg, ntot2
 
-    iflg = 1
+  iflg = 1
 
-    ntot2 = nx2*ny2*nz2*nelv
-    call multd (work,inpx,rxm2,sxm2,txm2,1,iflg)
-    call copy  (outfld,work,ntot2)
-    call multd (work,inpy,rym2,sym2,tym2,2,iflg)
-    call add2  (outfld,work,ntot2)
-    if (ndim == 3) then
-        call multd (work,inpz,rzm2,szm2,tzm2,3,iflg)
-        call add2  (outfld,work,ntot2)
-    endif
+  ntot2 = nx2*ny2*nz2*nelv
+  call multd (work,inpx,rxm2,sxm2,txm2,1,iflg)
+  call copy  (outfld,work,ntot2)
+  call multd (work,inpy,rym2,sym2,tym2,2,iflg)
+  call add2  (outfld,work,ntot2)
+  if (ndim == 3) then
+      call multd (work,inpz,rzm2,szm2,tzm2,3,iflg)
+      call add2  (outfld,work,ntot2)
+  endif
 
-    return
-    end subroutine opdiv
+  return
+end subroutine opdiv
 
 !-----------------------------------------------------------------------
 !> \brief Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)

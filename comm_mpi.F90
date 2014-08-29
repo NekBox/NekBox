@@ -4,7 +4,7 @@
     use size_m, only : nid, lp, lelg
     use parallel, only : np, wdsize, ifdblas, isize, lsize, csize, pid
     use parallel, only : nullpid, node0, node, cr_h
-    use parallel, only : nid_=>nid,np_=>np,nekcomm,nekreal
+    use parallel, only : np_=>np,nekcomm,nekreal
     implicit none
     include 'mpif.h'
 
@@ -21,8 +21,6 @@
 
 ! set nek communicator
     call init_nek_comm(intracomm)
-    nid  = nid_
-    np   = np_
 
     if(nid == 0) call printHeader
 

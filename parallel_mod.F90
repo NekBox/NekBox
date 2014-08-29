@@ -1,6 +1,7 @@
 module parallel
 !     Communication information
 !     NOTE: NID is stored in 'SIZE' for greater accessibility
+  use size_m, only : nid
   implicit none
 
   INTEGER ::        NODE,PID,NP,NULLPID,NODE0
@@ -20,7 +21,7 @@ module parallel
   integer :: cr_h, gsh
   integer, allocatable :: gsh_fld(:), xxth(:)
 
-  integer :: nid, nid_, np_, nekcomm, nekgroup, nekreal
+  integer :: nekcomm, nekgroup, nekreal
 
 
   contains

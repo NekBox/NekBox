@@ -20,6 +20,9 @@ module parallel
   integer :: cr_h, gsh
   integer, allocatable :: gsh_fld(:), xxth(:)
 
+  integer :: nid, nid_, np_, nekcomm, nekgroup, nekreal
+
+
   contains
 
   subroutine init_parallel()

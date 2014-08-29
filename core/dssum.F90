@@ -1,34 +1,36 @@
-    subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
-    use size_m
-    use input
-    use noncon
-    use parallel
+subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
+  use kinds, only : DP
+  use size_m, only : nid
+  use parallel, only : mp=>np, nekcomm
+  implicit none
 
-    integer :: gs_handle
-    integer :: vertex(1)
-    integer*8 :: glo_num(1),ngv
+  integer :: gs_handle
+  integer :: vertex(1)
+  integer*8 :: glo_num(1),ngv
 
-    common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
+  real(DP) :: t0, t1
+  integer :: nx, nel, ntot, ny, nz, melg
+  real(DP), external :: dnekclock
 
-    t0 = dnekclock()
+  t0 = dnekclock()
 
-!     Global-to-local mapping for gs
-    call set_vert(glo_num,ngv,nx,nel,vertex, .FALSE. )
+!   Global-to-local mapping for gs
+  call set_vert(glo_num,ngv,nx,nel,vertex, .FALSE. )
 
-!     Initialize gather-scatter code
-    ntot      = nx*ny*nz*nel
-    call gs_setup(gs_handle,glo_num,ntot,nekcomm,mp)
+!   Initialize gather-scatter code
+  ntot      = nx*ny*nz*nel
+  call gs_setup(gs_handle,glo_num,ntot,nekcomm,mp)
 
-!     call gs_chkr(glo_num)
+!   call gs_chkr(glo_num)
 
-    t1 = dnekclock() - t0
-    if (nid == 0) then
-        write(6,1) t1,gs_handle,nx,ngv,melg
-        1 format('   setupds time',1pe11.4,' seconds ',2i3,2i12)
-    endif
+  t1 = dnekclock() - t0
+  if (nid == 0) then
+      write(6,1) t1,gs_handle,nx,ngv,melg
+      1 format('   setupds time',1pe11.4,' seconds ',2i3,2i12)
+  endif
 
-    return
-    end subroutine setupds
+  return
+end subroutine setupds
 !-----------------------------------------------------------------------
 subroutine dssum(u,nx,ny,nz)
   use ctimer

@@ -1,12 +1,18 @@
 !---------------------------------------------------------------------
-    subroutine iniproc(intracomm)
-    use size_m
-    use parallel
+  subroutine iniproc(intracomm)
+    use kinds, only : DP
+    use size_m, only : nid, lp, lelg
+    use parallel, only : np, wdsize, ifdblas, isize, lsize, csize, pid
+    use parallel, only : nullpid, node0, node, cr_h
+    use parallel, only : nid_=>nid,np_=>np,nekcomm,nekreal
+    implicit none
     include 'mpif.h'
 
-    common /nekmpi/ nid_,np_,nekcomm,nekgroup,nekreal
-
+    integer :: intracomm
     logical :: flag
+
+    integer :: nval, ierr
+    real(DP) :: eps, oneeps
 
 !      call mpi_initialized(mpi_is_initialized, ierr) !  Initialize MPI
 !      if ( mpi_is_initialized .eq. 0 ) then
@@ -78,30 +84,36 @@
     call crystal_setup(cr_h,nekcomm,np)  ! set cr handle to new instance
 
     return
-    end subroutine iniproc
+  end subroutine iniproc
 !-----------------------------------------------------------------------
-    subroutine init_nek_comm(intracomm)
+  subroutine init_nek_comm(intracomm)
+    use parallel, only : nid,np,nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
+
+    integer :: intracomm
+    integer, external :: mynode, numnodes
 
     nekcomm = intracomm
     nid     = mynode()
     np      = numnodes()
 
     return
-    end subroutine init_nek_comm
+  end subroutine init_nek_comm
 !-----------------------------------------------------------------------
-    subroutine gop( x, w, op, n)
-
-!     Global vector commutative operation
-
-    use ctimer
-
+!> \brief Global vector commutative operation
+  subroutine gop( x, w, op, n)
+    use kinds, only : DP
+    use ctimer, only : ifsync, icalld, tgop, ngop, etime1, dnekclock
+    use parallel, only :nid,nekcomm,nekreal 
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
 
-    real :: x(n), w(n)
+    integer :: n
+    real(DP) :: x(n), w(n)
     character(3) :: op
+
+    integer :: ierr
 
     if (ifsync) call nekgsync()
 
@@ -135,17 +147,18 @@
 #endif
 
     return
-    end subroutine gop
+  end subroutine gop
 !-----------------------------------------------------------------------
-    subroutine igop( x, w, op, n)
-
-!     Global vector commutative operation
-
+!> \brief Global vector commutative operation
+  subroutine igop( x, w, op, n)
+    use parallel, only : nid,nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
 
+    integer :: n
     integer :: x(n), w(n)
     character(3) :: op
+    integer :: ierr
 
     if     (op == '+  ') then
         call mpi_allreduce (x,w,n,mpi_integer,mpi_sum ,nekcomm,ierr)
@@ -165,15 +178,15 @@
     return
     end subroutine igop
 !-----------------------------------------------------------------------
-    subroutine i8gop( x, w, op, n)
-
-!     Global vector commutative operation
-
+!> \brief Global vector commutative operation
+  subroutine i8gop( x, w, op, n)
+    use parallel, only : nid,nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
-
+    integer :: n
     integer*8 :: x(n), w(n)
     character(3) :: op
+    integer :: ierr
 
     if     (op == '+  ') then
         call mpi_allreduce (x,w,n,mpi_integer8,mpi_sum ,nekcomm,ierr)
@@ -193,10 +206,13 @@
     return
     end subroutine i8gop
 !-----------------------------------------------------------------------
-    subroutine csend(mtype,buf,len,jnid,jpid)
+  subroutine csend(mtype,buf,len,jnid,jpid)
+    use parallel, only : nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
     real*4 :: buf(1)
+    integer :: mtype, len, jnid, jpid
+    integer :: ierr
 
     call mpi_send (buf,len,mpi_byte,jnid,mtype,nekcomm,ierr)
 
@@ -204,11 +220,15 @@
     end subroutine csend
 !-----------------------------------------------------------------------
     subroutine crecv(mtype,buf,lenm)
+    use parallel, only : nekcomm, nid
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
-    integer :: status(mpi_status_size)
-
+    integer :: mtype,  lenm
     real*4 :: buf(1)
+
+    integer :: status(mpi_status_size)
+    integer :: len, jnid, ierr
+
     len = lenm
     jnid = mpi_any_source
 
@@ -223,30 +243,11 @@
     return
     end subroutine crecv
 !-----------------------------------------------------------------------
-    subroutine crecv3(mtype,buf,len,lenm)
-    include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
-    integer :: status(mpi_status_size)
-
-    real*4 :: buf(1)
-    len = lenm
-    jnid = mpi_any_source
-
-    call mpi_recv (buf,len,mpi_byte &
-    ,jnid,mtype,nekcomm,status,ierr)
-    call mpi_get_count (status,mpi_byte,len,ierr)
-
-    if (len > lenm) then
-        write(6,*) nid,'long message in mpi_crecv:',len,lenm
-        call exitt
-    endif
-
-    return
-    end subroutine crecv3
-!-----------------------------------------------------------------------
     integer function numnodes()
+    use parallel, only : nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
+    integer :: ierr
 
     call mpi_comm_size (nekcomm, numnodes , ierr)
 
@@ -254,9 +255,10 @@
     end function numnodes
 !-----------------------------------------------------------------------
     integer function mynode()
+    use parallel, only : nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
-    integer :: myid
+    integer :: myid, ierr
 
     call mpi_comm_rank (nekcomm, myid, ierr)
     mynode = myid
@@ -265,6 +267,7 @@
     end function mynode
 !-----------------------------------------------------------------------
     real*8 function dnekclock()
+    implicit none
     include 'mpif.h'
 
     dnekclock=mpi_wtime()
@@ -273,6 +276,7 @@
     END function
 !-----------------------------------------------------------------------
     real*8 function dnekclock_sync()
+    implicit none
     include 'mpif.h'
 
     call nekgsync()
@@ -281,15 +285,14 @@
     return
     END function
 !-----------------------------------------------------------------------
+!> \brief Broadcast logical variable to all processors.
     subroutine lbcast(ifif)
-
-!     Broadcast logical variable to all processors.
-
-    use size_m
-    use parallel
+    use parallel, only : np, isize
+    implicit none
     include 'mpif.h'
 
     logical :: ifif
+    integer :: item
 
     if (np == 1) return
 
@@ -303,70 +306,37 @@
     end subroutine lbcast
 !-----------------------------------------------------------------------
     subroutine bcast(buf,len)
+    use parallel, only : nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
     real*4 :: buf(1)
+    integer :: len, ierr
 
     call mpi_bcast (buf,len,mpi_byte,0,nekcomm,ierr)
 
     return
     end subroutine bcast
 !-----------------------------------------------------------------------
-    subroutine create_comm(inewcomm)
-    include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
-
-!      call mpi_comm_group (mpi_comm_world,itmp,ierr)
-!      call mpi_comm_create (mpi_comm_world,itmp,icomm,ierr)
-!      call mpi_group_free (itmp,ierr)
-
-    call mpi_comm_dup(nekcomm,inewcomm,ierr)
-
-    return
-    end subroutine create_comm
-!-----------------------------------------------------------------------
-    function isend(msgtag,x,len,jnid,jpid)
-
 !     Note: len in bytes
-
-    integer :: x(1)
-
+    integer function irecv(msgtag,x,len)
+    use parallel, only : nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
-
-    call mpi_isend (x,len,mpi_byte,jnid,msgtag &
-    ,nekcomm,imsg,ierr)
-    isend = imsg
-!     write(6,*) nid,' isend:',imsg,msgtag,len,jnid,(x(k),k=1,len/4)
-
-    return
-    end function isend
-!-----------------------------------------------------------------------
-    function irecv(msgtag,x,len)
-
-!     Note: len in bytes
-
-    integer :: x(1)
-
-    include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
+    integer :: msgtag, x(1), len
+    integer :: ierr, imsg
 
     call mpi_irecv (x,len,mpi_byte,mpi_any_source,msgtag &
     ,nekcomm,imsg,ierr)
     irecv = imsg
-!     write(6,*) nid,' irecv:',imsg,msgtag,len
-
 
     return
     end function irecv
 !-----------------------------------------------------------------------
     subroutine msgwait(imsg)
-
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
     integer :: status(mpi_status_size)
-
-!     write(6,*) nid,' msgwait:',imsg
+    integer :: imsg, ierr
 
     call mpi_wait (imsg,status,ierr)
 
@@ -374,554 +344,195 @@
     end subroutine msgwait
 !-----------------------------------------------------------------------
     subroutine nekgsync()
-
+    use parallel, only : nekcomm
+    implicit none
     include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
+    integer :: ierr
 
     call mpi_barrier(nekcomm,ierr)
 
     return
     end subroutine nekgsync
 !-----------------------------------------------------------------------
-    subroutine exittr(stringi,rdata,idata)
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+subroutine exitti(stringi,idata)
+  use size_m, only : nid
+  implicit none
 
-    character(1) :: stringi(132)
-    character(1) :: stringo(132)
-    character(25) :: s25
+  integer :: idata
 
-    call blank(stringo,132)
-    call chcopy(stringo,stringi,132)
-    len = indx1(stringo,'$',1)
-    write(s25,25) rdata,idata
-    25 format(1x,1p1e14.6,i10)
-    call chcopy(stringo(len),s25,25)
+  character(1) :: stringi(132)
+  character(1) :: stringo(132)
+  character(11) :: s11
+  integer :: len, k
+  integer, external :: indx1
 
-    if (nid == 0) write(6,1) (stringo(k),k=1,len+24)
-    1 format('EXIT: ',132a1)
+  call blank(stringo,132)
+  call chcopy(stringo,stringi,132)
+  len = indx1(stringo,'$',1)
+  write(s11,11) idata
+  11 format(1x,i10)
+  call chcopy(stringo(len),s11,11)
 
-    call exitt
+  if (nid == 0) write(6,1) (stringo(k),k=1,len+10)
+  1 format('EXIT: ',132a1)
 
-    return
-    end subroutine exittr
+  call exitt
+
+  return
+end subroutine exitti
 !-----------------------------------------------------------------------
-    subroutine exitti(stringi,idata)
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+subroutine err_chk(ierr,string)
+  use size_m, only : nid
+  implicit none
 
-    character(1) :: stringi(132)
-    character(1) :: stringo(132)
-    character(11) :: s11
+  integer :: ierr
 
-    call blank(stringo,132)
-    call chcopy(stringo,stringi,132)
-    len = indx1(stringo,'$',1)
-    write(s11,11) idata
-    11 format(1x,i10)
-    call chcopy(stringo(len),s11,11)
+  character(1) :: string(132)
+  character(1) :: ostring(132)
+  character(10) :: s10
 
-    if (nid == 0) write(6,1) (stringo(k),k=1,len+10)
-    1 format('EXIT: ',132a1)
+  integer :: len, k
+  integer, external :: iglsum, indx1
 
-    call exitt
+  ierr = iglsum(ierr,1)
+  if(ierr == 0) return
 
-    return
-    end subroutine exitti
-!-----------------------------------------------------------------------
-    subroutine err_chk(ierr,string)
-    use size_m
-!     use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-!     use ctimer
-    character(1) :: string(132)
-    character(1) :: ostring(132)
-    character(10) :: s10
+  len = indx1(string,'$',1)
+  call blank(ostring,132)
+  write(s10,11) ierr
+  11 format(1x,' ierr=',i3)
 
-    ierr = iglsum(ierr,1)
-    if(ierr == 0) return
+  call chcopy(ostring,string,len-1)
+  call chcopy(ostring(len),s10,10)
 
-    len = indx1(string,'$',1)
-    call blank(ostring,132)
-    write(s10,11) ierr
-    11 format(1x,' ierr=',i3)
+  if (nid == 0) write(6,1) (ostring(k),k=1,len+10)
+  1 format('ERROR: ',132a1)
 
-    call chcopy(ostring,string,len-1)
-    call chcopy(ostring(len),s10,10)
+  call exitt
 
-    if (nid == 0) write(6,1) (ostring(k),k=1,len+10)
-    1 format('ERROR: ',132a1)
-
-    call exitt
-
-    return
-    end subroutine err_chk
+  return
+end subroutine err_chk
 
 !-----------------------------------------------------------------------
-    subroutine exitt0
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    include 'mpif.h'
+subroutine exitt0
+  implicit none
+  include 'mpif.h'
 
-    real*4 :: papi_mflops
-    integer*8 :: papi_flops
+  real*4 :: papi_mflops
+  integer*8 :: papi_flops
+  integer :: ierr
 
-    write(6,*) 'Emergency exit'
+  write(6,*) 'Emergency exit'
 
-    call print_stack()
-    call flush_io
+  call print_stack()
+  call flush_io
 
-    call mpi_finalize (ierr)
+  call mpi_finalize (ierr)
 #ifdef EXTBAR
-    call exit_(0)
+  call exit_(0)
 #else
-    call exit(0)
+  call exit(0)
 #endif
      
 
-    return
-    end subroutine exitt0
+  return
+end subroutine exitt0
 !-----------------------------------------------------------------------
-    subroutine exitt
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    include 'mpif.h'
+subroutine exitt
+  use kinds, only : DP
+  use size_m, only : nid, nx1, ny1, nz1
+  use ctimer, only : dnekclock, ttotal, etimes, ttime
+  use input, only : ifneknek
+  use parallel, only : nvtot, np
+  use tstep, only : istep
+  implicit none
+  include 'mpif.h'
+
+  real*4 :: papi_mflops
+  integer*8 :: papi_flops
+  logical :: ifopen              !check for opened files
+
+  real(DP) :: tstop, dtmp1, dtmp2, dtmp3, dgp
+  integer :: nxyz, ierr
 
 
-    real*4 :: papi_mflops
-    integer*8 :: papi_flops
-    logical :: ifopen              !check for opened files
+!   Communicate unhappiness to the other session
+!  if (ifneknek .AND. icall == 0) call happy_check(0)
+  if (ifneknek) call happy_check(0)
 
-
-!     Communicate unhappiness to the other session
-!    if (ifneknek .AND. icall == 0) call happy_check(0)
-    if (ifneknek) call happy_check(0)
-
-    call nekgsync()
+  call nekgsync()
 
 
 #ifdef PAPI
-    call nek_flops(papi_flops,papi_mflops)
+  call nek_flops(papi_flops,papi_mflops)
 #endif
 
-    tstop  = dnekclock()
-    ttotal = tstop-etimes
-    nxyz   = nx1*ny1*nz1
+  tstop  = dnekclock()
+  ttotal = tstop-etimes
+  nxyz   = nx1*ny1*nz1
 
-    if (nid == 0) then
-        inquire(unit=50,opened=ifopen)
-        if(ifopen) close(50)
-        dtmp1 = 0
-        dtmp2 = 0
-        dtmp3 = 0
-        if(istep > 0) then
-            dgp   = nvtot
-            dgp   = max(dgp,1.)
-            dtmp1 = np*ttime/(dgp*max(istep,1))
-            dtmp2 = ttime/max(istep,1)
-            dtmp3 = 1.*papi_flops/1e6
-        endif
-        write(6,*) ' '
-        write(6,'(A)') 'call exitt: dying ...'
-        write(6,*) ' '
-        call print_stack()
-        write(6,*) ' '
-        write(6,'(4(A,1p1e13.5,A,/))') &
-        'total elapsed time             : ',ttotal, ' sec' &
-        ,'total solver time incl. I/O    : ',ttime , ' sec' &
-        ,'time/timestep                  : ',dtmp2 , ' sec' &
-        ,'CPU seconds/timestep/gridpt    : ',dtmp1 , ' sec'
+  if (nid == 0) then
+      inquire(unit=50,opened=ifopen)
+      if(ifopen) close(50)
+      dtmp1 = 0
+      dtmp2 = 0
+      dtmp3 = 0
+      if(istep > 0) then
+          dgp   = nvtot
+          dgp   = max(dgp,1.)
+          dtmp1 = np*ttime/(dgp*max(istep,1))
+          dtmp2 = ttime/max(istep,1)
+          dtmp3 = 1.*papi_flops/1e6
+      endif
+      write(6,*) ' '
+      write(6,'(A)') 'call exitt: dying ...'
+      write(6,*) ' '
+      call print_stack()
+      write(6,*) ' '
+      write(6,'(4(A,1p1e13.5,A,/))') &
+      'total elapsed time             : ',ttotal, ' sec' &
+      ,'total solver time incl. I/O    : ',ttime , ' sec' &
+      ,'time/timestep                  : ',dtmp2 , ' sec' &
+      ,'CPU seconds/timestep/gridpt    : ',dtmp1 , ' sec'
 #ifdef PAPI
-        write(6,'(2(A,1g13.5,/))') &
-        'Gflops                         : ',dtmp3/1000. &
-        ,'Gflops/s                       : ',papi_mflops/1000.
+      write(6,'(2(A,1g13.5,/))') &
+      'Gflops                         : ',dtmp3/1000. &
+      ,'Gflops/s                       : ',papi_mflops/1000.
 #endif
-    endif
-    call flush_io
+  endif
+  call flush_io
 
-    call mpi_finalize (ierr)
+  call mpi_finalize (ierr)
 #ifdef EXTBAR 
-    all exit_(0)
+  all exit_(0)
 #else
-    call exit(0)
+  call exit(0)
 #endif
-    return
-    end subroutine exitt
+  return
+end subroutine exitt
 !-----------------------------------------------------------------------
-    subroutine printHeader
+subroutine printHeader
+  implicit none
+  INCLUDE 'HEADER'
 
-    INCLUDE 'HEADER'
-
-    return
-    end subroutine printHeader
+ return
+end subroutine printHeader
 !-----------------------------------------------------------------------
-    function igl_running_sum(in)
+integer function igl_running_sum(in)
+  use parallel, only : nekcomm
+  implicit none
+  include 'mpif.h'
+  integer :: in
+  integer :: status(mpi_status_size)
+  integer :: x,w,r, ierr
 
-    include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
-    integer :: status(mpi_status_size)
-    integer :: x,w,r
+  x = in  ! running sum
+  w = in  ! working buff
+  r = 0   ! recv buff
 
-    x = in  ! running sum
-    w = in  ! working buff
-    r = 0   ! recv buff
+  call mpi_scan(x,r,1,mpi_integer,mpi_sum,nekcomm,ierr)
+  igl_running_sum = r
 
-    call mpi_scan(x,r,1,mpi_integer,mpi_sum,nekcomm,ierr)
-    igl_running_sum = r
-
-    return
-    end function igl_running_sum
-!-----------------------------------------------------------------------
-    integer function xor(m,n)
-
-!  If NOT running on a parallel processor, it is sufficient to
-!  have this routine return a value of XOR=1.
-
-!  Pick one of the following:
-
-!  UNIX 4.2, f77:
-    XOR = OR(M,N)-AND(M,N)
-
-!  Intel FTN286:
-!     XOR = M.NEQV.N
-
-!  Ryan-McFarland Fortran
-!      XOR = IEOR(M,N)
-
-!     XOR = 0
-!     IF(M.EQ.1 .OR.  N.EQ.1) XOR=1
-!     IF(M.EQ.0 .AND. N.EQ.0) XOR=0
-!     IF(M.EQ.1 .AND. N.EQ.1) XOR=0
-!     IF(M.GT.1 .OR.N.GT.1 .OR.M.LT.0.OR.N.LT.0) THEN
-!        PRINT*,'ERROR IN XOR'
-!        STOP
-!     ENDIF
-
-    return
-    end function xor
-!-----------------------------------------------------------------------
-    subroutine gp2( x, w, op, n, nid, np)
-
-!     Global vector commutative operation using spanning tree.
-
-!     Std. fan-in/fan-out
-
-    real :: x(n), w(n)
-    character(3) :: op
-
-    integer :: bit, bytes, cnt, diff, spsize, i, &
-    parent, troot, xor, root, lnp, log2
-    logical :: ifgot
-
-    integer :: type
-    save    type
-    data    type  /998/
-
-    type  = type+100
-    if (type > 9992) type=type-998
-    typer = type-1
-    bytes = 8*n
-
-    root    = 0
-    troot   = max0((nid/np)*np, root)
-    diff    = xor(nid,troot)
-    nullpid = 0
-
-!     Accumulate contributions from children, if any
-    level2=1
-    5 continue
-    level=level2
-    level2=level+level
-    if (mod(nid,level2) /= 0) goto 20
-    call crecv(type,w,bytes)
-    if (op == '+  ') then
-        do i=1,n
-            x(i) = x(i) + w(i)
-        enddo
-    elseif (op == '*  ') then
-        do i=1,n
-            x(i) = x(i) * w(i)
-        enddo
-    elseif (op == 'M  ') then
-        do i=1,n
-            x(i) = max(x(i),w(i))
-        enddo
-    elseif (op == 'm  ') then
-        do i=1,n
-            x(i) = min(x(i),w(i))
-        enddo
-    endif
-    if (level2 < np) goto 5
-
-!     Pass result back to parent
-    20 parent = nid-level
-    if (nid /= 0) call csend(type,x,bytes,parent,nullpid)
-
-!     Await final answer from node 0 via log_2 fan out
-    level=np/2
-    ifgot= .FALSE. 
-    if (nid == root) ifgot= .TRUE. 
-
-    lnp = log2(np)
-    do i=1,lnp
-        if (ifgot) then
-            jnid=nid+level
-            call csend(typer,x,bytes,jnid,nullpid)
-        elseif (mod(nid,level) == 0) then
-            call crecv(typer,x,bytes)
-            ifgot= .TRUE. 
-        endif
-        level=level/2
-    enddo
-
-    return
-    end subroutine gp2
-!-----------------------------------------------------------------------
-    subroutine ping_loop1(t1,t0,len,nloop,nodea,nodeb,nid,x,y)
-
-    common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
-
-    real :: x(1),y(1)
-
-    include 'mpif.h'
-    integer :: status(mpi_status_size)
-
-    i=0
-    if (nid == nodea) then
-        call nekgsync
-        call mpi_irecv(y,len,mpi_byte,nodeb,i,nekcomm,msg,ierr)    ! 1b
-        call mpi_send (x,len,mpi_byte,nodeb,i,nekcomm,ierr)        ! 1a
-    !        call mpi_rsend(x,len,mpi_byte,nodeb,i,nekcomm,ierr)        ! 1a
-        call msgwait(msg)                                          ! 1b
-
-        t0 = mpi_wtime ()
-        do i=1,nloop
-            call mpi_irecv(y,len,mpi_byte,nodeb,i,nekcomm,msg,ierr) ! 2b
-            call mpi_send (x,len,mpi_byte,nodeb,i,nekcomm,ierr)     ! 2a
-        !           call mpi_rsend(x,len,mpi_byte,nodeb,i,nekcomm,ierr)     ! 2a
-            call mpi_wait (msg,status,ierr)                         ! 2b
-        enddo
-        t1 = mpi_wtime ()
-
-    elseif (nid == nodeb) then
-
-        call mpi_irecv(y,len,mpi_byte,nodea,i,nekcomm,msg,ierr)    ! 1a
-        call nekgsync
-        call mpi_wait (msg,status,ierr)                            ! 1a
-
-        j=i
-        do i=1,nloop
-            call mpi_irecv(y,len,mpi_byte,nodea,i,nekcomm,msg,ierr) ! 2a
-        !           call mpi_rsend(x,len,mpi_byte,nodea,j,nekcomm,ierr)     ! 1b
-            call mpi_send (x,len,mpi_byte,nodea,j,nekcomm,ierr)     ! 1b
-            call mpi_wait (msg,status,ierr)                         ! 2a
-            j=i
-        enddo
-    !        call mpi_rsend(x,len,mpi_byte,nodea,j,nekcomm,ierr)        ! nb
-        call mpi_send (x,len,mpi_byte,nodea,j,nekcomm,ierr)        ! nb
-
-    else
-        call nekgsync
-    endif
-
-    return
-    end subroutine ping_loop1
-!-----------------------------------------------------------------------
-    subroutine ping_loop2(t1,t0,len,nloop,nodea,nodeb,nid,x,y)
-
-    common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
-
-    real :: x(1),y(1)
-
-    include 'mpif.h'
-    integer :: status(mpi_status_size)
-
-    i=0
-    if (nid == nodea) then
-        call nekgsync
-        call mpi_irecv(y,len,mpi_byte,nodeb,i,nekcomm,msg,ierr)    ! 1b
-        call mpi_send (x,len,mpi_byte,nodeb,i,nekcomm,ierr)        ! 1a
-        call msgwait(msg)                                          ! 1b
-
-        t0 = mpi_wtime ()
-        do i=1,nloop
-            call mpi_send (x,len,mpi_byte,nodeb,i,nekcomm,ierr)     ! 2a
-            call mpi_irecv(y,len,mpi_byte,nodeb,i,nekcomm,msg,ierr) ! 2b
-            call mpi_wait (msg,status,ierr)                         ! 2b
-        enddo
-        t1 = mpi_wtime ()
-
-    elseif (nid == nodeb) then
-
-        call mpi_irecv(y,len,mpi_byte,nodea,i,nekcomm,msg,ierr)    ! 1a
-        call nekgsync
-        call mpi_wait (msg,status,ierr)                            ! 1a
-
-        j=i
-        do i=1,nloop
-            call mpi_send (x,len,mpi_byte,nodea,j,nekcomm,ierr)     ! 1b
-            call mpi_irecv(y,len,mpi_byte,nodea,i,nekcomm,msg,ierr) ! 2a
-            call mpi_wait (msg,status,ierr)                         ! 2a
-            j=i
-        enddo
-        call mpi_send (x,len,mpi_byte,nodea,j,nekcomm,ierr)        ! nb
-
-    else
-        call nekgsync
-    endif
-
-    return
-    end subroutine ping_loop2
-!-----------------------------------------------------------------------
-    subroutine ping_loop(t1,t0,len,nloop,nodea,nodeb,nid,x1,y1,x2,y2)
-!     Double Buffer : does 2*nloop timings
-
-    common /nekmpi/ mid,np,nekcomm,nekgroup,nekreal
-
-    real :: x1(1),y1(1),x2(1),y2(1)
-
-    include 'mpif.h'
-    integer :: status(mpi_status_size)
-
-    itag=1
-    if (nid == nodea) then
-        call mpi_irecv(y1,len,mpi_byte,nodeb,itag,nekcomm,msg1,ierr)   ! 1b
-        call nekgsync
-
-
-        t0 = mpi_wtime ()
-        do i=1,nloop
-            call mpi_send (x1,len,mpi_byte,nodeb,itag,nekcomm,ierr)     ! 1a
-            call mpi_irecv(y2,len,mpi_byte,nodeb,itag,nekcomm,msg2,ierr)! 2b
-            call mpi_wait (msg1,status,ierr)                            ! 1b
-            call mpi_send (x2,len,mpi_byte,nodeb,itag,nekcomm,ierr)     ! 2a
-            call mpi_irecv(y1,len,mpi_byte,nodeb,itag,nekcomm,msg1,ierr)! 3b
-            call mpi_wait (msg2,status,ierr)                            ! 2b
-        enddo
-        t1 = mpi_wtime ()
-        call mpi_send (x1,len,mpi_byte,nodeb,itag,nekcomm,ierr)        ! nb
-        call mpi_wait (msg1,status,ierr)                              ! nb
-
-    elseif (nid == nodeb) then
-
-        call mpi_irecv(y1,len,mpi_byte,nodea,itag,nekcomm,msg1,ierr)   ! nb
-        call nekgsync
-
-
-        do i=1,nloop
-            call mpi_wait (msg1,status,ierr)                            ! 1a
-            call mpi_send (x1,len,mpi_byte,nodea,itag,nekcomm,ierr)     ! 1b
-            call mpi_irecv(y2,len,mpi_byte,nodea,itag,nekcomm,msg2,ierr)! 2a
-            call mpi_wait (msg2,status,ierr)                            ! 2a
-            call mpi_send (x2,len,mpi_byte,nodea,itag,nekcomm,ierr)     ! 2b
-            call mpi_irecv(y1,len,mpi_byte,nodea,itag,nekcomm,msg1,ierr)! 3a
-        enddo
-        call mpi_wait (msg1,status,ierr)                            ! 2a
-        call mpi_send (x1,len,mpi_byte,nodea,itag,nekcomm,ierr)        ! nb
-
-    else
-        call nekgsync
-    endif
-
-    return
-    end subroutine ping_loop
-!-----------------------------------------------------------------------
-    integer*8 function i8gl_running_sum(in)
-
-    include 'mpif.h'
-    common /nekmpi/ nid,np,nekcomm,nekgroup,nekreal
-    integer :: status(mpi_status_size)
-    integer*8 :: x,r
-
-    x = in  ! running sum
-    r = 0   ! recv buff
-
-    call mpi_scan(x,r,1,mpi_integer8,mpi_sum,nekcomm,ierr)
-    i8gl_running_sum = r
-
-    return
-    END function
+  return
+end function igl_running_sum
 !-----------------------------------------------------------------------

@@ -109,62 +109,61 @@
     return
     end subroutine projh
 !-----------------------------------------------------------------------
-    subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,wl,ws,name4)
+!> \brief Reconstruct the solution to the original problem by adding back
+!!     the previous solutions
+subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,wl,ws,name4)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1
+  use size_m, only : lx1, ly1, lz1, lelt
+  use mesh, only : niterhm
+  use tstep, only : nelfld, ifield
+  implicit none
 
-!     Reconstruct the solution to the original problem by adding back
-!     the previous solutions
+  integer, parameter :: lt=lx1*ly1*lz1*lelt
+  real :: v1(1),h1(1),h2(1),vml(1),vmk(1)
+  real :: wl(1),ws(1)
+  real :: approx(lt,0:1)
+  integer :: napprox(2)
+  character(4) :: name4
 
-    use size_m
-    use input
-    use mass
-    use soln
-    use tstep
+  integer :: n_max, n_sav, ntot, ierr
 
-    common /iterhm/ niterhm
+  n_max = napprox(1)
+  n_sav = napprox(2)
+  ntot=nx1*ny1*nz1*nelfld(ifield)
 
-    parameter(lt=lx1*ly1*lz1*lelt)
-    real :: v1(1),h1(1),h2(1),vml(1),vmk(1)
-    real :: wl(1),ws(1)
-    real :: approx(lt,0:1)
-    integer :: napprox(2)
-    character(4) :: name4
+!   Reconstruct solution and save current du
 
-    n_max = napprox(1)
-    n_sav = napprox(2)
-    ntot=nx1*ny1*nz1*nelfld(ifield)
+  if (n_sav < n_max) then
+  
+      if (niterhm > 0) then      ! new vector not in space
+          n_sav = n_sav+1
+          call copy(approx(1,n_sav),v1,ntot)
+          call add2(v1,approx(1,0),ntot)
+      !           orthogonalize rhs against previous rhs and normalize
+          call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
 
-!     Reconstruct solution and save current du
+      !           if (ierr.ne.0) n_sav = n_sav-1
+          if (ierr /= 0) n_sav = 0
 
-    if (n_sav < n_max) then
-    
-        if (niterhm > 0) then      ! new vector not in space
-            n_sav = n_sav+1
-            call copy(approx(1,n_sav),v1,ntot)
-            call add2(v1,approx(1,0),ntot)
-        !           orthogonalize rhs against previous rhs and normalize
-            call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
+      else
 
-        !           if (ierr.ne.0) n_sav = n_sav-1
-            if (ierr /= 0) n_sav = 0
+          call add2(v1,approx(1,0),ntot)
 
-        else
+      endif
+  else
+      n_sav = 1
+      call add2(v1,approx(1,0),ntot)
+      call copy(approx(1,n_sav),v1,ntot)
+  !        normalize
+      call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
+      if (ierr /= 0) n_sav = 0
+  endif
 
-            call add2(v1,approx(1,0),ntot)
+  napprox(2)=n_sav
 
-        endif
-    else
-        n_sav = 1
-        call add2(v1,approx(1,0),ntot)
-        call copy(approx(1,n_sav),v1,ntot)
-    !        normalize
-        call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
-        if (ierr /= 0) n_sav = 0
-    endif
-
-    napprox(2)=n_sav
-
-    return
-    end subroutine gensh
+  return
+end subroutine gensh
 !-----------------------------------------------------------------------
     subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
 

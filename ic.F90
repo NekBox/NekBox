@@ -14,7 +14,7 @@ subroutine setics
   use parallel, only : nelgv
   use soln, only : vx, vy, vz, pr, t, jp, vmult, bx, by, bz
   use soln, only : tmult, vxp, vyp, vzp, tp
-  use tstep, only : ifield, nbdinp, time, timeio, nelfld
+  use tstep, only : ifield, nbdinp, time, timeio, nelfld, ntdump
   implicit none
    
   logical  iffort(  ldimt1,0:lpert) &
@@ -22,8 +22,6 @@ subroutine setics
   , ifprsl(  ldimt1,0:lpert)
    
   LOGICAL ::  IFANYP
-  integer :: ntdump
-  common /rdump/ ntdump
   real(DP) :: work(lx1,ly1,lz1,lelv)
   integer*8 :: ntotg,nn
 

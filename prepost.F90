@@ -7,7 +7,7 @@ subroutine prepost(ifdoin,prefin)
   use size_m, only : lx1, ly1, lz1, lelv, ldimt1, nid
   use ctimer, only : icalld, nprep, etime1, dnekclock, tprep
   use input, only : schfle, ifschclob, ifpsco
-  use tstep, only : iostep, timeio, istep, nsteps, lastep, time
+  use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump
   implicit none
 
   logical :: ifdoin
@@ -36,8 +36,6 @@ subroutine prepost(ifdoin,prefin)
   integer, save :: nopen(99)
   data    nopen /99*0/
 
-  integer :: ntdump
-  common /rdump/ ntdump
   integer ndumps
   data ndumps / 0 /
 

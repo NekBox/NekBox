@@ -78,7 +78,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use size_m, only : lx1, ly1, lz1, lelv, lgmres
   use size_m, only : nx1, ny1, nz1, nelv, nid
   use gmres, only : c, s, h, gamma, ml, mu, x, r, w, v, z
-  use input, only : param, ifmgrid
+  use input, only : param, ifmgrid, ifprint
   use mass, only : bm1, binvm1, volvm1
   use soln, only : pmask, vmult
   use tstep, only : tolps, istep
@@ -91,8 +91,6 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   integer :: iter
 
   real(DP) :: divex
-  logical ::          ifprint
-  common  /cprint/ ifprint
   real(DP) :: d(lx1*ly1*lz1*lelv)
 
   real(DP) :: wk1(lgmres)

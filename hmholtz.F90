@@ -90,20 +90,12 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   ,             U     (LX1,LY1,LZ1,1) &
   ,             HELM1 (LX1,LY1,LZ1,1) &
   ,             HELM2 (LX1,LY1,LZ1,1)
-  real(DP) :: dudr, duds, dudt, tmp1, tmp2, tmp3
-  COMMON /CTMP1/ DUDR  (LX1,LY1,LZ1) &
-  ,             DUDS  (LX1,LY1,LZ1) &
-  ,             DUDT  (LX1,LY1,LZ1) &
-  ,             TMP1  (LX1,LY1,LZ1) &
-  ,             TMP2  (LX1,LY1,LZ1) &
-  ,             TMP3  (LX1,LY1,LZ1)
 
   REAL(DP) ::           TM1   (LX1,LY1,LZ1)
   REAL(DP) ::           TM2   (LX1,LY1,LZ1)
   REAL(DP) ::           TM3   (LX1,LY1,LZ1)
   REAL(DP) ::           DUAX  (LX1)
   REAL(DP) ::           YSM1  (LX1)
-  EQUIVALENCE    (DUDR,TM1),(DUDS,TM2),(DUDT,TM3)
 
   integer :: nel, nxy, nyz, nxz, nxyz, ntot
   real(DP) :: h1 

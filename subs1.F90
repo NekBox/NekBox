@@ -199,210 +199,210 @@
     return
     end subroutine unorm
 
-    subroutine setdtc(umax)
 !--------------------------------------------------------------
-
-!     Compute new timestep based on CFL-condition
-
+!> \brief Compute new timestep based on CFL-condition
 !--------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use mass
-    use mvgeom
-    use soln
-    use tstep
+subroutine setdtc(umax)
+  use kinds, only : DP
+  use size_m
+  use geom
+  use input
+  use mass
+  use mvgeom
+  use soln
+  use tstep
+  implicit none
 
-    common /ctmp1/ u(lx1,ly1,lz1,lelv) &
-    ,             v(lx1,ly1,lz1,lelv) &
-    ,             w(lx1,ly1,lz1,lelv)
-    common /ctmp0/ x(lx1,ly1,lz1,lelv) &
-    ,             r(lx1,ly1,lz1,lelv)
+  real(DP) :: umax
+  real(DP) ::  u(lx1,ly1,lz1,lelv) &
+  ,             v(lx1,ly1,lz1,lelv) &
+  ,             w(lx1,ly1,lz1,lelv)
 
+  real(DP) :: x, r
+  common /ctmp0/ x(lx1,ly1,lz1,lelv) &
+  ,             r(lx1,ly1,lz1,lelv)
 
-    REAL :: VCOUR
-    SAVE VCOUR
+  REAL, save :: VCOUR
 
-    INTEGER :: IFIRST
-    SAVE    IFIRST
-    DATA    IFIRST/0/
+  INTEGER, save :: IFIRST = 0
+  integer :: irst, iconv, ntot, ntotl, ntotd, i
+  real(DP) :: dtold, cold, cmax, cmin, fmax, density, amax, dxchar, vold, cpred
+  real(DP) :: a, b, c, discr, dtlow, dthi
+  real(DP), external :: glmax, glmin
 
+!   Steady state => all done
+  IF ( .NOT. IFTRAN) THEN
+      IFIRST=1
+      LASTEP=1
+      return
+  endif
 
-!     Steady state => all done
+  irst = param(46)
+  if (irst > 0) ifirst=1
 
+!   First time around
 
-    IF ( .NOT. IFTRAN) THEN
-        IFIRST=1
-        LASTEP=1
-        return
-    endif
+  IF (IFIRST == 0) THEN
+      DT     = DTINIT
+      IF (IFFLOW) THEN
+          IFIELD = 1
+          CALL BCDIRVC (VX,VY,VZ,v1mask,v2mask,v3mask)
+      endif
+  endif
+  IFIRST=IFIRST+1
 
-    irst = param(46)
-    if (irst > 0) ifirst=1
+  DTOLD = DT
 
-!     First time around
+!   Convection ?
 
-    IF (IFIRST == 0) THEN
-        DT     = DTINIT
-        IF (IFFLOW) THEN
-            IFIELD = 1
-            CALL BCDIRVC (VX,VY,VZ,v1mask,v2mask,v3mask)
-        endif
-    endif
-    IFIRST=IFIRST+1
-
-    DTOLD = DT
-
-!     Convection ?
-
-!     Don't enforce Courant condition if there is no convection.
-
-
-    ICONV=0
-    IF (IFFLOW .AND. IFNAV) ICONV=1
-    IF (IFWCNO)             ICONV=1
-    IF (IFHEAT) THEN
-        DO 10 IPSCAL=0,NPSCAL
-            IF (IFADVC(IPSCAL+2)) ICONV=1
-        10 END DO
-    endif
-    IF (ICONV == 0) THEN
-        DT=0.
-        return
-    endif
+!   Don't enforce Courant condition if there is no convection.
 
 
-!     Find Courant and Umax
+  ICONV=0
+  IF (IFFLOW .AND. IFNAV) ICONV=1
+  IF (IFWCNO)             ICONV=1
+  IF (IFHEAT) THEN
+      DO 10 IPSCAL=0,NPSCAL
+          IF (IFADVC(IPSCAL+2)) ICONV=1
+      10 END DO
+  endif
+  IF (ICONV == 0) THEN
+      DT=0.
+      return
+  endif
 
 
-    NTOT   = NX1*NY1*NZ1*NELV
-    NTOTL  = LX1*LY1*LZ1*LELV
-    NTOTD  = NTOTL*NDIM
-    COLD   = COURNO
-    CMAX   = 1.2*CTARG
-    CMIN   = 0.8*CTARG
-    CALL CUMAX (VX,VY,VZ,UMAX)
+!   Find Courant and Umax
 
-!     Zero DT
 
-    IF (DT == 0.0) THEN
-    
-        IF (UMAX /= 0.0) THEN
-            DT = CTARG/UMAX
-            VCOUR = UMAX
-        ELSEIF (IFFLOW) THEN
-        
-        !           We'll use the body force to predict max velocity
-        
-            CALL SETPROP
-            IFIELD = 1
-        
-            CALL MAKEUF
-            CALL OPDSSUM (BFX,BFY,BFZ)
-            CALL OPCOLV  (BFX,BFY,BFZ,BINVM1)
-            FMAX=0.0
-            CALL RZERO (U,NTOTD)
-            DO 600 I=1,NTOT
-                U(I,1,1,1) = ABS(BFX(I,1,1,1))
-                V(I,1,1,1) = ABS(BFY(I,1,1,1))
-                W(I,1,1,1) = ABS(BFZ(I,1,1,1))
-            600 END DO
-            FMAX    = GLMAX (U,NTOTD)
-            DENSITY = AVTRAN(1)
-            AMAX    = FMAX/DENSITY
-            DXCHAR  = SQRT( (XM1(1,1,1,1)-XM1(2,1,1,1))**2 + &
-            (YM1(1,1,1,1)-YM1(2,1,1,1))**2 + &
-            (ZM1(1,1,1,1)-ZM1(2,1,1,1))**2 )
-            DXCHAR  = GLMIN (dxchar,1)
-            IF (AMAX /= 0.) THEN
-                DT = SQRT(CTARG*DXCHAR/AMAX)
-            ELSE
-                IF (NID == 0) &
-                WRITE (6,*) 'CFL: Zero velocity and body force'
-                DT = 0.0
-                return
-            endif
-        ELSEIF (IFWCNO) THEN
-            IF (NID == 0) &
-            WRITE (6,*) ' Stefan problem with no fluid flow'
-            DT = 0.0
-            return
-        endif
-    
-    ELSEIF ((DT > 0.0) .AND. (UMAX /= 0.0)) THEN
-    
-    
-    !     Nonzero DT & nonzero velocity
-    
-    
-        COURNO = DT*UMAX
-        VOLD   = VCOUR
-        VCOUR  = UMAX
-        IF (IFIRST == 1) THEN
-            COLD = COURNO
-            VOLD = VCOUR
-        endif
-        CPRED  = 2.*COURNO-COLD
-    
-    !     Change DT if it is too big or if it is too small
-    
-    !     if (nid.eq.0)
-    !    $write(6,917) dt,umax,vold,vcour,cpred,cmax,courno,cmin
-    ! 917 format(' dt',4f9.5,4f10.6)
-        IF(COURNO > CMAX .OR. CPRED > CMAX .OR. COURNO < CMIN) THEN
-        
-            A=(VCOUR-VOLD)/DT
-            B=VCOUR
-        !           -C IS Target Courant number
-            C=-CTARG
-            DISCR=B**2-4*A*C
-            DTOLD=DT
-            IF(DISCR <= 0.0)THEN
-                if (nid == 0) &
-                PRINT*,'Problem calculating new DT Discriminant=',discr
-                DT=DT*(CTARG/COURNO)
-            !               IF(DT.GT.DTOLD) DT=DTOLD
-            ELSE IF(ABS((VCOUR-VOLD)/VCOUR) < 0.001)THEN
-            !              Easy: same v as before (LINEARIZED)
-                DT=DT*(CTARG/COURNO)
-            !     if (nid.eq.0)
-            !    $write(6,918) dt,dthi,dtlow,discr,a,b,c
-            ! 918 format(' d2',4f9.5,4f10.6)
-            ELSE
-                DTLOW=(-B+SQRT(DISCR) )/(2.0*A)
-                DTHI =(-B-SQRT(DISCR) )/(2.0*A)
-                IF(DTHI > 0.0 .AND. DTLOW > 0.0)THEN
-                    DT = MIN (DTHI,DTLOW)
-                !     if (nid.eq.0)
-                !    $write(6,919) dt,dthi,dtlow,discr,a,b,c
-                ! 919 format(' d3',4f9.5,4f10.6)
-                ELSE IF(DTHI <= 0.0 .AND. DTLOW <= 0.0)THEN
-                !                 PRINT*,'DTLOW,DTHI',DTLOW,DTHI
-                !                 PRINT*,'WARNING: Abnormal DT from CFL-condition'
-                !                 PRINT*,'         Keep going'
-                    DT=DT*(CTARG/COURNO)
-                ELSE
-                !                 Normal case; 1 positive root, one negative root
-                    DT = MAX (DTHI,DTLOW)
-                !     if (nid.eq.0)
-                !    $write(6,929) dt,dthi,dtlow,discr,a,b,c
-                ! 929 format(' d4',4f9.5,4f10.6)
-                endif
-            endif
-        !           We'll increase gradually-- make it the geometric mean between
-        !     if (nid.eq.0)
-        !    $write(6,939) dt,dtold
-        ! 939 format(' d5',4f9.5,4f10.6)
-            IF (DTOLD/DT < 0.2) DT = DTOLD*5
-        endif
-    
-    endif
+  NTOT   = NX1*NY1*NZ1*NELV
+  NTOTL  = LX1*LY1*LZ1*LELV
+  NTOTD  = NTOTL*NDIM
+  COLD   = COURNO
+  CMAX   = 1.2*CTARG
+  CMIN   = 0.8*CTARG
+  CALL CUMAX (VX,VY,VZ,u,v,w,UMAX)
 
-    return
-    end subroutine setdtc
+!   Zero DT
+
+  IF (DT == 0.0) THEN
+  
+      IF (UMAX /= 0.0) THEN
+          DT = CTARG/UMAX
+          VCOUR = UMAX
+      ELSEIF (IFFLOW) THEN
+      
+      !           We'll use the body force to predict max velocity
+      
+          CALL SETPROP
+          IFIELD = 1
+      
+          CALL MAKEUF
+          CALL OPDSSUM (BFX,BFY,BFZ)
+          CALL OPCOLV  (BFX,BFY,BFZ,BINVM1)
+          FMAX=0.0
+          CALL RZERO (U,NTOTD)
+          DO 600 I=1,NTOT
+              U(I,1,1,1) = ABS(BFX(I,1,1,1))
+              V(I,1,1,1) = ABS(BFY(I,1,1,1))
+              W(I,1,1,1) = ABS(BFZ(I,1,1,1))
+          600 END DO
+          FMAX    = GLMAX (U,NTOTD)
+          DENSITY = AVTRAN(1)
+          AMAX    = FMAX/DENSITY
+          DXCHAR  = SQRT( (XM1(1,1,1,1)-XM1(2,1,1,1))**2 + &
+          (YM1(1,1,1,1)-YM1(2,1,1,1))**2 + &
+          (ZM1(1,1,1,1)-ZM1(2,1,1,1))**2 )
+          DXCHAR  = GLMIN (dxchar,1)
+          IF (AMAX /= 0.) THEN
+              DT = SQRT(CTARG*DXCHAR/AMAX)
+          ELSE
+              IF (NID == 0) &
+              WRITE (6,*) 'CFL: Zero velocity and body force'
+              DT = 0.0
+              return
+          endif
+      ELSEIF (IFWCNO) THEN
+          IF (NID == 0) &
+          WRITE (6,*) ' Stefan problem with no fluid flow'
+          DT = 0.0
+          return
+      endif
+  
+  ELSEIF ((DT > 0.0) .AND. (UMAX /= 0.0)) THEN
+  
+  
+  !     Nonzero DT & nonzero velocity
+  
+  
+      COURNO = DT*UMAX
+      VOLD   = VCOUR
+      VCOUR  = UMAX
+      IF (IFIRST == 1) THEN
+          COLD = COURNO
+          VOLD = VCOUR
+      endif
+      CPRED  = 2.*COURNO-COLD
+  
+  !     Change DT if it is too big or if it is too small
+  
+  !     if (nid.eq.0)
+  !    $write(6,917) dt,umax,vold,vcour,cpred,cmax,courno,cmin
+  ! 917 format(' dt',4f9.5,4f10.6)
+      IF(COURNO > CMAX .OR. CPRED > CMAX .OR. COURNO < CMIN) THEN
+      
+          A=(VCOUR-VOLD)/DT
+          B=VCOUR
+      !           -C IS Target Courant number
+          C=-CTARG
+          DISCR=B**2-4*A*C
+          DTOLD=DT
+          IF(DISCR <= 0.0)THEN
+              if (nid == 0) &
+              PRINT*,'Problem calculating new DT Discriminant=',discr
+              DT=DT*(CTARG/COURNO)
+          !               IF(DT.GT.DTOLD) DT=DTOLD
+          ELSE IF(ABS((VCOUR-VOLD)/VCOUR) < 0.001)THEN
+          !              Easy: same v as before (LINEARIZED)
+              DT=DT*(CTARG/COURNO)
+          !     if (nid.eq.0)
+          !    $write(6,918) dt,dthi,dtlow,discr,a,b,c
+          ! 918 format(' d2',4f9.5,4f10.6)
+          ELSE
+              DTLOW=(-B+SQRT(DISCR) )/(2.0*A)
+              DTHI =(-B-SQRT(DISCR) )/(2.0*A)
+              IF(DTHI > 0.0 .AND. DTLOW > 0.0)THEN
+                  DT = MIN (DTHI,DTLOW)
+              !     if (nid.eq.0)
+              !    $write(6,919) dt,dthi,dtlow,discr,a,b,c
+              ! 919 format(' d3',4f9.5,4f10.6)
+              ELSE IF(DTHI <= 0.0 .AND. DTLOW <= 0.0)THEN
+              !                 PRINT*,'DTLOW,DTHI',DTLOW,DTHI
+              !                 PRINT*,'WARNING: Abnormal DT from CFL-condition'
+              !                 PRINT*,'         Keep going'
+                  DT=DT*(CTARG/COURNO)
+              ELSE
+              !                 Normal case; 1 positive root, one negative root
+                  DT = MAX (DTHI,DTLOW)
+              !     if (nid.eq.0)
+              !    $write(6,929) dt,dthi,dtlow,discr,a,b,c
+              ! 929 format(' d4',4f9.5,4f10.6)
+              endif
+          endif
+      !           We'll increase gradually-- make it the geometric mean between
+      !     if (nid.eq.0)
+      !    $write(6,939) dt,dtold
+      ! 939 format(' d5',4f9.5,4f10.6)
+          IF (DTOLD/DT < 0.2) DT = DTOLD*5
+      endif
+  
+  endif
+
+  return
+  end subroutine setdtc
 
 ! called
-subroutine cumax (v1,v2,v3,umax)
+subroutine cumax (v1,v2,v3,u,v,w,umax)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv, ndim
   use geom, only : rxm1, rym1, sxm1, sym1, rzm1, szm1, txm1, tym1, tzm1
@@ -411,6 +411,9 @@ subroutine cumax (v1,v2,v3,umax)
   implicit none
 
   real(DP) :: V1(LX1,LY1,LZ1,1), V2(LX1,LY1,LZ1,1), V3(LX1,LY1,LZ1,1)
+  real(DP) ::  u    (lx1,ly1,lz1,lelv) &
+  ,             v    (lx1,ly1,lz1,lelv) &
+  ,             w    (lx1,ly1,lz1,lelv)    
   real(DP) :: umax
 
   real(DP) :: xrm1, xsm1, xtm1, yrm1, ysm1, ytm1
@@ -425,10 +428,9 @@ subroutine cumax (v1,v2,v3,umax)
   ,             zsm1 (lx1,ly1,lz1,lelv) &
   ,             ztm1 (lx1,ly1,lz1,lelv)
 
-  real(DP) :: u, v, w, x, r
-  common /ctmp1/ u    (lx1,ly1,lz1,lelv) &
-  ,             v    (lx1,ly1,lz1,lelv) &
-  ,             w    (lx1,ly1,lz1,lelv)
+
+
+  real(DP) :: x, r
   common /ctmp0/ x    (lx1,ly1,lz1,lelv) &
   ,             r    (lx1,ly1,lz1,lelv)
 
@@ -527,45 +529,6 @@ subroutine cumax (v1,v2,v3,umax)
   return
   end subroutine cumax
 
-  subroutine fcaver(xaver,a,iel,iface1)
-!------------------------------------------------------------------------
-
-!     Compute the average of A over the face IFACE1 in element IEL.
-
-!         A is a (NX,NY,NZ) data structure
-!         IFACE1 is in the preprocessor notation
-!         IFACE  is the dssum notation.
-!------------------------------------------------------------------------
-    use size_m
-    use geom
-    use topol
-    REAL :: A(LX1,LY1,LZ1,1)
-
-    FCAREA = 0.
-    XAVER  = 0.
-
-!     Set up counters
-
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-
-    I = 0
-    DO 100 J2=JS2,JF2,JSKIP2
-        DO 100 J1=JS1,JF1,JSKIP1
-            I = I+1
-            FCAREA = FCAREA+AREA(I,1,IFACE1,IEL)
-            XAVER  = XAVER +AREA(I,1,IFACE1,IEL)*A(J1,J2,1,IEL)
-    100 END DO
-
-    XAVER = XAVER/FCAREA
-    return
-    end subroutine fcaver
     subroutine faccl2(a,b,iface1)
 
 !     Collocate B with A on the surface IFACE1 of element IE.
@@ -635,41 +598,6 @@ subroutine cumax (v1,v2,v3,umax)
 
     return
     end subroutine faccl3
-    subroutine faddcl3(a,b,c,iface1)
-
-!     Collocate B with C and add to A on the surface IFACE1 of element IE.
-
-!         A is a (NX,NY,NZ) data structure
-!         B is a (NX,NY,NZ) data structure
-!         C is a (NX,NY,IFACE) data structure
-!         IFACE1 is in the preprocessor notation
-!         IFACE  is the dssum notation.
-!         29 Jan 1990 18:00 PST   PFF
-
-    use size_m
-    use topol
-    DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1,LZ1),C(LX1,LY1)
-
-!     Set up counters
-
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-
-    I = 0
-    DO 100 J2=JS2,JF2,JSKIP2
-        DO 100 J1=JS1,JF1,JSKIP1
-            I = I+1
-            A(J1,J2,1) = A(J1,J2,1) + B(J1,J2,1)*C(I,1)
-    100 END DO
-
-    return
-    end subroutine faddcl3
 !-----------------------------------------------------------------------
     subroutine sethlm (h1,h2,intloc)
      

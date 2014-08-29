@@ -204,19 +204,18 @@
 !--------------------------------------------------------------
 subroutine setdtc(umax)
   use kinds, only : DP
-  use size_m
-  use geom
-  use input
-  use mass
-  use mvgeom
-  use soln
-  use tstep
+  use size_m, only : lx1, ly1, lz1, lelv
+  use size_m, only : nx1, ny1, nz1, nelv, ndim, nid
+  use geom, only : ifwcno, xm1, ym1, zm1
+  use input, only : param, iftran, ifflow, ifnav, ifheat, ifadvc
+  use input, only : ipscal, npscal
+  use mass, only : binvm1
+  use soln, only : vx, vy, vz, v1mask, v2mask, v3mask, bfx, bfy, bfz
+  use tstep, only : lastep, dt, ifield, courno, ctarg, avtran, dtinit
   implicit none
 
   real(DP) :: umax
-  real(DP) ::  u(lx1,ly1,lz1,lelv) &
-  ,             v(lx1,ly1,lz1,lelv) &
-  ,             w(lx1,ly1,lz1,lelv)
+  real(DP) ::  u(lx1,ly1,lz1,lelv), v(lx1,ly1,lz1,lelv), w(lx1,ly1,lz1,lelv)
 
   real(DP) :: x, r
   common /ctmp0/ x(lx1,ly1,lz1,lelv) &
@@ -399,7 +398,7 @@ subroutine setdtc(umax)
   endif
 
   return
-  end subroutine setdtc
+end subroutine setdtc
 
 ! called
 subroutine cumax (v1,v2,v3,u,v,w,umax)
@@ -416,13 +415,12 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   ,             w    (lx1,ly1,lz1,lelv)    
   real(DP) :: umax
 
-  real(DP) :: xrm1, xsm1, xtm1, yrm1, ysm1, ytm1
-  common /scrns/ xrm1 (lx1,ly1,lz1,lelv) &
-  ,             xsm1 (lx1,ly1,lz1,lelv) &
-  ,             xtm1 (lx1,ly1,lz1,lelv) &
-  ,             yrm1 (lx1,ly1,lz1,lelv) &
-  ,             ysm1 (lx1,ly1,lz1,lelv) &
-  ,             ytm1 (lx1,ly1,lz1,lelv)
+  real(DP) ::  xrm1 (lx1,ly1,lz1,lelv) &
+  ,            xsm1 (lx1,ly1,lz1,lelv) &
+  ,            xtm1 (lx1,ly1,lz1,lelv) &
+  ,            yrm1 (lx1,ly1,lz1,lelv) &
+  ,            ysm1 (lx1,ly1,lz1,lelv) &
+  ,            ytm1 (lx1,ly1,lz1,lelv)
 
   real(DP) :: zrm1 (lx1,ly1,lz1,lelv) &
   ,             zsm1 (lx1,ly1,lz1,lelv) &

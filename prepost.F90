@@ -1713,215 +1713,218 @@ end subroutine outpost2
     return
     end subroutine mfo_mdatas
 !-----------------------------------------------------------------------
-    subroutine mfo_outs(u,nel,mx,my,mz)   ! output a scalar field
+!> \brief output a scalar field
+subroutine mfo_outs(u,nel,mx,my,mz)
+  use kinds, only : DP
+  use size_m, only : nid, lelt, lxo
+  use restart, only : wdsizo, pid0, pid1
+  implicit none
 
-    use size_m
-    use input
-    use parallel
-    use restart
+  real(DP) :: u(mx,my,mz,1)
+  integer :: nel, mx, my, mz
 
-    real :: u(mx,my,mz,1)
+  real*4 :: u4(2+lxo*lxo*lxo*2*lelt)
+  real*8 :: u8(1+lxo*lxo*lxo*1*lelt)
+  equivalence    (u4,u8)
 
-    common /SCRNS/ u4(2+lxo*lxo*lxo*2*lelt)
-    real*4 ::         u4
-    real*8 ::         u8(1+lxo*lxo*lxo*1*lelt)
-    equivalence    (u4,u8)
+  integer :: e, nxyz, len, leo, ntot, idum, ierr, nout, k, mtype
 
-    integer :: e
+  call nekgsync() ! clear outstanding message queues.
+  if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
+      if(nid == 0) write(6,*) 'ABORT: lxo too small'
+      call exitt
+  endif
 
-    call nekgsync() ! clear outstanding message queues.
-    if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
-        if(nid == 0) write(6,*) 'ABORT: lxo too small'
-        call exitt
-    endif
+  nxyz = mx*my*mz
+  len  = 8 + 8*(lelt*nxyz)  ! recv buffer size
+  leo  = 8 + wdsizo*(nel*nxyz)
+  ntot = nxyz*nel
 
-    nxyz = mx*my*mz
-    len  = 8 + 8*(lelt*nxyz)  ! recv buffer size
-    leo  = 8 + wdsizo*(nel*nxyz)
-    ntot = nxyz*nel
+  idum = 1
+  ierr = 0
 
-    idum = 1
-    ierr = 0
+  if (nid == pid0) then
 
-    if (nid == pid0) then
-
-        if (wdsizo == 4) then             ! 32-bit output
-            call copyx4 (u4,u,ntot)
-        else
-            call copy   (u8,u,ntot)
-        endif
-        nout = wdsizo/4 * ntot
-        if(ierr == 0) then
+      if (wdsizo == 4) then             ! 32-bit output
+          call copyx4 (u4,u,ntot)
+      else
+          call copy   (u8,u,ntot)
+      endif
+      nout = wdsizo/4 * ntot
+      if(ierr == 0) then
 #ifdef MPIIO 
-        call byte_write_mpi(u4,nout,-1,ifh_mbyte,ierr)
+      call byte_write_mpi(u4,nout,-1,ifh_mbyte,ierr)
 #else 
-        call byte_write(u4,nout,ierr)          ! u4 :=: u8
+      call byte_write(u4,nout,ierr)          ! u4 :=: u8
 #endif
-        endif
+      endif
 
-    ! write out the data of my childs
-        idum  = 1
-        do k=pid0+1,pid1
-            mtype = k
-            call csend(mtype,idum,4,k,0)       ! handshake
-            call crecv(mtype,u4,len)
-            nout  = wdsizo/4 * nxyz * u8(1)
-            if (wdsizo == 4 .AND. ierr == 0) then
+  ! write out the data of my childs
+      idum  = 1
+      do k=pid0+1,pid1
+          mtype = k
+          call csend(mtype,idum,4,k,0)       ! handshake
+          call crecv(mtype,u4,len)
+          nout  = wdsizo/4 * nxyz * u8(1)
+          if (wdsizo == 4 .AND. ierr == 0) then
 #ifdef MPIIO
-                call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
+              call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
 #else
-                call byte_write(u4(3),nout,ierr)
+              call byte_write(u4(3),nout,ierr)
 #endif
-            elseif(ierr == 0) then
+          elseif(ierr == 0) then
 #ifdef MPIIO
-                call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
+              call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
 #else
-                call byte_write(u8(2),nout,ierr)
+              call byte_write(u8(2),nout,ierr)
 #endif
-            endif
-        enddo
+          endif
+      enddo
 
-    else
+  else
 
-        u8(1)= nel
-        if (wdsizo == 4) then             ! 32-bit output
-            call copyx4 (u4(3),u,ntot)
-        else
-            call copy   (u8(2),u,ntot)
-        endif
+      u8(1)= nel
+      if (wdsizo == 4) then             ! 32-bit output
+          call copyx4 (u4(3),u,ntot)
+      else
+          call copy   (u8(2),u,ntot)
+      endif
 
-        mtype = nid
-        call crecv(mtype,idum,4)            ! hand-shake
-        call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
+      mtype = nid
+      call crecv(mtype,idum,4)            ! hand-shake
+      call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
 
-    endif
+  endif
 
-    call err_chk(ierr,'Error writing data to .f00 in mfo_outs. $')
+  call err_chk(ierr,'Error writing data to .f00 in mfo_outs. $')
 
-    return
-    end subroutine mfo_outs
+  return
+end subroutine mfo_outs
 !-----------------------------------------------------------------------
+!> \brief output a vector field
+subroutine mfo_outv(u,v,w,nel,mx,my,mz) 
+  use kinds, only : DP
+  use size_m, only : nid, ndim, lxo, lelt
+  use input, only : if3d
+  use restart, only : wdsizo, pid0, pid1
+  implicit none
+ 
+  real(DP) :: u(mx*my*mz,1),v(mx*my*mz,1),w(mx*my*mz,1)
+  integer :: mx, my, mz
 
-    subroutine mfo_outv(u,v,w,nel,mx,my,mz)   ! output a vector field
+  real*4 :: u4(2+lxo*lxo*lxo*6*lelt)
+  real*8 :: u8(1+lxo*lxo*lxo*3*lelt)
+  equivalence    (u4,u8)
 
-    use size_m
-    use input
-    use parallel
-    use restart
+  integer :: nxyz, len, leo, nel, idum, ierr
+  integer :: j, iel, nout, k, mtype
 
-    real :: u(mx*my*mz,1),v(mx*my*mz,1),w(mx*my*mz,1)
+  integer :: e
 
-    common /SCRNS/ u4(2+lxo*lxo*lxo*6*lelt)
-    real*4 ::         u4
-    real*8 ::         u8(1+lxo*lxo*lxo*3*lelt)
-    equivalence    (u4,u8)
+  call nekgsync() ! clear outstanding message queues.
+  if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
+      if(nid == 0) write(6,*) 'ABORT: lxo too small'
+      call exitt
+  endif
 
-    integer :: e
+  nxyz = mx*my*mz
+  len  = 8 + 8*(lelt*nxyz*ndim)   ! recv buffer size (u4)
+  leo  = 8 + wdsizo*(nel*nxyz*ndim)
+  idum = 1
+  ierr = 0
 
-    call nekgsync() ! clear outstanding message queues.
-    if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
-        if(nid == 0) write(6,*) 'ABORT: lxo too small'
-        call exitt
-    endif
-
-    nxyz = mx*my*mz
-    len  = 8 + 8*(lelt*nxyz*ndim)   ! recv buffer size (u4)
-    leo  = 8 + wdsizo*(nel*nxyz*ndim)
-    idum = 1
-    ierr = 0
-
-    if (nid == pid0) then
-        j = 0
-        if (wdsizo == 4) then             ! 32-bit output
-            do iel = 1,nel
-                call copyx4   (u4(j+1),u(1,iel),nxyz)
-                j = j + nxyz
-                call copyx4   (u4(j+1),v(1,iel),nxyz)
-                j = j + nxyz
-                if(if3d) then
-                    call copyx4 (u4(j+1),w(1,iel),nxyz)
-                    j = j + nxyz
-                endif
-            enddo
-        else
-            do iel = 1,nel
-                call copy     (u8(j+1),u(1,iel),nxyz)
-                j = j + nxyz
-                call copy     (u8(j+1),v(1,iel),nxyz)
-                j = j + nxyz
-                if(if3d) then
-                    call copy   (u8(j+1),w(1,iel),nxyz)
-                    j = j + nxyz
-                endif
-            enddo
-        endif
-        nout = wdsizo/4 * ndim*nel * nxyz
-        if(ierr == 0) then
+  if (nid == pid0) then
+      j = 0
+      if (wdsizo == 4) then             ! 32-bit output
+          do iel = 1,nel
+              call copyx4   (u4(j+1),u(1,iel),nxyz)
+              j = j + nxyz
+              call copyx4   (u4(j+1),v(1,iel),nxyz)
+              j = j + nxyz
+              if(if3d) then
+                  call copyx4 (u4(j+1),w(1,iel),nxyz)
+                  j = j + nxyz
+              endif
+          enddo
+      else
+          do iel = 1,nel
+              call copy     (u8(j+1),u(1,iel),nxyz)
+              j = j + nxyz
+              call copy     (u8(j+1),v(1,iel),nxyz)
+              j = j + nxyz
+              if(if3d) then
+                  call copy   (u8(j+1),w(1,iel),nxyz)
+                  j = j + nxyz
+              endif
+          enddo
+      endif
+      nout = wdsizo/4 * ndim*nel * nxyz
+      if(ierr == 0) then
 #ifdef MPIIO 
-        call byte_write_mpi(u4,nout,-1,ifh_mbyte,ierr)
+      call byte_write_mpi(u4,nout,-1,ifh_mbyte,ierr)
 #else 
-        call byte_write(u4,nout,ierr)          ! u4 :=: u8
+      call byte_write(u4,nout,ierr)          ! u4 :=: u8
 #endif
-        endif
-    ! write out the data of my childs
-        do k=pid0+1,pid1
-            mtype = k
-            call csend(mtype,idum,4,k,0)           ! handshake
-            call crecv(mtype,u4,len)
-            nout  = wdsizo/4 * ndim*nxyz * u8(1)
+      endif
+  ! write out the data of my childs
+      do k=pid0+1,pid1
+          mtype = k
+          call csend(mtype,idum,4,k,0)           ! handshake
+          call crecv(mtype,u4,len)
+          nout  = wdsizo/4 * ndim*nxyz * u8(1)
 
-            if (wdsizo == 4 .AND. ierr == 0) then
+          if (wdsizo == 4 .AND. ierr == 0) then
 #ifdef MPIIO
-                call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
+              call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
 #else
-                call byte_write(u4(3),nout,ierr)
+              call byte_write(u4(3),nout,ierr)
 #endif
-            elseif(ierr == 0) then
+          elseif(ierr == 0) then
 #ifdef MPIIO
-                call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
+              call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
 #else
-                call byte_write(u8(2),nout,ierr)
+              call byte_write(u8(2),nout,ierr)
 #endif
-            endif
-        enddo
-    else
+          endif
+      enddo
+  else
 
-        u8(1) = nel
-        if (wdsizo == 4) then             ! 32-bit output
-            j = 2
-            do iel = 1,nel
-                call copyx4   (u4(j+1),u(1,iel),nxyz)
-                j = j + nxyz
-                call copyx4   (u4(j+1),v(1,iel),nxyz)
-                j = j + nxyz
-                if(if3d) then
-                    call copyx4 (u4(j+1),w(1,iel),nxyz)
-                    j = j + nxyz
-                endif
-            enddo
-        else
-            j = 1
-            do iel = 1,nel
-                call copy     (u8(j+1),u(1,iel),nxyz)
-                j = j + nxyz
-                call copy     (u8(j+1),v(1,iel),nxyz)
-                j = j + nxyz
-                if(if3d) then
-                    call copy   (u8(j+1),w(1,iel),nxyz)
-                    j = j + nxyz
-                endif
-            enddo
-        endif
+      u8(1) = nel
+      if (wdsizo == 4) then             ! 32-bit output
+          j = 2
+          do iel = 1,nel
+              call copyx4   (u4(j+1),u(1,iel),nxyz)
+              j = j + nxyz
+              call copyx4   (u4(j+1),v(1,iel),nxyz)
+              j = j + nxyz
+              if(if3d) then
+                  call copyx4 (u4(j+1),w(1,iel),nxyz)
+                  j = j + nxyz
+              endif
+          enddo
+      else
+          j = 1
+          do iel = 1,nel
+              call copy     (u8(j+1),u(1,iel),nxyz)
+              j = j + nxyz
+              call copy     (u8(j+1),v(1,iel),nxyz)
+              j = j + nxyz
+              if(if3d) then
+                  call copy   (u8(j+1),w(1,iel),nxyz)
+                  j = j + nxyz
+              endif
+          enddo
+      endif
 
-        mtype = nid
-        call crecv(mtype,idum,4)            ! hand-shake
-        call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
+      mtype = nid
+      call crecv(mtype,idum,4)            ! hand-shake
+      call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
 
-    endif
+  endif
 
-    call err_chk(ierr,'Error writing data to .f00 in mfo_outv. $')
-    return
-    end subroutine mfo_outv
+  call err_chk(ierr,'Error writing data to .f00 in mfo_outv. $')
+  return
+end subroutine mfo_outv
 !-----------------------------------------------------------------------
     subroutine mfo_write_hdr          ! write hdr, byte key, els.
 

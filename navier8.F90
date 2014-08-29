@@ -56,10 +56,6 @@ subroutine set_up_h1_crs
   integer :: key(2),aa(2)
   real(DP), allocatable :: a(:)
   integer :: iwork(2,lx1*ly1*lz1*lelv)
-  common /scrns/ w(7*lx1*ly1*lz1*lelv)
-  integer :: w
-  real :: wr(1)
-  equivalence (wr,w)
  
   real(DP), allocatable :: h1(:), h2(:), w1(:), w2(:)
 
@@ -645,152 +641,162 @@ end subroutine get_local_crs_galerkin
     return
     end subroutine get_vert
 !-----------------------------------------------------------------------
-    subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
-    use size_m
-    use input
-    use parallel
-    logical :: ifgfdm
-    common /nekmpi/ nid_,np_,nekcomm,nekgroup,nekreal
-    integer :: vertex(nlv,1)
-    character(4) :: suffix
+subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, ldim, nid, nelt, nelv, ndim
+  use input, only : reafle
+  use parallel, only : np, gllnid, isize, gllel, nelgt, nelgv, cr_h
+  implicit none
 
-    parameter(mdw=2+2**ldim)
-    parameter(ndw=7*lx1*ly1*lz1*lelv/mdw)
-    common /scrns/ wk(mdw,ndw)   ! room for long ints, if desired
-    integer :: wk,e,eg,eg0,eg1
+  logical :: ifgfdm
 
-    character(132) :: mapfle
-    character(1) ::   mapfle1(132)
-    equivalence  (mapfle,mapfle1)
+  integer :: nid_, np_, nekcomm, nekgroup, nekreal
+  common /nekmpi/ nid_,np_,nekcomm,nekgroup,nekreal
 
-    iok = 0
-    if (nid == 0) then
-        lfname = ltrunc(reafle,132) - 4
-        call blank (mapfle,132)
-        call chcopy(mapfle,reafle,lfname)
-        call chcopy(mapfle1(lfname+1),suffix,4)
-        open(unit=80,file=mapfle,status='old',err=99)
-        read(80,*,err=99) neli,nnzi
-        iok = 1
-    endif
-    99 continue
-    iok = iglmax(iok,1)
-    if (iok == 0) goto 999     ! Mapfile not found
+  integer :: vertex(nlv,1)
+  character(4) :: suffix
 
-    if (nid == 0) then
-        neli = iglmax(neli,1)   ! communicate to all procs
-    else
-        neli = 0
-        neli = iglmax(neli,1)   ! communicate neli to all procs
-    endif
+  integer, parameter :: mdw=2+2**ldim
+  integer, parameter :: ndw=7*lx1*ly1*lz1*lelv/mdw
 
-    npass = 1 + (neli/ndw)
-    if (npass > np) then
-        if (nid == 0) write(6,*) npass,np,neli,ndw,'Error get_vert_map'
-        call exitt
-    endif
+  integer :: wk(mdw,ndw)   ! room for long ints, if desired
 
-    len = 4*mdw*ndw
-    if (nid > 0 .AND. nid < npass) msg_id=irecv(nid,wk,len)
-    call nekgsync
+  integer :: e,eg,eg0,eg1, iok, lfname, neli, nnzi, npass, len, msg_id
+  integer :: ipass, m, k, ntuple, lng, i, key, nkey, iflag, nv, mid, nlv, nel
+  integer, external :: ltrunc, iglmax, irecv
 
-    if (nid == 0) then
-        eg0 = 0
-        do ipass=1,npass
-            eg1 = min(eg0+ndw,neli)
-            m   = 0
-            do eg=eg0+1,eg1
-                m = m+1
-                read(80,*,end=998) (wk(k,m),k=2,mdw)
-                if( .NOT. ifgfdm)  gllnid(eg) = wk(2,m)  !proc map,  must still be divided
-                wk(1,m)    = eg
-            enddo
-            if (ipass < npass) call csend(ipass,wk,len,ipass,0) !send to ipass
-            eg0 = eg1
-        enddo
-        close(80)
-        ntuple = m
-    elseif (nid < npass) then
-        call msgwait(msg_id)
-        ntuple = ndw
-    else
-        ntuple = 0
-    endif
+  character(132) :: mapfle
+  character(1) ::   mapfle1(132)
+  equivalence  (mapfle,mapfle1)
 
-!     Distribute and assign partitions
-    if ( .NOT. ifgfdm) then             ! gllnid is already assigned for gfdm
-        lng = isize*neli
-        call bcast(gllnid,lng)
-        call assign_gllnid(gllnid,gllel,nelgt,nelgv,np) ! gllel is used as scratch
+  iok = 0
+  if (nid == 0) then
+      lfname = ltrunc(reafle,132) - 4
+      call blank (mapfle,132)
+      call chcopy(mapfle,reafle,lfname)
+      call chcopy(mapfle1(lfname+1),suffix,4)
+      open(unit=80,file=mapfle,status='old',err=99)
+      read(80,*,err=99) neli,nnzi
+      iok = 1
+  endif
+  99 continue
+  iok = iglmax(iok,1)
+  if (iok == 0) goto 999     ! Mapfile not found
 
-    !       if(nid.eq.0) then
-    !         write(99,*) (gllnid(i),i=1,nelgt)
-    !       endif
-    !       call exitt
-    endif
+  if (nid == 0) then
+      neli = iglmax(neli,1)   ! communicate to all procs
+  else
+      neli = 0
+      neli = iglmax(neli,1)   ! communicate neli to all procs
+  endif
 
-    nelt=0 !     Count number of elements on this processor
-    nelv=0
-    do eg=1,neli
-        if (gllnid(eg) == nid) then
-            if (eg <= nelgv) nelv=nelv+1
-            if (eg <= nelgt) nelt=nelt+1
-        endif
-    enddo
-    if (np <= 64) write(6,*) nid,nelv,nelt,nelgv,nelgt,' NELV'
+  npass = 1 + (neli/ndw)
+  if (npass > np) then
+      if (nid == 0) write(6,*) npass,np,neli,ndw,'Error get_vert_map'
+      call exitt
+  endif
 
-!     NOW: crystal route vertex by processor id
+  len = 4*mdw*ndw
+  if (nid > 0 .AND. nid < npass) msg_id=irecv(nid,wk,len)
+  call nekgsync
 
-    do i=1,ntuple
-        eg=wk(1,i)
-        wk(2,i)=gllnid(eg)        ! processor id for element eg
-    enddo
+  if (nid == 0) then
+      eg0 = 0
+      do ipass=1,npass
+          eg1 = min(eg0+ndw,neli)
+          m   = 0
+          do eg=eg0+1,eg1
+              m = m+1
+              read(80,*,end=998) (wk(k,m),k=2,mdw)
+              if( .NOT. ifgfdm)  gllnid(eg) = wk(2,m)  !proc map,  must still be divided
+              wk(1,m)    = eg
+          enddo
+          if (ipass < npass) call csend(ipass,wk,len,ipass,0) !send to ipass
+          eg0 = eg1
+      enddo
+      close(80)
+      ntuple = m
+  elseif (nid < npass) then
+      call msgwait(msg_id)
+      ntuple = ndw
+  else
+      ntuple = 0
+  endif
 
-    key = 2  ! processor id is in wk(2,:)
-    call crystal_ituple_transfer(cr_h,wk,mdw,ntuple,ndw,key)
+!   Distribute and assign partitions
+  if ( .NOT. ifgfdm) then             ! gllnid is already assigned for gfdm
+      lng = isize*neli
+      call bcast(gllnid,lng)
+      call assign_gllnid(gllnid,gllel,nelgt,nelgv,np) ! gllel is used as scratch
 
-    if ( .NOT. ifgfdm) then            ! no sorting for gfdm?
-        key = 1  ! Sort tuple list by eg := wk(1,:)
-        nkey = 1
-        call crystal_ituple_sort(cr_h,wk,mdw,nelt,key,nkey)
-    endif
+  !       if(nid.eq.0) then
+  !         write(99,*) (gllnid(i),i=1,nelgt)
+  !       endif
+  !       call exitt
+  endif
 
-    iflag = 0
-    if (ntuple /= nelt) then
-        write(6,*) nid,ntuple,nelv,nelt,nelgt,' NELT FAIL'
-        write(6,*) 'Check that .map file and .rea file agree'
-        iflag=1
-    else
-        nv = 2**ndim
-        do e=1,nelt
-            call icopy(vertex(1,e),wk(3,e),nv)
-        enddo
-    endif
+  nelt=0 !     Count number of elements on this processor
+  nelv=0
+  do eg=1,neli
+      if (gllnid(eg) == nid) then
+          if (eg <= nelgv) nelv=nelv+1
+          if (eg <= nelgt) nelt=nelt+1
+      endif
+  enddo
+  if (np <= 64) write(6,*) nid,nelv,nelt,nelgv,nelgt,' NELV'
 
-    iflag = iglmax(iflag,1)
-    if (iflag > 0) then
-        do mid=0,np-1
-            call nekgsync
-            if (mid == nid) &
-            write(6,*) nid,ntuple,nelv,nelt,nelgt,' NELT FB'
-            call nekgsync
-        enddo
-        call nekgsync
-        call exitt
-    endif
+!   NOW: crystal route vertex by processor id
 
-    return
+  do i=1,ntuple
+      eg=wk(1,i)
+      wk(2,i)=gllnid(eg)        ! processor id for element eg
+  enddo
 
-    999 continue
-    if (nid == 0) write(6,*) 'ABORT: Could not find map file ',mapfle
-    call exitt
+  key = 2  ! processor id is in wk(2,:)
+  call crystal_ituple_transfer(cr_h,wk,mdw,ntuple,ndw,key)
 
-    998 continue
-    if (nid == 0) write(6,*)ipass,npass,eg0,eg1,mdw,m,eg,'get v fail'
-    call exitt0  ! Emergency exit
+  if ( .NOT. ifgfdm) then            ! no sorting for gfdm?
+      key = 1  ! Sort tuple list by eg := wk(1,:)
+      nkey = 1
+      call crystal_ituple_sort(cr_h,wk,mdw,nelt,key,nkey)
+  endif
 
-    return
-    end subroutine get_vert_map
+  iflag = 0
+  if (ntuple /= nelt) then
+      write(6,*) nid,ntuple,nelv,nelt,nelgt,' NELT FAIL'
+      write(6,*) 'Check that .map file and .rea file agree'
+      iflag=1
+  else
+      nv = 2**ndim
+      do e=1,nelt
+          call icopy(vertex(1,e),wk(3,e),nv)
+      enddo
+  endif
+
+  iflag = iglmax(iflag,1)
+  if (iflag > 0) then
+      do mid=0,np-1
+          call nekgsync
+          if (mid == nid) &
+          write(6,*) nid,ntuple,nelv,nelt,nelgt,' NELT FB'
+          call nekgsync
+      enddo
+      call nekgsync
+      call exitt
+  endif
+
+  return
+
+  999 continue
+  if (nid == 0) write(6,*) 'ABORT: Could not find map file ',mapfle
+  call exitt
+
+  998 continue
+  if (nid == 0) write(6,*)ipass,npass,eg0,eg1,mdw,m,eg,'get v fail'
+  call exitt0  ! Emergency exit
+
+  return
+end subroutine get_vert_map
 !-----------------------------------------------------------------------
     subroutine irank_vecn(ind,nn,a,m,n,key,nkey,aa)
 
@@ -914,9 +920,9 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
 
   integer, parameter :: nsafe=8   ! OFTEN, nsafe=2 suffices
 
-  integer :: etuple(4,12*lelt*nsafe),ftuple(5,6,lelt*nsafe)
+  integer :: etuple(4,12*lelt*nsafe)
+  integer :: ftuple(5,6,lelt*nsafe)
   integer :: ind(12*lelt*nsafe)
-  common  /scrns/ ind,etuple
   equivalence  (etuple,ftuple)
 
   integer :: gvf(4),facet(4),aa(3),key(3),e

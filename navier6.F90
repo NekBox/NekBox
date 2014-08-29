@@ -39,13 +39,9 @@ subroutine set_overlap
   REAL*8 :: dnekclock,t0
 
   integer, parameter :: n_tri = 7*ltotd
-  common /scrns/  tri (n_tri)
-  integer ::         tri,elem
+  integer :: elem
 
   real(DP) :: x(2*ltotd), y(2*ltotd), z(2*ltotd)
-
-  integer :: nv_to_t
-  common /ctmp0/ nv_to_t(2*ltotd)
 
   integer, parameter :: lia = ltotd - 2 - 2*lelt
 

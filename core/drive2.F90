@@ -1361,8 +1361,7 @@ subroutine dofcnt
   use soln, only : vmult, tmult, tmask, v1mask, pmask
   implicit none
 
-  real(DP) :: work
-  COMMON /SCRNS/ WORK(LCTMP1)
+  real(DP) :: WORK(LCTMP1)
 
   integer :: nxyz, nel, ntot1, ntot2
   real(DP) :: vpts, ppts

@@ -209,72 +209,65 @@ subroutine setdef()
     return
     end subroutine gencoor
 !-----------------------------------------------------------------------
-    subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
+subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nelt, ndim
+  use input, only : ccurve, ifaxis
+  implicit none
 
-    use size_m
-    use geom
-    use input
-    use parallel
-    use topol
-    use wz_m
+  integer :: nxl, nyl, nzl
+  real(DP) :: xml(nxl,nyl,nzl,1),yml(nxl,nyl,nzl,1),zml(nxl,nyl,nzl,1)
 
-    real :: xml(nxl,nyl,nzl,1),yml(nxl,nyl,nzl,1),zml(nxl,nyl,nzl,1)
+  real(DP) :: h(lx1,3,2), zgml(lx1,3)
 
-!     Note : CTMP1 is used in this format in several subsequent routines
-    common /ctmp1/ h(lx1,3,2),xcrved(lx1),ycrved(ly1),zcrved(lz1) &
-    , zgml(lx1,3),work(3,lx1,lz1)
+  integer, parameter :: ldw=2*lx1*ly1*lz1
+  real(DP) :: w
+  common /ctmp0/ w(ldw)
 
-    parameter (ldw=2*lx1*ly1*lz1)
-    common /ctmp0/ w(ldw)
+  character(1) :: ccv
+  integer :: ie, nfaces, iface, isid
 
-    character(1) :: ccv
 
 #ifdef MOAB
 ! already read/initialized vertex positions
-    if (ifmoab) return
+  if (ifmoab) return
 #endif
 
-!     Initialize geometry arrays with bi- triquadratic deformations
-    call linquad(xml,yml,zml,nxl,nyl,nzl)
+!   Initialize geometry arrays with bi- triquadratic deformations
+  call linquad(xml,yml,zml,nxl,nyl,nzl)
 
+  do ie=1,nelt
 
-    do ie=1,nelt
+      call setzgml (zgml,ie,nxl,nyl,nzl,ifaxis)
+      call sethmat (h,zgml,nxl,nyl,nzl)
 
-        call setzgml (zgml,ie,nxl,nyl,nzl,ifaxis)
-        call sethmat (h,zgml,nxl,nyl,nzl)
-
-    !        Deform surfaces - general 3D deformations
-    !                        - extruded geometry deformations
-        nfaces = 2*ndim
-        do iface=1,nfaces
-            ccv = ccurve(iface,ie)
-            if (ccv == 's') then
-              write(*,*) "Oops: ccv = 's'"
+  !        Deform surfaces - general 3D deformations
+  !                        - extruded geometry deformations
+      nfaces = 2*ndim
+      do iface=1,nfaces
+          ccv = ccurve(iface,ie)
+          if (ccv == 's') then
+            write(*,*) "Oops: ccv = 's'"
 !max            call sphsrf(xml,yml,zml,iface,ie,nxl,nyl,nzl,work)
-            endif
-            if (ccv == 'e') then
-              write(*,*) "Oops: ccv = 'e'" 
+          endif
+          if (ccv == 'e') then
+            write(*,*) "Oops: ccv = 'e'" 
 !max            call gensrf(xml,yml,zml,iface,ie,nxl,nyl,nzl,zgml)
-            endif
-        enddo
+          endif
+      enddo
 
-        do isid=1,8
-            ccv = ccurve(isid,ie)
-            if (ccv == 'C') then
-              write(*,*) "Oops: ccv = 'C'"
+      do isid=1,8
+          ccv = ccurve(isid,ie)
+          if (ccv == 'C') then
+            write(*,*) "Oops: ccv = 'C'"
 !max          call arcsrf(xml,yml,zml,nxl,nyl,nzl,ie,isid)
-            endif
-        enddo
+          endif
+      enddo
 
-    enddo
+  enddo
 
-!     call user_srf(xml,yml,zml,nxl,nyl,nzl)
-!     call opcopy(xm1,ym1,zm1,xml,yml,zml)
-!     call outpost(xml,yml,zml,xml,yml,'   ')
-!     call exitt
-
-    return
-    end subroutine genxyz
+  return
+end subroutine genxyz
 !-----------------------------------------------------------------------
     subroutine sethmat(h,zgml,nxl,nyl,nzl)
 

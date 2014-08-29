@@ -103,7 +103,6 @@ end subroutine ctolspl
 
     return
     end subroutine opgrad
-!-----------------------------------------------------------------------
 !-------------------------------------------------------------
 !> \brief Compute DT*X (entire field)
 !-------------------------------------------------------------
@@ -126,12 +125,9 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   real(DP) :: rm2  (lx2*ly2*lz2,lelv)
   real(DP) :: sm2  (lx2*ly2*lz2,lelv)
   real(DP) :: tm2  (lx2*ly2*lz2,lelv)
-
-  real(DP) :: wx, ta1, ta2, ta3
-  common /ctmp1/ wx  (lx1*ly1*lz1) &
+  real(DP) ::  wx  (lx1*ly1*lz1) &
   ,             ta1 (lx1*ly1*lz1) &
-  ,             ta2 (lx1*ly1*lz1) &
-  ,             ta3 (lx1*ly1,lz1)
+  ,             ta2 (lx1*ly1*lz1)
 
   REAL ::           DUAX(LX1)
 
@@ -343,8 +339,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
   real(DP) ::           sm2  (lx2*ly2*lz2,lelv)
   real(DP) ::           tm2  (lx2*ly2*lz2,lelv)
 
-  real(DP) :: ta1, ta2, ta3
-  common /ctmp1/ ta1 (lx1*ly1*lz1) &
+  real(DP) ::  ta1 (lx1*ly1*lz1) &
   ,             ta2 (lx1*ly1*lz1) &
   ,             ta3 (lx1*ly1*lz1)
 
@@ -1055,92 +1050,6 @@ end subroutine makeabf
     return
     end subroutine tauinit
 
-    subroutine velconv (vxn,vyn,vzn,tau)
-!--------------------------------------------------------------------
-
-!     Compute convecting velocity field (linearization)
-
-!--------------------------------------------------------------------
-    use size_m
-    use soln
-    use tstep
-    REAL :: VXN (LX1,LY1,LZ1,LELV)
-    REAL :: VYN (LX1,LY1,LZ1,LELV)
-    REAL :: VZN (LX1,LY1,LZ1,LELV)
-    CALL VELCHAR (VX,VXN,VXLAG,NBD,TAU,DTLAG)
-    CALL VELCHAR (VY,VYN,VYLAG,NBD,TAU,DTLAG)
-    IF (NDIM == 3) &
-    CALL VELCHAR (VZ,VZN,VZLAG,NBD,TAU,DTLAG)
-    return
-    end subroutine velconv
-
-    subroutine frkconv (y,x,mask)
-!--------------------------------------------------------------------
-
-!     Evaluate right-hand-side for Runge-Kutta scheme in the case of
-!     pure convection.
-
-!--------------------------------------------------------------------
-    use size_m
-    use mass
-    use tstep
-    REAL :: Y    (LX1,LY1,LZ1,1)
-    REAL :: X    (LX1,LY1,LZ1,1)
-    REAL :: MASK (LX1,LY1,LZ1,1)
-
-    IF (IMESH == 1) NEL=NELV
-    IF (IMESH == 2) NEL=NELT
-    NTOT1 = NX1*NY1*NZ1*NEL
-    CALL CONVOP (Y,X)
-    CALL COL2   (Y,BM1,NTOT1)
-    CALL DSSUM  (Y,NX1,NY1,NZ1)
-    IF (IMESH == 1) CALL COL2 (Y,BINVM1,NTOT1)
-    IF (IMESH == 2) CALL COL2 (Y,BINTM1,NTOT1)
-    CALL COL2   (Y,MASK,NTOT1)
-
-    return
-    end subroutine frkconv
-
-    subroutine velchar (vel,vn,vlag,nbd,tau,dtbd)
-!-----------------------------------------------------------------------
-
-!     Compute linearized velocity field.
-
-!-----------------------------------------------------------------------
-    use size_m
-    REAL :: VEL  (LX1,LY1,LZ1,LELV)
-    REAL :: VN   (LX1,LY1,LZ1,LELV)
-    REAL :: VLAG (LX1,LY1,LZ1,LELV,9)
-    REAL :: DTBD (NBD)
-
-    NTOT1 = NX1*NY1*NZ1*NELV
-    IF (NBD == 1) THEN
-        CALL COPY (VEL,VN,NTOT1)
-        return
-    ELSEIF (NBD == 2) THEN
-        C1 = TAU/DTBD(2)
-        C2 = 1.-C1
-        CALL ADD3S2 (VEL,VN,VLAG,C1,C2,NTOT1)
-    ELSEIF (NBD == 3) THEN
-        F1 = TAU**2-DTBD(3)*TAU
-        F2 = TAU**2-(DTBD(2)+DTBD(3))*TAU
-        F3 = DTBD(2)*DTBD(3)
-        F4 = DTBD(2)*(DTBD(2)+DTBD(3))
-        R1 = F2/F3
-        R2 = F1/F4
-        C1 = R2
-        C2 = -R1
-        C3 = 1+R1-R2
-        CALL ADD3S2 (VEL,VLAG(1,1,1,1,1),VLAG(1,1,1,1,2),C2,C3,NTOT1)
-        CALL ADD2S2 (VEL,VN,C1,NTOT1)
-    ELSE
-        WRITE (6,*) 'Need higher order expansion in VELCHAR'
-        call exitt
-    ENDIF
-
-    return
-    end subroutine velchar
-
     subroutine lagvel
 !-----------------------------------------------------------------------
 
@@ -1669,61 +1578,61 @@ end subroutine convop
     end subroutine opdiv
 
 !-----------------------------------------------------------------------
-    subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
+!> \brief Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)
+subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nx1
+  use dxyz, only : dxm1, dxtm1
+  use geom, only : rxm1, sxm1, txm1, rym1, sym1, tym1, rzm1, szm1, tzm1
+  use input, only : if3d
+  use wz_m, only : w3m1
+  implicit none
 
-!     Compute gradient of T -- mesh 1 to mesh 1 (vel. to vel.)
+  integer, parameter :: lxyz=lx1*ly1*lz1
+  real(DP) :: ux(lxyz,1),uy(lxyz,1),uz(lxyz,1),u(lxyz,1)
 
-    use size_m
-    use dxyz
-    use geom
-    use input
-    use tstep
-    use wz_m
+  real(DP) :: ur(lxyz),us(lxyz),ut(lxyz)
 
-    parameter (lxyz=lx1*ly1*lz1)
-    real :: ux(lxyz,1),uy(lxyz,1),uz(lxyz,1),u(lxyz,1)
+  integer :: e, n, nel, i
 
-    common /ctmp1/ ur(lxyz),us(lxyz),ut(lxyz)
-
-    integer :: e
-
-    N = nx1-1
-    do e=1,nel
-        if (if3d) then
-            call local_grad3(ur,us,ut,u,N,e,dxm1,dxtm1)
-            do i=1,lxyz
-                ux(i,e) = w3m1(i,1,1)*(ur(i)*rxm1(i,1,1,e) &
-                + us(i)*sxm1(i,1,1,e) &
-                + ut(i)*txm1(i,1,1,e) )
-                uy(i,e) = w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
-                + us(i)*sym1(i,1,1,e) &
-                + ut(i)*tym1(i,1,1,e) )
-                uz(i,e) = w3m1(i,1,1)*(ur(i)*rzm1(i,1,1,e) &
-                + us(i)*szm1(i,1,1,e) &
-                + ut(i)*tzm1(i,1,1,e) )
-            enddo
-        else
+  N = nx1-1
+  do e=1,nel
+      if (if3d) then
+          call local_grad3(ur,us,ut,u,N,e,dxm1,dxtm1)
+          do i=1,lxyz
+              ux(i,e) = w3m1(i,1,1)*(ur(i)*rxm1(i,1,1,e) &
+              + us(i)*sxm1(i,1,1,e) &
+              + ut(i)*txm1(i,1,1,e) )
+              uy(i,e) = w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
+              + us(i)*sym1(i,1,1,e) &
+              + ut(i)*tym1(i,1,1,e) )
+              uz(i,e) = w3m1(i,1,1)*(ur(i)*rzm1(i,1,1,e) &
+              + us(i)*szm1(i,1,1,e) &
+              + ut(i)*tzm1(i,1,1,e) )
+          enddo
+      else
 #if 0
-            if (ifaxis) then
-                call setaxdy (ifrzer(e))  ! reset dytm1
-                call setaxw1 (ifrzer(e))  ! reset w3m1
-            endif
+          if (ifaxis) then
+              call setaxdy (ifrzer(e))  ! reset dytm1
+              call setaxw1 (ifrzer(e))  ! reset w3m1
+          endif
 
-            call local_grad2(ur,us,u,N,e,dxm1,dytm1)
+          call local_grad2(ur,us,u,N,e,dxm1,dytm1)
 
-            do i=1,lxyz
-                ux(i,e) =w3m1(i,1,1)*(ur(i)*rxm1(i,1,1,e) &
-                + us(i)*sxm1(i,1,1,e) )
-                uy(i,e) =w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
-                + us(i)*sym1(i,1,1,e) )
-            enddo
+          do i=1,lxyz
+              ux(i,e) =w3m1(i,1,1)*(ur(i)*rxm1(i,1,1,e) &
+              + us(i)*sxm1(i,1,1,e) )
+              uy(i,e) =w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
+              + us(i)*sym1(i,1,1,e) )
+          enddo
 #endif
-        endif
+      endif
 
-    enddo
+  enddo
 
-    return
-    end subroutine wgradm1
+  return
+end subroutine wgradm1
+
 !-----------------------------------------------------------------------
     subroutine wlaplacian(out,a,diff,ifld)
 

@@ -48,8 +48,6 @@ subroutine set_overlap
   common /ctmp0/ nv_to_t(2*ltotd)
 
   integer, parameter :: lia = ltotd - 2 - 2*lelt
-  integer :: mask
-  common /ctmp1/ mask    (4*ltotd)
 
   integer, parameter :: lxx=lx1*lx1, levb=lelv+lbelv
   integer :: e, npass, ipass

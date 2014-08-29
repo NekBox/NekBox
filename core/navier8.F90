@@ -38,12 +38,9 @@ subroutine set_up_h1_crs
   use geom, only : ifvcor, ifbcor
   use input, only : if3d, ifldmhd, cbc
   use mesh, only : vertex
-  use parallel, only : xxth
+  use parallel, only : xxth, mp=>np, nekcomm
   use tstep, only : ifield
   implicit none
-
-  integer :: mid, mp, nekcomm, nekgroup, nekreal
-  common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
 
   integer :: gs_handle
   integer :: null_space,e
@@ -649,9 +646,6 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   implicit none
 
   logical :: ifgfdm
-
-  integer :: nid_, np_, nekcomm, nekgroup, nekreal
-  common /nekmpi/ nid_,np_,nekcomm,nekgroup,nekreal
 
   integer :: vertex(nlv,1)
   character(4) :: suffix

@@ -24,10 +24,7 @@ subroutine setics
   LOGICAL ::  IFANYP
   integer :: ntdump
   common /rdump/ ntdump
-  real(DP) :: work, ta1, ta2
-  common /ctmp1/ work(lx1,ly1,lz1,lelv) &
-  ,             ta1 (lx2,ly1,lz1) &
-  ,             ta2 (lx2,ly2,lz1)
+  real(DP) :: work(lx1,ly1,lz1,lelv)
   integer*8 :: ntotg,nn
 
   real :: psmax(LDIMT)
@@ -555,9 +552,7 @@ subroutine restart_driver(nfiles)
   COMMON /SCRNS/ SDUMP(LXYZT,7)
   integer :: mesg(40)
 
-!   note, this usage of CTMP1 will be less than elsewhere if NELT ~> 9.
-  real*4 ::         tdump
-  COMMON /CTMP1/ TDUMP(LXYZR,LPSC9)
+  real*4, allocatable :: tdump(:,:)
 
   REAL :: SDMP2(LXYZT,LDIMT)
 
@@ -592,6 +587,8 @@ subroutine restart_driver(nfiles)
   integer :: jxyz, ie2, ie1, ie, j, iiel, iel, ntotv, ntott
   integer :: nxyz1, lname, is, nps0, nps1, i1_from_char, i1, iposv, iposy, nps
   integer, external :: ltrunc
+
+  allocate(TDUMP(LXYZR,LPSC9))
 
   ifok= .FALSE. 
   ifbytsw = .FALSE. 

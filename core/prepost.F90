@@ -13,15 +13,10 @@ subroutine prepost(ifdoin,prefin)
   logical :: ifdoin
   character(3) :: prefin
 
-!   note, this usage of CTMP1 will be less than elsewhere if NELT ~> 3.
   integer, parameter :: lxyz=lx1*ly1*lz1
   integer, parameter :: lpsc9=ldimt1+9
 
-  real*4 ::         tdump
-  common /ctmp1/ tdump(lxyz,lpsc9)
-
-  real(DP) ::           tdmp(4)
-  equivalence   (tdump,tdmp)
+  real(DP) :: tdmp(4)
 
   real*4 ::         test_pattern
 
@@ -280,7 +275,6 @@ subroutine outfld(prefix, pm1)
 
 !   Work arrays and temporary arrays
 
-!   note, this usage of CTMP1 will be less than elsewhere if NELT ~> 3.
   integer, parameter :: lxyz=lx1*ly1*lz1
   integer, parameter :: lpsc9=ldimt1+9
 
@@ -991,62 +985,6 @@ end subroutine outhis
 
     return
     end subroutine close_fld
-!-----------------------------------------------------------------------
-    subroutine out_tmp(id,p66,ierr)
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    parameter (lxyz=lx1*ly1*lz1)
-    parameter (lpsc9=ldimt1+9)
-
-    common /ctmp1/ tdump(lxyz,lpsc9)
-    real*4 ::         tdump
-
-    character(11) :: frmat
-
-    nxyz = nx1*ny1*nz1
-
-    call blank(frmat,11)
-    if (id <= 9) then
-        WRITE(FRMAT,1801) ID
-        1801 FORMAT('(1p',I1,'e14.6)')
-    else
-        WRITE(FRMAT,1802) ID
-        1802 FORMAT('(1p',I2,'e14.6)')
-    endif
-
-    if (p66 < 1.0) then
-    !       formatted i/o
-        WRITE(24,FRMAT) &
-        ((TDUMP(I,II),II=1,ID),I=1,NXYZ)
-    else
-    !        C binary i/o
-        do ii=1,id
-            call byte_write(tdump(1,ii),nxyz,ierr)
-            if(ierr /= 0) goto 101
-        enddo
-    endif
-    101 continue
-
-    return
-    end subroutine out_tmp
 !-----------------------------------------------------------------------
 !> \brief mult-file output
 subroutine mfo_outfld(prefix, pm1) 

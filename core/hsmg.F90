@@ -1788,8 +1788,6 @@ subroutine mg_set_h1  (p_h1 ,l0)
 
   integer :: p_h1, l0
 
-!   As a first pass, rely on the cheesy common-block interface to get h1
-
   real(DP) ::  h1    (lx1,ly1,lz1,lelv) 
   integer :: pf,pc, l, n, nx, ny, nz
 
@@ -1926,6 +1924,7 @@ end subroutine mg_set_h2
     return
     end subroutine mg_intp_fc_e
 !-----------------------------------------------------------------------
+!called
     subroutine mg_intp_gfc_e(gc,gf,ng,nxc,nyc,nzc,nxf,nyf,nzf,e,l,w)
     use size_m
     use input      ! if3d
@@ -1988,6 +1987,7 @@ end subroutine mg_set_h2
     return
     end subroutine mg_intp_gfc_e
 !-----------------------------------------------------------------------
+!called
     subroutine mg_scale_mass (b,g,wt,ng,nx,ny,nz,wk,ifinv)
     use size_m
     use input  ! if3d
@@ -2053,83 +2053,89 @@ end subroutine mg_set_h2
     return
     end subroutine mg_scale_mass
 !-----------------------------------------------------------------------
-    subroutine mg_set_gb  (p_g,p_b,l0)
-    use size_m
-    use hsmg
-    use mass   ! bm1
-    use tstep  ! nelfld
+subroutine mg_set_gb  (p_g,p_b,l0)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, ndim
+  use hsmg, only : mg_h1_lmax, p_mg_b, mg_h1_n, mg_nh, mg_nhz, mg_g, mg_b, mg_bh
+  use hsmg, only : mg_fld, p_mg_g
+  use mass, only : bm1
+  use tstep, only : ifield, nelfld
+  implicit none
 
-    integer :: p_g,p_b,e
-    common /ctmp1/ w(lx1*ly1*lz1*lelt*2)
+  integer :: p_g,p_b, l0
+  
+  integer :: e, l, n, ng, nx, ny, nz, nxyz, l_g, l_b
+  integer :: nxl, nyl, nzl
+  real(DP) :: w(lx1*ly1*lz1*lelt*2)
 
-    l                 = mg_h1_lmax
-    p_mg_b (l,mg_fld) = 0
-    p_mg_g (l,mg_fld) = 0
-    n                 = mg_h1_n(l,mg_fld)
-
-
-    ng = 3*(ndim-1)  ! 3 or 6 elements to symm dxd tensor
-
-    do l=mg_h1_lmax-1,1,-1
-
-        p_mg_b (l,mg_fld) = p_mg_b (l+1,mg_fld) + n
-        p_mg_g (l,mg_fld) = p_mg_g (l+1,mg_fld) + n*ng
-        n                 = mg_h1_n(l  ,mg_fld)
-
-    enddo
-
-    do e=1,nelfld(ifield)
-        do l=mg_h1_lmax,1,-1
-
-            nx = mg_nh(l)
-            ny = mg_nh(l)
-            nz = mg_nhz(l)
-            nxyz = nx*ny*nz
-
-            p_g = p_mg_g (l,mg_fld) + ng*nx*ny*nz*(e-1)
-            p_b = p_mg_b (l,mg_fld) +    nx*ny*nz*(e-1)
-
-            if (l == mg_h1_lmax) then
-                call gxfer_e (mg_g(p_g) ,ng,e             ) ! Fine grid=original G
-                call copy    (mg_b(p_b) ,bm1(1,1,1,e),nxyz) ! Fine grid=original B
-                call mg_scale_mass                           & ! Divide out Wghts
-                (mg_b(p_b),mg_g(p_g),mg_bh(1,l),ng,nx,ny,nz,w, .TRUE. )
-            else
-
-            !           Generate G and B by interpolating their continous counterparts onto
-            !           the coarse grid and collocating with coarse-grid quadrature weights
-
-                call mg_intp_gfc_e &
-                (mg_g(p_g),mg_g(l_g),ng,nx,ny,nz,nxl,nyl,nzl,e,l,w)
-
-                call mg_intp_fc_e &
-                (mg_b(p_b),mg_b(l_b)   ,nx,ny,nz,nxl,nyl,nzl,e,l,w)
-
-                call mg_scale_mass                          & ! Reinstate weights
-                (mg_b(l_b),mg_g(l_g),mg_bh(1,l+1),ng,nxl,nyl,nzl,w, .FALSE. )
-
-            endif
-
-            l_b = p_b
-            l_g = p_g
-
-            nxl = nx
-            nyl = ny
-            nzl = nz
-
-        enddo
-
-        call mg_scale_mass                          & ! Reinstate weights
-        (mg_b(l_b),mg_g(l_g),mg_bh(1,1),ng,nxl,nyl,nzl,w, .FALSE. )
+  l                 = mg_h1_lmax
+  p_mg_b (l,mg_fld) = 0
+  p_mg_g (l,mg_fld) = 0
+  n                 = mg_h1_n(l,mg_fld)
 
 
-    enddo
+  ng = 3*(ndim-1)  ! 3 or 6 elements to symm dxd tensor
 
-    p_b  = p_mg_b (l0,mg_fld)
-    p_g  = p_mg_g (l0,mg_fld)
+  do l=mg_h1_lmax-1,1,-1
 
-    return
-    end subroutine mg_set_gb
+      p_mg_b (l,mg_fld) = p_mg_b (l+1,mg_fld) + n
+      p_mg_g (l,mg_fld) = p_mg_g (l+1,mg_fld) + n*ng
+      n                 = mg_h1_n(l  ,mg_fld)
+
+  enddo
+
+  do e=1,nelfld(ifield)
+      do l=mg_h1_lmax,1,-1
+
+          nx = mg_nh(l)
+          ny = mg_nh(l)
+          nz = mg_nhz(l)
+          nxyz = nx*ny*nz
+
+          p_g = p_mg_g (l,mg_fld) + ng*nx*ny*nz*(e-1)
+          p_b = p_mg_b (l,mg_fld) +    nx*ny*nz*(e-1)
+
+          if (l == mg_h1_lmax) then
+              call gxfer_e (mg_g(p_g) ,ng,e             ) ! Fine grid=original G
+              call copy    (mg_b(p_b) ,bm1(1,1,1,e),nxyz) ! Fine grid=original B
+              call mg_scale_mass                           & ! Divide out Wghts
+              (mg_b(p_b),mg_g(p_g),mg_bh(1,l),ng,nx,ny,nz,w, .TRUE. )
+          else
+
+          !           Generate G and B by interpolating their continous counterparts onto
+          !           the coarse grid and collocating with coarse-grid quadrature weights
+
+              call mg_intp_gfc_e &
+              (mg_g(p_g),mg_g(l_g),ng,nx,ny,nz,nxl,nyl,nzl,e,l,w)
+
+              call mg_intp_fc_e &
+              (mg_b(p_b),mg_b(l_b)   ,nx,ny,nz,nxl,nyl,nzl,e,l,w)
+
+              call mg_scale_mass                          & ! Reinstate weights
+              (mg_b(l_b),mg_g(l_g),mg_bh(1,l+1),ng,nxl,nyl,nzl,w, .FALSE. )
+
+          endif
+
+          l_b = p_b
+          l_g = p_g
+
+          nxl = nx
+          nyl = ny
+          nzl = nz
+
+      enddo
+
+      call mg_scale_mass                          & ! Reinstate weights
+      (mg_b(l_b),mg_g(l_g),mg_bh(1,1),ng,nxl,nyl,nzl,w, .FALSE. )
+
+
+  enddo
+
+  p_b  = p_mg_b (l0,mg_fld)
+  p_g  = p_mg_g (l0,mg_fld)
+
+  return
+end subroutine mg_set_gb
 !-----------------------------------------------------------------------
     subroutine gxfer_e (g,ng,e)
     use size_m

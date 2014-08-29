@@ -357,38 +357,42 @@
 
     RETURN
     end subroutine genwz
-    subroutine geom1 (xm3,ym3,zm3)
 !-----------------------------------------------------------------------
-
-!     Routine to generate all elemental geometric data for mesh 1.
-
-!     Velocity formulation : global-to-local mapping based on mesh 3
-!     Stress   formulation : global-to-local mapping based on mesh 1
-
+!> \brief Routine to generate all elemental geometric data for mesh 1.
+!!  Velocity formulation : global-to-local mapping based on mesh 3
+!!  Stress   formulation : global-to-local mapping based on mesh 1
 !-----------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use tstep
+subroutine geom1 (xm3,ym3,zm3)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, lx3, ly3, lz3
+  use geom, only : ifgmsh3
+  use tstep, only : istep
+  implicit none
 
-!     Note : XM3,YM3,ZM3 should come from COMMON /SCRUZ/.
+  real(DP) ::  XM3(LX3,LY3,LZ3,1), YM3(LX3,LY3,LZ3,1), ZM3(LX3,LY3,LZ3,1)
 
-    DIMENSION XM3(LX3,LY3,LZ3,1) &
-    , YM3(LX3,LY3,LZ3,1) &
-    , ZM3(LX3,LY3,LZ3,1)
+  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
+  ,           YRM1(LX1,LY1,LZ1,LELT) &
+  ,           XSM1(LX1,LY1,LZ1,LELT) &
+  ,           YSM1(LX1,LY1,LZ1,LELT) &
+  ,           XTM1(LX1,LY1,LZ1,LELT) &
+  ,           YTM1(LX1,LY1,LZ1,LELT) &
+  ,           ZRM1(LX1,LY1,LZ1,LELT) &
+  ,           ZSM1(LX1,LY1,LZ1,LELT) &
+  ,           ZTM1(LX1,LY1,LZ1,LELT) 
 
-    IF (IFGMSH3 .AND. ISTEP == 0) THEN
-      write(*,*) "Oops: IFGMSH3"
+
+  IF (IFGMSH3 .AND. ISTEP == 0) THEN
+    write(*,*) "Oops: IFGMSH3"
 !max        CALL GLMAPM3 (XM3,YM3,ZM3)
-    ELSE
-        CALL GLMAPM1
-    ENDIF
+  ELSE
+      CALL GLMAPM1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
+  ENDIF
 
-    CALL GEODAT1
+  CALL GEODAT1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
-    RETURN
-    end subroutine geom1
-
+  RETURN
+end subroutine geom1
 !-----------------------------------------------------------------------
 !> \brief Routine to generate mapping data based on mesh 1
 !!        (Gauss-Legendre Lobatto meshes).
@@ -401,7 +405,7 @@
 !!         TXM1,  TYM1,  TZM1   -   dt/dx, dt/dy, dt/dz
 !!         JACM1                -   Jacobian
 !-----------------------------------------------------------------------
-subroutine glmapm1
+subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use kinds, only : DP
   use size_m, only : ndim, nid
   use size_m, only : nx1, ny1, nz1, nelt
@@ -415,19 +419,18 @@ subroutine glmapm1
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !           share the same array structure in Scratch Common /SCRNS/.
-  real(DP) :: xrm1, yrm1, zrm1
-  real(DP) :: xsm1, ysm1, zsm1
-  real(DP) :: xtm1, ytm1, ztm1
+!  real(DP) :: xrm1, yrm1, zrm1
+!  real(DP) :: xsm1, ysm1
+!  real(DP) :: xtm1, ytm1
 
-  COMMON /SCRNS/ XRM1(LX1,LY1,LZ1,LELT) &
+  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
   ,             YRM1(LX1,LY1,LZ1,LELT) &
   ,             XSM1(LX1,LY1,LZ1,LELT) &
   ,             YSM1(LX1,LY1,LZ1,LELT) &
   ,             XTM1(LX1,LY1,LZ1,LELT) &
   ,             YTM1(LX1,LY1,LZ1,LELT) &
   ,             ZRM1(LX1,LY1,LZ1,LELT)
-  COMMON /CTMP1/ ZSM1(LX1,LY1,LZ1,LELT) &
-  ,             ZTM1(LX1,LY1,LZ1,LELT)
+  real(DP) :: ZSM1(LX1,LY1,LZ1,LELT), ZTM1(LX1,LY1,LZ1,LELT)
 
   integer :: nxy1, nyz1, nxyz1, ntot1
   integer :: ie, ierr, kerr
@@ -497,179 +500,183 @@ subroutine glmapm1
   RETURN
 end subroutine glmapm1
 
-subroutine geodat1
 !-----------------------------------------------------------------------
-
-!     Routine to generate elemental geometric matrices on mesh 1
-!     (Gauss-Legendre Lobatto mesh).
-
+!> \brief Routine to generate elemental geometric matrices on mesh 1
+!!  (Gauss-Legendre Lobatto mesh).
 !-----------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use mass
-    use tstep
-    use wz_m
+subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelt, ndim
+  use geom, only : ifgmsh3, jacm1, ifrzer, ym1
+  use geom, only : g1m1, rxm1, rym1, rzm1, g2m1, sxm1, sym1, szm1
+  use geom, only : g3m1, txm1, tym1, tzm1, g4m1, g5m1, g6m1
+  use input, only : ifaxis
+  use mass, only : bm1, baxm1, yinvm1
+  use tstep, only : istep
+  use wz_m, only : zam1, w3m1
+  implicit none
 
-!     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
-!           share the same array structure in Scratch Common /SCRNS/.
+!   Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
+!         share the same array structure in Scratch Common /SCRNS/.
 
-    COMMON /SCRNS/ XRM1(LX1,LY1,LZ1,LELT) &
-    ,             YRM1(LX1,LY1,LZ1,LELT) &
-    ,             XSM1(LX1,LY1,LZ1,LELT) &
-    ,             YSM1(LX1,LY1,LZ1,LELT) &
-    ,             XTM1(LX1,LY1,LZ1,LELT) &
-    ,             YTM1(LX1,LY1,LZ1,LELT) &
-    ,             ZRM1(LX1,LY1,LZ1,LELT)
-    COMMON /CTMP1/ ZSM1(LX1,LY1,LZ1,LELT) &
-    ,             ZTM1(LX1,LY1,LZ1,LELT) &
-    ,             WJ   (LX1,LY1,LZ1,LELT)
+  real(DP) ::  XRM1(LX1,LY1,LZ1,LELT) &
+  ,             YRM1(LX1,LY1,LZ1,LELT) &
+  ,             XSM1(LX1,LY1,LZ1,LELT) &
+  ,             YSM1(LX1,LY1,LZ1,LELT) &
+  ,             XTM1(LX1,LY1,LZ1,LELT) &
+  ,             YTM1(LX1,LY1,LZ1,LELT) &
+  ,             ZRM1(LX1,LY1,LZ1,LELT)
+  real(DP) ::  ZSM1(LX1,LY1,LZ1,LELT) &
+  ,             ZTM1(LX1,LY1,LZ1,LELT) 
+  real(DP) ::  WJ(LX1,LY1,LZ1,LELT)
 
-    NXYZ1 = NX1*NY1*NZ1
-    NTOT1 = NXYZ1*NELT
+  integer :: nxyz1, ntot1, iel, j, i
 
-    IF (IFGMSH3 .AND. ISTEP == 0) then
-      write(*,*) "Oops: IFGMSH3"
+  NXYZ1 = NX1*NY1*NZ1
+  NTOT1 = NXYZ1*NELT
+
+
+  IF (IFGMSH3 .AND. ISTEP == 0) then
+    write(*,*) "Oops: IFGMSH3"
 !max      CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, &
-!                  IFAXIS)
-    endif
+!                IFAXIS)
+  endif
 
-    IF ( .NOT. IFAXIS) THEN
-        CALL INVERS2 (WJ,JACM1,NTOT1)
-    ELSE
-        DO 500 IEL=1,NELT
-            IF (IFRZER(IEL)) THEN
-                DO 510 J=1,NY1
-                    DO 510 I=1,NX1
-                        IF (J > 1) THEN
-                            WJ(I,J,1,IEL) = YM1(I,J,1,IEL)/ &
-                            (JACM1(I,J,1,IEL)*(1.+ZAM1(J)))
-                        ELSE
-                            WJ(I,J,1,IEL) = YSM1(I,J,1,IEL)/JACM1(I,J,1,IEL)
-                        ENDIF
-                510 END DO
-            ELSE
-                CALL INVCOL3 (WJ(1,1,1,IEL),YM1(1,1,1,IEL), &
-                JACM1(1,1,1,IEL),NXYZ1)
-            ENDIF
-        500 END DO
-    ENDIF
+  IF ( .NOT. IFAXIS) THEN
+      CALL INVERS2 (WJ,JACM1,NTOT1)
+  ELSE
+      DO 500 IEL=1,NELT
+          IF (IFRZER(IEL)) THEN
+              DO 510 J=1,NY1
+                  DO 510 I=1,NX1
+                      IF (J > 1) THEN
+                          WJ(I,J,1,IEL) = YM1(I,J,1,IEL)/ &
+                          (JACM1(I,J,1,IEL)*(1.+ZAM1(J)))
+                      ELSE
+                          WJ(I,J,1,IEL) = YSM1(I,J,1,IEL)/JACM1(I,J,1,IEL)
+                      ENDIF
+              510 END DO
+          ELSE
+              CALL INVCOL3 (WJ(1,1,1,IEL),YM1(1,1,1,IEL), &
+              JACM1(1,1,1,IEL),NXYZ1)
+          ENDIF
+      500 END DO
+  ENDIF
 
-!     Compute geometric factors for integrated del-squared operator.
+!   Compute geometric factors for integrated del-squared operator.
 
-    IF (NDIM == 2) THEN
-        write(*,*) "Whoops! geodat1"
+  IF (NDIM == 2) THEN
+      write(*,*) "Whoops! geodat1"
 #if 0
-        CALL VDOT2 (G1M1,RXM1,RYM1,RXM1,RYM1,NTOT1)
-        CALL VDOT2 (G2M1,SXM1,SYM1,SXM1,SYM1,NTOT1)
-        CALL VDOT2 (G4M1,RXM1,RYM1,SXM1,SYM1,NTOT1)
-        CALL COL2  (G1M1,WJ,NTOT1)
-        CALL COL2  (G2M1,WJ,NTOT1)
-        CALL COL2  (G4M1,WJ,NTOT1)
-        CALL RZERO (G3M1,NTOT1)
-        CALL RZERO (G5M1,NTOT1)
-        CALL RZERO (G6M1,NTOT1)
+      CALL VDOT2 (G1M1,RXM1,RYM1,RXM1,RYM1,NTOT1)
+      CALL VDOT2 (G2M1,SXM1,SYM1,SXM1,SYM1,NTOT1)
+      CALL VDOT2 (G4M1,RXM1,RYM1,SXM1,SYM1,NTOT1)
+      CALL COL2  (G1M1,WJ,NTOT1)
+      CALL COL2  (G2M1,WJ,NTOT1)
+      CALL COL2  (G4M1,WJ,NTOT1)
+      CALL RZERO (G3M1,NTOT1)
+      CALL RZERO (G5M1,NTOT1)
+      CALL RZERO (G6M1,NTOT1)
 #endif
-    ELSE
-        CALL VDOT3 (G1M1,RXM1,RYM1,RZM1,RXM1,RYM1,RZM1,NTOT1)
-        CALL VDOT3 (G2M1,SXM1,SYM1,SZM1,SXM1,SYM1,SZM1,NTOT1)
-        CALL VDOT3 (G3M1,TXM1,TYM1,TZM1,TXM1,TYM1,TZM1,NTOT1)
-        CALL COL2  (G1M1,WJ,NTOT1)
-        CALL COL2  (G2M1,WJ,NTOT1)
-        CALL COL2  (G3M1,WJ,NTOT1)
+  ELSE
+      CALL VDOT3 (G1M1,RXM1,RYM1,RZM1,RXM1,RYM1,RZM1,NTOT1)
+      CALL VDOT3 (G2M1,SXM1,SYM1,SZM1,SXM1,SYM1,SZM1,NTOT1)
+      CALL VDOT3 (G3M1,TXM1,TYM1,TZM1,TXM1,TYM1,TZM1,NTOT1)
+      CALL COL2  (G1M1,WJ,NTOT1)
+      CALL COL2  (G2M1,WJ,NTOT1)
+      CALL COL2  (G3M1,WJ,NTOT1)
 #if 1
-        CALL VDOT3 (G4M1,RXM1,RYM1,RZM1,SXM1,SYM1,SZM1,NTOT1)
-        CALL VDOT3 (G5M1,RXM1,RYM1,RZM1,TXM1,TYM1,TZM1,NTOT1)
-        CALL VDOT3 (G6M1,SXM1,SYM1,SZM1,TXM1,TYM1,TZM1,NTOT1)
-        CALL COL2  (G4M1,WJ,NTOT1)
-        CALL COL2  (G5M1,WJ,NTOT1)
-        CALL COL2  (G6M1,WJ,NTOT1)
+      CALL VDOT3 (G4M1,RXM1,RYM1,RZM1,SXM1,SYM1,SZM1,NTOT1)
+      CALL VDOT3 (G5M1,RXM1,RYM1,RZM1,TXM1,TYM1,TZM1,NTOT1)
+      CALL VDOT3 (G6M1,SXM1,SYM1,SZM1,TXM1,TYM1,TZM1,NTOT1)
+      CALL COL2  (G4M1,WJ,NTOT1)
+      CALL COL2  (G5M1,WJ,NTOT1)
+      CALL COL2  (G6M1,WJ,NTOT1)
 #endif
-    ENDIF
+  ENDIF
 
-!     Multiply the geometric factors GiM1,i=1,5 with the
-!     weights on mesh M1.
+!   Multiply the geometric factors GiM1,i=1,5 with the
+!   weights on mesh M1.
 
-    DO 580 IEL=1,NELT
-        IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
-        CALL COL2 (G1M1(1,1,1,IEL),W3M1,NXYZ1)
-        CALL COL2 (G2M1(1,1,1,IEL),W3M1,NXYZ1)
-    !            CALL COL2 (G4M1(1,1,1,IEL),W3M1,NXYZ1)
-        IF (NDIM == 3) THEN
-            CALL COL2 (G3M1(1,1,1,IEL),W3M1,NXYZ1)
-        !            CALL COL2 (G5M1(1,1,1,IEL),W3M1,NXYZ1)
-        !            CALL COL2 (G6M1(1,1,1,IEL),W3M1,NXYZ1)
-        ENDIF
-    580 END DO
+  DO 580 IEL=1,NELT
+      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
+      CALL COL2 (G1M1(1,1,1,IEL),W3M1,NXYZ1)
+      CALL COL2 (G2M1(1,1,1,IEL),W3M1,NXYZ1)
+  !            CALL COL2 (G4M1(1,1,1,IEL),W3M1,NXYZ1)
+      IF (NDIM == 3) THEN
+          CALL COL2 (G3M1(1,1,1,IEL),W3M1,NXYZ1)
+      !            CALL COL2 (G5M1(1,1,1,IEL),W3M1,NXYZ1)
+      !            CALL COL2 (G6M1(1,1,1,IEL),W3M1,NXYZ1)
+      ENDIF
+  580 END DO
 
-!     Compute the mass matrix on mesh M1.
+!   Compute the mass matrix on mesh M1.
 
-    DO 700 IEL=1,NELT
-        IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
-        CALL COL3 (BM1  (1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
-        IF (IFAXIS) THEN
-            CALL COL3(BAXM1(1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
-            IF (IFRZER(IEL)) THEN
-                DO 600 J=1,NY1
-                    IF (J > 1) THEN
-                        DO 610 I=1,NX1
-                            BM1(I,J,1,IEL) = BM1(I,J,1,IEL)*YM1(I,J,1,IEL) &
-                            /(1.+ZAM1(J))
-                            BAXM1(I,J,1,IEL)=BAXM1(I,J,1,IEL)/(1.+ZAM1(J))
-                        610 END DO
-                    ELSE
-                        DO 620 I=1,NX1
-                            BM1(I,J,1,IEL) = BM1(I,J,1,IEL)*YSM1(I,J,1,IEL)
-                            BAXM1(I,J,1,IEL)=BAXM1(I,J,1,IEL)
-                        620 END DO
-                    ENDIF
-                600 END DO
-            ELSE
-                CALL COL2 (BM1(1,1,1,IEL),YM1(1,1,1,IEL),NXYZ1)
-            ENDIF
-        ENDIF
-    
-    700 END DO
+  DO 700 IEL=1,NELT
+      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
+      CALL COL3 (BM1  (1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
+      IF (IFAXIS) THEN
+          CALL COL3(BAXM1(1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
+          IF (IFRZER(IEL)) THEN
+              DO 600 J=1,NY1
+                  IF (J > 1) THEN
+                      DO 610 I=1,NX1
+                          BM1(I,J,1,IEL) = BM1(I,J,1,IEL)*YM1(I,J,1,IEL) &
+                          /(1.+ZAM1(J))
+                          BAXM1(I,J,1,IEL)=BAXM1(I,J,1,IEL)/(1.+ZAM1(J))
+                      610 END DO
+                  ELSE
+                      DO 620 I=1,NX1
+                          BM1(I,J,1,IEL) = BM1(I,J,1,IEL)*YSM1(I,J,1,IEL)
+                          BAXM1(I,J,1,IEL)=BAXM1(I,J,1,IEL)
+                      620 END DO
+                  ENDIF
+              600 END DO
+          ELSE
+              CALL COL2 (BM1(1,1,1,IEL),YM1(1,1,1,IEL),NXYZ1)
+          ENDIF
+      ENDIF
+  
+  700 END DO
 
-    IF(IFAXIS) THEN
-        DO IEL=1,NELT
-            IF(IFRZER(IEL)) THEN
-                DO J=1,NY1
-                    DO I=1,NX1
-                        IF(J == 1) THEN
-                            YINVM1(I,J,1,IEL)=1.0D0/YSM1(I,J,1,IEL)
-                        ELSE
-                            YINVM1(I,J,1,IEL)=1.0D0/YM1 (I,J,1,IEL)
-                        ENDIF
-                    ENDDO
-                ENDDO
-            ELSE
-                CALL INVERS2(YINVM1(1,1,1,IEL),YM1(1,1,1,IEL),NXYZ1)
-            ENDIF
-        ENDDO
-    ELSE
-        CALL CFILL(YINVM1,1.0D0,NXYZ1*NELT)
-    ENDIF
+  IF(IFAXIS) THEN
+      DO IEL=1,NELT
+          IF(IFRZER(IEL)) THEN
+              DO J=1,NY1
+                  DO I=1,NX1
+                      IF(J == 1) THEN
+                          YINVM1(I,J,1,IEL)=1.0D0/YSM1(I,J,1,IEL)
+                      ELSE
+                          YINVM1(I,J,1,IEL)=1.0D0/YM1 (I,J,1,IEL)
+                      ENDIF
+                  ENDDO
+              ENDDO
+          ELSE
+              CALL INVERS2(YINVM1(1,1,1,IEL),YM1(1,1,1,IEL),NXYZ1)
+          ENDIF
+      ENDDO
+  ELSE
+      CALL CFILL(YINVM1,1.0D0,NXYZ1*NELT)
+  ENDIF
 
-!     Compute normals, tangents, and areas on elemental surfaces
+!   Compute normals, tangents, and areas on elemental surfaces
 
-    CALL SETAREA
+  CALL SETAREA(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
-    RETURN
-    end subroutine geodat1
-    subroutine geom2
+  RETURN
+end subroutine geodat1
 !-------------------------------------------------------------------
-
 !     Routine to generate all elemental geometric data for mesh 2
 !     (Gauss-Legendre mesh).
-
 !         RXM2,  RYM2,  RZM2   -   dr/dx, dr/dy, dr/dz
 !         SXM2,  SYM2,  SZM2   -   ds/dx, ds/dy, ds/dz
 !         TXM2,  TYM2,  TZM2   -   dt/dx, dt/dy, dt/dz
 !         JACM2                -   Jacobian
 !         BM2                  -   Mass matrix
-
 !------------------------------------------------------------------
+!called
+    subroutine geom2
     use size_m
     use dealias
   use dxyz
@@ -895,155 +902,172 @@ subroutine geodat1
     return
     end subroutine volume
 !-----------------------------------------------------------------------
-    subroutine setarea
+!> \brief   Compute surface data: areas, normals and tangents
+subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, nz1, nelt, ndim
+  use geom, only : area, unx, uny, unz, t1x, t1y, t1z, t2x, t2y, t2z
+  implicit none
 
-!     Compute surface data: areas, normals and tangents
+  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
+  ,           YRM1(LX1,LY1,LZ1,LELT) &
+  ,           XSM1(LX1,LY1,LZ1,LELT) &
+  ,           YSM1(LX1,LY1,LZ1,LELT) &
+  ,           XTM1(LX1,LY1,LZ1,LELT) &
+  ,           YTM1(LX1,LY1,LZ1,LELT) &
+  ,           ZRM1(LX1,LY1,LZ1,LELT) &
+  ,           ZSM1(LX1,LY1,LZ1,LELT) &
+  ,           ZTM1(LX1,LY1,LZ1,LELT)
 
-    use size_m
-    use geom
-    use input
+  integer :: nsrf
 
-    NSRF  = 6*NX1*NZ1*NELT
+  NSRF  = 6*NX1*NZ1*NELT
 
-    CALL RZERO  (AREA,NSRF)
-    CALL RZERO3 (UNX,UNY,UNZ,NSRF)
-    CALL RZERO3 (T1X,T1Y,T1Z,NSRF)
-    CALL RZERO3 (T2X,T2Y,T2Z,NSRF)
+  CALL RZERO  (AREA,NSRF)
+  CALL RZERO3 (UNX,UNY,UNZ,NSRF)
+  CALL RZERO3 (T1X,T1Y,T1Z,NSRF)
+  CALL RZERO3 (T2X,T2Y,T2Z,NSRF)
 
-    IF (NDIM == 2) THEN
+  IF (NDIM == 2) THEN
 !max        CALL AREA2
-    ELSE
-        CALL AREA3
-    ENDIF
+  ELSE
+      CALL AREA3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
+  ENDIF
 
-    RETURN
-    end subroutine setarea
-
+  RETURN
+end subroutine setarea
 !--------------------------------------------------------------------
-!!>brief Compute areas, normals and tangents (3D geom.)
+!> \brief Compute areas, normals and tangents (3D geom.)
 !--------------------------------------------------------------------
-    subroutine area3
-    use size_m
-    use geom
-    use wz_m
+subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : nx1, ny1, nz1, nelt, ndim
+  use geom, only : area, unx, uny, unz, t1x, t1y, t1z, t2x, t2y, t2z
+  use wz_m, only : wxm1, wym1, wzm1
+  implicit none
 
-!     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
-!           share the same array structure in Scratch Common /SCRNS/.
+!   Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
+!         share the same array structure in Scratch Common /SCRNS/.
 
-    COMMON /SCRNS/ XRM1(LX1,LY1,LZ1,LELT) &
-    ,             YRM1(LX1,LY1,LZ1,LELT) &
-    ,             XSM1(LX1,LY1,LZ1,LELT) &
-    ,             YSM1(LX1,LY1,LZ1,LELT) &
-    ,             XTM1(LX1,LY1,LZ1,LELT) &
-    ,             YTM1(LX1,LY1,LZ1,LELT) &
-    ,             ZRM1(LX1,LY1,LZ1,LELT)
-    COMMON /CTMP1/ ZSM1(LX1,LY1,LZ1,LELT) &
-    ,             ZTM1(LX1,LY1,LZ1,LELT) &
-    ,             A  (LX1,LY1,LZ1,LELT) &
-    ,             B  (LX1,LY1,LZ1,LELT)
-    COMMON /CTMP0/ C  (LX1,LY1,LZ1,LELT) &
-    ,             DOT(LX1,LY1,LZ1,LELT)
+  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
+  ,             YRM1(LX1,LY1,LZ1,LELT) &
+  ,             XSM1(LX1,LY1,LZ1,LELT) &
+  ,             YSM1(LX1,LY1,LZ1,LELT) &
+  ,             XTM1(LX1,LY1,LZ1,LELT) &
+  ,             YTM1(LX1,LY1,LZ1,LELT) &
+  ,             ZRM1(LX1,LY1,LZ1,LELT)
+  real(DP) ::  ZSM1(LX1,LY1,LZ1,LELT) &
+  ,             ZTM1(LX1,LY1,LZ1,LELT)
+  real(DP) :: A  (LX1,LY1,LZ1,LELT) &
+  ,             B  (LX1,LY1,LZ1,LELT)
+  real(DP) ::  C  (LX1,LY1,LZ1,LELT) &
+  ,             DOT(LX1,LY1,LZ1,LELT)
 
-    NXY1  = NX1*NY1
-    NFACE = 2*NDIM
-    NTOT  = NX1*NY1*NZ1*NELT
-    NSRF  = 6*NX1*NY1*NELT
+  integer :: nxy1, nface, ntot, nsrf, iel, iz, iy, ix, ifc
+  real(DP) :: weight
 
-!        "R"
+  NXY1  = NX1*NY1
+  NFACE = 2*NDIM
+  NTOT  = NX1*NY1*NZ1*NELT
+  NSRF  = 6*NX1*NY1*NELT
 
-    CALL VCROSS(A,B,C,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1,NTOT)
-    CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
+!      "R"
 
-    DO 100 IEL=1,NELT
-        DO 100 IZ=1,NZ1
-            DO 100 IY=1,NY1
-                WEIGHT = WYM1(IY)*WZM1(IZ)
-                AREA(IY,IZ,2,IEL) = SQRT(DOT(NX1,IY,IZ,IEL))*WEIGHT
-                AREA(IY,IZ,4,IEL) = SQRT(DOT(  1,IY,IZ,IEL))*WEIGHT
-                UNX (IY,IZ,4,IEL) = -A(  1,IY,IZ,IEL)
-                UNX (IY,IZ,2,IEL) =  A(NX1,IY,IZ,IEL)
-                UNY (IY,IZ,4,IEL) = -B(  1,IY,IZ,IEL)
-                UNY (IY,IZ,2,IEL) =  B(NX1,IY,IZ,IEL)
-                UNZ (IY,IZ,4,IEL) = -C(  1,IY,IZ,IEL)
-                UNZ (IY,IZ,2,IEL) =  C(NX1,IY,IZ,IEL)
-    100 END DO
+  CALL VCROSS(A,B,C,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1,NTOT)
+  CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
 
-!        "S"
+  DO 100 IEL=1,NELT
+      DO 100 IZ=1,NZ1
+          DO 100 IY=1,NY1
+              WEIGHT = WYM1(IY)*WZM1(IZ)
+              AREA(IY,IZ,2,IEL) = SQRT(DOT(NX1,IY,IZ,IEL))*WEIGHT
+              AREA(IY,IZ,4,IEL) = SQRT(DOT(  1,IY,IZ,IEL))*WEIGHT
+              UNX (IY,IZ,4,IEL) = -A(  1,IY,IZ,IEL)
+              UNX (IY,IZ,2,IEL) =  A(NX1,IY,IZ,IEL)
+              UNY (IY,IZ,4,IEL) = -B(  1,IY,IZ,IEL)
+              UNY (IY,IZ,2,IEL) =  B(NX1,IY,IZ,IEL)
+              UNZ (IY,IZ,4,IEL) = -C(  1,IY,IZ,IEL)
+              UNZ (IY,IZ,2,IEL) =  C(NX1,IY,IZ,IEL)
+  100 END DO
 
-    CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XTM1,YTM1,ZTM1,NTOT)
-    CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
-    DO 200 IEL=1,NELT
-        DO 200 IZ=1,NZ1
-            DO 200 IX=1,NX1
-                WEIGHT=WXM1(IX)*WZM1(IZ)
-                AREA(IX,IZ,1,IEL) = SQRT(DOT(IX,  1,IZ,IEL))*WEIGHT
-                AREA(IX,IZ,3,IEL) = SQRT(DOT(IX,NY1,IZ,IEL))*WEIGHT
-                UNX (IX,IZ,1,IEL) =  A(IX,  1,IZ,IEL)
-                UNX (IX,IZ,3,IEL) = -A(IX,NY1,IZ,IEL)
-                UNY (IX,IZ,1,IEL) =  B(IX,  1,IZ,IEL)
-                UNY (IX,IZ,3,IEL) = -B(IX,NY1,IZ,IEL)
-                UNZ (IX,IZ,1,IEL) =  C(IX,  1,IZ,IEL)
-                UNZ (IX,IZ,3,IEL) = -C(IX,NY1,IZ,IEL)
-    200 END DO
+!      "S"
 
-!        "T"
+  CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XTM1,YTM1,ZTM1,NTOT)
+  CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
+  DO 200 IEL=1,NELT
+      DO 200 IZ=1,NZ1
+          DO 200 IX=1,NX1
+              WEIGHT=WXM1(IX)*WZM1(IZ)
+              AREA(IX,IZ,1,IEL) = SQRT(DOT(IX,  1,IZ,IEL))*WEIGHT
+              AREA(IX,IZ,3,IEL) = SQRT(DOT(IX,NY1,IZ,IEL))*WEIGHT
+              UNX (IX,IZ,1,IEL) =  A(IX,  1,IZ,IEL)
+              UNX (IX,IZ,3,IEL) = -A(IX,NY1,IZ,IEL)
+              UNY (IX,IZ,1,IEL) =  B(IX,  1,IZ,IEL)
+              UNY (IX,IZ,3,IEL) = -B(IX,NY1,IZ,IEL)
+              UNZ (IX,IZ,1,IEL) =  C(IX,  1,IZ,IEL)
+              UNZ (IX,IZ,3,IEL) = -C(IX,NY1,IZ,IEL)
+  200 END DO
 
-    CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,NTOT)
-    CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
-    DO 300 IEL=1,NELT
-        DO 300 IX=1,NX1
-            DO 300 IY=1,NY1
-                WEIGHT=WXM1(IX)*WYM1(IY)
-                AREA(IX,IY,5,IEL) = SQRT(DOT(IX,IY,  1,IEL))*WEIGHT
-                AREA(IX,IY,6,IEL) = SQRT(DOT(IX,IY,NZ1,IEL))*WEIGHT
-                UNX (IX,IY,5,IEL) = -A(IX,IY,  1,IEL)
-                UNX (IX,IY,6,IEL) =  A(IX,IY,NZ1,IEL)
-                UNY (IX,IY,5,IEL) = -B(IX,IY,  1,IEL)
-                UNY (IX,IY,6,IEL) =  B(IX,IY,NZ1,IEL)
-                UNZ (IX,IY,5,IEL) = -C(IX,IY,  1,IEL)
-                UNZ (IX,IY,6,IEL) =  C(IX,IY,NZ1,IEL)
-    300 END DO
+!      "T"
 
-    CALL UNITVEC (UNX,UNY,UNZ,NSRF)
+  CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,NTOT)
+  CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
+  DO 300 IEL=1,NELT
+      DO 300 IX=1,NX1
+          DO 300 IY=1,NY1
+              WEIGHT=WXM1(IX)*WYM1(IY)
+              AREA(IX,IY,5,IEL) = SQRT(DOT(IX,IY,  1,IEL))*WEIGHT
+              AREA(IX,IY,6,IEL) = SQRT(DOT(IX,IY,NZ1,IEL))*WEIGHT
+              UNX (IX,IY,5,IEL) = -A(IX,IY,  1,IEL)
+              UNX (IX,IY,6,IEL) =  A(IX,IY,NZ1,IEL)
+              UNY (IX,IY,5,IEL) = -B(IX,IY,  1,IEL)
+              UNY (IX,IY,6,IEL) =  B(IX,IY,NZ1,IEL)
+              UNZ (IX,IY,5,IEL) = -C(IX,IY,  1,IEL)
+              UNZ (IX,IY,6,IEL) =  C(IX,IY,NZ1,IEL)
+  300 END DO
 
-!     COMPUTE UNIT TANGENT T1
+  CALL UNITVEC (UNX,UNY,UNZ,NSRF)
 
-    DO 600 IEL=1,NELT
-        DO 600 IFC=1,NFACE
-            IF (IFC == 1 .OR. IFC == 6) THEN
-                CALL FACEXV (T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
-                T1Z(1,1,IFC,IEL), &
-                XRM1(1,1,1,IEL),YRM1(1,1,1,IEL), &
-                ZRM1(1,1,1,IEL),IFC,0)
-            ELSEIF (IFC == 2 .OR. IFC == 5) THEN
-                CALL FACEXV (T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
-                T1Z(1,1,IFC,IEL), &
-                XSM1(1,1,1,IEL),YSM1(1,1,1,IEL), &
-                ZSM1(1,1,1,IEL),IFC,0)
-            ELSE
-                CALL FACEXV (T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
-                T1Z(1,1,IFC,IEL), &
-                XTM1(1,1,1,IEL),YTM1(1,1,1,IEL), &
-                ZTM1(1,1,1,IEL),IFC,0)
-            ENDIF
-    600 END DO
+!   COMPUTE UNIT TANGENT T1
 
-    CALL UNITVEC (T1X,T1Y,T1Z,NSRF)
+  DO 600 IEL=1,NELT
+      DO 600 IFC=1,NFACE
+          IF (IFC == 1 .OR. IFC == 6) THEN
+              CALL FACEXV (T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
+              T1Z(1,1,IFC,IEL), &
+              XRM1(1,1,1,IEL),YRM1(1,1,1,IEL), &
+              ZRM1(1,1,1,IEL),IFC,0)
+          ELSEIF (IFC == 2 .OR. IFC == 5) THEN
+              CALL FACEXV (T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
+              T1Z(1,1,IFC,IEL), &
+              XSM1(1,1,1,IEL),YSM1(1,1,1,IEL), &
+              ZSM1(1,1,1,IEL),IFC,0)
+          ELSE
+              CALL FACEXV (T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
+              T1Z(1,1,IFC,IEL), &
+              XTM1(1,1,1,IEL),YTM1(1,1,1,IEL), &
+              ZTM1(1,1,1,IEL),IFC,0)
+          ENDIF
+  600 END DO
 
-!     COMPUTE UNIT TANGENT T2  ( T2 = Normal X T1 )
+  CALL UNITVEC (T1X,T1Y,T1Z,NSRF)
 
-    DO 700 IEL=1,NELT
-        DO 700 IFC=1,NFACE
-            CALL VCROSS (T2X(1,1,IFC,IEL),T2Y(1,1,IFC,IEL), &
-            T2Z(1,1,IFC,IEL), &
-            UNX(1,1,IFC,IEL),UNY(1,1,IFC,IEL), &
-            UNZ(1,1,IFC,IEL), &
-            T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
-            T1Z(1,1,IFC,IEL),NXY1)
-    700 END DO
+!   COMPUTE UNIT TANGENT T2  ( T2 = Normal X T1 )
 
-    RETURN
-    end subroutine area3
+  DO 700 IEL=1,NELT
+      DO 700 IFC=1,NFACE
+          CALL VCROSS (T2X(1,1,IFC,IEL),T2Y(1,1,IFC,IEL), &
+          T2Z(1,1,IFC,IEL), &
+          UNX(1,1,IFC,IEL),UNY(1,1,IFC,IEL), &
+          UNZ(1,1,IFC,IEL), &
+          T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
+          T1Z(1,1,IFC,IEL),NXY1)
+  700 END DO
+
+  RETURN
+  end subroutine area3
     subroutine lagmass
 !--------------------------------------------------------------------
 

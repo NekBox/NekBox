@@ -330,17 +330,6 @@
     return
     end function irecv
 !-----------------------------------------------------------------------
-    subroutine msgwait(imsg)
-    implicit none
-    include 'mpif.h'
-    integer :: status(mpi_status_size)
-    integer :: imsg, ierr
-
-    call mpi_wait (imsg,status,ierr)
-
-    return
-    end subroutine msgwait
-!-----------------------------------------------------------------------
     subroutine nekgsync()
     use parallel, only : nekcomm
     implicit none

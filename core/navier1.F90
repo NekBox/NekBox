@@ -665,7 +665,7 @@ subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
 
   DO 1000 IEL=1,NEL
   
-      IF (IFAXIS) CALL SETAXDY (IFRZER(IEL) )
+!max      IF (IFAXIS) CALL SETAXDY (IFRZER(IEL) )
   
       IF (NDIM == 2) THEN
           CALL MXM     (DXM1,NX1,U(1,1,1,IEL),NX1,DU(1,1,1,IEL),NYZ1)

@@ -25,7 +25,8 @@
     REAL :: TMP(LY1,LY1),TMPT(LY1,LY1)
 
     IF (NDIM == 2) THEN
-    
+      write (*,*) "Oops: ndim == 2"
+#if 0    
     !***  Two-dimensional case  **********************
     
     
@@ -97,8 +98,11 @@
             CALL IGLLM (IXM21,IXTM21,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
             CALL IGLLM (IYM21,IYTM21,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
         ELSE
+          write(*,*) "Oops: ifsplit false"
+#if 0
             CALL IGLM  (IXM21,IXTM21,ZGM2(1,1),ZGM1(1,1),NX2,NX1,NX2,NX1)
             CALL IGLM  (IYM21,IYTM21,ZGM2(1,2),ZGM1(1,2),NY2,NY1,NY2,NY1)
+#endif
         ENDIF
         IZM21 (NZ1,NZ2) = 1.
         IZTM21(NZ2,NZ1) = 1.
@@ -247,7 +251,7 @@
             CALL IGLJM(IALJ3,IATLJ3,ZGM3(1,2),ZAM3,NY3,NY3,NY3,NY3,ALPHA,BETA)
         
         ENDIF
-    
+#endif    
     
     ELSE
     
@@ -321,9 +325,12 @@
             CALL IGLLM (IYM21,IYTM21,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
             CALL IGLLM (IZM21,IZTM21,ZGM1(1,3),ZGM2(1,3),NZ1,NZ2,NZ1,NZ2)
         ELSE
+            write(*,*) "Oops: ifsplit is false"
+#if 0
             CALL IGLM  (IXM21,IXTM21,ZGM2(1,1),ZGM1(1,1),NX2,NX1,NX2,NX1)
             CALL IGLM  (IYM21,IYTM21,ZGM2(1,2),ZGM1(1,2),NY2,NY1,NY2,NY1)
             CALL IGLM  (IZM21,IZTM21,ZGM2(1,3),ZGM1(1,3),NZ2,NZ1,NZ2,NZ1)
+#endif
         ENDIF
     
     !     Compute derivative operators for the staggered mesh
@@ -600,7 +607,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 !   weights on mesh M1.
 
   DO 580 IEL=1,NELT
-      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
+!max      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
       CALL COL2 (G1M1(1,1,1,IEL),W3M1,NXYZ1)
       CALL COL2 (G2M1(1,1,1,IEL),W3M1,NXYZ1)
   !            CALL COL2 (G4M1(1,1,1,IEL),W3M1,NXYZ1)
@@ -614,7 +621,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 !   Compute the mass matrix on mesh M1.
 
   DO 700 IEL=1,NELT
-      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
+!max      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
       CALL COL3 (BM1  (1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
       IF (IFAXIS) THEN
           CALL COL3(BAXM1(1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
@@ -797,7 +804,7 @@ end subroutine geodat1
 
     DO 100 IEL=1,NELT
     
-        IF (IFAXIS) CALL SETAXDY ( IFRZER(IEL) )
+!max        IF (IFAXIS) CALL SETAXDY ( IFRZER(IEL) )
     
         CALL MXM (DXM1,NX1,XM1(1,1,1,IEL),NX1,XRM1(1,1,1,IEL),NYZ1)
         CALL MXM (DXM1,NX1,YM1(1,1,1,IEL),NX1,YRM1(1,1,1,IEL),NYZ1)
@@ -1067,182 +1074,66 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   700 END DO
 
   RETURN
-  end subroutine area3
-    subroutine lagmass
-!--------------------------------------------------------------------
-
-!     Lag the mass matrix (matrices)
+end subroutine area3
 
 !--------------------------------------------------------------------
-    use size_m
-    use mass
-    use tstep
-
-    NTOT1 = NX1*NY1*NZ1*NELT
-    DO 100 ILAG=NBDINP-1,2,-1
-        CALL COPY (BM1LAG(1,1,1,1,ILAG),BM1LAG(1,1,1,1,ILAG-1),NTOT1)
-    100 END DO
-    CALL COPY (BM1LAG(1,1,1,1,1),BM1,NTOT1)
-
-    RETURN
-    end subroutine lagmass
-
-    subroutine setinvm
+!> \brief Lag the mass matrix (matrices)
 !--------------------------------------------------------------------
+subroutine lagmass()
+  use size_m, only : nx1, ny1, nz1, nelt
+  use mass, only : bm1, bm1lag
+  use tstep, only : nbdinp
+  implicit none
 
-!     Invert the mass matrix.
+  integer :: ntot1, ilag
+  NTOT1 = NX1*NY1*NZ1*NELT
+  DO 100 ILAG=NBDINP-1,2,-1
+      CALL COPY (BM1LAG(1,1,1,1,ILAG),BM1LAG(1,1,1,1,ILAG-1),NTOT1)
+  100 END DO
+  CALL COPY (BM1LAG(1,1,1,1,1),BM1,NTOT1)
 
-!     1)  Copy BM1 to BINVM1
-!     2)  Perform direct stiffness summation on BINVM1
-!     3)  Compute BINVM1 = 1/BINVM1
-!     4)  Two inverse mass matrices required because of difference
-!         in DSSUM routine for IMESH=1 and IMESH=2.
+  RETURN
+end subroutine lagmass
 
 !--------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    use mass
-    use tstep
-    use wz_m
+!> \brief Invert the mass matrix.
+!! 1)  Copy BM1 to BINVM1
+!! 2)  Perform direct stiffness summation on BINVM1
+!! 3)  Compute BINVM1 = 1/BINVM1
+!! 4)  Two inverse mass matrices required because of difference
+!!     in DSSUM routine for IMESH=1 and IMESH=2.
+!--------------------------------------------------------------------
+subroutine setinvm()
+  use size_m, only : nx1, ny1, nz1, nelv, nelt
+  use input, only : ifflow, ifheat
+  use mass, only : bm1, binvm1, bintm1
+  use tstep, only : ifield
+  implicit none
 
-    nxyz1  = nx1*ny1*nz1
+  integer :: nxyz1, ifld, ntot
+  nxyz1  = nx1*ny1*nz1
 
-    ifld = ifield
+  ifld = ifield
 
-    IF (IFFLOW) THEN ! Velocity mass matrix
-        IFIELD = 1
-        NTOT   = NXYZ1*NELV
-        CALL COPY    (BINVM1,BM1,NTOT)
-        CALL DSSUM   (BINVM1,NX1,NY1,NZ1)
-        CALL INVCOL1 (BINVM1,NTOT)
-    ENDIF
+  IF (IFFLOW) THEN ! Velocity mass matrix
+      IFIELD = 1
+      NTOT   = NXYZ1*NELV
+      CALL COPY    (BINVM1,BM1,NTOT)
+      CALL DSSUM   (BINVM1,NX1,NY1,NZ1)
+      CALL INVCOL1 (BINVM1,NTOT)
+  ENDIF
 
 
-    IF (IFHEAT) THEN ! Temperature mass matrix
-        IFIELD = 2
-        NTOT   = NXYZ1*NELT
-        CALL COPY    (BINTM1,BM1,NTOT)
-        CALL DSSUM   (BINTM1,NX1,NY1,NZ1)
-        CALL INVCOL1 (BINTM1,NTOT)
-    ENDIF
+  IF (IFHEAT) THEN ! Temperature mass matrix
+      IFIELD = 2
+      NTOT   = NXYZ1*NELT
+      CALL COPY    (BINTM1,BM1,NTOT)
+      CALL DSSUM   (BINTM1,NX1,NY1,NZ1)
+      CALL INVCOL1 (BINTM1,NTOT)
+  ENDIF
 
-    ifield = ifld
+  ifield = ifld
 
-    return
-    end subroutine setinvm
+  return
+end subroutine setinvm
 !-----------------------------------------------------------------------
-    SUBROUTINE INVMT(A,B,AA,N)
-
-    REAL :: A(N,N),AA(N,N),B(N,N)
-    INTEGER :: INDX(100)
-
-    NN = N*N
-    DO 12 I=1,N
-        DO 11 J=1,N
-            B(I,J) = 0.0
-        11 END DO
-        B(I,I) = 1.0
-    12 END DO
-
-    CALL COPY  (AA,A,NN)
-    CALL LUDCMP(AA,N,N,INDX,D)
-    DO 13 J=1,N
-        CALL LUBKSB(AA,N,N,INDX,B(1,J))
-    13 END DO
-
-    RETURN
-    END SUBROUTINE INVMT
-
-    SUBROUTINE LUBKSB(A,N,NP,INDX,B)
-    REAL :: A(NP,NP),B(N)
-    INTEGER :: INDX(N)
-    II=0
-    DO 12 I=1,N
-        LL=INDX(I)
-        SUM=B(LL)
-        B(LL)=B(I)
-        IF (II /= 0)THEN
-            DO 11 J=II,I-1
-                SUM=SUM-A(I,J)*B(J)
-            11 END DO
-        ELSE IF (SUM /= 0.0) THEN
-            II=I
-        ENDIF
-        B(I)=SUM
-    12 END DO
-    DO 14 I=N,1,-1
-        SUM=B(I)
-        IF(I < N)THEN
-            DO 13 J=I+1,N
-                SUM=SUM-A(I,J)*B(J)
-            13 END DO
-        ENDIF
-        B(I)=SUM/A(I,I)
-    14 END DO
-    RETURN
-    END SUBROUTINE LUBKSB
-    SUBROUTINE LUDCMP(A,N,NP,INDX,D)
-    PARAMETER (NMAX=100,TINY=1.0E-20)
-    REAL :: A(NP,NP),VV(NMAX)
-    INTEGER :: INDX(N)
-    D=1.0
-    DO 12 I=1,N
-        AAMAX=0.0
-        DO 11 J=1,N
-            IF (ABS(A(I,J)) > AAMAX) AAMAX=ABS(A(I,J))
-        11 END DO
-        IF (AAMAX == 0.0) THEN
-            write(6,*) 'Singular matrix.'
-            call exitt
-        ENDIF
-        VV(I)=1.0/AAMAX
-    12 END DO
-    DO 19 J=1,N
-        IF (J > 1) THEN
-            DO 14 I=1,J-1
-                SUM=A(I,J)
-                IF (I > 1)THEN
-                    DO 13 K=1,I-1
-                        SUM=SUM-A(I,K)*A(K,J)
-                    13 END DO
-                    A(I,J)=SUM
-                ENDIF
-            14 END DO
-        ENDIF
-        AAMAX=0.0
-        DO 16 I=J,N
-            SUM=A(I,J)
-            IF (J > 1)THEN
-                DO 15 K=1,J-1
-                    SUM=SUM-A(I,K)*A(K,J)
-                15 END DO
-                A(I,J)=SUM
-            ENDIF
-            DUM=VV(I)*ABS(SUM)
-            IF (DUM >= AAMAX) THEN
-                IMAX=I
-                AAMAX=DUM
-            ENDIF
-        16 END DO
-        IF (J /= IMAX)THEN
-            DO 17 K=1,N
-                DUM=A(IMAX,K)
-                A(IMAX,K)=A(J,K)
-                A(J,K)=DUM
-            17 END DO
-            D=-D
-            VV(IMAX)=VV(J)
-        ENDIF
-        INDX(J)=IMAX
-        IF(J /= N)THEN
-            IF(A(J,J) == 0.)A(J,J)=TINY
-            DUM=1.0/A(J,J)
-            DO 18 I=J+1,N
-                A(I,J)=A(I,J)*DUM
-            18 END DO
-        ENDIF
-    19 END DO
-    IF(A(N,N) == 0.0)A(N,N)=TINY
-    RETURN
-    END SUBROUTINE LUDCMP

@@ -13,7 +13,6 @@ SUBROUTINE SETLOG()
   use turbo, only : ifswall, ifcwuz
   implicit none
 
-
   CHARACTER CB*3
   LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ
 

@@ -120,7 +120,7 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
 
   do 100 e=1,nel
   
-      if (ifaxis) call setaxdy ( ifrzer(e) )
+!      if (ifaxis) call setaxdy ( ifrzer(e) )
   
       IF (NDIM == 2) THEN
           write(*,*) "Whoops! axhelm"
@@ -434,7 +434,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   CALL RZERO(DPCM1,NTOT)
   DO 1000 IE=1,NEL
 
-      IF (IFAXIS) CALL SETAXDY ( IFRZER(IE) )
+!      IF (IFAXIS) CALL SETAXDY ( IFRZER(IE) )
 
       DO 320 IQ=1,NX1
           DO 320 IZ=1,NZ1
@@ -992,9 +992,6 @@ subroutine generalev(a,b,lam,n,w)
   lw = n*n
 !   write(6,*) 'in generalev, =',info,n,ninf
 
-!   call outmat2(a,n,n,n,'aa  ')
-!   call outmat2(b,n,n,n,'bb  ')
-
   call copy(aa,a,100)
   call copy(bb,b,100)
 
@@ -1004,9 +1001,6 @@ subroutine generalev(a,b,lam,n,w)
       call ssygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
   endif
 
-!   call outmat2(a,n,n,n,'Aeig')
-!   call outmat2(lam,1,n,n,'Deig')
-
   if (info /= 0) then
       if (nid == 0) then
           call outmat2(aa ,n,n,n,'aa  ')
@@ -1014,7 +1008,7 @@ subroutine generalev(a,b,lam,n,w)
           call outmat2(a  ,n,n,n,'Aeig')
           call outmat2(lam,1,n,n,'Deig')
       endif
-  
+
       ninf = n-info
       write(6,*) 'Error in generalev, info=',info,n,ninf
       call exitt

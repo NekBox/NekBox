@@ -251,6 +251,8 @@ subroutine crespsp (respr, vext)
       DO 100 IEL=1,NELV
           CB = CBC(IFC,IEL,IFIELD)
           IF (CB(1:1) == 'V' .OR. CB(1:1) == 'v') THEN
+            write(*,*) "Oops: cb = v"
+#if 0
               CALL FACCL3 &
               (TA1(1,IEL),VX(1,1,1,IEL),UNX(1,1,IFC,IEL),IFC)
               CALL FACCL3 &
@@ -258,6 +260,7 @@ subroutine crespsp (respr, vext)
               IF (NDIM == 3) &
               CALL FACCL3 &
               (TA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
+#endif
           ENDIF
           CALL ADD2   (TA1(1,IEL),TA2(1,IEL),NXYZ1)
           IF (NDIM == 3) &

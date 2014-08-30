@@ -52,6 +52,8 @@ subroutine q_filter(wght)
       ncut = param(101)+1
       call build_new_filter(intv,zgm1,nx1,ncut,wght,nid)
   elseif (icalld < 0) then   ! old (std.) filter
+      write(*,*) "Oops: icalld < 0 in qfilter"
+#if 0
       icalld = 1
       call zwgll(zgmv,wgtv,lxv)
       call igllm(intuv,intw,zgmv,zgm1,lxv,nx1,lxv,nx1)
@@ -75,7 +77,7 @@ subroutine q_filter(wght)
 
       call ident   (intuv,nx1)
       call add2sxy (intv ,wght,intuv,w0,nx1*nx1)
-
+#endif
   endif
 
   ifldt  = ifield

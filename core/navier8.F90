@@ -711,8 +711,11 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
       close(80)
       ntuple = m
   elseif (nid < npass) then
+    write(*,*) "Oops: nid < npass"
+#if 0
       call msgwait(msg_id)
       ntuple = ndw
+#endif
   else
       ntuple = 0
   endif

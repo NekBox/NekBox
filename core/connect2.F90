@@ -138,7 +138,7 @@
         call nekMOAB_import
 #endif
     else
-        if (ifre2) call open_bin_file(ifbswap) ! rank0 will open and read
+!max        if (ifre2) call open_bin_file(ifbswap) ! rank0 will open and read
         if (nid == 0) then
             write(6,12) 'nelgt/nelgv/lelt:',nelgt,nelgv,lelt
             write(6,12) 'lx1  /lx2  /lx3 :',lx1,lx2,lx3
@@ -149,7 +149,8 @@
 
         if ( .NOT. ifgtp) call mapelpr  ! read .map file, est. gllnid, etc.
         if (ifre2) then
-            call bin_rd1(ifbswap) ! rank0 will read mesh data + distribute
+          write(*,*) "Oops: ifre2"
+!max            call bin_rd1(ifbswap) ! rank0 will read mesh data + distribute
         else
             maxrd = 32               ! max # procs to read at once
             mread = (np-1)/maxrd+1   ! mod param
@@ -1056,72 +1057,72 @@
     return
     end subroutine rdbdry
 !-----------------------------------------------------------------------
-    subroutine rdicdf
+!> \brief Read Initial Conditions / Drive Force.
+!! Broadcast ICFILE to all processors
+subroutine rdicdf
+  use size_m, only : nid
+  use input, only : initc
+  use parallel, only : csize
+  implicit none
 
-!     .Read Initial Conditions / Drive Force
+  character(132) :: line
+  integer :: ierr, nskip, i
+  logical, external :: ifgtil
+  integer, external :: iglmax, indx1
 
-!     .Broadcast ICFILE to all processors
+  ierr = 0
 
-    use size_m
-    use input
-    use parallel
+  if (nid == 0) then   !  Read names of restart files
 
-    character(132) :: line
-    logical ::      ifgtil
+      call blank(initc,15*132)
+      read (9,80,err=200,end=200) line
+      call capit(line,132)
+      if (indx1(line,'RESTART',7) /= 0) then
+          if ( .NOT. ifgtil(nskip,line)) goto 200
+      !          read(line,*,err=200,end=200) nskip
+          do 50 i=1,nskip
+              read(9,80,err=200,end=200) initc(i)
+          50 END DO
+          read(9,80,err=200,end=200) line
+      endif
+      80 format(a132)
 
-    ierr = 0
+      if ( .NOT. ifgtil(nskip,line)) goto 200
 
-    if (nid == 0) then   !  Read names of restart files
+  !       Read initial conditions
+      do 100 i=1,nskip
+          read(9,80,err=200,end=200) line
+      100 END DO
 
-        call blank(initc,15*132)
-        read (9,80,err=200,end=200) line
-        call capit(line,132)
-        if (indx1(line,'RESTART',7) /= 0) then
-            if ( .NOT. ifgtil(nskip,line)) goto 200
-        !          read(line,*,err=200,end=200) nskip
-            do 50 i=1,nskip
-                read(9,80,err=200,end=200) initc(i)
-            50 END DO
-            read(9,80,err=200,end=200) line
-        endif
-        80 format(a132)
+  !       Read drive force data
+      read(9,*,err=200,end=200)
+      read(9,*,err=200,end=200) nskip
+      do 110 i=1,nskip
+          read(9,80,err=200,end=200) line
+      110 END DO
+  endif
 
-        if ( .NOT. ifgtil(nskip,line)) goto 200
+  ierr = iglmax(ierr,1)
+  if (ierr == 0) then
+      call bcast(initc,15*132*csize)
+      return
+  else
+      goto 210
+  endif
 
-    !       Read initial conditions
-        do 100 i=1,nskip
-            read(9,80,err=200,end=200) line
-        100 END DO
+!   Error handling:
 
-    !       Read drive force data
-        read(9,*,err=200,end=200)
-        read(9,*,err=200,end=200) nskip
-        do 110 i=1,nskip
-            read(9,80,err=200,end=200) line
-        110 END DO
-    endif
+  200 ierr = 1
+  ierr = iglmax(ierr,1)
+        
+  210 continue
+  if (nid == 0) write(6,300)
+  300 format(2x,'Error reading initial condition/drive force data' &
+  ,/,2x,'aborting in routine rdicdf.')
+  call exitti('rdicdf error$',ierr)
 
-    ierr = iglmax(ierr,1)
-    if (ierr == 0) then
-        call bcast(initc,15*132*csize)
-        return
-    else
-        goto 210
-    endif
-
-!     Error handling:
-
-    200 ierr = 1
-    ierr = iglmax(ierr,1)
-          
-    210 continue
-    if (nid == 0) write(6,300)
-    300 format(2x,'Error reading initial condition/drive force data' &
-    ,/,2x,'aborting in routine rdicdf.')
-    call exitti('rdicdf error$',ierr)
-
-    return
-    end subroutine rdicdf
+  return
+end subroutine rdicdf
 !-----------------------------------------------------------------------
     subroutine rdmatp
 
@@ -1628,657 +1629,6 @@ subroutine vrdsmsh()
 
   return
 end subroutine vrdsmsh
-!-----------------------------------------------------------------------
-    subroutine bin_rd1(ifbswap)  ! read mesh, curve, and bc info
-
-    use ctimer
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    logical :: ifbswap
-
-      
-    etime1 = dnekclock()
-
-    ibc = 2
-    if (ifflow) ibc = 1
-
-    nfldt = 1
-    if (ifheat) nfldt = 2+npscal
-    if (ifmhd ) nfldt = 2+npscal+1
-
-
-!     If p32 = 0.1, there will be no bcs read in
-
-    if (param(32) > 0) nfldt = ibc + param(32)-1
-
-    lcbc=18*lelt*(ldimt1 + 1)
-    call blank(cbc,lcbc)
-
-    if (nid == 0) write(6,*)    '  reading mesh '
-    call bin_rd1_mesh  (ifbswap)   ! version 1 of binary reader
-    if (nid == 0) write(6,*) '  reading curved sides '
-    call bin_rd1_curve (ifbswap)
-
-    do ifield = ibc,nfldt
-        if (nid == 0) write(6,*) '  reading bc for ifld',ifield
-        call bin_rd1_bc (cbc(1,1,ifield),bc(1,1,1,ifield),ifbswap)
-    enddo
-
-    call nekgsync
-    ierr=0
-    if(nid == 0) then
-        call byte_close(ierr)
-        write(6,*) 'done :: read .re2 file'
-        write(6,*) ' '
-    endif
-    call err_chk(ierr,'Error closing re2 file. Abort $')
-
-    return
-    end subroutine bin_rd1
-!-----------------------------------------------------------------------
-    subroutine buf_to_xyz(buf,e,ifbswap,ierr)! version 1 of binary reader
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    logical :: ifbswap
-
-    integer :: e,eg,buf(0:49)
-
-    nwds = (1 + ndim*(2**ndim))*(wdsizi/4) ! group + 2x4 for 2d, 3x8 for 3d
-
-    if     (ifbswap .AND. ierr == 0 .AND. wdsizi == 8) then
-        call byte_reverse8(buf,nwds,ierr)
-    elseif (ifbswap .AND. ierr == 0 .AND. wdsizi == 4) then
-        call byte_reverse (buf,nwds,ierr)
-    endif
-    if(ierr /= 0) return
-
-    if(wdsizi == 8) then
-        call copyi4(igroup(e),buf(0),1) !0-1
-        if (ndim == 3) then
-            call copy  (xc(1,e),buf( 2),8) !2 --17
-            call copy  (yc(1,e),buf(18),8) !18--33
-            call copy  (zc(1,e),buf(34),8) !34--49
-        else
-            call copy  (xc(1,e),buf( 2),4) !2 --9
-            call copy  (yc(1,e),buf(10),4) !10--17
-        endif
-    else
-        igroup(e) = buf(0)
-        if (if3d) then
-            call copy4r(xc(1,e),buf( 1),8)
-            call copy4r(yc(1,e),buf( 9),8)
-            call copy4r(zc(1,e),buf(17),8)
-        else
-            call copy4r(xc(1,e),buf( 1),4)
-            call copy4r(yc(1,e),buf( 5),4)
-        endif
-    endif
-
-    return
-    end subroutine buf_to_xyz
-!-----------------------------------------------------------------------
-    subroutine buf_to_curve(buf)    ! version 1 of binary reader
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    integer :: e,eg,f,buf(30)
-
-    if(wdsizi == 8) then
-        call copyi4(eg,buf(1),1) !1-2
-        e  = gllel(eg)
-
-        call copyi4(f,buf(3),1) !3-4
-
-        call copy  ( curve(1,f,e),buf(5) ,5) !5--14
-        call chcopy(ccurve(  f,e),buf(15),1)!15
-    else
-        eg = buf(1)
-        e  = gllel(eg)
-        f  = buf(2)
-
-        call copy4r( curve(1,f,e),buf(3),5)
-        call chcopy(ccurve(f,e)  ,buf(8),1)
-    endif
-
-!     write(6,1) eg,e,f,(curve(k,f,e),k=1,5),ccurve(f,e)
-!   1 format(2i7,i3,5f10.3,1x,a1,'ccurve')
-
-    return
-    end subroutine buf_to_curve
-!-----------------------------------------------------------------------
-    subroutine buf_to_bc(cbl,bl,buf)    ! version 1 of binary reader
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    character(3) :: cbl(6,lelt)
-    real ::         bl(5,6,lelt)
-
-    integer :: e,eg,f,buf(30)
-
-    if(wdsizi == 8) then
-        call copyi4(eg,buf(1),1) !1-2
-        e  = gllel(eg)
-
-        call copyi4(f,buf(3),1) !3-4
-
-        call copy  (bl(1,f,e),buf(5),5) !5--14
-        call chcopy(cbl( f,e),buf(15),3)!15-16
-
-        if(nelt >= 1000000 .AND. cbl(f,e) == 'P  ') &
-        call copyi4(bl(1,f,e),buf(5),1) !Integer assign connecting P element
-
-    else
-        eg = buf(1)
-        e  = gllel(eg)
-        f  = buf(2)
-
-        call copy4r ( bl(1,f,e),buf(3),5)
-        call chcopy (cbl(  f,e),buf(8),3)
-
-        if (nelgt >= 1000000 .AND. cbl(f,e) == 'P  ') &
-        bl(1,f,e) = buf(3) ! Integer assign of connecting periodic element
-    endif
-
-
-
-!     write(6,1) eg,e,f,cbl(f,e),' CBC',nid
-!  1  format(2i8,i4,2x,a3,a4,i8)
-
-    return
-    end subroutine buf_to_bc
-!-----------------------------------------------------------------------
-    subroutine bin_rd1_mesh(ifbswap)    ! version 1 of binary reader
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    logical :: ifbswap
-
-    integer :: e,eg,buf(55)
-
-    nwds = (1 + ndim*(2**ndim))*(wdsizi/4) ! group + 2x4 for 2d, 3x8 for 3d
-    len  = 4*nwds                          ! 4 bytes / wd
-
-    if (nwds > 55 .OR. isize > 4) then
-        write(6,*) nid,' Error in bin_rd1_mesh: buf size',nwds,isize
-        call exitt
-    endif
-
-    call nekgsync()
-
-    nio = 10
-    do k=1,8
-        if (nelgt/nio < 100) goto 10
-        nio = nio*10
-    enddo
-    10 continue
-
-    ierr  = 0
-    ierr2 = 0
-    len1  = 4
-    do eg=1,nelgt             ! sync NOT needed here
-
-        mid = gllnid(eg)
-        e   = gllel (eg)
-#ifdef DEBUG
-        if (nid == 0 .AND. mod(eg,nio) == 0) write(6,*) eg,' mesh read'
-#endif
-        if (mid /= nid .AND. nid == 0) then              ! read & send
-
-            if(ierr == 0) then
-                call byte_read  (buf,nwds,ierr)
-                call csend(eg,ierr,len1,mid,0)
-                if(ierr == 0) call csend(eg,buf,len,mid,0)
-            else
-                call csend(eg,ierr,len1,mid,0)
-            endif
-
-        elseif (mid == nid .AND. nid /= 0) then          ! recv & process
-
-            call crecv      (eg,ierr,len1)
-            if(ierr == 0) then
-                call crecv      (eg,buf,len)
-                call buf_to_xyz (buf,e,ifbswap,ierr2)
-            endif
-             
-        elseif (mid == nid .AND. nid == 0) then          ! read & process
-
-            if(ierr == 0) then
-                call byte_read  (buf,nwds,ierr)
-                call buf_to_xyz (buf,e,ifbswap,ierr2)
-            endif
-        endif
-
-    enddo
-    ierr = ierr + ierr2
-    call err_chk(ierr,'Error reading .re2 mesh. Abort. $')
-
-    return
-    end subroutine bin_rd1_mesh
-!-----------------------------------------------------------------------
-    subroutine bin_rd1_curve (ifbswap) ! v. 1 of curve side reader
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    logical :: ifbswap
-
-    integer :: e,eg,buf(55)
-    real :: rcurve
-
-    nwds = (2 + 1 + 5)*(wdsizi/4) !eg+iside+ccurve+curve(6,:,:) !only 5 in rea
-    len  = 4*nwds      ! 4 bytes / wd
-
-    if (nwds > 55 .OR. isize > 4) then
-        write(6,*)nid,' Error in bin_rd1_curve: buf size',nwds,isize
-        call exitt
-    endif
-
-    call nekgsync()
-
-    ierr = 0
-    len1 = 4
-    if (nid == 0) then  ! read & send/process
-
-        if(wdsizi == 8) then
-            call byte_read(rcurve,2,ierr)
-            if (ifbswap) call byte_reverse8(rcurve,2,ierr)
-            ncurve = rcurve
-        else
-            call byte_read(ncurve,1,ierr)
-            if (ifbswap) call byte_reverse(ncurve,1,ierr)
-        endif
-
-        do k=1,ncurve
-            if(ierr == 0) then
-                call byte_read(buf,nwds,ierr)
-                if(wdsizi == 8) then
-                    if(ifbswap) call byte_reverse8(buf,nwds-2,ierr)
-                    call copyi4(eg,buf(1),1)  !1,2
-                else
-                    if (ifbswap) call byte_reverse(buf,nwds-1,ierr) ! last is char
-                    eg  = buf(1)
-                endif
-
-                mid = gllnid(eg)
-                if (mid == 0 .AND. ierr == 0) then
-                    call buf_to_curve(buf)
-                else
-                    if(ierr == 0) then
-                        call csend(mid,buf,len,mid,0)
-                    else
-                        goto 98
-                    endif
-                endif
-            else
-                goto 98
-            endif
-        enddo
-        98 call buf_close_out  ! notify all procs: no more data
-
-    else               ! wait for data from node 0
-
-        ncurve_mx = 12*nelt
-        do k=1,ncurve_mx+1   ! +1 to make certain we receive the close-out
-
-            call crecv(nid,buf,len)
-            if(wdsizi == 8) then
-                call copyi4(ichk,buf(1),1)
-                if(ichk == 0) goto 99
-                call buf_to_curve(buf)
-            elseif (buf(1) == 0) then
-                goto 99
-            else
-                call buf_to_curve(buf)
-            endif
-                        
-        enddo
-        99 call buf_close_out
-
-    endif
-    call err_chk(ierr,'Error reading .re2 curved data. Abort.$')
-
-
-    return
-    end subroutine bin_rd1_curve
-!-----------------------------------------------------------------------
-    subroutine bin_rd1_bc (cbl,bl,ifbswap) ! v. 1 of bc reader
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    logical :: ifbswap
-
-    character(3) :: cbl(6,lelt)
-    real ::         bl(5,6,lelt)
-
-    integer :: e,eg,buf(55)
-    real :: rbc_max
-
-    nwds = (2 + 1 + 5)*(wdsizi/4)   ! eg + iside + cbc + bc(5,:,:)
-    len  = 4*nwds      ! 4 bytes / wd
-
-    if (nwds > 55 .OR. isize > 4) then
-        write(6,*) nid,' Error in bin_rd1_bc: buf size',nwds,isize
-        call exitt
-    endif
-
-    do e=1,nelt   ! fill up cbc w/ default
-        do k=1,6
-            cbl(k,e) = 'E  '
-        enddo
-    enddo
-
-    call nekgsync()
-    ierr=0
-    len1=4
-    if (nid == 0) then  ! read & send/process
-          
-        if(wdsizi == 8) then
-            call byte_read(rbc_max,2,ierr)
-            if (ifbswap) call byte_reverse8(rbc_max,2,ierr) ! last is char
-            nbc_max = rbc_max
-        else
-            call byte_read(nbc_max,1,ierr)
-            if (ifbswap) call byte_reverse(nbc_max,1,ierr) ! last is char
-        endif
-
-        do k=1,nbc_max
-        !           write(6,*) k,' dobc1 ',nbc_max
-            if(ierr == 0) then
-                call byte_read(buf,nwds,ierr)
-                if(wdsizi == 8) then
-                    if (ifbswap) call byte_reverse8(buf,nwds-2,ierr)
-                    call copyi4(eg,buf(1),1) !1&2 of buf
-                else
-                    if (ifbswap) call byte_reverse(buf,nwds-1,ierr) ! last is char
-                    eg  = buf(1)
-                endif
-                mid = gllnid(eg)
-            !              write(6,*) k,' dobc3 ',eg,mid
-
-                if (mid == 0 .AND. ierr == 0) then
-                    call buf_to_bc(cbl,bl,buf)
-                else
-                !                  write(6,*) mid,' sendbc1 ',eg
-                    if(ierr == 0) then
-                        call csend(mid,buf,len,mid,0)
-                    else
-                        goto 98
-                    endif
-                !                  write(6,*) mid,' sendbc2 ',eg
-                endif
-            !              write(6,*) k,' dobc2 ',nbc_max,eg
-            else
-                goto 98
-            endif
-        enddo
-    !        write(6,*) mid,' bclose ',eg,nbc_max
-        98 call buf_close_outv ! notify all procs: no more data
-
-    else               ! wait for data from node 0
-
-        nbc_max = 2*ndim*nelt
-        do k=1,nbc_max+1  ! Need one extra !
-
-        !           write(6,*) nid,' recvbc1',k
-            call crecv(nid,buf,len)
-        !           write(6,*) nid,' recvbc2',k,buf(1)
-
-            if(wdsizi == 8) then
-                call copyi4(ichk,buf(1),1)
-                if(ichk == 0) goto 99
-                call buf_to_bc(cbl,bl,buf)
-            elseif (buf(1) == 0) then
-                goto 99
-            else
-                call buf_to_bc(cbl,bl,buf)
-            endif
-                        
-        enddo
-        99 call buf_close_outv
-
-    endif
-
-    call err_chk(ierr,'Error reading boundary data for re2. Abort.$')
-
-    return
-    end subroutine bin_rd1_bc
-!-----------------------------------------------------------------------
-    subroutine bufchk(buf,n)
-    integer :: n
-    real :: buf(n)
-    do i=1,n
-        write(6,*) buf(i), ' whhhh'
-    enddo
-    return
-    end subroutine bufchk
-!-----------------------------------------------------------------------
-    subroutine buf_close_outv  ! this is the stupid O(P) formulation
-
-    use size_m
-    use parallel
-    integer*4 :: zero
-    real ::      rzero
-
-    len   = wdsizi
-    rzero = 0
-    zero  = 0
-!     write(6,*) nid,' bufclose'
-    if (nid == 0) then
-        do mid=1,np-1
-            if(wdsizi == 8)call csend(mid,rzero,len,mid,0)
-            if(wdsizi == 4)call csend(mid, zero,len,mid,0)
-        !           write(6,*) mid,' sendclose'
-        enddo
-    endif
-
-    return
-    end subroutine buf_close_outv
-!-----------------------------------------------------------------------
-    subroutine buf_close_out  ! this is the stupid O(P) formulation
-
-    use size_m
-    use parallel
-    integer*4 :: zero
-    real ::      rzero
-
-!     len  = 4
-    len   = wdsizi
-    zero = 0
-    rzero = 0
-    if (nid == 0) then
-        do mid=1,np-1
-            if(wdsizi == 8)call csend(mid,rzero,len,mid,0)
-            if(wdsizi == 4)call csend(mid, zero,len,mid,0)
-        enddo
-    endif
-
-    return
-    end subroutine buf_close_out
-!-----------------------------------------------------------------------
-    subroutine open_bin_file(ifbswap) ! open file & chk for byteswap
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    logical :: ifbswap,if_byte_swap_test
-
-    integer :: fnami (33)
-    character(132) :: fname
-    equivalence (fname,fnami)
-
-    character(132) :: hdr
-    character(5) :: version
-    real*4 ::      test
-
-    if(nid == 0) write(6,*) 'read .re2 file'
-
-    ierr=0
-    if (nid == 0) then
-        call izero(fnami,33)
-        m = indx2(re2fle,132,' ',1)-1
-        call chcopy(fname,re2fle,m)
-           
-        call byte_open(fname,ierr)
-        if(ierr /= 0) goto 100
-        call byte_read(hdr,20,ierr)
-        if(ierr /= 0) goto 100
-
-        read (hdr,1) version,nelgt,ndum,nelgv
-        1 format(a5,i9,i3,i9)
-         
-        wdsizi = 4
-        if(version == '#v002') wdsizi = 8
-
-        call byte_read(test,1,ierr)
-        if(ierr /= 0) goto 100
-        ifbswap = if_byte_swap_test(test,ierr)
-        if(ierr /= 0) goto 100
-
-    endif
-     
-    100 call err_chk(ierr,'Error opening or reading .re2 header. Abort.$')
-
-    call bcast(wdsizi, ISIZE)
-    call bcast(ifbswap,LSIZE)
-    call bcast(nelgv  ,ISIZE)
-    call bcast(nelgt  ,ISIZE)
-
-    if(wdsize == 4 .AND. wdsizi == 8) &
-    call exitti('wdsize=4 & wdsizi(re2)=8 not compatible$',wdsizi)
-
-    return
-    end subroutine open_bin_file
 !-----------------------------------------------------------------------
     subroutine chk_nel
     use size_m

@@ -899,7 +899,8 @@ subroutine restart_driver(nfiles)
               70 continue
               call lbcast(ifok)
               IF ( .NOT. IFOK) GOTO 1600
-          
+                write(*,*) "Oops: ifok" 
+#if 0
           !              MAPDMP maps data from NXR to NX1
           !              (and sends data to the appropriate processor.)
           
@@ -929,7 +930,7 @@ subroutine restart_driver(nfiles)
                   if (ifgtps(ips)) call mapdmp(sdmp2(1,ips+1) &
                   ,tdump(1,ipsps(ips)),ieg,nxr,nyr,nzr,IFBYTSW)
               100 END DO
-               
+#endif               
           200 END DO
       
       !           Successfully read a complete field, store it.

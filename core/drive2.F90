@@ -1310,7 +1310,8 @@ subroutine opcount(ICALL)
       100 END DO
   endif
   if (icall == 3) then
-  
+    write(*,*) "Oops: icall = 3"
+#if 0
   !        Sort and print out diagnostics
   
       if (nid == 0) then
@@ -1342,6 +1343,7 @@ subroutine opcount(ICALL)
           200 END DO
           201 format(2x,' opnode',i4,2x,a6,g18.7,i12)
       endif
+#endif
   endif
   return
 end subroutine opcount

@@ -238,7 +238,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 # (default is Fortran), use: inc=Fortran f=C. Note that for custom extensions
 # you also need to set FILE_PATTERNS otherwise the files are not read by doxygen.
 
-EXTENSION_MAPPING      = f=FortranFixed 
+EXTENSION_MAPPING      = 
 
 # If MARKDOWN_SUPPORT is enabled (the default) then doxygen pre-processes all
 # comments according to the Markdown format, which allows for more readable
@@ -687,7 +687,8 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = makenek makefile.template LICENSE makenek.inc mktar 3rd_party
+EXCLUDE                = makenek makefile.template LICENSE makenek.inc mktar \
+                         3rd_party jl count_commons.py search_orphan.py
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -945,7 +946,7 @@ HTML_TIMESTAMP         = YES
 # documentation will contain sections that can be hidden and shown after the
 # page has loaded.
 
-HTML_DYNAMIC_SECTIONS  = NO
+HTML_DYNAMIC_SECTIONS  = YES
 
 # With HTML_INDEX_NUM_ENTRIES one can control the preferred number of
 # entries shown in the various tree structured indices initially; the user
@@ -1716,7 +1717,7 @@ DIRECTORY_GRAPH        = YES
 # HTML_FILE_EXTENSION to xhtml in order to make the SVG files
 # visible in IE 9+ (other browsers do not have this requirement).
 
-DOT_IMAGE_FORMAT       = png
+DOT_IMAGE_FORMAT       = svg
 
 # If DOT_IMAGE_FORMAT is set to svg, then this option can be set to YES to
 # enable generation of interactive SVG images that allow zooming and panning.
@@ -1725,7 +1726,7 @@ DOT_IMAGE_FORMAT       = png
 # need to set HTML_FILE_EXTENSION to xhtml in order to make the SVG files
 # visible. Older versions of IE do not have SVG support.
 
-INTERACTIVE_SVG        = NO
+INTERACTIVE_SVG        = YES
 
 # The tag DOT_PATH can be used to specify the path where the dot tool can be
 # found. If left blank, it is assumed the dot tool can be found in the path.

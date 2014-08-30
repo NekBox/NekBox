@@ -116,7 +116,7 @@ subroutine setdt
 
   if (iffxdt .AND. abs(courno) > 10.*abs(ctarg)) then
       if (nid == 0) write(6,*) 'CFL, Ctarg!',courno,ctarg
-      call emerxit
+!max      call emerxit
   endif
 
   return
@@ -549,41 +549,6 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
 
     return
     end subroutine faccl2
-
-    subroutine faccl3(a,b,c,iface1)
-
-!     Collocate B with A on the surface IFACE1 of element IE.
-
-!         A is a (NX,NY,NZ) data structure
-!         B is a (NX,NY,IFACE) data structure
-!         IFACE1 is in the preprocessor notation
-!         IFACE  is the dssum notation.
-!         5 Jan 1989 15:12:22      PFF
-
-    use size_m
-    use topol
-    DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1,LZ1),C(LX1,LY1)
-
-!     Set up counters
-
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-
-    I = 0
-    DO 100 J2=JS2,JF2,JSKIP2
-        DO 100 J1=JS1,JF1,JSKIP1
-            I = I+1
-            A(J1,J2,1) = B(J1,J2,1)*C(I,1)
-    100 END DO
-
-    return
-    end subroutine faccl3
 !-----------------------------------------------------------------------
     subroutine sethlm (h1,h2,intloc)
      
@@ -787,55 +752,6 @@ end subroutine setsolv
     return
     end subroutine flush_io
 !-----------------------------------------------------------------------
-    subroutine setaxdy (ifaxdy)
-
-    use size_m
-    use dxyz
-
-    LOGICAL :: IFAXDY
-
-    IF (IFAXDY) THEN
-        CALL COPY (DYM1 ,DAM1 ,NY1*NY1)
-        CALL COPY (DYTM1,DATM1,NY1*NY1)
-    ELSE
-        CALL COPY (DYM1 ,DCM1 ,NY1*NY1)
-        CALL COPY (DYTM1,DCTM1,NY1*NY1)
-    endif
-
-    return
-    end subroutine setaxdy
-!-----------------------------------------------------------------------
-    SUBROUTINE SETAXW1 (IFAXWG)
-
-    use size_m
-    use wz_m
-
-    LOGICAL :: IFAXWG
-
-    IF (IFAXWG) THEN
-        CALL COPY (W3M1,W2AM1,NX1*NY1)
-    ELSE
-        CALL COPY (W3M1,W2CM1,NX1*NY1)
-    ENDIF
-
-    RETURN
-    END SUBROUTINE SETAXW1
-    SUBROUTINE SETAXW2 (IFAXWG)
-
-    use size_m
-    use wz_m
-
-    LOGICAL :: IFAXWG
-
-    IF (IFAXWG) THEN
-        CALL COPY (W3M2,W2AM2,NX2*NY2)
-    ELSE
-        CALL COPY (W3M2,W2CM2,NX2*NY2)
-    ENDIF
-
-    RETURN
-    END SUBROUTINE SETAXW2
-
     SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
 
 !     IOP = 0
@@ -893,41 +809,6 @@ end subroutine setsolv
     100 END DO
     RETURN
     END SUBROUTINE CMULT2
-
-    SUBROUTINE EMERXIT
-
-    use size_m
-    use input
-    use parallel
-    use tstep
-
-!     Try to hang in there on the first few time steps (pff 8/92)
-    IF (IFTRAN .AND. ISTEP < 9) RETURN
-
-    LASTEP = 1
-    CALL PREPOST( .TRUE. ,'   ')
-
-    IF (NP == 1) THEN
-        WRITE (6,*) '       '
-        WRITE (6,*) &
-        ' Emergency exit:',ISTEP,'   time =',TIME
-        WRITE (6,*) &
-        ' Latest solution and data are dumped for post-processing.'
-        WRITE (6,*) ' *** STOP ***'
-    ELSE
-        WRITE (6,*) '       '
-        WRITE (6,*) NID, &
-        ' Emergency exit:',ISTEP,'   time =',TIME
-        WRITE (6,*) &
-        ' Latest solution and data are dumped for post-processing.'
-        WRITE (6,*) ' *** STOP ***'
-    ENDIF
-
-    call runstat
-
-    call exitt
-    RETURN
-    END SUBROUTINE EMERXIT
 
 SUBROUTINE UPDMSYS (IFLD)
   use size_m

@@ -1152,24 +1152,6 @@
     return
     end function glsc23
 !-----------------------------------------------------------------------
-!> \brief global 2-norm
-real function gl2norm(a,n)
-  use kinds, only : DP
-  use mass, only : bm1, volvm1
-  implicit none
-
-  real(DP) :: a(1)
-  integer :: n
-  real(DP), external :: glsum
-  real(DP) :: w1(n)
-
-  call col3 (w1,a,a,n)
-  call col2 (w1,bm1,n)
-  gl2norm = sqrt(glsum (w1,n)/volvm1)
-
-  return
-end function gl2norm
-!-----------------------------------------------------------------------
     function glsum (x,n)
     DIMENSION X(1)
     DIMENSION TMP(1),WORK(1)
@@ -1195,19 +1177,6 @@ end function gl2norm
     GLAMAX=ABS(TMP(1))
     return
     end function glamax
-!-----------------------------------------------------------------------
-    real function glamin(a,n)
-    real :: a(1)
-    dimension tmp(1),work(1)
-    tmin = 9.e28
-    do 100 i=1,n
-        tmin = min(tmin,abs(a(i)))
-    100 END DO
-    tmp(1)=tmin
-    call gop(tmp,work,'m  ',1)
-    glamin=abs(tmp(1))
-    return
-    end function glamin
 !-----------------------------------------------------------------------
     function iglmin(a,n)
     integer :: a(1),tmin
@@ -1305,178 +1274,6 @@ end function gl2norm
     return
     end subroutine gllog
 !-----------------------------------------------------------------------
-    function fmdian(a,n,ifok)
-!     find the Median of the (global) set A
-    use size_m
-    DIMENSION A(1)
-    DIMENSION WORK1(5),WORK2(5)
-    DIMENSION GUES(100)
-    LOGICAL :: IFOK
-
-    AMP  =1.5
-    AFAC =1.5
-    GMIN =GLMIN(A,N)
-    GMAX =GLMAX(A,N)
-    GMIN0=GLMIN(A,N)
-    GMAX0=GLMAX(A,N)
-    GUESS=(GMAX+GMIN)/2.0
-    EPS  =(GMAX-GMIN)
-    IF (EPS == 0.0) THEN
-        FMDIAN=GMAX
-        return
-    ENDIF
-    WORK1(1)=N
-    CALL GOP(WORK1,WORK2,'+  ',1)
-    NTOT=WORK1(1)
-    N2 = (NTOT+1)/2
-    IF ( .NOT. IFOK) THEN
-        WRITE(6,8) NID,N,(A(I),I=1,N)
-        WRITE(6,9) NID,NTOT,N2,N,GMIN,GMAX
-        8 FORMAT(I5,'N,A:',I5,10(6F10.5,/))
-        9 FORMAT(I5,'mnx:',3I6,2F10.5)
-    ENDIF
-
-!     This is the trial loop
-
-    ITRY=-1
-    10 CONTINUE
-    ITRY=ITRY+1
-    II=ITRY+1
-    IF (II <= 100) GUES(II)=GUESS
-!     error check for infinite loop
-    IF (ITRY > 2*NTOT) GOTO 9000
-    CALL RZERO(WORK1,5)
-    NLT=0
-    NGT=0
-    CLT=GMIN0
-    CGT=GMAX0
-    DO 100 I=1,N
-        AA=A(I)
-        IF (AA /= GUESS) THEN
-            IF (AA < GUESS) THEN
-                NLT=NLT+1
-            !              CLT - closest value to GUESS Less Than GUESS
-                IF (AA > CLT) CLT=AA
-            ENDIF
-            IF (AA > GUESS) THEN
-                NGT=NGT+1
-            !              CGT - closest value to GUESS Greater Than GUESS
-                IF (AA < CGT) CGT=AA
-            ENDIF
-            DUM=1./(EPS+ABS(AA-GUESS))
-            WORK1(1)=WORK1(1)+DUM
-            WORK1(2)=WORK1(2)+DUM*AA
-        ELSE
-        !           detected values equaling the guess.
-            WORK1(5)=WORK1(5)+1.0
-        ENDIF
-    100 END DO
-!     Invoke vector reduction across processors:
-    WORK2(1)=CLT
-    CLT=GLMAX(WORK2,1)
-    WORK2(1)=CGT
-    CGT=GLMIN(WORK2,1)
-    WORK1(3)=NLT
-    WORK1(4)=NGT
-    CALL GOP(WORK1,WORK2,'+  ',5)
-    NLT=WORK1(3)
-    NGT=WORK1(4)
-    IF ( .NOT. IFOK) THEN
-        WRITE(6,101) NID,GUESS,CLT,CGT
-        WRITE(6,102) NID,(WORK1(I),I=1,5)
-        101 FORMAT(I5,'Glg:',3F12.5)
-        102 FORMAT(I5,'WORK1:',5F12.5)
-    ENDIF
-
-!     Done?
-
-    IF (NLT > N2 .OR. NGT > N2) THEN
-    !        we're not done.....
-        IF (NGT > NLT) THEN
-        !           guess is too low
-            GMIN=CGT
-            G2=CGT+MAX(0.,WORK1(2)/WORK1(1)-GUESS)*AMP
-            IF (G2 > GMAX) G2=0.5*(GUESS+GMAX)
-            EPS=AFAC*ABS(G2-GUESS)
-        !           see that we move at least as far as the next closest value.
-            GUESS=MAX(G2,CGT)
-            GOTO 10
-        ELSE IF (NLT > NGT) THEN
-        !           guess is too high
-            GMAX=CLT
-            G2=CLT+MIN(0.,WORK1(2)/WORK1(1)-GUESS)*AMP
-            IF (G2 < GMIN) G2=0.5*(GUESS+GMIN)
-            EPS=AFAC*ABS(G2-GUESS)
-        !           see that we move at least as far as the next closest value.
-            GUESS=MIN(G2,CLT)
-            GOTO 10
-        ENDIF
-    ELSE
-    
-    !        we're done....
-        IF (WORK1(5) /= 0) THEN
-        !           the median is (usually) one of the values
-            FMDIAN=GUESS
-            IF (WORK1(5) == 1.0) THEN
-                IF (MOD(NTOT,2) == 0) THEN
-                    IF (NGT > NLT) THEN
-                        FMDIAN=0.5*(GUESS+CGT)
-                    ELSE
-                        FMDIAN=0.5*(GUESS+CLT)
-                    ENDIF
-                ELSE
-                    IF (NGT == NLT) THEN
-                        FMDIAN=GUESS
-                    ELSE IF(NGT > NLT) THEN
-                        FMDIAN=CGT
-                    ELSE
-                        FMDIAN=CLT
-                    ENDIF
-                ENDIF
-            ENDIF
-        ELSE
-            IF (MOD(NTOT,2) == 0) THEN
-                IF (NGT == NLT) THEN
-                    FMDIAN=0.5*(CLT+CGT)
-                ELSE IF(NGT > NLT) THEN
-                    FMDIAN=0.5*(GUESS+CGT)
-                ELSE
-                    FMDIAN=0.5*(GUESS+CLT)
-                ENDIF
-            ELSE
-                IF (NGT == NLT) THEN
-                    FMDIAN=GUESS
-                ELSE IF(NGT > NLT) THEN
-                    FMDIAN=CGT
-                ELSE
-                    FMDIAN=CLT
-                ENDIF
-            ENDIF
-        ENDIF
-    
-    ENDIF
-    IF ( .NOT. IFOK) WRITE(6,*) NID,'FMDIAN2',FMDIAN,(A(I),I=1,N)
-    return
-
-!     Error handling
-
-    9000 CONTINUE
-    WRITE(6,11) NTOT,GMIN0,GMAX0,GUESS
-    11 FORMAT('ABORTING IN FMDIAN: N,AMIN,AMAX:',I6,3G14.6)
-    DO 13 I1=1,N,5
-        IN=I1+5
-        IN=MIN(IN,N)
-        WRITE(6,12) NID,(A(I),I=I1,IN)
-        12 FORMAT(I4,' FMA:',5G14.6)
-    13 END DO
-    DO 15 I1=1,ITRY,5
-        IN=I1+5
-        IN=MIN(IN,ITRY)
-        WRITE(6,14) NID,(GUES(I),I=I1,IN)
-        14 FORMAT(I4,' FMG:',5G14.6)
-    15 END DO
-    call exitt
-    end function fmdian
 
 !========================================================================
 !     Double precision matrix and vector routines
@@ -1545,14 +1342,6 @@ end function gl2norm
     10 END DO
     return
     end subroutine rrcopy
-!-----------------------------------------------------------------------
-    subroutine sorts(xout,xin,work,n)
-    real :: xout(1),xin(1),work(1)
-    call copy(xout,xin,n)
-    call sort(xout,work,n)
-    return
-    end subroutine sorts
-
 !-----------------------------------------------------------------------
     function ivlsum(a,n)
     INTEGER :: A(1)
@@ -1681,42 +1470,6 @@ end function gl2norm
     GOTO 100
     end subroutine sort
 !-----------------------------------------------------------------------
-    subroutine iswap_ip(x,p,n)
-    integer :: x(1),xstart
-    integer :: p(1)
-
-!     In-place permutation: x' = x(p)
-
-    do k=1,n
-        if (p(k) > 0) then   ! not swapped
-            xstart     = x(k)
-            loop_start = k
-            last       = k
-            do j=k,n
-                next    = p(last)
-                if (next < 0) then
-                    write(6,*) 'Hey! iswap_ip problem.',j,k,n,next
-                    call exitt
-                elseif (next == loop_start) then
-                    x(last) = xstart
-                    p(last) = -p(last)
-                    goto 10
-                else
-                    x(last) = x(next)
-                    p(last) = -p(last)
-                    last    = next
-                endif
-            enddo
-            10 continue
-        endif
-    enddo
-
-    do k=1,n
-        p(k) = -p(k)
-    enddo
-    return
-    end subroutine iswap_ip
-!-----------------------------------------------------------------------
     subroutine iswapt_ip(x,p,n)
     integer :: x(1),t1,t2
     integer :: p(1)
@@ -1755,87 +1508,6 @@ end function gl2norm
     enddo
     return
     end subroutine iswapt_ip
-!-----------------------------------------------------------------------
-    subroutine swap_ip(x,p,n)
-    real ::    x(1),xstart
-    integer :: p(1)
-
-!     In-place permutation: x' = x(p)
-
-    do k=1,n
-        if (p(k) > 0) then   ! not swapped
-            xstart     = x(k)
-            loop_start = k
-            last       = k
-            do j=k,n
-                next    = p(last)
-                if (next < 0) then
-                    write(6,*) 'Hey! swap_ip problem.',j,k,n,next
-                    call exitt
-                elseif (next == loop_start) then
-                    x(last) = xstart
-                    p(last) = -p(last)
-                    goto 10
-                else
-                    x(last) = x(next)
-                    p(last) = -p(last)
-                    last    = next
-                endif
-            enddo
-            10 continue
-        endif
-    enddo
-
-    do k=1,n
-        p(k) = -p(k)
-    enddo
-    return
-    end subroutine swap_ip
-!-----------------------------------------------------------------------
-    subroutine swapt_ip(x,p,n)
-    real ::    x(1),t1,t2
-    integer :: p(1)
-
-!     In-place permutation: x'(p) = x
-
-
-    do k=1,n
-        if (p(k) > 0) then   ! not swapped
-            loop_start = k
-            next       = p(loop_start)
-            t1         = x(loop_start)
-            do j=1,n
-                if (next < 0) then
-                    write(6,*) 'Hey! swapt_ip problem.',j,k,n,next
-                    call exitt
-                elseif (next == loop_start) then
-                    x(next) = t1
-                    p(next) = -p(next)
-                    goto 10
-                else
-                    t2      =  x(next)
-                    x(next) =  t1
-                    t1      =  t2
-                    nextp   =  p(next)
-                    p(next) = -p(next)
-                    next    =  nextp
-                endif
-            enddo
-            10 continue
-        endif
-    enddo
-
-    do k=1,n
-        p(k) = -p(k)
-    enddo
-    return
-    end subroutine swapt_ip
-!-----------------------------------------------------------------------
-    subroutine glvadd(x,w,n)
-    real :: x(1),w(1)
-    call gop(x,w,'+  ',n)
-    return
-    end subroutine glvadd
 !-----------------------------------------------------------------------
     subroutine add3s12(x,y,z,c1,c2,n)
     real :: x(1),y(1),z(1),c1,c2
@@ -1877,16 +1549,6 @@ end function gl2norm
     return
     end subroutine add2col2
 !-----------------------------------------------------------------------
-    subroutine add2sxy(x,a,y,b,n)
-    real :: x(1),y(1)
-
-    do i=1,n
-        x(i) = a*x(i) + b*y(i)
-    enddo
-
-    return
-    end subroutine add2sxy
-!-----------------------------------------------------------------------
     subroutine col2s2(x,y,s,n)
     real :: x(n),y(n)
 
@@ -1896,7 +1558,6 @@ end function gl2norm
 
     return
     end subroutine col2s2
-!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 subroutine ident(a,n)
   use kinds, only : DP

@@ -1,91 +1,96 @@
 !**********************************************************************
-
-!     ROUTINES FOR ESITMATING AND CALCULATING EIGENVALUES
-!     USED IN NEKTON
-
+!> \file eigsolv.F90
+!! \brief routines for estimating and calculating eigenvalues 
 !**********************************************************************
 
-    SUBROUTINE ESTEIG
 !--------------------------------------------------------------
-
-!     Estimate eigenvalues
-
+!> \brief Estimate eigenvalues
 !-------------------------------------------------------------
-    use size_m
-    use eigen
-    use geom
-    use input
-    use tstep
+SUBROUTINE ESTEIG
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, ndim, nid
+  use eigen, only : eigae, eigge, eigga, eigaa, eigas, eiggs
+  use geom, only : xm1, ym1, zm1
+  use input, only : if3d, ifaxis, ifflow
+  use tstep, only : nelfld, ifield, pi, istep
+  implicit none
 
-    NTOT1=NX1*NY1*NZ1*NELFLD(IFIELD)
-    XMIN = GLMIN(XM1,NTOT1)
-    XMAX = GLMAX(XM1,NTOT1)
-    YMIN = GLMIN(YM1,NTOT1)
-    YMAX = GLMAX(YM1,NTOT1)
-    IF (IF3D) THEN
-        ZMIN = GLMIN(ZM1,NTOT1)
-        ZMAX = GLMAX(ZM1,NTOT1)
-    ELSE
-        ZMIN = 0.0
-        ZMAX = 0.0
-    ENDIF
+  integer :: ntot1
+  real(DP) :: xmin, xmax, ymin, ymax, zmin, zmax
+  real(DP) :: xx, yy, zz, rxy, ryx, rxz, rzx, ryz, rzy, rmin
+  real(DP) :: xx2, yy2, zz2, xyzmin, xyzmax
+  real(DP) :: one, ratio
+  real(DP), external :: glmin, glmax
 
-    XX = XMAX - XMIN
-    YY = YMAX - YMIN
-    ZZ = ZMAX - ZMIN
-    RXY = XX/YY
-    RYX = YY/XX
-    RMIN = RXY
-    IF (RYX < RMIN) RMIN = RYX
-    IF (NDIM == 3) THEN
-        RXZ = XX/ZZ
-        RZX = ZZ/XX
-        RYZ = YY/ZZ
-        RZY = ZZ/YY
-        IF (RXZ < RMIN) RMIN = RXZ
-        IF (RZX < RMIN) RMIN = RZX
-        IF (RYZ < RMIN) RMIN = RYZ
-        IF (RZY < RMIN) RMIN = RZY
-    ENDIF
+  NTOT1=NX1*NY1*NZ1*NELFLD(IFIELD)
+  XMIN = GLMIN(XM1,NTOT1)
+  XMAX = GLMAX(XM1,NTOT1)
+  YMIN = GLMIN(YM1,NTOT1)
+  YMAX = GLMAX(YM1,NTOT1)
+  IF (IF3D) THEN
+      ZMIN = GLMIN(ZM1,NTOT1)
+      ZMAX = GLMAX(ZM1,NTOT1)
+  ELSE
+      ZMIN = 0.0
+      ZMAX = 0.0
+  ENDIF
 
-    XX2    = 1./XX**2
-    YY2    = 1./YY**2
-    XYZMIN = XX2
-    XYZMAX = XX2+YY2
-    IF (YY2 < XYZMIN) XYZMIN = YY2
-    IF (NDIM == 3) THEN
-        ZZ2 = 1./ZZ**2
-        XYZMAX = XYZMAX+ZZ2
-        IF (ZZ2 < XYZMIN) XYZMIN = ZZ2
-    ENDIF
+  XX = XMAX - XMIN
+  YY = YMAX - YMIN
+  ZZ = ZMAX - ZMIN
+  RXY = XX/YY
+  RYX = YY/XX
+  RMIN = RXY
+  IF (RYX < RMIN) RMIN = RYX
+  IF (NDIM == 3) THEN
+      RXZ = XX/ZZ
+      RZX = ZZ/XX
+      RYZ = YY/ZZ
+      RZY = ZZ/YY
+      IF (RXZ < RMIN) RMIN = RXZ
+      IF (RZX < RMIN) RMIN = RZX
+      IF (RYZ < RMIN) RMIN = RYZ
+      IF (RZY < RMIN) RMIN = RZY
+  ENDIF
 
-    one    = 1.
-    PI     = 4.*ATAN(one)
-    RATIO  = XYZMIN/XYZMAX
-    EIGAE  = PI*PI*XYZMIN
-    EIGGE  = EIGGA
-    IF (NDIM == 2) EIGAA = PI*PI*(XX2+YY2)/2.
-    IF (NDIM == 3) EIGAA = PI*PI*(XX2+YY2+ZZ2)/3.
-    IF (IFAXIS)      EIGAA = .25*PI*PI*YY2
-    EIGAS  = 0.25*RATIO
-    EIGGS  = 2.0
+  XX2    = 1./XX**2
+  YY2    = 1./YY**2
+  XYZMIN = XX2
+  XYZMAX = XX2+YY2
+  IF (YY2 < XYZMIN) XYZMIN = YY2
+  IF (NDIM == 3) THEN
+      ZZ2 = 1./ZZ**2
+      XYZMAX = XYZMAX+ZZ2
+      IF (ZZ2 < XYZMIN) XYZMIN = ZZ2
+  ENDIF
 
-    IF (NID == 0 .AND. ISTEP <= 0) THEN
-        WRITE (6,*) ' '
-        WRITE (6,*) 'Estimated eigenvalues'
-        WRITE (6,*) 'EIGAA = ',EIGAA
-        WRITE (6,*) 'EIGGA = ',EIGGA
-        IF (IFFLOW) THEN
-            WRITE (6,*) 'EIGAE = ',EIGAE
-            WRITE (6,*) 'EIGAS = ',EIGAS
-            WRITE (6,*) 'EIGGE = ',EIGGE
-            WRITE (6,*) 'EIGGS = ',EIGGS
-        ENDIF
-        WRITE (6,*) ' '
-    ENDIF
+  one    = 1.
+  PI     = 4.*ATAN(one)
+  RATIO  = XYZMIN/XYZMAX
+  EIGAE  = PI*PI*XYZMIN
+  EIGGE  = EIGGA
+  IF (NDIM == 2) EIGAA = PI*PI*(XX2+YY2)/2.
+  IF (NDIM == 3) EIGAA = PI*PI*(XX2+YY2+ZZ2)/3.
+  IF (IFAXIS)      EIGAA = .25*PI*PI*YY2
+  EIGAS  = 0.25*RATIO
+  EIGGS  = 2.0
 
-    RETURN
-    END SUBROUTINE ESTEIG
+  IF (NID == 0 .AND. ISTEP <= 0) THEN
+      WRITE (6,*) ' '
+      WRITE (6,*) 'Estimated eigenvalues'
+      WRITE (6,*) 'EIGAA = ',EIGAA
+      WRITE (6,*) 'EIGGA = ',EIGGA
+      IF (IFFLOW) THEN
+          WRITE (6,*) 'EIGAE = ',EIGAE
+          WRITE (6,*) 'EIGAS = ',EIGAS
+          WRITE (6,*) 'EIGGE = ',EIGGE
+          WRITE (6,*) 'EIGGS = ',EIGGS
+      ENDIF
+      WRITE (6,*) ' '
+  ENDIF
+
+  RETURN
+END SUBROUTINE ESTEIG
 
 !-------------------------------------------------------------------------
 !> \brief Compute the following eigenvalues:.
@@ -278,73 +283,43 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
   GAMMA = RQ
   RETURN
 END SUBROUTINE GAMMAM1
+
 !-----------------------------------------------------------------------
-    SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
+!> \brief Compute startvector for finding an eigenvalue on mesh 1.
+!! Normalization: XT*B*X = 1
+SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1
+  use mass, only : bm1
+  implicit none
 
-!     Compute startvector for finding an eigenvalue on mesh 1.
-!     Normalization: XT*B*X = 1
+  REAL(DP) :: X1   (LX1,LY1,LZ1,1)
+  REAL(DP) :: Y1   (LX1,LY1,LZ1,1)
+  REAL(DP) :: MASK (LX1,LY1,LZ1,1)
+  REAL(DP) :: MULT (LX1,LY1,LZ1,1)
+  integer :: nel
 
-    use size_m
-    use mass
+  integer :: ntot1
+  real(DP) :: small, xx, xnorm
+  real(DP), external :: glamax, glsc3
 
-    REAL :: X1   (LX1,LY1,LZ1,1)
-    REAL :: Y1   (LX1,LY1,LZ1,1)
-    REAL :: MASK (LX1,LY1,LZ1,1)
-    REAL :: MULT (LX1,LY1,LZ1,1)
-
-    NTOT1 = NX1*NY1*NZ1*NEL
-    CALL COPY       (X1,BM1,NTOT1)
-
-
-    call rand_fld_h1(y1)            ! pff 3/21/12
-    small = 0.001*glamax(x1,ntot1)
-    call add2s2(x1,y1,small,ntot1)
+  NTOT1 = NX1*NY1*NZ1*NEL
+  CALL COPY       (X1,BM1,NTOT1)
 
 
-    CALL COL2       (X1,MASK,NTOT1)
-    CALL COL3       (Y1,BM1,X1,NTOT1)
-    CALL DSSUM      (Y1,NX1,NY1,NZ1)
-    XX     = GLSC3 (X1,Y1,MULT,NTOT1)
-    XNORM  = 1./SQRT(XX)
-    CALL CMULT      (X1,XNORM,NTOT1)
+  call rand_fld_h1(y1)            ! pff 3/21/12
+  small = 0.001*glamax(x1,ntot1)
+  call add2s2(x1,y1,small,ntot1)
 
-    RETURN
-    END SUBROUTINE STARTX1
+
+  CALL COL2       (X1,MASK,NTOT1)
+  CALL COL3       (Y1,BM1,X1,NTOT1)
+  CALL DSSUM      (Y1,NX1,NY1,NZ1)
+  XX     = GLSC3 (X1,Y1,MULT,NTOT1)
+  XNORM  = 1./SQRT(XX)
+  CALL CMULT      (X1,XNORM,NTOT1)
+
+  RETURN
+END SUBROUTINE STARTX1
+
 !-----------------------------------------------------------------------
-    SUBROUTINE STARTX2 (X2,Y2)
-!------------------------------------------------------------------
-
-!     Compute startvector for finding an eigenvalue on mesh 2.
-
-!------------------------------------------------------------------
-    use size_m
-    use mass
-
-    REAL :: X2 (LX2,LY2,LZ2,LELV)
-    REAL :: Y2 (LX2,LY2,LZ2,LELV)
-
-    NXYZ2  = NX2*NY2*NZ2
-    NTOT2  = NXYZ2*NELV
-    ICONST = 0
-    IF ((NDIM == 2) .AND. (NXYZ2 == 4)) ICONST = 1
-    IF ((NDIM == 3) .AND. (NXYZ2 == 8)) ICONST = 1
-
-    IF (ICONST == 1) THEN
-        DO 1000 IEL=1,NELV
-            DO 1000 K=1,NZ2
-                DO 1000 J=1,NY2
-                    DO 1000 I=1,NX2
-                        X2(I,J,K,IEL) = I*J*K
-        1000 END DO
-    ELSE
-        CALL COPY (X2,BM2,NTOT2)
-    ENDIF
-
-    call ortho (x2)
-    CALL COL3 (Y2,BM2,X2,NTOT2)
-    XX     = GLSC2 (X2,Y2,NTOT2)
-    XNORM  = 1./SQRT(XX)
-    CALL CMULT (X2,XNORM,NTOT2)
-
-    RETURN
-    END SUBROUTINE STARTX2

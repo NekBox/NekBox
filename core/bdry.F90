@@ -169,165 +169,131 @@ SUBROUTINE SETLOG()
 END SUBROUTINE SETLOG
 
 !-----------------------------------------------------------------------
-    SUBROUTINE SETRZER
-!-------------------------------------------------------------------
+!> \brief Check direction of normal of an element face for
+!!  alignment with the X, Y, or Z axis.
+SUBROUTINE CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFC,IEL)
+  use kinds, only : DP
+  use size_m, only : ndim, nx1, ny1
+  use geom, only : unx, uny, unz
+  implicit none
 
-!     Check for axisymmetric case.
-!     Are some of the elements close to the axis?
+  LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ
+  integer :: ifc, iel
 
-!-------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
+  integer :: ix, iy, ncpf
+  real(DP) :: sumx, sumy, sumz, tolnor
 
-!     Single or double precision???
+  SUMX    = 0.0
+  SUMY    = 0.0
+  SUMZ    = 0.0
+  TOLNOR  = 1.0e-3
+  IFALGN  = .FALSE. 
+  IFNORX  = .FALSE. 
+  IFNORY  = .FALSE. 
+  IFNORZ  = .FALSE. 
 
-    DELTA = 1.E-9
-    X     = 1.+DELTA
-    Y     = 1.
-    DIFF  = ABS(X-Y)
-    IF (DIFF == 0.) EPS = 1.E-7
-    IF (DIFF > 0.) EPS = 1.E-14
-    eps1 = 1.e-6 ! for prenek mesh in real*4
+  IF (NDIM == 2) THEN
+  
+      NCPF = NX1
+      DO 100 IX=1,NX1
+          SUMX = SUMX + ABS( ABS(UNX(IX,1,IFC,IEL)) - 1.0 )
+          SUMY = SUMY + ABS( ABS(UNY(IX,1,IFC,IEL)) - 1.0 )
+      100 END DO
+      SUMX = SUMX / NCPF
+      SUMY = SUMY / NCPF
+      IF ( SUMX < TOLNOR ) THEN
+          IFNORX  = .TRUE. 
+          IFALGN = .TRUE. 
+      ENDIF
+      IF ( SUMY < TOLNOR ) THEN
+          IFNORY  = .TRUE. 
+          IFALGN = .TRUE. 
+      ENDIF
+  
+  ELSE
+  
+      NCPF = NX1*NX1
+      DO 200 IX=1,NX1
+          DO 200 IY=1,NY1
+              SUMX = SUMX + ABS( ABS(UNX(IX,IY,IFC,IEL)) - 1.0 )
+              SUMY = SUMY + ABS( ABS(UNY(IX,IY,IFC,IEL)) - 1.0 )
+              SUMZ = SUMZ + ABS( ABS(UNZ(IX,IY,IFC,IEL)) - 1.0 )
+      200 END DO
+      SUMX = SUMX / NCPF
+      SUMY = SUMY / NCPF
+      SUMZ = SUMZ / NCPF
+      IF ( SUMX < TOLNOR ) THEN
+          IFNORX  = .TRUE. 
+          IFALGN = .TRUE. 
+      ENDIF
+      IF ( SUMY < TOLNOR ) THEN
+          IFNORY  = .TRUE. 
+          IFALGN = .TRUE. 
+      ENDIF
+      IF ( SUMZ < TOLNOR ) THEN
+          IFNORZ  = .TRUE. 
+          IFALGN = .TRUE. 
+      ENDIF
+  
+  ENDIF
 
-    DO 100 IEL=1,NELT
-        IFRZER(IEL) = .FALSE. 
-        IF (IFAXIS) THEN
-            NVERT = 0
-            DO 10 IC=1,4
-                IF(ABS(YC(IC,IEL)) < EPS1) THEN
-                    NVERT = NVERT+1
-                    YC(IC,IEL) = 0.0  ! exactly on the axis
-                ENDIF
-            10 END DO
-        ENDIF
-        IEDGE = 1
-        IF ((NVERT == 2) .AND. (CCURVE(IEDGE,IEL) == ' ')) &
-        IFRZER(IEL) = .TRUE. 
-    100 END DO
-    RETURN
-    END SUBROUTINE SETRZER
-
+  RETURN
+  END SUBROUTINE CHKNORD
 !-----------------------------------------------------------------------
-    SUBROUTINE CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFC,IEL)
+SUBROUTINE CHKAXCB()
+  use size_m, only : ndim, nelv
+  use input, only : cbc
+  implicit none
 
-!      Check direction of normal of an element face for
-!      alignment with the X, Y, or Z axis.
+  CHARACTER CB*3
+  integer :: ifld, nface, iel, ifc
 
-    use size_m
-    use geom
+  IFLD  = 1
+  NFACE = 2*NDIM
 
-    LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ
+  DO 100 IEL=1,NELV
+      DO 100 IFC=1,NFACE
+          CB = CBC(IFC,IEL,IFLD)
+          IF  (CB == 'A  ' .AND. IFC /= 1)  GOTO 9000
+  100 END DO
 
-    SUMX    = 0.0
-    SUMY    = 0.0
-    SUMZ    = 0.0
-    TOLNOR  = 1.0e-3
-    IFALGN  = .FALSE. 
-    IFNORX  = .FALSE. 
-    IFNORY  = .FALSE. 
-    IFNORZ  = .FALSE. 
+  RETURN
 
-    IF (NDIM == 2) THEN
-    
-        NCPF = NX1
-        DO 100 IX=1,NX1
-            SUMX = SUMX + ABS( ABS(UNX(IX,1,IFC,IEL)) - 1.0 )
-            SUMY = SUMY + ABS( ABS(UNY(IX,1,IFC,IEL)) - 1.0 )
-        100 END DO
-        SUMX = SUMX / NCPF
-        SUMY = SUMY / NCPF
-        IF ( SUMX < TOLNOR ) THEN
-            IFNORX  = .TRUE. 
-            IFALGN = .TRUE. 
-        ENDIF
-        IF ( SUMY < TOLNOR ) THEN
-            IFNORY  = .TRUE. 
-            IFALGN = .TRUE. 
-        ENDIF
-    
-    ELSE
-    
-        NCPF = NX1*NX1
-        DO 200 IX=1,NX1
-            DO 200 IY=1,NY1
-                SUMX = SUMX + ABS( ABS(UNX(IX,IY,IFC,IEL)) - 1.0 )
-                SUMY = SUMY + ABS( ABS(UNY(IX,IY,IFC,IEL)) - 1.0 )
-                SUMZ = SUMZ + ABS( ABS(UNZ(IX,IY,IFC,IEL)) - 1.0 )
-        200 END DO
-        SUMX = SUMX / NCPF
-        SUMY = SUMY / NCPF
-        SUMZ = SUMZ / NCPF
-        IF ( SUMX < TOLNOR ) THEN
-            IFNORX  = .TRUE. 
-            IFALGN = .TRUE. 
-        ENDIF
-        IF ( SUMY < TOLNOR ) THEN
-            IFNORY  = .TRUE. 
-            IFALGN = .TRUE. 
-        ENDIF
-        IF ( SUMZ < TOLNOR ) THEN
-            IFNORZ  = .TRUE. 
-            IFALGN = .TRUE. 
-        ENDIF
-    
-    ENDIF
+  9000 WRITE (6,*) ' Element face on the axis of symmetry must be FACE 1'
+  WRITE (6,*) ' Element',IEL,'   face',IFC,'  is on the axis.'
+  call exitt
 
-    RETURN
-    END SUBROUTINE CHKNORD
+END SUBROUTINE CHKAXCB
 !-----------------------------------------------------------------------
-    SUBROUTINE CHKAXCB
+!> \brief Check for illegal boundary conditions
+SUBROUTINE CHKCBC (CB,IEL,IFC,IFALGN)
+  implicit none
+  CHARACTER CB*3
+  LOGICAL :: IFALGN
+  integer :: iel, ifc
 
-    use size_m
-    use input
-    CHARACTER CB*3
+!   Laplacian formulation only
 
-    IFLD  = 1
-    NFACE = 2*NDIM
+  IF  (CB == 'SH ' .OR.  CB == 'sh ' .OR. &
+  CB == 'SHL' .OR.  CB == 'shl' .OR. &
+  CB == 'S  ' .OR.  CB == 's  ' .OR. &
+  CB == 'SL ' .OR.  CB == 'sl ' .OR. &
+  CB == 'MM ' .OR.  CB == 'mm ' .OR. &
+  CB == 'MS ' .OR.  CB == 'ms ' .OR. &
+  CB == 'MSI' .OR.  CB == 'msi'    )                GOTO 9001
+  IF ( .NOT. IFALGN .AND. &
+  (CB == 'ON ' .OR.  CB == 'on ' .OR. CB == 'SYM') ) GOTO 9010
+  RETURN
 
-    DO 100 IEL=1,NELV
-        DO 100 IFC=1,NFACE
-            CB = CBC(IFC,IEL,IFLD)
-            IF  (CB == 'A  ' .AND. IFC /= 1)  GOTO 9000
-    100 END DO
-
-    RETURN
-
-    9000 WRITE (6,*) ' Element face on the axis of symmetry must be FACE 1'
-    WRITE (6,*) ' Element',IEL,'   face',IFC,'  is on the axis.'
-    call exitt
-
-    END SUBROUTINE CHKAXCB
-!-----------------------------------------------------------------------
-    SUBROUTINE CHKCBC (CB,IEL,IFC,IFALGN)
-
-!     Check for illegal boundary conditions
-
-    CHARACTER CB*3
-    LOGICAL :: IFALGN
-
-!     Laplacian formulation only
-
-    IF  (CB == 'SH ' .OR.  CB == 'sh ' .OR. &
-    CB == 'SHL' .OR.  CB == 'shl' .OR. &
-    CB == 'S  ' .OR.  CB == 's  ' .OR. &
-    CB == 'SL ' .OR.  CB == 'sl ' .OR. &
-    CB == 'MM ' .OR.  CB == 'mm ' .OR. &
-    CB == 'MS ' .OR.  CB == 'ms ' .OR. &
-    CB == 'MSI' .OR.  CB == 'msi'    )                GOTO 9001
-    IF ( .NOT. IFALGN .AND. &
-    (CB == 'ON ' .OR.  CB == 'on ' .OR. CB == 'SYM') ) GOTO 9010
-    RETURN
-
-    9001 WRITE (6,*) ' Illegal traction boundary conditions detected for'
-    GOTO 9999
-    9010 WRITE (6,*) ' Mixed B.C. on a side nonaligned with either the X,Y, &
-    or Z axis detected for'
-    9999 WRITE (6,*) ' Element',IEL,'   side',IFC,'.'
-    WRITE (6,*) ' Selected option only allowed for STRESS FORMULATION'
-    WRITE (6,*) ' Execution terminates'
-    call exitt
-    END SUBROUTINE CHKCBC
+  9001 WRITE (6,*) ' Illegal traction boundary conditions detected for'
+  GOTO 9999
+  9010 WRITE (6,*) ' Mixed B.C. on a side nonaligned with either the X,Y, &
+  or Z axis detected for'
+  9999 WRITE (6,*) ' Element',IEL,'   side',IFC,'.'
+  WRITE (6,*) ' Selected option only allowed for STRESS FORMULATION'
+  WRITE (6,*) ' Execution terminates'
+  call exitt
+END SUBROUTINE CHKCBC
 !-----------------------------------------------------------------------
 !> \brief Zero out masks corresponding to Dirichlet boundary points.
 SUBROUTINE BCMASK
@@ -1038,34 +1004,42 @@ SUBROUTINE NEKASGN (IX,IY,IZ,IEL)
   RETURN
 END SUBROUTINE NEKASGN
 !-----------------------------------------------------------------------
-    SUBROUTINE LFALSE (IFA,N)
-    LOGICAL :: IFA(1)
-    DO 100 I=1,N
-        IFA(I)= .FALSE. 
-    100 END DO
-    RETURN
-    END SUBROUTINE LFALSE
+SUBROUTINE LFALSE (IFA,N)
+  implicit none
+  LOGICAL :: IFA(1)
+  integer :: n, i
+  DO 100 I=1,N
+      IFA(I)= .FALSE. 
+  100 END DO
+  RETURN
+END SUBROUTINE LFALSE
 !-----------------------------------------------------------------------
-    SUBROUTINE RZERO3 (A,B,C,N)
-    DIMENSION A(1),B(1),C(1)
-    DO 100 I=1,N
-        A(I)=0.0
-        B(I)=0.0
-        C(I)=0.0
-    100 END DO
-    RETURN
-    END SUBROUTINE RZERO3
+SUBROUTINE RZERO3 (A,B,C,N)
+  use kinds, only : DP
+  implicit none
+  real(DP) :: A(1),B(1),C(1)
+  integer :: n, i
+  DO 100 I=1,N
+      A(I)=0.0
+      B(I)=0.0
+      C(I)=0.0
+  100 END DO
+  RETURN
+END SUBROUTINE RZERO3
 !-----------------------------------------------------------------------
-    SUBROUTINE UNITVEC (X,Y,Z,N)
-    DIMENSION X(1),Y(1),Z(1)
-    DO 100 I=1,N
-        XLNGTH = SQRT( X(I)**2 + Y(I)**2 + Z(I)**2 )
-        IF (XLNGTH /= 0.0) THEN
-            X(I) = X(I)/XLNGTH
-            Y(I) = Y(I)/XLNGTH
-            Z(I) = Z(I)/XLNGTH
-        ENDIF
-    100 END DO
-    RETURN
-    END SUBROUTINE UNITVEC
+SUBROUTINE UNITVEC (X,Y,Z,N)
+  use kinds, only : DP
+  implicit none
+  real(DP) :: X(1),Y(1),Z(1), xlngth
+  integer :: n, i
+  DO 100 I=1,N
+      XLNGTH = SQRT( X(I)**2 + Y(I)**2 + Z(I)**2 )
+      IF (XLNGTH /= 0.0) THEN
+          X(I) = X(I)/XLNGTH
+          Y(I) = Y(I)/XLNGTH
+          Z(I) = Z(I)/XLNGTH
+      ENDIF
+  100 END DO
+  RETURN
+END SUBROUTINE UNITVEC
 !-----------------------------------------------------------------------

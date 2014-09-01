@@ -1,369 +1,374 @@
-    subroutine genwz
 !-----------------------------------------------------------------
-
-!     GENERATE
-
-!            - DERIVATIVE OPERATORS
-!            - INTERPOLATION OPERATORS
-!            - WEIGHTS
-!            - COLLOCATION POINTS
-
-!     ASSOCIATED WITH THE
-
-!            - GAUSS-LOBATTO LEGENDRE MESH (SUFFIX M1/M2/M3)
-!            - GAUSS LEGENDRE         MESH (SUFFIX M2)
-!            - GAUSS-LOBATTO JACOBI   MESH (SUFFIX M1/M2/M3)
-
+!> \brief Generate derivative and interpolation operators.
+!!  GENERATE
+!!         - DERIVATIVE OPERATORS
+!!         - INTERPOLATION OPERATORS
+!!         - WEIGHTS
+!!         - COLLOCATION POINTS
+!!  ASSOCIATED WITH THE
+!!         - GAUSS-LOBATTO LEGENDRE MESH (SUFFIX M1/M2/M3)
+!!         - GAUSS LEGENDRE         MESH (SUFFIX M2)
+!!         - GAUSS-LOBATTO JACOBI   MESH (SUFFIX M1/M2/M3)
 !-----------------------------------------------------------------
+subroutine genwz
+  use size_m, only : ly1, ndim, nx1, ny1, nz1, nx2, ny2, nz2, nx3, ny3, nz3
+  use dxyz, only : dxm1, dxtm1, dym1, dytm1, dzm1, dztm1, dxm3, dxtm3
+  use dxyz, only : dym3, dytm3, dzm3, dztm3, dxm12, dxtm12, dym12, dytm12
+  use dxyz, only : dzm12, dztm12
+  use input, only : ifsplit
+  use ixyz, only : ixm12, ixtm12, iym12, iytm12, izm12, izm12
+  use ixyz, only : iztm12, ixm21, ixtm21, iym21, iytm21, izm21, iztm21
+  use ixyz, only : ixm13, ixtm13, iym13, iytm13, izm13, iztm13
+  use ixyz, only : ixm31, ixtm31, iym31, iytm31, izm31, iztm31
+  use wz_m, only : zgm1, zgm2, zgm3
+  use wz_m, only : wxm1, wym1, wzm1, wxm2, wym2, wzm2, wxm3, wym3, wzm3
+  use wz_m, only : w3m1, w3m2, w3m3
+  implicit none
 
-    use size_m
-    use dxyz
-    use input
-    use ixyz
-    use wz_m
+  REAL :: TMP(LY1,LY1),TMPT(LY1,LY1)
+  integer :: ix, iy, iz
 
-    REAL :: TMP(LY1,LY1),TMPT(LY1,LY1)
-
-    IF (NDIM == 2) THEN
-      write (*,*) "Oops: ndim == 2"
+  IF (NDIM == 2) THEN
+    write (*,*) "Oops: ndim == 2"
 #if 0    
-    !***  Two-dimensional case  **********************
-    
-    
-    !     Gauss-Lobatto Legendre mesh (suffix M1)
-    !     Generate collocation points and weights
-    
-        CALL ZWGLL (ZGM1(1,1),WXM1,NX1)
-        CALL ZWGLL (ZGM1(1,2),WYM1,NY1)
-        ZGM1(NZ1,3) = 0.
-        WZM1(NZ1)   = 1.
-        DO 100 IY=1,NY1
-            DO 100 IX=1,NX1
-                W3M1(IX,IY,1)=WXM1(IX)*WYM1(IY)
-        100 END DO
-    
-    !     Compute derivative matrices
-    
-        CALL DGLL (DXM1,DXTM1,ZGM1(1,1),NX1,NX1)
-        CALL DGLL (DYM1,DYTM1,ZGM1(1,2),NY1,NY1)
-        CALL RZERO (DZM1 ,NZ1*NZ1)
-        CALL RZERO (DZTM1,NZ1*NZ1)
-    
-    !     Gauss Legendre mesh (suffix M2)
-    !     Generate collocation points and weights
-    
-        IF(IFSPLIT)THEN
-            CALL ZWGLL (ZGM2(1,1),WXM2,NX2)
-            CALL ZWGLL (ZGM2(1,2),WYM2,NY2)
-        ELSE
-            CALL ZWGL  (ZGM2(1,1),WXM2,NX2)
-            CALL ZWGL  (ZGM2(1,2),WYM2,NY2)
-        ENDIF
-        ZGM2(NZ2,3) = 0.
-        WZM2(NZ2)   = 1.
-        DO 200 IY=1,NY2
-            DO 200 IX=1,NX2
-                W3M2(IX,IY,1)=WXM2(IX)*WYM2(IY)
-        200 END DO
-    
-    !     Gauss-Lobatto Legendre mesh (suffix M3).
-    !     Generate collocation points and weights.
-    
-        CALL ZWGLL (ZGM3(1,1),WXM3,NX3)
-        CALL ZWGLL (ZGM3(1,2),WYM3,NY3)
-        ZGM3(NZ3,3) = 0.
-        WZM3(NZ3)   = 1.
-        DO 300 IY=1,NY3
-            DO 300 IX=1,NX3
-                W3M3(IX,IY,1)=WXM3(IX)*WYM3(IY)
-        300 END DO
-    
-    !     Compute derivative matrices
-    
-        CALL DGLL (DXM3,DXTM3,ZGM3(1,1),NX3,NX3)
-        CALL DGLL (DYM3,DYTM3,ZGM3(1,2),NY3,NY3)
-        CALL RZERO (DZM3 ,NZ3*NZ3)
-        CALL RZERO (DZTM3,NZ3*NZ3)
-    
-    !     Generate interpolation operators for the staggered mesh
-    
-        CALL IGLLM (IXM12,IXTM12,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
-        CALL IGLLM (IYM12,IYTM12,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
-        IZM12 (NZ2,NZ1) = 1.
-        IZTM12(NZ1,NZ2) = 1.
-    
-    !     NOTE: The splitting scheme has only one mesh!!!!!
-    
-        IF (IFSPLIT) THEN
-            CALL IGLLM (IXM21,IXTM21,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
-            CALL IGLLM (IYM21,IYTM21,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
-        ELSE
-          write(*,*) "Oops: ifsplit false"
+  !***  Two-dimensional case  **********************
+  
+  
+  !     Gauss-Lobatto Legendre mesh (suffix M1)
+  !     Generate collocation points and weights
+  
+      CALL ZWGLL (ZGM1(1,1),WXM1,NX1)
+      CALL ZWGLL (ZGM1(1,2),WYM1,NY1)
+      ZGM1(NZ1,3) = 0.
+      WZM1(NZ1)   = 1.
+      DO 100 IY=1,NY1
+          DO 100 IX=1,NX1
+              W3M1(IX,IY,1)=WXM1(IX)*WYM1(IY)
+      100 END DO
+  
+  !     Compute derivative matrices
+  
+      CALL DGLL (DXM1,DXTM1,ZGM1(1,1),NX1,NX1)
+      CALL DGLL (DYM1,DYTM1,ZGM1(1,2),NY1,NY1)
+      CALL RZERO (DZM1 ,NZ1*NZ1)
+      CALL RZERO (DZTM1,NZ1*NZ1)
+  
+  !     Gauss Legendre mesh (suffix M2)
+  !     Generate collocation points and weights
+  
+      IF(IFSPLIT)THEN
+          CALL ZWGLL (ZGM2(1,1),WXM2,NX2)
+          CALL ZWGLL (ZGM2(1,2),WYM2,NY2)
+      ELSE
+          CALL ZWGL  (ZGM2(1,1),WXM2,NX2)
+          CALL ZWGL  (ZGM2(1,2),WYM2,NY2)
+      ENDIF
+      ZGM2(NZ2,3) = 0.
+      WZM2(NZ2)   = 1.
+      DO 200 IY=1,NY2
+          DO 200 IX=1,NX2
+              W3M2(IX,IY,1)=WXM2(IX)*WYM2(IY)
+      200 END DO
+  
+  !     Gauss-Lobatto Legendre mesh (suffix M3).
+  !     Generate collocation points and weights.
+  
+      CALL ZWGLL (ZGM3(1,1),WXM3,NX3)
+      CALL ZWGLL (ZGM3(1,2),WYM3,NY3)
+      ZGM3(NZ3,3) = 0.
+      WZM3(NZ3)   = 1.
+      DO 300 IY=1,NY3
+          DO 300 IX=1,NX3
+              W3M3(IX,IY,1)=WXM3(IX)*WYM3(IY)
+      300 END DO
+  
+  !     Compute derivative matrices
+  
+      CALL DGLL (DXM3,DXTM3,ZGM3(1,1),NX3,NX3)
+      CALL DGLL (DYM3,DYTM3,ZGM3(1,2),NY3,NY3)
+      CALL RZERO (DZM3 ,NZ3*NZ3)
+      CALL RZERO (DZTM3,NZ3*NZ3)
+  
+  !     Generate interpolation operators for the staggered mesh
+  
+      CALL IGLLM (IXM12,IXTM12,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
+      CALL IGLLM (IYM12,IYTM12,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
+      IZM12 (NZ2,NZ1) = 1.
+      IZTM12(NZ1,NZ2) = 1.
+  
+  !     NOTE: The splitting scheme has only one mesh!!!!!
+  
+      IF (IFSPLIT) THEN
+          CALL IGLLM (IXM21,IXTM21,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
+          CALL IGLLM (IYM21,IYTM21,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
+      ELSE
+        write(*,*) "Oops: ifsplit false"
 #if 0
-            CALL IGLM  (IXM21,IXTM21,ZGM2(1,1),ZGM1(1,1),NX2,NX1,NX2,NX1)
-            CALL IGLM  (IYM21,IYTM21,ZGM2(1,2),ZGM1(1,2),NY2,NY1,NY2,NY1)
+          CALL IGLM  (IXM21,IXTM21,ZGM2(1,1),ZGM1(1,1),NX2,NX1,NX2,NX1)
+          CALL IGLM  (IYM21,IYTM21,ZGM2(1,2),ZGM1(1,2),NY2,NY1,NY2,NY1)
 #endif
-        ENDIF
-        IZM21 (NZ1,NZ2) = 1.
-        IZTM21(NZ2,NZ1) = 1.
-    
-    !     Compute derivative operators for the staggered mesh
-    
-        IF(IFSPLIT)THEN
-            CALL COPY (DXM12, DXM1, NX1*NX2)
-            CALL COPY (DXTM12,DXTM1,NX1*NX2)
-            CALL COPY (DYM12, DYM1, NY1*NY2)
-            CALL COPY (DYTM12,DYTM1,NY1*NY2)
-            CALL COPY (DZM12, DZM1, NZ1*NZ2)
-            CALL COPY (DZTM12,DZTM1,NZ1*NZ2)
-        ELSE
-            CALL DGLLGL (DXM12,DXTM12,ZGM1(1,1),ZGM2(1,1),IXM12, &
-            NX1,NX2,NX1,NX2)
-            CALL DGLLGL (DYM12,DYTM12,ZGM1(1,2),ZGM2(1,2),IYM12, &
-            NY1,NY2,NY1,NY2)
-            DZM12 (NZ2,NZ1) = 0.
-            DZTM12(NZ2,NZ1) = 0.
-        ENDIF
-    
-    !     Compute interpolation operators for the geometry mesh M3.
-    
-        CALL IGLLM (IXM13,IXTM13,ZGM1(1,1),ZGM3(1,1),NX1,NX3,NX1,NX3)
-        CALL IGLLM (IYM13,IYTM13,ZGM1(1,2),ZGM3(1,2),NY1,NY3,NY1,NY3)
-        CALL IGLLM (IXM31,IXTM31,ZGM3(1,1),ZGM1(1,1),NX3,NX1,NX3,NX1)
-        CALL IGLLM (IYM31,IYTM31,ZGM3(1,2),ZGM1(1,2),NY3,NY1,NY3,NY1)
-        IZM13 (NZ3,NZ1) = 1.
-        IZTM13(NZ1,NZ3) = 1.
-        IZM31 (NZ1,NZ3) = 1.
-        IZTM31(NZ3,NZ1) = 1.
-    
-    
-        IF (IFAXIS) THEN
-        
-        !     Special treatment for the axisymmetric case
-        !     Generate additional points, weights, derivative operators and
-        !     interpolation operators required for elements close to the axis.
-        
-        
-        !     Gauss-Lobatto Jacobi mesh (suffix M1).
-        !     Generate collocation points and weights (alpha=0, beta=1).
-        
-            ALPHA = 0.
-            BETA  = 1.
-            CALL ZWGLJ (ZAM1,WAM1,NY1,ALPHA,BETA)
-            DO 400 IY=1,NY1
-                DO 400 IX=1,NX1
-                    W2AM1(IX,IY)=WXM1(IX)*WAM1(IY)
-                    W2CM1(IX,IY)=WXM1(IX)*WYM1(IY)
-            400 END DO
-        
-        !     Compute derivative matrices
-        
-            CALL COPY (DCM1,DYM1,NY1*NY1)
-            CALL COPY (DCTM1,DYTM1,NY1*NY1)
-            CALL DGLJ (DAM1,DATM1,ZAM1,NY1,NY1,ALPHA,BETA)
-        
-        !     Gauss Jacobi mesh (suffix M2)
-        !     Generate collocation points and weights
-        
-            IF(IFSPLIT)THEN
-                CALL ZWGLJ (ZAM2,WAM2,NY2,ALPHA,BETA)
-            ELSE
-                CALL ZWGJ  (ZAM2,WAM2,NY2,ALPHA,BETA)
-            ENDIF
-            DO 500 IY=1,NY2
-                DO 500 IX=1,NX2
-                    W2CM2(IX,IY)=WXM2(IX)*WYM2(IY)
-                    W2AM2(IX,IY)=WXM2(IX)*WAM2(IY)
-            500 END DO
-        
-        !     Gauss-Lobatto Jacobi mesh (suffix M3).
-        !     Generate collocation points and weights.
-        
-            CALL ZWGLJ (ZAM3,WAM3,NY3,ALPHA,BETA)
-            DO 600 IY=1,NY3
-                DO 600 IX=1,NX3
-                    W2CM3(IX,IY)=WXM3(IX)*WYM3(IY)
-                    W2AM3(IX,IY)=WXM3(IX)*WAM3(IY)
-            600 END DO
-        
-        !     Compute derivative matrices
-        
-            CALL COPY (DCM3,DYM3,NY3*NY3)
-            CALL COPY (DCTM3,DYTM3,NY3*NY3)
-            CALL DGLJ (DAM3,DATM3,ZAM3,NY3,NY3,ALPHA,BETA)
-        
-        !     Generate interpolation operators for the staggered mesh
-        
-            CALL COPY  (ICM12,IYM12,NY2*NY1)
-            CALL COPY  (ICTM12,IYTM12,NY1*NY2)
-            CALL IGLJM (IAM12,IATM12,ZAM1,ZAM2,NY1,NY2,NY1,NY2,ALPHA,BETA)
-            CALL COPY  (ICM21,IYM21,NY1*NY2)
-            CALL COPY  (ICTM21,IYTM21,NY2*NY1)
-            IF (IFSPLIT) THEN
-                CALL IGLJM (IAM21,IATM21,ZAM2,ZAM1,NY1,NY2,NY1,NY2,ALPHA,BETA)
-            ELSE
-                CALL IGJM  (IAM21,IATM21,ZAM2,ZAM1,NY2,NY1,NY2,NY1,ALPHA,BETA)
-            ENDIF
-        
-        !     Compute derivative operators for the staggered mesh
-        
-            CALL COPY  (DCM12,DYM12,NY2*NY1)
-            CALL COPY  (DCTM12,DYTM12,NY1*NY2)
-            IF(IFSPLIT)THEN
-                CALL COPY (DAM12, DAM1, NY1*NY2)
-                CALL COPY (DATM12,DATM1,NY1*NY2)
-            ELSE
-                CALL DGLJGJ (DAM12,DATM12,ZAM1,ZAM2,IAM12, &
-                NY1,NY2,NY1,NY2,ALPHA,BETA)
-            ENDIF
-        
-        !     Compute interpolation operators for the geometry mesh M3.
-        
-            CALL COPY  (ICM13,IYM13,NY3*NY1)
-            CALL COPY  (ICTM13,IYTM13,NY1*NY3)
-            CALL IGLJM (IAM13,IATM13,ZAM1,ZAM3,NY1,NY3,NY1,NY3,ALPHA,BETA)
-            CALL COPY  (ICM31,IYM31,NY1*NY3)
-            CALL COPY  (ICTM31,IYTM31,NY3*NY1)
-            CALL IGLJM (IAM31,IATM31,ZAM3,ZAM1,NY3,NY1,NY3,NY1,ALPHA,BETA)
-        
-        !     Compute interpolation operators between Gauss-Lobatto Jacobi
-        !     and Gauss-Lobatto Legendre (to be used in PREPOST).
-        
-            CALL IGLJM(IAJL1,IATJL1,ZAM1,ZGM1(1,2),NY1,NY1,NY1,NY1,ALPHA,BETA)
-            IF (IFSPLIT) THEN
-                CALL IGLJM(IAJL2,IATJL2,ZAM2,ZGM2(1,2),NY2,NY2,NY2,NY2,ALPHA,BETA)
-            ELSE
-                CALL IGJM (IAJL2,IATJL2,ZAM2,ZGM2(1,2),NY2,NY2,NY2,NY2,ALPHA,BETA)
-            ENDIF
+      ENDIF
+      IZM21 (NZ1,NZ2) = 1.
+      IZTM21(NZ2,NZ1) = 1.
+  
+  !     Compute derivative operators for the staggered mesh
+  
+      IF(IFSPLIT)THEN
+          CALL COPY (DXM12, DXM1, NX1*NX2)
+          CALL COPY (DXTM12,DXTM1,NX1*NX2)
+          CALL COPY (DYM12, DYM1, NY1*NY2)
+          CALL COPY (DYTM12,DYTM1,NY1*NY2)
+          CALL COPY (DZM12, DZM1, NZ1*NZ2)
+          CALL COPY (DZTM12,DZTM1,NZ1*NZ2)
+      ELSE
+          CALL DGLLGL (DXM12,DXTM12,ZGM1(1,1),ZGM2(1,1),IXM12, &
+          NX1,NX2,NX1,NX2)
+          CALL DGLLGL (DYM12,DYTM12,ZGM1(1,2),ZGM2(1,2),IYM12, &
+          NY1,NY2,NY1,NY2)
+          DZM12 (NZ2,NZ1) = 0.
+          DZTM12(NZ2,NZ1) = 0.
+      ENDIF
+  
+  !     Compute interpolation operators for the geometry mesh M3.
+  
+      CALL IGLLM (IXM13,IXTM13,ZGM1(1,1),ZGM3(1,1),NX1,NX3,NX1,NX3)
+      CALL IGLLM (IYM13,IYTM13,ZGM1(1,2),ZGM3(1,2),NY1,NY3,NY1,NY3)
+      CALL IGLLM (IXM31,IXTM31,ZGM3(1,1),ZGM1(1,1),NX3,NX1,NX3,NX1)
+      CALL IGLLM (IYM31,IYTM31,ZGM3(1,2),ZGM1(1,2),NY3,NY1,NY3,NY1)
+      IZM13 (NZ3,NZ1) = 1.
+      IZTM13(NZ1,NZ3) = 1.
+      IZM31 (NZ1,NZ3) = 1.
+      IZTM31(NZ3,NZ1) = 1.
+  
+  
+      IF (IFAXIS) THEN
+      
+      !     Special treatment for the axisymmetric case
+      !     Generate additional points, weights, derivative operators and
+      !     interpolation operators required for elements close to the axis.
+      
+      
+      !     Gauss-Lobatto Jacobi mesh (suffix M1).
+      !     Generate collocation points and weights (alpha=0, beta=1).
+      
+          ALPHA = 0.
+          BETA  = 1.
+          CALL ZWGLJ (ZAM1,WAM1,NY1,ALPHA,BETA)
+          DO 400 IY=1,NY1
+              DO 400 IX=1,NX1
+                  W2AM1(IX,IY)=WXM1(IX)*WAM1(IY)
+                  W2CM1(IX,IY)=WXM1(IX)*WYM1(IY)
+          400 END DO
+      
+      !     Compute derivative matrices
+      
+          CALL COPY (DCM1,DYM1,NY1*NY1)
+          CALL COPY (DCTM1,DYTM1,NY1*NY1)
+          CALL DGLJ (DAM1,DATM1,ZAM1,NY1,NY1,ALPHA,BETA)
+      
+      !     Gauss Jacobi mesh (suffix M2)
+      !     Generate collocation points and weights
+      
+          IF(IFSPLIT)THEN
+              CALL ZWGLJ (ZAM2,WAM2,NY2,ALPHA,BETA)
+          ELSE
+              CALL ZWGJ  (ZAM2,WAM2,NY2,ALPHA,BETA)
+          ENDIF
+          DO 500 IY=1,NY2
+              DO 500 IX=1,NX2
+                  W2CM2(IX,IY)=WXM2(IX)*WYM2(IY)
+                  W2AM2(IX,IY)=WXM2(IX)*WAM2(IY)
+          500 END DO
+      
+      !     Gauss-Lobatto Jacobi mesh (suffix M3).
+      !     Generate collocation points and weights.
+      
+          CALL ZWGLJ (ZAM3,WAM3,NY3,ALPHA,BETA)
+          DO 600 IY=1,NY3
+              DO 600 IX=1,NX3
+                  W2CM3(IX,IY)=WXM3(IX)*WYM3(IY)
+                  W2AM3(IX,IY)=WXM3(IX)*WAM3(IY)
+          600 END DO
+      
+      !     Compute derivative matrices
+      
+          CALL COPY (DCM3,DYM3,NY3*NY3)
+          CALL COPY (DCTM3,DYTM3,NY3*NY3)
+          CALL DGLJ (DAM3,DATM3,ZAM3,NY3,NY3,ALPHA,BETA)
+      
+      !     Generate interpolation operators for the staggered mesh
+      
+          CALL COPY  (ICM12,IYM12,NY2*NY1)
+          CALL COPY  (ICTM12,IYTM12,NY1*NY2)
+          CALL IGLJM (IAM12,IATM12,ZAM1,ZAM2,NY1,NY2,NY1,NY2,ALPHA,BETA)
+          CALL COPY  (ICM21,IYM21,NY1*NY2)
+          CALL COPY  (ICTM21,IYTM21,NY2*NY1)
+          IF (IFSPLIT) THEN
+              CALL IGLJM (IAM21,IATM21,ZAM2,ZAM1,NY1,NY2,NY1,NY2,ALPHA,BETA)
+          ELSE
+              CALL IGJM  (IAM21,IATM21,ZAM2,ZAM1,NY2,NY1,NY2,NY1,ALPHA,BETA)
+          ENDIF
+      
+      !     Compute derivative operators for the staggered mesh
+      
+          CALL COPY  (DCM12,DYM12,NY2*NY1)
+          CALL COPY  (DCTM12,DYTM12,NY1*NY2)
+          IF(IFSPLIT)THEN
+              CALL COPY (DAM12, DAM1, NY1*NY2)
+              CALL COPY (DATM12,DATM1,NY1*NY2)
+          ELSE
+              CALL DGLJGJ (DAM12,DATM12,ZAM1,ZAM2,IAM12, &
+              NY1,NY2,NY1,NY2,ALPHA,BETA)
+          ENDIF
+      
+      !     Compute interpolation operators for the geometry mesh M3.
+      
+          CALL COPY  (ICM13,IYM13,NY3*NY1)
+          CALL COPY  (ICTM13,IYTM13,NY1*NY3)
+          CALL IGLJM (IAM13,IATM13,ZAM1,ZAM3,NY1,NY3,NY1,NY3,ALPHA,BETA)
+          CALL COPY  (ICM31,IYM31,NY1*NY3)
+          CALL COPY  (ICTM31,IYTM31,NY3*NY1)
+          CALL IGLJM (IAM31,IATM31,ZAM3,ZAM1,NY3,NY1,NY3,NY1,ALPHA,BETA)
+      
+      !     Compute interpolation operators between Gauss-Lobatto Jacobi
+      !     and Gauss-Lobatto Legendre (to be used in PREPOST).
+      
+          CALL IGLJM(IAJL1,IATJL1,ZAM1,ZGM1(1,2),NY1,NY1,NY1,NY1,ALPHA,BETA)
+          IF (IFSPLIT) THEN
+              CALL IGLJM(IAJL2,IATJL2,ZAM2,ZGM2(1,2),NY2,NY2,NY2,NY2,ALPHA,BETA)
+          ELSE
+              CALL IGJM (IAJL2,IATJL2,ZAM2,ZGM2(1,2),NY2,NY2,NY2,NY2,ALPHA,BETA)
+          ENDIF
 
-            CALL INVMT(IAJL1 ,IALJ1 ,TMP ,NY1)
-            CALL INVMT(IATJL1,IATLJ1,TMPT,NY1)
-            CALL MXM (IATJL1,NY1,IATLJ1,NY1,TMPT,NY1)
-            CALL MXM (IAJL1 ,NY1,IALJ1 ,NY1,TMP ,NY1)
+          CALL INVMT(IAJL1 ,IALJ1 ,TMP ,NY1)
+          CALL INVMT(IATJL1,IATLJ1,TMPT,NY1)
+          CALL MXM (IATJL1,NY1,IATLJ1,NY1,TMPT,NY1)
+          CALL MXM (IAJL1 ,NY1,IALJ1 ,NY1,TMP ,NY1)
 
-        
-        !     Compute interpolation operators between Gauss-Lobatto Legendre
-        !     and Gauss-Lobatto Jacobi (to be used in subr. genxyz IN postpre).
-        
-        
-        !     This call is not right, and these arrays are not used. 3/27/02. pff
-        !     CALL IGLLM(IALJ3,IATLJ3,ZGM3(1,2),ZAM3,NY3,NY3,NY3,NY3,ALPHA,BETA)
-            CALL IGLJM(IALJ3,IATLJ3,ZGM3(1,2),ZAM3,NY3,NY3,NY3,NY3,ALPHA,BETA)
-        
-        ENDIF
+      
+      !     Compute interpolation operators between Gauss-Lobatto Legendre
+      !     and Gauss-Lobatto Jacobi (to be used in subr. genxyz IN postpre).
+      
+      
+      !     This call is not right, and these arrays are not used. 3/27/02. pff
+      !     CALL IGLLM(IALJ3,IATLJ3,ZGM3(1,2),ZAM3,NY3,NY3,NY3,NY3,ALPHA,BETA)
+          CALL IGLJM(IALJ3,IATLJ3,ZGM3(1,2),ZAM3,NY3,NY3,NY3,NY3,ALPHA,BETA)
+      
+      ENDIF
 #endif    
     
-    ELSE
-    
-    !***  Three-dimensional case ************************************
-    
-    
-    !     Gauss-Lobatto Legendre mesh (suffix M1)
-    !     Generate collocation points and weights
-    
-        CALL ZWGLL (ZGM1(1,1),WXM1,NX1)
-        CALL ZWGLL (ZGM1(1,2),WYM1,NY1)
-        CALL ZWGLL (ZGM1(1,3),WZM1,NZ1)
-        DO 700 IZ=1,NZ1
-            DO 700 IY=1,NY1
-                DO 700 IX=1,NX1
-                    W3M1(IX,IY,IZ)=WXM1(IX)*WYM1(IY)*WZM1(IZ)
-        700 END DO
-    
-    !     Compute derivative matrices
-    
-        CALL DGLL (DXM1,DXTM1,ZGM1(1,1),NX1,NX1)
-        CALL DGLL (DYM1,DYTM1,ZGM1(1,2),NY1,NY1)
-        CALL DGLL (DZM1,DZTM1,ZGM1(1,3),NZ1,NZ1)
-    
-    !     Gauss Legendre mesh (suffix M2)
-    !     Generate collocation points and weights
-    
-        IF(IFSPLIT)THEN
-            CALL ZWGLL (ZGM2(1,1),WXM2,NX2)
-            CALL ZWGLL (ZGM2(1,2),WYM2,NY2)
-            CALL ZWGLL (ZGM2(1,3),WZM2,NZ2)
-        ELSE
-            CALL ZWGL  (ZGM2(1,1),WXM2,NX2)
-            CALL ZWGL  (ZGM2(1,2),WYM2,NY2)
-            CALL ZWGL  (ZGM2(1,3),WZM2,NZ2)
-        ENDIF
-        DO 800 IZ=1,NZ2
-            DO 800 IY=1,NY2
-                DO 800 IX=1,NX2
-                    W3M2(IX,IY,IZ)=WXM2(IX)*WYM2(IY)*WZM2(IZ)
-        800 END DO
-    
-    !     Gauss-Loabtto Legendre mesh (suffix M3).
-    !     Generate collocation points and weights.
-    
-        CALL ZWGLL (ZGM3(1,1),WXM3,NX3)
-        CALL ZWGLL (ZGM3(1,2),WYM3,NY3)
-        CALL ZWGLL (ZGM3(1,3),WZM3,NZ3)
-        DO 900 IZ=1,NZ3
-            DO 900 IY=1,NY3
-                DO 900 IX=1,NX3
-                    W3M3(IX,IY,IZ)=WXM3(IX)*WYM3(IY)*WZM3(IZ)
-        900 END DO
-    
-    !     Compute derivative matrices
-    
-        CALL DGLL (DXM3,DXTM3,ZGM3(1,1),NX3,NX3)
-        CALL DGLL (DYM3,DYTM3,ZGM3(1,2),NY3,NY3)
-        CALL DGLL (DZM3,DZTM3,ZGM3(1,3),NZ3,NZ3)
-    
-    !     Generate interpolation operators for the staggered mesh
-    
-        CALL IGLLM (IXM12,IXTM12,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
-        CALL IGLLM (IYM12,IYTM12,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
-        CALL IGLLM (IZM12,IZTM12,ZGM1(1,3),ZGM2(1,3),NZ1,NZ2,NZ1,NZ2)
-    
-    !     NOTE: The splitting scheme has only one mesh!!!!!
-    
-        IF (IFSPLIT) THEN
-            CALL IGLLM (IXM21,IXTM21,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
-            CALL IGLLM (IYM21,IYTM21,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
-            CALL IGLLM (IZM21,IZTM21,ZGM1(1,3),ZGM2(1,3),NZ1,NZ2,NZ1,NZ2)
-        ELSE
-            write(*,*) "Oops: ifsplit is false"
+  ELSE
+  
+  !***  Three-dimensional case ************************************
+  
+  
+  !     Gauss-Lobatto Legendre mesh (suffix M1)
+  !     Generate collocation points and weights
+  
+      CALL ZWGLL (ZGM1(1,1),WXM1,NX1)
+      CALL ZWGLL (ZGM1(1,2),WYM1,NY1)
+      CALL ZWGLL (ZGM1(1,3),WZM1,NZ1)
+      DO 700 IZ=1,NZ1
+          DO 700 IY=1,NY1
+              DO 700 IX=1,NX1
+                  W3M1(IX,IY,IZ)=WXM1(IX)*WYM1(IY)*WZM1(IZ)
+      700 END DO
+  
+  !     Compute derivative matrices
+  
+      CALL DGLL (DXM1,DXTM1,ZGM1(1,1),NX1,NX1)
+      CALL DGLL (DYM1,DYTM1,ZGM1(1,2),NY1,NY1)
+      CALL DGLL (DZM1,DZTM1,ZGM1(1,3),NZ1,NZ1)
+  
+  !     Gauss Legendre mesh (suffix M2)
+  !     Generate collocation points and weights
+  
+      IF(IFSPLIT)THEN
+          CALL ZWGLL (ZGM2(1,1),WXM2,NX2)
+          CALL ZWGLL (ZGM2(1,2),WYM2,NY2)
+          CALL ZWGLL (ZGM2(1,3),WZM2,NZ2)
+      ELSE
+          CALL ZWGL  (ZGM2(1,1),WXM2,NX2)
+          CALL ZWGL  (ZGM2(1,2),WYM2,NY2)
+          CALL ZWGL  (ZGM2(1,3),WZM2,NZ2)
+      ENDIF
+      DO 800 IZ=1,NZ2
+          DO 800 IY=1,NY2
+              DO 800 IX=1,NX2
+                  W3M2(IX,IY,IZ)=WXM2(IX)*WYM2(IY)*WZM2(IZ)
+      800 END DO
+  
+  !     Gauss-Loabtto Legendre mesh (suffix M3).
+  !     Generate collocation points and weights.
+  
+      CALL ZWGLL (ZGM3(1,1),WXM3,NX3)
+      CALL ZWGLL (ZGM3(1,2),WYM3,NY3)
+      CALL ZWGLL (ZGM3(1,3),WZM3,NZ3)
+      DO 900 IZ=1,NZ3
+          DO 900 IY=1,NY3
+              DO 900 IX=1,NX3
+                  W3M3(IX,IY,IZ)=WXM3(IX)*WYM3(IY)*WZM3(IZ)
+      900 END DO
+  
+  !     Compute derivative matrices
+  
+      CALL DGLL (DXM3,DXTM3,ZGM3(1,1),NX3,NX3)
+      CALL DGLL (DYM3,DYTM3,ZGM3(1,2),NY3,NY3)
+      CALL DGLL (DZM3,DZTM3,ZGM3(1,3),NZ3,NZ3)
+  
+  !     Generate interpolation operators for the staggered mesh
+  
+      CALL IGLLM (IXM12,IXTM12,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
+      CALL IGLLM (IYM12,IYTM12,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
+      CALL IGLLM (IZM12,IZTM12,ZGM1(1,3),ZGM2(1,3),NZ1,NZ2,NZ1,NZ2)
+  
+  !     NOTE: The splitting scheme has only one mesh!!!!!
+  
+      IF (IFSPLIT) THEN
+          CALL IGLLM (IXM21,IXTM21,ZGM1(1,1),ZGM2(1,1),NX1,NX2,NX1,NX2)
+          CALL IGLLM (IYM21,IYTM21,ZGM1(1,2),ZGM2(1,2),NY1,NY2,NY1,NY2)
+          CALL IGLLM (IZM21,IZTM21,ZGM1(1,3),ZGM2(1,3),NZ1,NZ2,NZ1,NZ2)
+      ELSE
+          write(*,*) "Oops: ifsplit is false"
 #if 0
-            CALL IGLM  (IXM21,IXTM21,ZGM2(1,1),ZGM1(1,1),NX2,NX1,NX2,NX1)
-            CALL IGLM  (IYM21,IYTM21,ZGM2(1,2),ZGM1(1,2),NY2,NY1,NY2,NY1)
-            CALL IGLM  (IZM21,IZTM21,ZGM2(1,3),ZGM1(1,3),NZ2,NZ1,NZ2,NZ1)
+          CALL IGLM  (IXM21,IXTM21,ZGM2(1,1),ZGM1(1,1),NX2,NX1,NX2,NX1)
+          CALL IGLM  (IYM21,IYTM21,ZGM2(1,2),ZGM1(1,2),NY2,NY1,NY2,NY1)
+          CALL IGLM  (IZM21,IZTM21,ZGM2(1,3),ZGM1(1,3),NZ2,NZ1,NZ2,NZ1)
 #endif
-        ENDIF
-    
-    !     Compute derivative operators for the staggered mesh
-    
-        IF(IFSPLIT)THEN
-            CALL COPY (DXM12, DXM1, NX1*NX2)
-            CALL COPY (DXTM12,DXTM1,NX1*NX2)
-            CALL COPY (DYM12, DYM1, NY1*NY2)
-            CALL COPY (DYTM12,DYTM1,NY1*NY2)
-            CALL COPY (DZM12, DZM1, NZ1*NZ2)
-            CALL COPY (DZTM12,DZTM1,NZ1*NZ2)
-        ELSE
-            CALL DGLLGL (DXM12,DXTM12,ZGM1(1,1),ZGM2(1,1),IXM12, &
-            NX1,NX2,NX1,NX2)
-            CALL DGLLGL (DYM12,DYTM12,ZGM1(1,2),ZGM2(1,2),IYM12, &
-            NY1,NY2,NY1,NY2)
-            CALL DGLLGL (DZM12,DZTM12,ZGM1(1,3),ZGM2(1,3),IZM12, &
-            NZ1,NZ2,NZ1,NZ2)
-        ENDIF
-    
-    !     Compute interpolation operators for the geometry mesh M3.
-    
-        CALL IGLLM (IXM13,IXTM13,ZGM1(1,1),ZGM3(1,1),NX1,NX3,NX1,NX3)
-        CALL IGLLM (IYM13,IYTM13,ZGM1(1,2),ZGM3(1,2),NY1,NY3,NY1,NY3)
-        CALL IGLLM (IZM13,IZTM13,ZGM1(1,3),ZGM3(1,3),NZ1,NZ3,NZ1,NZ3)
-        CALL IGLLM (IXM31,IXTM31,ZGM3(1,1),ZGM1(1,1),NX3,NX1,NX3,NX1)
-        CALL IGLLM (IYM31,IYTM31,ZGM3(1,2),ZGM1(1,2),NY3,NY1,NY3,NY1)
-        CALL IGLLM (IZM31,IZTM31,ZGM3(1,3),ZGM1(1,3),NZ3,NZ1,NZ3,NZ1)
-    
-    ENDIF
+      ENDIF
+  
+  !     Compute derivative operators for the staggered mesh
+  
+      IF(IFSPLIT)THEN
+          CALL COPY (DXM12, DXM1, NX1*NX2)
+          CALL COPY (DXTM12,DXTM1,NX1*NX2)
+          CALL COPY (DYM12, DYM1, NY1*NY2)
+          CALL COPY (DYTM12,DYTM1,NY1*NY2)
+          CALL COPY (DZM12, DZM1, NZ1*NZ2)
+          CALL COPY (DZTM12,DZTM1,NZ1*NZ2)
+      ELSE
+          CALL DGLLGL (DXM12,DXTM12,ZGM1(1,1),ZGM2(1,1),IXM12, &
+          NX1,NX2,NX1,NX2)
+          CALL DGLLGL (DYM12,DYTM12,ZGM1(1,2),ZGM2(1,2),IYM12, &
+          NY1,NY2,NY1,NY2)
+          CALL DGLLGL (DZM12,DZTM12,ZGM1(1,3),ZGM2(1,3),IZM12, &
+          NZ1,NZ2,NZ1,NZ2)
+      ENDIF
+  
+  !     Compute interpolation operators for the geometry mesh M3.
+  
+      CALL IGLLM (IXM13,IXTM13,ZGM1(1,1),ZGM3(1,1),NX1,NX3,NX1,NX3)
+      CALL IGLLM (IYM13,IYTM13,ZGM1(1,2),ZGM3(1,2),NY1,NY3,NY1,NY3)
+      CALL IGLLM (IZM13,IZTM13,ZGM1(1,3),ZGM3(1,3),NZ1,NZ3,NZ1,NZ3)
+      CALL IGLLM (IXM31,IXTM31,ZGM3(1,1),ZGM1(1,1),NX3,NX1,NX3,NX1)
+      CALL IGLLM (IYM31,IYTM31,ZGM3(1,2),ZGM1(1,2),NY3,NY1,NY3,NY1)
+      CALL IGLLM (IZM31,IZTM31,ZGM3(1,3),ZGM1(1,3),NZ3,NZ1,NZ3,NZ1)
+  
+  ENDIF
 
-    RETURN
-    end subroutine genwz
+  RETURN
+end subroutine genwz
+
 !-----------------------------------------------------------------------
 !> \brief Routine to generate all elemental geometric data for mesh 1.
 !!  Velocity formulation : global-to-local mapping based on mesh 3
@@ -673,243 +678,244 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
   RETURN
 end subroutine geodat1
+
 !-------------------------------------------------------------------
-!     Routine to generate all elemental geometric data for mesh 2
-!     (Gauss-Legendre mesh).
-!         RXM2,  RYM2,  RZM2   -   dr/dx, dr/dy, dr/dz
-!         SXM2,  SYM2,  SZM2   -   ds/dx, ds/dy, ds/dz
-!         TXM2,  TYM2,  TZM2   -   dt/dx, dt/dy, dt/dz
-!         JACM2                -   Jacobian
-!         BM2                  -   Mass matrix
+!>\brief Routine to generate all elemental geometric data for mesh 2
+!!  (Gauss-Legendre mesh).
+!!      RXM2,  RYM2,  RZM2   -   dr/dx, dr/dy, dr/dz
+!!      SXM2,  SYM2,  SZM2   -   ds/dx, ds/dy, ds/dz
+!!      TXM2,  TYM2,  TZM2   -   dt/dx, dt/dy, dt/dz
+!!      JACM2                -   Jacobian
+!!      BM2                  -   Mass matrix
 !------------------------------------------------------------------
-!called
-    subroutine geom2
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+subroutine geom2
+  use size_m, only : nx2, ny2, nz2, nelv
+  use geom, only : rxm2, rxm1, rym2, rym1, rzm2, rzm1
+  use geom, only : sxm2, sxm1, sym2, sym1, szm2, szm1
+  use geom, only : txm2, txm1, tym2, tym1, tzm2, tzm1
+  use geom, only : jacm2, jacm1, xm2, xm1, ym2, ym1, zm2, zm1
+  use input, only : ifsplit
+  use mass, only : bm2, bm1, bm2inv
+  implicit none
 
-    NXYZ2 = NX2*NY2*NZ2
-    NTOT2 = NXYZ2*NELV
+  integer :: nxyz2, ntot2
 
-    IF (IFSPLIT) THEN
-    
-    !        Mesh 1 and 2 are identical
-    
-        CALL COPY (RXM2,RXM1,NTOT2)
-        CALL COPY (RYM2,RYM1,NTOT2)
-        CALL COPY (RZM2,RZM1,NTOT2)
-        CALL COPY (SXM2,SXM1,NTOT2)
-        CALL COPY (SYM2,SYM1,NTOT2)
-        CALL COPY (SZM2,SZM1,NTOT2)
-        CALL COPY (TXM2,TXM1,NTOT2)
-        CALL COPY (TYM2,TYM1,NTOT2)
-        CALL COPY (TZM2,TZM1,NTOT2)
-        CALL COPY (JACM2,JACM1,NTOT2)
-        CALL COPY (BM2,BM1,NTOT2)
+  NXYZ2 = NX2*NY2*NZ2
+  NTOT2 = NXYZ2*NELV
 
-        CALL COPY (XM2,XM1,NTOT2)
-        CALL COPY (YM2,YM1,NTOT2)
-        CALL COPY (ZM2,ZM1,NTOT2)
+  IF (IFSPLIT) THEN
+  
+  !        Mesh 1 and 2 are identical
+  
+      CALL COPY (RXM2,RXM1,NTOT2)
+      CALL COPY (RYM2,RYM1,NTOT2)
+      CALL COPY (RZM2,RZM1,NTOT2)
+      CALL COPY (SXM2,SXM1,NTOT2)
+      CALL COPY (SYM2,SYM1,NTOT2)
+      CALL COPY (SZM2,SZM1,NTOT2)
+      CALL COPY (TXM2,TXM1,NTOT2)
+      CALL COPY (TYM2,TYM1,NTOT2)
+      CALL COPY (TZM2,TZM1,NTOT2)
+      CALL COPY (JACM2,JACM1,NTOT2)
+      CALL COPY (BM2,BM1,NTOT2)
 
-    ELSE
-      write(*,*) "Oops: ifsplit" 
+      CALL COPY (XM2,XM1,NTOT2)
+      CALL COPY (YM2,YM1,NTOT2)
+      CALL COPY (ZM2,ZM1,NTOT2)
+
+  ELSE
+    write(*,*) "Oops: ifsplit" 
 #if 0
-    !     Consistent approximation spaces (UZAWA)
-    
-        IF (NDIM == 2) THEN
-            CALL RZERO (RZM2,NTOT2)
-            CALL RZERO (SZM2,NTOT2)
-            CALL RONE  (TZM2,NTOT2)
-        ENDIF
-    
-        DO 1000 IEL=1,NELV
-        
-        !        Mapping from mesh M1 to mesh M2
-        
-            CALL MAP12 (RXM2(1,1,1,IEL),RXM1(1,1,1,IEL),IEL)
-            CALL MAP12 (RYM2(1,1,1,IEL),RYM1(1,1,1,IEL),IEL)
-            CALL MAP12 (SXM2(1,1,1,IEL),SXM1(1,1,1,IEL),IEL)
-            CALL MAP12 (SYM2(1,1,1,IEL),SYM1(1,1,1,IEL),IEL)
-            IF (NDIM == 3) THEN
-                CALL MAP12 (RZM2(1,1,1,IEL),RZM1(1,1,1,IEL),IEL)
-                CALL MAP12 (SZM2(1,1,1,IEL),SZM1(1,1,1,IEL),IEL)
-                CALL MAP12 (TXM2(1,1,1,IEL),TXM1(1,1,1,IEL),IEL)
-                CALL MAP12 (TYM2(1,1,1,IEL),TYM1(1,1,1,IEL),IEL)
-                CALL MAP12 (TZM2(1,1,1,IEL),TZM1(1,1,1,IEL),IEL)
-            ENDIF
-            CALL MAP12 (JACM2(1,1,1,IEL),JACM1(1,1,1,IEL),IEL)
-        
-            CALL MAP12 (XM2(1,1,1,IEL),XM1(1,1,1,IEL),IEL)
-            CALL MAP12 (YM2(1,1,1,IEL),YM1(1,1,1,IEL),IEL)
-            CALL MAP12 (ZM2(1,1,1,IEL),ZM1(1,1,1,IEL),IEL)
-        
-        !        Compute the mass matrix on mesh M2.
-        
-            IF (IFAXIS) CALL SETAXW2 ( IFRZER(IEL) )
-            CALL COL3 (BM2(1,1,1,IEL),W3M2,JACM2(1,1,1,IEL),NXYZ2)
-        
-            IF (IFAXIS .AND. IFRZER(IEL)) THEN
-                DO 300 J=1,NY2
-                    DO 300 I=1,NX2
-                        BM2(I,J,1,IEL) = BM2(I,J,1,IEL)*YM2(I,J,1,IEL) &
-                        /(1.+ZAM2(J))
-                300 END DO
-            ELSEIF (IFAXIS .AND. ( .NOT. IFRZER(IEL))) THEN
-                CALL COL2 (BM2(1,1,1,IEL),YM2(1,1,1,IEL),NXYZ2)
-            ENDIF
-        1000 END DO
+  !     Consistent approximation spaces (UZAWA)
+  
+      IF (NDIM == 2) THEN
+          CALL RZERO (RZM2,NTOT2)
+          CALL RZERO (SZM2,NTOT2)
+          CALL RONE  (TZM2,NTOT2)
+      ENDIF
+  
+      DO 1000 IEL=1,NELV
+      
+      !        Mapping from mesh M1 to mesh M2
+      
+          CALL MAP12 (RXM2(1,1,1,IEL),RXM1(1,1,1,IEL),IEL)
+          CALL MAP12 (RYM2(1,1,1,IEL),RYM1(1,1,1,IEL),IEL)
+          CALL MAP12 (SXM2(1,1,1,IEL),SXM1(1,1,1,IEL),IEL)
+          CALL MAP12 (SYM2(1,1,1,IEL),SYM1(1,1,1,IEL),IEL)
+          IF (NDIM == 3) THEN
+              CALL MAP12 (RZM2(1,1,1,IEL),RZM1(1,1,1,IEL),IEL)
+              CALL MAP12 (SZM2(1,1,1,IEL),SZM1(1,1,1,IEL),IEL)
+              CALL MAP12 (TXM2(1,1,1,IEL),TXM1(1,1,1,IEL),IEL)
+              CALL MAP12 (TYM2(1,1,1,IEL),TYM1(1,1,1,IEL),IEL)
+              CALL MAP12 (TZM2(1,1,1,IEL),TZM1(1,1,1,IEL),IEL)
+          ENDIF
+          CALL MAP12 (JACM2(1,1,1,IEL),JACM1(1,1,1,IEL),IEL)
+      
+          CALL MAP12 (XM2(1,1,1,IEL),XM1(1,1,1,IEL),IEL)
+          CALL MAP12 (YM2(1,1,1,IEL),YM1(1,1,1,IEL),IEL)
+          CALL MAP12 (ZM2(1,1,1,IEL),ZM1(1,1,1,IEL),IEL)
+      
+      !        Compute the mass matrix on mesh M2.
+      
+          IF (IFAXIS) CALL SETAXW2 ( IFRZER(IEL) )
+          CALL COL3 (BM2(1,1,1,IEL),W3M2,JACM2(1,1,1,IEL),NXYZ2)
+      
+          IF (IFAXIS .AND. IFRZER(IEL)) THEN
+              DO 300 J=1,NY2
+                  DO 300 I=1,NX2
+                      BM2(I,J,1,IEL) = BM2(I,J,1,IEL)*YM2(I,J,1,IEL) &
+                      /(1.+ZAM2(J))
+              300 END DO
+          ELSEIF (IFAXIS .AND. ( .NOT. IFRZER(IEL))) THEN
+              CALL COL2 (BM2(1,1,1,IEL),YM2(1,1,1,IEL),NXYZ2)
+          ENDIF
+      1000 END DO
 #endif
-    ENDIF
+  ENDIF
 
-!     Compute inverse of mesh 2 mass matrix, pff 3/5/92
-    CALL INVERS2(BM2INV,BM2,NTOT2)
+!   Compute inverse of mesh 2 mass matrix, pff 3/5/92
+  CALL INVERS2(BM2INV,BM2,NTOT2)
 
-    RETURN
-    end subroutine geom2
-    subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, &
-    XTM1,YTM1,ZTM1,IFAXIS)
-!-----------------------------------------------------------------------
-
-!     Compute global-to-local derivatives on mesh 1.
+  RETURN
+end subroutine geom2
 
 !-----------------------------------------------------------------------
-    use size_m
-    use dxyz
-    use geom
+!> \brief Compute global-to-local derivatives on mesh 1.
+!-----------------------------------------------------------------------
+subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nelt, ndim
+  use dxyz, only : dxm1, dytm1, dztm1
+  use geom, only : xm1, ym1, zm1
+  implicit none
 
-    DIMENSION XRM1(LX1,LY1,LZ1,1),YRM1(LX1,LY1,LZ1,1) &
-    , ZRM1(LX1,LY1,LZ1,1),XSM1(LX1,LY1,LZ1,1) &
-    , YSM1(LX1,LY1,LZ1,1),ZSM1(LX1,LY1,LZ1,1) &
-    , XTM1(LX1,LY1,LZ1,1),YTM1(LX1,LY1,LZ1,1) &
-    , ZTM1(LX1,LY1,LZ1,1)
-    LOGICAL :: IFAXIS
+  real(DP) :: &
+    XRM1(LX1,LY1,LZ1,1),YRM1(LX1,LY1,LZ1,1) &
+  , ZRM1(LX1,LY1,LZ1,1),XSM1(LX1,LY1,LZ1,1) &
+  , YSM1(LX1,LY1,LZ1,1),ZSM1(LX1,LY1,LZ1,1) &
+  , XTM1(LX1,LY1,LZ1,1),YTM1(LX1,LY1,LZ1,1) &
+  , ZTM1(LX1,LY1,LZ1,1)
+  LOGICAL :: IFAXIS
 
-    NXY1=NX1*NY1
-    NYZ1=NY1*NZ1
+  integer :: nxy1, nyz1, iel, iz
 
-    DO 100 IEL=1,NELT
+  NXY1=NX1*NY1
+  NYZ1=NY1*NZ1
+
+  DO 100 IEL=1,NELT
     
 !max        IF (IFAXIS) CALL SETAXDY ( IFRZER(IEL) )
     
-        CALL MXM (DXM1,NX1,XM1(1,1,1,IEL),NX1,XRM1(1,1,1,IEL),NYZ1)
-        CALL MXM (DXM1,NX1,YM1(1,1,1,IEL),NX1,YRM1(1,1,1,IEL),NYZ1)
-        CALL MXM (DXM1,NX1,ZM1(1,1,1,IEL),NX1,ZRM1(1,1,1,IEL),NYZ1)
-    
-        DO 10 IZ=1,NZ1
-            CALL MXM (XM1(1,1,IZ,IEL),NX1,DYTM1,NY1,XSM1(1,1,IZ,IEL),NY1)
-            CALL MXM (YM1(1,1,IZ,IEL),NX1,DYTM1,NY1,YSM1(1,1,IZ,IEL),NY1)
-            CALL MXM (ZM1(1,1,IZ,IEL),NX1,DYTM1,NY1,ZSM1(1,1,IZ,IEL),NY1)
-        10 END DO
-    
-        IF (NDIM == 3) THEN
-            CALL MXM (XM1(1,1,1,IEL),NXY1,DZTM1,NZ1,XTM1(1,1,1,IEL),NZ1)
-            CALL MXM (YM1(1,1,1,IEL),NXY1,DZTM1,NZ1,YTM1(1,1,1,IEL),NZ1)
-            CALL MXM (ZM1(1,1,1,IEL),NXY1,DZTM1,NZ1,ZTM1(1,1,1,IEL),NZ1)
-        ELSE
-            CALL RZERO (XTM1(1,1,1,IEL),NXY1)
-            CALL RZERO (YTM1(1,1,1,IEL),NXY1)
-            CALL RONE  (ZTM1(1,1,1,IEL),NXY1)
-        ENDIF
-    
-    100 END DO
+      CALL MXM (DXM1,NX1,XM1(1,1,1,IEL),NX1,XRM1(1,1,1,IEL),NYZ1)
+      CALL MXM (DXM1,NX1,YM1(1,1,1,IEL),NX1,YRM1(1,1,1,IEL),NYZ1)
+      CALL MXM (DXM1,NX1,ZM1(1,1,1,IEL),NX1,ZRM1(1,1,1,IEL),NYZ1)
+  
+      DO 10 IZ=1,NZ1
+          CALL MXM (XM1(1,1,IZ,IEL),NX1,DYTM1,NY1,XSM1(1,1,IZ,IEL),NY1)
+          CALL MXM (YM1(1,1,IZ,IEL),NX1,DYTM1,NY1,YSM1(1,1,IZ,IEL),NY1)
+          CALL MXM (ZM1(1,1,IZ,IEL),NX1,DYTM1,NY1,ZSM1(1,1,IZ,IEL),NY1)
+      10 END DO
+  
+      IF (NDIM == 3) THEN
+          CALL MXM (XM1(1,1,1,IEL),NXY1,DZTM1,NZ1,XTM1(1,1,1,IEL),NZ1)
+          CALL MXM (YM1(1,1,1,IEL),NXY1,DZTM1,NZ1,YTM1(1,1,1,IEL),NZ1)
+          CALL MXM (ZM1(1,1,1,IEL),NXY1,DZTM1,NZ1,ZTM1(1,1,1,IEL),NZ1)
+      ELSE
+          CALL RZERO (XTM1(1,1,1,IEL),NXY1)
+          CALL RZERO (YTM1(1,1,1,IEL),NXY1)
+          CALL RONE  (ZTM1(1,1,1,IEL),NXY1)
+      ENDIF
+  
+  100 END DO
 
-    RETURN
-    end subroutine xyzrst
+  RETURN
+end subroutine xyzrst
 
-    subroutine chkjac(jac,n,iel,X,Y,Z,ND,IERR)
+!> \brief Check the array JAC for a change in sign.
+subroutine chkjac(jac,n,iel,X,Y,Z,ND,IERR)
+  use kinds, only : DP
+  use size_m
+  use parallel
+  implicit none
 
-    use size_m
-    use parallel
+  integer :: n, iel, nd, ierr
+  REAL(DP) :: JAC(N),x(1),y(1),z(1)
+  real(DP) :: sign
+  integer :: i, ieg
 
-!     Check the array JAC for a change in sign.
-
-    REAL :: JAC(N),x(1),y(1),z(1)
-
-    ierr = 1
-    SIGN = JAC(1)
-    DO 100 I=2,N
-        IF (SIGN*JAC(I) <= 0.0) THEN
-            ieg = lglel(iel)
-            WRITE(6,101) nid,I,ieg
-            write(6,*) jac(i-1),jac(i)
-            if (ndim == 3) then
-                write(6,7) nid,x(i-1),y(i-1),z(i-1)
-                write(6,7) nid,x(i),y(i),z(i)
-            else
-                write(6,7) nid,x(i-1),y(i-1)
-                write(6,7) nid,x(i),y(i)
-            endif
-            7 format(i5,' xyz:',1p3e14.5)
-        !           if (np.eq.1) call out_xyz_el(x,y,z,iel)
-        !           ierr=0
-            return
-        ENDIF
-    100 END DO
-    101 FORMAT(//,i5,2x &
-    ,'ERROR:  Vanishing Jacobian near',i7,'th node of element' &
-    ,I10,'.')
+  ierr = 1
+  SIGN = JAC(1)
+  DO 100 I=2,N
+      IF (SIGN*JAC(I) <= 0.0) THEN
+          ieg = lglel(iel)
+          WRITE(6,101) nid,I,ieg
+          write(6,*) jac(i-1),jac(i)
+          if (ndim == 3) then
+              write(6,7) nid,x(i-1),y(i-1),z(i-1)
+              write(6,7) nid,x(i),y(i),z(i)
+          else
+              write(6,7) nid,x(i-1),y(i-1)
+              write(6,7) nid,x(i),y(i)
+          endif
+          7 format(i5,' xyz:',1p3e14.5)
+      !           if (np.eq.1) call out_xyz_el(x,y,z,iel)
+      !           ierr=0
+          return
+      ENDIF
+  100 END DO
+  101 FORMAT(//,i5,2x &
+  ,'ERROR:  Vanishing Jacobian near',i7,'th node of element' &
+  ,I10,'.')
 
 
-    ierr = 0
-    RETURN
-    end subroutine chkjac
+  ierr = 0
+  RETURN
+end subroutine chkjac
+
 !-----------------------------------------------------------------------
-    subroutine volume
+!> \brief Compute the volume based on mesh M1 and mesh M2
+subroutine volume
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, nelt, nx2, ny2, nz2, nfield, nid
+  use esolv, only : volel
+  use input, only : ifmvbd, ifmhd, iftmsh
+  use mass, only : volvm1, volvm2, voltm1, voltm2, bm1, bm2
+  use tstep, only : volfld
+  implicit none
 
-!     Compute the volume based on mesh M1 and mesh M2
+  real(DP), external :: glsum, vlsum
+  integer :: e, mfield, nfldt, ifld, nxyz
+
+  volvm1=glsum(bm1,nx1*ny1*nz1*nelv)
+  volvm2=glsum(bm2,nx2*ny2*nz2*nelv)
+  voltm1=glsum(bm1,nx1*ny1*nz1*nelt)
+  voltm2=glsum(bm2,nx2*ny2*nz2*nelt)
+  mfield=1
+  if (ifmvbd) mfield=0
+  nfldt = nfield
+  if (ifmhd) nfldt = nfield+1
+
+  do ifld=mfield,nfldt
+      if (iftmsh(ifld)) then
+          volfld(ifld) = voltm1
+      else
+          volfld(ifld) = volvm1
+      endif
+  enddo
+
+  if (nid == 0) write(6,*) 'vol_t,vol_v:',voltm1,volvm1
 
 
-    use size_m
-    use esolv
-    use input
-    use mass
-    use tstep
-    integer :: e
+  nxyz = nx1*ny1*nz1
+  do e=1,nelt
+      volel(e) = vlsum(bm1(1,1,1,e),nxyz)
+  enddo
 
-    volvm1=glsum(bm1,nx1*ny1*nz1*nelv)
-    volvm2=glsum(bm2,nx2*ny2*nz2*nelv)
-    voltm1=glsum(bm1,nx1*ny1*nz1*nelt)
-    voltm2=glsum(bm2,nx2*ny2*nz2*nelt)
-    mfield=1
-    if (ifmvbd) mfield=0
-    nfldt = nfield
-    if (ifmhd) nfldt = nfield+1
+  return
+end subroutine volume
 
-    do ifld=mfield,nfldt
-        if (iftmsh(ifld)) then
-            volfld(ifld) = voltm1
-        else
-            volfld(ifld) = volvm1
-        endif
-    enddo
-
-    if (nid == 0) write(6,*) 'vol_t,vol_v:',voltm1,volvm1
-
-
-    nxyz = nx1*ny1*nz1
-    do e=1,nelt
-        volel(e) = vlsum(bm1(1,1,1,e),nxyz)
-    enddo
-
-    return
-    end subroutine volume
 !-----------------------------------------------------------------------
-!> \brief   Compute surface data: areas, normals and tangents
+!> \brief Compute surface data: areas, normals and tangents
 subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt
@@ -944,6 +950,7 @@ subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
   RETURN
 end subroutine setarea
+
 !--------------------------------------------------------------------
 !> \brief Compute areas, normals and tangents (3D geom.)
 !--------------------------------------------------------------------

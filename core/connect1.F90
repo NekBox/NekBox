@@ -57,7 +57,7 @@ subroutine setup_topo()
   call verify
 
   CALL SETCDOF
-  IF (IFAXIS            ) CALL SETRZER
+!max  IF (IFAXIS            ) CALL SETRZER
 !max    IF (IFMVBD            ) CALL CBCMESH
 #if 0
   IF (IFMODEL .AND. IFKEPS) CALL CBCTURB
@@ -160,54 +160,55 @@ subroutine setup_topo()
 
   return
 end subroutine setup_topo
+
 !-----------------------------------------------------------------------
-    subroutine initds
+!> \brief     -- Direct Stiffness Initialization Routine --
+!!    Set up required data for packing data on faces of spectral cubes.
+subroutine initds
+  use size_m
+  use topol, only : group, eface1, eface, nomlis
+  implicit none
 
-!          -- Direct Stiffness Initialization Routine --
+  integer :: j, idim, iface
 
-!     Set up required data for packing data on faces of spectral cubes.
+!   Nominal ordering for direct stiffness summation of faces
+  J=0
+  DO 5 IDIM=1,NDIM
+      DO 5 IFACE=1,2
+          J=J+1
+          NOMLIS(IFACE,IDIM)=J
+  5 END DO
 
-    use size_m
-    use topol
+!   Assign Ed's numbering scheme to PF's scheme.
 
-!     Nominal ordering for direct stiffness summation of faces
+  EFACE(1)=4
+  EFACE(2)=2
+  EFACE(3)=1
+  EFACE(4)=3
+  EFACE(5)=5
+  EFACE(6)=6
 
-    J=0
-    DO 5 IDIM=1,NDIM
-        DO 5 IFACE=1,2
-            J=J+1
-            NOMLIS(IFACE,IDIM)=J
-    5 END DO
+!   Assign inverse of Ed's numbering scheme to PF's scheme.
 
-!     Assign Ed's numbering scheme to PF's scheme.
+  EFACE1(1)=3
+  EFACE1(2)=2
+  EFACE1(3)=4
+  EFACE1(4)=1
+  EFACE1(5)=5
+  EFACE1(6)=6
 
-    EFACE(1)=4
-    EFACE(2)=2
-    EFACE(3)=1
-    EFACE(4)=3
-    EFACE(5)=5
-    EFACE(6)=6
+!   Assign group designation to each face to determine ordering of indices.
 
-!     Assign inverse of Ed's numbering scheme to PF's scheme.
+  GROUP(1)=0
+  GROUP(2)=1
+  GROUP(3)=1
+  GROUP(4)=0
+  GROUP(5)=0
+  GROUP(6)=1
 
-    EFACE1(1)=3
-    EFACE1(2)=2
-    EFACE1(3)=4
-    EFACE1(4)=1
-    EFACE1(5)=5
-    EFACE1(6)=6
+  RETURN
+end subroutine initds
 
-!     Assign group designation to each face to determine ordering of indices.
-
-    GROUP(1)=0
-    GROUP(2)=1
-    GROUP(3)=1
-    GROUP(4)=0
-    GROUP(5)=0
-    GROUP(6)=1
-
-    RETURN
-    end subroutine initds
 !-----------------------------------------------------------------------
 !> \brief Initialize EDGE arrays for face and edge specific tasks.
 !!     .NOTE: Sevaral arrays in common are initialized via
@@ -522,169 +523,168 @@ subroutine setedge()
 
   RETURN
 end subroutine setedge
+
 !-----------------------------------------------------------------------
-    subroutine dsset(nx,ny,nz)
+!> \brief Set up arrays IXCN,ESKIP,SKPDAT,NEDG,NOFFST for new NX,NY,NZ
+subroutine dsset(nx,ny,nz)
+  use topol, only : ixcn, skpdat, eskip, nedg
+  implicit none
 
-!     Set up arrays IXCN,ESKIP,SKPDAT,NEDG,NOFFST for new NX,NY,NZ
+  integer :: nx, ny, nz
 
-    use size_m
-    use input
-    use topol
-    INTEGER :: NXO,NYO,NZO
-    SAVE    NXO,NYO,NZO
-    DATA    NXO,NYO,NZO /3*0/
+  INTEGER, save :: NXO = 0, NYO = 0, NZO = 0
+  integer :: ic, icz, icy, icx, nxy, ied, iedm
 
-!     Check if element surface counters are already set from last call...
+!   Check if element surface counters are already set from last call...
+  IF (NXO == NX .AND. NYO == NY .AND. NZO == NZ) RETURN
 
-    IF (NXO == NX .AND. NYO == NY .AND. NZO == NZ) RETURN
+!   else, proceed....
 
-!     else, proceed....
+  NXO = NX
+  NYO = NY
+  NZO = NZ
 
-    NXO = NX
-    NYO = NY
-    NZO = NZ
+!   Establish corner to elemental node number mappings
 
-!     Establish corner to elemental node number mappings
+  IC=0
+  DO 10 ICZ=0,1
+      DO 10 ICY=0,1
+          DO 10 ICX=0,1
+          !       Supress vectorization to
+          !        IF(ICX.EQ.0)DUMMY=0
+          !        IF(ICX.EQ.1)DUMMY=1
+          !        DUMMY2=DUMMY2+DUMMY
+              IC=IC+1
+              IXCN(IC)= 1 + (NX-1)*ICX + NX*(NY-1)*ICY + NX*NY*(NZ-1)*ICZ
+  10 END DO
 
-    IC=0
-    DO 10 ICZ=0,1
-        DO 10 ICY=0,1
-            DO 10 ICX=0,1
-            !       Supress vectorization to
-            !        IF(ICX.EQ.0)DUMMY=0
-            !        IF(ICX.EQ.1)DUMMY=1
-            !        DUMMY2=DUMMY2+DUMMY
-                IC=IC+1
-                IXCN(IC)= 1 + (NX-1)*ICX + NX*(NY-1)*ICY + NX*NY*(NZ-1)*ICZ
-    10 END DO
-
-!     Assign indices for direct stiffness summation of arbitrary faces.
+!   Assign indices for direct stiffness summation of arbitrary faces.
 
 
-!     Y-Z Planes (Faces 1 and 2)
+!   Y-Z Planes (Faces 1 and 2)
 
-    SKPDAT(1,1)=1
-    SKPDAT(2,1)=NX*(NY-1)+1
-    SKPDAT(3,1)=NX
-    SKPDAT(4,1)=1
-    SKPDAT(5,1)=NY*(NZ-1)+1
-    SKPDAT(6,1)=NY
+  SKPDAT(1,1)=1
+  SKPDAT(2,1)=NX*(NY-1)+1
+  SKPDAT(3,1)=NX
+  SKPDAT(4,1)=1
+  SKPDAT(5,1)=NY*(NZ-1)+1
+  SKPDAT(6,1)=NY
 
-    SKPDAT(1,2)=1             + (NX-1)
-    SKPDAT(2,2)=NX*(NY-1)+1   + (NX-1)
-    SKPDAT(3,2)=NX
-    SKPDAT(4,2)=1
-    SKPDAT(5,2)=NY*(NZ-1)+1
-    SKPDAT(6,2)=NY
+  SKPDAT(1,2)=1             + (NX-1)
+  SKPDAT(2,2)=NX*(NY-1)+1   + (NX-1)
+  SKPDAT(3,2)=NX
+  SKPDAT(4,2)=1
+  SKPDAT(5,2)=NY*(NZ-1)+1
+  SKPDAT(6,2)=NY
 
-!     X-Z Planes (Faces 3 and 4)
+!   X-Z Planes (Faces 3 and 4)
 
-    SKPDAT(1,3)=1
-    SKPDAT(2,3)=NX
-    SKPDAT(3,3)=1
-    SKPDAT(4,3)=1
-    SKPDAT(5,3)=NY*(NZ-1)+1
-    SKPDAT(6,3)=NY
+  SKPDAT(1,3)=1
+  SKPDAT(2,3)=NX
+  SKPDAT(3,3)=1
+  SKPDAT(4,3)=1
+  SKPDAT(5,3)=NY*(NZ-1)+1
+  SKPDAT(6,3)=NY
 
-    SKPDAT(1,4)=1           + NX*(NY-1)
-    SKPDAT(2,4)=NX          + NX*(NY-1)
-    SKPDAT(3,4)=1
-    SKPDAT(4,4)=1
-    SKPDAT(5,4)=NY*(NZ-1)+1
-    SKPDAT(6,4)=NY
+  SKPDAT(1,4)=1           + NX*(NY-1)
+  SKPDAT(2,4)=NX          + NX*(NY-1)
+  SKPDAT(3,4)=1
+  SKPDAT(4,4)=1
+  SKPDAT(5,4)=NY*(NZ-1)+1
+  SKPDAT(6,4)=NY
 
-!     X-Y Planes (Faces 5 and 6)
+!   X-Y Planes (Faces 5 and 6)
 
-    SKPDAT(1,5)=1
-    SKPDAT(2,5)=NX
-    SKPDAT(3,5)=1
-    SKPDAT(4,5)=1
-    SKPDAT(5,5)=NY
-    SKPDAT(6,5)=1
+  SKPDAT(1,5)=1
+  SKPDAT(2,5)=NX
+  SKPDAT(3,5)=1
+  SKPDAT(4,5)=1
+  SKPDAT(5,5)=NY
+  SKPDAT(6,5)=1
 
-    SKPDAT(1,6)=1           + NX*NY*(NZ-1)
-    SKPDAT(2,6)=NX          + NX*NY*(NZ-1)
-    SKPDAT(3,6)=1
-    SKPDAT(4,6)=1
-    SKPDAT(5,6)=NY
-    SKPDAT(6,6)=1
+  SKPDAT(1,6)=1           + NX*NY*(NZ-1)
+  SKPDAT(2,6)=NX          + NX*NY*(NZ-1)
+  SKPDAT(3,6)=1
+  SKPDAT(4,6)=1
+  SKPDAT(5,6)=NY
+  SKPDAT(6,6)=1
 
-!     Set up skip indices for each of the 12 edges
+!   Set up skip indices for each of the 12 edges
 
-!         Note that NXY = NX*NY even for 2-D since
-!         this branch does not apply to the 2D case anyway.
+!       Note that NXY = NX*NY even for 2-D since
+!       this branch does not apply to the 2D case anyway.
 
-!     ESKIP(*,1) = start location
-!     ESKIP(*,2) = end
-!     ESKIP(*,3) = stride
+!   ESKIP(*,1) = start location
+!   ESKIP(*,2) = end
+!   ESKIP(*,3) = stride
 
-    NXY=NX*NY
-    ESKIP( 1,1) = IXCN(1) + 1
-    ESKIP( 1,2) = IXCN(2) - 1
-    ESKIP( 1,3) = 1
-    ESKIP( 2,1) = IXCN(3) + 1
-    ESKIP( 2,2) = IXCN(4) - 1
-    ESKIP( 2,3) = 1
-    ESKIP( 3,1) = IXCN(5) + 1
-    ESKIP( 3,2) = IXCN(6) - 1
-    ESKIP( 3,3) = 1
-    ESKIP( 4,1) = IXCN(7) + 1
-    ESKIP( 4,2) = IXCN(8) - 1
-    ESKIP( 4,3) = 1
-    ESKIP( 5,1) = IXCN(1) + NX
-    ESKIP( 5,2) = IXCN(3) - NX
-    ESKIP( 5,3) = NX
-    ESKIP( 6,1) = IXCN(2) + NX
-    ESKIP( 6,2) = IXCN(4) - NX
-    ESKIP( 6,3) = NX
-    ESKIP( 7,1) = IXCN(5) + NX
-    ESKIP( 7,2) = IXCN(7) - NX
-    ESKIP( 7,3) = NX
-    ESKIP( 8,1) = IXCN(6) + NX
-    ESKIP( 8,2) = IXCN(8) - NX
-    ESKIP( 8,3) = NX
-    ESKIP( 9,1) = IXCN(1) + NXY
-    ESKIP( 9,2) = IXCN(5) - NXY
-    ESKIP( 9,3) = NXY
-    ESKIP(10,1) = IXCN(2) + NXY
-    ESKIP(10,2) = IXCN(6) - NXY
-    ESKIP(10,3) = NXY
-    ESKIP(11,1) = IXCN(3) + NXY
-    ESKIP(11,2) = IXCN(7) - NXY
-    ESKIP(11,3) = NXY
-    ESKIP(12,1) = IXCN(4) + NXY
-    ESKIP(12,2) = IXCN(8) - NXY
-    ESKIP(12,3) = NXY
+  NXY=NX*NY
+  ESKIP( 1,1) = IXCN(1) + 1
+  ESKIP( 1,2) = IXCN(2) - 1
+  ESKIP( 1,3) = 1
+  ESKIP( 2,1) = IXCN(3) + 1
+  ESKIP( 2,2) = IXCN(4) - 1
+  ESKIP( 2,3) = 1
+  ESKIP( 3,1) = IXCN(5) + 1
+  ESKIP( 3,2) = IXCN(6) - 1
+  ESKIP( 3,3) = 1
+  ESKIP( 4,1) = IXCN(7) + 1
+  ESKIP( 4,2) = IXCN(8) - 1
+  ESKIP( 4,3) = 1
+  ESKIP( 5,1) = IXCN(1) + NX
+  ESKIP( 5,2) = IXCN(3) - NX
+  ESKIP( 5,3) = NX
+  ESKIP( 6,1) = IXCN(2) + NX
+  ESKIP( 6,2) = IXCN(4) - NX
+  ESKIP( 6,3) = NX
+  ESKIP( 7,1) = IXCN(5) + NX
+  ESKIP( 7,2) = IXCN(7) - NX
+  ESKIP( 7,3) = NX
+  ESKIP( 8,1) = IXCN(6) + NX
+  ESKIP( 8,2) = IXCN(8) - NX
+  ESKIP( 8,3) = NX
+  ESKIP( 9,1) = IXCN(1) + NXY
+  ESKIP( 9,2) = IXCN(5) - NXY
+  ESKIP( 9,3) = NXY
+  ESKIP(10,1) = IXCN(2) + NXY
+  ESKIP(10,2) = IXCN(6) - NXY
+  ESKIP(10,3) = NXY
+  ESKIP(11,1) = IXCN(3) + NXY
+  ESKIP(11,2) = IXCN(7) - NXY
+  ESKIP(11,3) = NXY
+  ESKIP(12,1) = IXCN(4) + NXY
+  ESKIP(12,2) = IXCN(8) - NXY
+  ESKIP(12,3) = NXY
 
-!     Load reverse direction edge arrays for reverse mappings...
+!   Load reverse direction edge arrays for reverse mappings...
 
-    DO 20 IED=1,12
-        IEDM=-IED
-        ESKIP(IEDM,1) =  ESKIP(IED,2)
-        ESKIP(IEDM,2) =  ESKIP(IED,1)
-        ESKIP(IEDM,3) = -ESKIP(IED,3)
-    20 END DO
+  DO 20 IED=1,12
+      IEDM=-IED
+      ESKIP(IEDM,1) =  ESKIP(IED,2)
+      ESKIP(IEDM,2) =  ESKIP(IED,1)
+      ESKIP(IEDM,3) = -ESKIP(IED,3)
+  20 END DO
 
-!     Compute offset for global edge vector given current element
-!     dimensions.....
+!   Compute offset for global edge vector given current element
+!   dimensions.....
 
-!     NGSPED(ITE,ICMP) = number of global (ie, distinct) special edges
-!                        of type ITE (1,2, or 3)  for field ICMP.
+!   NGSPED(ITE,ICMP) = number of global (ie, distinct) special edges
+!                      of type ITE (1,2, or 3)  for field ICMP.
 
-!                        ITE = 1 implies an "X" edge
-!                        ITE = 2 implies an "Y" edge
-!                        ITE = 3 implies an "Z" edge
+!                      ITE = 1 implies an "X" edge
+!                      ITE = 2 implies an "Y" edge
+!                      ITE = 3 implies an "Z" edge
 
-!     Set up number of nodes along each of the 3 types of edges
-!     (endpoints excluded).
+!   Set up number of nodes along each of the 3 types of edges
+!   (endpoints excluded).
 
-    NEDG(1)=NX-2
-    NEDG(2)=NY-2
-    NEDG(3)=NZ-2
+  NEDG(1)=NX-2
+  NEDG(2)=NY-2
+  NEDG(3)=NZ-2
 
+  RETURN
+end subroutine dsset
 
-    RETURN
-    end subroutine dsset
 !-----------------------------------------------------------------------
 !> \brief Generate xyz coordinates
 subroutine genxyzl()
@@ -772,266 +772,268 @@ subroutine genxyzl()
   
   5000 END DO
   RETURN
-  end subroutine genxyzl
+end subroutine genxyzl
+
 !-----------------------------------------------------------------------
-    subroutine verify
+!> \brief Verify right-handedness of elements.
+!! .Verify element-to-element reciprocity of BC's
+!! .Verify correlation between E-E BC's and physical coincidence
+subroutine verify
+  implicit none 
+  call verrhe
+  return
+end subroutine verify
 
-!     .Verify right-handedness of elements.
-!     .Verify element-to-element reciprocity of BC's
-!     .Verify correlation between E-E BC's and physical coincidence
-
-    use size_m
-    use input
-    use parallel
-    use scratch
-     
-    call verrhe
-
-    return
-    end subroutine verify
 !-----------------------------------------------------------------------
-    subroutine setside
-    use size_m
-    use input
-    use scratch
-    use topol
+subroutine setside
+  use kinds, only : DP
+  use size_m, only : nelt, ndim
+  use input, only : if3d, xc, yc, zc
+  use scratch, only : xyz, side
+  use topol, only : indx, icface
+  implicit none
 
-!     SIDE(i,IFACE,IE) -  Physical (xyz) location of element side midpoint.
-!                         i=1,2,3 gives x,y,z value, respectively.
-!                         i=4  gives average dimension of face for setting
-!                              tolerances.
+  integer :: ie, j, ivtx, nfaces, ncrnr, icrn, ifac, icr1, ivt1, idim
+  integer, external :: mod1
+  real(DP) :: avwght
 
-    INDX(1)=1
-    INDX(2)=2
-    INDX(3)=4
-    INDX(4)=3
-    INDX(5)=5
-    INDX(6)=6
-    INDX(7)=8
-    INDX(8)=7
+!   SIDE(i,IFACE,IE) -  Physical (xyz) location of element side midpoint.
+!                       i=1,2,3 gives x,y,z value, respectively.
+!                       i=4  gives average dimension of face for setting
+!                            tolerances.
+  INDX(1)=1
+  INDX(2)=2
+  INDX(3)=4
+  INDX(4)=3
+  INDX(5)=5
+  INDX(6)=6
+  INDX(7)=8
+  INDX(8)=7
 
-!     Flip vertex array structure
+!   Flip vertex array structure
 
-!     write(6,*) nelv,nelt,if3d
-    call rzero(xyz,24*nelt)
-    if (if3d) then
-        do ie=1,nelt
-            do j=1,8
-                ivtx = indx(j)
-                xyz(1,ivtx,ie) = xc(j,ie)
-                xyz(2,ivtx,ie) = yc(j,ie)
-                xyz(3,ivtx,ie) = zc(j,ie)
-            !           write(6,1) ie,j,ivtx,xc(j,ie),yc(j,ie),zc(j,ie),' xcz'
-            !           write(6,1) ie,j,ivtx,(xyz(k,ivtx,ie),k=1,3),' vtx'
-            !   1       format(3i5,1p3e12.4,a4)
-            enddo
-        enddo
-    else
-        do ie=1,nelt
-            do j=1,4
-                ivtx = indx(j)
-                xyz(1,ivtx,ie) = xc(j,ie)
-                xyz(2,ivtx,ie) = yc(j,ie)
-                xyz(3,ivtx,ie) = 0.0
-            enddo
-        enddo
-    endif
+!   write(6,*) nelv,nelt,if3d
+  call rzero(xyz,24*nelt)
+  if (if3d) then
+      do ie=1,nelt
+          do j=1,8
+              ivtx = indx(j)
+              xyz(1,ivtx,ie) = xc(j,ie)
+              xyz(2,ivtx,ie) = yc(j,ie)
+              xyz(3,ivtx,ie) = zc(j,ie)
+          !           write(6,1) ie,j,ivtx,xc(j,ie),yc(j,ie),zc(j,ie),' xcz'
+          !           write(6,1) ie,j,ivtx,(xyz(k,ivtx,ie),k=1,3),' vtx'
+          !   1       format(3i5,1p3e12.4,a4)
+          enddo
+      enddo
+  else
+      do ie=1,nelt
+          do j=1,4
+              ivtx = indx(j)
+              xyz(1,ivtx,ie) = xc(j,ie)
+              xyz(2,ivtx,ie) = yc(j,ie)
+              xyz(3,ivtx,ie) = 0.0
+          enddo
+      enddo
+  endif
 
-!     Compute location of center and "diameter" of each element side.
+!   Compute location of center and "diameter" of each element side.
 
-    NFACES=NDIM*2
-    NCRNR =2**(NDIM-1)
-    CALL RZERO(SIDE,24*NELT)
-    DO 500 ICRN=1,NCRNR
-        DO 500 IFAC=1,NFACES
-            IVTX = ICFACE(ICRN,IFAC)
-            ICR1 = NCRNR+(ICRN-1)
-            ICR1 = MOD1(ICR1,NCRNR)
-            IVT1 = ICFACE(ICR1,IFAC)
-            DO 400 IE=1,NELT
-                DO 300 IDIM=1,NDIM
-                    SIDE(IDIM,IFAC,IE)=SIDE(IDIM,IFAC,IE)+XYZ(IDIM,IVTX,IE)
-                    SIDE(   4,IFAC,IE)=SIDE(   4,IFAC,IE)+ &
-                    ( XYZ(IDIM,IVTX,IE)-XYZ(IDIM,IVT1,IE) )**2
-                300 END DO
-                SIDE(4,IFAC,IE)=SQRT( SIDE(4,IFAC,IE) )
-            400 END DO
-    500 END DO
-    AVWGHT=1.0/FLOAT(NCRNR)
-    CALL CMULT(SIDE,AVWGHT,24*NELT)
+  NFACES=NDIM*2
+  NCRNR =2**(NDIM-1)
+  CALL RZERO(SIDE,24*NELT)
+  DO 500 ICRN=1,NCRNR
+      DO 500 IFAC=1,NFACES
+          IVTX = ICFACE(ICRN,IFAC)
+          ICR1 = NCRNR+(ICRN-1)
+          ICR1 = MOD1(ICR1,NCRNR)
+          IVT1 = ICFACE(ICR1,IFAC)
+          DO 400 IE=1,NELT
+              DO 300 IDIM=1,NDIM
+                  SIDE(IDIM,IFAC,IE)=SIDE(IDIM,IFAC,IE)+XYZ(IDIM,IVTX,IE)
+                  SIDE(   4,IFAC,IE)=SIDE(   4,IFAC,IE)+ &
+                  ( XYZ(IDIM,IVTX,IE)-XYZ(IDIM,IVT1,IE) )**2
+              300 END DO
+              SIDE(4,IFAC,IE)=SQRT( SIDE(4,IFAC,IE) )
+          400 END DO
+  500 END DO
+  AVWGHT=1.0/FLOAT(NCRNR)
+  CALL CMULT(SIDE,AVWGHT,24*NELT)
 
-!     call exitt
-    RETURN
-    end subroutine setside
+!   call exitt
+  RETURN
+end subroutine setside
+
 !-----------------------------------------------------------------------
-    subroutine verrhe
+!> \brief Verify right-handedness of given elements.
+!!     8 Mar 1989 21:58:26   PFF
+subroutine verrhe()
+  use kinds, only : DP
+  use size_m, only : nid, nelt
+  use input, only : if3d
+  use parallel, only : lglel, nelgt
+  use scratch, only : xyz
+  implicit none
 
-!     8 Mar 1989 21:58:26   PFF
-!     Verify right-handedness of given elements.
+  integer :: ie, ieg
+  real(DP) :: v1, v2, v3, v4, v5, v6, v7, v8
+  LOGICAL :: IFYES,IFCSTT
+  real(DP), external :: volum0
 
-    use size_m
-    use input
-    use parallel
-    use scratch
-    use topol
-    LOGICAL :: IFYES,IFCSTT
+  IFCSTT= .TRUE. 
+  IF ( .NOT. IF3D) THEN
+    write(*,*) "Oops: not if3d"
+#if 0
+      DO 1000 IE=1,NELT
+      
+      !        CRSS2D(A,B,O) = (A-O) X (B-O)
+      
+          C1=CRSS2D(XYZ(1,2,IE),XYZ(1,3,IE),XYZ(1,1,IE))
+          C2=CRSS2D(XYZ(1,4,IE),XYZ(1,1,IE),XYZ(1,2,IE))
+          C3=CRSS2D(XYZ(1,1,IE),XYZ(1,4,IE),XYZ(1,3,IE))
+          C4=CRSS2D(XYZ(1,3,IE),XYZ(1,2,IE),XYZ(1,4,IE))
+      
+          IF (C1 <= 0.0 .OR. C2 <= 0.0 .OR. &
+          C3 <= 0.0 .OR. C4 <= 0.0 ) THEN
+          
+              ieg=lglel(ie)
+              WRITE(6,800) IEG,C1,C2,C3,C4
+              call exitt
+              800 FORMAT(/,2X,'WARNINGa: Detected non-right-handed element.', &
+              /,2X,'Number',I8,'  C1-4:',4E12.4)
+              IFCSTT= .FALSE. 
+          !           CALL QUERY(IFYES,'Proceed                                 ')
+          !           IF (.NOT.IFYES) GOTO 9000
+          ENDIF
+      1000 END DO
+#endif 
+  !     Else 3-D:
+  ELSE
+      DO 2000 IE=1,NELT
+      
+      !        VOLUM0(A,B,C,O) = (A-O)X(B-O).(C-O)
+      
+          V1= VOLUM0(XYZ(1,2,IE),XYZ(1,3,IE),XYZ(1,5,IE),XYZ(1,1,IE))
+          V2= VOLUM0(XYZ(1,4,IE),XYZ(1,1,IE),XYZ(1,6,IE),XYZ(1,2,IE))
+          V3= VOLUM0(XYZ(1,1,IE),XYZ(1,4,IE),XYZ(1,7,IE),XYZ(1,3,IE))
+          V4= VOLUM0(XYZ(1,3,IE),XYZ(1,2,IE),XYZ(1,8,IE),XYZ(1,4,IE))
+          V5=-VOLUM0(XYZ(1,6,IE),XYZ(1,7,IE),XYZ(1,1,IE),XYZ(1,5,IE))
+          V6=-VOLUM0(XYZ(1,8,IE),XYZ(1,5,IE),XYZ(1,2,IE),XYZ(1,6,IE))
+          V7=-VOLUM0(XYZ(1,5,IE),XYZ(1,8,IE),XYZ(1,3,IE),XYZ(1,7,IE))
+          V8=-VOLUM0(XYZ(1,7,IE),XYZ(1,6,IE),XYZ(1,4,IE),XYZ(1,8,IE))
+      
+          IF (V1 <= 0.0 .OR. V2 <= 0.0 .OR. &
+          V3 <= 0.0 .OR. V4 <= 0.0 .OR. &
+          V5 <= 0.0 .OR. V6 <= 0.0 .OR. &
+          V7 <= 0.0 .OR. V8 <= 0.0    ) THEN
+          
+              ieg=lglel(ie)
+              WRITE(6,1800) IEG,V1,V2,V3,V4,V5,V6,V7,V8
+              call exitt
+              1800 FORMAT(/,2X,'WARNINGb: Detected non-right-handed element.', &
+              /,2X,'Number',I8,'  V1-8:',4E12.4 &
+              /,2X,'      ',4X,'       ',4E12.4)
+              IFCSTT= .FALSE. 
+          ENDIF
+      2000 END DO
+  ENDIF
 
-    IFCSTT= .TRUE. 
-    IF ( .NOT. IF3D) THEN
-        DO 1000 IE=1,NELT
-        
-        !        CRSS2D(A,B,O) = (A-O) X (B-O)
-        
-            C1=CRSS2D(XYZ(1,2,IE),XYZ(1,3,IE),XYZ(1,1,IE))
-            C2=CRSS2D(XYZ(1,4,IE),XYZ(1,1,IE),XYZ(1,2,IE))
-            C3=CRSS2D(XYZ(1,1,IE),XYZ(1,4,IE),XYZ(1,3,IE))
-            C4=CRSS2D(XYZ(1,3,IE),XYZ(1,2,IE),XYZ(1,4,IE))
-        
-            IF (C1 <= 0.0 .OR. C2 <= 0.0 .OR. &
-            C3 <= 0.0 .OR. C4 <= 0.0 ) THEN
-            
-                ieg=lglel(ie)
-                WRITE(6,800) IEG,C1,C2,C3,C4
-                call exitt
-                800 FORMAT(/,2X,'WARNINGa: Detected non-right-handed element.', &
-                /,2X,'Number',I8,'  C1-4:',4E12.4)
-                IFCSTT= .FALSE. 
-            !           CALL QUERY(IFYES,'Proceed                                 ')
-            !           IF (.NOT.IFYES) GOTO 9000
-            ENDIF
-        1000 END DO
-    
-    !     Else 3-D:
-    
-    ELSE
-        DO 2000 IE=1,NELT
-        
-        !        VOLUM0(A,B,C,O) = (A-O)X(B-O).(C-O)
-        
-            V1= VOLUM0(XYZ(1,2,IE),XYZ(1,3,IE),XYZ(1,5,IE),XYZ(1,1,IE))
-            V2= VOLUM0(XYZ(1,4,IE),XYZ(1,1,IE),XYZ(1,6,IE),XYZ(1,2,IE))
-            V3= VOLUM0(XYZ(1,1,IE),XYZ(1,4,IE),XYZ(1,7,IE),XYZ(1,3,IE))
-            V4= VOLUM0(XYZ(1,3,IE),XYZ(1,2,IE),XYZ(1,8,IE),XYZ(1,4,IE))
-            V5=-VOLUM0(XYZ(1,6,IE),XYZ(1,7,IE),XYZ(1,1,IE),XYZ(1,5,IE))
-            V6=-VOLUM0(XYZ(1,8,IE),XYZ(1,5,IE),XYZ(1,2,IE),XYZ(1,6,IE))
-            V7=-VOLUM0(XYZ(1,5,IE),XYZ(1,8,IE),XYZ(1,3,IE),XYZ(1,7,IE))
-            V8=-VOLUM0(XYZ(1,7,IE),XYZ(1,6,IE),XYZ(1,4,IE),XYZ(1,8,IE))
-        
-            IF (V1 <= 0.0 .OR. V2 <= 0.0 .OR. &
-            V3 <= 0.0 .OR. V4 <= 0.0 .OR. &
-            V5 <= 0.0 .OR. V6 <= 0.0 .OR. &
-            V7 <= 0.0 .OR. V8 <= 0.0    ) THEN
-            
-                ieg=lglel(ie)
-                WRITE(6,1800) IEG,V1,V2,V3,V4,V5,V6,V7,V8
-                call exitt
-                1800 FORMAT(/,2X,'WARNINGb: Detected non-right-handed element.', &
-                /,2X,'Number',I8,'  V1-8:',4E12.4 &
-                /,2X,'      ',4X,'       ',4E12.4)
-                IFCSTT= .FALSE. 
-            ENDIF
-        2000 END DO
-    ENDIF
+  9000 CONTINUE
 
-    9000 CONTINUE
+!   Print out results from right-handed check
 
-!     Print out results from right-handed check
+  IF ( .NOT. IFCSTT) WRITE(6,2001)
 
-    IF ( .NOT. IFCSTT) WRITE(6,2001)
+!   Check consistency accross all processors.
 
-!     Check consistency accross all processors.
+  CALL GLLOG(IFCSTT, .FALSE. )
 
-    CALL GLLOG(IFCSTT, .FALSE. )
+  IF ( .NOT. IFCSTT) THEN
+      IF (NID == 0) WRITE(6,2003) NELGT
+      call exitt
+  ELSE
+      IF (NID == 0) WRITE(6,2002) NELGT
+  ENDIF
 
-    IF ( .NOT. IFCSTT) THEN
-        IF (NID == 0) WRITE(6,2003) NELGT
-        call exitt
-    ELSE
-        IF (NID == 0) WRITE(6,2002) NELGT
-    ENDIF
+  2001 FORMAT(//,'  Elemental geometry not right-handed, ABORTING' &
+  ,' in routine VERRHE.')
+  2002 FORMAT('   Right-handed check complete for',I8,' elements. OK.')
+  2003 FORMAT('   Right-handed check failed for',I8,' elements.' &
+  ,'   Exiting in routine VERRHE.')
+  RETURN
+end subroutine verrhe
 
-    2001 FORMAT(//,'  Elemental geometry not right-handed, ABORTING' &
-    ,' in routine VERRHE.')
-    2002 FORMAT('   Right-handed check complete for',I8,' elements. OK.')
-    2003 FORMAT('   Right-handed check failed for',I8,' elements.' &
-    ,'   Exiting in routine VERRHE.')
-    RETURN
-    end subroutine verrhe
 !-----------------------------------------------------------------------
-    FUNCTION VOLUM0(P1,P2,P3,P0)
+!> \brief Given four points in R , (P1,P2,P3,P0), VOLUM0 returns
+!! the volume enclosed by the parallelagram defined by the
+!! vectors { (P1-P0),(P2-P0),(P3-P0) }.  This routine has
+!! the nice feature that if the 3 vectors so defined are
+!! not right-handed then the volume returned is negative.
+real(DP) FUNCTION VOLUM0(P1,P2,P3,P0)
+  use kinds, only : DP
+  implicit none
+  REAL(DP) :: P1(3),P2(3),P3(3),P0(3)
+  real(DP) :: u1, u2, u3, v1, v2, v3, w1, w2, w3, cross1, cross2, cross3
+  U1=P1(1)-P0(1)
+  U2=P1(2)-P0(2)
+  U3=P1(3)-P0(3)
 
-!                           3
-!     Given four points in R , (P1,P2,P3,P0), VOLUM0 returns
-!     the volume enclosed by the parallelagram defined by the
-!     vectors { (P1-P0),(P2-P0),(P3-P0) }.  This routine has
-!     the nice feature that if the 3 vectors so defined are
-!     not right-handed then the volume returned is negative.
+  V1=P2(1)-P0(1)
+  V2=P2(2)-P0(2)
+  V3=P2(3)-P0(3)
 
-    REAL :: P1(3),P2(3),P3(3),P0(3)
+  W1=P3(1)-P0(1)
+  W2=P3(2)-P0(2)
+  W3=P3(3)-P0(3)
 
-    U1=P1(1)-P0(1)
-    U2=P1(2)-P0(2)
-    U3=P1(3)-P0(3)
+  CROSS1 = U2*V3-U3*V2
+  CROSS2 = U3*V1-U1*V3
+  CROSS3 = U1*V2-U2*V1
 
-    V1=P2(1)-P0(1)
-    V2=P2(2)-P0(2)
-    V3=P2(3)-P0(3)
+  VOLUM0  = W1*CROSS1 + W2*CROSS2 + W3*CROSS3
+           
+  RETURN
+END FUNCTION VOLUM0
 
-    W1=P3(1)-P0(1)
-    W2=P3(2)-P0(2)
-    W3=P3(3)-P0(3)
-
-    CROSS1 = U2*V3-U3*V2
-    CROSS2 = U3*V1-U1*V3
-    CROSS3 = U1*V2-U2*V1
-
-    VOLUM0  = W1*CROSS1 + W2*CROSS2 + W3*CROSS3
-             
-    RETURN
-    END FUNCTION VOLUM0
 !-----------------------------------------------------------------------
-    FUNCTION CRSS2D(XY1,XY2,XY0)
-    REAL :: XY1(2),XY2(2),XY0(2)
+!> \brief ifcase in preprocessor notation
+subroutine facind (kx1,kx2,ky1,ky2,kz1,kz2,nx,ny,nz,iface)
+  implicit none
+  integer :: kx1, ky1, kz1, kx2, ky2, kz2, nx, ny, nz, iface
 
-    V1X=XY1(1)-XY0(1)
-    V2X=XY2(1)-XY0(1)
-    V1Y=XY1(2)-XY0(2)
-    V2Y=XY2(2)-XY0(2)
-    CRSS2D = V1X*V2Y - V1Y*V2X
+  KX1=1
+  KY1=1
+  KZ1=1
+  KX2=NX
+  KY2=NY
+  KZ2=NZ
+  IF (IFACE == 1) KY2=1
+  IF (IFACE == 2) KX1=NX
+  IF (IFACE == 3) KY1=NY
+  IF (IFACE == 4) KX2=1
+  IF (IFACE == 5) KZ2=1
+  IF (IFACE == 6) KZ1=NZ
+  return
+end subroutine facind
 
-    RETURN
-    END FUNCTION CRSS2D
 !-----------------------------------------------------------------------
-    subroutine facind (kx1,kx2,ky1,ky2,kz1,kz2,nx,ny,nz,iface)
-!      ifcase in preprocessor notation
-    KX1=1
-    KY1=1
-    KZ1=1
-    KX2=NX
-    KY2=NY
-    KZ2=NZ
-    IF (IFACE == 1) KY2=1
-    IF (IFACE == 2) KX1=NX
-    IF (IFACE == 3) KY1=NY
-    IF (IFACE == 4) KX2=1
-    IF (IFACE == 5) KZ2=1
-    IF (IFACE == 6) KZ1=NZ
-    return
-    end subroutine facind
-!-----------------------------------------------------------------------
-    subroutine facev(a,ie,iface,val,nx,ny,nz)
+!> \brief Assign the value VAL to face(IFACE,IE) of array A.
+!! IFACE is the input in the pre-processor ordering scheme.
+subroutine facev(a,ie,iface,val,nx,ny,nz)
+  use kinds, only : DP
+  use size_m, only : lelt
+  implicit none
+  real(DP) :: a(NX,NY,NZ,LELT), val
+  integer :: ie, iface, nx, ny, nz
+  integer :: kx1, ky1, kz1, kx2, ky2, kz2
+  integer :: ix, iy, iz
 
-!     Assign the value VAL to face(IFACE,IE) of array A.
-!     IFACE is the input in the pre-processor ordering scheme.
-
-    use size_m
-    DIMENSION A(NX,NY,NZ,LELT)
-    CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX,NY,NZ,IFACE)
-    DO 100 IZ=KZ1,KZ2
-        DO 100 IY=KY1,KY2
-            DO 100 IX=KX1,KX2
-                A(IX,IY,IZ,IE)=VAL
-    100 END DO
-    RETURN
-    end subroutine facev
+  CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX,NY,NZ,IFACE)
+  DO 100 IZ=KZ1,KZ2
+      DO 100 IY=KY1,KY2
+          DO 100 IX=KX1,KX2
+              A(IX,IY,IZ,IE)=VAL
+  100 END DO
+  RETURN
+end subroutine facev
 !-----------------------------------------------------------------------

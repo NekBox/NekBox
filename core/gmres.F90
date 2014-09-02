@@ -1,75 +1,39 @@
 !-----------------------------------------------------------------------
+subroutine uzawa_gmres_split(l,u,b,binv,n)
+  use kinds, only : DP
+  implicit none
 
-    subroutine uzawa_gmres_split0(l,u,b,binv,n)
-    integer :: n
-    real :: l(n),u(n),b(n),binv(n)
-    integer :: i
-    do i=1,n
-        l(i)=sqrt(binv(i))
-        u(i)=sqrt(b(i))
-        if(abs(u(i)*l(i)-1.0) > 1e-13) print *, i, u(i)*l(i)
-    enddo
-    return
-    end subroutine uzawa_gmres_split0
-
-!-----------------------------------------------------------------------
-    subroutine uzawa_gmres_split(l,u,b,binv,n)
-    integer :: n
-    real :: l(n),u(n),b(n),binv(n)
-    integer :: i
-    do i=1,n
-    !        l(i)=sqrt(binv(i))
-    !        u(i)=sqrt(b(i))
-
-    !        u(i)=sqrt(b(i))
-    !        l(i)=1./u(i)
-
-    !        l(i)=sqrt(binv(i))
-        l(i)=1.
-        u(i)=1./l(i)
-
-
-    !        if(abs(u(i)*l(i)-1.0).gt.1e-13)write(6,*) i,u(i)*l(i),' gmr_sp'
-    enddo
-    return
-    end subroutine uzawa_gmres_split
+  integer :: n
+  real :: l(n),u(n),b(n),binv(n)
+  integer :: i
+  do i=1,n
+      l(i)=1.
+      u(i)=1./l(i)
+  enddo
+  return
+end subroutine uzawa_gmres_split
 
 !-----------------------------------------------------------------------
-    subroutine ax(w,x,h1,h2,n)
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+!> \brief w = A*x for pressure iteration
+subroutine ax(w,x,h1,h2,n)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1
+  use soln, only : pmask
+  implicit none
 
+  integer :: n
+  real(DP) :: w(n),x(n),h1(n),h2(n)
+  integer :: imsh, isd
 
-!     w = A*x for pressure iteration
+  imsh = 1
+  isd  = 1
+  call axhelm (w,x,h1,h2,imsh,isd)
+  call dssum  (w,nx1,ny1,nz1)
+  call col2   (w,pmask,n)
 
+  return
+end subroutine ax
 
-    integer :: n
-    real :: w(n),x(n),h1(n),h2(n)
-
-    imsh = 1
-    isd  = 1
-    call axhelm (w,x,h1,h2,imsh,isd)
-    call dssum  (w,nx1,ny1,nz1)
-    call col2   (w,pmask,n)
-
-    return
-    end subroutine ax
 !-----------------------------------------------------------------------
 !> \brief Solve the Helmholtz equation by right-preconditioned
 !! GMRES iteration.

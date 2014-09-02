@@ -35,74 +35,80 @@ subroutine ctolspl (tolspl,respr)
   ENDIF
   return
 end subroutine ctolspl
+
 !------------------------------------------------------------------------
-    subroutine ortho (respr)
+!> \brief   Orthogonalize the residual in the pressure solver with respect
+!! to (1,1,...,1)T  (only if all Dirichlet b.c.).
+subroutine ortho (respr)
+  use kinds, only : DP
+  use size_m, only : lx2, ly2, lz2, lelv, nx2, ny2, nz2, nelv
+  use geom, only : ifvcor, ifbcor
+  use input, only : ifldmhd
+  use parallel, only : nelgv
+  use tstep, only : ifield
+  implicit none
 
-!     Orthogonalize the residual in the pressure solver with respect
-!     to (1,1,...,1)T  (only if all Dirichlet b.c.).
+  real(DP) :: respr (lx2,ly2,lz2,lelv)
+  integer*8 :: ntotg,nxyz2
+  integer :: ntot
+  real(DP) :: rlam
+  real(DP), external :: glsum
 
-    use size_m
-    use geom
-    use input
-    use parallel
-    use soln
-    use tstep
-    real :: respr (lx2,ly2,lz2,lelv)
-    integer*8 :: ntotg,nxyz2
+  nxyz2 = nx2*ny2*nz2
+  ntot  = nxyz2*nelv
+  ntotg = nxyz2*nelgv
 
-    nxyz2 = nx2*ny2*nz2
-    ntot  = nxyz2*nelv
-    ntotg = nxyz2*nelgv
+  if (ifield == 1) then
+      if (ifvcor) then
+          rlam  = glsum (respr,ntot)/ntotg
+          call cadd (respr,-rlam,ntot)
+      endif
+  elseif (ifield == ifldmhd) then
+      if (ifbcor) then
+          rlam = glsum (respr,ntot)/ntotg
+          call cadd (respr,-rlam,ntot)
+      endif
+  else
+      call exitti('ortho: unaccounted ifield = $',ifield)
+  endif
 
-    if (ifield == 1) then
-        if (ifvcor) then
-            rlam  = glsum (respr,ntot)/ntotg
-            call cadd (respr,-rlam,ntot)
-        endif
-    elseif (ifield == ifldmhd) then
-        if (ifbcor) then
-            rlam = glsum (respr,ntot)/ntotg
-            call cadd (respr,-rlam,ntot)
-        endif
-    else
-        call exitti('ortho: unaccounted ifield = $',ifield)
-    endif
-
-    return
-    end subroutine ortho
-!------------------------------------------------------------------------
-    subroutine opgrad (out1,out2,out3,inp)
-!---------------------------------------------------------------------
-
-!     Compute OUTi = Di*INP, i=1,2,3.
-!     the gradient of the scalar field INP.
-!     Note: OUTi is defined on the pressure mesh !!!
+  return
+end subroutine ortho
 
 !---------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
+!> \brief Compute OUTi = Di*INP, i=1,2,3.
+!! the gradient of the scalar field INP.
+!! Note: OUTi is defined on the pressure mesh !!!
+!---------------------------------------------------------------------
+subroutine opgrad (out1,out2,out3,inp)
+  use kinds, only : DP
+  use size_m
+  use geom
+  use input
+  implicit none
 
-    REAL :: OUT1 (LX2,LY2,LZ2,1)
-    REAL :: OUT2 (LX2,LY2,LZ2,1)
-    REAL :: OUT3 (LX2,LY2,LZ2,1)
-    REAL :: INP  (LX1,LY1,LZ1,1)
+  REAL(DP) :: OUT1 (LX2,LY2,LZ2,1)
+  REAL(DP) :: OUT2 (LX2,LY2,LZ2,1)
+  REAL(DP) :: OUT3 (LX2,LY2,LZ2,1)
+  REAL(DP) :: INP  (LX1,LY1,LZ1,1)
 
-    iflg = 0
+  integer :: iflg, ntot2
+  iflg = 0
 
-    if (ifsplit .AND. .NOT. ifaxis) then
-        call wgradm1(out1,out2,out3,inp,nelv) ! weak grad on FLUID mesh
-        return
-    endif
+  if (ifsplit .AND. .NOT. ifaxis) then
+      call wgradm1(out1,out2,out3,inp,nelv) ! weak grad on FLUID mesh
+      return
+  endif
 
-    NTOT2 = NX2*NY2*NZ2*NELV
-    CALL MULTD (OUT1,INP,RXM2,SXM2,TXM2,1,iflg)
-    CALL MULTD (OUT2,INP,RYM2,SYM2,TYM2,2,iflg)
-    IF (NDIM == 3) &
-    CALL MULTD (OUT3,INP,RZM2,SZM2,TZM2,3,iflg)
+  NTOT2 = NX2*NY2*NZ2*NELV
+  CALL MULTD (OUT1,INP,RXM2,SXM2,TXM2,1,iflg)
+  CALL MULTD (OUT2,INP,RYM2,SYM2,TYM2,2,iflg)
+  IF (NDIM == 3) &
+  CALL MULTD (OUT3,INP,RZM2,SZM2,TZM2,3,iflg)
 
-    return
-    end subroutine opgrad
+  return
+end subroutine opgrad
+
 !-------------------------------------------------------------
 !> \brief Compute DT*X (entire field)
 !-------------------------------------------------------------
@@ -521,111 +527,115 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
   return
 end subroutine multd
 
-    subroutine ophinv (out1,out2,out3,inp1,inp2,inp3,h1,h2,tolh,nmxi)
 !----------------------------------------------------------------------
-
-!     OUT = (H1*A+H2*B)-1 * INP  (implicit)
-
+!> \brief OUT = (H1*A+H2*B)-1 * INP  (implicit)
 !----------------------------------------------------------------------
-    use size_m
-    use input
-    use soln
-    use tstep
-    REAL :: OUT1 (LX1,LY1,LZ1,1)
-    REAL :: OUT2 (LX1,LY1,LZ1,1)
-    REAL :: OUT3 (LX1,LY1,LZ1,1)
-    REAL :: INP1 (LX1,LY1,LZ1,1)
-    REAL :: INP2 (LX1,LY1,LZ1,1)
-    REAL :: INP3 (LX1,LY1,LZ1,1)
-    REAL :: H1   (LX1,LY1,LZ1,1)
-    REAL :: H2   (LX1,LY1,LZ1,1)
+subroutine ophinv (out1,out2,out3,inp1,inp2,inp3,h1,h2,tolh,nmxi)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, ndim
+  use input, only : ifstrs, ifcyclic, ifldmhd
+  use soln, only : b1mask, b2mask, b3mask, v1mask, v2mask, v3mask, vmult
+  use tstep, only : imesh, ifield
+  implicit none
 
-    IMESH = 1
+  REAL(DP) :: OUT1 (LX1,LY1,LZ1,1)
+  REAL(DP) :: OUT2 (LX1,LY1,LZ1,1)
+  REAL(DP) :: OUT3 (LX1,LY1,LZ1,1)
+  REAL(DP) :: INP1 (LX1,LY1,LZ1,1)
+  REAL(DP) :: INP2 (LX1,LY1,LZ1,1)
+  REAL(DP) :: INP3 (LX1,LY1,LZ1,1)
+  REAL(DP) :: H1   (LX1,LY1,LZ1,1)
+  REAL(DP) :: H2   (LX1,LY1,LZ1,1)
+  real(DP) :: tolh
+  integer :: nmxi
 
-    if (ifstrs) then
+  IMESH = 1
+
+  if (ifstrs) then
 #if 0
-        MATMOD = 0
-        if (ifield == ifldmhd) then
-            CALL HMHZSF  ('NOMG',OUT1,OUT2,OUT3,INP1,INP2,INP3,H1,H2, &
-            B1MASK,B2MASK,B3MASK,VMULT, &
-            TOLH,NMXI,MATMOD)
-        else
-            CALL HMHZSF  ('NOMG',OUT1,OUT2,OUT3,INP1,INP2,INP3,H1,H2, &
-            V1MASK,V2MASK,V3MASK,VMULT, &
-            TOLH,NMXI,MATMOD)
-        endif
+      MATMOD = 0
+      if (ifield == ifldmhd) then
+          CALL HMHZSF  ('NOMG',OUT1,OUT2,OUT3,INP1,INP2,INP3,H1,H2, &
+          B1MASK,B2MASK,B3MASK,VMULT, &
+          TOLH,NMXI,MATMOD)
+      else
+          CALL HMHZSF  ('NOMG',OUT1,OUT2,OUT3,INP1,INP2,INP3,H1,H2, &
+          V1MASK,V2MASK,V3MASK,VMULT, &
+          TOLH,NMXI,MATMOD)
+      endif
 #endif
-    elseif (ifcyclic) then
+  elseif (ifcyclic) then
 #if 0
-        matmod = 0
-        if (ifield == ifldmhd) then
-            call hmhzsf  ('bxyz',out1,out2,out3,inp1,inp2,inp3,h1,h2, &
-            b1mask,b2mask,b3mask,vmult, &
-            tolh,nmxi,matmod)
-        else
-            call hmhzsf  ('vxyz',out1,out2,out3,inp1,inp2,inp3,h1,h2, &
-            v1mask,v2mask,v3mask,vmult, &
-            tolh,nmxi,matmod)
-        endif
+      matmod = 0
+      if (ifield == ifldmhd) then
+          call hmhzsf  ('bxyz',out1,out2,out3,inp1,inp2,inp3,h1,h2, &
+          b1mask,b2mask,b3mask,vmult, &
+          tolh,nmxi,matmod)
+      else
+          call hmhzsf  ('vxyz',out1,out2,out3,inp1,inp2,inp3,h1,h2, &
+          v1mask,v2mask,v3mask,vmult, &
+          tolh,nmxi,matmod)
+      endif
 #endif
-    else
-        if (ifield == ifldmhd) then
-            CALL HMHOLTZ ('BX  ',OUT1,INP1,H1,H2,B1MASK,VMULT, &
-            IMESH,TOLH,NMXI,1)
-            CALL HMHOLTZ ('BY  ',OUT2,INP2,H1,H2,B2MASK,VMULT, &
-            IMESH,TOLH,NMXI,2)
-            IF (NDIM == 3) &
-            CALL HMHOLTZ ('BZ  ',OUT3,INP3,H1,H2,B3MASK,VMULT, &
-            IMESH,TOLH,NMXI,3)
-        else
-            CALL HMHOLTZ ('VELX',OUT1,INP1,H1,H2,V1MASK,VMULT, &
-            IMESH,TOLH,NMXI,1)
-            CALL HMHOLTZ ('VELY',OUT2,INP2,H1,H2,V2MASK,VMULT, &
-            IMESH,TOLH,NMXI,2)
-            IF (NDIM == 3) &
-            CALL HMHOLTZ ('VELZ',OUT3,INP3,H1,H2,V3MASK,VMULT, &
-            IMESH,TOLH,NMXI,3)
-        endif
-    ENDIF
+  else
+      if (ifield == ifldmhd) then
+          CALL HMHOLTZ ('BX  ',OUT1,INP1,H1,H2,B1MASK,VMULT, &
+          IMESH,TOLH,NMXI,1)
+          CALL HMHOLTZ ('BY  ',OUT2,INP2,H1,H2,B2MASK,VMULT, &
+          IMESH,TOLH,NMXI,2)
+          IF (NDIM == 3) &
+          CALL HMHOLTZ ('BZ  ',OUT3,INP3,H1,H2,B3MASK,VMULT, &
+          IMESH,TOLH,NMXI,3)
+      else
+          CALL HMHOLTZ ('VELX',OUT1,INP1,H1,H2,V1MASK,VMULT, &
+          IMESH,TOLH,NMXI,1)
+          CALL HMHOLTZ ('VELY',OUT2,INP2,H1,H2,V2MASK,VMULT, &
+          IMESH,TOLH,NMXI,2)
+          IF (NDIM == 3) &
+          CALL HMHOLTZ ('VELZ',OUT3,INP3,H1,H2,V3MASK,VMULT, &
+          IMESH,TOLH,NMXI,3)
+      endif
+  ENDIF
 
-    return
-    end subroutine ophinv
-
-    subroutine ophx (out1,out2,out3,inp1,inp2,inp3,h1,h2)
-!----------------------------------------------------------------------
-
-!     OUT = (H1*A+H2*B) * INP
+  return
+end subroutine ophinv
 
 !----------------------------------------------------------------------
-    use size_m
-    use input
-    use soln
-    REAL :: OUT1 (LX1,LY1,LZ1,1)
-    REAL :: OUT2 (LX1,LY1,LZ1,1)
-    REAL :: OUT3 (LX1,LY1,LZ1,1)
-    REAL :: INP1 (LX1,LY1,LZ1,1)
-    REAL :: INP2 (LX1,LY1,LZ1,1)
-    REAL :: INP3 (LX1,LY1,LZ1,1)
-    REAL :: H1   (LX1,LY1,LZ1,1)
-    REAL :: H2   (LX1,LY1,LZ1,1)
+!> \brief OUT = (H1*A+H2*B) * INP
+!----------------------------------------------------------------------
+subroutine ophx (out1,out2,out3,inp1,inp2,inp3,h1,h2)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, ndim
+  use input, only : ifstrs
+  implicit none
 
-    IMESH = 1
+  REAL(DP) :: OUT1 (LX1,LY1,LZ1,1)
+  REAL(DP) :: OUT2 (LX1,LY1,LZ1,1)
+  REAL(DP) :: OUT3 (LX1,LY1,LZ1,1)
+  REAL(DP) :: INP1 (LX1,LY1,LZ1,1)
+  REAL(DP) :: INP2 (LX1,LY1,LZ1,1)
+  REAL(DP) :: INP3 (LX1,LY1,LZ1,1)
+  REAL(DP) :: H1   (LX1,LY1,LZ1,1)
+  REAL(DP) :: H2   (LX1,LY1,LZ1,1)
 
-    IF (IFSTRS) THEN
+  integer :: imesh
+  IMESH = 1
+
+  IF (IFSTRS) THEN
 #if 0
-        MATMOD = 0
-        CALL AXHMSF (OUT1,OUT2,OUT3,INP1,INP2,INP3,H1,H2,MATMOD)
+      MATMOD = 0
+      CALL AXHMSF (OUT1,OUT2,OUT3,INP1,INP2,INP3,H1,H2,MATMOD)
 #endif
-    ELSE
-        CALL AXHELM (OUT1,INP1,H1,H2,IMESH,1)
-        CALL AXHELM (OUT2,INP2,H1,H2,IMESH,2)
-        IF (NDIM == 3) &
-        CALL AXHELM (OUT3,INP3,H1,H2,IMESH,3)
-    ENDIF
+  ELSE
+      CALL AXHELM (OUT1,INP1,H1,H2,IMESH,1)
+      CALL AXHELM (OUT2,INP2,H1,H2,IMESH,2)
+      IF (NDIM == 3) &
+      CALL AXHELM (OUT3,INP3,H1,H2,IMESH,3)
+  ENDIF
 
-    return
-    end subroutine ophx
-!-----------------------------------------------------------------------
+  return
+end subroutine ophx
+
 !--------------------------------------------------------------
 !> \brief Compute some derviatives?
 !!   DU   - dU/dx or dU/dy or dU/dz
@@ -691,82 +701,78 @@ subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
   return
 end subroutine dudxyz
 
-!-----------------------------------------------------------------------
-    subroutine makef
 !---------------------------------------------------------------------
-
-!     Compute and add: (1) user specified forcing function (FX,FY,FZ)
-!                      (2) driving force due to natural convection
-!                      (3) convection term
-
-!     !! NOTE: Do not change the arrays BFX, BFY, BFZ until the
-!              current time step is completed.
-
+!> \brief Compute and add: (1) user specified forcing function (FX,FY,FZ)
+!!                  (2) driving force due to natural convection
+!!                  (3) convection term
+!! !! NOTE: Do not change the arrays BFX, BFY, BFZ until the
+!!          current time step is completed.
 !----------------------------------------------------------------------
-    use size_m
-    use input
-    use mass
-    use soln
-    use tstep
+subroutine makef
+  use input, only : ifnav, ifchar, iftran
+  implicit none
 
-    call makeuf
-!    if (ifnatc)                               call natconv
-!    if (ifexplvis .AND. ifsplit)                call explstrs
-    if (ifnav .AND. ( .NOT. ifchar))              call advab
-!    if (ifmvbd)                               call admeshv
-    if (iftran) then
-      call makeabf
-    endif
-    if ((iftran .AND. .NOT. ifchar) .OR. &
-    (iftran .AND. .NOT. ifnav .AND. ifchar))   call makebdf
+  call makeuf
+!  if (ifnatc)                               call natconv
+!  if (ifexplvis .AND. ifsplit)                call explstrs
+  if (ifnav .AND. ( .NOT. ifchar))              call advab
+!  if (ifmvbd)                               call admeshv
+  if (iftran) then
+    call makeabf
+  endif
+  if ((iftran .AND. .NOT. ifchar) .OR. &
+  (iftran .AND. .NOT. ifnav .AND. ifchar))   call makebdf
 !max    if (ifnav .AND. ifchar .AND. ( .NOT. ifmvbd))   call advchar
 #if 0
-    if (ifmodel)                              call twallsh
+  if (ifmodel)                              call twallsh
 #endif
 
-    return
-    end subroutine makef
+  return
+end subroutine makef
 
-    subroutine makeuf
 !---------------------------------------------------------------------
-
-!     Compute and add: (1) user specified forcing function (FX,FY,FZ)
-
+!> \brief Compute and add: (1) user specified forcing function (FX,FY,FZ)
 !----------------------------------------------------------------------
-    use size_m
-    use mass
-    use soln
-    use tstep
+subroutine makeuf
+  use mass, only : bm1
+  use soln, only : bfx, bfy, bfz
+  use tstep, only : time, dt
+  implicit none
 
-    TIME = TIME-DT
-    CALL NEKUF   (BFX,BFY,BFZ)
-    CALL OPCOLV (BFX,BFY,BFZ,BM1)
-    TIME = TIME+DT
+  TIME = TIME-DT
+  CALL NEKUF   (BFX,BFY,BFZ)
+  CALL OPCOLV (BFX,BFY,BFZ,BM1)
+  TIME = TIME+DT
 
-    return
-    end subroutine makeuf
+  return
+end subroutine makeuf
 
-    subroutine nekuf (f1,f2,f3)
-    use size_m
-    use nekuse
-    use parallel
-    REAL :: F1 (LX1,LY1,LZ1,LELV)
-    REAL :: F2 (LX1,LY1,LZ1,LELV)
-    REAL :: F3 (LX1,LY1,LZ1,LELV)
-    CALL OPRZERO (F1,F2,F3)
-    DO 100 IEL=1,NELV
-        ielg = lglel(iel)
-        DO 100 K=1,NZ1
-            DO 100 J=1,NY1
-                DO 100 I=1,NX1
-                    CALL NEKASGN (I,J,K,IEL)
-                    CALL USERF   (I,J,K,IELG)
-                    F1(I,J,K,IEL) = FFX
-                    F2(I,J,K,IEL) = FFY
-                    F3(I,J,K,IEL) = FFZ
-    100 END DO
-    return
-    end subroutine nekuf
+subroutine nekuf (f1,f2,f3)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
+  use nekuse, only : ffx, ffy, ffz
+  use parallel, only : lglel
+  implicit none
+
+  REAL(DP) :: F1 (LX1,LY1,LZ1,LELV)
+  REAL(DP) :: F2 (LX1,LY1,LZ1,LELV)
+  REAL(DP) :: F3 (LX1,LY1,LZ1,LELV)
+
+  integer :: i, j, k, ielg, iel
+  CALL OPRZERO (F1,F2,F3)
+  DO 100 IEL=1,NELV
+      ielg = lglel(iel)
+      DO 100 K=1,NZ1
+          DO 100 J=1,NY1
+              DO 100 I=1,NX1
+                  CALL NEKASGN (I,J,K,IEL)
+                  CALL USERF   (I,J,K,IELG)
+                  F1(I,J,K,IEL) = FFX
+                  F2(I,J,K,IEL) = FFY
+                  F3(I,J,K,IEL) = FFZ
+  100 END DO
+  return
+end subroutine nekuf
 
 !---------------------------------------------------------------
 !> \brief Eulerian scheme, add convection term to forcing function
@@ -892,216 +898,228 @@ subroutine makeabf
 
   return
 end subroutine makeabf
-!-----------------------------------------------------------------------
-    subroutine setabbd (ab,dtlag,nab,nbd)
-!-----------------------------------------------------------------------
-
-!     Compute Adams-Bashforth coefficients (order NAB, less or equal to 3)
-
-!     NBD .EQ. 1
-!     Standard Adams-Bashforth coefficients
-
-!     NBD .GT. 1
-!     Modified Adams-Bashforth coefficients to be used in con-
-!     junction with Backward Differentiation schemes (order NBD)
 
 !-----------------------------------------------------------------------
-    REAL :: AB(NAB),DTLAG(NAB)
-
-    DT0 = DTLAG(1)
-    DT1 = DTLAG(2)
-    DT2 = DTLAG(3)
-
-    IF ( NAB == 1 ) THEN
-    
-        AB(1) = 1.0
-    
-    ELSEIF ( NAB == 2 ) THEN
-    
-        DTA =  DT0/DT1
-    
-        IF ( NBD == 1 ) THEN
-        
-            AB(2) = -0.5*DTA
-            AB(1) =  1.0 - AB(2)
-        
-        ELSEIF ( NBD == 2 ) THEN
-        
-            AB(2) = -DTA
-            AB(1) =  1.0 - AB(2)
-        
-        ENDIF
-    
-    ELSEIF ( NAB == 3 ) THEN
-    
-        DTS =  DT1 + DT2
-        DTA =  DT0 / DT1
-        DTB =  DT1 / DT2
-        DTC =  DT0 / DT2
-        DTD =  DTS / DT1
-        DTE =  DT0 / DTS
-    
-        IF ( NBD == 1 ) THEN
-        
-            AB(3) =  DTE*( 0.5*DTB + DTC/3. )
-            AB(2) = -0.5*DTA - AB(3)*DTD
-            AB(1) =  1.0 - AB(2) - AB(3)
-        
-        ELSEIF ( NBD == 2 ) THEN
-        
-            AB(3) =  2./3.*DTC*(1./DTD + DTE)
-            AB(2) = -DTA - AB(3)*DTD
-            AB(1) =  1.0 - AB(2) - AB(3)
-        
-        ELSEIF ( NBD == 3 ) THEN
-        
-            AB(3) =  DTE*(DTB + DTC)
-            AB(2) = -DTA*(1.0 + DTB + DTC)
-            AB(1) =  1.0 - AB(2) - AB(3)
-        
-        ENDIF
-    
-    ENDIF
-
-    return
-    end subroutine setabbd
-
-    subroutine setbd (bd,dtbd,nbd)
+!> \brief Compute Adams-Bashforth coefficients (order NAB, less or equal to 3).
+!! NBD .EQ. 1
+!! Standard Adams-Bashforth coefficients
+!! NBD .GT. 1
+!! Modified Adams-Bashforth coefficients to be used in con-
+!! junction with Backward Differentiation schemes (order NBD)
 !-----------------------------------------------------------------------
+subroutine setabbd (ab,dtlag,nab,nbd)
+  use kinds, only : DP
+  implicit none
 
-!     Compute bacward-differentiation coefficients of order NBD
+  REAL(DP) :: AB(NAB),DTLAG(NAB)
+  integer :: nab, nbd
+
+  real(DP) :: dt0, dt1, dt2, dta, dts, dtb, dtc, dtd, dte
+  DT0 = DTLAG(1)
+  DT1 = DTLAG(2)
+  DT2 = DTLAG(3)
+
+  IF ( NAB == 1 ) THEN
+  
+      AB(1) = 1.0
+  
+  ELSEIF ( NAB == 2 ) THEN
+  
+      DTA =  DT0/DT1
+  
+      IF ( NBD == 1 ) THEN
+      
+          AB(2) = -0.5*DTA
+          AB(1) =  1.0 - AB(2)
+      
+      ELSEIF ( NBD == 2 ) THEN
+      
+          AB(2) = -DTA
+          AB(1) =  1.0 - AB(2)
+      
+      ENDIF
+  
+  ELSEIF ( NAB == 3 ) THEN
+  
+      DTS =  DT1 + DT2
+      DTA =  DT0 / DT1
+      DTB =  DT1 / DT2
+      DTC =  DT0 / DT2
+      DTD =  DTS / DT1
+      DTE =  DT0 / DTS
+  
+      IF ( NBD == 1 ) THEN
+      
+          AB(3) =  DTE*( 0.5*DTB + DTC/3. )
+          AB(2) = -0.5*DTA - AB(3)*DTD
+          AB(1) =  1.0 - AB(2) - AB(3)
+      
+      ELSEIF ( NBD == 2 ) THEN
+      
+          AB(3) =  2./3.*DTC*(1./DTD + DTE)
+          AB(2) = -DTA - AB(3)*DTD
+          AB(1) =  1.0 - AB(2) - AB(3)
+      
+      ELSEIF ( NBD == 3 ) THEN
+      
+          AB(3) =  DTE*(DTB + DTC)
+          AB(2) = -DTA*(1.0 + DTB + DTC)
+          AB(1) =  1.0 - AB(2) - AB(3)
+      
+      ENDIF
+  
+  ENDIF
+
+  return
+end subroutine setabbd
 
 !-----------------------------------------------------------------------
-    PARAMETER (NDIM = 10)
-    REAL :: BDMAT(NDIM,NDIM),BDRHS(NDIM)
-    INTEGER :: IR(NDIM),IC(NDIM)
-    REAL :: BD(1),DTBD(1)
+!> \brief Compute bacward-differentiation coefficients of order NBD
+!-----------------------------------------------------------------------
+subroutine setbd (bd,dtbd,nbd)
+  use kinds, only : DP
+  implicit none
 
-    CALL RZERO (BD,10)
-    IF (NBD == 1) THEN
-        BD(1) = 1.
-        BDF   = 1.
-    ELSEIF (NBD >= 2) THEN
-        NSYS = NBD+1
-        CALL BDSYS (BDMAT,BDRHS,DTBD,NBD,NDIM)
-        CALL LU    (BDMAT,NSYS,NDIM,IR,IC)
-        CALL SOLVE (BDRHS,BDMAT,1,NSYS,NDIM,IR,IC)
-        DO 30 I=1,NBD
-            BD(I) = BDRHS(I)
-        30 END DO
-        BDF = BDRHS(NBD+1)
-    ENDIF
+  REAL :: BD(1),DTBD(1)
+  integer :: nbd
 
-!     Normalize
+  integer, PARAMETER :: NDIM = 10
+  REAL(DP) :: BDMAT(NDIM,NDIM),BDRHS(NDIM), BDF
+  INTEGER :: IR(NDIM),IC(NDIM)
+  integer :: nsys, i, ibd
 
-    DO 100 IBD=NBD,1,-1
-        BD(IBD+1) = BD(IBD)
-    100 END DO
-    BD(1) = 1.
-    DO 200 IBD=1,NBD+1
-        BD(IBD) = BD(IBD)/BDF
-    200 END DO
-!     write(6,1) (bd(k),k=1,nbd+1)
-!   1 format('bd:',1p8e13.5)
+  CALL RZERO (BD,10)
+  IF (NBD == 1) THEN
+      BD(1) = 1.
+      BDF   = 1.
+  ELSEIF (NBD >= 2) THEN
+      NSYS = NBD+1
+      CALL BDSYS (BDMAT,BDRHS,DTBD,NBD,NDIM)
+      CALL LU    (BDMAT,NSYS,NDIM,IR,IC)
+      CALL SOLVE (BDRHS,BDMAT,1,NSYS,NDIM,IR,IC)
+      DO 30 I=1,NBD
+          BD(I) = BDRHS(I)
+      30 END DO
+      BDF = BDRHS(NBD+1)
+  ENDIF
 
-    return
-    end subroutine setbd
+!   Normalize
 
-    subroutine bdsys (a,b,dt,nbd,ndim)
-    REAL :: A(NDIM,9),B(9),DT(9)
-    CALL RZERO (A,NDIM**2)
-    N = NBD+1
-    DO 10 J=1,NBD
-        A(1,J) = 1.
-    10 END DO
-    A(1,NBD+1) = 0.
-    B(1) = 1.
-    DO 20 J=1,NBD
-        SUMDT = 0.
-        DO 25 K=1,J
-            SUMDT = SUMDT+DT(K)
-        25 END DO
-        A(2,J) = SUMDT
-    20 END DO
-    A(2,NBD+1) = -DT(1)
-    B(2) = 0.
-    DO 40 I=3,NBD+1
-        DO 30 J=1,NBD
-            SUMDT = 0.
-            DO 35 K=1,J
-                SUMDT = SUMDT+DT(K)
-            35 END DO
-            A(I,J) = SUMDT**(I-1)
-        30 END DO
-        A(I,NBD+1) = 0.
-        B(I) = 0.
-    40 END DO
-    return
-    end subroutine bdsys
-    subroutine tauinit (tau,ilag)
+  DO 100 IBD=NBD,1,-1
+      BD(IBD+1) = BD(IBD)
+  100 END DO
+  BD(1) = 1.
+  DO 200 IBD=1,NBD+1
+      BD(IBD) = BD(IBD)/BDF
+  200 END DO
+!   write(6,1) (bd(k),k=1,nbd+1)
+! 1 format('bd:',1p8e13.5)
+
+  return
+end subroutine setbd
+
+!> ?
+subroutine bdsys (a,b,dt,nbd,ndim)
+  use kinds, only : DP
+  implicit none
+
+  integer :: nbd, ndim
+  REAL :: A(NDIM,9),B(9),DT(9)
+
+  integer :: n, j, k, i
+  real(DP) :: sumdt
+  CALL RZERO (A,NDIM**2)
+  N = NBD+1
+  DO 10 J=1,NBD
+      A(1,J) = 1.
+  10 END DO
+  A(1,NBD+1) = 0.
+  B(1) = 1.
+  DO 20 J=1,NBD
+      SUMDT = 0.
+      DO 25 K=1,J
+          SUMDT = SUMDT+DT(K)
+      25 END DO
+      A(2,J) = SUMDT
+  20 END DO
+  A(2,NBD+1) = -DT(1)
+  B(2) = 0.
+  DO 40 I=3,NBD+1
+      DO 30 J=1,NBD
+          SUMDT = 0.
+          DO 35 K=1,J
+              SUMDT = SUMDT+DT(K)
+          35 END DO
+          A(I,J) = SUMDT**(I-1)
+      30 END DO
+      A(I,NBD+1) = 0.
+      B(I) = 0.
+  40 END DO
+  return
+end subroutine bdsys
+
 !-------------------------------------------------------------------
-
-!     Set initial time for subintegration
-
+!> \brief Set initial time for subintegration
 !-------------------------------------------------------------------
-    use size_m
-    use tstep
-    TAU   = 0.
-    DO 10 I=NBD,ILAG+1,-1
-        TAU = TAU+DTLAG(I)
-    10 END DO
-    return
-    end subroutine tauinit
+subroutine tauinit (tau,ilag)
+  use kinds, only : DP
+  use tstep, only : nbd, dtlag
+  implicit none
 
-    subroutine lagvel
+  real(DP) :: tau
+  integer :: ilag
+  integer :: i
+
+  TAU   = 0.
+  DO 10 I=NBD,ILAG+1,-1
+      TAU = TAU+DTLAG(I)
+  10 END DO
+  return
+end subroutine tauinit
+
 !-----------------------------------------------------------------------
-
-!     Keep old velocity field(s)
-
+!> \brief Keep old velocity field(s)
 !-----------------------------------------------------------------------
-    use size_m
-    use input
-    use soln
-    use tstep
+subroutine lagvel
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  use soln, only : vxlag, vylag, vzlag, vx, vy, vz
+  implicit none
 
-    NTOT1 = NX1*NY1*NZ1*NELV
+  integer :: ntot1, ilag
+  NTOT1 = NX1*NY1*NZ1*NELV
 
-!      DO 100 ILAG=NBDINP-1,2,-1
-    DO 100 ILAG=3-1,2,-1
-        CALL COPY (VXLAG (1,1,1,1,ILAG),VXLAG (1,1,1,1,ILAG-1),NTOT1)
-        CALL COPY (VYLAG (1,1,1,1,ILAG),VYLAG (1,1,1,1,ILAG-1),NTOT1)
-        IF (NDIM == 3) &
-        CALL COPY (VZLAG (1,1,1,1,ILAG),VZLAG (1,1,1,1,ILAG-1),NTOT1)
-    100 END DO
+!    DO 100 ILAG=NBDINP-1,2,-1
+  DO 100 ILAG=3-1,2,-1
+      CALL COPY (VXLAG (1,1,1,1,ILAG),VXLAG (1,1,1,1,ILAG-1),NTOT1)
+      CALL COPY (VYLAG (1,1,1,1,ILAG),VYLAG (1,1,1,1,ILAG-1),NTOT1)
+      IF (NDIM == 3) &
+      CALL COPY (VZLAG (1,1,1,1,ILAG),VZLAG (1,1,1,1,ILAG-1),NTOT1)
+  100 END DO
 
-    CALL OPCOPY (VXLAG,VYLAG,VZLAG,VX,VY,VZ)
+  CALL OPCOPY (VXLAG,VYLAG,VZLAG,VX,VY,VZ)
 
-    return
-    end subroutine lagvel
+  return
+end subroutine lagvel
 
-    subroutine setordbd
 !----------------------------------------------------------------------
-
-!     Set up parameters for backward differentiation scheme.
-
+!> \brief Set up parameters for backward differentiation scheme.
 !----------------------------------------------------------------------
-    use size_m
-    use input
-    use tstep
+subroutine setordbd
+  use tstep, only : nbdinp, nbd, istep
+  implicit none
 
-!     IF (IFSPLIT .OR. NBDINP.EQ.0) THEN     undid hardwire, 3/6/92 pff
-    IF ( NBDINP < 1) THEN
-        NBD = 1
-    ELSE
-        IF ((ISTEP == 0) .OR. (ISTEP == 1))        NBD = 1
-        IF ((ISTEP > 1) .AND. (ISTEP <= NBDINP))  NBD = ISTEP
-        IF (ISTEP > NBDINP)                     NBD = NBDINP
-    ENDIF
+!   IF (IFSPLIT .OR. NBDINP.EQ.0) THEN     undid hardwire, 3/6/92 pff
+  IF ( NBDINP < 1) THEN
+      NBD = 1
+  ELSE
+      IF ((ISTEP == 0) .OR. (ISTEP == 1))        NBD = 1
+      IF ((ISTEP > 1) .AND. (ISTEP <= NBDINP))  NBD = ISTEP
+      IF (ISTEP > NBDINP)                     NBD = NBDINP
+  ENDIF
 
-    return
-    end subroutine setordbd
+  return
+end subroutine setordbd
 
-!-----------------------------------------------------------------------
 !---------------------------------------------------------------
 !> \brief Compute error norms of a (scalar) field variable X
 !! defined on mesh 1 or mesh 2.
@@ -1163,7 +1181,6 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
 
   return
 end subroutine normsc
-
 
 !---------------------------------------------------------------
 !> \brief Compute error norms of a (vector) field variable (X1,X2,X3)
@@ -1246,236 +1263,263 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   return
 end subroutine normvc
 
-    subroutine opadd2 (a1,a2,a3,b1,b2,b3)
-    use size_m
-    REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
-    NTOT1=NX1*NY1*NZ1*NELV
-    CALL ADD2(A1,B1,NTOT1)
-    CALL ADD2(A2,B2,NTOT1)
-    IF(NDIM == 3)CALL ADD2(A3,B3,NTOT1)
-    return
-    end subroutine opadd2
+!> ?
+subroutine opadd2 (a1,a2,a3,b1,b2,b3)
+  use kinds, only : DP
+  use size_m, only : ndim, nx1, ny1, nz1, nelv
+  implicit none
 
-    subroutine opsub2 (a1,a2,a3,b1,b2,b3)
-    use size_m
-    REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
-    NTOT1=NX1*NY1*NZ1*NELV
-    CALL SUB2(A1,B1,NTOT1)
-    CALL SUB2(A2,B2,NTOT1)
-    IF(NDIM == 3)CALL SUB2(A3,B3,NTOT1)
-    return
-    end subroutine opsub2
+  REAL(DP) :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
+  integer :: ntot1
+  NTOT1=NX1*NY1*NZ1*NELV
+  CALL ADD2(A1,B1,NTOT1)
+  CALL ADD2(A2,B2,NTOT1)
+  IF(NDIM == 3)CALL ADD2(A3,B3,NTOT1)
+  return
+end subroutine opadd2
 
-    subroutine opcolv (a1,a2,a3,c)
-    use size_m
-    use opctr
-    REAL :: A1(1),A2(1),A3(1),C(1)
+subroutine opsub2 (a1,a2,a3,b1,b2,b3)
+  use kinds, only : DP
+  use size_m, only : ndim, nx1, ny1, nz1, nelv
+  implicit none
 
-    NTOT1=NX1*NY1*NZ1*NELV
+  REAL(DP) :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
+  integer :: ntot1
+  NTOT1=NX1*NY1*NZ1*NELV
+  CALL SUB2(A1,B1,NTOT1)
+  CALL SUB2(A2,B2,NTOT1)
+  IF(NDIM == 3)CALL SUB2(A3,B3,NTOT1)
+  return
+end subroutine opsub2
+
+subroutine opcolv (a1,a2,a3,c)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  use opctr, only : isclld, nrout, myrout, rname, dct, ncall, dcount
+  implicit none
+  REAL(DP) :: A1(1),A2(1),A3(1),C(1)
+  integer :: ntot1, i, isbcnt
+
+  NTOT1=NX1*NY1*NZ1*NELV
 
 #ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'opcolv'
-    endif
+  if (isclld == 0) then
+      isclld=1
+      nrout=nrout+1
+      myrout=nrout
+      rname(myrout) = 'opcolv'
+  endif
 
-    isbcnt = ntot1*ndim
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
+  isbcnt = ntot1*ndim
+  dct(myrout) = dct(myrout) + (isbcnt)
+  ncall(myrout) = ncall(myrout) + 1
+  dcount      =      dcount + (isbcnt)
 #endif
 
-    IF (NDIM == 3) THEN
-        DO 100 I=1,NTOT1
-            A1(I)=A1(I)*C(I)
-            A2(I)=A2(I)*C(I)
-            A3(I)=A3(I)*C(I)
-        100 END DO
-    ELSE
-        DO 200 I=1,NTOT1
-            A1(I)=A1(I)*C(I)
-            A2(I)=A2(I)*C(I)
-        200 END DO
-    ENDIF
-    return
-    end subroutine opcolv
+  IF (NDIM == 3) THEN
+      DO 100 I=1,NTOT1
+          A1(I)=A1(I)*C(I)
+          A2(I)=A2(I)*C(I)
+          A3(I)=A3(I)*C(I)
+      100 END DO
+  ELSE
+      DO 200 I=1,NTOT1
+          A1(I)=A1(I)*C(I)
+          A2(I)=A2(I)*C(I)
+      200 END DO
+  ENDIF
+  return
+end subroutine opcolv
 
-    subroutine opchsgn (a,b,c)
-    use size_m
-    REAL :: A(1),B(1),C(1)
-    NTOT1=NX1*NY1*NZ1*NELV
-    CALL CHSIGN(A,NTOT1)
-    CALL CHSIGN(B,NTOT1)
-    IF(NDIM == 3)CALL CHSIGN(C,NTOT1)
-    return
-    end subroutine opchsgn
+subroutine opchsgn (a,b,c)
+  use kinds, only : DP
+  use size_m
+  implicit none
+  REAL(DP) :: A(1),B(1),C(1)
+  integer :: ntot1
+  NTOT1=NX1*NY1*NZ1*NELV
+  CALL CHSIGN(A,NTOT1)
+  CALL CHSIGN(B,NTOT1)
+  IF(NDIM == 3)CALL CHSIGN(C,NTOT1)
+  return
+end subroutine opchsgn
 
-    subroutine opcopy (a1,a2,a3,b1,b2,b3)
-    use size_m
-    REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
-    NTOT1=NX1*NY1*NZ1*NELV
-    CALL COPY(A1,B1,NTOT1)
-    CALL COPY(A2,B2,NTOT1)
-    IF(NDIM == 3)CALL COPY(A3,B3,NTOT1)
-    return
-    end subroutine opcopy
+subroutine opcopy (a1,a2,a3,b1,b2,b3)
+  use kinds, only : DP
+  use size_m
+  implicit none
+  REAL(DP) :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
+  integer :: ntot1
+  NTOT1=NX1*NY1*NZ1*NELV
+  CALL COPY(A1,B1,NTOT1)
+  CALL COPY(A2,B2,NTOT1)
+  IF(NDIM == 3)CALL COPY(A3,B3,NTOT1)
+  return
+end subroutine opcopy
 
 !-----------------------------------------------------------------------
-    subroutine opdssum (a,b,c)! NOTE: opdssum works on FLUID/MHD arrays only!
+subroutine opdssum (a,b,c)! NOTE: opdssum works on FLUID/MHD arrays only!
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1
+  use input, only : ifcyclic
+  implicit none
 
-    use size_m
-    use geom
-    use input
-    use parallel
-    use tstep
+  real(DP) :: a(1),b(1),c(1)
 
-    real :: a(1),b(1),c(1)
-
-    if (ifcyclic) then
-      write(*,*) "Oops: ifcyclic"
+  if (ifcyclic) then
+    write(*,*) "Oops: ifcyclic"
 #if 0
-        call rotate_cyc  (a,b,c,1)
-        call vec_dssum   (a,b,c,nx1,ny1,nz1)
-        call rotate_cyc  (a,b,c,0)
+      call rotate_cyc  (a,b,c,1)
+      call vec_dssum   (a,b,c,nx1,ny1,nz1)
+      call rotate_cyc  (a,b,c,0)
 #endif
-    else
-        call vec_dssum   (a,b,c,nx1,ny1,nz1)
-    endif
+  else
+      call vec_dssum   (a,b,c,nx1,ny1,nz1)
+  endif
 
-    return
-    end subroutine opdssum
+  return
+end subroutine opdssum
+
 !-----------------------------------------------------------------------
-    subroutine opdsop (a,b,c,op)! opdsop works on FLUID/MHD arrays only!
+subroutine opdsop (a,b,c,op)! opdsop works on FLUID/MHD arrays only!
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1
+  use input, only : ifcyclic
+  implicit none
 
-    use size_m
-    use geom
-    use geom
-    use input
-    use parallel
-    use tstep
+  real(DP) :: a(1),b(1),c(1)
+  character(3) :: op
 
-    real :: a(1),b(1),c(1)
-    character(3) :: op
-
-    if (ifcyclic) then
-
-        if (op == '*  ' .OR. op == 'mul' .OR. op == 'MUL') then
-            call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
-        else
-            write(*,*) "Oops: op"
+  if (ifcyclic) then
+      if (op == '*  ' .OR. op == 'mul' .OR. op == 'MUL') then
+          call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
+      else
+          write(*,*) "Oops: op"
 #if 0
-            call rotate_cyc  (a,b,c,1)
-            call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
-            call rotate_cyc  (a,b,c,0)
+          call rotate_cyc  (a,b,c,1)
+          call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
+          call rotate_cyc  (a,b,c,0)
 #endif
-        endif
+      endif
+  else
+      call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
+  endif
 
-    else
+  return
+end subroutine opdsop
 
-        call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
-
-    endif
-
-    return
-    end subroutine opdsop
 !-----------------------------------------------------------------------
-    subroutine oprzero (a,b,c)
-    use size_m
-    REAL :: A(1),B(1),C(1)
-    NTOT1=NX1*NY1*NZ1*NELV
-    CALL RZERO(A,NTOT1)
-    CALL RZERO(B,NTOT1)
-    IF(NDIM == 3) CALL RZERO(C,NTOT1)
-    return
-    end subroutine oprzero
-!-----------------------------------------------------------------------
-    subroutine opadd2col(a1,a2,a3,b1,b2,b3,c)
-    use size_m
-    use opctr
-    REAL :: A1(1),A2(1),A3(1)
-    REAL :: B1(1),B2(1),B3(1),C(1)
+subroutine oprzero (a,b,c)
+  use kinds, only : DP
+  use size_m
+  implicit none
+  REAL(DP) :: A(1),B(1),C(1)
+  integer :: ntot1
+  NTOT1=NX1*NY1*NZ1*NELV
+  CALL RZERO(A,NTOT1)
+  CALL RZERO(B,NTOT1)
+  IF(NDIM == 3) CALL RZERO(C,NTOT1)
+  return
+end subroutine oprzero
 
-    NTOT1=NX1*NY1*NZ1*NELV
+!-----------------------------------------------------------------------
+subroutine opadd2col(a1,a2,a3,b1,b2,b3,c)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  use opctr, only : isclld, nrout, myrout, rname, dct, ncall, dcount
+  implicit none
+  REAL(DP) :: A1(1),A2(1),A3(1)
+  REAL(DP) :: B1(1),B2(1),B3(1),C(1)
+  integer :: ntot1, i, isbcnt
+  NTOT1=NX1*NY1*NZ1*NELV
 
 #ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'opa2cl'
-    endif
+  if (isclld == 0) then
+      isclld=1
+      nrout=nrout+1
+      myrout=nrout
+      rname(myrout) = 'opa2cl'
+  endif
 
-    isbcnt = ntot1*(ndim*2)
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
+  isbcnt = ntot1*(ndim*2)
+  dct(myrout) = dct(myrout) + (isbcnt)
+  ncall(myrout) = ncall(myrout) + 1
+  dcount      =      dcount + (isbcnt)
 #endif
 
-    IF (NDIM == 3) THEN
-        DO 100 I=1,NTOT1
-            A1(I)=A1(I)+b1(i)*c(i)
-            A2(I)=A2(I)+b2(i)*c(i)
-            A3(I)=A3(I)+b3(i)*c(i)
-        100 END DO
-    ELSE
-        DO 200 I=1,NTOT1
-            A1(I)=A1(I)+b1(i)*c(i)
-            A2(I)=A2(I)+b2(i)*c(i)
-        200 END DO
-    ENDIF
-    return
-    end subroutine opadd2col
-!-----------------------------------------------------------------------
-    subroutine opcolv3c(a1,a2,a3,b1,b2,b3,c,d)
-    use size_m
-    use opctr
-    REAL :: A1(1),A2(1),A3(1)
-    REAL :: B1(1),B2(1),B3(1)
-    REAL :: C (1)
+  IF (NDIM == 3) THEN
+      DO 100 I=1,NTOT1
+          A1(I)=A1(I)+b1(i)*c(i)
+          A2(I)=A2(I)+b2(i)*c(i)
+          A3(I)=A3(I)+b3(i)*c(i)
+      100 END DO
+  ELSE
+      DO 200 I=1,NTOT1
+          A1(I)=A1(I)+b1(i)*c(i)
+          A2(I)=A2(I)+b2(i)*c(i)
+      200 END DO
+  ENDIF
+  return
+end subroutine opadd2col
 
-    NTOT1=NX1*NY1*NZ1*NELV
+!-----------------------------------------------------------------------
+subroutine opcolv3c(a1,a2,a3,b1,b2,b3,c,d)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  use opctr, only : isclld, nrout, myrout, rname, dct, ncall, dcount
+  implicit none
+  REAL(DP) :: A1(1),A2(1),A3(1)
+  REAL(DP) :: B1(1),B2(1),B3(1)
+  REAL(DP) :: C (1), d
+  integer :: ntot1, i, isbcnt
+
+  NTOT1=NX1*NY1*NZ1*NELV
 
 #ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'opcv3c'
-    endif
+  if (isclld == 0) then
+      isclld=1
+      nrout=nrout+1
+      myrout=nrout
+      rname(myrout) = 'opcv3c'
+  endif
 
-    isbcnt = ntot1*ndim*2
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
+  isbcnt = ntot1*ndim*2
+  dct(myrout) = dct(myrout) + (isbcnt)
+  ncall(myrout) = ncall(myrout) + 1
+  dcount      =      dcount + (isbcnt)
 #endif
 
-    IF (NDIM == 3) THEN
-        DO 100 I=1,NTOT1
-            A1(I)=B1(I)*C(I)*d
-            A2(I)=B2(I)*C(I)*d
-            A3(I)=B3(I)*C(I)*d
-        100 END DO
-    ELSE
-        DO 200 I=1,NTOT1
-            A1(I)=B1(I)*C(I)*d
-            A2(I)=B2(I)*C(I)*d
-        200 END DO
-    ENDIF
-    return
-    end subroutine opcolv3c
-!-----------------------------------------------------------------------
-    subroutine transpose(a,lda,b,ldb)
-    real :: a(lda,1),b(ldb,1)
+  IF (NDIM == 3) THEN
+      DO 100 I=1,NTOT1
+          A1(I)=B1(I)*C(I)*d
+          A2(I)=B2(I)*C(I)*d
+          A3(I)=B3(I)*C(I)*d
+      100 END DO
+  ELSE
+      DO 200 I=1,NTOT1
+          A1(I)=B1(I)*C(I)*d
+          A2(I)=B2(I)*C(I)*d
+      200 END DO
+  ENDIF
+  return
+end subroutine opcolv3c
 
-    do j=1,ldb
-        do i=1,lda
-            a(i,j) = b(j,i)
-        enddo
-    enddo
-    return
-    end subroutine transpose
+!-----------------------------------------------------------------------
+subroutine transpose(a,lda,b,ldb)
+  use kinds, only : DP
+  implicit none
+  real(DP) :: a(lda,1),b(ldb,1)
+  integer :: lda, ldb
+  integer :: i, j
+
+  do j=1,ldb
+      do i=1,lda
+          a(i,j) = b(j,i)
+      enddo
+  enddo
+  return
+end subroutine transpose
+
 !-----------------------------------------------------------------------
 !> \brief Compute the convective term CONV for a passive scalar field FI
 ! using the skew-symmetric formulation.
@@ -1545,6 +1589,7 @@ subroutine convop(conv,fi)
 
   return
 end subroutine convop
+
 !-----------------------------------------------------------------------
 !> \brief Compute OUTFLD = SUMi Di*INPi.
 !! the divergence of the vector field (INPX,INPY,INPZ)
@@ -1637,49 +1682,38 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
 end subroutine wgradm1
 
 !-----------------------------------------------------------------------
-    subroutine wlaplacian(out,a,diff,ifld)
+!> \brief compute weak form of the laplacian operator including the boundary
+!!contribution
+subroutine wlaplacian(out,a,diff,ifld)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1
+  use input, only : iftmsh
+  use tstep, only : ifield, nelfld, imesh
+  implicit none
 
-!     compute weak form of the laplacian operator including the boundary
-!     contribution
+  real(DP) :: out(1),a(1),diff(1)
+  real(DP) :: wrk(lx1,ly1,lz1,lelt)
+  real(DP) :: h2(lx1,ly1,lz1,lelt)
+  integer :: ifld
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  integer :: ntot, ifield_
 
-    real :: out(1),a(1),diff(1)
-    real :: wrk(lx1,ly1,lz1,lelt)
-    real :: h2(lx1,ly1,lz1,lelt)
+  ntot = nx1*ny1*nz1*nelfld(ifld)
+  if ( .NOT. iftmsh(ifld)) imesh = 1
+  if (     iftmsh(ifld)) imesh = 2
 
-    ntot = nx1*ny1*nz1*nelfld(ifld)
-    if ( .NOT. iftmsh(ifld)) imesh = 1
-    if (     iftmsh(ifld)) imesh = 2
+  call rzero(h2,ntot)
 
-    call rzero(h2,ntot)
+  ifield_ = ifield
+  ifield = ifld
 
-    ifield_ = ifield
-    ifield = ifld
+  call bcneusc(out,1)
+  call axhelm(wrk,a,diff,h2,imesh,1)
+  call sub2 (out,wrk,ntot)
+   
+  ifield = ifield_
 
-    call bcneusc(out,1)
-    call axhelm(wrk,a,diff,h2,imesh,1)
-    call sub2 (out,wrk,ntot)
-     
-    ifield = ifield_
+  return
+end subroutine wlaplacian
 
-    return
-    end subroutine wlaplacian
 !-----------------------------------------------------------------------

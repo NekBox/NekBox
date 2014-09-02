@@ -1,113 +1,121 @@
-    FUNCTION VLSC3(X,Y,B,N)
-    use opctr
+!> \brief local inner product, with weight
+real(DP) FUNCTION VLSC3(X,Y,B,N)
+  use kinds, only : DP
+  use opctr, only : isclld, nrout, myrout, rname, dct, ncall, dcount
+  implicit none
 
-!     local inner product, with weight
+  real(DP) :: X(1),Y(1),B(1)
+  integer :: n
 
-    DIMENSION X(1),Y(1),B(1)
-    REAL :: DT
+  REAL(DP) :: DT, T
+  integer :: isbcnt, i
 
+  if (isclld == 0) then
+      isclld=1
+      nrout=nrout+1
+      myrout=nrout
+      rname(myrout) = 'VLSC3 '
+  endif
+  isbcnt = 3*n
+  dct(myrout) = dct(myrout) + dfloat(isbcnt)
+  ncall(myrout) = ncall(myrout) + 1
+  dcount      =      dcount + dfloat(isbcnt)
 
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'VLSC3 '
-    endif
-    isbcnt = 3*n
-    dct(myrout) = dct(myrout) + dfloat(isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + dfloat(isbcnt)
+  DT = 0.0
+  DO 10 I=1,N
+      T = X(I)*Y(I)*B(I)
+      DT = DT+T
+  10 END DO
+  T=DT
+  VLSC3 = T
+  RETURN
+END FUNCTION VLSC3
 
-    DT = 0.0
-    DO 10 I=1,N
-        T = X(I)*Y(I)*B(I)
-        DT = DT+T
-    10 END DO
-    T=DT
-    VLSC3 = T
-    RETURN
-    END FUNCTION VLSC3
 !-----------------------------------------------------------------------
 !     THE ROUTINES BELOW ARE THE NEW Helmholtz projectors
 !-----------------------------------------------------------------------
-    subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
+!> \brief     Orthogonalize the rhs wrt previous rhs's for which we already
+!!     know the soln.
+!!     Input:   r         -- residual
+!!              h1,h2     -- Helmholtz arrays
+!!              bi        -- inverse mass matrix
+!!              vml,vmk   -- multiplicity and mask arrays
+!!              approx    -- approximation space
+!!              napprox   -- (1) = max vecs,  (2) = current number of vecs
+!!              wl        -- large work array of size lx1*ly1*lz1*nelv
+!!              ws        -- small work array of size 2*max vecs
+subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
+  use kinds, only : DP
+  use size_m
+  use input
+  use mass
+  use soln
+  use tstep
+  implicit none
 
-!     Orthogonalize the rhs wrt previous rhs's for which we already
-!     know the soln.
+  integer, parameter :: lt=lx1*ly1*lz1*lelt
 
-!     Input:   r         -- residual
-!              h1,h2     -- Helmholtz arrays
-!              bi        -- inverse mass matrix
-!              vml,vmk   -- multiplicity and mask arrays
-!              approx    -- approximation space
-!              napprox   -- (1) = max vecs,  (2) = current number of vecs
-!              wl        -- large work array of size lx1*ly1*lz1*nelv
-!              ws        -- small work array of size 2*max vecs
+  real(DP) :: r(1),h1(1),h2(1),vml(1),vmk(1)
+  real(DP) :: bi(1)
+  real(DP) :: wl(1),ws(1)
+  real(DP) :: approx(lt,0:1)
+  integer :: napprox(2)
+  character(4) :: name4
 
-    use size_m
-    use input
-    use mass
-    use soln
-    use tstep
+  integer :: n_max, n_sav, nel, ntot, i, n10
+  real(DP) :: vol, alpha1, alpha2, ratio
+  real(DP), external :: glsc23, vlsc3
 
-    parameter(lt=lx1*ly1*lz1*lelt)
+  n_max = napprox(1)
+  n_sav = napprox(2)
+  if (n_sav == 0) return
+  nel =nelfld(ifield)
+  ntot=nx1*ny1*nz1*nel
 
-    real :: r(1),h1(1),h2(1),vml(1),vmk(1)
-    real :: bi(1)
-    real :: wl(1),ws(1)
-    real :: approx(lt,0:1)
-    integer :: napprox(2)
-    character(4) :: name4
+  vol = voltm1
+  if (nel == nelv) vol = volvm1
 
-    n_max = napprox(1)
-    n_sav = napprox(2)
-    if (n_sav == 0) return
-    nel =nelfld(ifield)
-    ntot=nx1*ny1*nz1*nel
+!   Diag to see how much reduction in the residual is attained.
 
-    vol = voltm1
-    if (nel == nelv) vol = volvm1
+  alpha1 = glsc23(r,bi,vml,ntot)
+  if (alpha1 > 0) alpha1 = sqrt(alpha1/vol)
 
-!     Diag to see how much reduction in the residual is attained.
-
-    alpha1 = glsc23(r,bi,vml,ntot)
-    if (alpha1 > 0) alpha1 = sqrt(alpha1/vol)
-
-!     Update approximation space if dt has changed
-    call updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
+!   Update approximation space if dt has changed
+  call updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
 
 
-!     Perform Gram-Schmidt for previous soln's
+!   Perform Gram-Schmidt for previous soln's
 
-    do i=1,n_sav
-        ws(i) = vlsc3(r,approx(1,i),vml,ntot)
-    enddo
-    call gop    (ws,ws(n_sav+1),'+  ',n_sav)
+  do i=1,n_sav
+      ws(i) = vlsc3(r,approx(1,i),vml,ntot)
+  enddo
+  call gop    (ws,ws(n_sav+1),'+  ',n_sav)
 
-    call cmult2   (approx(1,0),approx(1,1),ws(1),ntot)
-    do i=2,n_sav
-        call add2s2(approx(1,0),approx(1,i),ws(i),ntot)
-    enddo
+  call cmult2   (approx(1,0),approx(1,1),ws(1),ntot)
+  do i=2,n_sav
+      call add2s2(approx(1,0),approx(1,i),ws(i),ntot)
+  enddo
 
-    call axhelm  (wl,approx(1,0),h1,h2,1,1)
-    call col2    (wl,vmk,ntot)
-    call dssum   (wl,nx1,ny1,nz1)
-    call sub2    (r ,wl,ntot)
-! ................................................................
-!   Diag.
-    alpha2 = glsc23(r,bi,vml,ntot)
-    if (alpha2 > 0) alpha2 = sqrt(alpha2/vol)
-    ratio  = alpha1/alpha2
-    n10=min(10,n_sav)
+  call axhelm  (wl,approx(1,0),h1,h2,1,1)
+  call col2    (wl,vmk,ntot)
+  call dssum   (wl,nx1,ny1,nz1)
+  call sub2    (r ,wl,ntot)
+!...............................................................
+! Diag.
+  alpha2 = glsc23(r,bi,vml,ntot)
+  if (alpha2 > 0) alpha2 = sqrt(alpha2/vol)
+  ratio  = alpha1/alpha2
+  n10=min(10,n_sav)
 
-    if (nid == 0) write(6,10) istep,name4,alpha1,alpha2,ratio,n_sav
-    10 format(4X,I7,4x,a4,' alph1n',1p3e12.4,i6)
+  if (nid == 0) write(6,10) istep,name4,alpha1,alpha2,ratio,n_sav
+  10 format(4X,I7,4x,a4,' alph1n',1p3e12.4,i6)
 
-    if (nid == 0) write(6,11) istep,name4,n_sav,(ws(i),i=1,n10)
-    11 format(4X,I7,4x,a4,' halpha',i6,10(1p10e12.4,/,17x))
+  if (nid == 0) write(6,11) istep,name4,n_sav,(ws(i),i=1,n10)
+  11 format(4X,I7,4x,a4,' halpha',i6,10(1p10e12.4,/,17x))
 
-    return
-    end subroutine projh
+  return
+end subroutine projh
+
 !-----------------------------------------------------------------------
 !> \brief Reconstruct the solution to the original problem by adding back
 !!     the previous solutions
@@ -164,154 +172,152 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,wl,ws,name4)
 
   return
 end subroutine gensh
+
 !-----------------------------------------------------------------------
-    subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
+!> \brief Orthonormalize the kth vector against vector set
+subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nid
+  use parallel, only : wdsize
+  use tstep, only : istep, ifield, nelfld
+  implicit none
 
-!     Orthonormalize the kth vector against vector set
+  integer, parameter :: lt=lx1*ly1*lz1*lelt
+  integer :: k, ierr
+  real(DP) :: approx(lt,0:1),h1(1),h2(1),vml(1),vmk(1),ws(1)
+  character(4) :: name4
 
-    use size_m
-    use input
-    use mass
-    use parallel
-    use soln
-    use tstep
+  integer :: i, ntot, km1 
+  real(DP) :: alpha, ratio, eps, alpham, alph1
+  real(DP), external :: glsc2, vlsc2
 
-    parameter  (lt=lx1*ly1*lz1*lelt)
-    real :: approx(lt,0:1),h1(1),h2(1),vml(1),vmk(1),ws(1)
-    character(4) :: name4
+  ierr=0
+  ntot=nx1*ny1*nz1*nelfld(ifield)
 
-    ierr=0
-    ntot=nx1*ny1*nz1*nelfld(ifield)
+  call axhelm  (approx(1,0),approx(1,k),h1,h2,1,1)
+  call col2    (approx(1,0),vmk,ntot)
+  call dssum   (approx(1,0),nx1,ny1,nz1)
+  call col2    (approx(1,0),vml        ,ntot)
 
-    call axhelm  (approx(1,0),approx(1,k),h1,h2,1,1)
-    call col2    (approx(1,0),vmk,ntot)
-    call dssum   (approx(1,0),nx1,ny1,nz1)
-    call col2    (approx(1,0),vml        ,ntot)
+!   Compute part of the norm   (Note:  a(0) already scaled by vml)
 
-!     Compute part of the norm   (Note:  a(0) already scaled by vml)
+  alpha = glsc2(approx(1,0),approx(1,k),ntot)
+  alph1 = alpha
 
-    alpha = glsc2(approx(1,0),approx(1,k),ntot)
-    alph1 = alpha
+!   Gram-Schmidt
 
-!     Gram-Schmidt
+  km1=k-1
+  do i=1,km1
+      ws(i) = vlsc2(approx(1,0),approx(1,i),ntot)
+  enddo
+  if (km1 > 0) call gop(ws,ws(k),'+  ',km1)
 
-    km1=k-1
-    do i=1,km1
-        ws(i) = vlsc2(approx(1,0),approx(1,i),ntot)
-    enddo
-    if (km1 > 0) call gop(ws,ws(k),'+  ',km1)
+  do i=1,km1
+      alpham = -ws(i)
+      call add2s2(approx(1,k),approx(1,i),alpham,ntot)
+      alpha = alpha - ws(i)**2
+  enddo
 
-    do i=1,km1
-        alpham = -ws(i)
-        call add2s2(approx(1,k),approx(1,i),alpham,ntot)
-        alpha = alpha - ws(i)**2
-    enddo
+!  .Normalize new element in approximation space
 
-!    .Normalize new element in approximation space
+  eps = 1.e-7
+  if (wdsize == 8) eps = 1.e-15
+  ratio = alpha/alph1
 
-    eps = 1.e-7
-    if (wdsize == 8) eps = 1.e-15
-    ratio = alpha/alph1
+  if (ratio <= 0) then
+      ierr=1
+      if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
+      12 format(I6,1x,a4,' alpha b4 sqrt:',i4,1p2e12.4)
+  elseif (ratio <= eps) then
+      ierr=2
+      if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
+  else
+      ierr=0
+      alpha = 1.0/sqrt(alpha)
+      call cmult(approx(1,k),alpha,ntot)
+  endif
 
-    if (ratio <= 0) then
-        ierr=1
-        if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
-        12 format(I6,1x,a4,' alpha b4 sqrt:',i4,1p2e12.4)
-    elseif (ratio <= eps) then
-        ierr=2
-        if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
-    else
-        ierr=0
-        alpha = 1.0/sqrt(alpha)
-        call cmult(approx(1,k),alpha,ntot)
-    endif
+  if (ierr /= 0) then
+      call axhelm  (approx(1,0),approx(1,k),h1,h2,1,1)
+      call col2    (approx(1,0),vmk,ntot)
+      call dssum   (approx(1,0),nx1,ny1,nz1)
+      call col2    (approx(1,0),vml        ,ntot)
+  
+  !        Compute part of the norm   (Note:  a(0) already scaled by vml)
+  
+      alpha = glsc2(approx(1,0),approx(1,k),ntot)
+      if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
+      if (alpha <= 0) then
+          ierr=3
+          if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
+          return
+      endif
+      alpha = 1.0/sqrt(alpha)
+      call cmult(approx(1,k),alpha,ntot)
+      ierr = 0
+  endif
 
-    if (ierr /= 0) then
-        call axhelm  (approx(1,0),approx(1,k),h1,h2,1,1)
-        call col2    (approx(1,0),vmk,ntot)
-        call dssum   (approx(1,0),nx1,ny1,nz1)
-        call col2    (approx(1,0),vml        ,ntot)
-    
-    !        Compute part of the norm   (Note:  a(0) already scaled by vml)
-    
-        alpha = glsc2(approx(1,0),approx(1,k),ntot)
-        if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
-        if (alpha <= 0) then
-            ierr=3
-            if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
-            return
-        endif
-        alpha = 1.0/sqrt(alpha)
-        call cmult(approx(1,k),alpha,ntot)
-        ierr = 0
-    endif
+  return
+end subroutine hconj
 
-    return
-    end subroutine hconj
 !-----------------------------------------------------------------------
-    subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
+!> \brief Reorthogonalize approx if dt has changed
+subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1
+  use input, only : ifvarp, iflomach
+  use tstep, only : dt, ifield, nelfld
+  implicit none
 
-!     Reorthogonalize approx if dt has changed
+  integer, parameter :: lt=lx1*ly1*lz1*lelt
+  real(DP) :: approx(lt,0:1),h1(1),h2(1),vml(1),vmk(1),ws(1)
+  integer :: napprox(2)
+  character(4) :: name4
 
-    use size_m
-    use input
-    use mass
-    use tstep
+  logical :: ifupdate
+  logical, save :: ifnewdt = .false.
+  integer :: n_sav, l, k, ntot, ierr
 
+  character(4), save :: name_old = 'DMIR'
 
-    parameter  (lt=lx1*ly1*lz1*lelt)
-    real :: approx(lt,0:1),h1(1),h2(1),vml(1),vmk(1),ws(1)
-    integer :: napprox(2)
-    character(4) :: name4
+  real(DP), save :: dtold = 0.0
 
-    logical :: ifupdate
-    logical :: ifnewdt
-    save    ifnewdt
-    data    ifnewdt / .FALSE. /
+!   First, we have to decide if the dt has changed.
 
-    character(4) :: name_old
-    save    name_old
-    data    name_old/'DMIR'/
+  ifupdate = .FALSE. 
+  if (dt /= dtold) then
+      dtold    = dt
+      name_old = name4
+      ifnewdt  = .TRUE. 
+      ifupdate = .TRUE. 
+  elseif (ifnewdt) then
+      if (name4 == name_old) then
+          ifnewdt = .FALSE. 
+      else
+          ifupdate = .TRUE. 
+      endif
+  endif
+  if (ifvarp(ifield)) ifupdate = .TRUE. 
+  if (iflomach)       ifupdate = .TRUE. 
 
-    real ::    dtold
-    save    dtold
-    data    dtold/0.0/
+  if (ifupdate) then    ! reorthogonalize
+      n_sav = napprox(2)
+      l     = 1
+      do k=1,n_sav
+      !           Orthogonalize kth vector against {v_1,...,v_k-1}
+          if (k /= l) then
+              ntot = nx1*ny1*nz1*nelfld(ifield)
+              call copy(approx(1,l),approx(1,k),ntot)
+          endif
+          call hconj(approx,l,h1,h2,vml,vmk,ws,name4,ierr)
+          if (ierr == 0) l=l+1
+      enddo
+      napprox(2)=min(l,n_sav)
+  endif
 
-!     First, we have to decide if the dt has changed.
+  return
+end subroutine updrhsh
 
-    ifupdate = .FALSE. 
-    if (dt /= dtold) then
-        dtold    = dt
-        name_old = name4
-        ifnewdt  = .TRUE. 
-        ifupdate = .TRUE. 
-    elseif (ifnewdt) then
-        if (name4 == name_old) then
-            ifnewdt = .FALSE. 
-        else
-            ifupdate = .TRUE. 
-        endif
-    endif
-    if (ifvarp(ifield)) ifupdate = .TRUE. 
-    if (iflomach)       ifupdate = .TRUE. 
-
-    if (ifupdate) then    ! reorthogonalize
-        n_sav = napprox(2)
-        l     = 1
-        do k=1,n_sav
-        !           Orthogonalize kth vector against {v_1,...,v_k-1}
-            if (k /= l) then
-                ntot = nx1*ny1*nz1*nelfld(ifield)
-                call copy(approx(1,l),approx(1,k),ntot)
-            endif
-            call hconj(approx,l,h1,h2,vml,vmk,ws,name4,ierr)
-            if (ierr == 0) l=l+1
-        enddo
-        napprox(2)=min(l,n_sav)
-    endif
-
-    return
-    end subroutine updrhsh
 !-----------------------------------------------------------------------
 subroutine hmhzpf(name,u,r,h1,h2,mask,mult,imesh,tli,maxit,isd,bi)
   use kinds, only : DP
@@ -361,7 +367,8 @@ subroutine hmhzpf(name,u,r,h1,h2,mask,mult,imesh,tli,maxit,isd,bi)
 
 
   return
-  end subroutine hmhzpf
+end subroutine hmhzpf
+
 !-----------------------------------------------------------------------
 !> \brief Either std. Helmholtz solve, or a projection + Helmholtz solve
 subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
@@ -421,5 +428,5 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   endif
 
   return
-  end subroutine hsolve
+end subroutine hsolve
 !-----------------------------------------------------------------------

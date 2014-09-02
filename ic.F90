@@ -376,139 +376,141 @@ subroutine setics
   endif
 
   return
-  end subroutine setics
-
-!-----------------------------------------------------------------------
-    subroutine slogic (iffort,ifrest,ifprsl,nfiles)
-!---------------------------------------------------------------------
-
-!     Set up logicals for initial conditions.
+end subroutine setics
 
 !---------------------------------------------------------------------
-    use size_m
-    use input
-    use restart
+!> \brief Set up logicals for initial conditions.
+!---------------------------------------------------------------------
+subroutine slogic (iffort,ifrest,ifprsl,nfiles)
+  use size_m, only : nfield, npert, nid, ldimt1, lpert
+  use input, only : ifmhd, initc, npscal, ifpert
+  use restart, only : ifgetx, ifgetu, ifgett, ifgtps
+  implicit none
 
-    logical  iffort(  ldimt1,0:lpert) &
-    , ifrest(0:ldimt1,0:lpert) &
-    , ifprsl(  ldimt1,0:lpert)
+  logical  iffort(  ldimt1,0:lpert) &
+  , ifrest(0:ldimt1,0:lpert) &
+  , ifprsl(  ldimt1,0:lpert)
 
-    character(132) :: line,fname,cdum
-    character(2) ::  s2
-    character(1) ::  line1(132)
-    equivalence (line1,line)
+  character(132) :: line,fname,cdum
+  character(2) ::  s2
+  character(1) ::  line1(132)
+  equivalence (line1,line)
 
-!     Default is user specified fortran function (=0 if not specified)
+  integer :: ifield, ndumps, iline, ip, ll, l, nfldt, jp, ifld, nfiles
+  integer, external :: indx1, ltrunc, indx_cut
 
-    nfldt = nfield
-    if (ifmhd) nfldt = nfield+1
+!   Default is user specified fortran function (=0 if not specified)
 
-    do jp=0,npert
-        ifrest(0,jp) = .FALSE. 
-        do ifld=1,nfldt
-            iffort(ifld,jp) = .TRUE. 
-            ifrest(ifld,jp) = .FALSE. 
-            ifprsl(ifld,jp) = .FALSE. 
-        enddo
-    enddo
+  nfldt = nfield
+  if (ifmhd) nfldt = nfield+1
 
-    jp = 0
-    nfiles=0
+  do jp=0,npert
+      ifrest(0,jp) = .FALSE. 
+      do ifld=1,nfldt
+          iffort(ifld,jp) = .TRUE. 
+          ifrest(ifld,jp) = .FALSE. 
+          ifprsl(ifld,jp) = .FALSE. 
+      enddo
+  enddo
 
-!     Check for Presolve options
+  jp = 0
+  nfiles=0
 
-    DO 1000 ILINE=1,15
-        LINE=INITC(ILINE)
-        CALL CAPIT(LINE,132)
-        IF (INDX1(LINE,'PRESOLV',7) /= 0) THEN
-        !           found a presolve request
-            CALL BLANK(INITC(ILINE),132)
-            CALL LJUST(LINE)
-            CALL CSPLIT(CDUM,LINE,' ',1)
-        
-            IF (LTRUNC(LINE,132) == 0) THEN
-                IF (NID == 0) WRITE(6,700)
-                700 FORMAT(/,2X,'Presolve options: ALL')
-            !              default - all fields are presolved.
-                DO 800 IFIELD=1,nfldt
-                    ifprsl(ifield,jp) = .TRUE. 
-                    iffort(ifield,jp) = .FALSE. 
-                800 END DO
-            ELSE
-            !           check line for arguments
-            
-                LL=LTRUNC(LINE,132)
-                IF (NID == 0) WRITE(6,810) (LINE1(L),L=1,LL)
-                810 FORMAT(/,2X,'Presolve options: ',132A1)
-            
-                IF (INDX_CUT(LINE,'U',1) /= 0) THEN
-                    ifprsl(1,jp) = .TRUE. 
-                    iffort(1,jp) = .FALSE. 
-                ENDIF
-            
-                IF (INDX_CUT(LINE,'T',1) /= 0) THEN
-                    ifprsl(2,jp) = .TRUE. 
-                    iffort(2,jp) = .FALSE. 
-                ENDIF
-            
-                DO 900 IFIELD=3,NPSCAL+2
-                    IP=IFIELD-2
-                    WRITE(S2,901) IP
-                    IF (INDX_CUT(LINE,S2,2) /= 0) THEN
-                        ifprsl(ifield,jp) = .TRUE. 
-                        iffort(ifield,jp) = .FALSE. 
-                    ENDIF
-                900 END DO
-                901 FORMAT('P',I1)
-            ENDIF
-        ENDIF
-    1000 END DO
+!   Check for Presolve options
 
-!     Check for restart options
+  DO 1000 ILINE=1,15
+      LINE=INITC(ILINE)
+      CALL CAPIT(LINE,132)
+      IF (INDX1(LINE,'PRESOLV',7) /= 0) THEN
+      !           found a presolve request
+          CALL BLANK(INITC(ILINE),132)
+          CALL LJUST(LINE)
+          CALL CSPLIT(CDUM,LINE,' ',1)
+      
+          IF (LTRUNC(LINE,132) == 0) THEN
+              IF (NID == 0) WRITE(6,700)
+              700 FORMAT(/,2X,'Presolve options: ALL')
+          !              default - all fields are presolved.
+              DO 800 IFIELD=1,nfldt
+                  ifprsl(ifield,jp) = .TRUE. 
+                  iffort(ifield,jp) = .FALSE. 
+              800 END DO
+          ELSE
+          !           check line for arguments
+          
+              LL=LTRUNC(LINE,132)
+              IF (NID == 0) WRITE(6,810) (LINE1(L),L=1,LL)
+              810 FORMAT(/,2X,'Presolve options: ',132A1)
+          
+              IF (INDX_CUT(LINE,'U',1) /= 0) THEN
+                  ifprsl(1,jp) = .TRUE. 
+                  iffort(1,jp) = .FALSE. 
+              ENDIF
+          
+              IF (INDX_CUT(LINE,'T',1) /= 0) THEN
+                  ifprsl(2,jp) = .TRUE. 
+                  iffort(2,jp) = .FALSE. 
+              ENDIF
+          
+              DO 900 IFIELD=3,NPSCAL+2
+                  IP=IFIELD-2
+                  WRITE(S2,901) IP
+                  IF (INDX_CUT(LINE,S2,2) /= 0) THEN
+                      ifprsl(ifield,jp) = .TRUE. 
+                      iffort(ifield,jp) = .FALSE. 
+                  ENDIF
+              900 END DO
+              901 FORMAT('P',I1)
+          ENDIF
+      ENDIF
+  1000 END DO
 
-    jp = 0
-    DO 2000 ILINE=1,15
-        if (ifpert) jp=iline-1
-        LINE=INITC(ILINE)
-        IF (LTRUNC(LINE,132) /= 0) THEN
-        !           found a filename
-            NFILES=NFILES+1
-            INITC(NFILES)=LINE
-        
-            IF (NID == 0 .AND. NFILES == 1) WRITE(6,1010) LINE
-            1010 FORMAT(1X,'Checking restart options: ',A132)
-        !            IF (NID.EQ.0) WRITE(6,'(A132)') LINE
-        
-        !           Parse restart options
-             
-            call sioflag(ndumps,fname,line)
+!   Check for restart options
 
-            if (ifgetx) then
-                ifrest(0,jp) = .TRUE. 
-            endif
-            if (ifgetu) then
-                iffort(1,jp) = .FALSE. 
-                ifprsl(1,jp) = .FALSE. 
-                ifrest(1,jp) = .TRUE. 
-            endif
-            if (ifgett) then
-                iffort(2,jp) = .FALSE. 
-                ifprsl(2,jp) = .FALSE. 
-                ifrest(2,jp) = .TRUE. 
-            endif
-            do 1900 ifield=3,nfldt
-            !              write(6,*) 'ifgetps:',(ifgtps(k),k=1,ldimt-1)
-                if (ifgtps(ifield-2)) then
-                    iffort(ifield,jp) = .FALSE. 
-                    ifprsl(ifield,jp) = .FALSE. 
-                    ifrest(ifield,jp) = .TRUE. 
-                endif
-            1900 END DO
-        endif
-    2000 END DO
+  jp = 0
+  DO 2000 ILINE=1,15
+      if (ifpert) jp=iline-1
+      LINE=INITC(ILINE)
+      IF (LTRUNC(LINE,132) /= 0) THEN
+      !           found a filename
+          NFILES=NFILES+1
+          INITC(NFILES)=LINE
+      
+          IF (NID == 0 .AND. NFILES == 1) WRITE(6,1010) LINE
+          1010 FORMAT(1X,'Checking restart options: ',A132)
+      !            IF (NID.EQ.0) WRITE(6,'(A132)') LINE
+      
+      !           Parse restart options
+           
+          call sioflag(ndumps,fname,line)
 
-    return
-    end subroutine slogic
+          if (ifgetx) then
+              ifrest(0,jp) = .TRUE. 
+          endif
+          if (ifgetu) then
+              iffort(1,jp) = .FALSE. 
+              ifprsl(1,jp) = .FALSE. 
+              ifrest(1,jp) = .TRUE. 
+          endif
+          if (ifgett) then
+              iffort(2,jp) = .FALSE. 
+              ifprsl(2,jp) = .FALSE. 
+              ifrest(2,jp) = .TRUE. 
+          endif
+          do 1900 ifield=3,nfldt
+          !              write(6,*) 'ifgetps:',(ifgtps(k),k=1,ldimt-1)
+              if (ifgtps(ifield-2)) then
+                  iffort(ifield,jp) = .FALSE. 
+                  ifprsl(ifield,jp) = .FALSE. 
+                  ifrest(ifield,jp) = .TRUE. 
+              endif
+          1900 END DO
+      endif
+  2000 END DO
+
+  return
+end subroutine slogic
+
 !-----------------------------------------------------------------------
 !> \brief driver for restarts
 !!  (1) Open restart file(s)
@@ -1065,294 +1067,243 @@ subroutine restart_driver(nfiles)
   6000 END DO
 
   return
-  end subroutine restart_driver
+end subroutine restart_driver
 
 !-----------------------------------------------------------------------
-    subroutine sioflag(ndumps,fname,rsopts)
-
-!     Set IO flags according to Restart Options File, RSOPTS
-
-    use size_m
-    use input
-    use restart
-    use tstep
-
-    character(132) :: rsopts,fname
-    character(2) ::  s2
-    logical :: ifgtrl
-
-!     Scratch variables..
-    logical :: ifdeft,ifanyc
-    CHARACTER(132) :: RSOPT     ,LINE
-    CHARACTER(1) ::  RSOPT1(132),LINE1(132)
-    EQUIVALENCE (RSOPT1,RSOPT)
-    EQUIVALENCE (LINE1,LINE)
-
-!     Parse filename
-
-!        CSPLIT splits S1 into two parts, delimited by S2.
-!        S1 returns with 2nd part of S1.  CSPLIT returns 1st part.
-
-    rsopt=rsopts
-    call ljust(rsopt)
-    call csplit(fname,rsopt,' ',1)
-!     check fname for user supplied extension.
-    if (indx1(fname,'.',1) == 0) then
-        len=ltrunc(fname,132)
-        len1=len+1
-        len4=len+4
-        fname(len1:len4)='.fld'
-    endif
-
-!     Parse restart options
-
-!     set default flags
-
-    ifgetx= .FALSE. 
-    ifgetz= .FALSE. 
-    ifgetu= .FALSE. 
-    ifgetw= .FALSE. 
-    ifgetp= .FALSE. 
-    ifgett= .FALSE. 
-    do 100 i=1,ldimt-1
-        ifgtps(i)= .FALSE. 
-    100 END DO
-    ifgtim= .TRUE. 
-    ndumps=0
-
-!     Check for default case - just a filename given, no i/o options specified
-
-    ifdeft= .TRUE. 
-
-!     Parse file for i/o options and/or dump number
-
-    CALL CAPIT(RSOPT,132)
-
-    IF (LTRUNC(RSOPT,132) /= 0) THEN
-    
-    !        Check for explicit specification of restart TIME.
-    
-        ITO=INDX_CUT(RSOPT,'TIME',4)
-        IFGTIM= .TRUE. 
-        IF (ITO /= 0) THEN
-        !           user has specified the time explicitly.
-            IT1=INDX_CUT(RSOPT,'=',1)
-            IT8=132-IT1
-            CALL BLANK(LINE,132)
-            CALL CHCOPY(LINE,RSOPT1(IT1),IT8)
-            IF (IFGTRL(TTIME,LINE)) THEN
-                IFGTIM= .FALSE. 
-                TIME=TTIME
-            ENDIF
-        !           remove the user specified time from the RS options line.
-            ITA=132-ITO+1
-            CALL BLANK(RSOPT1(ITO),ITA)
-            CALL LJUST(LINE)
-            IT1=INDX1(LINE,' ',1)
-            ITB=132-IT1+1
-            CALL CHCOPY(RSOPT1(ITO),LINE1(IT1),ITB)
-        ENDIF
-
-    !        Parse field specifications.
-
-        IXO=INDX_CUT(RSOPT,'X',1)
-        IF (IXO /= 0) THEN
-            ifdeft= .FALSE. 
-            IFGETX= .TRUE. 
-            IF (IF3D) IFGETZ= .TRUE. 
-        ENDIF
-
-        IVO=INDX_CUT(RSOPT,'U',1)
-        IF (IVO /= 0) THEN
-            ifdeft= .FALSE. 
-            IFGETU= .TRUE. 
-            IF (IF3D) IFGETW= .TRUE. 
-        ENDIF
-
-        IPO=INDX_CUT(RSOPT,'P',1)
-        IF (IPO /= 0) THEN
-            ifdeft= .FALSE. 
-            IFGETP= .TRUE. 
-        ENDIF
-
-        ITO=INDX_CUT(RSOPT,'T',1)
-        IF (ITO /= 0) THEN
-            ifdeft= .FALSE. 
-            IFGETT= .TRUE. 
-        ENDIF
-
-        do 300 i=1,ldimt-1
-            write (s2,301) i
-            ipo=indx_cut(rsopt,s2,2)
-            if (ipo /= 0) then
-                ifdeft= .FALSE. 
-                ifgtps(i)= .TRUE. 
-            endif
-        300 END DO
-        301 format('P',i1)
-
-    !        Get number of dumps from remainder of user supplied line.
-        if (ifgtrl(tdumps,rsopt)) ndumps=int(tdumps)
-    endif
-
-!     If no fields were explicitly specified, assume getting all fields.
-    if (ifdeft) then
-        IFGETX= .TRUE. 
-        IF (IF3D) IFGETZ= .TRUE. 
-        IFANYC= .FALSE. 
-        DO 400 I=1,NFIELD
-            IF (IFADVC(I)) IFANYC= .TRUE. 
-        400 END DO
-        IF (IFFLOW .OR. IFANYC) THEN
-            IFGETU= .TRUE. 
-            IF (IF3D) IFGETW= .TRUE. 
-        ENDIF
-        IF (IFFLOW) IFGETP= .TRUE. 
-        IF (IFHEAT) IFGETT= .TRUE. 
-        do 410 i=1,ldimt-1
-            ifgtps(i)= .TRUE. 
-        410 END DO
-    ENDIF
-
-    return
-    end subroutine sioflag
-!-----------------------------------------------------------------------
-    subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
-!----------------------------------------------------------------------
-
-!----------------------------------------------------------------------
-    use size_m
-    use parallel
-
-    PARAMETER (LXYZ1=LX1*LY1*LZ1)
-    PARAMETER (LXR=LX1+6)
-    PARAMETER (LYR=LY1+6)
-    PARAMETER (LZR=LZ1+6)
-    PARAMETER (LXYZR=LXR*LYR*LZR)
-
-    REAL ::   SDUMP(LXYZ1,LELT)
-    REAL*4 :: TDUMP(LXYZR)
-
-    logical :: if_byte_sw
-
-    NXYZ=NX1*NY1*NZ1
-    NXYR=NXR*NYR*NZR
-    ierr=0
-
-!     Serial processor code:
-
-    IF (NP == 1) THEN
-
-        IF (if_byte_sw) call byte_reverse(TDUMP,NXYR,ierr)
-        if(ierr /= 0) call exitti("Error in mapdmp")
-        IF (NXR == NX1 .AND. NYR == NY1 .AND. NZR == NZ1) THEN
-            CALL COPY4r(SDUMP(1,IEG),TDUMP,NXYZ)
-        ELSE
-        !           do the map    (assumes that NX=NY=NZ, or NX=NY, NZ=1)
-            call mapab4r(sdump(1,ieg),tdump,nxr,1)
-        ENDIF
-
-    ELSE
-    
-    !     Parallel code - send data to appropriate processor and map.
-    
-        JNID=GLLNID(IEG)
-        MTYPE=3333+IEG
-        LEN=4*NXYR
-        LE1=4
-        IF (NID == 0 .AND. JNID /= 0) THEN
-        !           hand-shake
-            CALL CSEND(MTYPE,TDUMP,LE1,JNID,NULLPID)
-            CALL CRECV(MTYPE,dummy,LE1)
-            CALL CSEND(MTYPE,TDUMP,LEN,JNID,NULLPID)
-        ELSEIF (NID /= 0 .AND. JNID == NID) THEN
-        !           Receive data from node 0
-            CALL CRECV(MTYPE,dummy,LE1)
-            CALL CSEND(MTYPE,TDUMP,LE1,0,NULLPID)
-            CALL CRECV(MTYPE,TDUMP,LEN)
-        ENDIF
-    
-    !        If the data is targeted for this processor, then map
-    !        to appropriate element.
-    
-        IF (JNID == NID) THEN
-            IE=GLLEL(IEG)
-            IF (if_byte_sw) call byte_reverse(TDUMP,NXYR,ierr)
-            IF (NXR == NX1 .AND. NYR == NY1 .AND. NZR == NZ1) THEN
-                CALL COPY4r(SDUMP(1,IE),TDUMP,NXYZ)
-            ELSE
-                call mapab4r(sdump(1,ie),tdump,nxr,1)
-            ENDIF
-        ENDIF
-        call err_chk(ierr,'Error using byte_reverse in mapdmp.$')
-    
-    !        End of parallel distribution/map routine.
-    
-    ENDIF
-    return
-    end subroutine mapdmp
-#if 0
-!---------------------------------------------------------------
-!> \brief Interpolate Y(NXR,NYR,NZR,NEL) to X(NX1,NY1,NZ1,NEL)
-!! (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
-!---------------------------------------------------------------
-subroutine mapab(x,y,nxr,nel)
+!> \brief Set IO flags according to Restart Options File, RSOPTS
+subroutine sioflag(ndumps,fname,rsopts)
   use kinds, only : DP
-  use size_m, only : nid, ndim
-  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1
-  use wz_m, only : zgm1
+  use size_m, only : ldimt, nfield
+  use input, only : if3d, ifadvc, ifflow, ifheat
+  use restart, only : ifgetx, ifgetu, ifgett, ifgetp, ifgetz, ifgetw
+  use restart, only : ifgtps, ifgtim
+  use tstep, only : time
   implicit none
 
-  real(DP) :: X(NX1,NY1,NZ1,NEL)
-  real(DP) :: Y(NXR,NXR,NXR,NEL)
+  character(132) :: rsopts,fname
+  character(2) ::  s2
+  logical :: ifgtrl
 
+!   Scratch variables..
+  logical :: ifdeft,ifanyc
+  CHARACTER(132) :: RSOPT     ,LINE
+  CHARACTER(1) ::  RSOPT1(132),LINE1(132)
+  EQUIVALENCE (RSOPT1,RSOPT)
+  EQUIVALENCE (LINE1,LINE)
 
-  integer, parameter :: LXR=LX1+6
-  integer, parameter :: LYR=LY1+6
-  integer, parameter :: LZR=LZ1+6
-  integer, parameter :: LXYZR=LXR*LYR*LZR
-  integer, parameter :: LXYZ1=LX1*LY1*LZ1
+  integer, external :: indx1, ltrunc, indx_cut
+  integer :: len, len1, len4
+  integer :: i, ndumps, ito, it1, it8, ita, itb, ixo, ivo, ipo
+  real(DP) :: ttime, tdumps
+
+!   Parse filename
+
+!      CSPLIT splits S1 into two parts, delimited by S2.
+!      S1 returns with 2nd part of S1.  CSPLIT returns 1st part.
+
+  rsopt=rsopts
+  call ljust(rsopt)
+  call csplit(fname,rsopt,' ',1)
+!   check fname for user supplied extension.
+  if (indx1(fname,'.',1) == 0) then
+      len=ltrunc(fname,132)
+      len1=len+1
+      len4=len+4
+      fname(len1:len4)='.fld'
+  endif
+
+!   Parse restart options
+
+!   set default flags
+
+  ifgetx= .FALSE. 
+  ifgetz= .FALSE. 
+  ifgetu= .FALSE. 
+  ifgetw= .FALSE. 
+  ifgetp= .FALSE. 
+  ifgett= .FALSE. 
+  do 100 i=1,ldimt-1
+      ifgtps(i)= .FALSE. 
+  100 END DO
+  ifgtim= .TRUE. 
+  ndumps=0
+
+!   Check for default case - just a filename given, no i/o options specified
+
+  ifdeft= .TRUE. 
+
+!   Parse file for i/o options and/or dump number
+
+  CALL CAPIT(RSOPT,132)
+
+  IF (LTRUNC(RSOPT,132) /= 0) THEN
   
-  integer :: nxr, nel
+  !        Check for explicit specification of restart TIME.
+  
+      ITO=INDX_CUT(RSOPT,'TIME',4)
+      IFGTIM= .TRUE. 
+      IF (ITO /= 0) THEN
+      !           user has specified the time explicitly.
+          IT1=INDX_CUT(RSOPT,'=',1)
+          IT8=132-IT1
+          CALL BLANK(LINE,132)
+          CALL CHCOPY(LINE,RSOPT1(IT1),IT8)
+          IF (IFGTRL(TTIME,LINE)) THEN
+              IFGTIM= .FALSE. 
+              TIME=TTIME
+          ENDIF
+      !           remove the user specified time from the RS options line.
+          ITA=132-ITO+1
+          CALL BLANK(RSOPT1(ITO),ITA)
+          CALL LJUST(LINE)
+          IT1=INDX1(LINE,' ',1)
+          ITB=132-IT1+1
+          CALL CHCOPY(RSOPT1(ITO),LINE1(IT1),ITB)
+      ENDIF
 
-  real, allocatable :: ires(:,:), itres(:,:)
+  !        Parse field specifications.
 
-  integer :: nzr, nyzr, nxy1
-  integer :: ie, iz, izoff
-  INTEGER, save :: NOLD = 0
+      IXO=INDX_CUT(RSOPT,'X',1)
+      IF (IXO /= 0) THEN
+          ifdeft= .FALSE. 
+          IFGETX= .TRUE. 
+          IF (IF3D) IFGETZ= .TRUE. 
+      ENDIF
 
-  allocate(ires(lxr,lxr)  ,itres(lxr,lxr))
+      IVO=INDX_CUT(RSOPT,'U',1)
+      IF (IVO /= 0) THEN
+          ifdeft= .FALSE. 
+          IFGETU= .TRUE. 
+          IF (IF3D) IFGETW= .TRUE. 
+      ENDIF
 
-  NZR = NXR
-  IF(NZ1 == 1) NZR=1
-  NYZR = NXR*NZR
-  NXY1 = NX1*NY1
+      IPO=INDX_CUT(RSOPT,'P',1)
+      IF (IPO /= 0) THEN
+          ifdeft= .FALSE. 
+          IFGETP= .TRUE. 
+      ENDIF
 
-  IF (NXR /= NOLD) THEN
-      NOLD=NXR
-      CALL ZWGLL   (ZGMR,WGTR,NXR)
-      CALL IGLLM   (IRES,ITRES,ZGMR,ZGM1,NXR,NX1,NXR,NX1)
-      IF (NID == 0) WRITE(6,10) NXR,NX1
-      10 FORMAT(2X,'Mapping restart data from Nold=',I2 &
-      ,' to Nnew=',I2,'.')
+      ITO=INDX_CUT(RSOPT,'T',1)
+      IF (ITO /= 0) THEN
+          ifdeft= .FALSE. 
+          IFGETT= .TRUE. 
+      ENDIF
+
+      do 300 i=1,ldimt-1
+          write (s2,301) i
+          ipo=indx_cut(rsopt,s2,2)
+          if (ipo /= 0) then
+              ifdeft= .FALSE. 
+              ifgtps(i)= .TRUE. 
+          endif
+      300 END DO
+      301 format('P',i1)
+
+  !        Get number of dumps from remainder of user supplied line.
+      if (ifgtrl(tdumps,rsopt)) ndumps=int(tdumps)
+  endif
+
+!   If no fields were explicitly specified, assume getting all fields.
+  if (ifdeft) then
+      IFGETX= .TRUE. 
+      IF (IF3D) IFGETZ= .TRUE. 
+      IFANYC= .FALSE. 
+      DO 400 I=1,NFIELD
+          IF (IFADVC(I)) IFANYC= .TRUE. 
+      400 END DO
+      IF (IFFLOW .OR. IFANYC) THEN
+          IFGETU= .TRUE. 
+          IF (IF3D) IFGETW= .TRUE. 
+      ENDIF
+      IF (IFFLOW) IFGETP= .TRUE. 
+      IF (IFHEAT) IFGETT= .TRUE. 
+      do 410 i=1,ldimt-1
+          ifgtps(i)= .TRUE. 
+      410 END DO
   ENDIF
 
-  DO 1000 IE=1,NEL
-      CALL MXM (IRES,NX1,Y(1,1,1,IE),NXR,XA,NYZR)
-      DO 100 IZ=1,NZR
-          IZOFF = 1 + (IZ-1)*NX1*NXR
-          CALL MXM (XA(IZOFF),NX1,ITRES,NXR,XB(1,1,IZ),NY1)
-      100 END DO
-      IF (NDIM == 3) THEN
-          CALL MXM (XB,NXY1,ITRES,NZR,X(1,1,1,IE),NZ1)
-      ELSE
-          CALL COPY(X(1,1,1,IE),XB,NXY1)
-      ENDIF
-  1000 END DO
-
   return
-  end subroutine mapab
-#endif
+end subroutine sioflag
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nid, lelt
+  use parallel, only : np, gllnid, nullpid, gllel
+  implicit none
+
+  integer, parameter :: LXYZ1=LX1*LY1*LZ1
+  integer, PARAMETER :: LXR=LX1+6
+  integer, PARAMETER :: LYR=LY1+6
+  integer, PARAMETER :: LZR=LZ1+6
+  integer, PARAMETER :: LXYZR=LXR*LYR*LZR
+
+  REAL(DP) ::   SDUMP(LXYZ1,LELT)
+  REAL*4 :: TDUMP(LXYZR)
+  integer :: ieg, nxr, nyr, nzr
+  logical :: if_byte_sw
+
+  integer :: nxyz, nxyr, ierr, jnid, mtype, len, le1, ie
+  real(DP) :: dummy
+
+  NXYZ=NX1*NY1*NZ1
+  NXYR=NXR*NYR*NZR
+  ierr=0
+
+!   Serial processor code:
+
+  IF (NP == 1) THEN
+
+      IF (if_byte_sw) call byte_reverse(TDUMP,NXYR,ierr)
+      if(ierr /= 0) call exitti("Error in mapdmp")
+      IF (NXR == NX1 .AND. NYR == NY1 .AND. NZR == NZ1) THEN
+          CALL COPY4r(SDUMP(1,IEG),TDUMP,NXYZ)
+      ELSE
+      !           do the map    (assumes that NX=NY=NZ, or NX=NY, NZ=1)
+          call mapab4r(sdump(1,ieg),tdump,nxr,1)
+      ENDIF
+
+  ELSE
+  
+  !     Parallel code - send data to appropriate processor and map.
+  
+      JNID=GLLNID(IEG)
+      MTYPE=3333+IEG
+      LEN=4*NXYR
+      LE1=4
+      IF (NID == 0 .AND. JNID /= 0) THEN
+      !           hand-shake
+          CALL CSEND(MTYPE,TDUMP,LE1,JNID,NULLPID)
+          CALL CRECV(MTYPE,dummy,LE1)
+          CALL CSEND(MTYPE,TDUMP,LEN,JNID,NULLPID)
+      ELSEIF (NID /= 0 .AND. JNID == NID) THEN
+      !           Receive data from node 0
+          CALL CRECV(MTYPE,dummy,LE1)
+          CALL CSEND(MTYPE,TDUMP,LE1,0,NULLPID)
+          CALL CRECV(MTYPE,TDUMP,LEN)
+      ENDIF
+  
+  !        If the data is targeted for this processor, then map
+  !        to appropriate element.
+  
+      IF (JNID == NID) THEN
+          IE=GLLEL(IEG)
+          IF (if_byte_sw) call byte_reverse(TDUMP,NXYR,ierr)
+          IF (NXR == NX1 .AND. NYR == NY1 .AND. NZR == NZ1) THEN
+              CALL COPY4r(SDUMP(1,IE),TDUMP,NXYZ)
+          ELSE
+              call mapab4r(sdump(1,ie),tdump,nxr,1)
+          ENDIF
+      ENDIF
+      call err_chk(ierr,'Error using byte_reverse in mapdmp.$')
+  
+  !        End of parallel distribution/map routine.
+  
+  ENDIF
+  return
+end subroutine mapdmp
+
 !---------------------------------------------------------------
 !> Interpolate Y(NXR,NYR,NZR,NEL) to X(NX1,NY1,NZ1,NEL)
 !! (assumes that NXR=NYR=NZR, or NXR=NYR, NZR=1)
@@ -1416,317 +1367,363 @@ subroutine mapab4R(x,y,nxr,nel)
 
   return
 end subroutine mapab4R
+
 !-----------------------------------------------------------------------
-    function i1_from_char(s1)
-    character(1) :: s1
+integer function i1_from_char(s1)
+  implicit none
+  character(1) :: s1
 
-    character(10) :: n10
-    save         n10
-    data         n10 / '0123456789' /
+  character(10), save :: n10 = '0123456789'
+  integer, external :: indx2
 
-    i1_from_char = indx2(n10,10,s1,1)-1
+  i1_from_char = indx2(n10,10,s1,1)-1
 
-    return
-    end function i1_from_char
+  return
+end function i1_from_char
+
 !-----------------------------------------------------------------------
-    integer function indx2(s1,l1,s2,l2)
-    character(132) :: s1,s2
+integer function indx2(s1,l1,s2,l2)
+  implicit none
+  character(132) :: s1,s2
+  integer :: l1, l2
+  integer :: n1, i, i2
 
-    n1=l1-l2+1
-    indx2=0
-    if (n1 < 1) return
+  n1=l1-l2+1
+  indx2=0
+  if (n1 < 1) return
 
-    do i=1,n1
-        i2=i+l2-1
-        if (s1(i:i2) == s2(1:l2)) then
-            indx2=i
-            return
-        endif
-    enddo
+  do i=1,n1
+      i2=i+l2-1
+      if (s1(i:i2) == s2(1:l2)) then
+          indx2=i
+          return
+      endif
+  enddo
 
-    return
-    end function indx2
+  return
+end function indx2
+
 !-----------------------------------------------------------------------
-    INTEGER FUNCTION INDX1(S1,S2,L2)
-    CHARACTER(132) :: S1,S2
+INTEGER FUNCTION INDX1(S1,S2,L2)
+  implicit none
+  CHARACTER(132) :: S1,S2
+  integer :: l2
+  integer :: n1, i, i2
 
-    N1=132-L2+1
-    INDX1=0
-    IF (N1 < 1) return
+  N1=132-L2+1
+  INDX1=0
+  IF (N1 < 1) return
 
-    DO 100 I=1,N1
-        I2=I+L2-1
-        IF (S1(I:I2) == S2(1:L2)) THEN
-            INDX1=I
-            return
-        ENDIF
-    100 END DO
+  DO 100 I=1,N1
+      I2=I+L2-1
+      IF (S1(I:I2) == S2(1:L2)) THEN
+          INDX1=I
+          return
+      ENDIF
+  100 END DO
 
-    return
-    END FUNCTION INDX1
+  return
+END FUNCTION INDX1
+
 !-----------------------------------------------------------------------
-    INTEGER FUNCTION INDX_CUT(S1,S2,L2)
+!> \brief INDX_CUT is returned with the location of S2 in S1 (0 if not found)
+!!   S1 is returned with 1st occurance of S2 removed.
+INTEGER FUNCTION INDX_CUT(S1,S2,L2)
+  implicit none
+  CHARACTER(1) :: S1(132),S2(132)
+  integer :: l2
 
-!     INDX_CUT is returned with the location of S2 in S1 (0 if not found)
-!     S1     is returned with 1st occurance of S2 removed.
+  integer :: i1, n1, i, i2, n2
+  integer, external :: indx1
+  I1=INDX1(S1,S2,L2)
 
-    CHARACTER(1) :: S1(132),S2(132)
+  IF (I1 /= 0) THEN
+  
+      N1=132-L2
+      DO 100 I=I1,N1
+          I2=I+L2
+      !           remove the 1st occurance of S2 from S1.
+          S1(I)=S1(I2)
+      100 END DO
+      N2=N1+1
+      DO 200 I=N2,132
+          S1(I)=' '
+      200 END DO
+  ENDIF
 
-    I1=INDX1(S1,S2,L2)
+  INDX_CUT=I1
+  return
+END FUNCTION INDX_CUT
 
-    IF (I1 /= 0) THEN
-    
-        N1=132-L2
-        DO 100 I=I1,N1
-            I2=I+L2
-        !           remove the 1st occurance of S2 from S1.
-            S1(I)=S1(I2)
-        100 END DO
-        N2=N1+1
-        DO 200 I=N2,132
-            S1(I)=' '
-        200 END DO
-    ENDIF
-
-    INDX_CUT=I1
-    return
-    END FUNCTION INDX_CUT
 !-----------------------------------------------------------------------
-    subroutine csplit(s0,s1,s2,l0)
-    CHARACTER(132) :: S0,S1,S2
-!     split string S1 into two parts, delimited by S2.
+!> \brief split string S1 into two parts, delimited by S2.
+subroutine csplit(s0,s1,s2,l0)
+  implicit none
+  CHARACTER(132) :: S0,S1,S2
+  integer :: l0
 
-    I2=INDX_CUT(S1,S2,L0)
-    IF (I2 == 0) return
+  integer :: i2, i1
+  integer, external :: indx_cut
 
-    I1=I2-1
-    CALL BLANK(S0,132)
-    S0(1:I1)=S1(1:I1)
-    CALL LSHFT(S1,I2)
+  I2=INDX_CUT(S1,S2,L0)
+  IF (I2 == 0) return
 
-    return
-    end subroutine csplit
+  I1=I2-1
+  CALL BLANK(S0,132)
+  S0(1:I1)=S1(1:I1)
+  CALL LSHFT(S1,I2)
+
+  return
+end subroutine csplit
 !-----------------------------------------------------------------------
-    subroutine lshft(string,ipt)
-!     shift string from IPT to the left
-!     INPUT : "abcde......    test    "
-!     OUTPUT: "e......    test        "     if ipt.eq.5
-    CHARACTER(1) :: STRING(132)
+!> \brief shift string from IPT to the left
+!!  INPUT : "abcde......    test    "
+!!  OUTPUT: "e......    test        "     if ipt.eq.5
+subroutine lshft(string,ipt)
+  implicit none
+  CHARACTER(1) :: STRING(132)
+  integer :: ipt
+  integer :: j, ij
 
-    DO 20 J=1,133-IPT
-        IJ=IPT+J-1
-        STRING(J)=STRING(IJ)
-    20 END DO
-    DO 30 J=134-IPT,132
-        STRING(J)=' '
-    30 END DO
-    return
-    end subroutine lshft
+  DO 20 J=1,133-IPT
+      IJ=IPT+J-1
+      STRING(J)=STRING(IJ)
+  20 END DO
+  DO 30 J=134-IPT,132
+      STRING(J)=' '
+  30 END DO
+  return
+end subroutine lshft
+
 !-----------------------------------------------------------------------
-    subroutine ljust(string)
-!     left justify string
-    CHARACTER(1) :: STRING(132)
+!> \brief left justify string
+subroutine ljust(string)
+  implicit none
+  CHARACTER(1) :: STRING(132)
+  integer :: i, j, ij
 
-    IF (STRING(1) /= ' ') return
+  IF (STRING(1) /= ' ') return
 
-    DO 100 I=2,132
-    
-        IF (STRING(I) /= ' ') THEN
-            DO 20 J=1,133-I
-                IJ=I+J-1
-                STRING(J)=STRING(IJ)
-            20 END DO
-            DO 30 J=134-I,132
-                STRING(J)=' '
-            30 END DO
-            return
-        ENDIF
-    
-    100 END DO
-    return
-    end subroutine ljust
-!-----------------------------------------------------------------------
-    subroutine nekuic
+  DO 100 I=2,132
+  
+      IF (STRING(I) /= ' ') THEN
+          DO 20 J=1,133-I
+              IJ=I+J-1
+              STRING(J)=STRING(IJ)
+          20 END DO
+          DO 30 J=134-I,132
+              STRING(J)=' '
+          30 END DO
+          return
+      ENDIF
+  
+  100 END DO
+  return
+end subroutine ljust
+
 !------------------------------------------------------------------
-
-!     User specified fortran function (=0 if not specified)
-
+!> \brief  User specified fortran function (=0 if not specified)
 !------------------------------------------------------------------
-    use size_m
-    use input
-    use nekuse
-    use parallel
-    use soln
-    use tstep
-    use turbo
+subroutine nekuic
+  use size_m, only : nx1, ny1, nz1
+  use input, only : ifmodel, ifkeps, ifldmhd
+  use nekuse, only : turbk, turbe, ux, uy, uz, temp
+  use parallel, only : lglel
+  use soln, only : vx, vy, vz, bx, by, bz, t, vxp, vyp, vzp, tp, jp
+  use tstep, only : ifield, nelfld
+  use turbo, only : ifldk, iflde
+  implicit none
 
-    NEL   = NELFLD(IFIELD)
+  integer :: nel, ijke, i, j, k, iel, ieg
 
-    IF (IFMODEL .AND. IFKEPS .AND. IFIELD == IFLDK) THEN
-    
-        DO 100 IEL=1,NEL
-            ieg = lglel(iel)
-            DO 100 K=1,NZ1
-                DO 100 J=1,NY1
-                    DO 100 I=1,NX1
-                        CALL NEKASGN (I,J,K,IEL)
-                        CALL USERIC  (I,J,K,IEG)
-                        T(I,J,K,IEL,IFIELD-1) = TURBK
-        100 END DO
-    
-    ELSEIF (IFMODEL .AND. IFKEPS .AND. IFIELD == IFLDE) THEN
-    
-        DO 200 IEL=1,NEL
-            ieg = lglel(iel)
-            DO 200 K=1,NZ1
-                DO 200 J=1,NY1
-                    DO 200 I=1,NX1
-                        CALL NEKASGN (I,J,K,IEL)
-                        CALL USERIC  (I,J,K,IEG)
-                        T(I,J,K,IEL,IFIELD-1) = TURBE
-        200 END DO
-    
-    ELSE
-    
-        DO 300 IEL=1,NEL
-            ieg = lglel(iel)
-            DO 300 K=1,NZ1
-                DO 300 J=1,NY1
-                    DO 300 I=1,NX1
-                        CALL NEKASGN (I,J,K,IEL)
-                        CALL USERIC  (I,J,K,IEG)
-                        if (jp == 0) then
-                            IF (IFIELD == 1) THEN
-                                VX(I,J,K,IEL) = UX
-                                VY(I,J,K,IEL) = UY
-                                VZ(I,J,K,IEL) = UZ
-                            ELSEIF (IFIELD == ifldmhd) THEN
-                                BX(I,J,K,IEL) = UX
-                                BY(I,J,K,IEL) = UY
-                                BZ(I,J,K,IEL) = UZ
-                            ELSE
-                                T(I,J,K,IEL,IFIELD-1) = TEMP
-                            ENDIF
-                        else
-                            ijke = i+nx1*((j-1)+ny1*((k-1) + nz1*(iel-1)))
-                            IF (IFIELD == 1) THEN
-                                VXP(IJKE,jp) = UX
-                                VYP(IJKE,jp) = UY
-                                VZP(IJKE,jp) = UZ
-                            ELSE
-                                TP(IJKE,IFIELD-1,jp) = TEMP
-                            ENDIF
-                        endif
+  NEL   = NELFLD(IFIELD)
 
-        300 END DO
-    
-    ENDIF
+  IF (IFMODEL .AND. IFKEPS .AND. IFIELD == IFLDK) THEN
+  
+      DO 100 IEL=1,NEL
+          ieg = lglel(iel)
+          DO 100 K=1,NZ1
+              DO 100 J=1,NY1
+                  DO 100 I=1,NX1
+                      CALL NEKASGN (I,J,K,IEL)
+                      CALL USERIC  (I,J,K,IEG)
+                      T(I,J,K,IEL,IFIELD-1) = TURBK
+      100 END DO
+  
+  ELSEIF (IFMODEL .AND. IFKEPS .AND. IFIELD == IFLDE) THEN
+  
+      DO 200 IEL=1,NEL
+          ieg = lglel(iel)
+          DO 200 K=1,NZ1
+              DO 200 J=1,NY1
+                  DO 200 I=1,NX1
+                      CALL NEKASGN (I,J,K,IEL)
+                      CALL USERIC  (I,J,K,IEG)
+                      T(I,J,K,IEL,IFIELD-1) = TURBE
+      200 END DO
+  
+  ELSE
+  
+      DO 300 IEL=1,NEL
+          ieg = lglel(iel)
+          DO 300 K=1,NZ1
+              DO 300 J=1,NY1
+                  DO 300 I=1,NX1
+                      CALL NEKASGN (I,J,K,IEL)
+                      CALL USERIC  (I,J,K,IEG)
+                      if (jp == 0) then
+                          IF (IFIELD == 1) THEN
+                              VX(I,J,K,IEL) = UX
+                              VY(I,J,K,IEL) = UY
+                              VZ(I,J,K,IEL) = UZ
+                          ELSEIF (IFIELD == ifldmhd) THEN
+                              BX(I,J,K,IEL) = UX
+                              BY(I,J,K,IEL) = UY
+                              BZ(I,J,K,IEL) = UZ
+                          ELSE
+                              T(I,J,K,IEL,IFIELD-1) = TEMP
+                          ENDIF
+                      else
+                          ijke = i+nx1*((j-1)+ny1*((k-1) + nz1*(iel-1)))
+                          IF (IFIELD == 1) THEN
+                              VXP(IJKE,jp) = UX
+                              VYP(IJKE,jp) = UY
+                              VZP(IJKE,jp) = UZ
+                          ELSE
+                              TP(IJKE,IFIELD-1,jp) = TEMP
+                          ENDIF
+                      endif
 
-    return
-    end subroutine nekuic
+      300 END DO
+  
+  ENDIF
+
+  return
+end subroutine nekuic
+
 !-----------------------------------------------------------------------
-    subroutine capit(lettrs,n)
-!     Capitalizes string of length n
-    CHARACTER LETTRS(N)
+!> \brief Capitalizes string of length n
+subroutine capit(lettrs,n)
+  implicit none
+  integer :: n
+  CHARACTER LETTRS(N)
+  integer :: i, int
 
-    DO 5 I=1,N
-        INT=ICHAR(LETTRS(I))
-        IF(INT >= 97 .AND. INT <= 122) THEN
-            INT=INT-32
-            LETTRS(I)=CHAR(INT)
-        ENDIF
-    5 END DO
-    return
-    end subroutine capit
+  DO 5 I=1,N
+      INT=ICHAR(LETTRS(I))
+      IF(INT >= 97 .AND. INT <= 122) THEN
+          INT=INT-32
+          LETTRS(I)=CHAR(INT)
+      ENDIF
+  5 END DO
+  return
+end subroutine capit
+
 !-----------------------------------------------------------------------
-    LOGICAL FUNCTION IFGTRL(VALUE,LINE)
+!> \brief Read VALUE from LINE and set IFGTRL to .TRUE. if successful,
+!!                                IFGTRL to .FALSE. otherwise.
+!!   This complicated function is necessary thanks to the Ardent,
+!!   which won't allow free formatted reads (*) from internal strings!
+LOGICAL FUNCTION IFGTRL(VALUE,LINE)
+  use kinds, only : DP
+  implicit none
+  real(DP) :: value
+  CHARACTER(132) :: LINE
 
-!     Read VALUE from LINE and set IFGTRL to .TRUE. if successful,
-!                                  IFGTRL to .FALSE. otherwise.
+  CHARACTER(132) :: WORK
+  CHARACTER(8) ::  FMAT
+  integer :: ifldw
+  integer, external :: indx1
+  real(DP) :: TVAL
 
-!     This complicated function is necessary thanks to the Ardent,
-!     which won't allow free formatted reads (*) from internal strings!
+!   Note that the format Fn.0 is appropriate for fields of type:
+!        34   34.0  34.0e+00
+!   The only difficulty would be with '34' but since we identify
+!   the field width exactly, there is no problem.
 
-    CHARACTER(132) :: LINE
-    CHARACTER(132) :: WORK
-    CHARACTER(8) ::  FMAT
+  IFGTRL= .FALSE. 
+  VALUE=0.0
 
-!     Note that the format Fn.0 is appropriate for fields of type:
-!          34   34.0  34.0e+00
-!     The only difficulty would be with '34' but since we identify
-!     the field width exactly, there is no problem.
+  WORK=LINE
+  CALL LJUST(WORK)
+  IFLDW=INDX1(WORK,' ',1)-1
 
-    IFGTRL= .FALSE. 
-    VALUE=0.0
+  IF (IFLDW > 0) THEN
+      WRITE(FMAT,10) IFLDW
+      10 FORMAT('(F',I3.3,'.0)')
+      READ(WORK,FMAT,ERR=100,END=100) TVAL
+      VALUE=TVAL
+      IFGTRL= .TRUE. 
+      return
+  ENDIF
 
-    WORK=LINE
-    CALL LJUST(WORK)
-    IFLDW=INDX1(WORK,' ',1)-1
+  100 CONTINUE
+  return
+END FUNCTION IFGTRL
 
-    IF (IFLDW > 0) THEN
-        WRITE(FMAT,10) IFLDW
-        10 FORMAT('(F',I3.3,'.0)')
-        READ(WORK,FMAT,ERR=100,END=100) TVAL
-        VALUE=TVAL
-        IFGTRL= .TRUE. 
-        return
-    ENDIF
-
-    100 CONTINUE
-    return
-    END FUNCTION IFGTRL
 !-----------------------------------------------------------------------
-    LOGICAL FUNCTION IFGTIL(IVALUE,LINE)
+!> \brief Read IVALUE from LINE and set IFGTIL to .TRUE. if successful,
+!!                                IFGTIL to .FALSE. otherwise.
+!!  This complicated function is necessary thanks to the Ardent,
+!!  which won't allow free formatted reads (*) from internal strings!
+LOGICAL FUNCTION IFGTIL(IVALUE,LINE)
+  use kinds, only : DP
+  implicit none
+  integer :: ivalue
+  CHARACTER(132) :: LINE
+  CHARACTER(132) :: WORK
+  CHARACTER(8) ::  FMAT
 
-!     Read IVALUE from LINE and set IFGTIL to .TRUE. if successful,
-!                                   IFGTIL to .FALSE. otherwise.
+  integer :: ifldw
+  integer, external :: indx1
+  real(DP) :: tval
 
-!     This complicated function is necessary thanks to the Ardent,
-!     which won't allow free formatted reads (*) from internal strings!
+  IFGTIL= .FALSE. 
+  IVALUE=0
 
-    CHARACTER(132) :: LINE
-    CHARACTER(132) :: WORK
-    CHARACTER(8) ::  FMAT
+  WORK=LINE
+  CALL LJUST(WORK)
+  IFLDW=INDX1(WORK,' ',1)-1
 
-    IFGTIL= .FALSE. 
-    IVALUE=0
+  IF (IFLDW > 0) THEN
+      WRITE(FMAT,10) IFLDW
+      10 FORMAT('(F',I3.3,'.0)')
+      READ(WORK,FMAT,ERR=100,END=100) TVAL
+      IVALUE=INT(TVAL)
+      IFGTIL= .TRUE. 
+      return
+  ENDIF
 
-    WORK=LINE
-    CALL LJUST(WORK)
-    IFLDW=INDX1(WORK,' ',1)-1
+  100 CONTINUE
+  return
+END FUNCTION IFGTIL
 
-    IF (IFLDW > 0) THEN
-        WRITE(FMAT,10) IFLDW
-        10 FORMAT('(F',I3.3,'.0)')
-        READ(WORK,FMAT,ERR=100,END=100) TVAL
-        IVALUE=INT(TVAL)
-        IFGTIL= .TRUE. 
-        return
-    ENDIF
-
-    100 CONTINUE
-    return
-    END FUNCTION IFGTIL
 !-----------------------------------------------------------------------
-    logical function if_byte_swap_test(bytetest,ierr)
-    use size_m
-     
-    real*4 :: bytetest,test2
-    real*4 :: test_pattern
-    save   test_pattern
-     
-    test_pattern = 6.54321
-    eps          = 0.00020
-    etest        = abs(test_pattern-bytetest)
-    if_byte_swap_test = .TRUE. 
-    if (etest <= eps) if_byte_swap_test = .FALSE. 
-     
-    test2 = bytetest
-    call byte_reverse(test2,1,ierr)
-    if (nid == 0) &
-    write(6,*) 'byte swap:',if_byte_swap_test,bytetest,test2
-    return
-    end function if_byte_swap_test
+logical function if_byte_swap_test(bytetest,ierr)
+  use kinds, only : DP
+  use size_m
+  implicit none
+   
+  real*4 :: bytetest
+  integer :: ierr
+
+  real*4 :: test2
+  real*4, save :: test_pattern
+  real(DP) :: eps, etest
+   
+  test_pattern = 6.54321
+  eps          = 0.00020
+  etest        = abs(test_pattern-bytetest)
+  if_byte_swap_test = .TRUE. 
+  if (etest <= eps) if_byte_swap_test = .FALSE. 
+   
+  test2 = bytetest
+  call byte_reverse(test2,1,ierr)
+  if (nid == 0) &
+  write(6,*) 'byte swap:',if_byte_swap_test,bytetest,test2
+  return
+end function if_byte_swap_test
+
 !-----------------------------------------------------------------------
 !> \brief Generate geometry data
 subroutine geom_reset(icall)
@@ -1774,98 +1771,91 @@ subroutine geom_reset(icall)
 
   return
 end subroutine geom_reset
+
 !-----------------------------------------------------------------------
-    subroutine dsavg(u)
+!> \brief Take direct stiffness avg of u
+subroutine dsavg(u)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, nelt
+  use size_m, only : lx1, ly1, lz1, lelt
+  use input, only : ifflow
+  use soln, ONLY : vmult, tmult
+  use tstep, only : ifield
+
+  implicit none
+  real(DP) :: u(lx1,ly1,lz1,lelt)
+
+  integer :: ifieldo, ntot
 
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    real :: u(lx1,ly1,lz1,lelt)
+  ifieldo = ifield
+  if (ifflow) then
+      ifield = 1
+      ntot = nx1*ny1*nz1*nelv
+      call dssum(u,nx1,ny1,nz1)
+      call col2 (u,vmult,ntot)
+  else
+      ifield = 2
+      ntot = nx1*ny1*nz1*nelt
+      call dssum(u,nx1,ny1,nz1)
+      call col2 (u,tmult,ntot)
+  endif
+  ifield = ifieldo
 
+  return
+end subroutine dsavg
 
-!     Take direct stiffness avg of u
-
-
-    ifieldo = ifield
-    if (ifflow) then
-        ifield = 1
-        ntot = nx1*ny1*nz1*nelv
-        call dssum(u,nx1,ny1,nz1)
-        call col2 (u,vmult,ntot)
-    else
-        ifield = 2
-        ntot = nx1*ny1*nz1*nelt
-        call dssum(u,nx1,ny1,nz1)
-        call col2 (u,tmult,ntot)
-    endif
-    ifield = ifieldo
-
-    return
-    end subroutine dsavg
 !-----------------------------------------------------------------------
-    subroutine mbyte_open(hname,fid,ierr) ! open  blah000.fldnn
-    use size_m
-    use restart
-    use tstep
-     
-    integer :: fid
-    character(132) :: hname
+!> \brief open  blah000.fldnn
+subroutine mbyte_open(hname,fid,ierr) 
+  use size_m, only : nid
+  use tstep, only : istep
+  implicit none
+   
+  integer :: fid
+  character(132) :: hname
 
-    character(8) ::  eight,fmt,s8
-    save         eight
-    data         eight / "????????" /
+  character(8) ::  fmt,s8
+  character(8), save :: eight = "????????"
 
-    character(132) :: fname
-    character(1) ::  fname1(132)
-    equivalence (fname1,fname)
+  character(132) :: fname
+  character(1) ::  fname1(132)
+  equivalence (fname1,fname)
 
-    integer ::      iname(33)
-    equivalence (iname,fname)
+  integer ::      iname(33)
+  equivalence (iname,fname)
 
-    call izero  (iname,33)
-    len = ltrunc(hname,132)
-    call chcopy (fname,hname,len)
+  integer :: len, ipass, k, i1, ierr
+  integer, external :: ltrunc, indx1
 
-    do ipass=1,2      ! 2nd pass, in case 1 file/directory
-        do k=8,1,-1
-            i1 = indx1(fname,eight,k)
-            if (i1 /= 0) then ! found k??? string
-                write(fmt,1) k,k
-                1 format('(i',i1,'.',i1,')')
-                write(s8,fmt) fid
-                call chcopy(fname1(i1),s8,k)
-                goto 10
-            endif
-        enddo
-        10 continue
-    enddo
+  call izero  (iname,33)
+  len = ltrunc(hname,132)
+  call chcopy (fname,hname,len)
+
+  do ipass=1,2      ! 2nd pass, in case 1 file/directory
+      do k=8,1,-1
+          i1 = indx1(fname,eight,k)
+          if (i1 /= 0) then ! found k??? string
+              write(fmt,1) k,k
+              1 format('(i',i1,'.',i1,')')
+              write(s8,fmt) fid
+              call chcopy(fname1(i1),s8,k)
+              goto 10
+          endif
+      enddo
+      10 continue
+  enddo
           
 #ifdef MPIIO
-    call byte_open_mpi(fname,ifh_mbyte,ierr)
-    if(nid == 0) write(6,6) istep,(fname1(k),k=1,len)
-    6 format(1i8,' OPEN: ',132a1)
+  call byte_open_mpi(fname,ifh_mbyte,ierr)
+  if(nid == 0) write(6,6) istep,(fname1(k),k=1,len)
+  6 format(1i8,' OPEN: ',132a1)
 #else
-    call byte_open(fname,ierr)
-    write(6,6) nid,istep,(fname1(k),k=1,len)
-    6 format(2i8,' OPEN: ',132a1)
+  call byte_open(fname,ierr)
+  write(6,6) nid,istep,(fname1(k),k=1,len)
+  6 format(2i8,' OPEN: ',132a1)
 #endif
 
-    return
-    end subroutine mbyte_open
+  return
+end subroutine mbyte_open
 !-----------------------------------------------------------------------

@@ -1,72 +1,77 @@
 !=======================================================================
-    subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
-    use ctimer
-    use size_m
-    use fdmh1
-    use input
-    use mass
-    use soln
-    use tstep
+subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nelv, nelt, ndim, nid
+  use ctimer, only : icalld, thmhz, nhmhz, etime1, dnekclock
+  use fdmh1, only : kfldfdm
+  use input, only : ifsplit, param
+  use mass, only : binvm1, bintm1
+  use tstep, only : istep, nelfld, ifield
+  implicit none
 
-    CHARACTER      NAME*4
-    REAL ::           U    (LX1,LY1,LZ1,1)
-    REAL ::           RHS  (LX1,LY1,LZ1,1)
-    REAL ::           H1   (LX1,LY1,LZ1,1)
-    REAL ::           H2   (LX1,LY1,LZ1,1)
-    REAL ::           MASK (LX1,LY1,LZ1,1)
-    REAL ::           MULT (LX1,LY1,LZ1,1)
+  CHARACTER      NAME*4
+  REAL(DP) ::           U    (LX1,LY1,LZ1,1)
+  REAL(DP) ::           RHS  (LX1,LY1,LZ1,1)
+  REAL(DP) ::           H1   (LX1,LY1,LZ1,1)
+  REAL(DP) ::           H2   (LX1,LY1,LZ1,1)
+  REAL(DP) ::           MASK (LX1,LY1,LZ1,1)
+  REAL(DP) ::           MULT (LX1,LY1,LZ1,1)
+  real(DP) :: tli
+  integer :: imsh, maxit, isd
 
-    logical :: iffdm
-    character(3) :: nam3
+  logical :: iffdm
+  character(3) :: nam3
+  integer :: ntot
+  real(DP) :: tol
 
-    tol = abs(tli)
+  tol = abs(tli)
 
-    if (icalld == 0) thmhz=0.0
+  if (icalld == 0) thmhz=0.0
 
-    iffdm = .FALSE. 
-!     iffdm = .true.
-    if (ifsplit) iffdm = .TRUE. 
+  iffdm = .FALSE. 
+!   iffdm = .true.
+  if (ifsplit) iffdm = .TRUE. 
 
 !max    if (icalld == 0 .AND. iffdm) call set_fdm_prec_h1A
 
-    icalld=icalld+1
-    nhmhz=icalld
-    etime1=dnekclock()
-    ntot = nx1*ny1*nz1*nelfld(ifield)
-    if (imsh == 1) ntot = nx1*ny1*nz1*nelv
-    if (imsh == 2) ntot = nx1*ny1*nz1*nelt
+  icalld=icalld+1
+  nhmhz=icalld
+  etime1=dnekclock()
+  ntot = nx1*ny1*nz1*nelfld(ifield)
+  if (imsh == 1) ntot = nx1*ny1*nz1*nelv
+  if (imsh == 2) ntot = nx1*ny1*nz1*nelt
 
-!     Determine which field is being computed for FDM based preconditioner bc's
+!   Determine which field is being computed for FDM based preconditioner bc's
 
-    call chcopy(nam3,name,3)
+  call chcopy(nam3,name,3)
 
-    kfldfdm = -1
-!     if (nam3.eq.'TEM' ) kfldfdm =  0
-!     if (name.eq.'TEM1') kfldfdm =  0  ! hardcode for temp only, for mpaul
-!     if (name.eq.'VELX') kfldfdm =  1
-!     if (name.eq.'VELY') kfldfdm =  2
-!     if (name.eq.'VELZ') kfldfdm =  3
-    if (name == 'PRES') kfldfdm =  ndim+1
-!     if (.not.iffdm) kfldfdm=-1
+  kfldfdm = -1
+!   if (nam3.eq.'TEM' ) kfldfdm =  0
+!   if (name.eq.'TEM1') kfldfdm =  0  ! hardcode for temp only, for mpaul
+!   if (name.eq.'VELX') kfldfdm =  1
+!   if (name.eq.'VELY') kfldfdm =  2
+!   if (name.eq.'VELZ') kfldfdm =  3
+  if (name == 'PRES') kfldfdm =  ndim+1
+!   if (.not.iffdm) kfldfdm=-1
 
-    call dssum   (rhs,nx1,ny1,nz1)
-    call col2    (rhs,mask,ntot)
-    if (nid == 0 .AND. istep <= 10) &
-    write(6,*) param(22),' p22 ',istep,imsh
-    if (param(22) == 0 .OR. istep <= 10) &
-    call chktcg1 (tol,rhs,h1,h2,mask,mult,imsh,isd)
+  call dssum   (rhs,nx1,ny1,nz1)
+  call col2    (rhs,mask,ntot)
+  if (nid == 0 .AND. istep <= 10) &
+  write(6,*) param(22),' p22 ',istep,imsh
+  if (param(22) == 0 .OR. istep <= 10) &
+  call chktcg1 (tol,rhs,h1,h2,mask,mult,imsh,isd)
 
-    if (tli < 0) tol=tli ! caller-specified relative tolerance
+  if (tli < 0) tol=tli ! caller-specified relative tolerance
 
-    if (imsh == 1) call cggo &
-    (u,rhs,h1,h2,mask,mult,imsh,tol,maxit,isd,binvm1,name)
-    if (imsh == 2) call cggo &
-    (u,rhs,h1,h2,mask,mult,imsh,tol,maxit,isd,bintm1,name)
+  if (imsh == 1) call cggo &
+  (u,rhs,h1,h2,mask,mult,imsh,tol,maxit,isd,binvm1,name)
+  if (imsh == 2) call cggo &
+  (u,rhs,h1,h2,mask,mult,imsh,tol,maxit,isd,bintm1,name)
 
 
-    thmhz=thmhz+(dnekclock()-etime1)
-    return
-    end subroutine hmholtz
+  thmhz=thmhz+(dnekclock()-etime1)
+  return
+end subroutine hmholtz
 
 !=======================================================================
 !------------------------------------------------------------------
@@ -866,103 +871,117 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
       !     call exitt
   return
 end subroutine cggo
+
 !=======================================================================
-    function vlsc32(r,b,m,n)
-    real :: r(1),b(1),m(1)
-    s = 0.
-    do i=1,n
-        s = s + b(i)*m(i)*r(i)*r(i)
-    enddo
-    vlsc32 = s
-    return
-    end function vlsc32
+real(DP) function vlsc32(r,b,m,n)
+  use kinds, only : DP
+  implicit none
+  real(DP) :: r(1),b(1),m(1)
+  integer :: n
+  real(DP) :: s
+  integer :: i
+  s = 0.
+  do i=1,n
+      s = s + b(i)*m(i)*r(i)*r(i)
+  enddo
+  vlsc32 = s
+  return
+end function vlsc32
+
 !=======================================================================
-!called
-    subroutine set_fdm_prec_h1b(d,h1,h2,nel)
-    use size_m
-    use fdmh1
-    use geom
-    use input
-    real :: d (nx1,ny1,nz1,1)
-    real :: h1(nx1,ny1,nz1,1)
-    real :: h2(nx1,ny1,nz1,1)
+subroutine set_fdm_prec_h1b(d,h1,h2,nel)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1
+  use fdmh1, only : ktype, elsize, dd, ifbhalf, kfldfdm
+  use geom, only : ym1
+  use input, only : if3d, ifaxis
+  implicit none
 
-!     Set up diagonal for FDM for each spectral element
+  real(DP) :: d (nx1,ny1,nz1,1)
+  real(DP) :: h1(nx1,ny1,nz1,1)
+  real(DP) :: h2(nx1,ny1,nz1,1)
+  integer :: nel
 
-    nxyz = nx1*ny1*nz1
-    if (if3d) then
-        do ie=1,nel
-            h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
-            h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
-            k1 = ktype(ie,1,kfldfdm)
-            k2 = ktype(ie,2,kfldfdm)
-            k3 = ktype(ie,3,kfldfdm)
-            vol = elsize(1,ie)*elsize(2,ie)*elsize(3,ie)
-            vl1 = elsize(2,ie)*elsize(3,ie)/elsize(1,ie)
-            vl2 = elsize(1,ie)*elsize(3,ie)/elsize(2,ie)
-            vl3 = elsize(1,ie)*elsize(2,ie)/elsize(3,ie)
-            do i3=1,nz1
-                do i2=1,ny1
-                    do i1=1,nx1
-                        den = h1b*(vl1*dd(i1,k1) + vl2*dd(i2,k2) + vl3*dd(i3,k3)) &
-                        + h2b*vol
-                        if (ifbhalf) den = den/vol
-                        if (den /= 0) then
-                            d(i1,i2,i3,ie) = 1./den
-                        else
-                            d(i1,i2,i3,ie) = 0.
-                        
-                        !                 write(6,3) 'd=0:'
-                        !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2),dd(i3,k3)
-                        !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2,k3
-                            3 format(a4,1p4e12.4,8i8)
-                        
-                        endif
-                    enddo
-                enddo
-            enddo
-        enddo
-    else
-        do ie=1,nel
-            if (ifaxis) then
-                h1b = vlsc2(h1(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
-                h2b = vlsc2(h2(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
-            else
-                h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
-                h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
-            endif
-            k1 = ktype(ie,1,kfldfdm)
-            k2 = ktype(ie,2,kfldfdm)
-            vol = elsize(1,ie)*elsize(2,ie)
-            vl1 = elsize(2,ie)/elsize(1,ie)
-            vl2 = elsize(1,ie)/elsize(2,ie)
-            i3=1
-            do i2=1,ny1
-                do i1=1,nx1
-                    den = h1b*( vl1*dd(i1,k1) + vl2*dd(i2,k2) ) &
-                    + h2b*vol
-                    if (ifbhalf) den = den/vol
-                    if (den /= 0) then
-                        d(i1,i2,i3,ie) = 1./den
-                    !                 write(6,3) 'dn0:'
-                    !    $                 ,d(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
-                    !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
-                    else
-                        d(i1,i2,i3,ie) = 0.
-                    !                 write(6,3) 'd=0:'
-                    !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
-                    !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
-                        2 format(a4,1p3e12.4,8i8)
-                    endif
-                !           write(6,1) ie,i1,i2,k1,k2,'d:',d(i1,i2,i3,ie),vol,vl1,vl2
-                !   1       format(5i3,2x,a2,1p4e12.4)
-                enddo
-            enddo
-        enddo
-    endif
+  integer :: nxyz, i1, i2, ie, i3, k1, k2, k3
+  real(DP) :: h1b, h2b, vol, vl1, vl2, vl3, den
+  real(DP), external :: vlsum, vlsc2
 
-    return
-    end subroutine set_fdm_prec_h1b
+!   Set up diagonal for FDM for each spectral element
+  nxyz = nx1*ny1*nz1
+  if (if3d) then
+      do ie=1,nel
+          h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
+          h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
+          k1 = ktype(ie,1,kfldfdm)
+          k2 = ktype(ie,2,kfldfdm)
+          k3 = ktype(ie,3,kfldfdm)
+          vol = elsize(1,ie)*elsize(2,ie)*elsize(3,ie)
+          vl1 = elsize(2,ie)*elsize(3,ie)/elsize(1,ie)
+          vl2 = elsize(1,ie)*elsize(3,ie)/elsize(2,ie)
+          vl3 = elsize(1,ie)*elsize(2,ie)/elsize(3,ie)
+          do i3=1,nz1
+              do i2=1,ny1
+                  do i1=1,nx1
+                      den = h1b*(vl1*dd(i1,k1) + vl2*dd(i2,k2) + vl3*dd(i3,k3)) &
+                      + h2b*vol
+                      if (ifbhalf) den = den/vol
+                      if (den /= 0) then
+                          d(i1,i2,i3,ie) = 1./den
+                      else
+                          d(i1,i2,i3,ie) = 0.
+                      
+                      !                 write(6,3) 'd=0:'
+                      !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2),dd(i3,k3)
+                      !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2,k3
+                          3 format(a4,1p4e12.4,8i8)
+                      
+                      endif
+                  enddo
+              enddo
+          enddo
+      enddo
+  else
+      do ie=1,nel
+          if (ifaxis) then
+              h1b = vlsc2(h1(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
+              h2b = vlsc2(h2(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
+          else
+              h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
+              h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
+          endif
+          k1 = ktype(ie,1,kfldfdm)
+          k2 = ktype(ie,2,kfldfdm)
+          vol = elsize(1,ie)*elsize(2,ie)
+          vl1 = elsize(2,ie)/elsize(1,ie)
+          vl2 = elsize(1,ie)/elsize(2,ie)
+          i3=1
+          do i2=1,ny1
+              do i1=1,nx1
+                  den = h1b*( vl1*dd(i1,k1) + vl2*dd(i2,k2) ) &
+                  + h2b*vol
+                  if (ifbhalf) den = den/vol
+                  if (den /= 0) then
+                      d(i1,i2,i3,ie) = 1./den
+                  !                 write(6,3) 'dn0:'
+                  !    $                 ,d(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
+                  !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
+                  else
+                      d(i1,i2,i3,ie) = 0.
+                  !                 write(6,3) 'd=0:'
+                  !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
+                  !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
+                      2 format(a4,1p3e12.4,8i8)
+                  endif
+              !           write(6,1) ie,i1,i2,k1,k2,'d:',d(i1,i2,i3,ie),vol,vl1,vl2
+              !   1       format(5i3,2x,a2,1p4e12.4)
+              enddo
+          enddo
+      enddo
+  endif
+
+  return
+end subroutine set_fdm_prec_h1b
+
 !-----------------------------------------------------------------------
 !> \brief Solve the generalized eigenvalue problem  A x = lam B x
 !!
@@ -1016,6 +1035,7 @@ subroutine generalev(a,b,lam,n,w)
 
   return
 end subroutine generalev
+
 !-----------------------------------------------------------------------
 subroutine outmat2(a,m,n,k,name)
   use size_m, only : nid
@@ -1036,4 +1056,5 @@ subroutine outmat2(a,m,n,k,name)
   2 format(/,'Matrix: ',i3,1x,a4,3i8)
   return
 end subroutine outmat2
+
 !-----------------------------------------------------------------------

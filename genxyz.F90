@@ -157,57 +157,60 @@ subroutine setdef()
       ENDIF
   500 END DO
   return
-  end subroutine setdef
+end subroutine setdef
 
+!> \brief Take the dot product of the three components of VEC to see if it's zero.
+LOGICAL FUNCTION IFVCHK(VEC,I1,I2,I3)
+  use kinds, only : DP
+  implicit none
 
-    LOGICAL FUNCTION IFVCHK(VEC,I1,I2,I3)
+  real(DP) :: vec(3,12)
+  integer :: i1, i2, i3
+  LOGICAL :: IFTMP
 
-!     Take the dot product of the three components of VEC to see if it's zero.
+  real(DP) :: epsm, dot1, dot2, dot3, dot
 
-    DIMENSION VEC(3,12)
-    LOGICAL :: IFTMP
+  IFTMP= .FALSE. 
+  EPSM=1.0E-06
 
-    IFTMP= .FALSE. 
-    EPSM=1.0E-06
+  DOT1=VEC(1,I1)*VEC(1,I2)+VEC(2,I1)*VEC(2,I2)+VEC(3,I1)*VEC(3,I2)
+  DOT2=VEC(1,I2)*VEC(1,I3)+VEC(2,I2)*VEC(2,I3)+VEC(3,I2)*VEC(3,I3)
+  DOT3=VEC(1,I1)*VEC(1,I3)+VEC(2,I1)*VEC(2,I3)+VEC(3,I1)*VEC(3,I3)
 
-    DOT1=VEC(1,I1)*VEC(1,I2)+VEC(2,I1)*VEC(2,I2)+VEC(3,I1)*VEC(3,I2)
-    DOT2=VEC(1,I2)*VEC(1,I3)+VEC(2,I2)*VEC(2,I3)+VEC(3,I2)*VEC(3,I3)
-    DOT3=VEC(1,I1)*VEC(1,I3)+VEC(2,I1)*VEC(2,I3)+VEC(3,I1)*VEC(3,I3)
+  DOT1=ABS(DOT1)
+  DOT2=ABS(DOT2)
+  DOT3=ABS(DOT3)
+  DOT=DOT1+DOT2+DOT3
+  IF (DOT > EPSM) IFTMP= .TRUE. 
 
-    DOT1=ABS(DOT1)
-    DOT2=ABS(DOT2)
-    DOT3=ABS(DOT3)
-    DOT=DOT1+DOT2+DOT3
-    IF (DOT > EPSM) IFTMP= .TRUE. 
-
-    IFVCHK=IFTMP
-    return
-    END FUNCTION IFVCHK
-!-----------------------------------------------------------------------
-    subroutine gencoor (xm3,ym3,zm3)
-!-----------------------------------------------------------------------
-
-!     Generate xyz coordinates  for all elements.
-!        Velocity formulation : mesh 3 is used
-!        Stress   formulation : mesh 1 is used
+  IFVCHK=IFTMP
+  return
+END FUNCTION IFVCHK
 
 !-----------------------------------------------------------------------
-    use size_m
-    use geom
-    use input
-    DIMENSION XM3(LX3,LY3,LZ3,1),YM3(LX3,LY3,LZ3,1),ZM3(LX3,LY3,LZ3,1)
+!> \brief Generate xyz coordinates  for all elements.
+!! Velocity formulation : mesh 3 is used
+!! Stress   formulation : mesh 1 is used
+!-----------------------------------------------------------------------
+subroutine gencoor (xm3,ym3,zm3)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, lx3, ly3, lz3
+  use geom, only : ifgmsh3, xm1, ym1, zm1
+  implicit none
 
-!     Select appropriate mesh
+  real(DP) :: XM3(LX3,LY3,LZ3,1),YM3(LX3,LY3,LZ3,1),ZM3(LX3,LY3,LZ3,1)
 
-    IF ( IFGMSH3 ) THEN
-      write(*,*) "Oops: IFGMSH3"
+!   Select appropriate mesh
+  IF ( IFGMSH3 ) THEN
+    write(*,*) "Oops: IFGMSH3"
 !max        CALL GENXYZ (XM3,YM3,ZM3,NX3,NY3,NZ3)
-    ELSE
-        CALL GENXYZ (XM1,YM1,ZM1,NX1,NY1,NZ1)
-    ENDIF
+  ELSE
+      CALL GENXYZ (XM1,YM1,ZM1,NX1,NY1,NZ1)
+  ENDIF
 
-    return
-    end subroutine gencoor
+  return
+end subroutine gencoor
+
 !-----------------------------------------------------------------------
 subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
   use kinds, only : DP
@@ -266,122 +269,138 @@ subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
 
   return
 end subroutine genxyz
+
 !-----------------------------------------------------------------------
-    subroutine sethmat(h,zgml,nxl,nyl,nzl)
+subroutine sethmat(h,zgml,nxl,nyl,nzl)
+  use kinds, only : DP
+  use size_m, only : lx1
+  use input, only : if3d
+  implicit none
 
-    use size_m
-    use input  ! if3d
+  real(DP) :: h(lx1,3,2),zgml(lx1,3)
+  integer :: nxl, nyl, nzl
 
-    real :: h(lx1,3,2),zgml(lx1,3)
+  integer :: ix, iy, iz
 
-    do 10 ix=1,nxl
-        h(ix,1,1)=(1.0-zgml(ix,1))*0.5
-        h(ix,1,2)=(1.0+zgml(ix,1))*0.5
-    10 END DO
-    do 20 iy=1,nyl
-        h(iy,2,1)=(1.0-zgml(iy,2))*0.5
-        h(iy,2,2)=(1.0+zgml(iy,2))*0.5
-    20 END DO
-    if (if3d) then
-        do 30 iz=1,nzl
-            h(iz,3,1)=(1.0-zgml(iz,3))*0.5
-            h(iz,3,2)=(1.0+zgml(iz,3))*0.5
-        30 END DO
-    else
-        call rone(h(1,3,1),nzl)
-        call rone(h(1,3,2),nzl)
-    endif
+  do 10 ix=1,nxl
+      h(ix,1,1)=(1.0-zgml(ix,1))*0.5
+      h(ix,1,2)=(1.0+zgml(ix,1))*0.5
+  10 END DO
+  do 20 iy=1,nyl
+      h(iy,2,1)=(1.0-zgml(iy,2))*0.5
+      h(iy,2,2)=(1.0+zgml(iy,2))*0.5
+  20 END DO
+  if (if3d) then
+      do 30 iz=1,nzl
+          h(iz,3,1)=(1.0-zgml(iz,3))*0.5
+          h(iz,3,2)=(1.0+zgml(iz,3))*0.5
+      30 END DO
+  else
+      call rone(h(1,3,1),nzl)
+      call rone(h(1,3,2),nzl)
+  endif
 
-    return
-    end subroutine sethmat
+  return
+end subroutine sethmat
+
 !-----------------------------------------------------------------------
-    subroutine setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
+subroutine setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
+  use kinds, only : DP
+  use size_m, only : lx1, nx1, nx3, ny1, nz1
+  use geom, only : ifgmsh3, ifrzer
+  use wz_m, only : zgm1
+  implicit none
 
-    use size_m
-    use geom
-    use wz_m
+  real(DP) :: zgml(lx1,3)
+  integer :: e, nxl, nyl, nzl
+  logical :: ifaxl
 
-    real :: zgml(lx1,3)
-    integer :: e
-    logical :: ifaxl
+  integer :: k
+  real(DP) :: zam1
 
-    call rzero (zgml,3*nx1)
+  call rzero (zgml,3*nx1)
 
 
-    if (nxl == 3 .AND. .NOT. ifaxl) then
-        do k=1,3
-            zgml(1,k) = -1
-            zgml(2,k) =  0
-            zgml(3,k) =  1
-        enddo
-    elseif (ifgmsh3 .AND. nxl == nx3) then
-      write(*,*) "Oops: IFGMSH3"
+  if (nxl == 3 .AND. .NOT. ifaxl) then
+      do k=1,3
+          zgml(1,k) = -1
+          zgml(2,k) =  0
+          zgml(3,k) =  1
+      enddo
+  elseif (ifgmsh3 .AND. nxl == nx3) then
+    write(*,*) "Oops: IFGMSH3"
 #if 0
-        call copy(zgml(1,1),zgm3(1,1),nx3)
-        call copy(zgml(1,2),zgm3(1,2),ny3)
-        call copy(zgml(1,3),zgm3(1,3),nz3)
-        if (ifaxl .AND. ifrzer(e)) call copy(zgml(1,2),zam3,ny3)
+      call copy(zgml(1,1),zgm3(1,1),nx3)
+      call copy(zgml(1,2),zgm3(1,2),ny3)
+      call copy(zgml(1,3),zgm3(1,3),nz3)
+      if (ifaxl .AND. ifrzer(e)) call copy(zgml(1,2),zam3,ny3)
 #endif
-    elseif (nxl == nx1) then
-        call copy(zgml(1,1),zgm1(1,1),nx1)
-        call copy(zgml(1,2),zgm1(1,2),ny1)
-        call copy(zgml(1,3),zgm1(1,3),nz1)
-        if (ifaxl .AND. ifrzer(e)) call copy(zgml(1,2),zam1,ny1)
-    else
-        call exitti('ABORT setzgml! $',nxl)
-    endif
+  elseif (nxl == nx1) then
+      call copy(zgml(1,1),zgm1(1,1),nx1)
+      call copy(zgml(1,2),zgm1(1,2),ny1)
+      call copy(zgml(1,3),zgm1(1,3),nz1)
+      if (ifaxl .AND. ifrzer(e)) call copy(zgml(1,2),zam1,ny1)
+  else
+      call exitti('ABORT setzgml! $',nxl)
+  endif
 
-    return
-    end subroutine setzgml
+  return
+  end subroutine setzgml
+
 !-----------------------------------------------------------------------
-    REAL FUNCTION DOT(V1,V2,N)
+!> \brief Compute Cartesian vector dot product.
+REAL(DP) FUNCTION DOT(V1,V2,N)
+  use kinds, only : DP
+  implicit none
 
-!     Compute Cartesian vector dot product.
+  integer :: n
+  real(DP) :: V1(N),V2(N)
+ 
+  real(DP) :: sum
+  integer :: i
 
-    DIMENSION V1(N),V2(N)
+  SUM = 0
+  DO 100 I=1,N
+      SUM = SUM + V1(I)*V2(I)
+  100 END DO
+  DOT = SUM
+  return
+END FUNCTION DOT
 
-    SUM = 0
-    DO 100 I=1,N
-        SUM = SUM + V1(I)*V2(I)
-    100 END DO
-    DOT = SUM
-    return
-    END FUNCTION DOT
 !-----------------------------------------------------------------------
-    subroutine linquad(xl,yl,zl,nxl,nyl,nzl)
+subroutine linquad(xl,yl,zl,nxl,nyl,nzl)
+  use kinds, only : DP
+  use size_m, only : ndim, nelt, lx1
+  use input, only : ccurve, ifaxis
+  implicit none
 
-    use size_m
-    use geom
-    use input
-    use parallel
-    use topol
-    use wz_m
+  integer :: nxl, nyl, nzl
+  real(DP) :: xl(nxl*nyl*nzl,1),yl(nxl*nyl*nzl,1),zl(nxl*nyl*nzl,1)
 
-    real :: xl(nxl*nyl*nzl,1),yl(nxl*nyl*nzl,1),zl(nxl*nyl*nzl,1)
+  integer :: e, nedge, k
+  logical :: ifmid
 
-    integer :: e
-    logical :: ifmid
+  nedge = 4 + 8*(ndim-2)
 
-    nedge = 4 + 8*(ndim-2)
+  do e=1,nelt ! Loop over all elements
 
-    do e=1,nelt ! Loop over all elements
+      ifmid = .FALSE. 
+      do k=1,nedge
+          if (ccurve(k,e) == 'm') ifmid = .TRUE. 
+      enddo
 
-        ifmid = .FALSE. 
-        do k=1,nedge
-            if (ccurve(k,e) == 'm') ifmid = .TRUE. 
-        enddo
-
-        if (lx1 == 2) ifmid = .FALSE. 
-        if (ifmid) then
-          write(*,*) "Oops: ifmid"
+      if (lx1 == 2) ifmid = .FALSE. 
+      if (ifmid) then
+        write(*,*) "Oops: ifmid"
 !max            call xyzquad(xl(1,e),yl(1,e),zl(1,e),nxl,nyl,nzl,e)
-        else
-            call xyzlin (xl(1,e),yl(1,e),zl(1,e),nxl,nyl,nzl,e,ifaxis)
-        endif
-    enddo
+      else
+          call xyzlin (xl(1,e),yl(1,e),zl(1,e),nxl,nyl,nzl,e,ifaxis)
+      endif
+  enddo
 
-    return
-    end subroutine linquad
+  return
+end subroutine linquad
+
 !-----------------------------------------------------------------------
 !> \brief Generate bi- or trilinear mesh
 subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)

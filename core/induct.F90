@@ -95,20 +95,26 @@ subroutine compute_cfl(cfl,u,v,w,dt)
 
   return
   end subroutine compute_cfl
+
 !-----------------------------------------------------------------------
-    subroutine getdr(dri,zgm1,nx1)
-    real :: dri(nx1),zgm1(nx1)
+subroutine getdr(dri,zgm1,nx1)
+  use kinds, only : DP
+  implicit none
+  real(DP) :: dri(nx1),zgm1(nx1)
+  integer :: nx1
+  integer :: i
 
-    dri(1) = zgm1(2) - zgm1(1)   !  Compute 1/Dx
-    do i=2,nx1-1
-        dri(i) = 0.5*( zgm1(i+1) - zgm1(i-1) )
-    enddo
-    dri(nx1) = zgm1(nx1) - zgm1(nx1-1)
+  dri(1) = zgm1(2) - zgm1(1)   !  Compute 1/Dx
+  do i=2,nx1-1
+      dri(i) = 0.5*( zgm1(i+1) - zgm1(i-1) )
+  enddo
+  dri(nx1) = zgm1(nx1) - zgm1(nx1-1)
 
-    call invcol1(dri,nx1)
+  call invcol1(dri,nx1)
 
-    return
-    end subroutine getdr
+  return
+end subroutine getdr
+
 !-----------------------------------------------------------------------
 !> \brief  Eulerian scheme, add convection term to forcing function
 ! at current time step.

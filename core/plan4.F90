@@ -325,158 +325,143 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
 end subroutine cresvsp
 
 !-----------------------------------------------------------------------
-    subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
+subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
+  use dxyz, only : datm1
+  use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
+  use geom, only : jacm1, ifrzer
+  use input, only : if3d, ifaxis, ifcyclic
+  use mass, only : yinvm1, bm1, binvm1
+  use tstep, only : ifield
+  implicit none
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  real(DP) :: w1(1),w2(1),w3(1),work1(1),work2(1),u1(1),u2(1),u3(1)
+  logical :: ifavg
 
-    real :: duax(lx1), ta(lx1,ly1,lz1,lelv)
+  real :: duax(lx1), ta(lx1,ly1,lz1,lelv)
+  integer :: ntot, nxyz, iel, ifielt
 
-    logical :: ifavg
+  ntot  = nx1*ny1*nz1*nelv
+  nxyz  = nx1*ny1*nz1
+!   work1=dw/dy ; work2=dv/dz
+  call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
+  if (if3d) then
+      call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
+      call sub3(w1,work1,work2,ntot)
+  else
+      call copy(w1,work1,ntot)
 
-    real :: w1(1),w2(1),w3(1),work1(1),work2(1),u1(1),u2(1),u3(1)
+      if(ifaxis) then
+          call copy (ta,u3,ntot)
+          do iel = 1,nelv
+              if(IFRZER(iel)) then
+                  call rzero (ta(1,1,1,iel),nx1)
+                  call MXM   (ta(1,1,1,iel),nx1,DATM1,ny1,duax,1)
+                  call copy  (ta(1,1,1,iel),duax,nx1)
+              endif
+              call col2    (ta(1,1,1,iel),yinvm1(1,1,1,iel),nxyz)
+          enddo
+          call add2      (w1,ta,ntot)
+      endif
 
-    ntot  = nx1*ny1*nz1*nelv
-    nxyz  = nx1*ny1*nz1
-!     work1=dw/dy ; work2=dv/dz
-    call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
-    if (if3d) then
-        call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
-        call sub3(w1,work1,work2,ntot)
-    else
-        call copy(w1,work1,ntot)
+  endif
+!   work1=du/dz ; work2=dw/dx
+  if (if3d) then
+      call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
+      call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
+      call sub3(w2,work1,work2,ntot)
+  else
+      call rzero (work1,ntot)
+      call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
+      call sub3(w2,work1,work2,ntot)
+  endif
+!   work1=dv/dx ; work2=du/dy
+  call dudxyz(work1,u2,rxm1,sxm1,txm1,jacm1,1,1)
+  call dudxyz(work2,u1,rym1,sym1,tym1,jacm1,1,2)
+  call sub3(w3,work1,work2,ntot)
 
-        if(ifaxis) then
-            call copy (ta,u3,ntot)
-            do iel = 1,nelv
-                if(IFRZER(iel)) then
-                    call rzero (ta(1,1,1,iel),nx1)
-                    call MXM   (ta(1,1,1,iel),nx1,DATM1,ny1,duax,1)
-                    call copy  (ta(1,1,1,iel),duax,nx1)
-                endif
-                call col2    (ta(1,1,1,iel),yinvm1(1,1,1,iel),nxyz)
-            enddo
-            call add2      (w1,ta,ntot)
-        endif
+!  Avg at bndry
 
-    endif
-!     work1=du/dz ; work2=dw/dx
-    if (if3d) then
-        call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
-        call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
-        call sub3(w2,work1,work2,ntot)
-    else
-        call rzero (work1,ntot)
-        call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
-        call sub3(w2,work1,work2,ntot)
-    endif
-!     work1=dv/dx ; work2=du/dy
-    call dudxyz(work1,u2,rxm1,sxm1,txm1,jacm1,1,1)
-    call dudxyz(work2,u1,rym1,sym1,tym1,jacm1,1,2)
-    call sub3(w3,work1,work2,ntot)
+!   if (ifavg) then
+  if (ifavg .AND. .NOT. ifcyclic) then
 
-!    Avg at bndry
+      ifielt = ifield
+      ifield = 1
+             
+      call opcolv  (w1,w2,w3,bm1)
+      call opdssum (w1,w2,w3)
+      call opcolv  (w1,w2,w3,binvm1)
 
-!     if (ifavg) then
-    if (ifavg .AND. .NOT. ifcyclic) then
+      ifield = ifielt
 
-        ifielt = ifield
-        ifield = 1
-               
-        call opcolv  (w1,w2,w3,bm1)
-        call opdssum (w1,w2,w3)
-        call opcolv  (w1,w2,w3,binvm1)
+  endif
 
-        ifield = ifielt
-
-    endif
-
-    return
-    end subroutine op_curl
+  return
+end subroutine op_curl
 
 !-----------------------------------------------------------------------
-    subroutine opadd2cm (a1,a2,a3,b1,b2,b3,c)
-    use size_m
-    REAL :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1),C
-    NTOT1=NX1*NY1*NZ1*NELV
-    if (ndim == 3) then
-        do i=1,ntot1
-            a1(i) = a1(i) + b1(i)*c
-            a2(i) = a2(i) + b2(i)*c
-            a3(i) = a3(i) + b3(i)*c
-        enddo
-    else
-        do i=1,ntot1
-            a1(i) = a1(i) + b1(i)*c
-            a2(i) = a2(i) + b2(i)*c
-        enddo
-    endif
-    return
-    end subroutine opadd2cm
+subroutine opadd2cm (a1,a2,a3,b1,b2,b3,c)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  implicit none
+
+  REAL(DP) :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1),C
+  integer :: ntot1, i
+
+  NTOT1=NX1*NY1*NZ1*NELV
+  if (ndim == 3) then
+      do i=1,ntot1
+          a1(i) = a1(i) + b1(i)*c
+          a2(i) = a2(i) + b2(i)*c
+          a3(i) = a3(i) + b3(i)*c
+      enddo
+  else
+      do i=1,ntot1
+          a1(i) = a1(i) + b1(i)*c
+          a2(i) = a2(i) + b2(i)*c
+      enddo
+  endif
+  return
+end subroutine opadd2cm
 
 !-----------------------------------------------------------------------
-    subroutine v_extrap(vext)
-
-!     extrapolate velocity
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+!> \brief extrapolate velocity
+subroutine v_extrap(vext)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
+  use input, only : if3d
+  use soln, only : vx, vy, vz, vxlag, vylag, vzlag
+  use tstep, only : ab, nab
+  implicit none
        
-    real :: vext(lx1*ly1*lz1*lelv,1)
+  real(DP) :: vext(lx1*ly1*lz1*lelv,1)
 
-    NTOT = NX1*NY1*NZ1*NELV
+  integer :: ntot
+  real(DP) :: AB0, AB1, AB2
 
-    AB0 = AB(1)
-    AB1 = AB(2)
-    AB2 = AB(3)
+  NTOT = NX1*NY1*NZ1*NELV
 
-!     call copy(vext(1,1),vx,ntot)
-!     call copy(vext(1,2),vy,ntot)
-!     call copy(vext(1,3),vz,ntot)
-!     return
+  AB0 = AB(1)
+  AB1 = AB(2)
+  AB2 = AB(3)
 
-    call add3s2(vext(1,1),vx,vxlag,ab0,ab1,ntot)
-    call add3s2(vext(1,2),vy,vylag,ab0,ab1,ntot)
-    if(if3d) call add3s2(vext(1,3),vz,vzlag,ab0,ab1,ntot)
+!   call copy(vext(1,1),vx,ntot)
+!   call copy(vext(1,2),vy,ntot)
+!   call copy(vext(1,3),vz,ntot)
+!   return
 
-    if(nab == 3) then
-        call add2s2(vext(1,1),vxlag(1,1,1,1,2),ab2,ntot)
-        call add2s2(vext(1,2),vylag(1,1,1,1,2),ab2,ntot)
-        if(if3d) call add2s2(vext(1,3),vzlag(1,1,1,1,2),ab2,ntot)
-    endif
+  call add3s2(vext(1,1),vx,vxlag,ab0,ab1,ntot)
+  call add3s2(vext(1,2),vy,vylag,ab0,ab1,ntot)
+  if(if3d) call add3s2(vext(1,3),vz,vzlag,ab0,ab1,ntot)
 
-    return
-    end subroutine v_extrap
+  if(nab == 3) then
+      call add2s2(vext(1,1),vxlag(1,1,1,1,2),ab2,ntot)
+      call add2s2(vext(1,2),vylag(1,1,1,1,2),ab2,ntot)
+      if(if3d) call add2s2(vext(1,3),vzlag(1,1,1,1,2),ab2,ntot)
+  endif
+
+  return
+end subroutine v_extrap
+
 !-----------------------------------------------------------------------

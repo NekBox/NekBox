@@ -122,77 +122,79 @@ subroutine setdt
   return
 end subroutine setdt
 
-!--------------------------------------------------------
-
-    subroutine cvgnlps (ifconv)
-!----------------------------------------------------------------------
-
-!     Check convergence for non-linear passisve scalar solver.
-!     Relevant for solving heat transport problems with radiation b.c.
 
 !----------------------------------------------------------------------
-    use size_m
-    use input
-    use tstep
-    LOGICAL ::  IFCONV
+!> \brief Check convergence for non-linear passisve scalar solver.
+!!  Relevant for solving heat transport problems with radiation b.c.
+!----------------------------------------------------------------------
+subroutine cvgnlps (ifconv)
+  use kinds, only : DP
+  use input, only : ifnonl
+  use tstep, only : ifield, tnrmh1, tolnl
+  implicit none
 
-    IF (IFNONL(IFIELD)) THEN
-        IFCONV = .FALSE. 
-    ELSE
-        IFCONV = .TRUE. 
-        return
-    endif
+  LOGICAL ::  IFCONV
+  real(DP) :: tnorm1, tnorm2, eps
 
-    TNORM1 = TNRMH1(IFIELD-1)
-    CALL UNORM
-    TNORM2 = TNRMH1(IFIELD-1)
-    EPS = ABS((TNORM2-TNORM1)/TNORM2)
-    IF (EPS < TOLNL) IFCONV = .TRUE. 
+  IF (IFNONL(IFIELD)) THEN
+      IFCONV = .FALSE. 
+  ELSE
+      IFCONV = .TRUE. 
+      return
+  endif
 
-    return
-    end subroutine cvgnlps
+  TNORM1 = TNRMH1(IFIELD-1)
+  CALL UNORM
+  TNORM2 = TNRMH1(IFIELD-1)
+  EPS = ABS((TNORM2-TNORM1)/TNORM2)
+  IF (EPS < TOLNL) IFCONV = .TRUE. 
 
-    subroutine unorm
+  return
+end subroutine cvgnlps
+
 !---------------------------------------------------------------------
-
-!     Norm calculation.
-
+!> \brief Norm calculation.
 !---------------------------------------------------------------------
-    use size_m
-    use soln
-    use tstep
+subroutine unorm
+  use kinds, only : DP
+  use soln, only : vx, vy, vz, t
+  use tstep, only : ifield, imesh, tnrml8, tnrmsm, tnrmh1, time, dt, tnrml2
+  use tstep, only : vnrmh1, vnrmsm, vnrml2, vnrml8, istep, dtinvm, vmean, tmean
+  implicit none
 
-    IF (IFIELD == 1) THEN
-    
-    !        Compute norms of the velocity.
-    !        Compute time mean (L2) of the inverse of the time step.
-    !        Compute L2 in time, H1 in space of the velocity.
-    
-        CALL NORMVC (VNRMH1,VNRMSM,VNRML2,VNRML8,VX,VY,VZ)
-        IF (ISTEP == 0) return
-        IF (ISTEP == 1) THEN
-            DTINVM = 1./DT
-            VMEAN  = VNRML8
-        ELSE
-            tden   = time
-            if (time <= 0) tden = abs(time)+1.e-9
-            arg    = ((TIME-DT)*DTINVM**2+1./DT)/tden
-            if (arg > 0) DTINVM = SQRT(arg)
-            arg    = ((TIME-DT)*VMEAN**2+DT*VNRMH1**2)/tden
-            if (arg > 0) VMEAN  = SQRT(arg)
-        endif
-    ELSE
-    
-    !     Compute norms of a passive scalar
-    
-        CALL NORMSC (TNRMH1(IFIELD-1),TNRMSM(IFIELD-1), &
-        TNRML2(IFIELD-1),TNRML8(IFIELD-1), &
-        T(1,1,1,1,IFIELD-1),IMESH)
-        TMEAN(IFIELD-1) = 0.
-    endif
+  real(DP) :: tden, arg
 
-    return
-    end subroutine unorm
+  IF (IFIELD == 1) THEN
+  
+  !        Compute norms of the velocity.
+  !        Compute time mean (L2) of the inverse of the time step.
+  !        Compute L2 in time, H1 in space of the velocity.
+  
+      CALL NORMVC (VNRMH1,VNRMSM,VNRML2,VNRML8,VX,VY,VZ)
+      IF (ISTEP == 0) return
+      IF (ISTEP == 1) THEN
+          DTINVM = 1./DT
+          VMEAN  = VNRML8
+      ELSE
+          tden   = time
+          if (time <= 0) tden = abs(time)+1.e-9
+          arg    = ((TIME-DT)*DTINVM**2+1./DT)/tden
+          if (arg > 0) DTINVM = SQRT(arg)
+          arg    = ((TIME-DT)*VMEAN**2+DT*VNRMH1**2)/tden
+          if (arg > 0) VMEAN  = SQRT(arg)
+      endif
+  ELSE
+  
+  !     Compute norms of a passive scalar
+  
+      CALL NORMSC (TNRMH1(IFIELD-1),TNRMSM(IFIELD-1), &
+      TNRML2(IFIELD-1),TNRML8(IFIELD-1), &
+      T(1,1,1,1,IFIELD-1),IMESH)
+      TMEAN(IFIELD-1) = 0.
+  endif
+
+  return
+end subroutine unorm
 
 !--------------------------------------------------------------
 !> \brief Compute new timestep based on CFL-condition
@@ -391,7 +393,6 @@ subroutine setdtc(umax)
   return
 end subroutine setdtc
 
-! called
 subroutine cumax (v1,v2,v3,u,v,w,umax)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv, ndim
@@ -513,229 +514,240 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   UMAX    = GLMAX(U3,3)
 
   return
-  end subroutine cumax
+end subroutine cumax
 
-    subroutine faccl2(a,b,iface1)
+!> \brief Collocate B with A on the surface IFACE1 of element IE.
+!!  A is a (NX,NY,NZ) data structure
+!!  B is a (NX,NY,IFACE) data structure
+!!  IFACE1 is in the preprocessor notation
+!!  IFACE  is the dssum notation.
+!!  5 Jan 1989 15:12:22      PFF
+subroutine faccl2(a,b,iface1)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1
+  use topol, only : eface1, skpdat
+  implicit none
 
-!     Collocate B with A on the surface IFACE1 of element IE.
+  real(DP) :: A(LX1,LY1,LZ1),B(LX1,LY1)
+  integer :: iface1
 
-!         A is a (NX,NY,NZ) data structure
-!         B is a (NX,NY,IFACE) data structure
-!         IFACE1 is in the preprocessor notation
-!         IFACE  is the dssum notation.
-!         5 Jan 1989 15:12:22      PFF
+  integer :: j1, j2, i, jskip2, jf2, js2, jskip1, jf1, js1, iface
 
-    use size_m
-    use topol
-    DIMENSION A(LX1,LY1,LZ1),B(LX1,LY1)
+!   Set up counters
 
-!     Set up counters
+  CALL DSSET(NX1,NY1,NZ1)
+  IFACE  = EFACE1(IFACE1)
+  JS1    = SKPDAT(1,IFACE)
+  JF1    = SKPDAT(2,IFACE)
+  JSKIP1 = SKPDAT(3,IFACE)
+  JS2    = SKPDAT(4,IFACE)
+  JF2    = SKPDAT(5,IFACE)
+  JSKIP2 = SKPDAT(6,IFACE)
 
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
+  I = 0
+  DO 100 J2=JS2,JF2,JSKIP2
+      DO 100 J1=JS1,JF1,JSKIP1
+          I = I+1
+          A(J1,J2,1) = A(J1,J2,1)*B(I,1)
+  100 END DO
 
-    I = 0
-    DO 100 J2=JS2,JF2,JSKIP2
-        DO 100 J1=JS1,JF1,JSKIP1
-            I = I+1
-            A(J1,J2,1) = A(J1,J2,1)*B(I,1)
-    100 END DO
-
-    return
-    end subroutine faccl2
-!-----------------------------------------------------------------------
-    subroutine sethlm (h1,h2,intloc)
-     
-!     Set the variable property arrays H1 and H2
-!     in the Helmholtz equation.
-!     (associated with variable IFIELD)
-!     INTLOC =      integration type
-
-    use size_m
-    use input
-    use soln
-    use tstep
-
-    real :: h1(1),h2(1)
-
-    nel   = nelfld(ifield)
-    ntot1 = nx1*ny1*nz1*nel
-
-    if (iftran) then
-        dtbd = bd(1)/dt
-        call copy  (h1,vdiff (1,1,1,1,ifield),ntot1)
-        if (intloc == 0) then
-            call rzero (h2,ntot1)
-        else
-            if (ifield == 1 .OR. param(107) == 0) then
-
-                call cmult2 (h2,vtrans(1,1,1,1,ifield),dtbd,ntot1)
-
-            else   ! unsteady reaction-diffusion type equation
-
-                do i=1,ntot1
-                    h2(i) = dtbd*vtrans(i,1,1,1,ifield) + param(107)
-                enddo
-
-            endif
-
-        endif
-
-    !        if (ifield.eq.1 .and. ifanls) then   ! this should be replaced
-    !           const = 2.                        ! with a correct stress
-    !           call cmult (h1,const,ntot1)       ! formulation
-    !        endif
-
-    ELSE
-        CALL COPY  (H1,VDIFF (1,1,1,1,IFIELD),NTOT1)
-        CALL RZERO (H2,NTOT1)
-        if (param(107) /= 0) then
-            write(6,*) 'SPECIAL SETHLM!!',param(107)
-        !           call cfill (h2,param(107),ntot1)
-            call copy  (h2,vtrans(1,1,1,1,ifield),ntot1)
-        endif
-    endif
-
-    return
-    end subroutine sethlm
-!-----------------------------------------------------------------------
-
-    subroutine vprops
-!-----------------------------------------------------------------------
-
-!     Set material properties
-
-!     Material type: 0 for default  (PARAM and PCOND/PRHOCP)
-!                    1 for constant props;
-!                    2 for fortran function;
+  return
+end subroutine faccl2
 
 !-----------------------------------------------------------------------
-    use size_m
-    use input
-    use soln
-    use tstep
-    LOGICAL ::  IFKFLD,IFEFLD
+!> \brief Set the variable property arrays H1 and H2
+!! in the Helmholtz equation.
+!! (associated with variable IFIELD)
+!! INTLOC =      integration type
+subroutine sethlm (h1,h2,intloc)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1
+  use input, only : iftran, param
+  use soln, only : vdiff, vtrans
+  use tstep, only : ifield, nelfld, bd, dt
+  implicit none
 
-    NXYZ1 = NX1*NY1*NZ1
-    NEL   = NELFLD(IFIELD)
-    NTOT1 = NXYZ1*NEL
+  real(DP) :: h1(1),h2(1)
+  integer :: intloc
 
-    IF (ISTEP == 0) THEN
-    
-    !        First time around, set defaults
-    
-        ifvarp(ifield) = .FALSE. 
-        if (iflomach) ifvarp(ifield) = .TRUE. 
+  integer :: nel, ntot1, i
+  real(DP) :: dtbd
 
-        if ( .NOT. ifvarp(ifield)) then ! check all groups
-            do iel=1,nel
-                igrp  = igroup(iel)
-                itype = matype(igrp,ifield)
-                if(itype /= 0) ifvarp(ifield) = .TRUE. 
-            enddo
-        endif
+  nel   = nelfld(ifield)
+  ntot1 = nx1*ny1*nz1*nel
 
-        itest = 0                        ! test against all processors
-        if (ifvarp(ifield)) itest = 1
-        itest = iglmax(itest,1)
-        if (itest > 0) ifvarp(ifield) = .TRUE. 
+  if (iftran) then
+      dtbd = bd(1)/dt
+      call copy  (h1,vdiff (1,1,1,1,ifield),ntot1)
+      if (intloc == 0) then
+          call rzero (h2,ntot1)
+      else
+          if (ifield == 1 .OR. param(107) == 0) then
 
-    endif
+              call cmult2 (h2,vtrans(1,1,1,1,ifield),dtbd,ntot1)
 
-!     Fill up property arrays every time step
+          else   ! unsteady reaction-diffusion type equation
 
-!     First, check for turbulence models
+              do i=1,ntot1
+                  h2(i) = dtbd*vtrans(i,1,1,1,ifield) + param(107)
+              enddo
+
+          endif
+
+      endif
+
+  !        if (ifield.eq.1 .and. ifanls) then   ! this should be replaced
+  !           const = 2.                        ! with a correct stress
+  !           call cmult (h1,const,ntot1)       ! formulation
+  !        endif
+
+  ELSE
+      CALL COPY  (H1,VDIFF (1,1,1,1,IFIELD),NTOT1)
+      CALL RZERO (H2,NTOT1)
+      if (param(107) /= 0) then
+          write(6,*) 'SPECIAL SETHLM!!',param(107)
+      !           call cfill (h2,param(107),ntot1)
+          call copy  (h2,vtrans(1,1,1,1,ifield),ntot1)
+      endif
+  endif
+
+  return
+end subroutine sethlm
+
+!-----------------------------------------------------------------------
+!> \brief Set material properties
+!!  Material type: 0 for default  (PARAM and PCOND/PRHOCP)
+!!                 1 for constant props;
+!!                 2 for fortran function;
+!-----------------------------------------------------------------------
+subroutine vprops
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1
+  use input, only : ifuservp, ifvarp, matype, igroup, iflomach
+  use input, only : cpfld, cpgrp
+  use soln, only : vdiff, vtrans
+  use tstep, only : ifield, nelfld, istep
+  implicit none
+
+  LOGICAL ::  IFKFLD,IFEFLD
+  integer :: nxyz1, nel, ntot1, iel, igrp, itype, itest
+  real(DP) :: cdiff, ctrans
+  integer, external :: iglmax
+
+  NXYZ1 = NX1*NY1*NZ1
+  NEL   = NELFLD(IFIELD)
+  NTOT1 = NXYZ1*NEL
+
+  IF (ISTEP == 0) THEN
+  
+  !        First time around, set defaults
+  
+      ifvarp(ifield) = .FALSE. 
+      if (iflomach) ifvarp(ifield) = .TRUE. 
+
+      if ( .NOT. ifvarp(ifield)) then ! check all groups
+          do iel=1,nel
+              igrp  = igroup(iel)
+              itype = matype(igrp,ifield)
+              if(itype /= 0) ifvarp(ifield) = .TRUE. 
+          enddo
+      endif
+
+      itest = 0                        ! test against all processors
+      if (ifvarp(ifield)) itest = 1
+      itest = iglmax(itest,1)
+      if (itest > 0) ifvarp(ifield) = .TRUE. 
+
+  endif
+
+!   Fill up property arrays every time step
+
+!   First, check for turbulence models
 
 #if 0
-    IF (IFMODEL .AND. IFKEPS) THEN
-        CALL TURBFLD (IFKFLD,IFEFLD)
-        IF (IFKFLD)           CALL TPROPK
-        IF (IFEFLD)           CALL TPROPE
-        IF (IFKFLD .OR. IFEFLD) return
-    endif
+  IF (IFMODEL .AND. IFKEPS) THEN
+      CALL TURBFLD (IFKFLD,IFEFLD)
+      IF (IFKFLD)           CALL TPROPK
+      IF (IFEFLD)           CALL TPROPE
+      IF (IFKFLD .OR. IFEFLD) return
+  endif
 #endif
 
 !...  No turbulence models, OR current field is not k or e.
 
-    DO 1000 IEL=1,NEL
-    
-        IGRP=IGROUP(IEL)
+  DO 1000 IEL=1,NEL
+  
+      IGRP=IGROUP(IEL)
 
-        if (ifuservp) then
+      if (ifuservp) then
 #if 0
-        
-        !           User specified fortran function   (pff 2/13/01)
-            CALL NEKUVP (IEL)
-            DIFMIN = VLMIN(VDIFF(1,1,1,IEL,IFIELD),NXYZ1)
-            IF (DIFMIN <= 0.0) THEN
-                WRITE (6,100) DIFMIN,IFIELD,IGRP
-                CALL EXITT
-            endif
+      
+      !           User specified fortran function   (pff 2/13/01)
+          CALL NEKUVP (IEL)
+          DIFMIN = VLMIN(VDIFF(1,1,1,IEL,IFIELD),NXYZ1)
+          IF (DIFMIN <= 0.0) THEN
+              WRITE (6,100) DIFMIN,IFIELD,IGRP
+              CALL EXITT
+          endif
 #endif        
-        ELSE IF(MATYPE(IGRP,IFIELD) == 1)THEN
-        
-        !           Constant property within groups of elements
-        
-            CDIFF  = CPGRP(IGRP,IFIELD,1)
-            CTRANS = CPGRP(IGRP,IFIELD,2)
-            CALL CFILL(VDIFF (1,1,1,IEL,IFIELD),CDIFF,NXYZ1)
-            CALL CFILL(VTRANS(1,1,1,IEL,IFIELD),CTRANS,NXYZ1)
-            IF (CDIFF <= 0.0) THEN
-                WRITE(6,100) CDIFF,IFIELD,IGRP
-                100 FORMAT(2X,'ERROR:  Non-positive diffusivity (' &
-                ,G12.3,') specified for field',I2,', group',I2 &
-                ,' element',I4,'.' &
-                ,/,'ABORTING in VPROPS',//)
-                CALL EXITT
-            endif
-        
-        ELSE IF(MATYPE(IGRP,IFIELD) == 2)THEN
-          write(*,*) "Oops: matype" 
+      ELSE IF(MATYPE(IGRP,IFIELD) == 1)THEN
+      
+      !           Constant property within groups of elements
+      
+          CDIFF  = CPGRP(IGRP,IFIELD,1)
+          CTRANS = CPGRP(IGRP,IFIELD,2)
+          CALL CFILL(VDIFF (1,1,1,IEL,IFIELD),CDIFF,NXYZ1)
+          CALL CFILL(VTRANS(1,1,1,IEL,IFIELD),CTRANS,NXYZ1)
+          IF (CDIFF <= 0.0) THEN
+              WRITE(6,100) CDIFF,IFIELD,IGRP
+              100 FORMAT(2X,'ERROR:  Non-positive diffusivity (' &
+              ,G12.3,') specified for field',I2,', group',I2 &
+              ,' element',I4,'.' &
+              ,/,'ABORTING in VPROPS',//)
+              CALL EXITT
+          endif
+      
+      ELSE IF(MATYPE(IGRP,IFIELD) == 2)THEN
+        write(*,*) "Oops: matype" 
 #if 0
-        !           User specified fortran function
-        
-            CALL NEKUVP (IEL)
-        
-            DIFMIN = VLMIN(VDIFF(1,1,1,IEL,IFIELD),NXYZ1)
-            IF (DIFMIN <= 0.0) THEN
-                WRITE (6,100) DIFMIN,IFIELD,IGRP
-                CALL EXITT
-            endif
+      !           User specified fortran function
+      
+          CALL NEKUVP (IEL)
+      
+          DIFMIN = VLMIN(VDIFF(1,1,1,IEL,IFIELD),NXYZ1)
+          IF (DIFMIN <= 0.0) THEN
+              WRITE (6,100) DIFMIN,IFIELD,IGRP
+              CALL EXITT
+          endif
 #endif        
-        ELSE IF(MATYPE(IGRP,IFIELD) == 0)THEN
-        
-        !           Default constant property
-        
-            CDIFF  = CPFLD(IFIELD,1)
-            CTRANS = CPFLD(IFIELD,2)
-        !           write(6,*) 'vdiff:',ifield,cdiff,ctrans
-            CALL CFILL(VDIFF (1,1,1,IEL,IFIELD),CDIFF,NXYZ1)
-            CALL CFILL(VTRANS(1,1,1,IEL,IFIELD),CTRANS,NXYZ1)
-            IF (CDIFF <= 0.0) THEN
-                WRITE(6,200) CDIFF,IFIELD
-                200 FORMAT(2X,'ERROR:  Non-positive diffusivity (' &
-                ,G12.3,') specified for field',I2,'.',/ &
-                ,'ABORTING in VPROPS',//)
-                CALL EXITT
-            endif
-        endif
-    
-    1000 END DO
+      ELSE IF(MATYPE(IGRP,IFIELD) == 0)THEN
+      
+      !           Default constant property
+      
+          CDIFF  = CPFLD(IFIELD,1)
+          CTRANS = CPFLD(IFIELD,2)
+      !           write(6,*) 'vdiff:',ifield,cdiff,ctrans
+          CALL CFILL(VDIFF (1,1,1,IEL,IFIELD),CDIFF,NXYZ1)
+          CALL CFILL(VTRANS(1,1,1,IEL,IFIELD),CTRANS,NXYZ1)
+          IF (CDIFF <= 0.0) THEN
+              WRITE(6,200) CDIFF,IFIELD
+              200 FORMAT(2X,'ERROR:  Non-positive diffusivity (' &
+              ,G12.3,') specified for field',I2,'.',/ &
+              ,'ABORTING in VPROPS',//)
+              CALL EXITT
+          endif
+      endif
+  
+  1000 END DO
 
 !     Turbulence models --- sum eddy viscosity/diffusivity
 #if 0
-    IF (IFMODEL .AND. (IFIELD == 1 .OR. IFIELD == 2)) &
-    CALL TVISCOS
+  IF (IFMODEL .AND. (IFIELD == 1 .OR. IFIELD == 2)) &
+  CALL TVISCOS
 #endif
 
-    return
-    end subroutine vprops
+  return
+end subroutine vprops
 
 !-----------------------------------------------------------------------
 !> Set ifsolv = .FALSE.
@@ -747,68 +759,74 @@ subroutine setsolv
   IFSOLV = .FALSE. 
   return
 end subroutine setsolv
+
 !-----------------------------------------------------------------------
-    subroutine flush_io
-    return
-    end subroutine flush_io
+subroutine flush_io
+  return
+end subroutine flush_io
+
 !-----------------------------------------------------------------------
-    SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
+!!     IOP = 0
+!!     Extract vector (A1,A2,A3) from (B1,B2,B3) on face IFACE1.
+!!     IOP = 1
+!!     Extract vector (B1,B2,B3) from (A1,A2,A3) on face IFACE1.
+!!     A1, A2, A3 have the (NX,NY,NFACE) data structure
+!!     B1, B2, B3 have the (NX,NY,NZ)    data structure
+!!     IFACE1 is in the preprocessor notation
+!!     IFACE  is the dssum notation.
+SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
+  use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1
+  use topol, only : eface1, skpdat
+  implicit none
 
-!     IOP = 0
-!     Extract vector (A1,A2,A3) from (B1,B2,B3) on face IFACE1.
+  real(DP) :: A1(LX1,LY1),A2(LX1,LY1),A3(LX1,LY1), &
+  B1(LX1,LY1,LZ1),B2(LX1,LY1,LZ1),B3(LX1,LY1,LZ1)
+  integer :: iface1, iop
 
-!     IOP = 1
-!     Extract vector (B1,B2,B3) from (A1,A2,A3) on face IFACE1.
+  integer :: j1, j2, i, jskip2, jf2, js2, jskip1, jf1, js1, iface
 
-!     A1, A2, A3 have the (NX,NY,NFACE) data structure
-!     B1, B2, B3 have the (NX,NY,NZ)    data structure
-!     IFACE1 is in the preprocessor notation
-!     IFACE  is the dssum notation.
+  CALL DSSET(NX1,NY1,NZ1)
+  IFACE  = EFACE1(IFACE1)
+  JS1    = SKPDAT(1,IFACE)
+  JF1    = SKPDAT(2,IFACE)
+  JSKIP1 = SKPDAT(3,IFACE)
+  JS2    = SKPDAT(4,IFACE)
+  JF2    = SKPDAT(5,IFACE)
+  JSKIP2 = SKPDAT(6,IFACE)
+  I = 0
 
-    use size_m
-    use topol
+  IF (IOP == 0) THEN
+      DO 100 J2=JS2,JF2,JSKIP2
+          DO 100 J1=JS1,JF1,JSKIP1
+              I = I+1
+              A1(I,1) = B1(J1,J2,1)
+              A2(I,1) = B2(J1,J2,1)
+              A3(I,1) = B3(J1,J2,1)
+      100 END DO
+  ELSE
+      DO 150 J2=JS2,JF2,JSKIP2
+          DO 150 J1=JS1,JF1,JSKIP1
+              I = I+1
+              B1(J1,J2,1) = A1(I,1)
+              B2(J1,J2,1) = A2(I,1)
+              B3(J1,J2,1) = A3(I,1)
+      150 END DO
+  ENDIF
 
-    DIMENSION A1(LX1,LY1),A2(LX1,LY1),A3(LX1,LY1), &
-    B1(LX1,LY1,LZ1),B2(LX1,LY1,LZ1),B3(LX1,LY1,LZ1)
+  RETURN
+END SUBROUTINE FACEXV
 
-    CALL DSSET(NX1,NY1,NZ1)
-    IFACE  = EFACE1(IFACE1)
-    JS1    = SKPDAT(1,IFACE)
-    JF1    = SKPDAT(2,IFACE)
-    JSKIP1 = SKPDAT(3,IFACE)
-    JS2    = SKPDAT(4,IFACE)
-    JF2    = SKPDAT(5,IFACE)
-    JSKIP2 = SKPDAT(6,IFACE)
-    I = 0
-
-    IF (IOP == 0) THEN
-        DO 100 J2=JS2,JF2,JSKIP2
-            DO 100 J1=JS1,JF1,JSKIP1
-                I = I+1
-                A1(I,1) = B1(J1,J2,1)
-                A2(I,1) = B2(J1,J2,1)
-                A3(I,1) = B3(J1,J2,1)
-        100 END DO
-    ELSE
-        DO 150 J2=JS2,JF2,JSKIP2
-            DO 150 J1=JS1,JF1,JSKIP1
-                I = I+1
-                B1(J1,J2,1) = A1(I,1)
-                B2(J1,J2,1) = A2(I,1)
-                B3(J1,J2,1) = A3(I,1)
-        150 END DO
-    ENDIF
-
-    RETURN
-    END SUBROUTINE FACEXV
-
-    SUBROUTINE CMULT2 (A,B,CONST,N)
-    DIMENSION A(1),B(1)
-    DO 100 I=1,N
-        A(I)=B(I)*CONST
-    100 END DO
-    RETURN
-    END SUBROUTINE CMULT2
+SUBROUTINE CMULT2 (A,B,CONST,N)
+  use kinds, only : DP
+  implicit none
+  real(DP) :: A(1),B(1), const
+  integer :: n, i
+  DO 100 I=1,N
+      A(I)=B(I)*CONST
+  100 END DO
+  RETURN
+END SUBROUTINE CMULT2
 
 SUBROUTINE UPDMSYS (IFLD)
   use size_m
@@ -827,17 +845,18 @@ SUBROUTINE UPDMSYS (IFLD)
   RETURN
 END SUBROUTINE UPDMSYS
 
-    SUBROUTINE SETCDOF
+SUBROUTINE SETCDOF
+  use size_m, only : ndim, nelt
+  use input, only : cbc, cdof
+  implicit none 
 
-    use size_m
-    use input
+  integer :: nface, ifc, iel
+  NFACE = 2*NDIM
 
-    NFACE = 2*NDIM
+  DO 100 IEL=1,NELT
+      DO 100 IFC=1,NFACE
+          CDOF(IFC,IEL)=CBC(IFC,IEL,0)(1:1)
+  100 END DO
 
-    DO 100 IEL=1,NELT
-        DO 100 IFC=1,NFACE
-            CDOF(IFC,IEL)=CBC(IFC,IEL,0)(1:1)
-    100 END DO
-
-    RETURN
-    END SUBROUTINE SETCDOF
+  RETURN
+END SUBROUTINE SETCDOF

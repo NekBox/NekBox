@@ -192,13 +192,13 @@ END FUNCTION IFVCHK
 !! Velocity formulation : mesh 3 is used
 !! Stress   formulation : mesh 1 is used
 !-----------------------------------------------------------------------
-subroutine gencoor (xm3,ym3,zm3)
+subroutine gencoor ()!xm3,ym3,zm3)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, lx3, ly3, lz3
   use geom, only : ifgmsh3, xm1, ym1, zm1
   implicit none
 
-  real(DP) :: XM3(LX3,LY3,LZ3,1),YM3(LX3,LY3,LZ3,1),ZM3(LX3,LY3,LZ3,1)
+!max  real(DP) :: XM3(LX3,LY3,LZ3,1),YM3(LX3,LY3,LZ3,1),ZM3(LX3,LY3,LZ3,1)
 
 !   Select appropriate mesh
   IF ( IFGMSH3 ) THEN
@@ -429,7 +429,7 @@ subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
   real(DP) :: xcb(2,2,2),ycb(2,2,2),zcb(2,2,2),w(ldw)
 
 !  real(DP) :: zgml, jx,jy,jz,jxt,jyt,jzt, zlin
-  real(DP) :: zgml(lx1,3),jx (lx1*2),jy (lx1*2),jz (lx1*2)
+  real(DP) :: zgml(lx1,3),jx (lx1*2)
   real(DP) :: jxt(lx1*2),jyt(lx1*2),jzt(lx1*2),zlin(2)
 
   integer :: i, k, ix, ndim2

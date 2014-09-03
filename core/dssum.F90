@@ -109,7 +109,6 @@ subroutine dsop(u,op,nx,ny,nz)
 
   real(DP) :: u(1)
   character(3) :: op
-  character(10) :: s1,s2
   integer :: nx, ny, nz
   integer :: ifldt
 

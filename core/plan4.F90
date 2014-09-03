@@ -36,7 +36,6 @@ subroutine plan4
   real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
   REAL(DP) ::           DPR   (LX2,LY2,LZ2,LELV)
   EQUIVALENCE   (DPR,DV1)
-  LOGICAL ::        IFSTSP
 
   REAL(DP) :: DVC (LX1,LY1,LZ1,LELV), DFC(LX1,LY1,LZ1,LELV)
   REAL(DP) :: DIV1, DIV2, DIF1, DIF2, QTL1, QTL2

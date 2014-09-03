@@ -310,7 +310,6 @@ SUBROUTINE BCMASK
   equivalence (cb1,cb)
 
   logical :: ifalgn,ifnorx,ifnory,ifnorz
-  integer :: e,f
 
   integer :: nfaces, nxyz, nel, ntot, iel, iface
 
@@ -721,7 +720,7 @@ SUBROUTINE BCDIRSC(S)
 
   CHARACTER CB*3
 
-  integer :: ifld, nfaces, nxyz, nel, ntot, nvldt, isweep, ie, iface, nfldt
+  integer :: ifld, nfaces, nxyz, nel, ntot, isweep, ie, iface, nfldt
   real(DP) :: BC1, BC2, BC3, BC4, BCK, BCE
 
 #ifndef NOTIMER

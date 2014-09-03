@@ -10,7 +10,7 @@ subroutine readat()
   use zper, only : ifgtp
   implicit none
    
-  logical :: ifbswap,ifre2
+  logical :: ifre2
   character(132) :: string
   real(DP) :: etime_tmp
   integer :: idum(3*numsts+3)
@@ -724,7 +724,6 @@ subroutine rdmesh
   implicit none
 
   character(1) :: adum
-  real(DP) ::    dum(4)
   integer :: nsides, ieg, iel, ic
 
 !   Read elemental mesh data, formatted

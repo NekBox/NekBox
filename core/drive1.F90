@@ -40,10 +40,9 @@ subroutine nek_init(intracomm)
   integer, intent(inout) :: intracomm
   integer :: igeom
 
-  real(DP) :: kwave2
-  real(DP) :: t0, tpp
+  real(DP) :: tpp
 
-  logical :: ifemati,ifsync_
+  logical :: ifsync_
 
   call get_session_info(intracomm)
         
@@ -219,8 +218,8 @@ subroutine nek_solve
   use tstep, only : instep, nid, istep, nsteps, lastep
   implicit none
 
-  real*4 :: papi_mflops
-  integer*8 :: papi_flops
+!  real*4 :: papi_mflops
+! integer*8 :: papi_flops
 
   integer :: isyc, itime, msteps, kstep
 
@@ -375,4 +374,5 @@ subroutine nek__multi_advance(kstep,msteps)
 
   return
 end subroutine nek__multi_advance
+
 !-----------------------------------------------------------------------

@@ -417,11 +417,6 @@ subroutine gengeom (igeom)
   implicit none
 
   integer, intent(in) :: igeom
-  integer :: ntot3, ifieldo
-  real(DP) ::  XM3 (LX3,LY3,LZ3,LELT) &
-  ,             YM3 (LX3,LY3,LZ3,LELT) &
-  ,             ZM3 (LX3,LY3,LZ3,LELT)
-
 
   if (nid == 0 .AND. istep <= 1) write(6,*) 'generate geometry data'
 
@@ -429,9 +424,9 @@ subroutine gengeom (igeom)
       RETURN
   ELSEIF (IGEOM == 2) THEN
       CALL LAGMASS
-      IF (ISTEP == 0) CALL GENCOOR (XM3,YM3,ZM3)
+      IF (ISTEP == 0) CALL GENCOOR ()
 !max      IF (ISTEP >= 1) CALL UPDCOOR
-      CALL GEOM1 (XM3,YM3,ZM3)
+      CALL GEOM1 ()!XM3,YM3,ZM3)
       CALL GEOM2
 !max      CALL UPDMSYS (1)
       CALL VOLUME
@@ -440,9 +435,9 @@ subroutine gengeom (igeom)
       CALL SFASTAX
 !max      IF (ISTEP >= 1) CALL EINIT
   ELSEIF (IGEOM == 3) THEN
-  
   !        Take direct stiffness avg of mesh
-  
+    write(*,*) "Oops: igeom"
+#if 0  
       ifieldo = ifield
       CALL GENCOOR (XM3,YM3,ZM3)
       if (ifheat) then
@@ -474,6 +469,7 @@ subroutine gengeom (igeom)
       CALL SETDEF
       CALL SFASTAX
       ifield = ifieldo
+#endif
   ENDIF
 
   if (nid == 0 .AND. istep <= 1) then
@@ -630,7 +626,7 @@ subroutine settime
   use tstep, only : istep, nab, nbd, nbdinp, time, timef
   implicit none
 
-  integer :: nfldt, ilag, irst, nabmsh, nbdmsh
+  integer :: ilag, irst, nabmsh, nbdmsh
 
   irst = param(46)
 
@@ -1293,11 +1289,7 @@ subroutine opcount(ICALL)
   implicit none
 
   integer, intent(in) :: icall
-  character(6) :: sname(maxrts)
-  integer ::     ind  (maxrts)
-  integer ::     idum (maxrts)
   integer :: i
-  real(DP) :: dhc, dwork, ddcount
 
   if (icall == 1) then
       nrout=0

@@ -1,35 +1,36 @@
 !-----------------------------------------------------------------------
+!> \brief Given global array, vertex, pointing to hex vertices, set up
+!! a new array of global pointers for an nx^ndim set of elements.
+subroutine set_vert(glo_num,ngv,nx,nel,vertex,ifcenter)
+  use size_m, only : nid
+  use input, only : if3d
+  implicit none
 
-    subroutine set_vert(glo_num,ngv,nx,nel,vertex,ifcenter)
+  integer*8 :: glo_num(1),ngv
+  integer :: vertex(1),nx, nel
+  logical :: ifcenter
 
-!     Given global array, vertex, pointing to hex vertices, set up
-!     a new array of global pointers for an nx^ndim set of elements.
+  integer :: nz
 
-    use size_m
-    use input
-
-    integer*8 :: glo_num(1),ngv
-    integer :: vertex(1),nx
-    logical :: ifcenter
-
-    if (if3d) then
-        call setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
-    else
+  if (if3d) then
+      call setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
+  else
 !max        call setvert2d(glo_num,ngv,nx,nel,vertex,ifcenter)
-    endif
+  endif
 
-!     Check for single-element periodicity 'p' bc
-    nz = 1
-    if (if3d) nz = nx
-    call check_p_bc(glo_num,nx,nx,nz,nel)
+!   Check for single-element periodicity 'p' bc
+  nz = 1
+  if (if3d) nz = nx
+  call check_p_bc(glo_num,nx,nx,nz,nel)
 
-    if(nid == 0) write(6,*) 'call usrsetvert'
-    call usrsetvert(glo_num,nel,nx,nx,nx)
-    if(nid == 0) write(6,'(A,/)') ' done :: usrsetvert'
+  if(nid == 0) write(6,*) 'call usrsetvert'
+  call usrsetvert(glo_num,nel,nx,nx,nx)
+  if(nid == 0) write(6,'(A,/)') ' done :: usrsetvert'
 
-    return
-    end subroutine set_vert
+  return
+end subroutine set_vert
 
+!> ?
 subroutine set_up_h1_crs
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nid
@@ -166,222 +167,240 @@ subroutine set_up_h1_crs
 end subroutine set_up_h1_crs
 
 !-----------------------------------------------------------------------
-    subroutine set_jl_crs_mask(n, mask, se_to_gcrs)
-    real :: mask(1)
-    integer*8 :: se_to_gcrs(1)
-    do i=1,n
-        if(mask(i) < 0.1) se_to_gcrs(i)=0
-    enddo
-    return
-    end subroutine set_jl_crs_mask
-!-----------------------------------------------------------------------
-    subroutine set_mat_ij(ia,ja,n,ne)
-    integer :: n,ne
-    integer :: ia(n,n,ne), ja(n,n,ne)
+subroutine set_jl_crs_mask(n, mask, se_to_gcrs)
+  use kinds, only : DP
+  implicit none
+  integer :: n
+  real(DP) :: mask(1)
+  integer*8 :: se_to_gcrs(1)
 
-    integer :: i,j,ie
-    do ie=1,ne
-        do j=1,n
-            do i=1,n
-                ia(i,j,ie)=(ie-1)*n+i-1
-                ja(i,j,ie)=(ie-1)*n+j-1
-            enddo
-        enddo
-    enddo
-    return
-    end subroutine set_mat_ij
-!-----------------------------------------------------------------------
-
-    subroutine ituple_sort(a,lda,n,key,nkey,ind,aa)
-
-!     Use Heap Sort (p 231 Num. Rec., 1st Ed.)
-
-    integer :: a(lda,n),aa(lda)
-    integer :: ind(1),key(nkey)
-    logical :: iftuple_ialtb
-
-    dO 10 j=1,n
-        ind(j)=j
-    10 END DO
-
-    if (n <= 1) return
-    L=n/2+1
-    ir=n
-    100 continue
-    if (l > 1) then
-        l=l-1
-    !           aa  = a  (l)
-        call icopy(aa,a(1,l),lda)
-        ii  = ind(l)
-    else
-    !           aa =   a(ir)
-        call icopy(aa,a(1,ir),lda)
-        ii = ind(ir)
-    !           a(ir) =   a( 1)
-        call icopy(a(1,ir),a(1,1),lda)
-        ind(ir) = ind( 1)
-        ir=ir-1
-        if (ir == 1) then
-        !              a(1) = aa
-            call icopy(a(1,1),aa,lda)
-            ind(1) = ii
-            return
-        endif
-    endif
-    i=l
-    j=l+l
-    200 continue
-    if (j <= ir) then
-        if (j < ir) then
-            if (iftuple_ialtb(a(1,j),a(1,j+1),key,nkey)) j=j+1
-        endif
-        if (iftuple_ialtb(aa,a(1,j),key,nkey)) then
-        !              a(i) = a(j)
-            call icopy(a(1,i),a(1,j),lda)
-            ind(i) = ind(j)
-            i=j
-            j=j+j
-        else
-            j=ir+1
-        endif
-        GOTO 200
-    endif
-!        a(i) = aa
-    call icopy(a(1,i),aa,lda)
-    ind(i) = ii
-    GOTO 100
-    end subroutine ituple_sort
+  integer :: i
+  do i=1,n
+      if(mask(i) < 0.1) se_to_gcrs(i)=0
+  enddo
+  return
+end subroutine set_jl_crs_mask
 
 !-----------------------------------------------------------------------
+subroutine set_mat_ij(ia,ja,n,ne)
+  implicit none
+  integer :: n,ne
+  integer :: ia(n,n,ne), ja(n,n,ne)
 
-    logical function iftuple_ialtb(a,b,key,nkey)
-    integer :: a(1),b(1)
-    integer :: key(nkey)
-
-    do i=1,nkey
-        k=key(i)
-        if (a(k) < b(k)) then
-            iftuple_ialtb = .TRUE. 
-            return
-        elseif (a(k) > b(k)) then
-            iftuple_ialtb = .FALSE. 
-            return
-        endif
-    enddo
-    iftuple_ialtb = .FALSE. 
-    return
-    end function iftuple_ialtb
+  integer :: i,j,ie
+  do ie=1,ne
+      do j=1,n
+          do i=1,n
+              ia(i,j,ie)=(ie-1)*n+i-1
+              ja(i,j,ie)=(ie-1)*n+j-1
+          enddo
+      enddo
+  enddo
+  return
+end subroutine set_mat_ij
 
 !-----------------------------------------------------------------------
+!> \brief Use Heap Sort (p 231 Num. Rec., 1st Ed.)
+subroutine ituple_sort(a,lda,n,key,nkey,ind,aa)
+  implicit none
 
-    logical function iftuple_ianeb(a,b,key,nkey)
-    integer :: a(1),b(1)
-    integer :: key(nkey)
+  integer :: lda, n, nkey
+  integer :: a(lda,n),aa(lda)
+  integer :: ind(1),key(nkey)
+  logical :: iftuple_ialtb
 
-    do i=1,nkey
-        k=key(i)
-        if (a(k) /= b(k)) then
-            iftuple_ianeb = .TRUE. 
-            return
-        endif
-    enddo
-    iftuple_ianeb = .FALSE. 
-    return
-    end function iftuple_ianeb
+  integer :: j, L, ir, ii, i
+
+  dO 10 j=1,n
+      ind(j)=j
+  10 END DO
+
+  if (n <= 1) return
+  L=n/2+1
+  ir=n
+  100 continue
+  if (l > 1) then
+      l=l-1
+  !           aa  = a  (l)
+      call icopy(aa,a(1,l),lda)
+      ii  = ind(l)
+  else
+  !           aa =   a(ir)
+      call icopy(aa,a(1,ir),lda)
+      ii = ind(ir)
+  !           a(ir) =   a( 1)
+      call icopy(a(1,ir),a(1,1),lda)
+      ind(ir) = ind( 1)
+      ir=ir-1
+      if (ir == 1) then
+      !              a(1) = aa
+          call icopy(a(1,1),aa,lda)
+          ind(1) = ii
+          return
+      endif
+  endif
+  i=l
+  j=l+l
+  200 continue
+  if (j <= ir) then
+      if (j < ir) then
+          if (iftuple_ialtb(a(1,j),a(1,j+1),key,nkey)) j=j+1
+      endif
+      if (iftuple_ialtb(aa,a(1,j),key,nkey)) then
+      !              a(i) = a(j)
+          call icopy(a(1,i),a(1,j),lda)
+          ind(i) = ind(j)
+          i=j
+          j=j+j
+      else
+          j=ir+1
+      endif
+      GOTO 200
+  endif
+!       a(i) = aa
+  call icopy(a(1,i),aa,lda)
+  ind(i) = ii
+  GOTO 100
+end subroutine ituple_sort
 
 !-----------------------------------------------------------------------
+logical function iftuple_ialtb(a,b,key,nkey)
+  implicit none
+  integer :: nkey
+  integer :: a(1),b(1)
+  integer :: key(nkey)
 
-    subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)
-
-!     -  Spectral interpolation from A to B via tensor products
-!     -  scratch arrays: w(na*na*nb + nb*nb*na)
-
-!     5/3/00  -- this routine replaces specmp in navier1.f, which
-!                has a potential memory problem
-
-
-    logical :: if3d
-
-    real :: b(nb,nb,nb),a(na,na,na)
-    real :: w(ldw)
-
-    ltest = na*nb
-    if (if3d) ltest = na*na*nb + nb*na*na
-    if (ldw < ltest) then
-        write(6,*) 'ERROR specmp:',ldw,ltest,if3d
-        call exitt
-    endif
-
-    if (if3d) then
-        nab = na*nb
-        nbb = nb*nb
-        call mxm(ba,nb,a,na,w,na*na)
-        k=1
-        l=na*na*nb + 1
-        do iz=1,na
-            call mxm(w(k),nb,ab,na,w(l),nb)
-            k=k+nab
-            l=l+nbb
-        enddo
-        l=na*na*nb + 1
-        call mxm(w(l),nbb,ab,na,b,nb)
-    else
-        call mxm(ba,nb,a,na,w,na)
-        call mxm(w,nb,ab,na,b,nb)
-    endif
-    return
-    end subroutine specmpn
+  integer :: i, k
+ 
+  do i=1,nkey
+      k=key(i)
+      if (a(k) < b(k)) then
+          iftuple_ialtb = .TRUE. 
+          return
+      elseif (a(k) > b(k)) then
+          iftuple_ialtb = .FALSE. 
+          return
+      endif
+  enddo
+  iftuple_ialtb = .FALSE. 
+  return
+end function iftuple_ialtb
 
 !-----------------------------------------------------------------------
+logical function iftuple_ianeb(a,b,key,nkey)
+  implicit none
+  integer :: nkey
+  integer :: a(1),b(1)
+  integer :: key(nkey)
 
-    subroutine irank(A,IND,N)
+  integer :: i, k
+  do i=1,nkey
+      k=key(i)
+      if (a(k) /= b(k)) then
+          iftuple_ianeb = .TRUE. 
+          return
+      endif
+  enddo
+  iftuple_ianeb = .FALSE. 
+  return
+end function iftuple_ianeb
 
-!     Use Heap Sort (p 233 Num. Rec.), 5/26/93 pff.
+!-----------------------------------------------------------------------
+!> \brief  Spectral interpolation from A to B via tensor products
+!!     -  scratch arrays: w(na*na*nb + nb*nb*na)
+!!     5/3/00  -- this routine replaces specmp in navier1.f, which
+!!                has a potential memory problem
+subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)
+  use kinds, only : DP
+  implicit none
 
-    integer :: A(1),IND(1)
+  logical :: if3d
+  integer :: nb, na, ldw
+  real(DP) :: b(nb,nb,nb),a(na,na,na)
+  real(DP) :: w(ldw)
 
-    if (n <= 1) return
-    DO 10 J=1,N
-        IND(j)=j
-    10 END DO
+  integer :: ltest, nab, nbb, k, l, iz
+  real(DP) :: ba, ab
 
-    if (n == 1) return
-    L=n/2+1
-    ir=n
-    100 continue
-    IF (l > 1) THEN
-        l=l-1
-        indx=ind(l)
-        q=a(indx)
-    ELSE
-        indx=ind(ir)
-        q=a(indx)
-        ind(ir)=ind(1)
-        ir=ir-1
-        if (ir == 1) then
-            ind(1)=indx
-            return
-        endif
-    ENDIF
-    i=l
-    j=l+l
-    200 continue
-    IF (J <= IR) THEN
-        IF (J < IR) THEN
-            IF ( A(IND(j)) < A(IND(j+1)) ) j=j+1
-        ENDIF
-        IF (q < A(IND(j))) THEN
-            IND(I)=IND(J)
-            I=J
-            J=J+J
-        ELSE
-            J=IR+1
-        ENDIF
-        GOTO 200
-    ENDIF
-    IND(I)=INDX
-    GOTO 100
-    end subroutine irank
+  ltest = na*nb
+  if (if3d) ltest = na*na*nb + nb*na*na
+  if (ldw < ltest) then
+      write(6,*) 'ERROR specmp:',ldw,ltest,if3d
+      call exitt
+  endif
+
+  if (if3d) then
+      nab = na*nb
+      nbb = nb*nb
+      call mxm(ba,nb,a,na,w,na*na)
+      k=1
+      l=na*na*nb + 1
+      do iz=1,na
+          call mxm(w(k),nb,ab,na,w(l),nb)
+          k=k+nab
+          l=l+nbb
+      enddo
+      l=na*na*nb + 1
+      call mxm(w(l),nbb,ab,na,b,nb)
+  else
+      call mxm(ba,nb,a,na,w,na)
+      call mxm(w,nb,ab,na,b,nb)
+  endif
+  return
+end subroutine specmpn
+
+!-----------------------------------------------------------------------
+!> \brief Use Heap Sort (p 233 Num. Rec.), 5/26/93 pff.
+subroutine irank(A,IND,N)
+  use kinds, only : DP
+  implicit none
+  integer :: A(1),IND(1), n
+
+  integer :: j, L, ir, i, q, indx
+
+  if (n <= 1) return
+  DO 10 J=1,N
+      IND(j)=j
+  10 END DO
+
+  if (n == 1) return
+  L=n/2+1
+  ir=n
+  100 continue
+  IF (l > 1) THEN
+      l=l-1
+      indx=ind(l)
+      q=a(indx)
+  ELSE
+      indx=ind(ir)
+      q=a(indx)
+      ind(ir)=ind(1)
+      ir=ir-1
+      if (ir == 1) then
+          ind(1)=indx
+          return
+      endif
+  ENDIF
+  i=l
+  j=l+l
+  200 continue
+  IF (J <= IR) THEN
+      IF (J < IR) THEN
+          IF ( A(IND(j)) < A(IND(j+1)) ) j=j+1
+      ENDIF
+      IF (q < A(IND(j))) THEN
+          IND(I)=IND(J)
+          I=J
+          J=J+J
+      ELSE
+          J=IR+1
+      ENDIF
+      GOTO 200
+  ENDIF
+  IND(I)=INDX
+  GOTO 100
+end subroutine irank
+
 !-----------------------------------------------------------------------
 !> \brief This routine generates Nelv submatrices of order ncl using
 !! Galerkin projection
@@ -425,131 +444,120 @@ subroutine get_local_crs_galerkin(a,ncl,nxc,h1,h2,w1,w2)
 
   return
 end subroutine get_local_crs_galerkin
+
 !-----------------------------------------------------------------------
-    subroutine gen_crs_basis(b,j) ! bi- tri-linear
+subroutine gen_crs_basis(b,j) ! bi- tri-linear
+  use kinds, only : DP
+  use size_m
+  implicit none
 
-    use size_m
-    real :: b(nx1,ny1,nz1)
+  real(DP) :: b(nx1,ny1,nz1)
+  integer :: j
 
-    real :: z0(lx1),z1(lx1)
-    real :: zr(lx1),zs(lx1),zt(lx1)
+  real(DP) :: z0(lx1),z1(lx1)
+  real(DP) :: zr(lx1),zs(lx1),zt(lx1)
 
-    integer :: p,q,r
+  integer :: p,q,r
+  integer :: i
 
-    call zwgll(zr,zs,nx1)
+  call zwgll(zr,zs,nx1)
 
-    do i=1,nx1
-        z0(i) = .5*(1-zr(i))  ! 1-->0
-        z1(i) = .5*(1+zr(i))  ! 0-->1
-    enddo
+  do i=1,nx1
+      z0(i) = .5*(1-zr(i))  ! 1-->0
+      z1(i) = .5*(1+zr(i))  ! 0-->1
+  enddo
 
-    call copy(zr,z0,nx1)
-    call copy(zs,z0,nx1)
-    call copy(zt,z0,nx1)
+  call copy(zr,z0,nx1)
+  call copy(zs,z0,nx1)
+  call copy(zt,z0,nx1)
 
-    if (mod(j,2) == 0)                        call copy(zr,z1,nx1)
-    if (j == 3 .OR. j == 4 .OR. j == 7 .OR. j == 8) call copy(zs,z1,nx1)
-    if (j > 4)                               call copy(zt,z1,nx1)
+  if (mod(j,2) == 0)                        call copy(zr,z1,nx1)
+  if (j == 3 .OR. j == 4 .OR. j == 7 .OR. j == 8) call copy(zs,z1,nx1)
+  if (j > 4)                               call copy(zt,z1,nx1)
 
-    if (ndim == 3) then
-        do r=1,nx1
-            do q=1,nx1
-                do p=1,nx1
-                    b(p,q,r) = zr(p)*zs(q)*zt(r)
-                enddo
-            enddo
-        enddo
-    else
-        do q=1,nx1
-            do p=1,nx1
-                b(p,q,1) = zr(p)*zs(q)
-            enddo
-        enddo
-    endif
+  if (ndim == 3) then
+      do r=1,nx1
+          do q=1,nx1
+              do p=1,nx1
+                  b(p,q,r) = zr(p)*zs(q)*zt(r)
+              enddo
+          enddo
+      enddo
+  else
+      do q=1,nx1
+          do p=1,nx1
+              b(p,q,1) = zr(p)*zs(q)
+          enddo
+      enddo
+  endif
 
-    return
-    end subroutine gen_crs_basis
+  return
+end subroutine gen_crs_basis
+
 !-----------------------------------------------------------------------
-    subroutine get_vertex
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mesh, only : vertex
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    use zper
+subroutine get_vertex
+  use zper, only : ifgtp
+  implicit none
 
-    integer :: icalld
-    save    icalld
-    data    icalld  /0/
+  integer, save :: icalld = 0
 
-    if (icalld > 0) return
-    icalld = 1
+  if (icalld > 0) return
+  icalld = 1
 
-    if (ifgtp) then
-        write(*,*) "Oops: ifgtp"
+  if (ifgtp) then
+      write(*,*) "Oops: ifgtp"
 !max        call gen_gtp_vertex    (vertex, ncrnr)
-    else
-        call get_vert
-    endif
+  else
+      call get_vert
+  endif
 
-    return
-    end subroutine get_vertex
+  return
+end subroutine get_vertex
+
 !-----------------------------------------------------------------------
-    subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
+subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
+  implicit none
+  integer :: gllnid(1),iunsort(1),nelgt,nelgv, np
+  integer :: e,eg
 
-    integer :: gllnid(1),iunsort(1),nelgt,np
-    integer :: e,eg
+  integer :: ip, k, npp, nmod, nel, nelgs, nnpstr, npstar, log2p, np2
+  integer, external :: ivlmax, log2
 
+  log2p = log2(np)
+  np2   = 2**log2p
+  if (np2 == np .AND. nelgv == nelgt) then   ! std power of 2 case
 
-    log2p = log2(np)
-    np2   = 2**log2p
-    if (np2 == np .AND. nelgv == nelgt) then   ! std power of 2 case
+      npstar = ivlmax(gllnid,nelgt)+1
+      nnpstr = npstar/np
+      do eg=1,nelgt
+          gllnid(eg) = gllnid(eg)/nnpstr
+      enddo
 
-        npstar = ivlmax(gllnid,nelgt)+1
-        nnpstr = npstar/np
-        do eg=1,nelgt
-            gllnid(eg) = gllnid(eg)/nnpstr
-        enddo
+      return
 
-        return
+  elseif (np2 == np) then   ! std power of 2 case, conjugate heat xfer
 
-    elseif (np2 == np) then   ! std power of 2 case, conjugate heat xfer
+  !        Assign fluid elements
+      npstar = max(np,ivlmax(gllnid,nelgv)+1)
+      nnpstr = npstar/np
+      do eg=1,nelgv
+          gllnid(eg) = gllnid(eg)/nnpstr
+      enddo
 
-    !        Assign fluid elements
-        npstar = max(np,ivlmax(gllnid,nelgv)+1)
-        nnpstr = npstar/np
-        do eg=1,nelgv
-            gllnid(eg) = gllnid(eg)/nnpstr
-        enddo
+  !        Assign solid elements
+      nelgs  = nelgt-nelgv  ! number of solid elements
+      npstar = max(np,ivlmax(gllnid(nelgv+1),nelgs)+1)
+      nnpstr = npstar/np
+      do eg=nelgv+1,nelgt
+          gllnid(eg) = gllnid(eg)/nnpstr
+      enddo
 
-    !        Assign solid elements
-        nelgs  = nelgt-nelgv  ! number of solid elements
-        npstar = max(np,ivlmax(gllnid(nelgv+1),nelgs)+1)
-        nnpstr = npstar/np
-        do eg=nelgv+1,nelgt
-            gllnid(eg) = gllnid(eg)/nnpstr
-        enddo
+      return
 
-        return
-
-    elseif (nelgv /= nelgt) then
-        call exitti &
-        ('Conjugate heat transfer requires P=power of 2.$',np)
-    endif
+  elseif (nelgv /= nelgt) then
+      call exitti &
+      ('Conjugate heat transfer requires P=power of 2.$',np)
+  endif
 
 
 !  Below is the code for P a non-power of two:
@@ -562,81 +570,66 @@ end subroutine get_local_crs_galerkin
 !  where i = np-mod(nelgt,np) ... np
 
 
-    nel   = nelgt/np       ! number of elements per processor
-    nmod  = mod(nelgt,np)  ! bounded between 1 ... np-1
-    npp   = np - nmod      ! how many paritions of size nel
+  nel   = nelgt/np       ! number of elements per processor
+  nmod  = mod(nelgt,np)  ! bounded between 1 ... np-1
+  npp   = np - nmod      ! how many paritions of size nel
      
 ! sort gllnid
-    call isort(gllnid,iunsort,nelgt)
+  call isort(gllnid,iunsort,nelgt)
 
 ! setup partitions of size nel
-    k   = 0
-    do ip = 0,npp-1
-        do e = 1,nel
-            k = k + 1
-            gllnid(k) = ip
-        enddo
-    enddo
+  k   = 0
+  do ip = 0,npp-1
+      do e = 1,nel
+          k = k + 1
+          gllnid(k) = ip
+      enddo
+  enddo
 ! setup partitions of size nel+1
-    if(nmod > 0) then
-        do ip = npp,np-1
-            do e = 1,nel+1
-                k = k + 1
-                gllnid(k) = ip
-            enddo
-        enddo
-    endif
+  if(nmod > 0) then
+      do ip = npp,np-1
+          do e = 1,nel+1
+              k = k + 1
+              gllnid(k) = ip
+          enddo
+      enddo
+  endif
 
 ! unddo sorting to restore initial ordering by
 ! global element number
-    call iswapt_ip(gllnid,iunsort,nelgt)
+  call iswapt_ip(gllnid,iunsort,nelgt)
 
-    return
-    end subroutine assign_gllnid
+  return
+end subroutine assign_gllnid
+
 !-----------------------------------------------------------------------
-    subroutine get_vert
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
+subroutine get_vert
+  use size_m, only : ndim
+  use input, only : ifmoab
   use mesh, only : vertex
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-    use zper
+  use parallel, only : nelgt
+  use zper, only : ifgfdm
+  implicit none
 
-    integer :: e,eg
+  integer :: e,eg, ncrnr
+  integer, save :: icalld = 0
 
-    integer :: icalld
-    save    icalld
-    data    icalld  /0/
+  if (icalld > 0) return
+  icalld = 1
 
-    if (icalld > 0) return
-    icalld = 1
+  ncrnr = 2**ndim
 
-    ncrnr = 2**ndim
-
-    if (ifmoab) then
+  if (ifmoab) then
 #ifdef MOAB
-        call nekMOAB_loadConn (vertex, nelgt, ncrnr)
+      call nekMOAB_loadConn (vertex, nelgt, ncrnr)
 #endif
-    else
-        call get_vert_map(vertex, ncrnr, nelgt, '.map', ifgfdm)
-    endif
+  else
+      call get_vert_map(vertex, ncrnr, nelgt, '.map', ifgfdm)
+  endif
 
-    return
-    end subroutine get_vert
+  return
+end subroutine get_vert
+
 !-----------------------------------------------------------------------
 subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   use kinds, only : DP
@@ -795,107 +788,105 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   return
 end subroutine get_vert_map
 !-----------------------------------------------------------------------
-    subroutine irank_vecn(ind,nn,a,m,n,key,nkey,aa)
+!> \brief Compute rank of each unique entry a(1,i)
+!!   Output:   ind(i)  i=1,...,n    (global) rank of entry a(*,i)
+!!             nn  = max(rank)
+!!             a(j,i) is permuted
+!!   Input:    a(j,i) j=1,...,m;  i=1,...,n
+!!             m      :   leading dim. of v  (ldv must be .ge. m)
+!!             key    :   sort key
+!!             nkey   :
+!!   Although not mandatory, this ranking procedure is probably
+!!   most effectively employed when the keys are pre-sorted. Thus,
+!!   the option is provided to sort vi() prior to the ranking.
+subroutine irank_vecn(ind,nn,a,m,n,key,nkey,aa)
+  implicit none
+  integer :: nn, m, n, nkey
+  integer :: ind(n),a(m,n)
+  integer :: key(nkey),aa(m)
 
-!     Compute rank of each unique entry a(1,i)
+  logical :: iftuple_ianeb,a_ne_b
+  integer :: nk, i
 
-!     Output:   ind(i)  i=1,...,n    (global) rank of entry a(*,i)
-!               nn  = max(rank)
-!               a(j,i) is permuted
+  nk = min(nkey,m)
+  call ituple_sort(a,m,n,key,nk,ind,aa)
 
-!     Input:    a(j,i) j=1,...,m;  i=1,...,n
-!               m      :   leading dim. of v  (ldv must be .ge. m)
-!               key    :   sort key
-!               nkey   :
+!   Find unique a's
+  call icopy(aa,a,m)
+  nn     = 1
+  ind(1) = nn
 
-!     Although not mandatory, this ranking procedure is probably
-!     most effectively employed when the keys are pre-sorted. Thus,
-!     the option is provided to sort vi() prior to the ranking.
+  do i=2,n
+      a_ne_b = iftuple_ianeb(aa,a(1,i),key,nk)
+      if (a_ne_b) then
+          call icopy(aa,a(1,i),m)
+          nn = nn+1
+      endif
+      ind(i) = nn ! set ind() to rank
+  enddo
 
+  return
+end subroutine irank_vecn
 
-    integer :: ind(n),a(m,n)
-    integer :: key(nkey),aa(m)
-    logical :: iftuple_ianeb,a_ne_b
-
-    nk = min(nkey,m)
-    call ituple_sort(a,m,n,key,nk,ind,aa)
-
-!     Find unique a's
-    call icopy(aa,a,m)
-    nn     = 1
-    ind(1) = nn
-
-    do i=2,n
-        a_ne_b = iftuple_ianeb(aa,a(1,i),key,nk)
-        if (a_ne_b) then
-            call icopy(aa,a(1,i),m)
-            nn = nn+1
-        endif
-        ind(i) = nn ! set ind() to rank
-    enddo
-
-    return
-    end subroutine irank_vecn
 !-----------------------------------------------------------------------
-    subroutine gbtuple_rank(tuple,m,n,nmax,cr_h,nid,np,ind)
+!> \brief Return a unique rank for each matched tuple set. Global.  Balanced.
+!! tuple is destroyed.
+!! By "balanced" we mean that none of the tuple entries is likely to
+!! be much more uniquely populated than any other, so that any of
+!! the tuples can serve as an initial (parallel) sort key
+!! First two slots in tuple(:,i) assumed empty
+subroutine gbtuple_rank(tuple,m,n,nmax,cr_h,nid,np,ind)
+  implicit none
+  integer :: m, n, nmax, nid, np
+  integer :: ind(nmax),tuple(m,nmax),cr_h
 
-!     Return a unique rank for each matched tuple set. Global.  Balanced.
+  integer, parameter :: mmax=40
+  integer :: key(mmax),wtuple(mmax)
+  integer :: nk, i, k, nkey, ni, ky, nimx, nu, nu_tot, nu_prior
+  integer, external :: iglmax, igl_running_sum
 
-!     tuple is destroyed.
+  if (m > mmax) then
+      write(6,*) nid,m,mmax,' gbtuple_rank fail'
+      call exitt
+  endif
 
-!     By "balanced" we mean that none of the tuple entries is likely to
-!     be much more uniquely populated than any other, so that any of
-!     the tuples can serve as an initial (parallel) sort key
+  do i=1,n
+      tuple(1,i) = mod(tuple(3,i),np) ! destination processor
+      tuple(2,i) = i                  ! return location
+  enddo
 
-!     First two slots in tuple(:,i) assumed empty
+  ni= n
+  ky=1  ! Assumes crystal_new already called
+  call crystal_ituple_transfer(cr_h, tuple,m,ni,nmax, ky)
 
-    integer :: ind(nmax),tuple(m,nmax),cr_h
+  nimx = iglmax(ni,1)
+  if (ni > nmax)   write(6,*) ni,nmax,n,'cr_xfer problem, A'
+  if (nimx > nmax) call exitt
 
-    parameter (mmax=40)
-    integer :: key(mmax),wtuple(mmax)
+  nkey = m-2
+  do k=1,nkey
+      key(k) = k+2
+  enddo
 
-    if (m > mmax) then
-        write(6,*) nid,m,mmax,' gbtuple_rank fail'
-        call exitt
-    endif
-
-    do i=1,n
-        tuple(1,i) = mod(tuple(3,i),np) ! destination processor
-        tuple(2,i) = i                  ! return location
-    enddo
-
-    ni= n
-    ky=1  ! Assumes crystal_new already called
-    call crystal_ituple_transfer(cr_h, tuple,m,ni,nmax, ky)
-
-    nimx = iglmax(ni,1)
-    if (ni > nmax)   write(6,*) ni,nmax,n,'cr_xfer problem, A'
-    if (nimx > nmax) call exitt
-
-    nkey = m-2
-    do k=1,nkey
-        key(k) = k+2
-    enddo
-
-    call irank_vecn(ind,nu,tuple,m,ni,key,nkey,wtuple)! tuple re-ordered,
+  call irank_vecn(ind,nu,tuple,m,ni,key,nkey,wtuple)! tuple re-ordered,
 ! but contents same
 
-    nu_tot   = igl_running_sum(nu) ! running sum over P processors
-    nu_prior = nu_tot - nu
+  nu_tot   = igl_running_sum(nu) ! running sum over P processors
+  nu_prior = nu_tot - nu
 
-    do i=1,ni
-        tuple(3,i) = ind(i) + nu_prior  ! global ranking
-    enddo
+  do i=1,ni
+      tuple(3,i) = ind(i) + nu_prior  ! global ranking
+  enddo
 
-    call crystal_ituple_transfer(cr_h, tuple,m,ni,nmax, ky)
+  call crystal_ituple_transfer(cr_h, tuple,m,ni,nmax, ky)
 
-    nk = 1  ! restore to original order, local rank: 2; global: 3
-    ky = 2
-    call ituple_sort(tuple,m,n,ky,nk,ind,wtuple)
+  nk = 1  ! restore to original order, local rank: 2; global: 3
+  ky = 2
+  call ituple_sort(tuple,m,n,ky,nk,ind,wtuple)
 
+  return
+end subroutine gbtuple_rank
 
-    return
-    end subroutine gbtuple_rank
 !-----------------------------------------------------------------------
 !> \brief setup unique ids for dssum.
 !!  note:
@@ -1258,76 +1249,61 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
   1 format('   setvert3d:',i4,4i12)
 
   return
-  end subroutine setvert3d
+end subroutine setvert3d
+
 !-----------------------------------------------------------------------
-    subroutine check_p_bc(glo_num,nx,ny,nz,nel)
+subroutine check_p_bc(glo_num,nx,ny,nz,nel)
+  use size_m, only : ndim, nelt
+  use input, only : ifflow, cbc
+  implicit none
 
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
+  integer*8 :: glo_num(nx,ny,nz,nel)
+  integer :: nx, ny, nz, nel
 
-    integer*8 :: glo_num(nx,ny,nz,nel)
-    integer*8 :: gmn
+  integer*8 :: gmn
+  integer :: e,f,fo,ef,efo, ifld, nface, k, j, i
+  integer, save :: eface0(6) = (/ 4,2,1,3,5,6 /)
 
-    integer :: e,f,fo,ef,efo
-    integer :: eface0(6)
-    save    eface0
-    data    eface0 / 4,2,1,3,5,6 /
+  ifld = 2
+  if (ifflow) ifld = 1
 
-    ifld = 2
-    if (ifflow) ifld = 1
+  nface=2*ndim
+  do e=1,nelt
+      do f=1,nface,2
+          fo  = f+1
+          ef  = eface0(f)
+          efo = eface0(fo)
+          if (cbc(ef,e,ifld) == 'p  ' .AND. cbc(efo,e,ifld) == 'p  ') then
+              if (f == 1) then  ! r=-/+1
+                  do k=1,nz
+                      do j=1,ny
+                          gmn = min(glo_num(1,j,k,e),glo_num(nx,j,k,e))
+                          glo_num(1 ,j,k,e) = gmn
+                          glo_num(nx,j,k,e) = gmn
+                      enddo
+                  enddo
+              elseif (f == 3) then  ! s=-/+1
+                  do k=1,nz
+                      do i=1,nx
+                          gmn = min(glo_num(i,1,k,e),glo_num(i,ny,k,e))
+                          glo_num(i,1 ,k,e) = gmn
+                          glo_num(i,ny,k,e) = gmn
+                      enddo
+                  enddo
+              else
+                  do j=1,ny
+                      do i=1,nx
+                          gmn = min(glo_num(i,j,1,e),glo_num(i,j,nz,e))
+                          glo_num(i,j,1 ,e) = gmn
+                          glo_num(i,j,nz,e) = gmn
+                      enddo
+                  enddo
+              endif
+          endif
+      enddo
+  enddo
 
-    nface=2*ndim
-    do e=1,nelt
-        do f=1,nface,2
-            fo  = f+1
-            ef  = eface0(f)
-            efo = eface0(fo)
-            if (cbc(ef,e,ifld) == 'p  ' .AND. cbc(efo,e,ifld) == 'p  ') then
-                if (f == 1) then  ! r=-/+1
-                    do k=1,nz
-                        do j=1,ny
-                            gmn = min(glo_num(1,j,k,e),glo_num(nx,j,k,e))
-                            glo_num(1 ,j,k,e) = gmn
-                            glo_num(nx,j,k,e) = gmn
-                        enddo
-                    enddo
-                elseif (f == 3) then  ! s=-/+1
-                    do k=1,nz
-                        do i=1,nx
-                            gmn = min(glo_num(i,1,k,e),glo_num(i,ny,k,e))
-                            glo_num(i,1 ,k,e) = gmn
-                            glo_num(i,ny,k,e) = gmn
-                        enddo
-                    enddo
-                else
-                    do j=1,ny
-                        do i=1,nx
-                            gmn = min(glo_num(i,j,1,e),glo_num(i,j,nz,e))
-                            glo_num(i,j,1 ,e) = gmn
-                            glo_num(i,j,nz,e) = gmn
-                        enddo
-                    enddo
-                endif
-            endif
-        enddo
-    enddo
+  return
+end subroutine check_p_bc
 
-    return
-    end subroutine check_p_bc
 !-----------------------------------------------------------------------

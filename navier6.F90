@@ -2,7 +2,7 @@
 !     pff@cfm.brown.edu   3/19/96
 
 
-!     This  is a suite of routines for solving overlapping subdomain
+!> \file navier6.F90 This  is a suite of routines for solving overlapping subdomain
 !     problems with finite elements on distributed memory machines.
 
 !     The overall hierarchy of data structures is as follows:

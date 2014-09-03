@@ -25,7 +25,6 @@ subroutine genwz
   use wz_m, only : w3m1, w3m2, w3m3
   implicit none
 
-  REAL :: TMP(LY1,LY1),TMPT(LY1,LY1)
   integer :: ix, iy, iz
 
   IF (NDIM == 2) THEN
@@ -374,14 +373,12 @@ end subroutine genwz
 !!  Velocity formulation : global-to-local mapping based on mesh 3
 !!  Stress   formulation : global-to-local mapping based on mesh 1
 !-----------------------------------------------------------------------
-subroutine geom1 (xm3,ym3,zm3)
+subroutine geom1 ()!xm3,ym3,zm3)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, lx3, ly3, lz3
   use geom, only : ifgmsh3
   use tstep, only : istep
   implicit none
-
-  real(DP) ::  XM3(LX3,LY3,LZ3,1), YM3(LX3,LY3,LZ3,1), ZM3(LX3,LY3,LZ3,1)
 
   real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
   ,           YRM1(LX1,LY1,LZ1,LELT) &

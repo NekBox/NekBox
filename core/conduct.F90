@@ -111,96 +111,99 @@ subroutine cdscal (igeom)
   endif
 
   return
-  end subroutine cdscal
+end subroutine cdscal
 
 !-----------------------------------------------------------------------
-    subroutine makeuq
+!> \brief Fill up user defined forcing function and collocate will the
+!! mass matrix on the Gauss-Lobatto mesh.
+subroutine makeuq
+  use size_m, only : nx1, ny1, nz1
+  use mass, only : bm1
+  use soln, only : bq
+  use tstep, only : time, dt, ifield, nelfld
+  implicit none
 
-!     Fill up user defined forcing function and collocate will the
-!     mass matrix on the Gauss-Lobatto mesh.
+  integer :: ntot
 
-    use size_m
-    use mass
-    use soln
-    use tstep
+  ntot = nx1*ny1*nz1*nelfld(ifield)
 
-    ntot = nx1*ny1*nz1*nelfld(ifield)
+  time = time-dt        ! Set time to t^n-1 for user function
 
-    time = time-dt        ! Set time to t^n-1 for user function
+  call rzero   ( bq(1,1,1,1,ifield-1) ,    ntot)
+  call setqvol ( bq(1,1,1,1,ifield-1)          )
+  call col2    ( bq(1,1,1,1,ifield-1) ,bm1,ntot)
 
-    call rzero   ( bq(1,1,1,1,ifield-1) ,    ntot)
-    call setqvol ( bq(1,1,1,1,ifield-1)          )
-    call col2    ( bq(1,1,1,1,ifield-1) ,bm1,ntot)
+  time = time+dt        ! Restore time
 
-    time = time+dt        ! Restore time
+  return
+end subroutine makeuq
 
-    return
-    end subroutine makeuq
 !-----------------------------------------------------------------------
-    subroutine setqvol(bql)
+!> \brief  Set user specified volumetric forcing function (e.g. heat source).
+subroutine setqvol(bql)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1
+  use input, only : igroup, matype, cpgrp
+  use tstep, only : ifield, nelfld
+  implicit none
 
-!     Set user specified volumetric forcing function (e.g. heat source).
-
-    use size_m
-    use input
-    use soln
-    use tstep
-
-    real :: bql(lx1*ly1*lz1,lelt)
+  real(DP) :: bql(lx1*ly1*lz1,lelt)
+  real(DP) :: cqvol
+  integer :: nel, nxyz1, ntot1, iel, igrp
 
 #ifndef MOAB
-    nel   = nelfld(ifield)
-    nxyz1 = nx1*ny1*nz1
-    ntot1 = nxyz1*nel
+  nel   = nelfld(ifield)
+  nxyz1 = nx1*ny1*nz1
+  ntot1 = nxyz1*nel
 
-    do iel=1,nel
-        igrp = igroup(iel)
-        if (matype(igrp,ifield) == 1) then ! constant source within a group
-            cqvol = cpgrp(igrp,ifield,3)
-            call cfill (bql(1,iel),cqvol,nxyz1)
-        else  !  pff 2/6/96 ............ default is to look at userq
-            call nekuq (bql,iel)
-        endif
-    enddo
+  do iel=1,nel
+      igrp = igroup(iel)
+      if (matype(igrp,ifield) == 1) then ! constant source within a group
+          cqvol = cpgrp(igrp,ifield,3)
+          call cfill (bql(1,iel),cqvol,nxyz1)
+      else  !  pff 2/6/96 ............ default is to look at userq
+          call nekuq (bql,iel)
+      endif
+  enddo
 
 ! 101 FORMAT(' Wrong material type (',I3,') for group',I3,', field',I2
 !    $    ,/,' Aborting in SETQVOL.')
 #else
 ! pulling in temperature right now, since we dont have anything else
-    call userq2(bql)
+  call userq2(bql)
 #endif
 
-    return
-    end subroutine setqvol
-
-    subroutine nekuq (bql,iel)
-!------------------------------------------------------------------
-
-!     Generate user-specified volumetric source term (temp./p.s.)
+  return
+end subroutine setqvol
 
 !------------------------------------------------------------------
-    use size_m
-    use input
-    use mass
-    use nekuse
-    use parallel
-    use soln
-    use tstep
+!> \brief Generate user-specified volumetric source term (temp./p.s.)
+!------------------------------------------------------------------
+subroutine nekuq (bql,iel)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1
+  use nekuse, only : qvol
+  use parallel, only : lglel
+  implicit none
 
-    real :: bql(lx1,ly1,lz1,lelt)
+  real(DP) :: bql(lx1,ly1,lz1,lelt)
+  integer :: iel
 
-    ielg = lglel(iel)
-    do 10 k=1,nz1
-        do 10 j=1,ny1
-            do 10 i=1,nx1
-                call nekasgn (i,j,k,iel)
-                qvol = 0.0
-                call userq   (i,j,k,ielg)
-                bql(i,j,k,iel) = qvol
-    10 END DO
+  integer :: ielg, k, j, i
 
-    return
-    end subroutine nekuq
+  ielg = lglel(iel)
+  do 10 k=1,nz1
+      do 10 j=1,ny1
+          do 10 i=1,nx1
+              call nekasgn (i,j,k,iel)
+              qvol = 0.0
+              call userq   (i,j,k,ielg)
+              bql(i,j,k,iel) = qvol
+  10 END DO
+
+  return
+end subroutine nekuq
+
 !-----------------------------------------------------------------------
 !> \brief Eulerian scheme, add convection term to forcing function
 !!  at current time step.
@@ -224,6 +227,7 @@ subroutine convab()
 
   return
 end subroutine convab
+
 !-----------------------------------------------------------------------
 !> \brief Sum up contributions to 3rd order Adams-Bashforth scheme.
 subroutine makeabq
@@ -253,6 +257,7 @@ subroutine makeabq
 
   return
 end subroutine makeabq
+
 !-----------------------------------------------------------------------
 !> \brief Add contributions to F from lagged BD terms.
 !-----------------------------------------------------------------------
@@ -298,46 +303,27 @@ subroutine makebdq()
 
   return
 end subroutine makebdq
-!-----------------------------------------------------------------------
-    subroutine tchinit (tch,ilag)
-
-!     Set initial conditions for subintegration
-
-    use size_m
-    use soln
-    use tstep
-    REAL :: TCH (LX1,LY1,LZ1,1)
-
-    NTOT1 = NX1*NY1*NZ1*NELFLD(IFIELD)
-    IF (ILAG == 1) THEN
-        CALL COPY (TCH,T(1,1,1,1,IFIELD-1),NTOT1)
-    ELSE
-        CALL COPY (TCH,TLAG(1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
-    ENDIF
-    return
-    end subroutine tchinit
 
 !-----------------------------------------------------------------------
-    subroutine lagscal
+!> \brief Keep old passive scalar field(s)
 !-----------------------------------------------------------------------
+subroutine lagscal
+  use size_m, only : nx1, ny1, nz1
+  use soln, only : t, tlag
+  use tstep, only : ifield, nelfld, nbdinp
+  implicit none
 
-!     Keep old passive scalar field(s)
+  integer :: ntot1, ilag
+  NTOT1 = NX1*NY1*NZ1*NELFLD(IFIELD)
 
-!-----------------------------------------------------------------------
-    use size_m
-    use input
-    use soln
-    use tstep
+  DO 100 ILAG=NBDINP-1,2,-1
+      CALL COPY (TLAG(1,1,1,1,ILAG  ,IFIELD-1), &
+      TLAG(1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
+  100 END DO
 
-    NTOT1 = NX1*NY1*NZ1*NELFLD(IFIELD)
+  CALL COPY (TLAG(1,1,1,1,1,IFIELD-1),T(1,1,1,1,IFIELD-1),NTOT1)
 
-    DO 100 ILAG=NBDINP-1,2,-1
-        CALL COPY (TLAG(1,1,1,1,ILAG  ,IFIELD-1), &
-        TLAG(1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
-    100 END DO
+  return
+  end subroutine lagscal
 
-    CALL COPY (TLAG(1,1,1,1,1,IFIELD-1),T(1,1,1,1,IFIELD-1),NTOT1)
-
-    return
-    end subroutine lagscal
 !-----------------------------------------------------------------------

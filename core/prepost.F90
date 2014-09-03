@@ -43,7 +43,6 @@ subroutine prepost(ifdoin,prefin)
 
   logical :: ifhis
 
-
   integer, save :: maxstep = 999999999
   integer :: ierr, iiidmp, idummy
   real(DP) :: timdump
@@ -143,6 +142,7 @@ subroutine prepost(ifdoin,prefin)
   return
 
 end subroutine prepost
+
 !-----------------------------------------------------------------------
 !> \brief Store results for later postprocessing
 subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
@@ -262,6 +262,7 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
   endif
   return
 end subroutine prepost_map
+
 !-----------------------------------------------------------------------
 !> \brief output .fld file
 subroutine outfld(prefix, pm1)
@@ -460,6 +461,7 @@ subroutine outfld(prefix, pm1)
 
   return
 end subroutine outfld
+
 !-----------------------------------------------------------------------
 !> \brief output time history info.
 subroutine outhis(ifhis, pm1)
@@ -659,330 +661,70 @@ subroutine outhis(ifhis, pm1)
 
   return
 end subroutine outhis
+
 !=======================================================================
-    subroutine file2(nopen,PREFIX)
-!----------------------------------------------------------------------
+subroutine copyX4(a,b,n)
+  use kinds, only : DP
+  implicit none
+  REAL*4 :: A(1)
+  REAL(DP) ::   B(1)
+  integer :: n,i
+  DO 100 I = 1, N
+      A(I) = B(I)
+  100 END DO
+  return
+end subroutine copyX4
 
-!     Defines machine specific input and output file names.
-
-!----------------------------------------------------------------------
-    use size_m
-    use input
-    use parallel
-    use tstep
-
-    CHARACTER(132) :: NAME
-    CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
-!max    EQUIVALENCE  (SESSION,SESS1)
-!max    EQUIVALENCE  (PATH,PATH1)
-    EQUIVALENCE  (NAME,NAM1)
-    CHARACTER(1) ::  DMP(4),FLD(4),REA(4),HIS(4),SCH(4) ,ORE(4), NRE(4)
-    CHARACTER(4) ::  DMP4  ,FLD4  ,REA4  ,HIS4  ,SCH4   ,ORE4  , NRE4
-    EQUIVALENCE (DMP,DMP4), (FLD,FLD4), (REA,REA4), (HIS,HIS4) &
-    , (SCH,SCH4), (ORE,ORE4), (NRE,NRE4)
-    CHARACTER(1) ::  NUMRL(0:9)
-    DATA DMP4,FLD4,REA4 /'.dmp','.fld','.rea'/
-    DATA HIS4,SCH4      /'.his','.sch'/
-    DATA ORE4,NRE4      /'.ore','.nre'/
-    DATA NUMRL          /'0','1','2','3','4','5','6','7','8','9'/
-    CHARACTER(78) ::  STRING
-
-    character(1) ::    prefix(3)
-
-    call blank(name  ,132)
-    call blank(fldfle,132)
-
-    LS=LTRUNC(SESSION,132)
-    LPP=LTRUNC(PATH,132)
-    LSP=LS+LPP
-    l = 0
-
-!     Construct file names containing full path to host:
-!      DO 100 I=1,LPP
-!         l = l+1
-!         NAM1(l)=PATH1(I)
-!  100 CONTINUE
-
-    if (prefix(1) /= ' ' .AND. prefix(2) /= ' ' .AND. &
-    prefix(3) /= ' ') then
-        do i=1,3
-            l = l+1
-            NAM1(l)=prefix(i)
-        enddo
-    endif
-
-    DO 200 I=1,LS
-        l = l+1
-        NAM1(l)=SESSION(I:I)
-!        NAM1(l)=SESS1(I)
-    200 END DO
-
-! .fld file
-    DO 300 I=1,4
-        l = l+1
-        NAM1(l)=FLD(I)
-    300 END DO
-    if (nopen < 100) then
-    !        less than 100 dumps....
-        ITEN=NOPEN/10
-        l = l+1
-        NAM1(l)=NUMRL(ITEN)
-        IONE=MOD(NOPEN,10)
-        l = l+1
-        NAM1(l)=NUMRL(IONE)
-    elseif (nopen < 1000) then
-    !        less than 1000 dumps....
-        IHUN=NOPEN/100
-        l = l+1
-        NAM1(l)=NUMRL(IHUN)
-        ITEN=MOD(NOPEN,100)/10
-        l = l+1
-        NAM1(l)=NUMRL(ITEN)
-        IONE=MOD(NOPEN,10)
-        l = l+1
-        NAM1(l)=NUMRL(IONE)
-    elseif (nopen < 10000) then
-    !        less than 10000 dumps....
-        ITHO=NOPEN/1000
-        l = l+1
-        NAM1(l)=NUMRL(ITHO)
-        IHUN=MOD(NOPEN,1000)/100
-        l = l+1
-        NAM1(l)=NUMRL(IHUN)
-        ITEN=MOD(NOPEN,100)/10
-        l = l+1
-        NAM1(l)=NUMRL(ITEN)
-        IONE=MOD(NOPEN,10)
-        l = l+1
-        NAM1(l)=NUMRL(IONE)
-    endif
-    FLDFLE=NAME
-
-!     Write the name of the .fld file to the logfile.
-
-    if (nid == 0) then
-        call chcopy(string,fldfle,78)
-        write(6,1000) istep,time,string
-        1000 format(/,i9,1pe12.4,' OPEN: ',a78)
-    endif
-     
-    return
-    end subroutine file2
 !=======================================================================
-    subroutine copyX4(a,b,n)
-    REAL*4 :: A(1)
-    REAL ::   B(1)
-    DO 100 I = 1, N
-        A(I) = B(I)
-    100 END DO
-    return
-    end subroutine copyX4
+subroutine copy4r(a,b,n)
+  use kinds, only : DP
+  implicit none
+  real(DP) ::   a(1)
+  real*4 :: b(1)
+  integer :: n, i
+  do i = 1, n
+      a(i) = b(i)
+  enddo
+  return
+end subroutine copy4r
+
 !=======================================================================
-    subroutine copy4r(a,b,n)
-    real ::   a(1)
-    real*4 :: b(1)
-    do i = 1, n
-        a(i) = b(i)
-    enddo
-    return
-    end subroutine copy4r
-!=======================================================================
-    function i_find_prefix(prefix,imax)
+integer function i_find_prefix(prefix,imax)
+  implicit none
 
-    character(3) :: prefix
-    character(3) :: prefixes(99)
-    save        prefixes
-    data        prefixes /99*'...'/
+  character(3) :: prefix
+  integer :: imax
 
-    integer :: nprefix
-    save    nprefix
-    data    nprefix /0/
+  character(3), save :: prefixes(99)
+  data prefixes /99*'...'/
+  integer, save :: nprefix = 0
+  integer :: i
 
-!     Scan existing list of prefixes for a match to "prefix"
+!   Scan existing list of prefixes for a match to "prefix"
+  do i=1,nprefix
+      if (prefix == prefixes(i)) then
+          i_find_prefix = i
+          return
+      endif
+  enddo
 
-    do i=1,nprefix
-        if (prefix == prefixes(i)) then
-            i_find_prefix = i
-            return
-        endif
-    enddo
+!   If we're here, we didn't find a match.. bump list and return
 
-!     If we're here, we didn't find a match.. bump list and return
+  nprefix                = nprefix + 1
+  prefixes(nprefix)      = prefix
+  i_find_prefix          = nprefix
 
-    nprefix                = nprefix + 1
-    prefixes(nprefix)      = prefix
-    i_find_prefix          = nprefix
+!   Array bounds check on prefix list
 
-!     Array bounds check on prefix list
+  if (nprefix > 99 .OR. nprefix > imax) then
+      write(6,*) 'Hey! nprefix too big! ABORT in i_find_prefix' &
+      ,nprefix,imax
+      call exitt
+  endif
 
-    if (nprefix > 99 .OR. nprefix > imax) then
-        write(6,*) 'Hey! nprefix too big! ABORT in i_find_prefix' &
-        ,nprefix,imax
-        call exitt
-    endif
+  return
+end function i_find_prefix
 
-    return
-    end function i_find_prefix
-!-----------------------------------------------------------------------
-    subroutine dump_header(excodein,p66,ierr)
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    character(30) ::  excodein
-
-    character(30) :: excode
-    character(1) ::  excode1(30)
-    equivalence (excode,excode1)
-
-    real*4 ::         test_pattern
-
-    character(1) :: fhdfle1(132)
-    character(132) :: fhdfle
-    equivalence (fhdfle,fhdfle1)
-
-    write(excode,'(A30)') excodein
-
-    ikstep = istep
-    do ik=1,10
-        if (ikstep > 9999) ikstep = ikstep/10
-    enddo
-
-    call blank(fhdfle,132)
-
-!       write(6,111)               !       print on screen
-!     $     nelgt,nx1,ny1,nz1,time,istep,excode
-
-    if (mod(p66,1.0) == 0.0) then !       old header format
-        if (p66 < 1.0) then       !ASCII
-            if(nelgt < 10000) then
-                WRITE(24,'(4i4,1pe14.7,I5,1X,30A1,1X,A12)') &
-                NELGT,NX1,NY1,NZ1,TIME,ikstep,(EXCODE1(I),I=1,30), &
-                'NELT,NX,NY,N'
-            else
-                WRITE(24,'(i10,3i4,1pe18.9,I9,1X,30A1,1X,A12)') &
-                NELGT,NX1,NY1,NZ1,TIME,ikstep,(EXCODE1(I),I=1,30), &
-                'NELT,NX,NY,N'
-            endif
-        else                       !Binary
-            if (nelgt < 10000) then
-                WRITE(fhdfle,'(4I4,1pe14.7,I5,1X,30A1,1X,A12)') &
-                NELGT,NX1,NY1,NZ1,TIME,ikstep,(EXCODE1(I),I=1,30), &
-                ' 4 NELT,NX,NY,N'
-            else
-                write(fhdfle,'(i10,3i4,1P1e18.9,i9,1x,30a1)') &
-                nelgt,nx1,ny1,nz1,time,istep,(excode1(i),i=1,30)
-            endif
-            call byte_write(fhdfle,20,ierr)
-        endif
-    else                        !       new header format
-        if (p66 == 0.1) then
-            write(24,111) &
-            nelgt,nx1,ny1,nz1,time,istep,excode
-        else
-            write(fhdfle,111) &
-            nelgt,nx1,ny1,nz1,time,istep,excode
-            call byte_write(fhdfle,20,ierr)
-        endif
-        111 FORMAT(i10,1x,i2,1x,i2,1x,i2,1x,1P1e18.9,1x,i9,1x,a)
-    endif
-
-    if(ierr /= 0) return
-
-    CDRROR=0.0
-    if (p66 < 1.0) then       !       formatted i/o
-        WRITE(24,'(6G11.4)')(CDRROR,I=1,NELGT)   ! dummy
-    else
-    !       write byte-ordering test pattern to byte file...
-        test_pattern = 6.54321
-        call byte_write(test_pattern,1,ierr)
-    endif
-
-    return
-    end subroutine dump_header
-!-----------------------------------------------------------------------
-    subroutine get_id(id) !  Count amount of data to be shipped
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    id=0
-
-    if (ifxyo) id=id+ndim
-    if (ifvo)  id=id+ndim
-    if (ifpo)  id=id+1
-    if (ifto)  id=id+1
-
-    do iip=1,ldimt1
-        if (ifpsco(iip)) id=id+1     !     Passive scalars
-    enddo
-
-    return
-    end subroutine get_id
-!-----------------------------------------------------------------------
-    subroutine close_fld(p66,ierr)
-
-    use size_m
-    use dealias
-  use dxyz
-  use eigen
-  use esolv
-  use geom
-  use input
-  use ixyz
-  use mass
-  use mvgeom
-  use parallel
-  use soln
-  use steady
-  use topol
-  use tstep
-  use turbo
-  use wz_m
-  use wzf
-
-    if (nid == 0) then
-        if (p66 < 1) then
-            close(unit=24)
-        else
-            call byte_close(ierr)
-        endif
-    endif
-
-    return
-    end subroutine close_fld
 !-----------------------------------------------------------------------
 !> \brief mult-file output
 subroutine mfo_outfld(prefix, pm1) 
@@ -1190,283 +932,268 @@ subroutine mfo_outfld(prefix, pm1)
 
   return
 end subroutine mfo_outfld
+
 !-----------------------------------------------------------------------
-    subroutine io_init ! determine which nodes will output
+subroutine io_init ! determine which nodes will output
+  use kinds, only : DP
+  use size_m, only : nid, lxo, nelt
+  use input, only : param, ifreguo
+  use parallel, only : np, wdsize
+  use restart, only : ifdiro, nfileo, nproc_o
+  use restart, only : fid0, pid0, pid1, wdsizo, nrg, nelB, pid00
+  implicit none
 
-    use size_m
-    use input
-    use parallel
-    use restart
+  character(132) :: hname
+  integer :: nn
+  integer, external :: igl_running_sum
+  real(DP), external :: glmin
 
-    character(132) :: hname
-    ifdiro = .FALSE. 
+  ifdiro = .FALSE. 
 
 #ifdef MPIIO
 
 #ifdef MPIIO_NOCOL
-    nfileo  = abs(param(65))
-    if(nfileo == 0) nfileo = 1
-    if(np < nfileo) nfileo=np
-    nproc_o = np / nfileo              !  # processors pointing to pid0
-    fid0    = nid/nproc_o              !  file id
-    pid0    = nproc_o*fid0             !  my parent i/o node
-    pid1    = min(np-1,pid0+nproc_o-1) !  range of sending procs
-    fid0    = 0
+  nfileo  = abs(param(65))
+  if(nfileo == 0) nfileo = 1
+  if(np < nfileo) nfileo=np
+  nproc_o = np / nfileo              !  # processors pointing to pid0
+  fid0    = nid/nproc_o              !  file id
+  pid0    = nproc_o*fid0             !  my parent i/o node
+  pid1    = min(np-1,pid0+nproc_o-1) !  range of sending procs
+  fid0    = 0
 #else
-    nfileo  = np
-    nproc_o = 1
-    fid0    = 0
-    pid0    = nid
-    pid1    = 0
+  nfileo  = np
+  nproc_o = 1
+  fid0    = 0
+  pid0    = nid
+  pid1    = 0
 #endif
 
 #else
-    if(param(65) < 0) ifdiro = .TRUE. !  p65 < 0 --> multi subdirectories
-    nfileo  = abs(param(65))
-    if(nfileo == 0) nfileo = 1
-    if(np < nfileo) nfileo=np
-    nproc_o = np / nfileo              !  # processors pointing to pid0
-    fid0    = nid/nproc_o              !  file id
-    pid0    = nproc_o*fid0             !  my parent i/o node
-    pid1    = min(np-1,pid0+nproc_o-1) !  range of sending procs
+  if(param(65) < 0) ifdiro = .TRUE. !  p65 < 0 --> multi subdirectories
+  nfileo  = abs(param(65))
+  if(nfileo == 0) nfileo = 1
+  if(np < nfileo) nfileo=np
+  nproc_o = np / nfileo              !  # processors pointing to pid0
+  fid0    = nid/nproc_o              !  file id
+  pid0    = nproc_o*fid0             !  my parent i/o node
+  pid1    = min(np-1,pid0+nproc_o-1) !  range of sending procs
 #endif
 
-    call nek_comm_io(nfileo)
+  call nek_comm_io(nfileo)
 
-    wdsizo = 4                             ! every proc needs this
-    if (param(63) > 0) wdsizo = 8         ! 64-bit .fld file
-    if (wdsizo > wdsize) then
-        if(nid == 0) write(6,*) 'ABORT: wdsizo > wdsize!'
-        call exitt
-    endif
+  wdsizo = 4                             ! every proc needs this
+  if (param(63) > 0) wdsizo = 8         ! 64-bit .fld file
+  if (wdsizo > wdsize) then
+      if(nid == 0) write(6,*) 'ABORT: wdsizo > wdsize!'
+      call exitt
+  endif
 
-    ifreguo = .FALSE.   ! by default we dump the data based on the GLL mesh
-    nrg = lxo
+  ifreguo = .FALSE.   ! by default we dump the data based on the GLL mesh
+  nrg = lxo
 
 ! how many elements are present up to rank nid
-    nn = nelt
-    nelB = igl_running_sum(nn)
-    nelB = nelB - nelt
-         
-    pid00 = glmin(pid0,1)
+  nn = nelt
+  nelB = igl_running_sum(nn)
+  nelB = nelB - nelt
+       
+  pid00 = glmin(pid0,1)
 
-    return
-    end subroutine io_init
+  return
+end subroutine io_init
+
 !-----------------------------------------------------------------------
-    subroutine mfo_open_files(prefix,ierr) ! open files
+subroutine mfo_open_files(prefix,ierr) ! open files
+  use kinds, only : DP
+  use input, only : ifreguo, ifxyo_, session
+  use restart, only : max_rst, nfileo, ifdiro, fid0
+  implicit none
 
-    use size_m
-    use input
-    use parallel
-    use restart
+  character(1) :: prefix(3)
+  integer :: ierr
 
-    character(1) :: prefix(3)
-    character(3) :: prefx
+  character(3) :: prefx
+  character(132) ::  fname
+  character(1) ::   fnam1(132)
+  equivalence  (fnam1,fname)
 
-    character(132) ::  fname
-    character(1) ::   fnam1(132)
-    equivalence  (fnam1,fname)
+  character(6), save ::  six = "??????"
+  character(6) :: str
 
-    character(6) ::  six,str
-    save         six
-    data         six / "??????" /
+  character(1), save :: slash = '/', dot = '.'
 
+  integer, save :: nopen(99,2)
+  data    nopen  / 198*0 /
 
-    character(1) :: slash,dot
-    save        slash,dot
-    data        slash,dot  / '/' , '.' /
+  integer :: iprefix, nfld, k, len, ndigit
+  integer, external :: i_find_prefix, mod1, ltrunc
+  real(DP) :: rfileo
 
-    integer :: nopen(99,2)
-    save    nopen
-    data    nopen  / 198*0 /
+  call blank(fname,132)      !  zero out for byte_open()
 
-    call blank(fname,132)      !  zero out for byte_open()
+  iprefix        = i_find_prefix(prefix,99)
+  if (ifreguo) then
+      nopen(iprefix,2) = nopen(iprefix,2)+1
+      nfld             = nopen(iprefix,2)
+  else
+      nopen(iprefix,1) = nopen(iprefix,1)+1
+      nfld             = nopen(iprefix,1)
+  endif
 
-    iprefix        = i_find_prefix(prefix,99)
-    if (ifreguo) then
-        nopen(iprefix,2) = nopen(iprefix,2)+1
-        nfld             = nopen(iprefix,2)
-    else
-        nopen(iprefix,1) = nopen(iprefix,1)+1
-        nfld             = nopen(iprefix,1)
-    endif
+  call chcopy(prefx,prefix,3)        ! check for full-restart request
+  if (prefx == 'rst' .AND. max_rst > 0) nfld = mod1(nfld,max_rst)
 
-    call chcopy(prefx,prefix,3)        ! check for full-restart request
-    if (prefx == 'rst' .AND. max_rst > 0) nfld = mod1(nfld,max_rst)
-
-    call restart_nfld( nfld, prefix ) ! Check for Restart option.
-    if (prefx == '   ' .AND. nfld == 1) ifxyo_ = .TRUE. ! 1st file
+  call restart_nfld( nfld, prefix ) ! Check for Restart option.
+  if (prefx == '   ' .AND. nfld == 1) ifxyo_ = .TRUE. ! 1st file
 
 #ifdef MPIIO
-    rfileo = 1
+  rfileo = 1
 #else
-    rfileo = nfileo
+  rfileo = nfileo
 #endif
-    ndigit = log10(rfileo) + 1
-         
-    k = 1
-    if (ifdiro) then                                  !  Add directory
-        call chcopy(fnam1(1),'A',1)
-        call chcopy(fnam1(2),six,ndigit)  ! put ???? in string
-        k = 2 + ndigit
-        call chcopy(fnam1(k),slash,1)
-        k = k+1
-    endif
+  ndigit = log10(rfileo) + 1
+       
+  k = 1
+  if (ifdiro) then                                  !  Add directory
+      call chcopy(fnam1(1),'A',1)
+      call chcopy(fnam1(2),six,ndigit)  ! put ???? in string
+      k = 2 + ndigit
+      call chcopy(fnam1(k),slash,1)
+      k = k+1
+  endif
 
-    if (prefix(1) /= ' ' .AND. prefix(2) /= ' ' .AND.     & !  Add prefix
-    prefix(3) /= ' ') then
-    call chcopy(fnam1(k),prefix,3)
-    k = k+3
-endif
+  if (prefix(1) /= ' ' .AND. prefix(2) /= ' ' .AND.     & !  Add prefix
+  prefix(3) /= ' ') then
+  call chcopy(fnam1(k),prefix,3)
+  k = k+3
+  endif
 
-    len=ltrunc(session,132)                           !  Add SESSION
-    call chcopy(fnam1(k),session,len)
-    k = k+len
-         
-    if (ifreguo) then
-        len=4
-        call chcopy(fnam1(k),'_reg',len)
-        k = k+len
-    endif
+  len=ltrunc(session,132)                           !  Add SESSION
+  call chcopy(fnam1(k),session,len)
+  k = k+len
+       
+  if (ifreguo) then
+      len=4
+      call chcopy(fnam1(k),'_reg',len)
+      k = k+len
+  endif
 
-    call chcopy(fnam1(k),six,ndigit)                  !  Add file-id holder
-    k = k + ndigit
+  call chcopy(fnam1(k),six,ndigit)                  !  Add file-id holder
+  k = k + ndigit
 
-    call chcopy(fnam1(k  ),dot,1)                     !  Add .f appendix
-    call chcopy(fnam1(k+1),'f',1)
-    k = k + 2
+  call chcopy(fnam1(k  ),dot,1)                     !  Add .f appendix
+  call chcopy(fnam1(k+1),'f',1)
+  k = k + 2
 
-    write(str,4) nfld                                 !  Add nfld number
-    4 format(i5.5)
-    call chcopy(fnam1(k),str,5)
-    k = k + 5
+  write(str,4) nfld                                 !  Add nfld number
+  4 format(i5.5)
+  call chcopy(fnam1(k),str,5)
+  k = k + 5
 
-    call mbyte_open(fname,fid0,ierr)                  !  Open blah000.fnnnn
-!      write(6,*) nid,fid0,' FILE:',fname
-     
-    return
-    end subroutine mfo_open_files
+  call mbyte_open(fname,fid0,ierr)                  !  Open blah000.fnnnn
+!    write(6,*) nid,fid0,' FILE:',fname
+   
+  return
+end subroutine mfo_open_files
+
 !-----------------------------------------------------------------------
+!> \brief Check for Restart option and return proper nfld value.
+!!   Also, convenient spot to explain restart strategy.
+!!   The approach is as follows:
+!!       Prefix rs4 would indicate 4 files in the restart cycle.
+!!       This would be normal usage for velocity only, with
+!!       checkpoints taking place in synch with standard io.
+!!       The resultant restart sequence might look like:
+!!       blah.fld09           Step 0
+!!       rs4blah.fld01             1
+!!       rs4blah.fld02             2
+!!       which implies that fld09 would be used as the i.c.
+!!       in the restart, rs4blah.fld01 would overwrite the
+!!       solution at Step 1, and rs4blah.fld02 would overwrite
+!!       Step 2.   Net result is that Steps 0-2 of the restart
+!!       session have solutions identical to those computed in
+!!       the prior run.   (It's important that both runs use
+!!       the same dt in this case.)
+!!       Another equally possible restart sequence would be:
+!!       blah.fld10           Step 0
+!!       rs4blah.fld03             1
+!!       rs4blah.fld04             2
+!!       Why the 3 & 4 ?   If one were to use only 1 & 2, there
+!!       is a risk that the system crashes while writing, say,
+!!       rs4blah.fld01, in which case the restart is compromised --
+!!       very frustrating at the end of a run that has been queued
+!!       for a week.  By providing a toggled sequence in pairs such as
+!!       (1,2),   (3,4),  (1,2), ...
+!!       ensures that one always has at least one complete restart
+!!       sequence.   In the example above, the following files would
+!!       be written, in order:
+!!       :
+!!       :
+!!       blah.fld09
+!!       rs4blah.fld01
+!!       rs4blah.fld02
+!!       blah.fld10
+!!       rs4blah.fld03
+!!       rs4blah.fld04
+!!       blah.fld11
+!!       rs4blah.fld01       (overwriting existing rs4blah.fld01)
+!!       rs4blah.fld02       (    "           "        "  .fld02)
+!!       blah.fld12
+!!       rs4blah.fld03       (   etc.  )
+!!       rs4blah.fld04
+!!       :
+!!       :
+!!       Other strategies are possible, according to taste.
+!!       Here is a data-intensive one:
+!!       MHD + double-precision restart, but single-precision std files
+!!       In this case, single-precision files are kept as the running
+!!       file sequence (i.e., for later post-processing) but dbl-prec.
+!!       is required for restart.  A total of 12 temporary restart files
+!!       must be saved:  (3 for velocity, 3 for B-field) x 2 for redundancy.
+!!       This is expressed, using hexadecimal notation (123456789abc...),
+!!       as prefix='rsc'.
+subroutine restart_nfld( nfld, prefix )
+  implicit none
+  character(3) :: prefix
+  character(16), save :: kst = '0123456789abcdef' 
+  character(1) ::  ks1(0:15),kin
+  equivalence (ks1,kst)
 
-    subroutine restart_nfld( nfld, prefix )
-    character(3) :: prefix
+  integer :: kfld, nfld, nfln
+  integer, external :: indx1, mod1
 
-!     Check for Restart option and return proper nfld value.
-!     Also, convenient spot to explain restart strategy.
+  if (indx1(prefix,'rs',2) == 1) then
+      read(prefix,3) kin
+      3 format(2x,a1)
+      do kfld=1,15
+          if (ks1(kfld) == kin) goto 10
+      enddo
+      10 if (kfld == 16) kfld=4 ! std. default
+      nfln = mod1(nfld,kfld) ! Restart A (1,2) and B (3,4)
+      write(6,*) nfln,nfld,kfld,' kfld'
+      nfld = nfln
+  endif
 
+  return
+end subroutine restart_nfld
 
-!     The approach is as follows:
-
-!         Prefix rs4 would indicate 4 files in the restart cycle.
-
-!         This would be normal usage for velocity only, with
-!         checkpoints taking place in synch with standard io.
-
-!         The resultant restart sequence might look like:
-
-!         blah.fld09           Step 0
-!         rs4blah.fld01             1
-!         rs4blah.fld02             2
-
-!         which implies that fld09 would be used as the i.c.
-!         in the restart, rs4blah.fld01 would overwrite the
-!         solution at Step 1, and rs4blah.fld02 would overwrite
-!         Step 2.   Net result is that Steps 0-2 of the restart
-!         session have solutions identical to those computed in
-!         the prior run.   (It's important that both runs use
-!         the same dt in this case.)
-
-
-!         Another equally possible restart sequence would be:
-
-
-!         blah.fld10           Step 0
-!         rs4blah.fld03             1
-!         rs4blah.fld04             2
-
-!         Why the 3 & 4 ?   If one were to use only 1 & 2, there
-!         is a risk that the system crashes while writing, say,
-!         rs4blah.fld01, in which case the restart is compromised --
-!         very frustrating at the end of a run that has been queued
-!         for a week.  By providing a toggled sequence in pairs such as
-
-!         (1,2),   (3,4),  (1,2), ...
-
-!         ensures that one always has at least one complete restart
-!         sequence.   In the example above, the following files would
-!         be written, in order:
-
-!         :
-!         :
-!         blah.fld09
-!         rs4blah.fld01
-!         rs4blah.fld02
-!         blah.fld10
-!         rs4blah.fld03
-!         rs4blah.fld04
-!         blah.fld11
-!         rs4blah.fld01       (overwriting existing rs4blah.fld01)
-!         rs4blah.fld02       (    "           "        "  .fld02)
-!         blah.fld12
-!         rs4blah.fld03       (   etc.  )
-!         rs4blah.fld04
-!         :
-!         :
-
-
-!         Other strategies are possible, according to taste.
-
-!         Here is a data-intensive one:
-
-!         MHD + double-precision restart, but single-precision std files
-
-!         In this case, single-precision files are kept as the running
-!         file sequence (i.e., for later post-processing) but dbl-prec.
-!         is required for restart.  A total of 12 temporary restart files
-!         must be saved:  (3 for velocity, 3 for B-field) x 2 for redundancy.
-
-!         This is expressed, using hexadecimal notation (123456789abc...),
-!         as prefix='rsc'.
-
-
-    character(16) :: kst
-    save         kst
-    data         kst / '0123456789abcdef' /
-    character(1) ::  ks1(0:15),kin
-    equivalence (ks1,kst)
-
-
-
-    if (indx1(prefix,'rs',2) == 1) then
-        read(prefix,3) kin
-        3 format(2x,a1)
-        do kfld=1,15
-            if (ks1(kfld) == kin) goto 10
-        enddo
-        10 if (kfld == 16) kfld=4 ! std. default
-        nfln = mod1(nfld,kfld) ! Restart A (1,2) and B (3,4)
-        write(6,*) nfln,nfld,kfld,' kfld'
-        nfld = nfln
-    endif
-
-    return
-    end subroutine restart_nfld
 !-----------------------------------------------------------------------
-    subroutine outpost(v1,v2,v3,vp,vt,name3)
+subroutine outpost(v1,v2,v3,vp,vt,name3)
+  use kinds, only : DP
+  use input, only : ifto
+  implicit none
 
-    use size_m
-    use input
+  real(DP) :: v1(1),v2(1),v3(1),vp(1),vt(1)
+  character(3) :: name3
 
-    real :: v1(1),v2(1),v3(1),vp(1),vt(1)
-    character(3) :: name3
+  integer :: itmp
+  itmp=0
+  if (ifto) itmp=1
+  call outpost2(v1,v2,v3,vp,vt,itmp,name3)
 
+  return
+end subroutine outpost
 
-    itmp=0
-    if (ifto) itmp=1
-    call outpost2(v1,v2,v3,vp,vt,itmp,name3)
-
-    return
-    end subroutine outpost
 !-----------------------------------------------------------------------
 subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
   use kinds, only : DP
@@ -1543,173 +1270,179 @@ subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
 
   return
 end subroutine outpost2
+
 !-----------------------------------------------------------------------
-    subroutine mfo_mdatav(u,v,w,nel)
+subroutine mfo_mdatav(u,v,w,nel)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, ndim, nelt, nid, lelt
+  use input, only : if3d
+  use restart, only : pid0, pid1
+  implicit none
 
-    use size_m
-    use input
-    use parallel
-    use restart
+  real(DP) :: u(lx1*ly1*lz1,1),v(lx1*ly1*lz1,1),w(lx1*ly1*lz1,1)
+  integer :: nel
 
-    real :: u(lx1*ly1*lz1,1),v(lx1*ly1*lz1,1),w(lx1*ly1*lz1,1)
+  real*4 :: buffer(1+6*lelt)
 
-    real*4 :: buffer(1+6*lelt)
+  integer :: e, inelp, mtype, k, idum, nout, j, ierr, leo, len, nxyz, n
+  real(DP), external :: vlmin, vlmax
 
-    integer :: e
+  call nekgsync() ! clear outstanding message queues.
 
-    call nekgsync() ! clear outstanding message queues.
-
-    nxyz = nx1*ny1*nz1
-    n    = 2*ndim
-    len  = 4 + 4*(n*lelt)   ! recv buffer size
-    leo  = 4 + 4*(n*nelt)
-    ierr = 0
+  nxyz = nx1*ny1*nz1
+  n    = 2*ndim
+  len  = 4 + 4*(n*lelt)   ! recv buffer size
+  leo  = 4 + 4*(n*nelt)
+  ierr = 0
 
 ! Am I an I/O node?
-    if (nid == pid0) then
-        j = 1
-        do e=1,nel
-            buffer(j+0) = vlmin(u(1,e),nxyz)
-            buffer(j+1) = vlmax(u(1,e),nxyz)
-            buffer(j+2) = vlmin(v(1,e),nxyz)
-            buffer(j+3) = vlmax(v(1,e),nxyz)
-            j = j + 4
-            if(if3d) then
-                buffer(j+0) = vlmin(w(1,e),nxyz)
-                buffer(j+1) = vlmax(w(1,e),nxyz)
-                j = j + 2
-            endif
-        enddo
+  if (nid == pid0) then
+      j = 1
+      do e=1,nel
+          buffer(j+0) = vlmin(u(1,e),nxyz)
+          buffer(j+1) = vlmax(u(1,e),nxyz)
+          buffer(j+2) = vlmin(v(1,e),nxyz)
+          buffer(j+3) = vlmax(v(1,e),nxyz)
+          j = j + 4
+          if(if3d) then
+              buffer(j+0) = vlmin(w(1,e),nxyz)
+              buffer(j+1) = vlmax(w(1,e),nxyz)
+              j = j + 2
+          endif
+      enddo
 
-    ! write out my data
-        nout = n*nel
-        if(ierr == 0) then
+  ! write out my data
+      nout = n*nel
+      if(ierr == 0) then
 #ifdef MPIIO 
-        call byte_write_mpi(buffer,nout,-1,ifh_mbyte,ierr)
+      call byte_write_mpi(buffer,nout,-1,ifh_mbyte,ierr)
 #else 
-        call byte_write(buffer,nout,ierr)
+      call byte_write(buffer,nout,ierr)
 #endif
-        endif
+      endif
 
-    ! write out the data of my childs
-        idum  = 1
-        do k=pid0+1,pid1
-            mtype = k
-            call csend(mtype,idum,4,k,0)           ! handshake
-            call crecv(mtype,buffer,len)
-            inelp = buffer(1)
-            nout  = n*inelp
-            if(ierr == 0) then
+  ! write out the data of my childs
+      idum  = 1
+      do k=pid0+1,pid1
+          mtype = k
+          call csend(mtype,idum,4,k,0)           ! handshake
+          call crecv(mtype,buffer,len)
+          inelp = buffer(1)
+          nout  = n*inelp
+          if(ierr == 0) then
 #ifdef MPIIO
-            call byte_write_mpi(buffer(2),nout,-1,ifh_mbyte,ierr)
+          call byte_write_mpi(buffer(2),nout,-1,ifh_mbyte,ierr)
 #else
-            call byte_write(buffer(2),nout,ierr)
+          call byte_write(buffer(2),nout,ierr)
 #endif
-            endif
-        enddo
-    else
-        j = 1
-        buffer(j) = nel
-        j = j + 1
-        do e=1,nel
-            buffer(j+0) = vlmin(u(1,e),nxyz)
-            buffer(j+1) = vlmax(u(1,e),nxyz)
-            buffer(j+2) = vlmin(v(1,e),nxyz)
-            buffer(j+3) = vlmax(v(1,e),nxyz)
-            j = j + 4
-            if(n == 6) then
-                buffer(j+0) = vlmin(w(1,e),nxyz)
-                buffer(j+1) = vlmax(w(1,e),nxyz)
-                j = j + 2
-            endif
-        enddo
+          endif
+      enddo
+  else
+      j = 1
+      buffer(j) = nel
+      j = j + 1
+      do e=1,nel
+          buffer(j+0) = vlmin(u(1,e),nxyz)
+          buffer(j+1) = vlmax(u(1,e),nxyz)
+          buffer(j+2) = vlmin(v(1,e),nxyz)
+          buffer(j+3) = vlmax(v(1,e),nxyz)
+          j = j + 4
+          if(n == 6) then
+              buffer(j+0) = vlmin(w(1,e),nxyz)
+              buffer(j+1) = vlmax(w(1,e),nxyz)
+              j = j + 2
+          endif
+      enddo
 
-    ! send my data to my pararent I/O node
-        mtype = nid
-        call crecv(mtype,idum,4)                ! hand-shake
-        call csend(mtype,buffer,leo,pid0,0)     ! u4 :=: u8
-    endif
+  ! send my data to my pararent I/O node
+      mtype = nid
+      call crecv(mtype,idum,4)                ! hand-shake
+      call csend(mtype,buffer,leo,pid0,0)     ! u4 :=: u8
+  endif
 
-    call err_chk(ierr,'Error writing data to .f00 in mfo_mdatav. $')
+  call err_chk(ierr,'Error writing data to .f00 in mfo_mdatav. $')
 
-    return
-    end subroutine mfo_mdatav
+  return
+end subroutine mfo_mdatav
+
 !-----------------------------------------------------------------------
-    subroutine mfo_mdatas(u,nel)
+subroutine mfo_mdatas(u,nel)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nelt, nid
+  use restart, only : pid0, pid1
+  implicit none
 
-    use size_m
-    use input
-    use parallel
-    use restart
+  real(DP) :: u(lx1*ly1*lz1,1)
+  integer :: nel
 
-    real :: u(lx1*ly1*lz1,1)
+  real*4 :: buffer(1+2*lelt)
 
-    real*4 :: buffer(1+2*lelt)
+  integer :: e, inelp, mtype, k, idum, nout, j, ierr, leo, len, n, nxyz
+  real(DP), external :: vlmin, vlmax
 
-    integer :: e
+  call nekgsync() ! clear outstanding message queues.
 
-    call nekgsync() ! clear outstanding message queues.
-
-    nxyz = nx1*ny1*nz1
-    n    = 2
-    len  = 4 + 4*(n*lelt)    ! recv buffer size
-    leo  = 4 + 4*(n*nelt)
-    ierr = 0
+  nxyz = nx1*ny1*nz1
+  n    = 2
+  len  = 4 + 4*(n*lelt)    ! recv buffer size
+  leo  = 4 + 4*(n*nelt)
+  ierr = 0
 
 ! Am I an I/O node?
-    if (nid == pid0) then
-        j = 1
-        do e=1,nel
-            buffer(j+0) = vlmin(u(1,e),nxyz)
-            buffer(j+1) = vlmax(u(1,e),nxyz)
-            j = j + 2
-        enddo
+  if (nid == pid0) then
+      j = 1
+      do e=1,nel
+          buffer(j+0) = vlmin(u(1,e),nxyz)
+          buffer(j+1) = vlmax(u(1,e),nxyz)
+          j = j + 2
+      enddo
 
-    ! write out my data
-        nout = n*nel
-        if(ierr == 0) then
+  ! write out my data
+      nout = n*nel
+      if(ierr == 0) then
 #ifdef MPIIO
-        call byte_write_mpi(buffer,nout,-1,ifh_mbyte,ierr)
+      call byte_write_mpi(buffer,nout,-1,ifh_mbyte,ierr)
 #else
-        call byte_write(buffer,nout,ierr)
+      call byte_write(buffer,nout,ierr)
 #endif
-        endif
-    ! write out the data of my childs
-        idum  = 1
-        do k=pid0+1,pid1
-            mtype = k
-            call csend(mtype,idum,4,k,0)           ! handshake
-            call crecv(mtype,buffer,len)
-            inelp = buffer(1)
-            nout  = n*inelp
-            if(ierr == 0) then
+      endif
+  ! write out the data of my childs
+      idum  = 1
+      do k=pid0+1,pid1
+          mtype = k
+          call csend(mtype,idum,4,k,0)           ! handshake
+          call crecv(mtype,buffer,len)
+          inelp = buffer(1)
+          nout  = n*inelp
+          if(ierr == 0) then
 #ifdef MPIIO
-            call byte_write_mpi(buffer(2),nout,-1,ifh_mbyte,ierr)
+          call byte_write_mpi(buffer(2),nout,-1,ifh_mbyte,ierr)
 #else
-            call byte_write(buffer(2),nout,ierr)
+          call byte_write(buffer(2),nout,ierr)
 #endif
-            endif
-        enddo
-    else
-        j = 1
-        buffer(j) = nel
-        j = j + 1
-        do e=1,nel
-            buffer(j+0) = vlmin(u(1,e),nxyz)
-            buffer(j+1) = vlmax(u(1,e),nxyz)
-            j = j + 2
-        enddo
+          endif
+      enddo
+  else
+      j = 1
+      buffer(j) = nel
+      j = j + 1
+      do e=1,nel
+          buffer(j+0) = vlmin(u(1,e),nxyz)
+          buffer(j+1) = vlmax(u(1,e),nxyz)
+          j = j + 2
+      enddo
 
-    ! send my data to my pararent I/O node
-        mtype = nid
-        call crecv(mtype,idum,4)                ! hand-shake
-        call csend(mtype,buffer,leo,pid0,0)     ! u4 :=: u8
-    endif
+  ! send my data to my pararent I/O node
+      mtype = nid
+      call crecv(mtype,idum,4)                ! hand-shake
+      call csend(mtype,buffer,leo,pid0,0)     ! u4 :=: u8
+  endif
 
-    call err_chk(ierr,'Error writing data to .f00 in mfo_mdatas. $')
+  call err_chk(ierr,'Error writing data to .f00 in mfo_mdatas. $')
 
-    return
-    end subroutine mfo_mdatas
+  return
+end subroutine mfo_mdatas
+
 !-----------------------------------------------------------------------
 !> \brief output a scalar field
 subroutine mfo_outs(u,nel,mx,my,mz)
@@ -1798,6 +1531,7 @@ subroutine mfo_outs(u,nel,mx,my,mz)
 
   return
 end subroutine mfo_outs
+
 !-----------------------------------------------------------------------
 !> \brief output a vector field
 subroutine mfo_outv(u,v,w,nel,mx,my,mz) 
@@ -1923,6 +1657,7 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
   call err_chk(ierr,'Error writing data to .f00 in mfo_outv. $')
   return
 end subroutine mfo_outv
+
 !-----------------------------------------------------------------------
 !> \brief write hdr, byte key, els.
 subroutine mfo_write_hdr          
@@ -2063,4 +1798,5 @@ subroutine mfo_write_hdr
   call err_chk(ierr,'Error writing global nums in mfo_write_hdr$')
   return
 end subroutine mfo_write_hdr
+
 !-----------------------------------------------------------------------

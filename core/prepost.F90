@@ -729,6 +729,7 @@ end function i_find_prefix
 !> \brief mult-file output
 subroutine mfo_outfld(prefix, pm1) 
   use kinds, only : DP
+  use ctimer, only : dnekclock_sync
   use size_m, only : lx1, ly1, lz1, lelv, lelt, ldimt, lxo
   use size_m, only : nx1, ny1, nz1, nelt, nid, ndim
   use restart, only : nxo, nyo, nzo, nrg, iheadersize, pid0, nelb, wdsizo
@@ -748,7 +749,7 @@ subroutine mfo_outfld(prefix, pm1)
   logical :: ifxyo_s
 
   real(DP) :: tiostart, dnbyte, tio
-  real(DP), external :: dnekclock_sync, glsum
+  real(DP), external :: glsum
   integer :: nout, ierr, ioflds, k
 
   tiostart=dnekclock_sync()
@@ -1007,6 +1008,7 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   use kinds, only : DP
   use input, only : ifreguo, ifxyo_, session
   use restart, only : max_rst, nfileo, ifdiro, fid0
+  use string, only : ltrunc
   implicit none
 
   character(1) :: prefix(3)
@@ -1026,7 +1028,7 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   data    nopen  / 198*0 /
 
   integer :: iprefix, nfld, k, len, ndigit
-  integer, external :: i_find_prefix, mod1, ltrunc
+  integer, external :: i_find_prefix, mod1
   real(DP) :: rfileo
 
   call blank(fname,132)      !  zero out for byte_open()
@@ -1153,6 +1155,7 @@ end subroutine mfo_open_files
 !!       This is expressed, using hexadecimal notation (123456789abc...),
 !!       as prefix='rsc'.
 subroutine restart_nfld( nfld, prefix )
+  use string, only : ltrunc, indx1
   implicit none
   character(3) :: prefix
   character(16), save :: kst = '0123456789abcdef' 
@@ -1160,7 +1163,7 @@ subroutine restart_nfld( nfld, prefix )
   equivalence (ks1,kst)
 
   integer :: kfld, nfld, nfln
-  integer, external :: indx1, mod1
+  integer, external :: mod1
 
   if (indx1(prefix,'rs',2) == 1) then
       read(prefix,3) kin

@@ -636,6 +636,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   use size_m, only : lx1, ly1, lz1, lelv, ldim, nid, nelt, nelv, ndim
   use input, only : reafle
   use parallel, only : np, gllnid, isize, gllel, nelgt, nelgv, cr_h
+  use string, only : ltrunc
   implicit none
 
   logical :: ifgfdm
@@ -650,7 +651,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
 
   integer :: e,eg,eg0,eg1, iok, lfname, neli, nnzi, npass, len, msg_id
   integer :: ipass, m, k, ntuple, lng, i, key, nkey, iflag, nv, mid, nlv, nel
-  integer, external :: ltrunc, iglmax, irecv
+  integer, external :: iglmax, irecv
 
   character(132) :: mapfle
   character(1) ::   mapfle1(132)

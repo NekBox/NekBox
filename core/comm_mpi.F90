@@ -343,56 +343,58 @@
 !-----------------------------------------------------------------------
 subroutine exitti(stringi,idata)
   use size_m, only : nid
+  use string, only : indx1
   implicit none
 
   integer :: idata
 
-  character(1) :: stringi(132)
-  character(1) :: stringo(132)
+  character(132) :: stringi
+  character(132) :: stringo
   character(11) :: s11
   integer :: len, k
-  integer, external :: indx1
 
   call blank(stringo,132)
   call chcopy(stringo,stringi,132)
   len = indx1(stringo,'$',1)
   write(s11,11) idata
   11 format(1x,i10)
-  call chcopy(stringo(len),s11,11)
+  call chcopy(stringo(len:len),s11,11)
 
-  if (nid == 0) write(6,1) (stringo(k),k=1,len+10)
+  if (nid == 0) write(6,1) (stringo(k:k),k=1,len+10)
   1 format('EXIT: ',132a1)
 
   call exitt
 
   return
 end subroutine exitti
+
 !-----------------------------------------------------------------------
-subroutine err_chk(ierr,string)
+subroutine err_chk(ierr,istring)
   use size_m, only : nid
+  use string, only : indx1
   implicit none
 
   integer :: ierr
 
-  character(1) :: string(132)
-  character(1) :: ostring(132)
+  character(132) :: istring
+  character(132) :: ostring
   character(10) :: s10
 
   integer :: len, k
-  integer, external :: iglsum, indx1
+  integer, external :: iglsum
 
   ierr = iglsum(ierr,1)
   if(ierr == 0) return
 
-  len = indx1(string,'$',1)
+  len = indx1(istring,'$',1)
   call blank(ostring,132)
   write(s10,11) ierr
   11 format(1x,' ierr=',i3)
 
-  call chcopy(ostring,string,len-1)
-  call chcopy(ostring(len),s10,10)
+  call chcopy(ostring,istring,len-1)
+  call chcopy(ostring(len:len),s10,10)
 
-  if (nid == 0) write(6,1) (ostring(k),k=1,len+10)
+  if (nid == 0) write(6,1) (ostring(k:k),k=1,len+10)
   1 format('ERROR: ',132a1)
 
   call exitt

@@ -335,7 +335,7 @@ subroutine generate_semhat(a,b,c,d,z,dgll,jgll,bgl,zgl,dgl,jgl,n,w)
   real(DP) :: bgl(1:n-1),zgl(1:n-1)
   real(DP) :: dgl(1:n-1,0:n),jgl(1:n-1,0:n)
 
-  real(DP) :: w(0:1)
+  real(DP) :: w(0:(n+1)*2)
 
   integer :: n, np, nm, n2
   integer :: i, j, k

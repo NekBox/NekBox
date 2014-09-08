@@ -10,6 +10,7 @@ subroutine makeq_aux
 
   if(ifcvode .AND. ifield == 2) call setprop
 
+  ifturb = .false.
 #if 0
   call whatfld (ifturb)
   if (ifturb) call maketq ! zero bq

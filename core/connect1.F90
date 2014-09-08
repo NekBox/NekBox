@@ -292,6 +292,7 @@ subroutine setedge()
   integer :: i3d, i, i3, iz, i2, iy, i1, ix
   integer :: j, j1, j2, jskip2
   integer :: jf2, js2, jskip1, jf1, js1, iface, image, ii
+  integer :: iedgef_flat(48)
   NXL=3
   NYL=3
   NZL=1+2*(NDIM-2)
@@ -367,10 +368,7 @@ subroutine setedge()
   !        Pack 3-D edge numbering:
   
   !        Fill temporary array with local index numbers:
-  
-      DO 50 IX=1,NXYZ
-          ITMP(IX,1,1)=IX
-      50 END DO
+      itmp = reshape( (/(i,i=1,nxyz)/), (/nxl, nyl, nzl/)) 
   
   !        Two sets are required, the base cube and the image cube
   !        which is being summed with it.
@@ -412,7 +410,7 @@ subroutine setedge()
                   J2=JS2
                   DO 100 J1=JS1,JF1-JSKIP1,JSKIP1
                       J=J+1
-                      IEDGEF(J,1,IFACE,IMAGE)=ITMP(J1,J2,1)
+                      IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
                   100 END DO
               
               !           Load edge 2:
@@ -421,7 +419,7 @@ subroutine setedge()
                   J1=JF1
                   DO 200 J2=JS2,JF2-JSKIP2,JSKIP2
                       J=J+1
-                      IEDGEF(J,2,IFACE,IMAGE)=ITMP(J1,J2,1)
+                      IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
                   200 END DO
               
               
@@ -431,7 +429,7 @@ subroutine setedge()
                   J2=JF2
                   DO 300 J1=JF1,JS1+JSKIP1,-JSKIP1
                       J=J+1
-                      IEDGEF(J,3,IFACE,IMAGE)=ITMP(J1,J2,1)
+                      IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
                   300 END DO
               
               !           Load edge 4:
@@ -440,9 +438,11 @@ subroutine setedge()
                   J1=JS1
                   DO 400 J2=JF2,JS2+JSKIP2,-JSKIP2
                       J=J+1
-                      IEDGEF(J,4,IFACE,IMAGE)=ITMP(J1,J2,1)
+                      IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
                   400 END DO
-              
+              ! insert
+              iedgef(:,:,:,image) = reshape(iedgef_flat, (/2,4,6/)) 
+
               ELSE
               
               !           Reverse ordering:
@@ -465,7 +465,7 @@ subroutine setedge()
                   J1=JS1
                   DO 105 J2=JS2,JF2-JSKIP2,JSKIP2
                       J=J+1
-                      IEDGEF(J,1,IFACE,IMAGE)=ITMP(J1,J2,1)
+                      IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
                   105 END DO
               
               !           Load edge 2:
@@ -474,7 +474,7 @@ subroutine setedge()
                   J2=JF2
                   DO 205 J1=JS1,JF1-JSKIP1,JSKIP1
                       J=J+1
-                      IEDGEF(J,2,IFACE,IMAGE)=ITMP(J1,J2,1)
+                      IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
                   205 END DO
               
               !           Load edge 3:
@@ -483,7 +483,7 @@ subroutine setedge()
                   J1=JF1
                   DO 305 J2=JF2,JS2+JSKIP2,-JSKIP2
                       J=J+1
-                      IEDGEF(J,3,IFACE,IMAGE)=ITMP(J1,J2,1)
+                      IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
                   305 END DO
               
               !           Load edge 4:
@@ -492,9 +492,11 @@ subroutine setedge()
                   J2=JS2
                   DO 405 J1=JF1,JS1+JSKIP1,-JSKIP1
                       J=J+1
-                      IEDGEF(J,4,IFACE,IMAGE)=ITMP(J1,J2,1)
+                      IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
                   405 END DO
               ENDIF
+              ! insert
+              iedgef(:,:,:,image) = reshape(iedgef_flat, (/2,4,6/)) 
           
           500 END DO
       1000 END DO
@@ -746,13 +748,10 @@ subroutine genxyzl()
   DO 5000 IE=1,NELT
   
       NDIM2 = 2**NDIM
-      DO 50 IX=1,NDIM2
-          I=INDX(IX)
-          XCB(IX,1,1)=XC(I,IE)
-          YCB(IX,1,1)=YC(I,IE)
-          ZCB(IX,1,1)=ZC(I,IE)
-      50 END DO
-  
+      xcb = reshape(xc(indx(1:ndim2), ie), (/2,2,2/))
+      ycb = reshape(yc(indx(1:ndim2), ie), (/2,2,2/))
+      zcb = reshape(zc(indx(1:ndim2), ie), (/2,2,2/))
+ 
   !        Map R-S-T space into physical X-Y-Z space.
   
       DO 100 IZT=1,ndim-1

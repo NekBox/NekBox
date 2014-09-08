@@ -489,7 +489,7 @@ subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
   kerr = 0
   DO 500 ie=1,NELT
-      CALL CHKJAC(JACM1(1,1,1,ie),NXYZ1,ie,xm1,ym1,zm1,ndim,ierr)
+      CALL CHKJAC(JACM1(1,1,1,ie),NXYZ1,ie,xm1,ym1,zm1,ierr)
       if (ierr /= 0) kerr = kerr+1
   500 END DO
   kerr = iglsum(kerr,1)
@@ -801,7 +801,10 @@ subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
 
   DO 100 IEL=1,NELT
     
-!max        IF (IFAXIS) CALL SETAXDY ( IFRZER(IEL) )
+      IF (IFAXIS) then
+        write(*,*) "Oops: ifaxis"
+        !CALL SETAXDY ( IFRZER(IEL) )
+      endif
     
       CALL MXM (DXM1,NX1,XM1(1,1,1,IEL),NX1,XRM1(1,1,1,IEL),NYZ1)
       CALL MXM (DXM1,NX1,YM1(1,1,1,IEL),NX1,YRM1(1,1,1,IEL),NYZ1)
@@ -829,13 +832,13 @@ subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
 end subroutine xyzrst
 
 !> \brief Check the array JAC for a change in sign.
-subroutine chkjac(jac,n,iel,X,Y,Z,ND,IERR)
+subroutine chkjac(jac,n,iel,X,Y,Z,IERR)
   use kinds, only : DP
   use size_m
   use parallel
   implicit none
 
-  integer :: n, iel, nd, ierr
+  integer :: n, iel, ierr
   REAL(DP) :: JAC(N),x(1),y(1),z(1)
   real(DP) :: sign
   integer :: i, ieg

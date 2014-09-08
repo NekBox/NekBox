@@ -890,7 +890,7 @@ end function vlsc32
 
 !=======================================================================
 subroutine set_fdm_prec_h1b(d,h1,h2,nel)
-  use kinds, only : DP
+  use kinds, only : DP, DP_eps
   use size_m, only : nx1, ny1, nz1
   use fdmh1, only : ktype, elsize, dd, ifbhalf, kfldfdm
   use geom, only : ym1
@@ -916,9 +916,9 @@ subroutine set_fdm_prec_h1b(d,h1,h2,nel)
           k2 = ktype(ie,2,kfldfdm)
           k3 = ktype(ie,3,kfldfdm)
           vol = elsize(1,ie)*elsize(2,ie)*elsize(3,ie)
-          vl1 = elsize(2,ie)*elsize(3,ie)/elsize(1,ie)
-          vl2 = elsize(1,ie)*elsize(3,ie)/elsize(2,ie)
-          vl3 = elsize(1,ie)*elsize(2,ie)/elsize(3,ie)
+          vl1 = elsize(2,ie)*elsize(3,ie)/(elsize(1,ie)+DP_eps)
+          vl2 = elsize(1,ie)*elsize(3,ie)/(elsize(2,ie)+DP_eps)
+          vl3 = elsize(1,ie)*elsize(2,ie)/(elsize(3,ie)+DP_eps)
           do i3=1,nz1
               do i2=1,ny1
                   do i1=1,nx1

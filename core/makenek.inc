@@ -390,6 +390,7 @@ echo "generating makefile ..."
 rm -rf makefile 2>/dev/null
 
 sed -e "s:^F77[ ]*=.*:F77\:=$F77:" \
+-e "s:^CHECKS[ ]*=.*:CHECKS\:=$CHECKS:" \
 -e "s:^CC[ ]*=.*:CC\:=$CC:" \
 -e "s:^G[ ]*=.*:G\:=$G:" \
 -e "s:^OPT_FLAGS[ ]*=.*:OPT_FLAGS\:=$OPT_FLAGS:" \

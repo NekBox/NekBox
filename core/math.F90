@@ -709,20 +709,6 @@
     return
     end subroutine addtnsr
 
-    function ltrunc(string,l)
-    CHARACTER(1) :: STRING(L)
-    CHARACTER(1) ::   BLNK
-    DATA BLNK/' '/
-
-    DO 100 I=L,1,-1
-        L1=I
-        IF (STRING(I) /= BLNK) GOTO 200
-    100 END DO
-    L1=0
-    200 CONTINUE
-    LTRUNC=L1
-    return
-    end function ltrunc
 !-----------------------------------------------------------------------
     function mod1(i,n)
 

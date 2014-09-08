@@ -376,6 +376,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, mxprev
   use input, only : ifflow, param
+  use string, only : capit
   use tstep, only : ifield, nelfld, istep
   implicit none
 

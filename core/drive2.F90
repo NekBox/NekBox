@@ -319,15 +319,15 @@ subroutine echopar
   use kinds, only : DP
   use size_m, only : nid, ndim, ldim
   use input, only : reafle, vnekton, nktonv, param
+  use string, only : ltrunc
   implicit none
 
-  CHARACTER(132) :: STRING
-  CHARACTER(1) ::  STRING1(132)
-  EQUIVALENCE (STRING,STRING1)
+  CHARACTER(132) :: tmp_string
+  CHARACTER(1) ::  tmp_string1(132)
+  EQUIVALENCE (tmp_string,tmp_string1)
 
   real(DP) :: vnekmin
   integer :: ls, nparam, j, i
-  integer, external :: ltrunc
 
   IF (nid /= 0) RETURN
 
@@ -356,17 +356,17 @@ subroutine echopar
       CALL exitt
   ENDIF
 
-  CALL BLANK(STRING,132)
-  CALL CHCOPY(STRING,REAFLE,132)
-  Ls=LTRUNC(STRING,132)
+  CALL BLANK(tmp_string,132)
+  CALL CHCOPY(tmp_string,REAFLE,132)
+  Ls=LTRUNC(tmp_string,132)
   READ(9,*,ERR=400) NPARAM
-  WRITE(6,82) NPARAM,(STRING1(j),j=1,Ls)
+  WRITE(6,82) NPARAM,(tmp_string1(j),j=1,Ls)
 
   DO 20 I=1,NPARAM
-      CALL BLANK(STRING,132)
-      READ(9,80,ERR=400) STRING
-      Ls=LTRUNC(STRING,132)
-      IF (PARAM(i) /= 0.0) WRITE(6,81) I,(STRING1(j),j=1,Ls)
+      CALL BLANK(tmp_string,132)
+      READ(9,80,ERR=400) tmp_string
+      Ls=LTRUNC(tmp_string,132)
+      IF (PARAM(i) /= 0.0) WRITE(6,81) I,(tmp_string1(j),j=1,Ls)
   20 END DO
   80 FORMAT(A132)
   81 FORMAT(I4,3X,132A1)
@@ -487,12 +487,12 @@ subroutine files
   use input, only : session, path
   use input, only : reafle, re2fle, fldfle, hisfle, schfle
   use input, only : dmpfle, orefle, nrefle
+  use string, only : ltrunc, indx1
   implicit none
 
-  integer, external :: ltrunc, indx1
   integer :: ls, lpp, lsp, l1, ln, len
 
-  CHARACTER(132) :: NAME
+  CHARACTER(132) :: NAME, slash
   CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
 !   EQUIVALENCE  (SESSION,SESS1)
 !   EQUIVALENCE  (PATH,PATH1)
@@ -508,7 +508,7 @@ subroutine files
   DATA HIS4,SCH4      /'.his','.sch'/
   DATA ORE4,NRE4      /'.ore','.nre'/
   DATA RE24           /'.re2'       /
-  CHARACTER(78) ::  STRING
+  CHARACTER(78) ::  tmp_string
 
 !    Find out the session name:
 
@@ -530,10 +530,11 @@ subroutine files
   sess1 = transfer(session, sess1)
   path1 = transfer(path, path1)
   nam1 = transfer(name, nam1)
+  slash = '/'
 
   len = ltrunc(path,132)
-  if(indx1(path1(len),'/',1) < 1) then
-      call chcopy(path1(len+1),'/',1)
+  if(indx1(path1(len),slash,1) < 1) then
+      call chcopy(path1(len+1),slash,1)
   endif
 
 !     call bcast(SESSION,132*CSIZE)
@@ -599,8 +600,8 @@ subroutine files
 !    Write the name of the .rea file to the logfile.
 
   IF (NID == 0) THEN
-      CALL CHCOPY(STRING,REAFLE,78)
-      WRITE(6,1000) STRING
+      CALL CHCOPY(tmp_string,REAFLE,78)
+      WRITE(6,1000) tmp_string
       WRITE(6,1001)
       1000 FORMAT(//,2X,'Beginning session:',/,2X,A78)
       1001 FORMAT(/,' ')
@@ -1238,13 +1239,13 @@ end subroutine runstat
 subroutine pprint_all(s,n_in,io)
   use size_m, only : nid
   use parallel, only : np
+  use string, only : ltrunc
   implicit none
 
   integer, intent(in) :: n_in, io
   character(1), intent(in) :: s(n_in)
   character(1) :: w(132)
   integer :: n, mtag, m, i, k, l
-  integer, external :: ltrunc
 
   n = min(132,n_in)
 

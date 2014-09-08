@@ -39,7 +39,7 @@ kinds_mod.o ctimer_mod.o size_mod.o dealias_mod.o domain_mod.o dxyz_mod.o \
 eigen_mod.o esolv_mod.o fdmh1_mod.o geom_mod.o gmres_mod.o hsmg_mod.o input_mod.o \
 ixyz_mod.o mass_mod.o mesh_mod.o mvgeom_mod.o nekuse_mod.o parallel_mod.o \
 opctr_mod.o restart_mod.o scratch_mod.o semhat_mod.o soln_mod.o steady_mod.o  \
-topol_mod.o tstep_mod.o turbo_mod.o wz_mod.o wzf_mod.o zper_mod.o \
+string_mod.o topol_mod.o tstep_mod.o turbo_mod.o wz_mod.o wzf_mod.o zper_mod.o \
 drive.o drive1.o drive2.o \
 plan4.o bdry.o coef.o conduct.o connect1.o connect2.o \
 dssum.o eigsolv.o genxyz.o  \
@@ -210,6 +210,7 @@ $(OBJDIR)/scratch_mod.o	:$S/scratch_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/semhat_mod.o	:$S/semhat_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/soln_mod.o	:$S/soln_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/steady_mod.o	:$S/steady_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/string_mod.o	:$S/string_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/topol_mod.o	:$S/topol_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/tstep_mod.o	:$S/tstep_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/turbo_mod.o	:$S/turbo_mod.F90;		$(F90) -c $(FL2) $< -o $@
@@ -218,7 +219,7 @@ $(OBJDIR)/wzf_mod.o	:$S/wzf_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/zper_mod.o	:$S/zper_mod.F90;		$(F90) -c $(FL2) $< -o $@
 
 $(OBJDIR)/drive.o	:$S/drive.F90;			$(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/drive2.o	:$S/drive2.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/prepost.o	:$S/prepost.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/postpro.o	:$S/postpro.F90;		$(F90) -c $(FL2) $< -o $@

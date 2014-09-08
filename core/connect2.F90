@@ -7,11 +7,12 @@ subroutine readat()
   use input, only : matids, matindx, imatie, ifchar, numsts
   use input, only : numbcs, ibcsts, bcf, bctyps
   use parallel, only : nelgv, nelgt, isize, np
+  use string, only : cscan
   use zper, only : ifgtp
   implicit none
    
   logical :: ifre2
-  character(132) :: string
+  character(132) :: tmp_string
   real(DP) :: etime_tmp
   integer :: idum(3*numsts+3)
 
@@ -167,8 +168,8 @@ subroutine readat()
               if (mod(nid,mread) == iread) then
                   if (nid /= 0) then
                       open(UNIT=9,FILE=REAFLE,STATUS='OLD')
-                      call cscan(string,'MESH DATA',9)
-                      read(9,*) string
+                      call cscan(tmp_string,'MESH DATA',9)
+                      read(9,*) tmp_string
                   endif
                   if (ifgtp) then
 !max                        call genbox
@@ -230,12 +231,12 @@ subroutine rdparam
   use input, only : ifmvbd, ifchar, if3d, ifsplit, ifldmhd
   use input, only : ifmoab, ifcoup, ifkeps, ifanls, ifmodel, ifstrs, ifaziv
   use parallel, only : isize, wdsize, csize
+  use string, only : indx1, capit
   use zper, only : nelx, nely, nelz, ifzper, ifgfdm
   implicit none
 
-  character(132) :: string(100)
+  character(132) :: tmp_string(100)
   integer :: nparam, i, npscl1, npscl2, nskip, nlogic, ii, n_o, ktest
-  integer, external :: indx1
 
   VNEKTON = 3 ! dummy not really used anymore
         
@@ -353,75 +354,75 @@ subroutine rdparam
       call exitt
   ENDIF
 
-  if(nid == 0) READ(9,'(A132)',ERR=500) (string(i),i=1,NLOGIC)
-  call bcast(string,100*132*CSIZE)
+  if(nid == 0) READ(9,'(A132)',ERR=500) (tmp_string(i),i=1,NLOGIC)
+  call bcast(tmp_string,100*132*CSIZE)
 
   do i = 1,NLOGIC
-      call capit(string(i),132)
-      if (indx1(string(i),'IFTMSH' ,6) > 0) then
-          read(string(i),*,ERR=490) (IFTMSH(II),II=0,NPSCL2)
-      elseif (indx1(string(i),'IFNAV'  ,5) > 0 .AND. &
-          indx1(string(i),'IFADVC' ,6) > 0) then
-          read(string(i),*,ERR=490) (IFADVC(II),II=1,NPSCL2)
-      elseif (indx1(string(i),'IFADVC' ,6) > 0) then
-          read(string(i),*,ERR=490) (IFADVC(II),II=1,NPSCL2)
-      elseif (indx1(string(i),'IFFLOW' ,6) > 0) then
-          read(string(i),*) IFFLOW
-      elseif (indx1(string(i),'IFHEAT' ,6) > 0) then
-          read(string(i),*) IFHEAT
-      elseif (indx1(string(i),'IFTRAN' ,6) > 0) then
-          read(string(i),*) IFTRAN
-      elseif (indx1(string(i),'IFAXIS' ,6) > 0) then
-          read(string(i),*) IFAXIS
-      elseif (indx1(string(i),'IFAZIV' ,6) > 0) then
-          read(string(i),*) IFAZIV
-      elseif (indx1(string(i),'IFSTRS' ,6) > 0) then
-          read(string(i),*) IFSTRS
-      elseif (indx1(string(i),'IFLO'   ,4) > 0) then
-          read(string(i),*) IFLOMACH
-      elseif (indx1(string(i),'IFMGRID',7) > 0) then
-      !             read(string(i),*) IFMGRID
-      elseif (indx1(string(i),'IFKEPS' ,6) > 0) then
-          read(string(i),*) IFKEPS
-      elseif (indx1(string(i),'IFMODEL',7) > 0) then
-          read(string(i),*) IFMODEL
-      elseif (indx1(string(i),'IFMVBD' ,6) > 0) then
-          read(string(i),*) IFMVBD
-      elseif (indx1(string(i),'IFCHAR' ,6) > 0) then
-          read(string(i),*) IFCHAR
-      elseif (indx1(string(i),'IFANLS' ,6) > 0) then
-          read(string(i),*) IFANLS
-      elseif (indx1(string(i),'IFMOAB' ,6) > 0) then
-          read(string(i),*) IFMOAB
-      elseif (indx1(string(i),'IFCOUP' ,6) > 0) then
-          read(string(i),*) IFCOUP
-      elseif (indx1(string(i),'IFVCOUP' ,7) > 0) then
-          read(string(i),*) IFVCOUP
-      elseif (indx1(string(i),'IFMHD'  ,5) > 0) then
-          read(string(i),*) IFMHD
-      elseif (indx1(string(i),'IFCONS' ,6) > 0) then
-          read(string(i),*) IFCONS
-      elseif (indx1(string(i),'IFUSERVP',8) > 0) then
-          read(string(i),*) IFUSERVP
-      elseif (indx1(string(i),'IFUSERMV',8) > 0) then
-          read(string(i),*) IFUSERMV
-      elseif (indx1(string(i),'IFCYCLIC',8) > 0) then
-          read(string(i),*) IFCYCLIC
-      elseif (indx1(string(i),'IFPERT'  ,6) > 0) then
-          read(string(i),*) IFPERT
-      elseif (indx1(string(i),'IFBASE'  ,6) > 0) then
-          read(string(i),*) IFBASE
-      elseif (indx1(string(i),'IFSYNC'  ,6) > 0) then
-          read(string(i),*) IFSYNC
-      elseif (indx1(string(i),'IFEXPLVIS',9) > 0) then
-          read(string(i),*) IFEXPLVIS
-      elseif (indx1(string(i),'IFSCHCLOB',9) > 0) then
-          read(string(i),*) IFSCHCLOB
-      elseif (indx1(string(i),'IFSPLIT' ,7) > 0) then
+      call capit(tmp_string(i),132)
+      if (indx1(tmp_string(i),'IFTMSH' ,6) > 0) then
+          read(tmp_string(i),*,ERR=490) (IFTMSH(II),II=0,NPSCL2)
+      elseif (indx1(tmp_string(i),'IFNAV'  ,5) > 0 .AND. &
+          indx1(tmp_string(i),'IFADVC' ,6) > 0) then
+          read(tmp_string(i),*,ERR=490) (IFADVC(II),II=1,NPSCL2)
+      elseif (indx1(tmp_string(i),'IFADVC' ,6) > 0) then
+          read(tmp_string(i),*,ERR=490) (IFADVC(II),II=1,NPSCL2)
+      elseif (indx1(tmp_string(i),'IFFLOW' ,6) > 0) then
+          read(tmp_string(i),*) IFFLOW
+      elseif (indx1(tmp_string(i),'IFHEAT' ,6) > 0) then
+          read(tmp_string(i),*) IFHEAT
+      elseif (indx1(tmp_string(i),'IFTRAN' ,6) > 0) then
+          read(tmp_string(i),*) IFTRAN
+      elseif (indx1(tmp_string(i),'IFAXIS' ,6) > 0) then
+          read(tmp_string(i),*) IFAXIS
+      elseif (indx1(tmp_string(i),'IFAZIV' ,6) > 0) then
+          read(tmp_string(i),*) IFAZIV
+      elseif (indx1(tmp_string(i),'IFSTRS' ,6) > 0) then
+          read(tmp_string(i),*) IFSTRS
+      elseif (indx1(tmp_string(i),'IFLO'   ,4) > 0) then
+          read(tmp_string(i),*) IFLOMACH
+      elseif (indx1(tmp_string(i),'IFMGRID',7) > 0) then
+      !             read(tmp_string(i),*) IFMGRID
+      elseif (indx1(tmp_string(i),'IFKEPS' ,6) > 0) then
+          read(tmp_string(i),*) IFKEPS
+      elseif (indx1(tmp_string(i),'IFMODEL',7) > 0) then
+          read(tmp_string(i),*) IFMODEL
+      elseif (indx1(tmp_string(i),'IFMVBD' ,6) > 0) then
+          read(tmp_string(i),*) IFMVBD
+      elseif (indx1(tmp_string(i),'IFCHAR' ,6) > 0) then
+          read(tmp_string(i),*) IFCHAR
+      elseif (indx1(tmp_string(i),'IFANLS' ,6) > 0) then
+          read(tmp_string(i),*) IFANLS
+      elseif (indx1(tmp_string(i),'IFMOAB' ,6) > 0) then
+          read(tmp_string(i),*) IFMOAB
+      elseif (indx1(tmp_string(i),'IFCOUP' ,6) > 0) then
+          read(tmp_string(i),*) IFCOUP
+      elseif (indx1(tmp_string(i),'IFVCOUP' ,7) > 0) then
+          read(tmp_string(i),*) IFVCOUP
+      elseif (indx1(tmp_string(i),'IFMHD'  ,5) > 0) then
+          read(tmp_string(i),*) IFMHD
+      elseif (indx1(tmp_string(i),'IFCONS' ,6) > 0) then
+          read(tmp_string(i),*) IFCONS
+      elseif (indx1(tmp_string(i),'IFUSERVP',8) > 0) then
+          read(tmp_string(i),*) IFUSERVP
+      elseif (indx1(tmp_string(i),'IFUSERMV',8) > 0) then
+          read(tmp_string(i),*) IFUSERMV
+      elseif (indx1(tmp_string(i),'IFCYCLIC',8) > 0) then
+          read(tmp_string(i),*) IFCYCLIC
+      elseif (indx1(tmp_string(i),'IFPERT'  ,6) > 0) then
+          read(tmp_string(i),*) IFPERT
+      elseif (indx1(tmp_string(i),'IFBASE'  ,6) > 0) then
+          read(tmp_string(i),*) IFBASE
+      elseif (indx1(tmp_string(i),'IFSYNC'  ,6) > 0) then
+          read(tmp_string(i),*) IFSYNC
+      elseif (indx1(tmp_string(i),'IFEXPLVIS',9) > 0) then
+          read(tmp_string(i),*) IFEXPLVIS
+      elseif (indx1(tmp_string(i),'IFSCHCLOB',9) > 0) then
+          read(tmp_string(i),*) IFSCHCLOB
+      elseif (indx1(tmp_string(i),'IFSPLIT' ,7) > 0) then
       !              read(string,*) IFSPLIT
       else
           if(nid == 0) then
-              write(6,'(1X,2A)') 'ABORT: Unknown logical flag', string
+              write(6,'(1X,2A)') 'ABORT: Unknown logical flag', tmp_string
               write(6,'(30(A,/))') &
               ' Available logical flags:', &
               '   IFTMSH'   , &
@@ -901,14 +902,14 @@ subroutine rdbdry
   use input, only : ifheat, ifmhd, ifflow, iffmtin, iftmsh
   use parallel, only : nelgt, nelgv, gllnid, gllel
   use scratch, only : cbcs, bcs
+  use string, only : capit, indx1
   implicit none
 
   CHARACTER CBC1*1,CBC3*3,CHTEMP*1,CHTMP3*3
   EQUIVALENCE (CHTEMP,CHTMP3)
-  character(132) :: string
+  character(132) :: tmp_string
   integer :: nfldt, nbcs, ibcs, nsides, lcbc, ibcnew, ifield, nel, nbcrea, ieg
   integer :: ii, iside, icbc1, id2, id1, iel, lrbc
-  integer, external :: indx1
 
 !   Set up TEMPORARY value for NFIELD - NFLDT
 
@@ -939,8 +940,8 @@ subroutine rdbdry
           NEL=NELGT
           if ( .NOT. iftmsh(ifield)) nel = nelgv
       !       Fluid and/or thermal
-          read(9,81) string        !  ***** FLUID   BOUNDARY CONDITIONS *****
-          call capit(string,132)
+          read(9,81) tmp_string        !  ***** FLUID   BOUNDARY CONDITIONS *****
+          call capit(tmp_string,132)
 
       !       write(6,*) 'reading BC:',ifield,ibcs,nbcs
       !       write(6,81) string
@@ -950,7 +951,7 @@ subroutine rdbdry
       !       call exitt
 
 
-          if (indx1(string,'NO ',3) == 0) then ! we have acitve bc info
+          if (indx1(tmp_string,'NO ',3) == 0) then ! we have acitve bc info
           
               IF(VNEKTON <= 2.52) NBCREA = 3
               IF(VNEKTON >= 2.55) NBCREA = 5
@@ -1081,12 +1082,12 @@ subroutine rdicdf
   use size_m, only : nid
   use input, only : initc
   use parallel, only : csize
+  use string, only : capit, indx1, ifgtil
   implicit none
 
   character(132) :: line
   integer :: ierr, nskip, i
-  logical, external :: ifgtil
-  integer, external :: iglmax, indx1
+  integer, external :: iglmax
 
   ierr = 0
 
@@ -1702,27 +1703,3 @@ subroutine chk_nel
   return
 end subroutine chk_nel
 
-!-----------------------------------------------------------------------
-subroutine cscan(sout,key,nk)
-  implicit none
-  character(132) :: sout,key
-  character(132) :: string
-  character(1) ::  string1(132)
-  equivalence (string1,string)
-  integer :: i, nk
-  integer, external :: indx1
-
-  do i=1,100000000
-      call blank(string,132)
-      read (nk,80,end=100,err=100) string
-      call chcopy(sout,string,132)
-  !        write (6,*) string
-      if (indx1(string,key,nk) /= 0) return
-  enddo
-  100 continue
-
-  80 format(a132)
-  return
-
-end subroutine cscan
-!-----------------------------------------------------------------------

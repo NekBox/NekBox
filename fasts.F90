@@ -9,7 +9,7 @@ subroutine tensr3(v,nv,u,nu,A,Bt,Ct,w)
   implicit none
 
   integer :: nv, nu
-  real(DP) :: v(nv,nv,nv),u(nu,nu,nu)
+  real(DP) :: v(1),u(1)
   real(DP) :: A(1),Bt(1),Ct(1)
   real(DP) :: w(1)
 
@@ -28,7 +28,7 @@ subroutine tensr3(v,nv,u,nu,A,Bt,Ct,w)
       k=1
       l=1
       do iz=1,nu
-          call mxm(v(k,1,1),nv,Bt,nu,w(l),nv)
+          call mxm(v(k),nv,Bt,nu,w(l),nv)
           k=k+nuv
           l=l+nvv
       enddo

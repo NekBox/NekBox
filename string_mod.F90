@@ -237,7 +237,6 @@ LOGICAL FUNCTION IFGTIL(IVALUE,LINE)
   WORK=LINE
   CALL LJUST(WORK)
   IFLDW=INDX1(WORK,' ',1)-1
-  write(*,*) "line:", line, " work:", work, " ifldw:", ifldw
 
   IF (IFLDW > 0) THEN
       WRITE(FMAT,10) IFLDW

@@ -449,12 +449,10 @@ subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
   call transpose(jx,nxl,jxt,2)
 
   ndim2 = 2**ndim
-  do ix=1,ndim2          ! Convert prex notation to lexicographical
-      i=indx(ix)
-      xcb(ix,1,1)=xc(i,e)
-      ycb(ix,1,1)=yc(i,e)
-      zcb(ix,1,1)=zc(i,e)
-  enddo
+  ! Convert prex notation to lexicographical
+  xcb = reshape(xc(indx(1:ndim2),e), (/2,2,2/))
+  ycb = reshape(yc(indx(1:ndim2),e), (/2,2,2/))
+  zcb = reshape(zc(indx(1:ndim2),e), (/2,2,2/))
 
 !   Map R-S-T space into physical X-Y-Z space.
 

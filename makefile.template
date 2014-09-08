@@ -13,6 +13,7 @@ IFNEKNEK=
 IFMOAB=
 MOAB_DIR=
 F77=
+CHECKS=
 CC=
 P=
 PPPO=
@@ -59,23 +60,6 @@ qthermal.o  \
 papi.o \
 gauss.o \
 makeq.o makeq_aux.o \
-#postpro.o \
-#subs2.o\
-#genbox.o \
-#navier3.o \
-#calcz.o \
-#mvmesh.o  \
-#navier7.o \
-#navier2.o \
-#planx.o \
-#edgec.o \
-#gfdm_par.o  gfdm_op.o gfdm_solve.o \
-#nek_in_situ.o \
-#perturb.o \
-#turb.o  \
-#cvode_driver.o \
-#cvode_aux.o \
-#init_plugin.o \
 ################################################################################
 # MXM 
 MXM = mxm_std.o 
@@ -156,6 +140,8 @@ FL2   = $(L2) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR)
 FL3   = $(L3) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR)
 FL4   = $(L4) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR)
 
+F90 = $(F77) $(CHECKS)
+
 cFL0   = $(L0) $(PPS_C) 
 cFL2   = $(L2) $(PPS_C) 
 cFL3   = $(L3) $(PPS_C) 
@@ -198,104 +184,104 @@ endif
 $(NOBJS_F) : SIZE
 
 # NEK CORE     ##################################################################
-$(OBJDIR)/kinds_mod.o	:$S/kinds_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/ctimer_mod.o	:$S/ctimer_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/size_mod.o	:size_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/dealias_mod.o	:$S/dealias_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/domain_mod.o	:$S/domain_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/dxyz_mod.o	:$S/dxyz_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/eigen_mod.o	:$S/eigen_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/esolv_mod.o	:$S/esolv_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/fdmh1_mod.o	:$S/fdmh1_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/geom_mod.o	:$S/geom_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gmres_mod.o	:$S/gmres_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/hsmg_mod.o	:$S/hsmg_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/input_mod.o	:$S/input_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/ixyz_mod.o	:$S/ixyz_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/mass_mod.o	:$S/mass_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/mesh_mod.o	:$S/mesh_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/mvgeom_mod.o	:$S/mvgeom_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/nekuse_mod.o	:$S/nekuse_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/noncon_mod.o	:$S/noncon_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/opctr_mod.o	:$S/opctr_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/parallel_mod.o	:$S/parallel_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/restart_mod.o	:$S/restart_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/scratch_mod.o	:$S/scratch_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/semhat_mod.o	:$S/semhat_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/soln_mod.o	:$S/soln_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/steady_mod.o	:$S/steady_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/topol_mod.o	:$S/topol_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/tstep_mod.o	:$S/tstep_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/turbo_mod.o	:$S/turbo_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/wz_mod.o	:$S/wz_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/wzf_mod.o	:$S/wzf_mod.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/zper_mod.o	:$S/zper_mod.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/kinds_mod.o	:$S/kinds_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/ctimer_mod.o	:$S/ctimer_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/size_mod.o	:size_mod.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/dealias_mod.o	:$S/dealias_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/domain_mod.o	:$S/domain_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/dxyz_mod.o	:$S/dxyz_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/eigen_mod.o	:$S/eigen_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/esolv_mod.o	:$S/esolv_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/fdmh1_mod.o	:$S/fdmh1_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/geom_mod.o	:$S/geom_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/gmres_mod.o	:$S/gmres_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/hsmg_mod.o	:$S/hsmg_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/input_mod.o	:$S/input_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/ixyz_mod.o	:$S/ixyz_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/mass_mod.o	:$S/mass_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/mesh_mod.o	:$S/mesh_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/mvgeom_mod.o	:$S/mvgeom_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/nekuse_mod.o	:$S/nekuse_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/noncon_mod.o	:$S/noncon_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/opctr_mod.o	:$S/opctr_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/parallel_mod.o	:$S/parallel_mod.F90;	$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/restart_mod.o	:$S/restart_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/scratch_mod.o	:$S/scratch_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/semhat_mod.o	:$S/semhat_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/soln_mod.o	:$S/soln_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/steady_mod.o	:$S/steady_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/topol_mod.o	:$S/topol_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/tstep_mod.o	:$S/tstep_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/turbo_mod.o	:$S/turbo_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/wz_mod.o	:$S/wz_mod.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/wzf_mod.o	:$S/wzf_mod.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/zper_mod.o	:$S/zper_mod.F90;		$(F90) -c $(FL2) $< -o $@
 
-$(OBJDIR)/drive.o	:$S/drive.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/drive.o	:$S/drive.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/drive2.o	:$S/drive2.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/prepost.o	:$S/prepost.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/postpro.o	:$S/postpro.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/connect1.o	:$S/connect1.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/connect2.o	:$S/connect2.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/edgec.o	:$S/edgec.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/prepost.o	:$S/prepost.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/postpro.o	:$S/postpro.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/connect1.o	:$S/connect1.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/connect2.o	:$S/connect2.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/edgec.o	:$S/edgec.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/genxyz.o	:$S/genxyz.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/subs1.o	:$S/subs1.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/subs2.o	:$S/subs2.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/turb.o	:$S/turb.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/subs2.o	:$S/subs2.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/turb.o	:$S/turb.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/map2.o	:$S/map2.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/mvmesh.o	:$S/mvmesh.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/mvmesh.o	:$S/mvmesh.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/induct.o	:$S/induct.F90;	      		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/convect.o	:$S/convect.F90;	      		$(F77) -c $(FL2) $< -o $@
-#$(OBJDIR)/perturb.o	:$S/perturb.F90;	      		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/genbox.o	:$S/genbox.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/convect.o	:$S/convect.F90;	      	$(F90) -c $(FL2) $< -o $@
+#$(OBJDIR)/perturb.o	:$S/perturb.F90;	     	$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/genbox.o	:$S/genbox.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/hsmg.o	:$S/hsmg.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gmres.o	:$S/gmres.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/papi.o	:$S/papi.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/gmres.o	:$S/gmres.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/papi.o	:$S/papi.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/bdry.o	:$S/bdry.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/ic.o		:$S/ic.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/conduct.o	:$S/conduct.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier0.o	:$S/navier0.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier2.o	:$S/navier2.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier3.o	:$S/navier3.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier4.o	:$S/navier4.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier5.o	:$S/navier5.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier6.o	:$S/navier6.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier7.o	:$S/navier7.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier8.o	:$S/navier8.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/speclib.o	:$S/speclib.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/calcz.o	:$S/calcz.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/fast3d.o	:$S/fast3d.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/conduct.o	:$S/conduct.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier0.o	:$S/navier0.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/navier1.o	:$S/navier1.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier2.o	:$S/navier2.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/navier3.o	:$S/navier3.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/navier4.o	:$S/navier4.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier5.o	:$S/navier5.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier6.o	:$S/navier6.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/navier7.o	:$S/navier7.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/navier8.o	:$S/navier8.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/speclib.o	:$S/speclib.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/calcz.o	:$S/calcz.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/fast3d.o	:$S/fast3d.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/dssum.o	:$S/dssum.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/eigsolv.o	:$S/eigsolv.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gauss.o	:$S/gauss.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/planx.o	:$S/planx.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/ssolv.o	:$S/ssolv.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gfdm_par.o	:$S/gfdm_par.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gfdm_solve.o	:$S/gfdm_solve.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/gfdm_op.o	:$S/gfdm_op.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/eigsolv.o	:$S/eigsolv.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/gauss.o	:$S/gauss.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/planx.o	:$S/planx.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/ssolv.o	:$S/ssolv.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/gfdm_par.o	:$S/gfdm_par.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/gfdm_solve.o	:$S/gfdm_solve.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/gfdm_op.o	:$S/gfdm_op.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/coef.o	:$S/coef.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/plan4.o	:$S/plan4.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/qthermal.o	:$S/qthermal.F90;   		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/setprop.o	:$S/setprop.F90;	   		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/init_plugin.o	:$S/init_plugin.F90;	 	$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/cvode_driver.o :$S/cvode_driver.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/cvode_aux.o	:$S/cvode_aux.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/makeq.o      	:$S/makeq.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/makeq_aux.o  	:$S/makeq_aux.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/hmholtz.o	:$S/hmholtz.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/navier1.o	:$S/navier1.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/fasts.o	:$S/fasts.F90;		        $(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/comm_mpi.o	:$S/comm_mpi.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/mpi_dummy.o	:$S/mpi_dummy.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/byte_mpi.o	:$S/byte_mpi.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/qthermal.o	:$S/qthermal.F90;   		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/setprop.o	:$S/setprop.F90;   		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/init_plugin.o	:$S/init_plugin.F90;	 	$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/cvode_driver.o :$S/cvode_driver.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/cvode_aux.o	:$S/cvode_aux.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/makeq.o      	:$S/makeq.F90;			$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/makeq_aux.o  	:$S/makeq_aux.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/hmholtz.o	:$S/hmholtz.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/fasts.o	:$S/fasts.F90;		        $(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/comm_mpi.o	:$S/comm_mpi.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/mpi_dummy.o	:$S/mpi_dummy.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/byte_mpi.o	:$S/byte_mpi.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/math.o	:$S/math.F90;			$(F77) -c $(FL4) $< -o $@
-$(OBJDIR)/multimesh.o	:$S/multimesh.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/multimesh.o	:$S/multimesh.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/singlmesh.o	:$S/singlmesh.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/lb_setqvol.o	:$S/lb_setqvol.F90;		$(F77) -c $(FL2) $< -o $@
-.F90.o:
-	$(F77) -c $(FL2) $*.F90
-
+$(OBJDIR)/lb_setqvol.o	:$S/lb_setqvol.F90;		$(F90) -c $(FL2) $< -o $@
+.F90.o:                                                    
+	$(F77) -c $(FL2) $*.F90                            
+                                                           
 # MXM       ############################################################################
 $(OBJDIR)/mxm_wrapper.o	  :$S/mxm_wrapper.F90;		$(F77) -c $(FL2) $< -o $@ 
 $(OBJDIR)/mxm_std.o	  :$S/mxm_std.F90;		$(F77) -c $(FL4) $< -o $@

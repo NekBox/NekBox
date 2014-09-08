@@ -6,7 +6,8 @@
 SOURCE_ROOT="$HOME/src/nek" 
 
 # Fortran compiler
-F77="mpif90 -mcmodel=medium -g"
+F77="mpif90 -mcmodel=medium -g -traceback"
+CHECKS=" -check all -debug all -ftrapuv -heap-arrays -warn all "
 
 # C compiler
 CC="mpicc -mcmodel=medium -g "
@@ -82,5 +83,5 @@ fi
 # do some checks and create makefile
 source $SOURCE_ROOT/makenek.inc
 # compile
-make -j4 -f makefile 2>&1 | tee compiler.out
+make -j2 -f makefile 2>&1 | tee compiler.out
 exit 0

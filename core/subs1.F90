@@ -47,7 +47,7 @@ subroutine setdt
 !  CALL SETDTFS (DTFS)
 
 !   Select appropriate DT
-
+  dtfs = 0.
   IF ((DT == 0.) .AND. (DTFS > 0.)) THEN
       DT = DTFS
   ELSEIF ((DT > 0.) .AND. (DTFS > 0.)) THEN
@@ -529,6 +529,7 @@ subroutine faccl2(a,b,iface1)
   implicit none
 
   real(DP) :: A(LX1,LY1,LZ1),B(LX1,LY1)
+  real(DP) :: af(lx1*ly1*lz1), bf(lx1*ly1)
   integer :: iface1
 
   integer :: j1, j2, i, jskip2, jf2, js2, jskip1, jf1, js1, iface
@@ -544,12 +545,15 @@ subroutine faccl2(a,b,iface1)
   JF2    = SKPDAT(5,IFACE)
   JSKIP2 = SKPDAT(6,IFACE)
 
+  af = reshape(a, (/lx1*ly1*lz1/))
+  bf = reshape(b, (/lx1*ly1/))
   I = 0
   DO 100 J2=JS2,JF2,JSKIP2
       DO 100 J1=JS1,JF1,JSKIP1
           I = I+1
-          A(J1,J2,1) = A(J1,J2,1)*B(I,1)
+          af(J1+lx1*(J2-1)) = Af(J1+lx1*(J2-1))*Bf(I)
   100 END DO
+  a = reshape(af, (/lx1, ly1, lz1/))
 
   return
 end subroutine faccl2
@@ -780,8 +784,10 @@ SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
   use topol, only : eface1, skpdat
   implicit none
 
-  real(DP) :: A1(LX1,LY1),A2(LX1,LY1),A3(LX1,LY1), &
-  B1(LX1,LY1,LZ1),B2(LX1,LY1,LZ1),B3(LX1,LY1,LZ1)
+  real(DP) :: A1(LX1,LY1),    A2(LX1,LY1),    A3(LX1,LY1)
+  real(DP) :: B1(LX1,LY1,LZ1),B2(LX1,LY1,LZ1),B3(LX1,LY1,LZ1)
+  real(DP) :: A1f(lx1*ly1), A2f(lx1*ly1), A3f(lx1*ly1)
+  real(DP) :: B1f(lx1*ly1*lz1), b2f(lx1*ly1*lz1), b3f(lx1*ly1*lz1)
   integer :: iface1, iop
 
   integer :: j1, j2, i, jskip2, jf2, js2, jskip1, jf1, js1, iface
@@ -797,21 +803,33 @@ SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
   I = 0
 
   IF (IOP == 0) THEN
+      b1f = reshape(b1, (/lx1*ly1*lz1/))
+      b2f = reshape(b2, (/lx1*ly1*lz1/))
+      b3f = reshape(b3, (/lx1*ly1*lz1/))
       DO 100 J2=JS2,JF2,JSKIP2
           DO 100 J1=JS1,JF1,JSKIP1
               I = I+1
-              A1(I,1) = B1(J1,J2,1)
-              A2(I,1) = B2(J1,J2,1)
-              A3(I,1) = B3(J1,J2,1)
+              A1f(I) = B1f(J1+lx1*(J2-1))
+              A2f(I) = B2f(J1+lx1*(J2-1))
+              A3f(I) = B3f(J1+lx1*(J2-1))
       100 END DO
+      A1 = reshape(A1f, (/lx1, ly1/))
+      A2 = reshape(A2f, (/lx1, ly1/))
+      A3 = reshape(A3f, (/lx1, ly1/))
   ELSE
+      a1f = reshape(a1, (/lx1*ly1/))
+      a2f = reshape(a2, (/lx1*ly1/))
+      a3f = reshape(a3, (/lx1*ly1/))
       DO 150 J2=JS2,JF2,JSKIP2
           DO 150 J1=JS1,JF1,JSKIP1
               I = I+1
-              B1(J1,J2,1) = A1(I,1)
-              B2(J1,J2,1) = A2(I,1)
-              B3(J1,J2,1) = A3(I,1)
+              B1f(J1+lx1*(J2-1)) = A1f(I)
+              B2f(J1+lx1*(J2-1)) = A2f(I)
+              B3f(J1+lx1*(J2-1)) = A3f(I)
       150 END DO
+      B1 = reshape(B1f, (/lx1, ly1, lz1/))
+      B2 = reshape(B2f, (/lx1, ly1, lz1/))
+      B3 = reshape(B3f, (/lx1, ly1, lz1/))
   ENDIF
 
   RETURN

@@ -13,7 +13,6 @@ subroutine makeq()
   implicit none
 
   logical ::  if_conv_std
-  integer :: ntot
 
   if_conv_std = .TRUE. 
   if (ifmhd .AND. ifaxis) if_conv_std = .FALSE. ! conv. treated in induct.f

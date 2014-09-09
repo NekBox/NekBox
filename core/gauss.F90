@@ -2,68 +2,72 @@
 SUBROUTINE LU(A,N,NDIM,IR,IC)
   use kinds, only : DP
   implicit none
+  integer :: ndim, n, ir(1), ic(1)
   real(DP) :: A(NDIM,1)
-  integer :: n, ndim,IR(1),IC(1)
 
   integer :: i, j, k, l, m, irl, icm, k1
   real(DP) :: xmax, y, b, c
 
-  DO 10 I=1,N
+  DO I=1,N
       IR(I)=I
       IC(I)=I
-  10 END DO
+  END DO
   K=1
   L=K
   M=K
   XMAX=ABS(A(K,K))
-  DO 100 I=K,N
-      DO 100 J=K,N
+  DO I=K,N
+      DO J=K,N
           Y=ABS(A(I,J))
-          IF(XMAX >= Y) GOTO 100
+          IF(XMAX >= Y) cycle
           XMAX=Y
           L=I
           M=J
-  100 END DO
-  DO 1000 K=1,N
+      END DO
+  enddo 
+  DO K=1,N
       IRL=IR(L)
       IR(L)=IR(K)
       IR(K)=IRL
       ICM=IC(M)
       IC(M)=IC(K)
       IC(K)=ICM
-      IF(L == K) GOTO 300
-      DO 200 J=1,N
-          B=A(K,J)
-          A(K,J)=A(L,J)
-          A(L,J)=B
-      200 END DO
-      300 IF(M == K) GOTO 500
-      DO 400 I=1,N
-          B=A(I,K)
-          A(I,K)=A(I,M)
-          A(I,M)=B
-      400 END DO
-      500 C=1./A(K,K)
+      IF(L /= K) then 
+         DO J=1,N
+             B=A(K,J)
+             A(K,J)=A(L,J)
+             A(L,J)=B
+         END DO
+      endif
+      IF(M /= K) then 
+         DO I=1,N
+             B=A(I,K)
+             A(I,K)=A(I,M)
+             A(I,M)=B
+         END DO
+      endif
+      C=1./A(K,K)
       A(K,K)=C
-      IF(K == N) GOTO 1000
+      IF(K == N) cycle
       K1=K+1
       XMAX=ABS(A(K1,K1))
       L=K1
       M=K1
-      DO 600 I=K1,N
+      DO I=K1,N
           A(I,K)=C*A(I,K)
-      600 END DO
-      DO 800 I=K1,N
+      END DO
+      DO I=K1,N
           B=A(I,K)
-          DO 800 J=K1,N
+          DO J=K1,N
               A(I,J)=A(I,J)-B*A(K,J)
               Y=ABS(A(I,J))
-              IF(XMAX >= Y) GOTO 800
+              IF(XMAX >= Y) cycle
               XMAX=Y
               L=I
               M=J
-      800 END DO
-  1000 END DO
+          END DO
+       END DO 
+  END DO 
   RETURN
   END SUBROUTINE LU
 

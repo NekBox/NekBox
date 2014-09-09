@@ -76,14 +76,15 @@ subroutine setdef()
           110 END DO
       
           I1=4
-          DO 120 I=0,1
-              DO 120 J=0,1
+          DO I=0,1
+              DO J=0,1
                   I1=I1+1
                   I2=4*I+J+3
                   VEC(1,I1)=XCC(I2)-XCC(I2-2)
                   VEC(2,I1)=YCC(I2)-YCC(I2-2)
                   VEC(3,I1)=ZCC(I2)-ZCC(I2-2)
-          120 END DO
+              enddo
+          enddo
       
           I1=8
           DO 130 I=5,8
@@ -432,7 +433,7 @@ subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
   real(DP) :: zgml(lx1,3),jx (lx1*2)
   real(DP) :: jxt(lx1*2),jyt(lx1*2),jzt(lx1*2),zlin(2)
 
-  integer :: i, k, ix, ndim2
+  integer :: i, k, ndim2
 
   call setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
 

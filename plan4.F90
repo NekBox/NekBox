@@ -1,3 +1,6 @@
+!> \file plan4.F90
+!! \brief Routine plan4 and supporting routines
+
 !-----------------------------------------------------------------------
 !> \brief Splitting scheme A.G. Tomboulides et al.
 !! Journal of Sci.Comp.,Vol. 12, No. 2, 1998

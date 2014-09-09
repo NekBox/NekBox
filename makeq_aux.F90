@@ -1,3 +1,5 @@
+!> \file makeq_aux.F90 \copybrief makeq_aux
+
 subroutine makeq_aux
   use input, only : ifmhd, ifaxis, ifcvode
   use tstep, only : ifield

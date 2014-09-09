@@ -1,3 +1,5 @@
+!> \file makeq.F90 \copybrief makeq
+
 !-----------------------------------------------------------------------
 !> \brief Generate forcing function for the solution of a passive scalar.
 !! !! NOTE: Do not change the content of the array BQ until the current

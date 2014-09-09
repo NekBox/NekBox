@@ -1,6 +1,7 @@
+!> \file setprop.F90 \copybrief setprop
+
 !------------------------------------------------------------------------
 !> \brief Set variable property arrays
-!------------------------------------------------------------------------
 subroutine setprop
   use kinds, only : DP
   use size_m, only :nx1, ny1, nz1, nfield

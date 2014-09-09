@@ -86,6 +86,7 @@ module input
     allocate(IFADVC(LDIMT1),IFTMSH(0:LDIMT1), IFNONL(LDIMT1), IFVARP(LDIMT1), IFPSCO(LDIMT1))
     allocate(IFPSO(LDIMT1))
     ifnav => ifadvc(1)
+    iftmsh = .false.
 
     allocate(HCODE(11,lhis),OCODE(8),DRIVC(5), INITC(15),TEXTSW(100,2))
     turbmod => textsw(1,1)

@@ -20,6 +20,7 @@ module mass
     ,BM2INV(LX2,LY2,LZ2,LELT),  BAXM1 (LX1,LY1,LZ1,LELT) &
     ,BM1LAG(LX1,LY1,LZ1,LELT,LORDER-1) & ! verified
     ,YINVM1(LX1,LY1,LZ1,LELT))
+    bm1lag = 0._dp
 
   end subroutine init_mass
 

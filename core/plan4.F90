@@ -47,7 +47,10 @@ subroutine plan4
 
   integer :: intype, ntot1 
 
-  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
+  if (.not. allocated(approx)) then
+    allocate(approx(ktot,0:laxt))
+    approx = 0._dp
+  endif
 
   INTYPE = -1
   NTOT1  = NX1*NY1*NZ1*NELV

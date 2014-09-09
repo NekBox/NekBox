@@ -726,7 +726,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   if (kfldfdm < 0) then
       call setprec(D,h1,h2,imsh,isd)
   elseif(param(100) /= 2) then
-      call set_fdm_prec_h1b(d,h1,h2,nel)
+!max      call set_fdm_prec_h1b(d,h1,h2,nel)
   endif
 
   call copy (r,f,n)
@@ -906,6 +906,10 @@ subroutine set_fdm_prec_h1b(d,h1,h2,nel)
   real(DP) :: h1b, h2b, vol, vl1, vl2, vl3, den
   real(DP), external :: vlsum, vlsc2
 
+  d = 0._dp
+  return 
+
+#if 0
 !   Set up diagonal for FDM for each spectral element
   nxyz = nx1*ny1*nz1
   if (if3d) then
@@ -978,6 +982,7 @@ subroutine set_fdm_prec_h1b(d,h1,h2,nel)
           enddo
       enddo
   endif
+#endif
 
   return
 end subroutine set_fdm_prec_h1b

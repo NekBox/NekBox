@@ -167,8 +167,8 @@ subroutine nek_init(intracomm)
     if(nid == 0) write(6,'(A,/)') ' done :: usrdat3'
 
 !     Set initial conditions + compute field properties
-    call setics
     call setprop
+    call setics
 
 !     USRCHK
     if(instep /= 0) then

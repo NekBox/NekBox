@@ -3,7 +3,7 @@
 !-------------------------------------------------------------------
 subroutine setdef()
   use kinds, only : DP
-  use size_m, only : nid, nelt, lelt
+  use size_m, only : nid, nelt
   use input, only : param, ifmvbd, if3d, ccurve, xc, yc, zc
   use mesh, only : ifdfrm
   implicit none
@@ -194,8 +194,7 @@ END FUNCTION IFVCHK
 !! Stress   formulation : mesh 1 is used
 !-----------------------------------------------------------------------
 subroutine gencoor ()!xm3,ym3,zm3)
-  use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, lx3, ly3, lz3
+  use size_m, only : nx1, ny1, nz1
   use geom, only : ifgmsh3, xm1, ym1, zm1
   implicit none
 
@@ -215,7 +214,7 @@ end subroutine gencoor
 !-----------------------------------------------------------------------
 subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, nelt, ndim
+  use size_m, only : lx1, nelt, ndim
   use input, only : ccurve, ifaxis
   implicit none
 
@@ -223,8 +222,6 @@ subroutine genxyz (xml,yml,zml,nxl,nyl,nzl)
   real(DP) :: xml(nxl,nyl,nzl,1),yml(nxl,nyl,nzl,1),zml(nxl,nyl,nzl,1)
 
   real(DP) :: h(lx1,3,2), zgml(lx1,3)
-
-  integer, parameter :: ldw=2*lx1*ly1*lz1
 
   character(1) :: ccv
   integer :: ie, nfaces, iface, isid

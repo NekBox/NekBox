@@ -8,8 +8,6 @@
 !                     ~  1.16 for N=256
 !-----------------------------------------------------------------------
 subroutine setup_convect(igeom)
-  use kinds, only : DP
-  use size_m, only : lorder
   use dealias, only : vxd, vyd, vzd
   use input, only : param, ifchar, ifcons, ifpert
   use soln, only : vx, vy, vz
@@ -58,7 +56,7 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   integer :: mx, md, idir
   logical :: if3d
 
-  integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
+  integer, parameter :: ldg=lxd**3
   real(DP) :: jgl(ldg), jgt(ldg)
 
   integer, parameter :: ld=2*lxd
@@ -276,16 +274,15 @@ end subroutine grad_rst
 subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   use kinds, only : DP
   use size_m, only : nelv
-  use size_m, only : lx1, ly1, lz1, lxd, lyd, lzd
+  use size_m, only : lxd, lyd, lzd
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd
-  use geom, only : rx
   use input, only : if3d
   implicit none
 
   real(DP) :: bdu(1),u(1),cx(1),cy(1),cz(1)
   logical :: ifuf,ifcf            ! u and/or c already on fine mesh?
 
-  integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
+  integer, parameter :: ltd=lxd*lyd*lzd
   real(DP) :: ur(ltd), us(ltd), ut(ltd), tr(ltd,3), uf(ltd)
 
   integer :: e, iu, ic, ib, i

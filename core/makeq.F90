@@ -2,14 +2,9 @@
 !> \brief Generate forcing function for the solution of a passive scalar.
 !! !! NOTE: Do not change the content of the array BQ until the current
 subroutine makeq()
-  use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1
-  use size_m, only : lx1, ly1, lz1, lelt
-  use input, only : ifmhd, ifaxis, ifadvc, ifchar, iftran, ifcvode, iftmsh
+  use input, only : ifmhd, ifaxis, ifadvc, ifchar, iftran, ifcvode
   use input, only : ifmvbd
-  use mass, only : bintm1, bm1
-  use soln, only : t, vdiff, bq
-  use tstep, only : ifield, nelfld
+  use tstep, only : ifield
   implicit none
 
   logical ::  if_conv_std

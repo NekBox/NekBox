@@ -13,8 +13,8 @@ subroutine cdscal (igeom)
 
   LOGICAL ::          IFCONV
 
-  real(DP) :: TA(LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT)
-  real(DP) :: H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: TA(:,:,:,:), TB(:,:,:,:)
+  real(DP), allocatable :: H1(:,:,:,:), H2(:,:,:,:)
 
   integer, parameter :: ktot = lx1*ly1*lz1*lelt
   integer, parameter :: laxt = mxprev
@@ -28,6 +28,8 @@ subroutine cdscal (igeom)
 
 !max  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
   if (.not. allocated(approx)) allocate(approx(1,1))
+
+
 
   napprox(1) = laxt
 
@@ -63,7 +65,9 @@ subroutine cdscal (igeom)
       if (ifaxis .AND. ifaziv .AND. ifield == 2) isd = 2
   !        if (ifaxis.and.ifmhd) isd = 2 !This is a problem if T is to be T!
 
-      do 1000 iter=1,nmxnl ! iterate for nonlin. prob. (e.g. radiation b.c.)
+      allocate(TA(LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT))
+      allocate(H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT))
+      do iter=1,nmxnl ! iterate for nonlin. prob. (e.g. radiation b.c.)
 
           INTYPE = 0
           IF (IFTRAN) INTYPE = -1
@@ -104,10 +108,12 @@ subroutine cdscal (igeom)
           CALL CMULT (TA,0.5,NTOT)
           CALL SUB2  (T(1,1,1,1,IFIELD-1),TA,NTOT)
 
-      1000 END DO
+      END DO
       2000 CONTINUE
+      deallocate(h1,h2,tb)
       CALL BCNEUSC (TA,1)
       CALL ADD2 (BQ(1,1,1,1,IFIELD-1),TA,NTOT) ! no idea why... pf
+      deallocate(ta)
 
   endif
 
@@ -219,8 +225,10 @@ subroutine convab()
   use tstep, only : ifield, nelfld
   implicit none
 
-  real(DP) :: TA (LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: TA (:,:,:,:)
   integer :: nel, ntot1
+
+  allocate(TA (LX1,LY1,LZ1,LELT))
 
   NEL = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
@@ -240,9 +248,11 @@ subroutine makeabq
   use tstep, only : ab, ifield, nelfld
   implicit none
 
-  real(DP) :: TA (LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: TA (:,:,:,:)
   real(DP) :: ab0, ab1, ab2
   integer :: nel, ntot1
+
+  allocate(TA(LX1,LY1,LZ1,LELT))
 
   AB0   = AB(1)
   AB1   = AB(2)
@@ -250,13 +260,10 @@ subroutine makeabq
   NEL   = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
 
-  CALL ADD3S2 (TA,VGRADT1(1,1,1,1,IFIELD-1), &
-  VGRADT2(1,1,1,1,IFIELD-1),AB1,AB2,NTOT1)
-  CALL COPY   (   VGRADT2(1,1,1,1,IFIELD-1), &
-  VGRADT1(1,1,1,1,IFIELD-1),NTOT1)
-  CALL COPY   (   VGRADT1(1,1,1,1,IFIELD-1), &
-  BQ(1,1,1,1,IFIELD-1),NTOT1)
-  CALL ADD2S1 (BQ(1,1,1,1,IFIELD-1),TA,AB0,NTOT1)
+  ta = ab1*vgradt1(:,:,:,:,ifield-1) + ab2*vgradt2(:,:,:,:,ifield-1)
+  vgradt2(:,:,:,:,ifield-1) = vgradt1(:,:,:,:,ifield-1)
+  vgradt1(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1)
+  bq(:,:,:,:,ifield-1) = ab0*bq(:,:,:,:,ifield-1) + ta
 
   return
 end subroutine makeabq
@@ -274,34 +281,27 @@ subroutine makebdq()
   use tstep, only : ifield, nelfld, dt, bd, nbd
   implicit none
 
-  real(DP) ::  TA (LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT) &
-  ,             H2 (LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: TB(:,:,:,:)
 
   integer :: nel, ntot1, ilag
-  real(DP) :: const
+
+  allocate(TB(LX1,LY1,LZ1,LELT))
 
   NEL   = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
-  CONST = 1./DT
-  CALL COPY  (H2,VTRANS(1,1,1,1,IFIELD),NTOT1)
-  CALL CMULT (H2,CONST,NTOT1)
 
   CALL COL3  (TB,BM1,T(1,1,1,1,IFIELD-1),NTOT1)
   CALL CMULT (TB,BD(2),NTOT1)
 
-  DO 100 ILAG=2,NBD
+  DO ILAG=2,NBD
       IF (IFGEOM) THEN
-          CALL COL3 (TA,BM1LAG(1,1,1,1,ILAG-1), &
-          TLAG  (1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
+          tb = tb + bd(ilag+1) * bm1lag(:,:,:,:,ilag-1) * tlag(:,:,:,:,ilag-1, ifield-1)
       ELSE
-          CALL COL3 (TA,BM1, &
-          TLAG  (1,1,1,1,ILAG-1,IFIELD-1),NTOT1)
+          tb = tb + bd(ilag+1) * bm1 * tlag(:,:,:,:,ilag-1,ifield-1)
       ENDIF
-      CALL CMULT (TA,BD(ILAG+1),NTOT1)
-      CALL ADD2  (TB,TA,NTOT1)
-  100 END DO
+  END DO
 
-  CALL COL2 (TB,H2,NTOT1)
+  tb = (1./DT) * tb * vtrans(:,:,:,:,ifield)
   CALL ADD2 (BQ(1,1,1,1,IFIELD-1),TB,NTOT1)
 
   return

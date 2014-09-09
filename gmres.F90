@@ -61,7 +61,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   real, allocatable :: v(:,:) ! stores the orthogonal Krylov subspace basis
   real, allocatable :: z(:,:) ! Z = M**(-1) V
 
-  real, allocatable :: ml(:), mu(:)
+  real, allocatable, save :: ml(:), mu(:)
 
 
   real(DP) :: divex
@@ -92,7 +92,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   allocate(v(lx2*ly2*lz2*lelv,lgmres)) ! verified
   allocate(z(lx2*ly2*lz2*lelv,lgmres)) ! verified
 
-  allocate(ml(lx2*ly2*lz2*lelv), mu(lx2*ly2*lz2*lelv)) ! verified
+  if (.not. allocated(ml)) allocate(ml(lx2*ly2*lz2*lelv))
+  if (.not. allocated(mu)) allocate(mu(lx2*ly2*lz2*lelv)) 
 
 
   n = nx1*ny1*nz1*nelv
@@ -105,7 +106,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
   if( .NOT. iflag) then
       iflag= .TRUE. 
-      call uzawa_gmres_split(ml,mu,bm1,binvm1,nx1*ny1*nz1*nelv)
+      call uzawa_gmres_split(ml,mu,bm1,binvm1,n)
       norm_fac = 1./sqrt(volvm1)
   endif
 

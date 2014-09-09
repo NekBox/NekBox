@@ -7,7 +7,7 @@ SOURCE_ROOT="$HOME/src/nek"
 
 # Fortran compiler
 F77="mpif90 -mcmodel=medium -g -traceback"
-CHECKS=" -check all -debug all -ftrapuv -heap-arrays -warn all "
+CHECKS=" -check all -debug all -ftrapuv -heap-arrays -warn all -stand f90 "
 
 # C compiler
 CC="mpicc -mcmodel=medium -g "

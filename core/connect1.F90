@@ -173,11 +173,12 @@ subroutine initds
 
 !   Nominal ordering for direct stiffness summation of faces
   J=0
-  DO 5 IDIM=1,NDIM
-      DO 5 IFACE=1,2
+  DO IDIM=1,NDIM
+      DO IFACE=1,2
           J=J+1
           NOMLIS(IFACE,IDIM)=J
-  5 END DO
+      enddo
+  END DO
 
 !   Assign Ed's numbering scheme to PF's scheme.
 
@@ -309,56 +310,64 @@ subroutine setedge()
   IF (NDIM == 2) I3D=0
 
   I=0
-  DO 10 I3=0,I3D
+  DO I3=0,I3D
       IZ=1+(NZL-1)*I3
-      DO 10 I2=0,1
+      DO I2=0,1
           IY=1+(NYL-1)*I2
-          DO 10 I1=0,1
+          DO I1=0,1
               IX=1+(NXL-1)*I1
               I=I+1
               IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
-  10 END DO
+          enddo
+      enddo
+  END DO
 
 !   Fill X-direction edges.
 
-  DO 20 I3=0,I3D
+  DO I3=0,I3D
       IZ=1+(NZL-1)*I3
-      DO 20 I2=0,1
+      DO I2=0,1
           IY=1+(NYL-1)*I2
-          DO 20 IX=2,NXL-1
+          DO IX=2,NXL-1
               I=I+1
               IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
-  20 END DO
+          enddo
+      enddo
+  enddo
 
 !   Fill Y-direction edges.
 
-  DO 30 I3=0,I3D
+  DO I3=0,I3D
       IZ=1+(NZL-1)*I3
-      DO 30 I1=0,1
+      DO I1=0,1
           IX=1+(NXL-1)*I1
-          DO 30 IY=2,NYL-1
+          DO IY=2,NYL-1
               I=I+1
               IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
-  30 END DO
+          enddo
+      enddo
+  enddo
 
 !   Fill Z-direction edges.
 
   IF (NDIM == 3) THEN
-      DO 40 I2=0,1
+      DO I2=0,1
           IY=1+(NYL-1)*I2
-          DO 40 I1=0,1
+          DO I1=0,1
               IX=1+(NXL-1)*I1
-              DO 40 IZ=2,NZL-1
+              DO IZ=2,NZL-1
                   I=I+1
                   IEDGE(I)=IX+NXL*(IY-1)+NXY*(IZ-1)
-      40 END DO
+              enddo
+          enddo
+      enddo
   ENDIF
 
   CALL IZERO(INVEDG,27)
-  DO 44 II=1,20
+  DO II=1,20
       IX=IEDGE(II)
       INVEDG(IX)=II
-  44 END DO
+  END DO
 
 
 !   GENERAL FACE, GENERAL ROTATION EDGE NUMBERS.
@@ -549,16 +558,18 @@ subroutine dsset(nx,ny,nz)
 !   Establish corner to elemental node number mappings
 
   IC=0
-  DO 10 ICZ=0,1
-      DO 10 ICY=0,1
-          DO 10 ICX=0,1
+  DO ICZ=0,1
+      DO ICY=0,1
+          DO ICX=0,1
           !       Supress vectorization to
           !        IF(ICX.EQ.0)DUMMY=0
           !        IF(ICX.EQ.1)DUMMY=1
           !        DUMMY2=DUMMY2+DUMMY
               IC=IC+1
               IXCN(IC)= 1 + (NX-1)*ICX + NX*(NY-1)*ICY + NX*NY*(NZ-1)*ICZ
-  10 END DO
+          enddo
+      enddo
+  enddo
 
 !   Assign indices for direct stiffness summation of arbitrary faces.
 
@@ -700,7 +711,7 @@ subroutine genxyzl()
   integer :: indx(8)
 
   integer :: nxl, nyl, nzl, ntot3
-  integer :: ix, iy, iz, ixt, iyt, izt, i, ie, ndim2
+  integer :: ix, iy, iz, ixt, iyt, izt, ie, ndim2
   NXL=3
   NYL=3
   NZL=1+2*(NDIM-2)
@@ -754,20 +765,25 @@ subroutine genxyzl()
  
   !        Map R-S-T space into physical X-Y-Z space.
   
-      DO 100 IZT=1,ndim-1
-          DO 100 IYT=1,2
-              DO 100 IXT=1,2
+      DO IZT=1,ndim-1
+          DO IYT=1,2
+              DO IXT=1,2
               
-                  DO 100 IZ=1,NZL
-                      DO 100 IY=1,NYL
-                          DO 100 IX=1,NXL
+                  DO IZ=1,NZL
+                      DO IY=1,NYL
+                          DO IX=1,NXL
                               XML(IX,IY,IZ,IE)=XML(IX,IY,IZ,IE)+ &
                               H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*XCB(IXT,IYT,IZT)
                               YML(IX,IY,IZ,IE)=YML(IX,IY,IZ,IE)+ &
                               H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*YCB(IXT,IYT,IZT)
                               ZML(IX,IY,IZ,IE)=ZML(IX,IY,IZ,IE)+ &
                               H(IX,1,IXT)*H(IY,2,IYT)*H(IZ,3,IZT)*ZCB(IXT,IYT,IZT)
-      100 END DO
+                          enddo
+                      enddo
+                  enddo
+              enddo
+          enddo
+      enddo
   
   5000 END DO
   RETURN
@@ -841,8 +857,8 @@ subroutine setside
   NFACES=NDIM*2
   NCRNR =2**(NDIM-1)
   CALL RZERO(SIDE,24*NELT)
-  DO 500 ICRN=1,NCRNR
-      DO 500 IFAC=1,NFACES
+  DO ICRN=1,NCRNR
+      DO IFAC=1,NFACES
           IVTX = ICFACE(ICRN,IFAC)
           ICR1 = NCRNR+(ICRN-1)
           ICR1 = MOD1(ICR1,NCRNR)
@@ -855,7 +871,8 @@ subroutine setside
               300 END DO
               SIDE(4,IFAC,IE)=SQRT( SIDE(4,IFAC,IE) )
           400 END DO
-  500 END DO
+      enddo
+  END DO
   AVWGHT=1.0/FLOAT(NCRNR)
   CALL CMULT(SIDE,AVWGHT,24*NELT)
 
@@ -1028,11 +1045,13 @@ subroutine facev(a,ie,iface,val,nx,ny,nz)
   integer :: ix, iy, iz
 
   CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX,NY,NZ,IFACE)
-  DO 100 IZ=KZ1,KZ2
-      DO 100 IY=KY1,KY2
-          DO 100 IX=KX1,KX2
+  DO IZ=KZ1,KZ2
+      DO IY=KY1,KY2
+          DO IX=KX1,KX2
               A(IX,IY,IZ,IE)=VAL
-  100 END DO
+          enddo
+      enddo
+  enddo
   RETURN
 end subroutine facev
 !-----------------------------------------------------------------------

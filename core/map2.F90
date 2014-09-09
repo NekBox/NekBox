@@ -99,7 +99,9 @@ end subroutine mapelpr
 !! physical distribution in an attempt to minimize exposed number of
 !! element interfaces.
 subroutine set_proc_map()
+  use kinds, only : DP
   use size_m, only : lelt, nid, nelt, nelv
+  use ctimer, only : dnekclock
   use input, only : ifmoab
   use parallel, only : gllel, nelgt, gllnid, nelgv, lglel
   use zper, only : ifgtp
@@ -107,7 +109,7 @@ subroutine set_proc_map()
 
   integer :: iwork(lelt)
 
-  REAL*8 :: dnekclock,t0
+  REAL(DP) :: t0
   integer :: iel, ieg, npass, k, ipass, m, mid, ie
 
   t0 = dnekclock()

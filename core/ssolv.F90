@@ -11,7 +11,7 @@ SUBROUTINE SETTOLV
   use tstep, only : tolps, tolrel, tolhv, tolhr, tolhs, tolpdf
   implicit none
 
-  REAL(DP) :: LENGTH, avvisc, avdens, vnorm, factor
+  REAL(DP) :: avvisc, avdens, vnorm, factor
   integer :: ntot
   real(DP), external :: glmin, glmax
 
@@ -58,7 +58,7 @@ SUBROUTINE SETTOLT
   use tstep, only : ifield, nelfld, istep, tnrml8, tnrmsm, tolabs, tolht, tolrel
   implicit none
 
-  REAL(DP) :: LENGTH, avcond, tnorm
+  REAL(DP) :: avcond, tnorm
   integer :: ntot
   real(DP), external :: glmin
 

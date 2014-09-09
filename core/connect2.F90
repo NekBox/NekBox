@@ -956,8 +956,8 @@ subroutine rdbdry
               IF(VNEKTON <= 2.52) NBCREA = 3
               IF(VNEKTON >= 2.55) NBCREA = 5
           
-              DO 80 IEG=1,NEL
-                  DO 80 ISIDE=1,NSIDES
+              DO IEG=1,NEL
+                  DO ISIDE=1,NSIDES
                       IF (GLLNID(IEG) == NID) THEN
                           IEL=GLLEL(IEG)
                           IF (NELGT < 1000) THEN
@@ -1004,7 +1004,8 @@ subroutine rdbdry
                       ELSE
                           READ(9,*,ERR=500,END=500)   cbc1  ! dummy read, pff 4/28/05
                       ENDIF
-              80 END DO
+                  enddo
+              END DO
           endif
           81 format(a132)
       100 END DO
@@ -1033,13 +1034,13 @@ subroutine rdbdry
   !-----------------------------------------------------------------
   
   !     READ(8,ERR=500,END=500)
-      DO 1100 IFIELD=IBCS,NBCS
+      DO IFIELD=IBCS,NBCS
           NEL=NELGT
       !        Fluid and/or thermal
           NBCREA = 5
       
-          DO 1080 IEG=1,NEL
-              DO 1080 ISIDE=1,NSIDES
+          DO IEG=1,NEL
+              DO ISIDE=1,NSIDES
                   IF (GLLNID(IEG) == NID) THEN
                       IEL=GLLEL(IEG)
                       READ(8,ERR=1500,END=1500) &
@@ -1056,8 +1057,9 @@ subroutine rdbdry
                       CBCS(ISIDE,IEL),ID1,ID2,(BCS(II,ISIDE,IEL),II=1,NBCREA)
                   !              check for fortran function as denoted by lower case bcs:
                   ENDIF
-          1080 END DO
-      1100 END DO
+              enddo
+          END DO
+      END DO
   
   !     END OF BC READ
   
@@ -1165,15 +1167,16 @@ subroutine rdmatp
       READ(9,*,ERR=200,END=200)
       READ(9,*,ERR=200,END=200) NSKIP
       READ(9,*,ERR=200,END=200) NPACKS
-      DO 100 IIG=1,NPACKS
+      DO IIG=1,NPACKS
           IFVPS= .TRUE. 
           READ(9,*)IGRP,IFLD,ITYPE
           MATYPE(IGRP,IFLD)=ITYPE
-          DO 100 IPROP=1,3
+          DO IPROP=1,3
               IF(ITYPE == 1) READ(9,* ) CPGRP(IGRP,IFLD,IPROP)
               IF(ITYPE == 2) READ(9,80) LINE
               80 FORMAT(A132)
-      100 END DO
+          enddo
+      END DO
   ENDIF
 
   CALL BCAST(MATYPE,16*LDIMT1*ISIZE)
@@ -1475,11 +1478,11 @@ subroutine vrdsmsh()
 
   CALL RONE (TB,NTOT)
   CALL SUB2 (TB,TA,NTOT)
-  DO 1000 IE=1,NELT
+  DO IE=1,NELT
       ieg=lglel(ie)
-      DO 1000 IZ=1,NZ1
-          DO 1000 IY=1,NY1
-              DO 1000 IX=1,NX1
+      DO IZ=1,NZ1
+          DO IY=1,NY1
+              DO IX=1,NX1
                   IF (ABS(TB(IX,IY,IZ,IE)) > EPS ) THEN
                       WRITE(6,1005) IX,IY,IZ,IEG &
                       ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE) &
@@ -1492,17 +1495,21 @@ subroutine vrdsmsh()
                       ,2X,'Near X =',3G16.8,', d:',2G16.8)
                       IERR=4
                   ENDIF
-  1000 END DO
+              enddo
+          enddo
+      enddo
+  END DO
 
 !   Set up QMASK quickly to annihilate checks on periodic bc's
 
   CALL RONE(QMASK,NTOT)
-  DO 100 IEL=1,NELT
-      DO 100 IFACE=1,NFACES
+  DO IEL=1,NELT
+      DO IFACE=1,NFACES
           CB =CBC(IFACE,IEL,IFIELD)
           IF (CB == 'P  ' .OR. cb == 'p  ') &
           CALL FACEV(QMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-  100 END DO
+      enddo
+  END DO
   CALL DSOP(QMASK,'MUL',NX1,NY1,NZ1)
 
 !    xxmin = glmin(xm1,ntot)
@@ -1527,7 +1534,7 @@ subroutine vrdsmsh()
   CALL SUB2(TB,XM1,NTOT)
   CALL COL2(TA,QMASK,NTOT)
   CALL COL2(TB,QMASK,NTOT)
-  DO 1100 IE=1,NELT
+  DO IE=1,NELT
       XSCMAX = VLMAX(XM1(1,1,1,IE),NXYZ1)
       XSCMIN = VLMIN(XM1(1,1,1,IE),NXYZ1)
       SCAL1=ABS(XSCMAX-XSCMIN)
@@ -1537,9 +1544,9 @@ subroutine vrdsmsh()
       SCAL1=MAX(SCAL1,SCAL3)
       XSCALE = 1./SCAL1
       ieg=lglel(ie)
-      DO 1100 IZ=1,NZ1
-          DO 1100 IY=1,NY1
-              DO 1100 IX=1,NX1
+      DO IZ=1,NZ1
+          DO IY=1,NY1
+              DO IX=1,NX1
                   if (abs(ta(ix,iy,iz,ie)*xscale) > eps .OR. &
                   abs(tb(ix,iy,iz,ie)*xscale) > eps ) then
                       write(6,1105) ix,iy,iz,ieg &
@@ -1550,7 +1557,10 @@ subroutine vrdsmsh()
                       ,1X,'Near X =',3G16.8,', d:',3G16.8)
                       ierr=1
                   endif
-  1100 END DO
+              enddo
+          enddo
+      enddo
+  enddo
 
 !   Y-component
 
@@ -1562,7 +1572,7 @@ subroutine vrdsmsh()
   CALL SUB2(TB,YM1,NTOT)
   CALL COL2(TA,QMASK,NTOT)
   CALL COL2(TB,QMASK,NTOT)
-  DO 1200 IE=1,NELT
+  DO IE=1,NELT
       YSCMAX = VLMAX(YM1(1,1,1,IE),NXYZ1)
       YSCMIN = VLMIN(YM1(1,1,1,IE),NXYZ1)
       SCAL1=ABS(YSCMAX-YSCMIN)
@@ -1572,9 +1582,9 @@ subroutine vrdsmsh()
       SCAL1=MAX(SCAL1,SCAL3)
       YSCALE = 1./SCAL1
       ieg=lglel(ie)
-      DO 1200 IZ=1,NZ1
-          DO 1200 IY=1,NY1
-              DO 1200 IX=1,NX1
+      DO IZ=1,NZ1
+          DO IY=1,NY1
+              DO IX=1,NX1
                   IF (ABS(TA(IX,IY,IZ,IE)*YSCALE) > EPS .OR. &
                   ABS(TB(IX,IY,IZ,IE)*YSCALE) > EPS ) THEN
                       WRITE(6,1205) IX,IY,IZ,IEG &
@@ -1585,7 +1595,10 @@ subroutine vrdsmsh()
                       ,1X,'Near Y =',3G16.8,', d:',3G16.8)
                       IERR=2
                   ENDIF
-  1200 END DO
+              enddo
+          enddo
+      enddo
+  enddo
 
 !   Z-component
 
@@ -1598,7 +1611,7 @@ subroutine vrdsmsh()
       CALL SUB2(TB,ZM1,NTOT)
       CALL COL2(TA,QMASK,NTOT)
       CALL COL2(TB,QMASK,NTOT)
-      DO 1300 IE=1,NELT
+      DO IE=1,NELT
           ZSCMAX = VLMAX(ZM1(1,1,1,IE),NXYZ1)
           ZSCMIN = VLMIN(ZM1(1,1,1,IE),NXYZ1)
           SCAL1=ABS(ZSCMAX-ZSCMIN)
@@ -1608,9 +1621,9 @@ subroutine vrdsmsh()
           SCAL1=MAX(SCAL1,SCAL3)
           ZSCALE = 1./SCAL1
           ieg=lglel(ie)
-          DO 1300 IZ=1,NZ1
-              DO 1300 IY=1,NY1
-                  DO 1300 IX=1,NX1
+          DO IZ=1,NZ1
+              DO IY=1,NY1
+                  DO IX=1,NX1
                       IF (ABS(TA(IX,IY,IZ,IE)*ZSCALE) > EPS .OR. &
                       ABS(TB(IX,IY,IZ,IE)*ZSCALE) > EPS ) THEN
                           WRITE(6,1305) IX,IY,IZ,IEG &
@@ -1621,7 +1634,10 @@ subroutine vrdsmsh()
                           ,1X,'Near Z =',3G16.8,', d:',3G16.8)
                           IERR=3
                       ENDIF
-      1300 END DO
+                  enddo
+              enddo
+          enddo
+      enddo
   ENDIF
    
   ierr = iglsum(ierr,1)

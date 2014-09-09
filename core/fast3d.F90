@@ -74,14 +74,14 @@ subroutine plane_space(lr,ls,lt,i1,i2,w,x,y,z,nx,nxn,nz0,nzn)
   use input, only : if3d
   implicit none
 
+  integer :: nx, nz0, nxn, nzn, i1, i2
   real(DP) :: w(1),lr(1),ls(1),lt(1)
   real(DP) :: x(0:nxn,0:nxn,nz0:nzn,1)
   real(DP) :: y(0:nxn,0:nxn,nz0:nzn,1)
   real(DP) :: z(0:nxn,0:nxn,nz0:nzn,1)
   real(DP) :: lr2,ls2,lt2
-  integer :: nz0, nxn, nzn
 
-  integer :: ny, nx, nz, j1, i1, k1, j2, i2, k2, ie, k, j, i
+  integer :: ny, nz, j1, k1, j2, k2, ie, k, j, i
   real(DP) :: wsum, weight
 
 !   Now, for each element, compute lr,ls,lt between specified planes
@@ -329,6 +329,7 @@ subroutine generate_semhat(a,b,c,d,z,dgll,jgll,bgl,zgl,dgl,jgl,n,w)
   use kinds, only : DP
   implicit none
 
+  integer :: n
   real(DP) :: a(0:n,0:n),b(0:n),c(0:n,0:n),d(0:n,0:n),z(0:n)
   real(DP) :: dgll(0:n,1:n-1),jgll(0:n,1:n-1)
 
@@ -337,7 +338,7 @@ subroutine generate_semhat(a,b,c,d,z,dgll,jgll,bgl,zgl,dgl,jgl,n,w)
 
   real(DP) :: w(0:(n+1)*2)
 
-  integer :: n, np, nm, n2
+  integer :: np, nm, n2
   integer :: i, j, k
 
   np = n+1
@@ -408,8 +409,8 @@ subroutine fd_weights_full(xx,x,n,m,c)
   use kinds, only : DP
   implicit none
 
-  real(DP) :: xx, x(0:n),c(0:n,0:m)
   integer :: n, m
+  real(DP) :: xx, x(0:n),c(0:n,0:m)
 
   integer :: i, j, k, mn
   real(DP) :: c1, c2, c3, c4, c5
@@ -459,7 +460,6 @@ subroutine swap_lengths()
   implicit none
 
   real, allocatable :: l(:,:,:,:)
-  real :: l2d
   integer :: e, n2, nz0, nzn, nx, n, j, k
 
   allocate(l(lx1, ly1, lz1, lelv))

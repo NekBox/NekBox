@@ -1,7 +1,8 @@
 subroutine nek_flops(flops,mflops)
+  use kinds, only : r4, i8
   implicit none
-  real*4 :: rtime,ptime,mflops
-  integer*8 :: flops
+  real(r4) :: mflops
+  integer(i8) :: flops
 
   call getflops_papi(flops,mflops)
 
@@ -9,10 +10,12 @@ subroutine nek_flops(flops,mflops)
 end subroutine nek_flops
 
 subroutine getflops_papi(flops,mflops)
+  use kinds, only : r4, i8
   implicit none
-  real*4 :: rtime,ptime,mflops
-  integer*8 :: flops
+  real(r4) :: mflops
+  integer(i8) :: flops
 #ifdef PAPI
+  real(r4) :: rtime,ptime
   include 'f77papi.h'
 
   call papif_flops(rtime,ptime,flops,mflops,ierr)

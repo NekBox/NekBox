@@ -499,14 +499,17 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   
   endif
 
-  DO 500 IE=1,NELV
-      DO 500 IX=1,NX1
-          DO 500 IY=1,NY1
-              DO 500 IZ=1,NZ1
+  DO IE=1,NELV
+      DO IX=1,NX1
+          DO IY=1,NY1
+              DO IZ=1,NZ1
                   U(IX,IY,IZ,IE)=ABS( U(IX,IY,IZ,IE)*DRSTI(IX) )
                   V(IX,IY,IZ,IE)=ABS( V(IX,IY,IZ,IE)*DRSTI(IY) )
                   W(IX,IY,IZ,IE)=ABS( W(IX,IY,IZ,IE)*DRSTI(IZ) )
-  500 END DO
+              enddo
+          enddo
+      enddo
+  END DO
 
   U3(1)   = VLMAX(U,NTOT)
   U3(2)   = VLMAX(V,NTOT)
@@ -548,11 +551,12 @@ subroutine faccl2(a,b,iface1)
   af = reshape(a, (/lx1*ly1*lz1/))
   bf = reshape(b, (/lx1*ly1/))
   I = 0
-  DO 100 J2=JS2,JF2,JSKIP2
-      DO 100 J1=JS1,JF1,JSKIP1
+  DO J2=JS2,JF2,JSKIP2
+      DO J1=JS1,JF1,JSKIP1
           I = I+1
           af(J1+lx1*(J2-1)) = Af(J1+lx1*(J2-1))*Bf(I)
-  100 END DO
+      enddo
+  END DO
   a = reshape(af, (/lx1, ly1, lz1/))
 
   return
@@ -633,7 +637,6 @@ subroutine vprops
   use tstep, only : ifield, nelfld, istep
   implicit none
 
-  LOGICAL ::  IFKFLD,IFEFLD
   integer :: nxyz1, nel, ntot1, iel, igrp, itype, itest
   real(DP) :: cdiff, ctrans
   integer, external :: iglmax
@@ -679,7 +682,7 @@ subroutine vprops
 
 !...  No turbulence models, OR current field is not k or e.
 
-  DO 1000 IEL=1,NEL
+  DO IEL=1,NEL
   
       IGRP=IGROUP(IEL)
 
@@ -742,7 +745,7 @@ subroutine vprops
           endif
       endif
   
-  1000 END DO
+  END DO
 
 !     Turbulence models --- sum eddy viscosity/diffusivity
 #if 0
@@ -806,13 +809,14 @@ SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
       b1f = reshape(b1, (/lx1*ly1*lz1/))
       b2f = reshape(b2, (/lx1*ly1*lz1/))
       b3f = reshape(b3, (/lx1*ly1*lz1/))
-      DO 100 J2=JS2,JF2,JSKIP2
-          DO 100 J1=JS1,JF1,JSKIP1
+      DO J2=JS2,JF2,JSKIP2
+          DO J1=JS1,JF1,JSKIP1
               I = I+1
               A1f(I) = B1f(J1+lx1*(J2-1))
               A2f(I) = B2f(J1+lx1*(J2-1))
               A3f(I) = B3f(J1+lx1*(J2-1))
-      100 END DO
+          enddo
+      END DO
       A1 = reshape(A1f, (/lx1, ly1/))
       A2 = reshape(A2f, (/lx1, ly1/))
       A3 = reshape(A3f, (/lx1, ly1/))
@@ -820,13 +824,14 @@ SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
       a1f = reshape(a1, (/lx1*ly1/))
       a2f = reshape(a2, (/lx1*ly1/))
       a3f = reshape(a3, (/lx1*ly1/))
-      DO 150 J2=JS2,JF2,JSKIP2
-          DO 150 J1=JS1,JF1,JSKIP1
+      DO J2=JS2,JF2,JSKIP2
+          DO J1=JS1,JF1,JSKIP1
               I = I+1
               B1f(J1+lx1*(J2-1)) = A1f(I)
               B2f(J1+lx1*(J2-1)) = A2f(I)
               B3f(J1+lx1*(J2-1)) = A3f(I)
-      150 END DO
+          enddo
+      END DO
       B1 = reshape(B1f, (/lx1, ly1, lz1/))
       B2 = reshape(B2f, (/lx1, ly1, lz1/))
       B3 = reshape(B3f, (/lx1, ly1, lz1/))
@@ -840,9 +845,9 @@ SUBROUTINE CMULT2 (A,B,CONST,N)
   implicit none
   real(DP) :: A(1),B(1), const
   integer :: n, i
-  DO 100 I=1,N
+  DO I=1,N
       A(I)=B(I)*CONST
-  100 END DO
+  END DO
   RETURN
 END SUBROUTINE CMULT2
 
@@ -871,10 +876,11 @@ SUBROUTINE SETCDOF
   integer :: nface, ifc, iel
   NFACE = 2*NDIM
 
-  DO 100 IEL=1,NELT
-      DO 100 IFC=1,NFACE
+  DO IEL=1,NELT
+      DO IFC=1,NFACE
           CDOF(IFC,IEL)=CBC(IFC,IEL,0)(1:1)
-  100 END DO
+      enddo
+  END DO
 
   RETURN
 END SUBROUTINE SETCDOF

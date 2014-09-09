@@ -17,8 +17,6 @@ subroutine setup_convect(igeom)
 
   integer, intent(in) :: igeom
 
-  logical :: ifnew
-
   if (igeom == 1) return
   if (param(99) < 0) return ! no dealiasing
 
@@ -93,8 +91,8 @@ subroutine gen_int(jgl,jgt,mp,np,w)
   use kinds, only : DP
   implicit none
 
-  real(DP) :: jgl(mp,np),jgt(np*mp),w(1)
   integer, intent(in) :: mp, np
+  real(DP) :: jgl(mp,np),jgt(np*mp),w(1)
 
   integer :: iz, id, n, i, j
 

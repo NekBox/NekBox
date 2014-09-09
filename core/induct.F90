@@ -100,8 +100,9 @@ subroutine compute_cfl(cfl,u,v,w,dt)
 subroutine getdr(dri,zgm1,nx1)
   use kinds, only : DP
   implicit none
-  real(DP) :: dri(nx1),zgm1(nx1)
   integer :: nx1
+  real(DP) :: dri(nx1),zgm1(nx1)
+
   integer :: i
 
   dri(1) = zgm1(2) - zgm1(1)   !  Compute 1/Dx

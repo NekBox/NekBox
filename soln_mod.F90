@@ -89,7 +89,7 @@ module soln
     , ABX2   (LX1,LY1,LZ1,LELV) &
     , ABY2   (LX1,LY1,LZ1,LELV) &
     , ABZ2   (LX1,LY1,LZ1,LELV) &
-    , VDIFF_E(LX1,LY1,LZ1,LELT) &
+!    , VDIFF_E(LX1,LY1,LZ1,LELT) &
 !     Solution data
     , VX     (LX1,LY1,LZ1,LELV) &
     , VY     (LX1,LY1,LZ1,LELV) &
@@ -101,7 +101,7 @@ module soln
     , BFY    (LX1,LY1,LZ1,LELV) &
     , BFZ    (LX1,LY1,LZ1,LELV) &
     , cflf   (lx1,ly1,lz1,lelv) &
-    , c_vx   (lxd*lyd*lzd*lelv*ldim,lorder+1)  & ! characteristics
+!    , c_vx   (lxd*lyd*lzd*lelv*ldim,lorder+1)  & ! characteristics
 !     Solution data for magnetic field
     , BX     (LBX1,LBY1,LBZ1,LBELV) &
     , BY     (LBX1,LBY1,LBZ1,LBELV) &

@@ -1,3 +1,5 @@
+!> \file qthermal.F90 \copybrief qthermal
+
 !-------------------------------------------------------------------------
 !> \brief Compute the thermal divergence QTL
 !! QTL := div(v) = -1/rho * Drho/Dt

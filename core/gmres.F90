@@ -1,3 +1,5 @@
+!> \file gmres.F90 \copybrief hmh_gmres()
+
 !-----------------------------------------------------------------------
 subroutine uzawa_gmres_split(l,u,b,binv,n)
   use kinds, only : DP

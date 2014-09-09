@@ -4,6 +4,7 @@ module turbo
   use kinds, only : DP
   implicit none
 
+#if 0
   real(DP), allocatable, dimension(:,:,:,:) :: VTURB, TURBL, UWALL, ZWALL
   real(DP), allocatable, dimension(:,:,:,:) :: TWX, TWY, TWZ
 
@@ -11,9 +12,11 @@ module turbo
     , BETA1,BETA2 &
     , CMI,SKI,SEI,VKI,BTI,STI &
     , ZPLDAT,ZPUDAT,ZPVDAT,TLMAX,TLIMUL
+#endif
+
   integer :: IFLDK,IFLDTK,IFLDE,IFLDTE
   logical :: IFSWALL,IFCWUZ
-  logical, allocatable :: IFTWSH(:,:)
+!  logical, allocatable :: IFTWSH(:,:)
 
   contains
 
@@ -29,9 +32,9 @@ module turbo
     , TWX   (LX1M,LZ1M,6,LELV) &
     , TWY   (LX1M,LZ1M,6,LELV) &
     , TWZ   (LX1M,LZ1M,6,LELV) )
-#endif
 
     allocate(IFTWSH(6,LELV))
+#endif
 
   end subroutine init_turbo
 

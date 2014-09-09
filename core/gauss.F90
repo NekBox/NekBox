@@ -1,3 +1,7 @@
+!> \file gauss.F90
+!! \brief routines for direct solves with Gaussian elimination
+!! (LU decomposition).
+
 !> \brief the first subroutine to compute the matrix inverse
 SUBROUTINE LU(A,N,NDIM,IR,IC)
   use kinds, only : DP
@@ -69,7 +73,7 @@ SUBROUTINE LU(A,N,NDIM,IR,IC)
        END DO 
   END DO 
   RETURN
-  END SUBROUTINE LU
+END SUBROUTINE LU
 
 !> \brief second part of the matrix inverse
 SUBROUTINE SOLVE(F,A,K,N,NDIM,IR,IC)

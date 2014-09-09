@@ -17,8 +17,7 @@ subroutine qthermal()
   use tstep, only : ifield
   implicit none
 
-  real(DP) :: w2(LX1,LY1,LZ1,LELT)
-  real(DP) :: tx(LX1,LY1,LZ1,LELT), ty(LX1,LY1,LZ1,LELT), tz(LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: w2(:,:,:,:), tx(:,:,:,:), ty(:,:,:,:), tz(:,:,:,:)
 
   integer :: ntot, ifld_save
 
@@ -34,22 +33,25 @@ subroutine qthermal()
 ! - - Assemble RHS of T-eqn
   ifield=2
   call setqvol (QTL) ! volumetric heating source
-  call col2    (QTL,BM1,ntot)
+  qtl = qtl * bm1
 
   ifield=1     !set right gs handle (QTL is only defined on the velocity mesh)
+  allocate(tx(LX1,LY1,LZ1,LELT), ty(LX1,LY1,LZ1,LELT), tz(LX1,LY1,LZ1,LELT))
   call opgrad  (tx,ty,tz,T)
   call opdssum (tx,ty,tz)
   call opcolv  (tx,ty,tz,binvm1)
   call opcolv  (tx,ty,tz,vdiff(1,1,1,1,2))
+
+  allocate(w2(LX1,LY1,LZ1,LELT))
   call opdiv   (w2,tx,ty,tz)
 
-  call add2    (QTL,w2,ntot)
+  qtl = qtl + w2
+  deallocate(w2,tx,ty,tz)
 
-  call col3    (w2,vtrans(1,1,1,1,2),T,ntot)
-  call invcol2 (QTL,w2,ntot)
+  qtl = qtl / vtrans(:,:,:,:,2) * T(:,:,:,:,1)
 
   call dssum   (QTL,nx1,ny1,nz1)
-  call col2    (QTL,binvm1,ntot)
+  qtl = qtl * binvm1
 
   ifield = ifld_save
 

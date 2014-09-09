@@ -1,6 +1,6 @@
 module domain
 !     arrays for overlapping Schwartz algorithm
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m
   implicit none
 
@@ -12,7 +12,7 @@ module domain
 !     These are the H1 coarse-grid arrays:
   integer, parameter :: lxc = 2, lcr = lxc**ldim
 
-  integer*8, allocatable :: se_to_gcrs(:,:)
+  integer(i8), allocatable :: se_to_gcrs(:,:)
   integer :: n_crs, m_crs, nx_crs, nxyz_c
 
   real(DP), allocatable :: h1_basis(:), h1_basist(:)

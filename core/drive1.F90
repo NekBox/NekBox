@@ -279,7 +279,7 @@ end subroutine nek_solve
 !!
 !! Includes the primary Pn/Pn vs Pn/Pn-2 branch
 subroutine nek_advance
-  use input, only : iftran, ifmhd, ifsplit, ifheat, ifflow, param
+  use input, only : iftran, ifsplit, ifheat, ifflow, param
   implicit none
 
   integer :: igeom

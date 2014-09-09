@@ -718,7 +718,6 @@ end subroutine rdparam
 !! .Selectively read mesh (defined by element vertices, and group numbers)
 !!  on each processor
 subroutine rdmesh
-  use kinds, only : DP
   use size_m, only : ndim, nid
   use input, only : iffmtin, igroup, xc, yc, zc
   use parallel, only : nelgt, gllnid, gllel
@@ -779,7 +778,6 @@ subroutine rdmesh
 
 !   Error handling:
 
-  400 CONTINUE
   if(nid == 0) WRITE(6,401)
   401 FORMAT(2X,'ERROR READING SCALE FACTORS, CHECK READ FILE' &
   ,/,2X,'ABORTING IN ROUTINE RDMESH.')
@@ -905,7 +903,8 @@ subroutine rdbdry
   use string, only : capit, indx1
   implicit none
 
-  CHARACTER CBC1*1,CBC3*3,CHTEMP*1,CHTMP3*3
+  CHARACTER(1) :: CBC1, chtemp
+  character(3) :: CBC3, chtmp3
   EQUIVALENCE (CHTEMP,CHTMP3)
   character(132) :: tmp_string
   integer :: nfldt, nbcs, ibcs, nsides, lcbc, ibcnew, ifield, nel, nbcrea, ieg

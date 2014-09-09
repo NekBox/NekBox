@@ -30,19 +30,14 @@
 !> \brief Set up arrays for overlapping Schwartz algorithm *for pressure solver*
 subroutine set_overlap
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, lbelv, lelt, nid
+  use size_m, only : lx1, nid
   use domain, only : ltotd
   use input, only : param, ifaxis, ifmgrid, ifmhd, ifsplit, ifldmhd
   use tstep, only : ifield
   implicit none
 
-  integer, parameter :: n_tri = 7*ltotd
-
   real(DP) :: x(2*ltotd), y(2*ltotd), z(2*ltotd)
 
-  integer, parameter :: lia = ltotd - 2 - 2*lelt
-
-  integer, parameter :: lxx=lx1*lx1, levb=lelv+lbelv
   integer :: npass, ipass
 
   if (lx1 == 2) param(43)=1.

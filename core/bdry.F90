@@ -1,7 +1,6 @@
 !-----------------------------------------------------------------------
 !> \brief Subroutine to initialize logical flags
 SUBROUTINE SETLOG()
-  use kinds, only : DP
   use size_m, only : ndim, nelv, nelt, nfield, nid, lxd
   use ctimer, only : ifsync
   use geom, only : ifvcor, ifgeom, ifsurt, ifwcno, ifeppm, ifqinp, ifmelt
@@ -13,7 +12,7 @@ SUBROUTINE SETLOG()
   use turbo, only : ifswall, ifcwuz
   implicit none
 
-  CHARACTER CB*3
+  CHARACTER(3) CB
   LOGICAL :: IFALGN,IFNORX,IFNORY,IFNORZ
 
   integer :: nface, nmxv, nmxt, iel, ifc, iq, ih, iobj
@@ -249,7 +248,7 @@ SUBROUTINE CHKAXCB()
   use input, only : cbc
   implicit none
 
-  CHARACTER CB*3
+  CHARACTER(3) CB
   integer :: ifld, nface, iel, ifc
 
   IFLD  = 1
@@ -273,7 +272,7 @@ END SUBROUTINE CHKAXCB
 !> \brief Check for illegal boundary conditions
 SUBROUTINE CHKCBC (CB,IEL,IFC,IFALGN)
   implicit none
-  CHARACTER CB*3
+  CHARACTER(3) CB
   LOGICAL :: IFALGN
   integer :: iel, ifc
 
@@ -560,7 +559,6 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, ndim, lelv, lx1, ly1, lz1
   use ctimer, only : icalld, tusbc, nusbc, etime1, dnekclock
-  use geom, only : ifqinp
   use input, only : if3d, cbc, bc, ifstrs
   use tstep, only : ifield, nelfld
   implicit none
@@ -574,7 +572,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   , TMP2(LX1,LY1,LZ1,LELV) &
   , TMP3(LX1,LY1,LZ1,LELV)
 
-  character cb*3
+  character(3) cb
   character(1) :: cb1(3)
   equivalence (cb1,cb)
 
@@ -727,7 +725,7 @@ SUBROUTINE BCDIRSC(S)
   real(DP) :: S(LX1,LY1,LZ1,LELT)
   real(DP) :: tmp(LX1,LY1,LZ1,LELT) 
 
-  CHARACTER CB*3
+  CHARACTER(3) CB
 
   integer :: ifld, nfaces, nxyz, nel, ntot, isweep, ie, iface, nfldt
   real(DP) :: BC1, BC2, BC3, BC4, BCK, BCE
@@ -822,7 +820,7 @@ SUBROUTINE BCNEUSC(S,ITYPE)
   real(DP) :: S(LX1,LY1,LZ1,LELT)
   integer :: itype
 
-  CHARACTER CB*3
+  CHARACTER(3) CB
 
   real(DP) :: ts
   integer :: nfaces, nxyz, nel, ntot
@@ -981,7 +979,6 @@ END SUBROUTINE BCNEUSC
 !!     HRAD          Radiation  heat transfer coefficient
 !!     TINF          Temperature at infinity
 SUBROUTINE NEKASGN (IX,IY,IZ,IEL)
-  use kinds, only : DP
   use size_m
   use geom
   use input
@@ -992,7 +989,7 @@ SUBROUTINE NEKASGN (IX,IY,IZ,IEL)
 
   integer, intent(in) :: ix, iy, iz, iel
 
-  CHARACTER CB*3
+  CHARACTER(3) CB
 
   integer :: ips
 

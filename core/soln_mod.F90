@@ -79,6 +79,8 @@ module soln
     , VYLAG  (LX1,LY1,LZ1,LELV,2) &
     , VZLAG  (LX1,LY1,LZ1,LELV,2) &
     , TLAG   (LX1,LY1,LZ1,LELT,LORDER-1,LDIMT))
+    vxlag = 0._dp; vylag = 0._dp; vzlag = 0._dp; tlag = 0._dp
+
     allocate( &
       VGRADT1(LX1,LY1,LZ1,LELT,LDIMT) &
     , VGRADT2(LX1,LY1,LZ1,LELT,LDIMT) )

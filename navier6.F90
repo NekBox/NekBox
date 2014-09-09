@@ -36,17 +36,14 @@ subroutine set_overlap
   use tstep, only : ifield
   implicit none
 
-  REAL*8 :: dnekclock,t0
-
   integer, parameter :: n_tri = 7*ltotd
-  integer :: elem
 
   real(DP) :: x(2*ltotd), y(2*ltotd), z(2*ltotd)
 
   integer, parameter :: lia = ltotd - 2 - 2*lelt
 
   integer, parameter :: lxx=lx1*lx1, levb=lelv+lbelv
-  integer :: e, npass, ipass
+  integer :: npass, ipass
 
   if (lx1 == 2) param(43)=1.
   if (lx1 == 2 .AND. nid == 0) write(6,*) 'No mgrid for lx1=2!'

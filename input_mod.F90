@@ -15,8 +15,9 @@ module input
   implicit none
 
   real(DP) :: RSTIM, VNEKTON
-  real(DP) :: NKTONV, NHIS, IPSCAL, NPSCAL, IPSCO, ifldmhd
-  real(DP) ::  IRSTV, IRSTT, IRSTIM, NOBJ, NGEOM
+  real(DP) :: NKTONV
+  integer :: IRSTV, IRSTT, IRSTIM, NOBJ, NGEOM
+  integer :: nhis, ipscal, npscal, ipsco, ifldmhd
 
   real(DP), allocatable ::  PARAM(:), CPFLD(:,:), CPGRP(:,:,:), QINTEG(:,:)
   integer, allocatable :: matype(:,:), lochis(:,:), nmember(:)

@@ -29,9 +29,9 @@ SUBROUTINE SETLOG()
   IFSURT  = .FALSE. 
   IFWCNO  = .FALSE. 
   IFSWALL = .FALSE. 
-  DO 10 IFIELD=1,NFIELD
+  DO IFIELD=1,NFIELD
       IFNONL(IFIELD) = .FALSE. 
-  10 END DO
+  END DO
 
   CALL LFALSE (IFEPPM,NMXV)
   CALL LFALSE (IFQINP,NMXV)
@@ -49,8 +49,8 @@ SUBROUTINE SETLOG()
   ! k         call check_cyclic  ! fow now; set in .rea file
 
       IFIELD = 1
-      DO 100 IEL=1,NELV
-          DO 100 IFC=1,NFACE
+      DO IEL=1,NELV
+          DO IFC=1,NFACE
               CB = CBC(IFC,IEL,IFIELD)
               CALL CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFC,IEL)
               IF ( .NOT. IFSTRS ) CALL CHKCBC  (CB,IEL,IFC,IFALGN)
@@ -83,19 +83,22 @@ SUBROUTINE SETLOG()
                   IFSWALL         = .TRUE. 
                   IFCWUZ          = .TRUE. 
               ENDIF
-      100 END DO
+          END DO
+      enddo
   ENDIF
 
   IF (IFHEAT) THEN
   
-      DO 250 IFIELD=2,NFIELD
-          DO 250 IEL=1,NELFLD(IFIELD)
-              DO 250 IFC=1,NFACE
+      DO IFIELD=2,NFIELD
+          DO IEL=1,NELFLD(IFIELD)
+              DO IFC=1,NFACE
                   CB=CBC(IFC,IEL,IFIELD)
                   IF  (CB == 'r  ' .OR. CB == 'R  ') THEN
                       IFNONL(IFIELD)  = .TRUE. 
                   ENDIF
-      250 END DO
+              enddo
+          enddo
+      END DO
   
   ENDIF
 
@@ -103,7 +106,7 @@ SUBROUTINE SETLOG()
 
   IF (NHIS > 0) THEN
       IQ = 0
-      DO 300 IH=1,NHIS
+      DO IH=1, NHIS
           IF ( HCODE(10,IH) == 'I' ) THEN
               IFINTQ = .TRUE. 
               IOBJ   = LOCHIS(1,IH)
@@ -114,7 +117,7 @@ SUBROUTINE SETLOG()
                   call exitt
               ENDIF
           ENDIF
-      300 END DO
+      END DO
   ENDIF
 
 !   Establish global consistency of LOGICALS amongst all processors.
@@ -124,9 +127,9 @@ SUBROUTINE SETLOG()
   CALL GLLOG(IFSWALL, .TRUE. )
   CALL GLLOG(IFCWUZ , .TRUE. )
   CALL GLLOG(IFWCNO , .TRUE. )
-  DO 400 IFIELD=2,NFIELD
+  DO IFIELD=2,NFIELD
       CALL GLLOG(IFNONL(IFIELD), .TRUE. )
-  400 END DO
+  END DO
 
   IF (NID == 0) THEN
       WRITE (6,*) 'IFTRAN   =',IFTRAN
@@ -155,12 +158,12 @@ SUBROUTINE SETLOG()
       WRITE (6,*) 'IFGEOM   =',IFGEOM
       WRITE (6,*) 'IFSURT   =',IFSURT
       WRITE (6,*) 'IFWCNO   =',IFWCNO
-      DO 500 IFIELD=1,NFIELD
+      DO IFIELD=1,NFIELD
           WRITE (6,*) '  '
           WRITE (6,*) 'IFTMSH for field',IFIELD,'   = ',IFTMSH(IFIELD)
           WRITE (6,*) 'IFADVC for field',IFIELD,'   = ',IFADVC(IFIELD)
           WRITE (6,*) 'IFNONL for field',IFIELD,'   = ',IFNONL(IFIELD)
-      500 END DO
+      END DO
       WRITE (6,*) '  '
       if (param(99) > 0) write(6,*) 'Dealiasing enabled, lxd=', lxd
   ENDIF
@@ -195,10 +198,10 @@ SUBROUTINE CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFC,IEL)
   IF (NDIM == 2) THEN
   
       NCPF = NX1
-      DO 100 IX=1,NX1
+      DO IX=1,NX1
           SUMX = SUMX + ABS( ABS(UNX(IX,1,IFC,IEL)) - 1.0 )
           SUMY = SUMY + ABS( ABS(UNY(IX,1,IFC,IEL)) - 1.0 )
-      100 END DO
+      END DO
       SUMX = SUMX / NCPF
       SUMY = SUMY / NCPF
       IF ( SUMX < TOLNOR ) THEN
@@ -213,12 +216,13 @@ SUBROUTINE CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFC,IEL)
   ELSE
   
       NCPF = NX1*NX1
-      DO 200 IX=1,NX1
-          DO 200 IY=1,NY1
+      DO IX=1,NX1
+          DO IY=1,NY1
               SUMX = SUMX + ABS( ABS(UNX(IX,IY,IFC,IEL)) - 1.0 )
               SUMY = SUMY + ABS( ABS(UNY(IX,IY,IFC,IEL)) - 1.0 )
               SUMZ = SUMZ + ABS( ABS(UNZ(IX,IY,IFC,IEL)) - 1.0 )
-      200 END DO
+          enddo
+      END DO
       SUMX = SUMX / NCPF
       SUMY = SUMY / NCPF
       SUMZ = SUMZ / NCPF
@@ -251,11 +255,12 @@ SUBROUTINE CHKAXCB()
   IFLD  = 1
   NFACE = 2*NDIM
 
-  DO 100 IEL=1,NELV
-      DO 100 IFC=1,NFACE
+  DO IEL=1,NELV
+      DO IFC=1,NFACE
           CB = CBC(IFC,IEL,IFLD)
           IF  (CB == 'A  ' .AND. IFC /= 1)  GOTO 9000
-  100 END DO
+      enddo
+  END DO
 
   RETURN
 
@@ -288,7 +293,7 @@ SUBROUTINE CHKCBC (CB,IEL,IFC,IFALGN)
   9001 WRITE (6,*) ' Illegal traction boundary conditions detected for'
   GOTO 9999
   9010 WRITE (6,*) ' Mixed B.C. on a side nonaligned with either the X,Y, &
-  or Z axis detected for'
+  &or Z axis detected for'
   9999 WRITE (6,*) ' Element',IEL,'   side',IFC,'.'
   WRITE (6,*) ' Selected option only allowed for STRESS FORMULATION'
   WRITE (6,*) ' Execution terminates'
@@ -345,12 +350,13 @@ SUBROUTINE BCMASK
   !        Pressure mask
   
       CALL RONE(PMASK,NTOT)
-      DO 50 IEL=1,NELV
-          DO 50 IFACE=1,NFACES
+      DO IEL=1,NELV
+          DO IFACE=1,NFACES
               CB=CBC(IFACE,IEL,IFIELD)
               IF (CB == 'O  ' .OR. CB == 'ON ') &
               CALL FACEV(PMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-      50 END DO
+          enddo
+      END DO
   
   !        Zero out mask at Neumann-Dirichlet interfaces
   
@@ -369,8 +375,8 @@ SUBROUTINE BCMASK
           CALL RONE(V3MASK,NTOT)
           CALL RONE( OMASK,NTOT)
       
-          DO 100 IEL=1,NELV
-              DO 100 IFACE=1,NFACES
+          DO IEL=1,NELV
+              DO IFACE=1,NFACES
                   CB =CBC(IFACE,IEL,IFIELD)
                   CALL CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFACE,IEL)
               
@@ -381,7 +387,7 @@ SUBROUTINE BCMASK
                       CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                      GOTO 100
+                      cycle
                   ENDIF
               
               !        Mixed-Dirichlet-Neumann boundary conditions
@@ -393,7 +399,7 @@ SUBROUTINE BCMASK
                       CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       IF ( IFNORZ ) &
                       CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                      GOTO 100
+                      cycle
                   ENDIF
                   IF (CB == 'ON ') THEN
                       IF ( IFNORY .OR. IFNORZ ) &
@@ -402,13 +408,14 @@ SUBROUTINE BCMASK
                       CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       IF ( .NOT. IFALGN .OR. IFNORX .OR. IFNORY ) &
                       CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                      GOTO 100
+                      cycle
                   ENDIF
                   IF (CB == 'A  ') THEN
                       CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       CALL FACEV ( OMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                   ENDIF
-          100 END DO
+              enddo
+          END DO
 
           CALL DSOP  ( OMASK,'MUL',NX1,NY1,NZ1)
           call opdsop(v1mask,v2mask,v3mask,'MUL') ! no rotation for mul
@@ -425,13 +432,13 @@ SUBROUTINE BCMASK
 
   IF (IFHEAT) THEN
   
-      DO 1200 IFIELD=2,NFIELD
+      DO IFIELD=2,NFIELD
           IPSCAL = IFIELD-1
           NEL    = NELFLD(IFIELD)
           NTOT   = NXYZ*NEL
           CALL RONE (TMASK(1,1,1,1,IPSCAL),NTOT)
-          DO 1100 IEL=1,NEL
-              DO 1100 IFACE=1,NFACES
+          DO IEL=1,NEL
+              DO IFACE=1,NFACES
                   CB =CBC(IFACE,IEL,IFIELD)
               
               !           Assign mask values.
@@ -444,9 +451,10 @@ SUBROUTINE BCMASK
                   CB == 'KW ' .OR. CB == 'KWS' .OR. CB == 'EWS') &
                   CALL FACEV (TMASK(1,1,1,1,IPSCAL), &
                   IEL,IFACE,0.0,NX1,NY1,NZ1)
-          1100 END DO
+              enddo
+          END DO
           CALL DSOP (TMASK(1,1,1,1,IPSCAL),'MUL',NX1,NY1,NZ1)
-      1200 END DO
+      END DO
   
   ENDIF
 
@@ -600,9 +608,9 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
 !   Velocity boundary conditions
 
 !   write(6,*) 'BCDIRV: ifield',ifield
-  DO 2100 ISWEEP=1,2
-      DO 2000 IE=1,NEL
-          DO 2000 IFACE=1,NFACES
+  DO ISWEEP=1,2
+      DO IE=1,NEL
+          DO IFACE=1,NFACES
               CB  = CBC(IFACE,IE,IFIELD)
               BC1 = BC(1,IFACE,IE,IFIELD)
               BC2 = BC(2,IFACE,IE,IFIELD)
@@ -644,16 +652,17 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
                   TMP3(1,1,1,IE),IE,IFACE,NX1,NY1,NZ1)
 #endif
               ENDIF
-
-      2000 END DO
-      DO 2010 IE=1,NEL
-          DO 2010 IFACE=1,NFACES
+          enddo
+      END DO
+      DO IE=1,NEL
+          DO IFACE=1,NFACES
               IF (CBC(IFACE,IE,IFIELD) == 'W  ') THEN
                   CALL FACEV (TMP1,IE,IFACE,0.0,NX1,NY1,NZ1)
                   CALL FACEV (TMP2,IE,IFACE,0.0,NX1,NY1,NZ1)
                   IF (IF3D) CALL FACEV (TMP3,IE,IFACE,0.0,NX1,NY1,NZ1)
               ENDIF
-      2010 END DO
+          enddo
+      END DO
   
   !        Take care of Neumann-Dirichlet shared edges...
   
@@ -662,7 +671,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
       else
           call opdsop(tmp1,tmp2,tmp3,'MNA')
       endif
-  2100 END DO
+  END DO
 
 !   Copy temporary array to velocity arrays.
 
@@ -840,8 +849,8 @@ SUBROUTINE BCNEUSC(S,ITYPE)
   
   !        Compute diagonal contributions to accomodate Robin boundary conditions
   
-      DO 1000 IE=1,NEL
-          DO 1000 IFACE=1,NFACES
+      DO IE=1,NEL
+          DO IFACE=1,NFACES
               ieg=lglel(ie)
               CB =CBC(IFACE,IE,IFIELD)
               IF (CB == 'C  ' .OR. CB == 'c  ' .OR. &
@@ -857,9 +866,9 @@ SUBROUTINE BCNEUSC(S,ITYPE)
               ! IA is areal counter, assumes advancing fastest index first. (IX...IY...IZ)
               
                   CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX1,NY1,NZ1,IFACE)
-                  DO 100 IZ=KZ1,KZ2
-                      DO 100 IY=KY1,KY2
-                          DO 100 IX=KX1,KX2
+                  DO IZ=KZ1,KZ2
+                      DO IY=KY1,KY2
+                          DO IX=KX1,KX2
                               IA = IA + 1
                               TS = T(IX,IY,IZ,IE,IFIELD-1)
                               IF (CB == 'c  ' .OR. CB == 'r  ') THEN
@@ -870,16 +879,19 @@ SUBROUTINE BCNEUSC(S,ITYPE)
                               HC = HRAD * (TINF**2 + TS**2) * (TINF + TS)
                               S(IX,IY,IZ,IE) = S(IX,IY,IZ,IE) + &
                               HC*AREA(IA,1,IFACE,IE)/BM1(IX,IY,IZ,IE)
-                  100 END DO
+                          enddo
+                      enddo
+                  END DO
               ENDIF
-      1000 END DO
+          enddo
+      END DO
   ENDIF
   IF (ITYPE == 1) THEN
   
   !        Add passive scalar fluxes to rhs
   
-      DO 2000 IE=1,NEL
-          DO 2000 IFACE=1,NFACES
+      DO IE=1,NEL
+          DO IFACE=1,NFACES
               ieg=lglel(ie)
               CB =CBC(IFACE,IE,IFIELD)
               IF (CB == 'F  ' .OR. CB == 'f  ' .OR. &
@@ -899,9 +911,9 @@ SUBROUTINE BCNEUSC(S,ITYPE)
               ! IA is areal counter, assumes advancing fastest index first. (IX...IY...IZ)
                   IA=0
                   CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX1,NY1,NZ1,IFACE)
-                  DO 200 IZ=KZ1,KZ2
-                      DO 200 IY=KY1,KY2
-                          DO 200 IX=KX1,KX2
+                  DO IZ=KZ1,KZ2
+                      DO IY=KY1,KY2
+                          DO IX=KX1,KX2
                               IA = IA + 1
                               TS = T(IX,IY,IZ,IE,IFIELD-1)
                               IF (CB == 'f  ') THEN
@@ -924,9 +936,12 @@ SUBROUTINE BCNEUSC(S,ITYPE)
                           
                               S(IX,IY,IZ,IE) = S(IX,IY,IZ,IE) &
                               + FLUX*AREA(IA,1,IFACE,IE)
-                  200 END DO
+                          enddo
+                      enddo
+                  enddo
               ENDIF
-      2000 END DO
+          enddo
+      END DO
   ENDIF
 
 #ifndef NOTIMER

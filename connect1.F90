@@ -10,10 +10,10 @@
 !! All Processors:
 !! .Disperse/Receive BC and MULT temporary data read from preprocessor.
 subroutine setup_topo()
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m, only : nid, ndim, nx1, ny1, nz1, nelv, nelt, nfield
-  use size_m, only : lx1, ly1, lz1, lx3, ly3, lz3, lelt, lelv, ldim
-  use input, only : ifaxis, ifflow, ifmvbd, ifheat
+  use size_m, only : lx1, ly1, lz1, lelv
+  use input, only : ifflow, ifmvbd, ifheat
   use mesh, only : vertex
   use mvgeom, only : wmult
   use parallel, only : nelgv, nelgt, gsh_fld, nelg
@@ -22,7 +22,7 @@ subroutine setup_topo()
   use zper, only : ifgtp
   implicit none
 
-  integer*8, allocatable :: glo_num(:)
+  integer(i8), allocatable :: glo_num(:)
 
   integer :: nxl, nyl, nzl, mfield, ncrnr, ntotv, ntott
   real(DP) :: vmltmax, ivmltmax
@@ -281,7 +281,6 @@ end subroutine initds
 !!                                               i=2 gives the stopping vertex
 !!                                               i=3 gives the stride size.
 subroutine setedge()
-  use kinds, only : DP
   use size_m, only : ndim
   use topol, only : iedgef, iedge, invedg, skpdat, group
   implicit none
@@ -954,8 +953,6 @@ subroutine verrhe()
       2000 END DO
   ENDIF
 
-  9000 CONTINUE
-
 !   Print out results from right-handed check
 
   IF ( .NOT. IFCSTT) WRITE(6,2001)
@@ -1039,8 +1036,9 @@ subroutine facev(a,ie,iface,val,nx,ny,nz)
   use kinds, only : DP
   use size_m, only : lelt
   implicit none
-  real(DP) :: a(NX,NY,NZ,LELT), val
   integer :: ie, iface, nx, ny, nz
+  real(DP) :: a(NX,NY,NZ,LELT), val
+
   integer :: kx1, ky1, kz1, kx2, ky2, kz2
   integer :: ix, iy, iz
 

@@ -3,7 +3,7 @@
 !------------------------------------------------------------------------
 subroutine setprop
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield
+  use size_m, only :nx1, ny1, nz1, nfield
   use ctimer, only : icalld, tspro, nspro, etime1, dnekclock
   use input, only : ifflow, ifmhd
   use mass, only : bm1

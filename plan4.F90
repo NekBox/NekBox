@@ -434,7 +434,7 @@ subroutine v_extrap(vext)
   use tstep, only : ab, nab
   implicit none
        
-  real(DP) :: vext(lx1*ly1*lz1*lelv,1)
+  real(DP) :: vext(lx1*ly1*lz1*lelv,3)
 
   integer :: ntot
   real(DP) :: AB0, AB1, AB2

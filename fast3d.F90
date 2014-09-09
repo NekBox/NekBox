@@ -1,7 +1,6 @@
 !-----------------------------------------------------------------------
 !> \brief Generate fast diagonalization matrices for each element
 subroutine gen_fast_spacing(x,y,z)
-  use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv
   use input, only : param
   implicit none
@@ -452,14 +451,14 @@ end subroutine fd_weights_full
 subroutine swap_lengths()
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv
-  use size_m, only : nx1, nelv, lelt
+  use size_m, only : nx1, nelv
   use geom, only : xm1, ym1, zm1
-  use hsmg, only : lr, llr, lrr, lmr, ls, lls, lms, lrs, lt, llt, lmt, lrt
+  use hsmg, only : llr, lrr, lmr, lls, lms, lrs, llt, lmt, lrt
   use input, only : if3d
   use wz_m, only : wxm1
   implicit none
 
-  real, allocatable :: l(:,:,:,:)
+  real(DP), allocatable :: l(:,:,:,:)
   integer :: e, n2, nz0, nzn, nx, n, j, k
 
   allocate(l(lx1, ly1, lz1, lelv))
@@ -528,7 +527,7 @@ subroutine row_zero(a,m,n,e)
   implicit none
 
   integer :: m,n,e
-  real :: a(m,n)
+  real(DP) :: a(m,n)
   integer :: j
   do j=1,n
       a(e,j)=0.

@@ -4,7 +4,7 @@ subroutine uzawa_gmres_split(l,u,b,binv,n)
   implicit none
 
   integer :: n
-  real :: l(n),u(n),b(n),binv(n)
+  real(DP) :: l(n),u(n),b(n),binv(n)
   integer :: i
   do i=1,n
       l(i)=1.

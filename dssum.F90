@@ -1,12 +1,12 @@
 subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m, only : nid
   use parallel, only : mp=>np, nekcomm
   implicit none
 
   integer :: gs_handle
   integer :: vertex(1)
-  integer*8 :: glo_num(1),ngv
+  integer(i8) :: glo_num(1),ngv
 
   real(DP) :: t0, t1
   integer :: nx, nel, ntot, ny, nz, melg
@@ -34,7 +34,6 @@ end subroutine setupds
 !-----------------------------------------------------------------------
 subroutine dssum(u,nx,ny,nz)
   use kinds, only : DP
-  use size_m, only : lx1, ly1
   use ctimer, only : ifsync, icalld, tdsmx, tdsmn, etime1, dnekclock
   use ctimer, only : tdsum, ndsum
   use input, only : ifldmhd
@@ -46,7 +45,6 @@ subroutine dssum(u,nx,ny,nz)
   integer :: nx, ny, nz
   
   integer :: ifldt
-  integer, parameter :: lface=lx1*ly1
   real(DP) :: timee
 
   ifldt = ifield

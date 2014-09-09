@@ -82,15 +82,16 @@ end subroutine ortho
 !---------------------------------------------------------------------
 subroutine opgrad (out1,out2,out3,inp)
   use kinds, only : DP
-  use size_m
-  use geom
-  use input
+  use size_m, only : nx2, ny2, nz2, ndim, nelv
+  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2
+  use geom, only : rxm2, rym2, rzm2, sxm2, sym2, szm2, txm2, tym2, tzm2
+  use input, only : ifsplit, ifaxis
   implicit none
 
-  REAL(DP) :: OUT1 (LX2,LY2,LZ2,1)
-  REAL(DP) :: OUT2 (LX2,LY2,LZ2,1)
-  REAL(DP) :: OUT3 (LX2,LY2,LZ2,1)
-  REAL(DP) :: INP  (LX1,LY1,LZ1,1)
+  REAL(DP) :: OUT1 (LX2,LY2,LZ2,nelv)
+  REAL(DP) :: OUT2 (LX2,LY2,LZ2,nelv)
+  REAL(DP) :: OUT3 (LX2,LY2,LZ2,nelv)
+  REAL(DP) :: INP  (LX1,LY1,LZ1,nelv)
 
   integer :: iflg, ntot2
   iflg = 0
@@ -1601,10 +1602,10 @@ subroutine opdiv(outfld,inpx,inpy,inpz)
   use geom, only : rxm2, rym2, rzm2, sxm2, sym2, szm2, txm2, tym2, tzm2
   implicit none
 
-  real(DP) :: outfld (lx2,ly2,lz2,1)
-  real(DP) :: inpx   (lx1,ly1,lz1,1)
-  real(DP) :: inpy   (lx1,ly1,lz1,1)
-  real(DP) :: inpz   (lx1,ly1,lz1,1)
+  real(DP) :: outfld (lx2,ly2,lz2,nelv)
+  real(DP) :: inpx   (lx1,ly1,lz1,nelv)
+  real(DP) :: inpy   (lx1,ly1,lz1,nelv)
+  real(DP) :: inpz   (lx1,ly1,lz1,nelv)
   
   real(DP) :: work (lx2,ly2,lz2,lelv)
 

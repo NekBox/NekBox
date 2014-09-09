@@ -1033,7 +1033,8 @@ subroutine mfo_open_files(prefix,ierr) ! open files
 
   call blank(fname,132)      !  zero out for byte_open()
 
-  iprefix        = i_find_prefix(prefix,99)
+  prefx = transfer(prefix, prefx)
+  iprefix        = i_find_prefix(prefx,99)
   if (ifreguo) then
       nopen(iprefix,2) = nopen(iprefix,2)+1
       nfld             = nopen(iprefix,2)
@@ -1045,7 +1046,7 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   call chcopy(prefx,prefix,3)        ! check for full-restart request
   if (prefx == 'rst' .AND. max_rst > 0) nfld = mod1(nfld,max_rst)
 
-  call restart_nfld( nfld, prefix ) ! Check for Restart option.
+  call restart_nfld( nfld, prefx ) ! Check for Restart option.
   if (prefx == '   ' .AND. nfld == 1) ifxyo_ = .TRUE. ! 1st file
 
 #ifdef MPIIO
@@ -1186,7 +1187,7 @@ subroutine outpost(v1,v2,v3,vp,vt,name3)
   use input, only : ifto
   implicit none
 
-  real(DP) :: v1(1),v2(1),v3(1),vp(1),vt(1)
+  real(DP) :: v1(*),v2(*),v3(*),vp(*),vt(*)
   character(3) :: name3
 
   integer :: itmp

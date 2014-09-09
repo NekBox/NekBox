@@ -759,7 +759,6 @@ end subroutine vprops
 !-----------------------------------------------------------------------
 !> Set ifsolv = .FALSE.
 subroutine setsolv
-  use size_m, only : lelt
   use mesh, only : ifsolv
   implicit none
     

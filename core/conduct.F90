@@ -26,7 +26,8 @@ subroutine cdscal (igeom)
   integer :: nel, ntot, nfldt, if1, isd, iter, intype
 !max    include 'ORTHOT'
 
-  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
+!max  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
+  if (.not. allocated(approx)) allocate(approx(1,1))
 
   napprox(1) = laxt
 

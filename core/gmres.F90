@@ -39,9 +39,8 @@ end subroutine ax
 !! GMRES iteration.
 subroutine hmh_gmres(res,h1,h2,wt,iter)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, lgmres
+  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv, lgmres
   use size_m, only : nx1, ny1, nz1, nelv, nid
-  use gmres, only : c, s, h, gamma, ml, mu, x, r, w, v, z
   use input, only : param, ifmgrid, ifprint
   use mass, only : bm1, binvm1, volvm1
   use soln, only : pmask, vmult
@@ -53,6 +52,15 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   real(DP) ::             h2   (lx1,ly1,lz1,lelv)
   real(DP) ::             wt   (lx1,ly1,lz1,lelv)
   integer :: iter
+
+  real, allocatable :: x(:),r(:),w(:)
+  real, allocatable :: h(:,:),gamma(:)
+  real, allocatable :: c(:),s(:) ! store the Givens rotations
+  real, allocatable :: v(:,:) ! stores the orthogonal Krylov subspace basis
+  real, allocatable :: z(:,:) ! Z = M**(-1) V
+
+  real, allocatable :: ml(:), mu(:)
+
 
   real(DP) :: divex
   real(DP) :: d(lx1*ly1*lz1*lelv)
@@ -71,6 +79,19 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
   integer :: m, n
   integer :: i, j, k, iconv
+
+  allocate(x(lx2*ly2*lz2*lelv))
+  allocate(r(lx2*ly2*lz2*lelv))
+  allocate(w(lx2*ly2*lz2*lelv)) 
+  allocate(h(lgmres,lgmres))
+  allocate(gamma(lgmres+1))
+  allocate(c(lgmres), s(lgmres))
+
+  allocate(v(lx2*ly2*lz2*lelv,lgmres)) ! verified
+  allocate(z(lx2*ly2*lz2*lelv,lgmres)) ! verified
+
+  allocate(ml(lx2*ly2*lz2*lelv), mu(lx2*ly2*lz2*lelv)) ! verified
+
 
   n = nx1*ny1*nz1*nelv
 

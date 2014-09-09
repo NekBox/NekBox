@@ -15,7 +15,6 @@ subroutine nek_init(intracomm)
   use esolv, only : init_esolv
   use fdmh1, only : init_fdmh1
   use geom, only : init_geom
-  use gmres, only : init_gmres
   use hsmg, only : init_hsmg
   use input, only : init_input
   use ixyz, only : init_ixyz
@@ -62,7 +61,7 @@ subroutine nek_init(intracomm)
   call init_esolv()
   call init_fdmh1()
   call init_geom()
-  call init_gmres()
+!  call init_gmres()
   call init_hsmg()
   call init_input()
   call init_ixyz()

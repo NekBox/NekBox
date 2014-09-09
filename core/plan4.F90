@@ -27,20 +27,19 @@ subroutine plan4
   integer, save :: napprox(2)
   real(DP), allocatable, save :: approx(:,:)
 
-  real(DP) ::   RES1  (LX1,LY1,LZ1,LELV) &
-  ,             RES2  (LX1,LY1,LZ1,LELV) &
-  ,             RES3  (LX1,LY1,LZ1,LELV) &
-  ,             DV1   (LX1,LY1,LZ1,LELV) &
-  ,             DV2   (LX1,LY1,LZ1,LELV) &
-  ,             DV3   (LX1,LY1,LZ1,LELV) &
-  ,             RESPR (LX2,LY2,LZ2,LELV)
+  real(DP), allocatable :: RES1(:,:,:,:)
+  real(DP), allocatable :: RES2(:,:,:,:)   
+  real(DP), allocatable :: RES3(:,:,:,:)      
+  real(DP), allocatable :: DV1 (:,:,:,:)   
+  real(DP), allocatable :: DV2 (:,:,:,:)   
+  real(DP), allocatable :: DV3 (:,:,:,:)   
+  real(DP), allocatable :: RESPR (:,:,:,:)
 
-  real(DP) :: h1(lx1,ly1,lz1,lelv), h2(lx1,ly1,lz1,lelv)
-  real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
-  REAL(DP) ::           DPR   (LX2,LY2,LZ2,LELV)
-  EQUIVALENCE   (DPR,DV1)
+  real(DP), allocatable :: h1(:,:,:,:), h2(:,:,:,:)
+  real(DP), allocatable :: VEXT(:,:)
+  REAL(DP), allocatable :: DPR(:,:,:,:)
 
-  REAL(DP) :: DVC (LX1,LY1,LZ1,LELV), DFC(LX1,LY1,LZ1,LELV)
+  REAL(DP), allocatable :: DVC (:,:,:,:), DFC(:,:,:,:)
   REAL(DP) :: DIV1, DIV2, DIF1, DIF2, QTL1, QTL2
   real(DP) :: tolspl
   real(DP), external :: glsum
@@ -58,11 +57,12 @@ subroutine plan4
 ! add user defined divergence to qtl
   call add2 (qtl,usrdiv,ntot1)
 
+  allocate(vext(lx1*ly1*lz1*lelv,3))
   CALL V_EXTRAP(vext)
 
 ! compute explicit contributions bfx,bfy,bfz
-  CALL MAKEF
-  CALL LAGVEL
+  CALL MAKEF()
+  CALL LAGVEL()
 
 ! split viscosity into explicit/implicit part
 !    if (ifexplvis) call split_vis
@@ -80,24 +80,42 @@ subroutine plan4
   etime1=dnekclock()
 #endif
 
+  allocate(RESPR(LX2,LY2,LZ2,LELV))
   call crespsp  (respr, vext)
+  deallocate(vext)
+
+  allocate(h1(lx1,ly1,lz1,lelv), h2(lx1,ly1,lz1,lelv))
   call invers2  (h1,vtrans,ntot1)
   call rzero    (h2,ntot1)
   call ctolspl  (tolspl,respr)
+
+  allocate(dpr(lx2,ly2,lz2,lelv))
   napprox(1) = laxt
   call hsolve   ('PRES',dpr,respr,h1,h2 &
   ,pmask,vmult &
   ,imesh,tolspl,nmxh,1 &
   ,approx,napprox,binvm1)
+  deallocate(respr)
   call add2    (pr,dpr,ntot1)
+  deallocate(dpr)
   call ortho   (pr)
 #ifndef NOTIMER
   tpres=tpres+(dnekclock()-etime1)
 #endif
 
 !     Compute velocity
+  allocate(RES1(lx1,ly1,lz1,lelv), &
+           RES2(LX1,LY1,LZ1,LELV), &
+           RES3(LX1,LY1,LZ1,LELV)  )
+
   call cresvsp (res1,res2,res3,h1,h2)
+
+  allocate(DV1 (LX1,LY1,LZ1,LELV), &
+           DV2 (LX1,LY1,LZ1,LELV), &
+           DV3 (LX1,LY1,LZ1,LELV)  )
   call ophinv  (dv1,dv2,dv3,res1,res2,res3,h1,h2,tolhv,nmxh)
+  deallocate(res1, res2, res3, h1, h2)
+
   call opadd2  (vx,vy,vz,dv1,dv2,dv3)
 
 !    if (ifexplvis) call redo_split_vis
@@ -105,6 +123,7 @@ subroutine plan4
 ! Below is just for diagnostics...
 
 !     Calculate Divergence norms of new VX,VY,VZ
+  allocate(dvc(lx1,ly1,lz1,lelv), dfc(lx1,ly1,lz1,lelv))
   CALL OPDIV   (DVC,VX,VY,VZ)
   CALL DSSUM   (DVC,NX1,NY1,NZ1)
   CALL COL2    (DVC,BINVM1,NTOT1)
@@ -163,23 +182,24 @@ subroutine crespsp (respr, vext)
   use tstep, only : imesh, bd, dt, ifield
   implicit none
 
-  REAL(DP) ::           RESPR (LX2*LY2*LZ2*LELV)
+  REAL(DP) :: RESPR (LX2*LY2*LZ2*LELV)
   real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
 
-  real(DP) ::   TA1   (LX1*LY1*LZ1,LELV) &
-  ,             TA2   (LX1*LY1*LZ1,LELV) &
-  ,             TA3   (LX1*LY1*LZ1,LELV) &
-  ,             WA1   (LX1*LY1*LZ1*LELV) &
-  ,             WA2   (LX1*LY1*LZ1*LELV) &
-  ,             WA3   (LX1*LY1*LZ1*LELV)
+  real(DP), allocatable :: TA1 (:,:), TA2(:,:), TA3(:,:)
+  real(DP), allocatable :: WA1(:),    WA2(:),   WA3(:)
+  real(DP), allocatable ::  W1(:),     W2(:)
 
-  real(DP) ::  W1    (LX1*LY1*LZ1*LELV) &
-  ,             W2    (LX1*LY1*LZ1*LELV)
   CHARACTER CB*3
 
   integer :: nxyz1, ntot1, nfaces       
   integer :: i, n, ifc, iel
   real(DP) :: scale, dtbd
+
+  allocate(TA1 (LX1*LY1*LZ1,LELV) &
+  , TA2 (LX1*LY1*LZ1,LELV) &
+  , TA3 (LX1*LY1*LZ1,LELV) )
+  allocate(W1 (LX1*LY1*LZ1*LELV) &
+  , W2  (LX1*LY1*LZ1*LELV) )
  
   NXYZ1  = NX1*NY1*NZ1
   NTOT1  = NXYZ1*NELV
@@ -192,7 +212,13 @@ subroutine crespsp (respr, vext)
       CALL COL2 (TA2, OMASK,NTOT1)
       CALL COL2 (TA3, OMASK,NTOT1)
   endif
+
+  allocate( WA1 (LX1*LY1*LZ1*LELV) &
+  , WA2 (LX1*LY1*LZ1*LELV) &
+  , WA3 (LX1*LY1*LZ1*LELV) )
   call op_curl  (wa1,wa2,wa3,ta1,ta2,ta3, .TRUE. ,w1,w2)
+  deallocate(w2)
+
   if(IFAXIS) then
       CALL COL2  (WA2, OMASK,NTOT1)
       CALL COL2  (WA3, OMASK,NTOT1)
@@ -208,6 +234,7 @@ subroutine crespsp (respr, vext)
   call opadd2cm (wa1,wa2,wa3,ta1,ta2,ta3,scale)
   call invcol3  (w1,vdiff,vtrans,ntot1)
   call opcolv   (wa1,wa2,wa3,w1)
+  deallocate(w1)
 
 !   add old pressure term because we solve for delta p
   CALL INVERS2 (TA1,VTRANS,NTOT1)
@@ -242,18 +269,19 @@ subroutine crespsp (respr, vext)
           respr(i) = respr(i)+wa1(i)+wa2(i)
       enddo
   endif
+  deallocate(wa1,wa2,wa3)
 
 !   add thermal divergence
   dtbd = BD(1)/DT
   call admcol3(respr,QTL,bm1,dtbd,ntot1)
    
 !   surface terms
-  DO 300 IFC=1,NFACES
+  DO IFC=1,NFACES
       CALL RZERO  (TA1,NTOT1)
       CALL RZERO  (TA2,NTOT1)
       IF (NDIM == 3) &
       CALL RZERO  (TA3,NTOT1)
-      DO 100 IEL=1,NELV
+      DO IEL=1,NELV
           CB = CBC(IFC,IEL,IFIELD)
           IF (CB(1:1) == 'V' .OR. CB(1:1) == 'v') THEN
             write(*,*) "Oops: cb = v"
@@ -271,10 +299,11 @@ subroutine crespsp (respr, vext)
           IF (NDIM == 3) &
           CALL ADD2   (TA1(1,IEL),TA3(1,IEL),NXYZ1)
           CALL FACCL2 (TA1(1,IEL),AREA(1,1,IFC,IEL),IFC)
-      100 END DO
+      END DO
       CALL CMULT(TA1,dtbd,NTOT1)
       CALL SUB2 (RESPR,TA1,NTOT1)
-  300 END DO
+  END DO
+  deallocate(ta1, ta2, ta3)
 
 !   Assure that the residual is orthogonal to (1,1,...,1)T
 !   (only if all Dirichlet b.c.)
@@ -298,13 +327,13 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   , h1   (lx1,ly1,lz1,lelv) &
   , h2   (lx1,ly1,lz1,lelv)
 
-  real(DP) :: TA1   (LX1,LY1,LZ1,LELV) &
-  ,             TA2   (LX1,LY1,LZ1,LELV) &
-  ,             TA3   (LX1,LY1,LZ1,LELV) &
-  ,             TA4   (LX1,LY1,LZ1,LELV)
+  real(DP), allocatable :: TA1(:,:,:,:), TA2(:,:,:,:) &
+                         , TA3(:,:,:,:), TA4(:,:,:,:)
 
   integer :: ntot, intype
   real(DP) :: scale
+
+
 
   NTOT = NX1*NY1*NZ1*NELV
   INTYPE = -1
@@ -315,9 +344,15 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   CALL OPCHSGN (RESV1,RESV2,RESV3)
 
   scale = -1./3.
-  call col3    (ta4,vdiff,qtl,ntot)
-  call add2s1  (ta4,pr,scale,ntot)
+  allocate(TA1(LX1,LY1,LZ1,LELV) &
+  ,             TA2   (LX1,LY1,LZ1,LELV) &
+  ,             TA3   (LX1,LY1,LZ1,LELV) &
+  ,             TA4   (LX1,LY1,LZ1,LELV) )
+  ta4 = scale*(vdiff(:,:,:,:,1) * qtl) + pr 
+
   call opgrad  (ta1,ta2,ta3,TA4)
+  deallocate(ta4)
+
   if(IFAXIS) then
       CALL COL2 (TA2, OMASK,NTOT)
       CALL COL2 (TA3, OMASK,NTOT)
@@ -344,7 +379,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   real(DP) :: w1(1),w2(1),w3(1),work1(1),work2(1),u1(1),u2(1),u3(1)
   logical :: ifavg
 
-  real :: duax(lx1), ta(lx1,ly1,lz1,lelv)
+  real :: duax(lx1)!, ta(lx1,ly1,lz1,lelv)
   integer :: ntot, nxyz, iel, ifielt
 
   ntot  = nx1*ny1*nz1*nelv
@@ -358,6 +393,8 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
       call copy(w1,work1,ntot)
 
       if(ifaxis) then
+        write(*,*) "Oops: ifaxis"
+#if 0
           call copy (ta,u3,ntot)
           do iel = 1,nelv
               if(IFRZER(iel)) then
@@ -368,8 +405,8 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
               call col2    (ta(1,1,1,iel),yinvm1(1,1,1,iel),nxyz)
           enddo
           call add2      (w1,ta,ntot)
+#endif
       endif
-
   endif
 !   work1=du/dz ; work2=dw/dx
   if (if3d) then

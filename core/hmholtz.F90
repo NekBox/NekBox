@@ -580,13 +580,13 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   REAL(DP) :: MULT (LX1,LY1,LZ1,1)
   integer :: imesh, isd
 
-  real(DP) :: W1   (LX1,LY1,LZ1,LELT) &
-  ,           W2   (LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: W1(:,:,:,:), W2(:,:,:,:)
 
   real(DP) :: acondno, delta, x, y, diff, eps
   real(DP) :: vol, rinit, rmin, bcneu1, bcneu2, bctest, bcrob, tolmin
   integer :: nl, ntot1
   real(DP), external :: glsc3, glsum
+
 
   IF (EIGAA /= 0.) THEN
       ACONDNO = EIGGA/EIGAA
@@ -610,15 +610,16 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
       NL  = NELT
       VOL = VOLTM1
   ENDIF
+
+  allocate(W1(nx1,ny1,nz1,nl), W2(nx1,ny1,nz1,nl))
   NTOT1 = NX1*NY1*NZ1*NL
-  CALL COPY (W1,RES,NTOT1)
 
   IF (IMESH == 1) THEN
-      CALL COL3 (W2,BINVM1,W1,NTOT1)
-      RINIT  = SQRT(GLSC3 (W2,W1,MULT,NTOT1)/VOLVM1)
+      CALL COL3 (W2,BINVM1,RES,NTOT1)
+      RINIT  = SQRT(GLSC3 (W2,res,MULT,NTOT1)/VOLVM1)
   ELSE
-      CALL COL3 (W2,BINTM1,W1,NTOT1)
-      RINIT  = SQRT(GLSC3 (W2,W1,MULT,NTOT1)/VOLTM1)
+      CALL COL3 (W2,BINTM1,res,NTOT1)
+      RINIT  = SQRT(GLSC3 (W2,res,MULT,NTOT1)/VOLTM1)
   ENDIF
   RMIN   = EPS*RINIT
   IF (TOL < RMIN) THEN
@@ -649,6 +650,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
 
   return
   end subroutine chktcg1
+
 !=======================================================================
 !-------------------------------------------------------------------------
 !> \brief Solve the Helmholtz equation, H*U = RHS,

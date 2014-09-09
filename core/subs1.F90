@@ -212,7 +212,7 @@ subroutine setdtc(umax)
   implicit none
 
   real(DP) :: umax
-  real(DP) ::  u(lx1,ly1,lz1,lelv), v(lx1,ly1,lz1,lelv), w(lx1,ly1,lz1,lelv)
+  real(DP), allocatable :: u(:,:,:,:), v(:,:,:,:), w(:,:,:,:)
 
   REAL, save :: VCOUR
 
@@ -273,6 +273,7 @@ subroutine setdtc(umax)
   COLD   = COURNO
   CMAX   = 1.2*CTARG
   CMIN   = 0.8*CTARG
+  allocate(u(lx1,ly1,lz1,lelv), v(lx1,ly1,lz1,lelv), w(lx1,ly1,lz1,lelv))
   CALL CUMAX (VX,VY,VZ,u,v,w,UMAX)
 
 !   Zero DT
@@ -407,19 +408,10 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   ,             w    (lx1,ly1,lz1,lelv)    
   real(DP) :: umax
 
-  real(DP) ::  xrm1 (lx1,ly1,lz1,lelv) &
-  ,            xsm1 (lx1,ly1,lz1,lelv) &
-  ,            xtm1 (lx1,ly1,lz1,lelv) &
-  ,            yrm1 (lx1,ly1,lz1,lelv) &
-  ,            ysm1 (lx1,ly1,lz1,lelv) &
-  ,            ytm1 (lx1,ly1,lz1,lelv)
+  real(DP), allocatable, dimension(:,:,:,:) :: &
+    xrm1, xsm1, xtm1, yrm1, ysm1, ytm1, zrm1, zsm1, ztm1
 
-  real(DP) :: zrm1 (lx1,ly1,lz1,lelv) &
-  ,             zsm1 (lx1,ly1,lz1,lelv) &
-  ,             ztm1 (lx1,ly1,lz1,lelv)
-
-
-  real(DP) :: x(lx1,ly1,lz1,lelv), r(lx1,ly1,lz1,lelv)
+  real(DP), allocatable :: x(:,:,:,:), r(:,:,:,:)
 
   real(DP) :: drst(lx1), drsti(lx1)
 
@@ -436,9 +428,10 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   NTOTD = NTOTL*NDIM
 
 !   Compute isoparametric partials.
-
-  CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, &
-  IFAXIS)
+  allocate(xrm1(nx1,ny1,nz1,nelv), xsm1(nx1,ny1,nz1,nelv), xtm1(nx1,ny1,nz1,nelv))
+  allocate(yrm1(nx1,ny1,nz1,nelv), ysm1(nx1,ny1,nz1,nelv), ytm1(nx1,ny1,nz1,nelv))
+  allocate(zrm1(nx1,ny1,nz1,nelv), zsm1(nx1,ny1,nz1,nelv), ztm1(nx1,ny1,nz1,nelv))
+  CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, IFAXIS)
 
 !   Compute maximum U/DX
 
@@ -457,6 +450,8 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
 !   Zero out scratch arrays U,V,W for ALL declared elements...
 
   CALL RZERO3 (U,V,W,NTOTL)
+
+  allocate(x(lx1,ly1,lz1,lelv), r(lx1,ly1,lz1,lelv))
 
   IF (NDIM == 2) THEN
 
@@ -498,6 +493,10 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
       CALL INVCOL2(W,R,NTOT)
   
   endif
+
+  deallocate(xrm1, xsm1, xtm1, yrm1, ysm1, ytm1, zrm1, zsm1, ztm1)
+  deallocate(x,r)
+
 
   DO IE=1,NELV
       DO IX=1,NX1

@@ -626,10 +626,12 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
 !   Compute the mass matrix on mesh M1.
 
-  DO 700 IEL=1,NELT
+  DO IEL=1,NELT
 !max      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
       CALL COL3 (BM1  (1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
       IF (IFAXIS) THEN
+        write(*,*) "Oops: ifaxis"
+#if 0
           CALL COL3(BAXM1(1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
           IF (IFRZER(IEL)) THEN
               DO 600 J=1,NY1
@@ -649,11 +651,14 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
           ELSE
               CALL COL2 (BM1(1,1,1,IEL),YM1(1,1,1,IEL),NXYZ1)
           ENDIF
+#endif
       ENDIF
   
-  700 END DO
+  END DO
 
   IF(IFAXIS) THEN
+    write(*,*) "Oops: ifaxis"
+#if 0
       DO IEL=1,NELT
           IF(IFRZER(IEL)) THEN
               DO J=1,NY1
@@ -669,8 +674,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
               CALL INVERS2(YINVM1(1,1,1,IEL),YM1(1,1,1,IEL),NXYZ1)
           ENDIF
       ENDDO
-  ELSE
-      CALL CFILL(YINVM1,1.0D0,NXYZ1*NELT)
+#endif
   ENDIF
 
 !   Compute normals, tangents, and areas on elemental surfaces
@@ -696,7 +700,7 @@ subroutine geom2
   use geom, only : txm2, txm1, tym2, tym1, tzm2, tzm1
   use geom, only : jacm2, jacm1, xm2, xm1, ym2, ym1, zm2, zm1
   use input, only : ifsplit
-  use geom, only : bm2, bm1, bm2inv
+  use geom, only : bm2, bm1
   implicit none
 
   integer :: nxyz2, ntot2
@@ -705,24 +709,25 @@ subroutine geom2
   NTOT2 = NXYZ2*NELV
 
   IF (IFSPLIT) THEN
-  
-  !        Mesh 1 and 2 are identical
-  
-      CALL COPY (RXM2,RXM1,NTOT2)
-      CALL COPY (RYM2,RYM1,NTOT2)
-      CALL COPY (RZM2,RZM1,NTOT2)
-      CALL COPY (SXM2,SXM1,NTOT2)
-      CALL COPY (SYM2,SYM1,NTOT2)
-      CALL COPY (SZM2,SZM1,NTOT2)
-      CALL COPY (TXM2,TXM1,NTOT2)
-      CALL COPY (TYM2,TYM1,NTOT2)
-      CALL COPY (TZM2,TZM1,NTOT2)
-      CALL COPY (JACM2,JACM1,NTOT2)
-      CALL COPY (BM2,BM1,NTOT2)
+    ! Mesh 1 and 2 are identical
+    rxm2 => rxm1 
+    rym2 => rym1 
+    rzm2 => rzm1 
 
-      CALL COPY (XM2,XM1,NTOT2)
-      CALL COPY (YM2,YM1,NTOT2)
-      CALL COPY (ZM2,ZM1,NTOT2)
+    sxm2 => sxm1 
+    sym2 => sym1 
+    szm2 => szm1 
+
+    txm2 => txm1 
+    tym2 => tym1 
+    tzm2 => tzm1 
+
+    jacm2 => jacm1
+    bm2 => bm1
+
+    xm2 => xm1
+    ym2 => ym1
+    zm2 => zm1
 
   ELSE
     write(*,*) "Oops: ifsplit" 
@@ -775,7 +780,7 @@ subroutine geom2
   ENDIF
 
 !   Compute inverse of mesh 2 mass matrix, pff 3/5/92
-  CALL INVERS2(BM2INV,BM2,NTOT2)
+!max  CALL INVERS2(BM2INV,BM2,NTOT2)
 
   RETURN
 end subroutine geom2
@@ -924,7 +929,7 @@ subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, nz1, nelt, ndim
-  use geom, only : area, unx, uny, unz, t1x, t1y, t1z, t2x, t2y, t2z
+  use geom, only : area, unx, uny, unz
   implicit none
 
   real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
@@ -943,8 +948,8 @@ subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
   CALL RZERO  (AREA,NSRF)
   CALL RZERO3 (UNX,UNY,UNZ,NSRF)
-  CALL RZERO3 (T1X,T1Y,T1Z,NSRF)
-  CALL RZERO3 (T2X,T2Y,T2Z,NSRF)
+!  CALL RZERO3 (T1X,T1Y,T1Z,NSRF)
+!  CALL RZERO3 (T2X,T2Y,T2Z,NSRF)
 
   IF (NDIM == 2) THEN
 !max        CALL AREA2
@@ -962,7 +967,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelt, ndim
-  use geom, only : area, unx, uny, unz, t1x, t1y, t1z, t2x, t2y, t2z
+  use geom, only : area, unx, uny, unz
   use wz_m, only : wxm1, wym1, wzm1
   implicit none
 
@@ -1048,7 +1053,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   CALL UNITVEC (UNX,UNY,UNZ,NSRF)
 
 !   COMPUTE UNIT TANGENT T1
-
+#if 0
   DO 600 IEL=1,NELT
       DO 600 IFC=1,NFACE
           IF (IFC == 1 .OR. IFC == 6) THEN
@@ -1072,7 +1077,6 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   CALL UNITVEC (T1X,T1Y,T1Z,NSRF)
 
 !   COMPUTE UNIT TANGENT T2  ( T2 = Normal X T1 )
-
   DO 700 IEL=1,NELT
       DO 700 IFC=1,NFACE
           CALL VCROSS (T2X(1,1,IFC,IEL),T2Y(1,1,IFC,IEL), &
@@ -1082,6 +1086,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
           T1X(1,1,IFC,IEL),T1Y(1,1,IFC,IEL), &
           T1Z(1,1,IFC,IEL),NXY1)
   700 END DO
+#endif
 
   RETURN
 end subroutine area3
@@ -1114,16 +1119,17 @@ end subroutine lagmass
 !!     in DSSUM routine for IMESH=1 and IMESH=2.
 !--------------------------------------------------------------------
 subroutine setinvm()
-  use size_m, only : nx1, ny1, nz1, nelv, nelt
-  use input, only : ifflow, ifheat
+  use size_m, only : nx1, ny1, nz1, nelv, nelt, nfield
+  use input, only : ifflow, ifheat, iftmsh
   use geom, only : bm1, binvm1, bintm1
   use tstep, only : ifield
   implicit none
 
-  integer :: nxyz1, ifld, ntot
+  logical :: any_iftmsh
+  integer :: nxyz1, ifld, store_field, ntot
   nxyz1  = nx1*ny1*nz1
 
-  ifld = ifield
+  store_field = ifield
 
   IF (IFFLOW) THEN ! Velocity mass matrix
       IFIELD = 1
@@ -1133,8 +1139,12 @@ subroutine setinvm()
       CALL INVCOL1 (BINVM1,NTOT)
   ENDIF
 
-
-  IF (IFHEAT) THEN ! Temperature mass matrix
+  any_iftmsh = .false.
+  do ifld = 1,nfield
+    if (iftmsh(ifld)) any_iftmsh = .true.
+  enddo
+   
+  IF (IFHEAT .and. any_iftmsh) THEN ! Temperature mass matrix
       IFIELD = 2
       NTOT   = NXYZ1*NELT
       CALL COPY    (BINTM1,BM1,NTOT)
@@ -1142,7 +1152,7 @@ subroutine setinvm()
       CALL INVCOL1 (BINTM1,NTOT)
   ENDIF
 
-  ifield = ifld
+  ifield = store_field
 
   return
 end subroutine setinvm

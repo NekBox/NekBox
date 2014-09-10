@@ -282,8 +282,8 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   !     If axisymmetric, add an extra diagonal term in the radial
   !     direction (only if solving the momentum equations and ISD=2)
   !     NOTE: NZ1=NZ2=1
-  
-  
+  if (ifaxis) write(*,*) "Oops: ifaxis" 
+#if 0 
       if(ifsplit) then
 
           if (ifaxis .AND. (isd == 4)) then
@@ -308,7 +308,7 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
           endif
 
       endif
-
+#endif
   enddo
 
 #ifndef NOTIMER

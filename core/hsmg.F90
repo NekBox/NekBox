@@ -158,11 +158,12 @@ subroutine hsmg_setup_dssum
   integer :: nx,ny,nz, ncrnr
   integer :: l
        
-  allocate(glo_num(lxyz*lelv))
 
 !     set up direct stiffness summation for each level
   ncrnr = 2**ndim
   call get_vert()
+
+  allocate(glo_num(lxyz*lelv))
 
   do l=1,mg_lmax-1
       nx=mg_nh(l)
@@ -1423,11 +1424,12 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
   logical :: if_hybrid
        
   integer, parameter :: lt=lx1*ly1*lz1*lelt
-  real(DP) :: e(2*lt),w(lt),r(lt)
+  real(DP), allocatable :: e(:),w(:),r(:)
   integer :: p_msk,p_b
 
   real(DP) :: op, om, sigma
   integer :: nel, l, n, is, im, i1, i
+
 
 !     if_hybrid = .true.    ! Control this from gmres, according
 !     if_hybrid = .false.   ! to convergence efficiency
@@ -1445,10 +1447,12 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
 
   call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M       rhs
 !               Schwarz
+  allocate(r(lt))
   call copy(r,rhs,n)                              ! r  := rhs
 !max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
 !  l
 
+  allocate(e(2*lt))
   do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
       is = is + n
       n  = mg_h1_n(l,mg_fld)
@@ -1470,13 +1474,14 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
   call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
   call hsmg_coarse_solve ( e(is) , r )            ! e  := A   r
   call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
-
+  deallocate(r)
 !     nx = mg_nh(1)
 !     call outnxfld (e(is),nx,nelv,'ecrsb4',is)
 !     call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
 !     call outnxfld (e(is),nx,nelv,'ecrsaf',is)
 !     call exitt
 
+  allocate(w(lt))
   do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
       im = is
       is = is - n
@@ -1495,6 +1500,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
   do i = 1,n                                      !            l-1
       z(i) = z(i) + w(i)                           ! z := z + w
   enddo
+  deallocate(w,e)
 
   call dsavg(z) ! Emergency hack --- to ensure continuous z!
 
@@ -1759,12 +1765,12 @@ subroutine h1mg_setup_dssum
   integer :: nx,ny,nz, ncrnr
   integer :: l
   
-  allocate(glo_num(lxyz*lelt)) 
  
 !     set up direct stiffness summation for each level
   ncrnr = 2**ndim
   call get_vert()
 
+  allocate(glo_num(lxyz*lelt)) 
   do l=1,mg_lmax 
       nx=mg_nh(l)
       ny=mg_nh(l)
@@ -2209,7 +2215,7 @@ subroutine mg_set_gb  (p_g,p_b,l0)
   
   integer :: e, l, n, ng, nx, ny, nz, nxyz, l_g, l_b
   integer :: nxl, nyl, nzl
-  real(DP) :: w(lx1*ly1*lz1*lelt*2)
+  real(DP), allocatable :: w(:)
 
   l                 = mg_h1_lmax
   p_mg_b (l,mg_fld) = 0
@@ -2227,6 +2233,7 @@ subroutine mg_set_gb  (p_g,p_b,l0)
 
   enddo
 
+  allocate(w(lx1*ly1*lz1*lelt*2))
   do e=1,nelfld(ifield)
       do l=mg_h1_lmax,1,-1
 

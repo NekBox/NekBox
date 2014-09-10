@@ -11,14 +11,14 @@ subroutine ctolspl (tolspl,respr)
   real(DP) :: tolspl
   REAL(DP) :: RESPR (LX2,LY2,LZ2,LELV)
 
-  real(DP) :: WORK  (LX1,LY1,LZ1,LELV)
+  real(DP), allocatable :: WORK(:,:,:,:)
   integer :: ntot1
   real(DP) :: rinit, tolmin, tolold
   real(DP), external :: glsum
 
+  allocate(WORK(nx1,ny1,nz1,nelv))
   NTOT1 = NX1*NY1*NZ1*NELV
-  CALL INVCOL3 (WORK,RESPR,BM1,NTOT1)
-  CALL COL2    (WORK,RESPR,NTOT1)
+  work = respr*respr / bm1
   RINIT  = SQRT (GLSUM (WORK,NTOT1)/VOLVM1)
   IF (TOLPDF > 0.) THEN
       TOLSPL = TOLPDF
@@ -132,6 +132,7 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   real(DP) :: rm2  (lx2*ly2*lz2,lelv)
   real(DP) :: sm2  (lx2*ly2*lz2,lelv)
   real(DP) :: tm2  (lx2*ly2*lz2,lelv)
+
   real(DP) ::  wx  (lx1*ly1*lz1) &
   ,             ta1 (lx1*ly1*lz1) &
   ,             ta2 (lx1*ly1*lz1)
@@ -786,22 +787,19 @@ subroutine advab()
   use soln, only : vx, vy, vz, bfx, bfy, bfz
   implicit none
 
-  real(DP) ::   TA1 (LX1,LY1,LZ1,LELV) &
-  ,             TA2 (LX1,LY1,LZ1,LELV) &
-  ,             TA3 (LX1,LY1,LZ1,LELV)
+  real(DP), allocatable:: TA (:,:,:,:)
 
   integer :: ntot1
- 
+
+  allocate(TA(nx1,ny1,nz1,nelv)) 
   NTOT1 = NX1*NY1*NZ1*NELV
-  CALL CONVOP  (TA1,VX)
-  CALL CONVOP  (TA2,VY)
-  CALL SUBCOL3 (BFX,BM1,TA1,NTOT1)
-  CALL SUBCOL3 (BFY,BM1,TA2,NTOT1)
-  IF (NDIM == 2) THEN
-      CALL RZERO (TA3,NTOT1)
-  ELSE
-      CALL CONVOP  (TA3,VZ)
-      CALL SUBCOL3 (BFZ,BM1,TA3,NTOT1)
+  CALL CONVOP  (TA,VX)
+  CALL SUBCOL3 (BFX,BM1,TA,NTOT1)
+  CALL CONVOP  (TA,VY)
+  CALL SUBCOL3 (BFY,BM1,TA,NTOT1)
+  IF (NDIM /= 2) THEN
+      CALL CONVOP  (TA,VZ)
+      CALL SUBCOL3 (BFZ,BM1,TA,NTOT1)
   ENDIF
 
   return
@@ -811,7 +809,6 @@ end subroutine advab
 !> \brief Add contributions to F from lagged BD terms.
 subroutine makebdf()
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv
   use size_m, only : nx1, ny1, nz1, nelv
   use geom, only : ifgeom
   use mass, only : bm1, bm1lag
@@ -820,37 +817,26 @@ subroutine makebdf()
   use tstep, only : dt, ifield, bd, nbd
   implicit none
 
-  real(DP) ::   TA1(LX1,LY1,LZ1,LELV) &
-  ,             TA2(LX1,LY1,LZ1,LELV) &
-  ,             TA3(LX1,LY1,LZ1,LELV) &
-  ,             TB1(LX1,LY1,LZ1,LELV) &
-  ,             TB2(LX1,LY1,LZ1,LELV) &
-  ,             TB3(LX1,LY1,LZ1,LELV) &
-  ,             H2 (LX1,LY1,LZ1,LELV)
+  real(DP), allocatable :: H2 (:,:,:,:)
 
-  integer :: ntot1, ilag
-  real(DP) :: const
+  integer :: ilag
 
-  NTOT1 = NX1*NY1*NZ1*NELV
-  CONST = 1./DT
-  CALL CMULT2(H2,vtrans(1,1,1,1,ifield),CONST,NTOT1)
-  CALL OPCOLV3c (TB1,TB2,TB3,VX,VY,VZ,BM1,bd(2))
-
-  DO 100 ILAG=2,NBD
-      IF (IFGEOM) THEN
-          CALL OPCOLV3c(TA1,TA2,TA3,VXLAG (1,1,1,1,ILAG-1), &
-          VYLAG (1,1,1,1,ILAG-1), &
-          VZLAG (1,1,1,1,ILAG-1), &
-          BM1LAG(1,1,1,1,ILAG-1),bd(ilag+1))
-      ELSE
-          CALL OPCOLV3c(TA1,TA2,TA3,VXLAG (1,1,1,1,ILAG-1), &
-          VYLAG (1,1,1,1,ILAG-1), &
-          VZLAG (1,1,1,1,ILAG-1), &
-          BM1                   ,bd(ilag+1))
-      ENDIF
-      CALL OPADD2  (TB1,TB2,TB3,TA1,TA2,TA3)
-  100 END DO
-  CALL OPADD2col (BFX,BFY,BFZ,TB1,TB2,TB3,h2)
+  allocate(H2(nx1,ny1,nz1,nelv))
+  h2 = (1./DT) * vtrans(:,:,:,:,ifield) 
+  DO ILAG=2,NBD
+    IF (IFGEOM) THEN
+      bfx = bfx + h2 * (vxlag(:,:,:,:,ilag-1) * bm1lag(:,:,:,:,ilag-1) * bd(ilag+1))
+      bfy = bfy + h2 * (vylag(:,:,:,:,ilag-1) * bm1lag(:,:,:,:,ilag-1) * bd(ilag+1))
+      bfz = bfz + h2 * (vzlag(:,:,:,:,ilag-1) * bm1lag(:,:,:,:,ilag-1) * bd(ilag+1))
+    ELSE
+      bfx = bfx + h2 * (vxlag(:,:,:,:,ilag-1) * bm1    * bd(ilag+1))
+      bfy = bfy + h2 * (vylag(:,:,:,:,ilag-1) * bm1    * bd(ilag+1))
+      bfz = bfz + h2 * (vzlag(:,:,:,:,ilag-1) * bm1    * bd(ilag+1))
+    ENDIF
+  END DO
+  bfx = bfx + h2*vx*bm1*bd(2)
+  bfy = bfy + h2*vy*bm1*bd(2)
+  bfz = bfz + h2*vz*bm1*bd(2)
 
   return
 end subroutine makebdf
@@ -868,32 +854,36 @@ subroutine makeabf
   use tstep, only : ab
   implicit none
 
-  real(DP) :: TA1 (LX1,LY1,LZ1,LELV) &
-  ,             TA2 (LX1,LY1,LZ1,LELV) &
-  ,             TA3 (LX1,LY1,LZ1,LELV)
+  real(DP), allocatable :: TA (:,:,:,:) 
 
   integer :: ntot1
   real(DP) :: ab0, ab1, ab2
+
+  allocate(TA(nx1,ny1,nz1,nelv))
+
   NTOT1 = NX1*NY1*NZ1*NELV
 
   AB0 = AB(1)
   AB1 = AB(2)
   AB2 = AB(3)
-  CALL ADD3S2 (TA1,ABX1,ABX2,AB1,AB2,NTOT1)
-  CALL ADD3S2 (TA2,ABY1,ABY2,AB1,AB2,NTOT1)
+
+  CALL ADD3S2 (TA,ABX1,ABX2,AB1,AB2,NTOT1)
   CALL COPY   (ABX2,ABX1,NTOT1)
-  CALL COPY   (ABY2,ABY1,NTOT1)
   CALL COPY   (ABX1,BFX,NTOT1)
-  CALL COPY   (ABY1,BFY,NTOT1)
-  CALL ADD2S1 (BFX,TA1,AB0,NTOT1)
-  CALL ADD2S1 (BFY,TA2,AB0,NTOT1)
+  CALL ADD2S1 (BFX,TA,AB0,NTOT1)
   CALL COL2   (BFX,VTRANS,NTOT1)          ! multiply by density
+
+  CALL ADD3S2 (TA,ABY1,ABY2,AB1,AB2,NTOT1)
+  CALL COPY   (ABY2,ABY1,NTOT1)
+  CALL COPY   (ABY1,BFY,NTOT1)
+  CALL ADD2S1 (BFY,TA,AB0,NTOT1)
   CALL COL2   (BFY,VTRANS,NTOT1)
+
   IF (NDIM == 3) THEN
-      CALL ADD3S2 (TA3,ABZ1,ABZ2,AB1,AB2,NTOT1)
+      CALL ADD3S2 (TA,ABZ1,ABZ2,AB1,AB2,NTOT1)
       CALL COPY   (ABZ2,ABZ1,NTOT1)
       CALL COPY   (ABZ1,BFZ,NTOT1)
-      CALL ADD2S1 (BFZ,TA3,AB0,NTOT1)
+      CALL ADD2S1 (BFZ,TA,AB0,NTOT1)
       CALL COL2   (BFZ,VTRANS,NTOT1)
   ENDIF
 
@@ -1197,14 +1187,11 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   implicit none
 
   REAL(DP) :: H1,SEMI,L2,LINF
-  REAL(DP) ::           X1 (LX1,LY1,LZ1,1)
-  REAL(DP) ::           X2 (LX1,LY1,LZ1,1)
-  REAL(DP) ::           X3 (LX1,LY1,LZ1,1)
-  real(DP) :: Y1 (LX1,LY1,LZ1,LELT) &
-  ,Y2 (LX1,LY1,LZ1,LELT) &
-  ,Y3 (LX1,LY1,LZ1,LELT) &
-  ,TA1(LX1,LY1,LZ1,LELT)
-  real(DP) :: TA2(LX1,LY1,LZ1,LELT)
+  REAL(DP) :: X1 (LX1,LY1,LZ1,lelt)
+  REAL(DP) :: X2 (LX1,LY1,LZ1,lelt)
+  REAL(DP) :: X3 (LX1,LY1,LZ1,lelt)
+
+  real(DP), allocatable, dimension(:,:,:,:) :: Y1, Y2, Y3, TA1, TA2
   REAL :: LENGTH
   integer :: imesh, nel, nxyz1, ntot1
   real(DP) :: vol
@@ -1222,24 +1209,22 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   L2     = 0.
   LINF   = 0.
 
-  CALL COL3 (TA1,X1,X1,NTOT1)
-  CALL COL3 (TA2,X2,X2,NTOT1)
-  CALL ADD2 (TA1,TA2,NTOT1)
+  allocate(Y1 (LX1,LY1,LZ1,LELT) &
+  ,Y2 (LX1,LY1,LZ1,LELT) &
+  ,Y3 (LX1,LY1,LZ1,LELT) &
+  ,TA1(LX1,LY1,LZ1,LELT) &
+  ,TA2(LX1,LY1,LZ1,LELT) )
+
+
   IF (NDIM == 3) THEN
-      CALL COL3 (TA2,X3,X3,NTOT1)
-      CALL ADD2 (TA1,TA2,NTOT1)
+    ta1 = x1*x1 + x2*x2 + x3*x3
+  else
+    ta1 = x1*x1 + x2*x2
   ENDIF
   LINF = GLAMAX (TA1,NTOT1)
   LINF = SQRT( LINF )
 
-  CALL COL3 (TA1,X1,X1,NTOT1)
-  CALL COL3 (TA2,X2,X2,NTOT1)
-  CALL ADD2 (TA1,TA2,NTOT1)
-  IF (NDIM == 3) THEN
-      CALL COL3 (TA2,X3,X3,NTOT1)
-      CALL ADD2 (TA1,TA2,NTOT1)
-  ENDIF
-  CALL COL2 (TA1,BM1,NTOT1)
+  ta1 = ta1 * bm1
   L2 = GLSUM  (TA1,NTOT1)
   IF (L2 < 0.0) L2 = 0.
 
@@ -1693,8 +1678,8 @@ subroutine wlaplacian(out,a,diff,ifld)
   implicit none
 
   real(DP) :: out(1),a(1),diff(1)
-  real(DP) :: wrk(lx1,ly1,lz1,lelt)
-  real(DP) :: h2(lx1,ly1,lz1,lelt)
+  real(DP), allocatable :: wrk(:,:,:,:)
+  real(DP), allocatable :: h2(:,:,:,:)
   integer :: ifld
 
   integer :: ntot, ifield_
@@ -1703,6 +1688,8 @@ subroutine wlaplacian(out,a,diff,ifld)
   if ( .NOT. iftmsh(ifld)) imesh = 1
   if (     iftmsh(ifld)) imesh = 2
 
+
+  allocate(wrk(nx1,ny1,nz1,nelfld(ifld)), h2(lx1,ly1,lz1,lelt))
   call rzero(h2,ntot)
 
   ifield_ = ifield

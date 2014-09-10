@@ -32,7 +32,7 @@ subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
   return
 end subroutine setupds
 !-----------------------------------------------------------------------
-subroutine dssum(u,nx,ny,nz)
+subroutine dssum(u)
   use kinds, only : DP
   use ctimer, only : ifsync, icalld, tdsmx, tdsmn, etime1, dnekclock
   use ctimer, only : tdsum, ndsum
@@ -42,7 +42,6 @@ subroutine dssum(u,nx,ny,nz)
   implicit none
 
   real(DP) :: u(1)
-  integer :: nx, ny, nz
   
   integer :: ifldt
   real(DP) :: timee
@@ -97,7 +96,7 @@ subroutine dssum(u,nx,ny,nz)
 end subroutine dssum
 
 !-----------------------------------------------------------------------
-subroutine dsop(u,op,nx,ny,nz)
+subroutine dsop(u,op)
   use kinds, only : DP
   use ctimer, only : ifsync
   use input, only : ifldmhd
@@ -107,7 +106,6 @@ subroutine dsop(u,op,nx,ny,nz)
 
   real(DP) :: u(1)
   character(3) :: op
-  integer :: nx, ny, nz
   integer :: ifldt
 
 !   o gs recognized operations:
@@ -166,7 +164,7 @@ end subroutine dsop
 !!
 !! Boundary condition data corresponds to component IFIELD of
 !! the CBC array.
-subroutine vec_dssum(u,v,w,nx,ny,nz)
+subroutine vec_dssum(u,v,w)
   use kinds, only : DP
   use size_m, only : ndim
   use ctimer, only : ifsync, icalld, tvdss, tgsum, nvdss, etime1, dnekclock
@@ -177,7 +175,6 @@ subroutine vec_dssum(u,v,w,nx,ny,nz)
   implicit none
 
   REAL(DP) :: U(1),V(1),W(1)
-  integer :: nx, ny, nz
   integer :: ifldt
   real(DP) :: timee
 
@@ -215,7 +212,7 @@ end subroutine vec_dssum
 !> \brief Direct stiffness summation of the face data, for field U.
 !! Boundary condition data corresponds to component IFIELD of
 !! the CBC array.
-subroutine vec_dsop(u,v,w,nx,ny,nz,op)
+subroutine vec_dsop(u,v,w,op)
   use kinds, only : DP
   use size_m, only : ndim
   use ctimer, only : ifsync
@@ -226,7 +223,6 @@ subroutine vec_dsop(u,v,w,nx,ny,nz,op)
 
   real(DP) :: u(1),v(1),w(1)
   character(3) :: op
-  integer :: nx, ny, nz
   integer :: ifldt
 
 !============================================================================

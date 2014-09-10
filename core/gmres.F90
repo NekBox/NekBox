@@ -1,12 +1,12 @@
 !> \file gmres.F90 \copybrief hmh_gmres()
 
 !-----------------------------------------------------------------------
-subroutine uzawa_gmres_split(l,u,b,binv,n)
+subroutine uzawa_gmres_split(l,u,n)
   use kinds, only : DP
   implicit none
 
   integer :: n
-  real(DP) :: l(n),u(n),b(n),binv(n)
+  real(DP) :: l(n),u(n)
   integer :: i
   do i=1,n
       l(i)=1.
@@ -30,7 +30,7 @@ subroutine ax(w,x,h1,h2,n)
   imsh = 1
   isd  = 1
   call axhelm (w,x,h1,h2,imsh,isd)
-  call dssum  (w,nx1,ny1,nz1)
+  call dssum  (w)
   call col2   (w,pmask,n)
 
   return
@@ -106,7 +106,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
   if( .NOT. iflag) then
       iflag= .TRUE. 
-      call uzawa_gmres_split(ml,mu,bm1,binvm1,n)
+      call uzawa_gmres_split(ml,mu,n)
       norm_fac = 1./sqrt(volvm1)
   endif
 

@@ -50,7 +50,7 @@ subroutine qthermal()
 
   qtl = qtl / vtrans(:,:,:,:,2) * T(:,:,:,:,1)
 
-  call dssum   (QTL,nx1,ny1,nz1)
+  call dssum   (QTL)
   qtl = qtl * binvm1
 
   ifield = ifld_save

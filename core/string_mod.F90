@@ -115,17 +115,17 @@ end subroutine csplit
 !!  OUTPUT: "e......    test        "     if ipt.eq.5
 subroutine lshft(string,ipt)
   implicit none
-  CHARACTER(1) :: STRING(*)
+  CHARACTER(*) :: STRING
   integer :: ipt
   integer :: j, ij
 
-  DO 20 J=1,133-IPT
+  DO J=1,len(string)-IPT
       IJ=IPT+J-1
-      STRING(J)=STRING(IJ)
-  20 END DO
-  DO 30 J=134-IPT,len(string)
-      STRING(J)=' '
-  30 END DO
+      STRING(J:J)=STRING(IJ:IJ)
+  END DO
+  DO J=len(string)-IPT,len(string)
+      STRING(J:J)=' '
+  END DO
   return
 end subroutine lshft
 
@@ -133,25 +133,25 @@ end subroutine lshft
 !> \brief left justify string
 subroutine ljust(string)
   implicit none
-  CHARACTER(1) :: STRING(*)
+  CHARACTER(*) :: STRING
   integer :: i, j, ij
 
-  IF (STRING(1) /= ' ') return
+  IF (STRING(1:1) /= ' ') return
 
-  DO 100 I=2,132
+  DO I=2,len(string)
   
-      IF (STRING(I) /= ' ') THEN
-          DO 20 J=1,133-I
+      IF (STRING(I:I) /= ' ') THEN
+          DO J=1,133-I
               IJ=I+J-1
-              STRING(J)=STRING(IJ)
-          20 END DO
-          DO 30 J=134-I,132
-              STRING(J)=' '
-          30 END DO
+              STRING(J:J)=STRING(IJ:IJ)
+          END DO
+          DO J=134-I,132
+              STRING(J:J)=' '
+          END DO
           return
       ENDIF
   
-  100 END DO
+  END DO
 
   return
 end subroutine ljust
@@ -160,17 +160,23 @@ end subroutine ljust
 !> \brief Capitalizes string of length n
 subroutine capit(lettrs,n)
   implicit none
-  integer :: n
-  CHARACTER LETTRS(N)
-  integer :: i, int
+  CHARACTER(*) :: LETTRS
+  integer, optional :: n
+  integer :: i, int, ni
 
-  DO 5 I=1,N
-      INT=ICHAR(LETTRS(I))
+  if (present(n)) then
+    ni = n
+  else  
+    ni = len(lettrs)
+  endif
+
+  DO I=1,ni
+      INT=ICHAR(LETTRS(I:I))
       IF(INT >= 97 .AND. INT <= 122) THEN
           INT=INT-32
-          LETTRS(I)=CHAR(INT)
+          LETTRS(I:I)=CHAR(INT)
       ENDIF
-  5 END DO
+  END DO
   return
 end subroutine capit
 

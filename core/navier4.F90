@@ -46,11 +46,9 @@ END FUNCTION VLSC3
 !!              ws        -- small work array of size 2*max vecs
 subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   use kinds, only : DP
-  use size_m
-  use input
-  use mass
-  use soln
-  use tstep
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nelv, nid
+  use mass, only : voltm1, volvm1
+  use tstep, only : istep, ifield, nelfld
   implicit none
 
   integer, parameter :: lt=lx1*ly1*lz1*lelt

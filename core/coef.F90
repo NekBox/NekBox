@@ -380,7 +380,10 @@ subroutine geom1 ()!xm3,ym3,zm3)
   use tstep, only : istep
   implicit none
 
-  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
+  real(DP), allocatable, dimension(:,:,:,:) :: &
+    XRM1, YRM1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1 
+
+  allocate(XRM1(LX1,LY1,LZ1,LELT) &
   ,           YRM1(LX1,LY1,LZ1,LELT) &
   ,           XSM1(LX1,LY1,LZ1,LELT) &
   ,           YSM1(LX1,LY1,LZ1,LELT) &
@@ -388,7 +391,7 @@ subroutine geom1 ()!xm3,ym3,zm3)
   ,           YTM1(LX1,LY1,LZ1,LELT) &
   ,           ZRM1(LX1,LY1,LZ1,LELT) &
   ,           ZSM1(LX1,LY1,LZ1,LELT) &
-  ,           ZTM1(LX1,LY1,LZ1,LELT) 
+  ,           ZTM1(LX1,LY1,LZ1,LELT) )
 
 
   IF (IFGMSH3 .AND. ISTEP == 0) THEN
@@ -402,6 +405,7 @@ subroutine geom1 ()!xm3,ym3,zm3)
 
   RETURN
 end subroutine geom1
+
 !-----------------------------------------------------------------------
 !> \brief Routine to generate mapping data based on mesh 1
 !!        (Gauss-Legendre Lobatto meshes).
@@ -974,11 +978,8 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   ,             ZRM1(LX1,LY1,LZ1,LELT)
   real(DP) ::  ZSM1(LX1,LY1,LZ1,LELT) &
   ,             ZTM1(LX1,LY1,LZ1,LELT)
-  real(DP) :: A  (LX1,LY1,LZ1,LELT) &
-  ,             B  (LX1,LY1,LZ1,LELT)
-  real(DP) ::  C  (LX1,LY1,LZ1,LELT) &
-  ,             DOT(LX1,LY1,LZ1,LELT)
 
+  real(DP), allocatable :: A(:,:,:,:), B(:,:,:,:), C(:,:,:,:), dot(:,:,:,:)
   integer :: nxy1, nface, ntot, nsrf, iel, iz, iy, ix, ifc
   real(DP) :: weight
 
@@ -989,6 +990,8 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
 !      "R"
 
+  allocate(A(lx1,ly1,lz1,lelt), B(lx1,ly1,lz1,lelt), C(lx1,ly1,lz1,lelt))
+  allocate(dot(lx1,ly1,lz1,lelt))
   CALL VCROSS(A,B,C,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1,NTOT)
   CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
 

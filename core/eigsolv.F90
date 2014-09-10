@@ -112,11 +112,13 @@ SUBROUTINE EIGENV
   use soln, only : vmult, v1mask, v2mask, v3mask
   implicit none
 
-  real(DP) :: H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: H1(:,:,:,:), H2(:,:,:,:)
 !    C!OMMON /SCRHI/ H2INV (LX1,LY1,LZ1,LELV)
   integer :: ntot1
   real(DP) :: eigga1, eigga2, eigga3
   
+  allocate(H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT))
+
   NTOT1  = NX1*NY1*NZ1*NELV
 
   IF (IFAA) THEN
@@ -243,12 +245,15 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
   REAL(DP) ::            H2   (LX1,LY1,LZ1,1)
   integer :: isd
 
-  real(DP) :: X1(LX1,LY1,LZ1,LELT), Y1(LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: X1(:,:,:,:), Y1(:,:,:,:)
 
   integer :: nel, nxyz1, ntot1
   integer :: iter
   real(DP) :: evnew, rq, evold, crit, xx, xnorm
   real(DP), external :: glsc3
+
+  allocate(X1(LX1,LY1,LZ1,LELT), Y1(LX1,LY1,LZ1,LELT))
+
 
   IF (IMESH == 1) NEL = NELV
   IF (IMESH == 2) NEL = NELT

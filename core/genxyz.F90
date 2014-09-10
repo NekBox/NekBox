@@ -333,10 +333,10 @@ subroutine setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
       call copy(zgml(1,3),zgm3(1,3),nz3)
       if (ifaxl .AND. ifrzer(e)) call copy(zgml(1,2),zam3,ny3)
 #endif
-  elseif (nxl == nx1) then
-      call copy(zgml(1,1),zgm1(1,1),nx1)
-      call copy(zgml(1,2),zgm1(1,2),ny1)
-      call copy(zgml(1,3),zgm1(1,3),nz1)
+  elseif (nxl == nx1 .and. nyl == ny1 .and. nzl == nz1) then
+      call copy(zgml(1,1),zgm1(1,1),nxl)
+      call copy(zgml(1,2),zgm1(1,2),nyl)
+      call copy(zgml(1,3),zgm1(1,3),nzl)
       if (ifaxl .AND. ifrzer(e)) call copy(zgml(1,2),zam1,ny1)
   else
       call exitti('ABORT setzgml! $',nxl)

@@ -37,7 +37,6 @@ subroutine set_overlap
   implicit none
 
 !max  real(DP) :: x(2*ltotd), y(2*ltotd), z(2*ltotd)
-  real(DP) :: x(1), y(1), z(1)
 
   integer :: npass, ipass
 
@@ -56,7 +55,7 @@ subroutine set_overlap
           if (ipass > 1) ifield = ifldmhd
 
           call swap_lengths
-          call gen_fast_spacing(x,y,z)
+          call gen_fast_spacing()
            
           call hsmg_setup
           call h1mg_setup

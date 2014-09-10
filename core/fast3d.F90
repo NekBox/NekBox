@@ -1,15 +1,15 @@
 !-----------------------------------------------------------------------
 !> \brief Generate fast diagonalization matrices for each element
-subroutine gen_fast_spacing(x,y,z)
+subroutine gen_fast_spacing()
   use size_m, only : nx1, ny1, nz1, nelv
   use input, only : param
   implicit none
 
+#if 0
   real :: x(nx1,ny1,nz1,nelv)
   real :: y(nx1,ny1,nz1,nelv)
   real :: z(nx1,ny1,nz1,nelv)
 
-#if 0
   use size_m
   use parallel
   use soln
@@ -487,7 +487,7 @@ subroutine swap_lengths()
               enddo
           enddo
       enddo
-      call dssum(l,n,n,n)
+      call dssum(l)
       do e=1,nelv
           llr(e) = l(1,2,2,e)-lmr(e)
           lrr(e) = l(n,2,2,e)-lmr(e)
@@ -507,7 +507,7 @@ subroutine swap_lengths()
           enddo
       enddo
   !        call outmat(l(1,1,1,25),n,n,' L    ',25)
-      call dssum(l,n,n,1)
+      call dssum(l)
   !        call outmat(l(1,1,1,25),n,n,' L    ',25)
       do e=1,nelv
       !           call outmat(l(1,1,1,e),n,n,' L    ',e)

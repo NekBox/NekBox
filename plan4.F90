@@ -15,7 +15,7 @@ subroutine plan4
   use size_m, only : lx2, ly2, lz2, lelv
   use size_m, only : nx1, ny1, nz1, nelv
   use ctimer, only : icalld, tpres, npres, etime1, dnekclock
-  use mass, only : binvm1, bm1, volvm1
+  use geom, only : binvm1, bm1, volvm1
   use soln, only : qtl, usrdiv, vx, vy, vz, v1mask, v2mask, v3mask
   use soln, only : vtrans, pmask, vmult, pr
   use tstep, only : imesh, nmxh, tolhv
@@ -176,7 +176,7 @@ subroutine crespsp (respr, vext)
   use geom, only : rxm2, sxm2, txm2, rym2, sym2, tym2, rzm2, szm2, tzm2
   use geom, only : unx, uny, unz, area
   use input, only : ifaxis, if3d, cbc
-  use mass, only : bm1, binvm1
+  use geom, only : bm1, binvm1
   use soln, only : vx, vy, vz, bfx, bfy, bfz, pr
   use soln, only : vtrans, vdiff, qtl, omask
   use tstep, only : imesh, bd, dt, ifield
@@ -372,7 +372,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
   use geom, only : jacm1, ifrzer
   use input, only : if3d, ifaxis, ifcyclic
-  use mass, only : yinvm1, bm1, binvm1
+  use geom, only : yinvm1, bm1, binvm1
   use tstep, only : ifield
   implicit none
 

@@ -2207,7 +2207,7 @@ subroutine mg_set_gb  (p_g,p_b,l0)
   use size_m, only : lx1, ly1, lz1, lelt, ndim
   use hsmg, only : mg_h1_lmax, p_mg_b, mg_h1_n, mg_nh, mg_nhz, mg_g, mg_b, mg_bh
   use hsmg, only : mg_fld, p_mg_g
-  use mass, only : bm1
+  use geom, only : bm1
   use tstep, only : ifield, nelfld
   implicit none
 

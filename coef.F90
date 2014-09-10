@@ -525,7 +525,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use geom, only : g1m1, rxm1, rym1, rzm1, g2m1, sxm1, sym1, szm1
   use geom, only : g3m1, txm1, tym1, tzm1, g4m1, g5m1, g6m1
   use input, only : ifaxis
-  use mass, only : bm1, baxm1, yinvm1
+  use geom, only : bm1, baxm1, yinvm1
   use tstep, only : istep
   use wz_m, only : zam1, w3m1
   implicit none
@@ -696,7 +696,7 @@ subroutine geom2
   use geom, only : txm2, txm1, tym2, tym1, tzm2, tzm1
   use geom, only : jacm2, jacm1, xm2, xm1, ym2, ym1, zm2, zm1
   use input, only : ifsplit
-  use mass, only : bm2, bm1, bm2inv
+  use geom, only : bm2, bm1, bm2inv
   implicit none
 
   integer :: nxyz2, ntot2
@@ -883,7 +883,7 @@ subroutine volume
   use size_m, only : nx1, ny1, nz1, nelv, nelt, nx2, ny2, nz2, nfield, nid
   use esolv, only : volel
   use input, only : ifmvbd, ifmhd, iftmsh
-  use mass, only : volvm1, volvm2, voltm1, voltm2, bm1, bm2
+  use geom, only : volvm1, volvm2, voltm1, voltm2, bm1, bm2
   use tstep, only : volfld
   implicit none
 
@@ -1091,7 +1091,7 @@ end subroutine area3
 !--------------------------------------------------------------------
 subroutine lagmass()
   use size_m, only : nx1, ny1, nz1, nelt
-  use mass, only : bm1, bm1lag
+  use geom, only : bm1, bm1lag
   use tstep, only : nbdinp
   implicit none
 
@@ -1116,7 +1116,7 @@ end subroutine lagmass
 subroutine setinvm()
   use size_m, only : nx1, ny1, nz1, nelv, nelt
   use input, only : ifflow, ifheat
-  use mass, only : bm1, binvm1, bintm1
+  use geom, only : bm1, binvm1, bintm1
   use tstep, only : ifield
   implicit none
 

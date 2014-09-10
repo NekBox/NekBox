@@ -22,7 +22,7 @@ subroutine setics
   , ifprsl(  ldimt1,0:lpert)
    
   LOGICAL ::  IFANYP
-  real(DP) :: work(lx1,ly1,lz1,lelv)
+  real(DP), allocatable :: work(:,:,:,:)
   integer*8 :: ntotg,nn
 
   real :: psmax(LDIMT)
@@ -208,11 +208,13 @@ subroutine setics
 
   ifield = 2
   if (ifflow) ifield = 1
+  allocate(work(lx1,ly1,lz1,lelv))
   call rone(work,ntotv)
   ifield = 1
   call dssum(work,nx1,ny1,nz1)
   call col2(work,vmult,ntotv)
   rdif = glsum(work,ntotv)
+  deallocate(work)
   rtotg = ntotg
   rdif = (rdif-rtotg)/rtotg
   if (abs(rdif) > 1e-14) then
@@ -1225,7 +1227,6 @@ subroutine sioflag(ndumps,fname,rsopts)
 end subroutine sioflag
 
 !----------------------------------------------------------------------
-!----------------------------------------------------------------------
 subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nid, lelt
@@ -1238,8 +1239,8 @@ subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
   integer, PARAMETER :: LZR=LZ1+6
   integer, PARAMETER :: LXYZR=LXR*LYR*LZR
 
-  REAL(DP) ::   SDUMP(LXYZ1,LELT)
-  REAL*4 :: TDUMP(LXYZR)
+  REAL(DP) :: SDUMP(LXYZ1,LELT)
+  REAL*4   :: TDUMP(LXYZR)
   integer :: ieg, nxr, nyr, nzr
   logical :: if_byte_sw
 
@@ -1485,9 +1486,7 @@ subroutine geom_reset(icall)
 
   integer :: icall
 
-  real(DP) ::   XM3 (LX1,LY1,LZ1,LELT) &
-  ,             YM3 (LX1,LY1,LZ1,LELT) &
-  ,             ZM3 (LX1,LY1,LZ1,LELT)
+  real(DP), allocatable :: XM3 (:,:,:,:), YM3(:,:,:,:), ZM3(:,:,:,:)
 
   integer :: ntot 
 
@@ -1496,16 +1495,16 @@ subroutine geom_reset(icall)
   ntot = nx1*ny1*nz1*nelt
 
   if (lx3 == lx1) then
-      call copy(xm3,xm1,ntot)
-      call copy(ym3,ym1,ntot)
-      call copy(zm3,zm1,ntot)
+      CALL GEOM1 (XM1,YM1,ZM1)
   else
+      allocate(xm3(lx1,ly1,lz1,lelt), ym3(lx1,ly1,lz1,lelt), zm3(lx1,ly1,lz1,lelt))
       call map13_all(xm3,xm1)
       call map13_all(ym3,ym1)
       if (if3d) call map13_all(zm3,zm1)
+      CALL GEOM1 (XM3,YM3,ZM3)
+      deallocate(xm3,ym3,zm3)
   endif
 
-  CALL GEOM1 (XM3,YM3,ZM3)
   CALL GEOM2
   CALL UPDMSYS (1)
   CALL VOLUME

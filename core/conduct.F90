@@ -4,7 +4,7 @@ subroutine cdscal (igeom)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid, mxprev
   use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh, ifprint
-  use mass, only : bintm1, binvm1
+  use geom, only : bintm1, binvm1
   use soln, only : t, bq, tmask, tmult
   use tstep, only : nelfld, ifield, nmxnl, imesh, tolht, nmxh
   implicit none
@@ -125,7 +125,7 @@ end subroutine cdscal
 !! mass matrix on the Gauss-Lobatto mesh.
 subroutine makeuq
   use size_m, only : nx1, ny1, nz1
-  use mass, only : bm1
+  use geom, only : bm1
   use soln, only : bq
   use tstep, only : time, dt, ifield, nelfld
   implicit none
@@ -220,7 +220,7 @@ end subroutine nekuq
 subroutine convab()
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, lelt
-  use mass, only : bm1
+  use geom, only : bm1
   use soln, only : t, vtrans, bq
   use tstep, only : ifield, nelfld
   implicit none
@@ -276,7 +276,7 @@ subroutine makebdq()
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1
   use geom, only : ifgeom
-  use mass, only : bm1, bm1lag
+  use geom, only : bm1, bm1lag
   use soln, only : vtrans, t, tlag, bq
   use tstep, only : ifield, nelfld, dt, bd, nbd
   implicit none

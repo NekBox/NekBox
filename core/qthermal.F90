@@ -12,7 +12,7 @@ subroutine qthermal()
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, lx1, ly1, lz1, lelt
   use input, only : iflomach
-  use mass, only : bm1, binvm1
+  use geom, only : bm1, binvm1
   use soln, only : t, vdiff, vtrans, qtl
   use tstep, only : ifield
   implicit none

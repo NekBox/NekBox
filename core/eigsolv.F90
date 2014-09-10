@@ -234,7 +234,7 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelt, nelv
-  use mass, only : binvm1
+  use geom, only : binvm1
   use tstep, only : imesh, nmxe, tolev
   implicit none
 
@@ -295,7 +295,7 @@ END SUBROUTINE GAMMAM1
 SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1
-  use mass, only : bm1
+  use geom, only : bm1
   implicit none
 
   REAL(DP) :: X1   (LX1,LY1,LZ1,1)

@@ -815,7 +815,7 @@ SUBROUTINE BCNEUSC(S,ITYPE)
   use nekuse, only : hc, tinf, hrad, flux
   use geom, only : area
   use input, only : cbc, bc
-  use mass, only : bm1
+  use geom, only : bm1
   use parallel, only : lglel
   use soln, only : t
   use tstep, only : ifield, nelfld

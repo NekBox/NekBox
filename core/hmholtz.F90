@@ -5,7 +5,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   use ctimer, only : icalld, thmhz, nhmhz, etime1, dnekclock
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param
-  use mass, only : binvm1, bintm1
+  use geom, only : binvm1, bintm1
   use tstep, only : istep, nelfld, ifield
   implicit none
 
@@ -86,7 +86,7 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   use geom, only : g4m1, g5m1, g6m1, ifrzer
   use dxyz, only : wddx, wddyt, wddzt
   use input, only : ifaxis
-  use mass, only : bm1
+  use geom, only : bm1
   use mesh, only : iffast, ifsolv
   implicit none
 
@@ -411,7 +411,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   use dxyz, only : dxtm1, dytm1, dztm1, datm1, dam1
   use geom, only : ifrzer, g1m1, g2m1, g3m1, ym1, jacm1
   use input, only : ifaxis
-  use mass, only : bm1
+  use geom, only : bm1
   use mesh, only : ifdfrm
   use wz_m, only : wxm1, wam1
   implicit none
@@ -569,7 +569,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   use size_m, only : nx1, ny1, nz1, nelv, nelt, nid
   use eigen, only : eigaa, eigga
   use input, only : ifprint
-  use mass, only : volvm1, voltm1, binvm1, bintm1, bm1
+  use geom, only : volvm1, voltm1, binvm1, bintm1, bm1
   implicit none
 
   real(DP) :: tol
@@ -663,7 +663,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use size_m, only : lx1, ly1, lz1, lelt
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param, ifprint
-  use mass, only : volvm1, voltm1, bm1
+  use geom, only : volvm1, voltm1, bm1
   use mesh, only : ifdfrm, ifsolv, niterhm
   use tstep, only : istep, imesh
   implicit none

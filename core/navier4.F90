@@ -47,7 +47,7 @@ END FUNCTION VLSC3
 subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nelv, nid
-  use mass, only : voltm1, volvm1
+  use geom, only : voltm1, volvm1
   use tstep, only : istep, ifield, nelfld
   implicit none
 

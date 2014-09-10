@@ -1102,9 +1102,9 @@ subroutine lagmass()
 
   integer :: ntot1, ilag
   NTOT1 = NX1*NY1*NZ1*NELT
-  DO 100 ILAG=NBDINP-1,2,-1
+  DO ILAG=NBDINP-1,2,-1
       CALL COPY (BM1LAG(1,1,1,1,ILAG),BM1LAG(1,1,1,1,ILAG-1),NTOT1)
-  100 END DO
+  END DO
   CALL COPY (BM1LAG(1,1,1,1,1),BM1,NTOT1)
 
   RETURN

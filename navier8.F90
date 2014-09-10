@@ -569,7 +569,7 @@ subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
 !  add 1 contiguous entry out of the sorted list to NODE_i
 !  where i = np-mod(nelgt,np) ... np
 
-
+#if 0
   nel   = nelgt/np       ! number of elements per processor
   nmod  = mod(nelgt,np)  ! bounded between 1 ... np-1
   npp   = np - nmod      ! how many paritions of size nel
@@ -598,6 +598,7 @@ subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
 ! unddo sorting to restore initial ordering by
 ! global element number
   call iswapt_ip(gllnid,iunsort,nelgt)
+#endif
 
   return
 end subroutine assign_gllnid

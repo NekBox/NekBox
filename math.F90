@@ -1456,12 +1456,12 @@
     GOTO 100
     end subroutine sort
 !-----------------------------------------------------------------------
+#if 0
     subroutine iswapt_ip(x,p,n)
     integer :: x(1),t1,t2
     integer :: p(1)
 
 !     In-place permutation: x'(p) = x
-
 
     do k=1,n
         if (p(k) > 0) then   ! not swapped
@@ -1494,6 +1494,7 @@
     enddo
     return
     end subroutine iswapt_ip
+#endif
 !-----------------------------------------------------------------------
     subroutine add3s12(x,y,z,c1,c2,n)
     real :: x(1),y(1),z(1),c1,c2

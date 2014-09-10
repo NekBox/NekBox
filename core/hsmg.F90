@@ -182,12 +182,17 @@ end subroutine hsmg_setup_dssum
 
 !----------------------------------------------------------------------
 subroutine h1mg_setup_wtmask
+  use kinds, only : DP
   use size_m, only : ndim, ldim, nelv, lelv
   use hsmg, only : mg_mask_index, mg_lmax, mg_rstr_wt_index, mg_nh, mg_nhz
-  use hsmg, only : mg_fld, lmgs, lmg_rwt, mg_rstr_wt, mg_work, mg_mask
+  use hsmg, only : mg_fld, lmgs, lmg_rwt, mg_rstr_wt, mg_mask
   implicit none
 
+  real(DP), allocatable :: work(:)
   integer :: i,l, itmp
+
+  allocate(work(maxval(mg_nh)*maxval(mg_nh)*maxval(mg_nhz)* nelv))
+
   i = mg_mask_index(mg_lmax,mg_fld-1)
   do l=1,mg_lmax
       mg_rstr_wt_index(l,mg_fld)=i
@@ -198,23 +203,28 @@ subroutine h1mg_setup_wtmask
           write(6,*) 'parameter lmg_rwt too small',i,itmp,lmg_rwt
           call exitt
       endif
-      call hsmg_setup_rstr_wt( &
-      mg_rstr_wt(mg_rstr_wt_index(l,mg_fld)) &
-      ,mg_nh(l),mg_nh(l),mg_nhz(l),l,mg_work)
-      call hsmg_setup_mask( &
-      mg_mask(mg_mask_index(l,mg_fld)) &
-      ,mg_nh(l),mg_nh(l),mg_nhz(l),l,mg_work)
+      call hsmg_setup_rstr_wt( mg_rstr_wt(mg_rstr_wt_index(l,mg_fld)) &
+                             , mg_nh(l),mg_nh(l),mg_nhz(l),l, work)
+!      call hsmg_setup_mask( mg_mask(mg_mask_index(l,mg_fld)) &
+!                          , mg_nh(l),mg_nh(l),mg_nhz(l),l, work)
   enddo
   mg_mask_index(l,mg_fld)=i
+
 end subroutine h1mg_setup_wtmask
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_wtmask
+  use kinds, only : DP
   use size_m, only : ndim, ldim, nelv, lelv
   use hsmg, only : mg_mask_index, mg_lmax, mg_rstr_wt_index, mg_nh, mg_nhz
-  use hsmg, only : lmgs, lmg_rwt, mg_rstr_wt, mg_work, mg_mask, mg_fld
+  use hsmg, only : lmgs, lmg_rwt, mg_rstr_wt, mg_mask, mg_fld
   implicit none
+
+  real(DP), allocatable :: work(:)
   integer :: i,l, itmp
+
+  allocate(work(maxval(mg_nh)*maxval(mg_nh)*maxval(mg_nhz)* nelv))
+
   i = mg_mask_index(mg_lmax,mg_fld-1)
   do l=1,mg_lmax-1
       mg_rstr_wt_index(l,mg_fld)=i
@@ -225,12 +235,10 @@ subroutine hsmg_setup_wtmask
           write(6,*) 'parameter lmg_rwt too small',i,itmp,lmg_rwt
           call exitt
       endif
-      call hsmg_setup_rstr_wt( &
-      mg_rstr_wt(mg_rstr_wt_index(l,mg_fld)) &
-      ,mg_nh(l),mg_nh(l),mg_nhz(l),l,mg_work)
-      call hsmg_setup_mask( &
-      mg_mask(mg_mask_index(l,mg_fld)) &
-      ,mg_nh(l),mg_nh(l),mg_nhz(l),l,mg_work)
+      call hsmg_setup_rstr_wt( mg_rstr_wt(mg_rstr_wt_index(l,mg_fld)) &
+                             , mg_nh(l),mg_nh(l),mg_nhz(l),l,work)
+!      call hsmg_setup_mask( mg_mask(mg_mask_index(l,mg_fld)) &
+!                          , mg_nh(l),mg_nh(l),mg_nhz(l),l,work)
   enddo
   mg_mask_index(l,mg_fld)=i
 end subroutine hsmg_setup_wtmask
@@ -451,7 +459,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   use kinds, only : DP
   use size_m, only : nelv
   use input, only : if3d
-  use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_work, mg_nh, mg_fld
+  use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
   use tstep, only : ifield, nelfld
   implicit none
 
@@ -459,6 +467,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 
   integer :: enx,eny,enz,pm, n, i, l
   real(DP) :: zero, one, onem
+  real(DP), allocatable :: work(:)
 
   zero =  0
   one  =  1
@@ -467,37 +476,40 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   n  = mg_h1_n (l,mg_fld)
   pm = p_mg_msk(l,mg_fld)
 
+  enx=mg_nh(l)+2
+  eny=mg_nh(l)+2
+  enz=mg_nh(l)+2
+
   call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
 
+  allocate(work(2*enx*eny*enz*nelv))
+
   if (if3d) then ! extended array
-      call hsmg_schwarz_toext3d(mg_work,r,mg_nh(l))
+      call hsmg_schwarz_toext3d(work,r,mg_nh(l))
   else
 !max        call hsmg_schwarz_toext2d(mg_work,r,mg_nh(l))
   endif
 
-  enx=mg_nh(l)+2
-  eny=mg_nh(l)+2
-  enz=mg_nh(l)+2
   if( .NOT. if3d) enz=1
   i = enx*eny*enz*nelv+1
      
 !     exchange interior nodes
-  call hsmg_extrude(mg_work,0,zero,mg_work,2,one,enx,eny,enz)
-  call hsmg_schwarz_dssum(mg_work,l)
-  call hsmg_extrude(mg_work,0,one ,mg_work,2,onem,enx,eny,enz)
+  call hsmg_extrude(work,0,zero,work,2,one,enx,eny,enz)
+  call hsmg_schwarz_dssum(work,l)
+  call hsmg_extrude(work,0,one ,work,2,onem,enx,eny,enz)
 
-  call hsmg_fdm(mg_work(i),mg_work,l) ! Do the local solves
+  call hsmg_fdm(work(i),work,l) ! Do the local solves
 
 !     Sum overlap region (border excluded)
-  call hsmg_extrude(mg_work,0,zero,mg_work(i),0,one ,enx,eny,enz)
-  call hsmg_schwarz_dssum(mg_work(i),l)
-  call hsmg_extrude(mg_work(i),0,one ,mg_work,0,onem,enx,eny,enz)
-  call hsmg_extrude(mg_work(i),2,one,mg_work(i),0,one,enx,eny,enz)
+  call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
+  call hsmg_schwarz_dssum(work(i),l)
+  call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
+  call hsmg_extrude(work(i),2,one,work(i),0,one,enx,eny,enz)
 
   if( .NOT. if3d) then ! Go back to regular size array
 !max        call hsmg_schwarz_toreg2d(e,mg_work(i),mg_nh(l))
   else
-      call hsmg_schwarz_toreg3d(e,mg_work(i),mg_nh(l))
+      call hsmg_schwarz_toreg3d(e,work(i),mg_nh(l))
   endif
 
   call hsmg_dssum(e,l)                           ! sum border nodes
@@ -946,9 +958,9 @@ subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
   use input, only : if3d
   implicit none
 
-  integer :: nx,ny,nz,l
-  real :: w(nx,ny,nz,nelv)
-  real :: wt(nx,nz,2,ndim,nelv)
+  integer, intent(in) :: nx,ny,nz,l
+  real, intent(out) :: w(nx,ny,nz,nelv)
+  real, intent(out) :: wt(nx,nz,2,ndim,nelv)
         
   integer :: ie, i, j, k
 ! nit border nodes to 1
@@ -1402,7 +1414,7 @@ subroutine hsmg_index_0
   n = lmgn*(lmgs+1)
 
   call izero( mg_rstr_wt_index      , n )
-  call izero( mg_mask_index         , n )
+!  call izero( mg_mask_index         , n )
   call izero( mg_solve_index        , n )
   call izero( mg_fast_s_index       , n )
   call izero( mg_fast_d_index       , n )
@@ -1650,9 +1662,9 @@ subroutine h1mg_setup()
   l=mg_h1_lmax
   !> \todo Is it nessesary to set h1 and h2 here?  They aren't inited until
   !! later
-  call mg_set_h1  (p_h1 ,l)
-  call mg_set_h2  (p_h2 ,l)
-  call mg_set_gb  (p_g,p_b,l)
+!  call mg_set_h1  (p_h1 ,l)
+!  call mg_set_h2  (p_h2 ,l)
+!  call mg_set_gb  (p_g,p_b,l)
   call mg_set_msk (p_msk,l)
 
   return
@@ -1788,18 +1800,21 @@ end subroutine h1mg_setup_dssum
 
 !----------------------------------------------------------------------
 subroutine mg_set_msk(p_msk ,l0)
-  use hsmg, only : mg_h1_lmax, p_mg_msk, mg_nh, mg_nhz, mg_imask, mg_work
+  use kinds, only : DP
+  use hsmg, only : mg_h1_lmax, p_mg_msk, mg_nh, mg_nhz, mg_imask
   use hsmg, only : mg_h1_n, mg_fld
   use tstep, only : ifield, nelfld
   implicit none
 
   integer :: p_msk, l0
- 
+
+  real(DP), allocatable :: work(:) 
   integer :: l, n, nx, ny, nz, nm 
   l                  = mg_h1_lmax
   p_mg_msk(l,mg_fld) = 0
   n                  = mg_h1_n(l,mg_fld)
 
+  allocate(work(maxval(mg_nh)*maxval(mg_nh)*maxval(mg_nhz)*nelfld(ifield)))
 
   do l=mg_h1_lmax,1,-1
       nx = mg_nh  (l)
@@ -1809,7 +1824,7 @@ subroutine mg_set_msk(p_msk ,l0)
       p_msk = p_mg_msk(l,mg_fld)
 
       call h1mg_setup_mask &
-      (mg_imask(p_msk),nm,nx,ny,nz,nelfld(ifield),l,mg_work)
+      (mg_imask(p_msk),nm,nx,ny,nz,nelfld(ifield),l,work)
 
       if (l > 1) p_mg_msk(l-1,mg_fld)=p_mg_msk(l,mg_fld)+nm
 
@@ -2284,6 +2299,8 @@ subroutine mg_set_gb  (p_g,p_b,l0)
   p_b  = p_mg_b (l0,mg_fld)
   p_g  = p_mg_g (l0,mg_fld)
 
+  deallocate(mg_g, mg_b)
+
   return
 end subroutine mg_set_gb
 
@@ -2395,16 +2412,17 @@ end subroutine h1mg_setup_schwarz_wt3d_2
 subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   use kinds, only : DP
   use input, only : if3d
-  use hsmg, only : mg_h1_n, p_mg_msk, mg_nh, mg_work, mg_fld
+  use hsmg, only : mg_h1_n, p_mg_msk, mg_nh, mg_fld
   use tstep, only : ifield, nelfld
   implicit none
 
-  real(DP) :: wt(1),work(1)
+  real(DP) :: wt(1)
   integer :: l
   logical :: ifsqrt
 
   integer :: enx,eny,enz,pm, n, ns, i, nx, ny, nz, nxyz, k, ie
   real(DP) :: zero, one, onem
+  real(DP), allocatable :: work(:)
 
   zero =  0
   one  =  1
@@ -2420,21 +2438,22 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   ns = enx*eny*enz*nelfld(ifield)
   i  = ns+1
 
-  call rone(mg_work(i),ns)
+  allocate(work(2*ns))
+  call rone(work(i),ns)
    
 !   Sum overlap region (border excluded)
-  call hsmg_extrude(mg_work,0,zero,mg_work(i),0,one ,enx,eny,enz)
-  call hsmg_schwarz_dssum(mg_work(i),l)
-  call hsmg_extrude(mg_work(i),0,one ,mg_work,0,onem,enx,eny,enz)
-  call hsmg_extrude(mg_work(i),2,one,mg_work(i),0,one,enx,eny,enz)
+  call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
+  call hsmg_schwarz_dssum(work(i),l)
+  call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
+  call hsmg_extrude(work(i),2,one, work(i),0,one,enx,eny,enz)
 
   if( .NOT. if3d) then ! Go back to regular size array
 !max        call hsmg_schwarz_toreg2d(mg_work,mg_work(i),mg_nh(l))
   else
-      call hsmg_schwarz_toreg3d(mg_work,mg_work(i),mg_nh(l))
+      call hsmg_schwarz_toreg3d(work,work(i),mg_nh(l))
   endif
 
-  call hsmg_dssum(mg_work,l)                           ! sum border nodes
+  call hsmg_dssum(work,l)                           ! sum border nodes
 
 
   nx = mg_nh(l)
@@ -2445,7 +2464,7 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   k    = 1
   do ie=1,nelfld(ifield)
   !        call outmat(mg_work(k),nx,ny,'NEW WT',ie)
-      call h1mg_setup_schwarz_wt_2(wt,ie,nx,mg_work(k),ifsqrt)
+      call h1mg_setup_schwarz_wt_2(wt,ie,nx,work(k),ifsqrt)
       k = k+nxyz
   enddo
 !   stop

@@ -53,7 +53,6 @@ subroutine set_up_h1_crs
 
   integer :: key(2),aa(2)
   real(DP), allocatable :: a(:)
-  integer :: iwork(2,lx1*ly1*lz1*lelv)
  
   real(DP), allocatable :: h1(:), h2(:), w1(:), w2(:)
 
@@ -64,9 +63,6 @@ subroutine set_up_h1_crs
   real(DP), external :: dnekclock
 
   allocate(ia(lcr,lcr,lelv), ja(lcr,lcr,lelv))
-  allocate(a(27*lx1*ly1*lz1*lelv))
-  allocate(h1(lx1*ly1*lz1*lelv),h2(lx1*ly1*lz1*lelv))
-  allocate(w1(lx1*ly1*lz1*lelv),w2(lx1*ly1*lz1*lelv))
   t0 = dnekclock()
 
 !     nxc is order of coarse grid space + 1, nxc=2, linear, 3=quad,etc.
@@ -139,9 +135,12 @@ subroutine set_up_h1_crs
 !    else
 !      NOTE: a(),h1,...,w2() must all be large enough
   n = nx1*ny1*nz1*nelv
-  call rone (h1,n)
-  call rzero(h2,n)
+  allocate(h1(nx1*ny1*nz1*nelv),h2(nx1*ny1*nz1*nelv))
+  allocate(a(27*lx1*ly1*lz1*lelv))
+  allocate(w1(lx1*ly1*lz1*lelv),w2(lx1*ly1*lz1*lelv))
+  h1=1._dp; h2 = 0._dp
   call get_local_crs_galerkin(a,ncr,nxc,h1,h2,w1,w2)
+  deallocate(h1,h2,w1,w2)
 !    endif
 
   call set_mat_ij(ia,ja,ncr,nelv)
@@ -155,6 +154,7 @@ subroutine set_up_h1_crs
   nz=ncr*ncr*nelv
   call crs_setup(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
   nz,ia,ja,a, null_space)
+  deallocate(a)
 !   call crs_stats(xxth(ifield))
 
   t0 = dnekclock()-t0
@@ -647,7 +647,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   integer, parameter :: mdw=2+2**ldim
   integer, parameter :: ndw=7*lx1*ly1*lz1*lelv/mdw
 
-  integer :: wk(mdw,ndw)   ! room for long ints, if desired
+  integer, allocatable :: wk(:,:)   ! room for long ints, if desired
 
   integer :: e,eg,eg0,eg1, iok, lfname, neli, nnzi, npass, len, msg_id
   integer :: ipass, m, k, ntuple, lng, i, key, nkey, iflag, nv, mid, nlv, nel
@@ -656,6 +656,8 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   character(132) :: mapfle
   character(1) ::   mapfle1(132)
   equivalence  (mapfle,mapfle1)
+
+  allocate(wk(mdw,ndw))
 
   iok = 0
   if (nid == 0) then

@@ -26,7 +26,7 @@ subroutine q_filter(wght)
 
   real(DP) :: intw(lx1,lx1)
   real(DP) :: intt(lx1,lx1)
-  real(DP) :: wk1  (lx1,lx1,lx1,lelt)
+  real(DP), allocatable :: wk1  (:,:,:,:)
   real(DP) :: wk2  (lx1,lx1,lx1)
   real(DP) :: zgmv(lx1),wgtv(lx1),zgmp(lx1),wgtp(lx1)
   real(DP) :: tmax(100),omax(103)
@@ -90,6 +90,7 @@ subroutine q_filter(wght)
 !   Adam Peplinski; to take into account freezing of base flow
   if ( .NOT. ifbase             ) if_fltv = .FALSE. ! base-flow frozen
 
+  allocate(wk1(lx1,lx1,lx1,lelt))
   if ( if_fltv ) then
       call filterq(vx,intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
       call filterq(vy,intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
@@ -100,13 +101,18 @@ subroutine q_filter(wght)
   endif
 
   if (ifmhd .AND. ifield == ifldmhd) then
+    write(*,*) "Oops: ifmhd"
+#if 0
       call filterq(bx,intv,nx1,nz1,wk1,wk2,intt,if3d,umax)
       call filterq(by,intv,nx1,nz1,wk1,wk2,intt,if3d,vmax)
       if (if3d) &
       call filterq(bz,intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
+#endif
   endif
 
   if (ifpert) then
+    write(*,*) "Oops: ifpert"
+#if 0
       do j=1,npert
 
           ifield = 1
@@ -120,6 +126,7 @@ subroutine q_filter(wght)
           call filterq(tp(1,j,1),intv,nx1,nz1,wk1,wk2,intt,if3d,wmax)
 
       enddo
+#endif
   endif
 
   mmax = 0
@@ -142,6 +149,7 @@ subroutine q_filter(wght)
           omax(mmax) = glmax(tmax(ifld),1)
       enddo
   endif
+  deallocate(wk1)
 
   if (nid == 0) then
       if (npscal == 0) then

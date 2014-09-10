@@ -288,7 +288,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   integer :: e, iu, ic, ib, i
   integer :: nxyz1, nxyzd, nxyzu, nxyzc
 
-  call set_dealias_rx()
+!max  call set_dealias_rx()
 
   nxyz1 = nx1*ny1*nz1
   nxyzd = nxd*nyd*nzd

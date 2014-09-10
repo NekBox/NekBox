@@ -241,7 +241,8 @@ SUBROUTINE CHKNORD (IFALGN,IFNORX,IFNORY,IFNORZ,IFC,IEL)
   ENDIF
 
   RETURN
-  END SUBROUTINE CHKNORD
+END SUBROUTINE CHKNORD
+
 !-----------------------------------------------------------------------
 SUBROUTINE CHKAXCB()
   use size_m, only : ndim, nelv

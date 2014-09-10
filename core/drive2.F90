@@ -412,6 +412,7 @@ subroutine gengeom (igeom)
   use kinds, only : DP
   use size_m, only : nid, nx3, ny3, nz3, lx3, ly3, lz3, lelt
   use soln, only : tmult, vmult
+  use geom, only : ifgeom
   use input, only : ifheat, if3d
   use tstep, only : istep, ifield
   implicit none
@@ -423,7 +424,7 @@ subroutine gengeom (igeom)
   IF (IGEOM == 1) THEN
       RETURN
   ELSEIF (IGEOM == 2) THEN
-      CALL LAGMASS
+      if (ifgeom) CALL LAGMASS
       IF (ISTEP == 0) CALL GENCOOR ()
 !max      IF (ISTEP >= 1) CALL UPDCOOR
       CALL GEOM1 ()!XM3,YM3,ZM3)

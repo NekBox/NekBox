@@ -37,6 +37,7 @@ end subroutine initdim
 !>     Initialize and set default values.
 !--------------------------------------------------------------------
 subroutine initdat
+  use kinds, only : DP
   use size_m,   only : lx1, lx2, lelt, nx1, ny1, nz1, nx2, ny2, nz2
   use input,    only : IFCVODE, IFEXPLVIS, ifsplit, param, ccurve, xc, yc, zc
   use parallel, only : ifgprnt 
@@ -58,7 +59,7 @@ subroutine initdat
 !     Turn off (on) diagnostics for communication
   IFGPRNT= .FALSE. 
 
-  CALL RZERO (PARAM,200)
+  param = 0._dp
 
 !     The initialization of CBC is done in READAT
 
@@ -67,22 +68,22 @@ subroutine initdat
 
   CALL BLANK(CCURVE ,12*LELT)
   NEL8 = 8*LELT
-  CALL RZERO(XC,NEL8)
-  CALL RZERO(YC,NEL8)
-  CALL RZERO(ZC,NEL8)
+  xc = 0._dp
+  yc = 0._dp
+  zc = 0._dp
 
   NTOT=NX1*NY1*NZ1*LELT
-  CALL RZERO(ABX1,NTOT)
-  CALL RZERO(ABX2,NTOT)
-  CALL RZERO(ABY1,NTOT)
-  CALL RZERO(ABY2,NTOT)
-  CALL RZERO(ABZ1,NTOT)
-  CALL RZERO(ABZ2,NTOT)
-  CALL RZERO(VGRADT1,NTOT)
-  CALL RZERO(VGRADT2,NTOT)
+  abx1 = 0._dp
+  abx2 = 0._dp
+  aby1 = 0._dp
+  aby2 = 0._dp
+  abz1 = 0._dp
+  abz2 = 0._dp
+  vgradt1 = 0._dp
+  vgradt2 = 0._dp
 
   NTOT=NX2*NY2*NZ2*LELT
-  CALL RZERO(USRDIV,NTOT)
+!max  CALL RZERO(USRDIV,NTOT)
 
   RETURN
 end subroutine initdat

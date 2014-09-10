@@ -304,7 +304,7 @@ END SUBROUTINE CHKCBC
 SUBROUTINE BCMASK
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nfield
   use input, only : ifmvbd, ifflow, cbc, ifstrs, ifheat, ipscal, ifmhd, ifaziv
-  use input, only : ifldmhd, if3d
+  use input, only : ifldmhd, if3d, ifaxis
   use soln, only : v1mask, v2mask, v3mask, pmask, omask, tmask, bpmask
   use soln, only : b1mask, b2mask, b3mask
   use tstep, only : ifield, nelfld
@@ -373,7 +373,7 @@ SUBROUTINE BCMASK
           CALL RONE(V1MASK,NTOT)
           CALL RONE(V2MASK,NTOT)
           CALL RONE(V3MASK,NTOT)
-          CALL RONE( OMASK,NTOT)
+          if (ifaxis) CALL RONE( OMASK,NTOT)
       
           DO IEL=1,NELV
               DO IFACE=1,NFACES
@@ -417,7 +417,7 @@ SUBROUTINE BCMASK
               enddo
           END DO
 
-          CALL DSOP  ( OMASK,'MUL',NX1,NY1,NZ1)
+          if (ifaxis) CALL DSOP  ( OMASK,'MUL',NX1,NY1,NZ1)
           call opdsop(v1mask,v2mask,v3mask,'MUL') ! no rotation for mul
 
 

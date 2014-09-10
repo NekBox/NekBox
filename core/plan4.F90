@@ -55,7 +55,7 @@ subroutine plan4
   NTOT1  = NX1*NY1*NZ1*NELV
 
 ! add user defined divergence to qtl
-  call add2 (qtl,usrdiv,ntot1)
+!max  call add2 (qtl,usrdiv,ntot1)
 
   allocate(vext(lx1*ly1*lz1*lelv,3))
   CALL V_EXTRAP(vext)
@@ -209,8 +209,8 @@ subroutine crespsp (respr, vext)
   call op_curl (ta1,ta2,ta3,vext(1,1),vext(1,2),vext(1,3), &
    .TRUE. ,w1,w2)
   if(IFAXIS) then
-      CALL COL2 (TA2, OMASK,NTOT1)
-      CALL COL2 (TA3, OMASK,NTOT1)
+!max      CALL COL2 (TA2, OMASK,NTOT1)
+!max      CALL COL2 (TA3, OMASK,NTOT1)
   endif
 
   allocate( WA1 (LX1*LY1*LZ1*LELV) &
@@ -220,16 +220,17 @@ subroutine crespsp (respr, vext)
   deallocate(w2)
 
   if(IFAXIS) then
-      CALL COL2  (WA2, OMASK,NTOT1)
-      CALL COL2  (WA3, OMASK,NTOT1)
+!max      CALL COL2  (WA2, OMASK,NTOT1)
+!max      CALL COL2  (WA3, OMASK,NTOT1)
   endif
   call opcolv   (wa1,wa2,wa3,bm1)
 
   call opgrad   (ta1,ta2,ta3,QTL)
   if(IFAXIS) then
-      CALL COL2  (ta2, OMASK,ntot1)
-      CALL COL2  (ta3, OMASK,ntot1)
+!max      CALL COL2  (ta2, OMASK,ntot1)
+!max      CALL COL2  (ta3, OMASK,ntot1)
   endif
+
   scale = -4./3.
   call opadd2cm (wa1,wa2,wa3,ta1,ta2,ta3,scale)
   call invcol3  (w1,vdiff,vtrans,ntot1)
@@ -354,8 +355,8 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   deallocate(ta4)
 
   if(IFAXIS) then
-      CALL COL2 (TA2, OMASK,NTOT)
-      CALL COL2 (TA3, OMASK,NTOT)
+!max      CALL COL2 (TA2, OMASK,NTOT)
+!max      CALL COL2 (TA3, OMASK,NTOT)
   endif
 
   call opsub2  (resv1,resv2,resv3,ta1,ta2,ta3)

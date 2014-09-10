@@ -39,7 +39,7 @@ subroutine prepost(ifdoin,prefin)
   integer ndumps
   data ndumps / 0 /
 
-  real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
+  real(DP), allocatable ::  pm1(:,:,:,:)
 
   logical :: ifhis
 
@@ -79,6 +79,7 @@ subroutine prepost(ifdoin,prefin)
       disable this check BUT BEWARE!!!!!!$')
   endif
 
+  allocate(pm1(lx1,ly1,lz1,lelv))
   call prepost_map(0, pm1) ! map pr and axisymm. arrays
 
   if(istep >= nsteps) lastep=1
@@ -1450,7 +1451,7 @@ end subroutine mfo_mdatas
 !-----------------------------------------------------------------------
 !> \brief output a scalar field
 subroutine mfo_outs(u,nel,mx,my,mz)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : nid, lelt, lxo
   use restart, only : wdsizo, pid0, pid1
   implicit none
@@ -1458,8 +1459,8 @@ subroutine mfo_outs(u,nel,mx,my,mz)
   real(DP) :: u(mx,my,mz,1)
   integer :: nel, mx, my, mz
 
-  real*4 :: u4(2+lxo*lxo*lxo*2*lelt)
-  real*8 :: u8(1+lxo*lxo*lxo*1*lelt)
+  real(r4) :: u4(2+lxo*lxo*lxo*2*lelt)
+  real(DP) :: u8(1+lxo*lxo*lxo*1*lelt)
   equivalence    (u4,u8)
 
   integer :: e, nxyz, len, leo, ntot, idum, ierr, nout, k, mtype
@@ -1539,7 +1540,7 @@ end subroutine mfo_outs
 !-----------------------------------------------------------------------
 !> \brief output a vector field
 subroutine mfo_outv(u,v,w,nel,mx,my,mz) 
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : nid, ndim, lxo, lelt
   use input, only : if3d
   use restart, only : wdsizo, pid0, pid1
@@ -1548,8 +1549,8 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
   real(DP) :: u(mx*my*mz,1),v(mx*my*mz,1),w(mx*my*mz,1)
   integer :: mx, my, mz
 
-  real*4 :: u4(2+lxo*lxo*lxo*6*lelt)
-  real*8 :: u8(1+lxo*lxo*lxo*3*lelt)
+  real(r4) :: u4(2+lxo*lxo*lxo*6*lelt)
+  real(DP) :: u8(1+lxo*lxo*lxo*3*lelt)
   equivalence    (u4,u8)
 
   integer :: nxyz, len, leo, nel, idum, ierr

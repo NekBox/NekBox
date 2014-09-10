@@ -9,7 +9,7 @@ subroutine compute_cfl(cfl,u,v,w,dt)
   use size_m, only : nx1, ny1, nz1, nelv, lx1, ly1, lz1
   use geom, only : rxm1, rym1, rzm1, jacmi, sxm1, sym1, szm1, txm1, tym1, tzm1
   use input, only : if3d
-  use soln, only : cflf
+!  use soln, only : cflf
   use wz_m, only : zgm1
   implicit none
 
@@ -59,7 +59,7 @@ subroutine compute_cfl(cfl,u,v,w,dt)
                       cflm = cflr + cfls + cflt
                       cfl  = max(cfl,cflm)
 
-                      cflf(i,j,k,e) = cflm
+!max                      cflf(i,j,k,e) = cflm
                        
                   enddo
               enddo
@@ -83,7 +83,7 @@ subroutine compute_cfl(cfl,u,v,w,dt)
                   cflm = cflr + cfls
                   cfl  = max(cfl,cflm)
 
-                  cflf(i,j,1,e) = cflm
+!max                  cflf(i,j,1,e) = cflm
 
               enddo
           enddo

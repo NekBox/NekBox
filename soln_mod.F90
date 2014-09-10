@@ -102,7 +102,7 @@ module soln
     , BFX    (LX1,LY1,LZ1,LELV) &
     , BFY    (LX1,LY1,LZ1,LELV) &
     , BFZ    (LX1,LY1,LZ1,LELV) &
-    , cflf   (lx1,ly1,lz1,lelv) &
+!    , cflf   (lx1,ly1,lz1,lelv) &
 !    , c_vx   (lxd*lyd*lzd*lelv*ldim,lorder+1)  & ! characteristics
 !     Solution data for magnetic field
     , BX     (LBX1,LBY1,LBZ1,LBELV) &
@@ -123,16 +123,18 @@ module soln
     , BZLAG  (LBX1*LBY1*LBZ1*LBELV,LORDER-1) &
     , PMLAG  (LBX2*LBY2*LBZ2*LBELV,LORDER2) )
 
-    allocate(PR(LX2,LY2,LZ2,LELV), PRLAG(LX2,LY2,LZ2,LELV,LORDER2)) 
+    allocate(PR(LX2,LY2,LZ2,LELV))
+!    allocate(PRLAG(LX2,LY2,LZ2,LELV,LORDER2)) 
 
-    allocate(QTL(LX2,LY2,LZ2,LELT), USRDIV(LX2,LY2,LZ2,LELT))
+    allocate(QTL(LX2,LY2,LZ2,LELT))
+!    allocate(USRDIV(LX2,LY2,LZ2,LELT))
 
     allocate(V1MASK (LX1,LY1,LZ1,LELV) &
     , V2MASK (LX1,LY1,LZ1,LELV) &
     , V3MASK (LX1,LY1,LZ1,LELV) &
     , PMASK  (LX1,LY1,LZ1,LELV) &
     , TMASK  (LX1,LY1,LZ1,LELT,LDIMT) &
-    , OMASK  (LX1,LY1,LZ1,LELT) &
+!    , OMASK  (LX1,LY1,LZ1,LELT) &
     , VMULT  (LX1,LY1,LZ1,LELV) &
     , TMULT  (LX1,LY1,LZ1,LELT,LDIMT) &
     , B1MASK (LBX1,LBY1,LBZ1,LBELV)   & ! masks for mag. field

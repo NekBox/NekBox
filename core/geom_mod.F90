@@ -105,10 +105,28 @@ module geom
   end subroutine init_geom
 
   subroutine compress_geom()
-    use size_m, only : nelt
+    use kinds, only : DP_eps
+    use size_m, only : lx1,ly1,lz1,nelt, nid
     implicit none
-    bm1_compress = .false.
 
+    integer, parameter :: lxyz = lx1*ly1*lz1
+    real(DP) :: thresh
+    real(DP), external :: dnrm2
+    integer :: ie
+
+    bm1_compress = .true.
+    thresh = 1.d-4 * dnrm2(lxyz*nelt, bm1, 1) / nelt
+    
+    do ie = 2, nelt
+      if (dnrm2(lxyz,bm1(:,:,:,ie) - bm1(:,:,:,ie-1),1) > thresh) then
+        bm1_compress = .false.
+        if (nid == 0) then
+        write(*,*) bm1(:,1,1,ie)
+        write(*,*) bm1(:,1,1,ie-1)
+        endif
+      endif
+    enddo
+    write(*,*) "MAX: bm1_compress =", bm1_compress
 
   end subroutine compress_geom
 

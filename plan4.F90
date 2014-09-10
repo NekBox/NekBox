@@ -174,7 +174,7 @@ subroutine crespsp (respr, vext)
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
   use size_m, only : nx1, ny1, nz1, nelv, ndim
   use geom, only : rxm2, sxm2, txm2, rym2, sym2, tym2, rzm2, szm2, tzm2
-  use geom, only : unx, uny, unz, area
+  use geom, only : area
   use input, only : ifaxis, if3d, cbc
   use geom, only : bm1, binvm1
   use soln, only : vx, vy, vz, bfx, bfy, bfz, pr

@@ -36,7 +36,8 @@ subroutine set_overlap
   use tstep, only : ifield
   implicit none
 
-  real(DP) :: x(2*ltotd), y(2*ltotd), z(2*ltotd)
+!max  real(DP) :: x(2*ltotd), y(2*ltotd), z(2*ltotd)
+  real(DP) :: x(1), y(1), z(1)
 
   integer :: npass, ipass
 

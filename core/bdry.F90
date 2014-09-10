@@ -568,9 +568,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   real(DP) :: mask1(nx1,ny1,nz1,lelv),mask2(nx1,ny1,nz1,lelv) &
   ,mask3(nx1,ny1,nz1,lelv)
 
-  real(DP) ::  TMP1(LX1,LY1,LZ1,LELV) &
-  , TMP2(LX1,LY1,LZ1,LELV) &
-  , TMP3(LX1,LY1,LZ1,LELV)
+  real(DP), allocatable :: TMP1(:,:,:,:), tmp2(:,:,:,:), tmp3(:,:,:,:) 
 
   character(3) cb
   character(1) :: cb1(3)
@@ -598,6 +596,11 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   NXYZ  =NX1*NY1*NZ1
   NEL   =NELFLD(IFIELD)
   NTOT  =NXYZ*NEL
+
+  allocate(TMP1(nx1,ny1,nz1,nelfld(ifield)) &
+  , TMP2(nx1,ny1,nz1,nelfld(ifield)) &
+  , TMP3(nx1,ny1,nz1,nelfld(ifield)) )
+
 
   CALL RZERO(TMP1,NTOT)
   CALL RZERO(TMP2,NTOT)
@@ -723,7 +726,7 @@ SUBROUTINE BCDIRSC(S)
   implicit none
 
   real(DP) :: S(LX1,LY1,LZ1,LELT)
-  real(DP) :: tmp(LX1,LY1,LZ1,LELT) 
+  real(DP), allocatable :: tmp(:,:,:,:) 
 
   CHARACTER(3) CB
 
@@ -747,6 +750,7 @@ SUBROUTINE BCDIRSC(S)
   NTOT   = NXYZ*NEL
   NFLDT  = NFIELD - 1
 
+  allocate(tmp(nx1,ny1,nz1,nelfld(ifield)))
   CALL RZERO(TMP,NTOT)
 
 !     Temperature boundary condition

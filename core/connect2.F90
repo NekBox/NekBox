@@ -1411,6 +1411,7 @@ end subroutine rdobj
 !> \brief Verify that mesh and dssum are properly defined by performing
 !!    a direct stiffness operation on the X,Y and Z coordinates.
 !! Note that periodic faces are not checked here.
+!! \todo clean up ta,tb,qmask
 !=====================================================================
 subroutine vrdsmsh()
   use kinds, only : DP
@@ -1423,8 +1424,9 @@ subroutine vrdsmsh()
   use tstep, only : ifield
   implicit none
 
-  real(DP) :: TA(LX1,LY1,LZ1,LELT),TB(LX1,LY1,LZ1,LELT) &
-  ,QMASK(LX1,LY1,LZ1,LELT),tmp(2)
+  real(DP), allocatable :: TA(:,:,:,:),TB(:,:,:,:) &
+  ,QMASK(:,:,:,:)
+  real(DP) :: tmp(2)
 
   CHARACTER(3) :: CB
   integer :: ierr, nxyz1, ntot, nfaces, ie, ieg, ix, iy, iz, iface, iel
@@ -1435,6 +1437,9 @@ subroutine vrdsmsh()
   integer :: iglsum
 
 !    call  vrdsmshx  ! verify mesh topology
+
+  allocate(TA(LX1,LY1,LZ1,LELT),TB(LX1,LY1,LZ1,LELT) &
+  ,QMASK(LX1,LY1,LZ1,LELT))
 
   if(nid == 0) write(*,*) 'verify mesh topology'
 

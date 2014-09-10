@@ -367,7 +367,7 @@ subroutine nek__multi_advance(kstep,msteps)
   integer i
 
   do i=1,msteps
-      istep = istep+i
+      istep = kstep + i - 1
       call nek_advance
   enddo
 

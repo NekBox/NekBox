@@ -478,7 +478,7 @@ SUBROUTINE BCMASK
   
   !        Zero out mask at Neumann-Dirichlet interfaces
   
-      call dsop(bpmask,'MUL',nx1,ny1,nz1)
+      call dsop(bpmask,'MUL')
   
   !        B-field masks
   
@@ -545,9 +545,9 @@ SUBROUTINE BCMASK
               enddo
           enddo
       
-          call dsop(b1mask,'MUL',nx1,ny1,nz1)
-          call dsop(b2mask,'MUL',nx1,ny1,nz1)
-          if (ndim == 3) call dsop(b3mask,'MUL',nx1,ny1,nz1)
+          call dsop(b1mask,'MUL')
+          call dsop(b2mask,'MUL')
+          if (ndim == 3) call dsop(b3mask,'MUL')
       endif
   endif
 

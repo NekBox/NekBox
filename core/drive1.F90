@@ -18,7 +18,7 @@ subroutine nek_init(intracomm)
   use hsmg, only : init_hsmg
   use input, only : init_input
   use ixyz, only : init_ixyz
-  use mass, only : init_mass
+!  use geom, only : init_mass
   use mesh, only : init_mesh
   use mvgeom, only : init_mvgeom
   use parallel, only : init_parallel
@@ -65,7 +65,7 @@ subroutine nek_init(intracomm)
   call init_hsmg()
   call init_input()
   call init_ixyz()
-  call init_mass()
+!  call init_mass()
   call init_mesh()
   call init_mvgeom()
   call init_parallel()

@@ -206,7 +206,7 @@ subroutine setdtc(umax)
   use geom, only : ifwcno, xm1, ym1, zm1
   use input, only : param, iftran, ifflow, ifnav, ifheat, ifadvc
   use input, only : ipscal, npscal
-  use mass, only : binvm1
+  use geom, only : binvm1
   use soln, only : vx, vy, vz, v1mask, v2mask, v3mask, bfx, bfy, bfz
   use tstep, only : lastep, dt, ifield, courno, ctarg, avtran, dtinit
   implicit none

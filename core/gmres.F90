@@ -44,7 +44,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv, lgmres
   use size_m, only : nx1, ny1, nz1, nelv, nid
   use input, only : param, ifmgrid, ifprint
-  use mass, only : bm1, binvm1, volvm1
+  use geom, only : bm1, binvm1, volvm1
   use soln, only : pmask, vmult
   use tstep, only : tolps, istep
   implicit none

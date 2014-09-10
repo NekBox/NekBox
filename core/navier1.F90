@@ -4,7 +4,7 @@ subroutine ctolspl (tolspl,respr)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, lx2, ly2, lz2
   use size_m, only : nx1, ny1, nz1, nelv, nid
-  use mass, only : bm1, volvm1
+  use geom, only : bm1, volvm1
   use tstep, only : dt, tolpdf, tolps, prelax
   implicit none
 
@@ -122,7 +122,7 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   use geom, only : ifrzer, jacm2, ym2, jacm1
   use input, only : ifaxis, ifsplit
   use ixyz, only : iym12, iam12, icm12, ixtm12
-  use mass, only : bm1, bm2, baxm1
+  use geom, only : bm1, bm2, baxm1
   use wz_m, only : w3m2, w2am2, w2cm2
   implicit none
 
@@ -336,7 +336,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
   use geom, only : ifrzer, jacm1
   use input, only : ifaxis, ifsplit
   use ixyz, only : iytm12, iatm12, ictm12, iztm12, ixm12
-  use mass, only : bm1
+  use geom, only : bm1
   use wz_m, only : w3m2, w2am2, w2cm2
   implicit none
 
@@ -736,7 +736,7 @@ end subroutine makef
 !> \brief Compute and add: (1) user specified forcing function (FX,FY,FZ)
 !----------------------------------------------------------------------
 subroutine makeuf
-  use mass, only : bm1
+  use geom, only : bm1
   use soln, only : bfx, bfy, bfz
   use tstep, only : time, dt
   implicit none
@@ -783,7 +783,7 @@ end subroutine nekuf
 subroutine advab()
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, lx1, ly1, lz1, lelv, ndim
-  use mass, only : bm1
+  use geom, only : bm1
   use soln, only : vx, vy, vz, bfx, bfy, bfz
   implicit none
 
@@ -811,7 +811,7 @@ subroutine makebdf()
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv
   use geom, only : ifgeom
-  use mass, only : bm1, bm1lag
+  use geom, only : bm1, bm1lag
   use soln, only : vx, vy, vz, vxlag, vylag, vzlag, bfx, bfy, bfz
   use soln, only : vtrans
   use tstep, only : dt, ifield, bd, nbd
@@ -1121,7 +1121,7 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelv, nelt, ndim
-  use mass, only : bm1, voltm1, volvm1
+  use geom, only : bm1, voltm1, volvm1
   implicit none
 
   real(DP) :: h1, semi, l2, linf
@@ -1183,7 +1183,7 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, ndim
   use size_m, only : lx1, ly1, lz1, lelt
-  use mass, only : volvm1, bm1
+  use geom, only : volvm1, bm1
   implicit none
 
   REAL(DP) :: H1,SEMI,L2,LINF
@@ -1518,7 +1518,7 @@ subroutine convop(conv,fi)
   use size_m, only : nx1, ny1, nz1, nelv
   use dealias, only : vxd, vyd, vzd
   use input, only : param, ifpert
-  use mass, only : bm1
+  use geom, only : bm1
   use soln, only : vx, vy, vz
   use tstep, only : nelfld, ifield
   implicit none

@@ -13,7 +13,7 @@
   use geom
   use input
   use ixyz
-  use mass
+  use geom
   use mvgeom
   use parallel
   use soln

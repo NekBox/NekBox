@@ -7,7 +7,7 @@ subroutine setprop
   use size_m, only :nx1, ny1, nz1, nfield
   use ctimer, only : icalld, tspro, nspro, etime1, dnekclock
   use input, only : ifflow, ifmhd
-  use mass, only : bm1
+  use geom, only : bm1
   use soln, only : vdiff, vtrans
   use tstep, only : ifield, nelfld, volfld, avdiff, avtran
   implicit none

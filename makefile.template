@@ -220,7 +220,7 @@ $(OBJDIR)/zper_mod.o	:$S/zper_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/drive.o	:$S/drive.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/drive2.o	:$S/drive2.F90;			$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/prepost.o	:$S/prepost.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/prepost.o	:$S/prepost.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/postpro.o	:$S/postpro.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/connect1.o	:$S/connect1.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/connect2.o	:$S/connect2.F90;		$(F90) -c $(FL2) $< -o $@
@@ -239,7 +239,7 @@ $(OBJDIR)/hsmg.o	:$S/hsmg.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/gmres.o	:$S/gmres.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/papi.o	:$S/papi.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/bdry.o	:$S/bdry.F90;			$(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/ic.o		:$S/ic.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/ic.o		:$S/ic.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/conduct.o	:$S/conduct.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier0.o	:$S/navier0.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier1.o	:$S/navier1.F90;		$(F90) -c $(FL2) $< -o $@

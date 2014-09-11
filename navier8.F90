@@ -2,12 +2,13 @@
 !> \brief Given global array, vertex, pointing to hex vertices, set up
 !! a new array of global pointers for an nx^ndim set of elements.
 subroutine set_vert(glo_num,ngv,nx,nel,vertex,ifcenter)
+  use kinds, only : i8
   use size_m, only : nid
   use input, only : if3d
   implicit none
 
-  integer*8 :: glo_num(1),ngv
-  integer :: vertex(1),nx, nel
+  integer(i8) :: glo_num(1),ngv
+  integer :: vertex(*),nx, nel
   logical :: ifcenter
 
   integer :: nz
@@ -32,7 +33,7 @@ end subroutine set_vert
 
 !> ?
 subroutine set_up_h1_crs
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nid
   use size_m, only : lx1, ly1, lz1, lelv, lelt, ldim
   use domain, only : nx_crs, nxyz_c, se_to_gcrs, lcr
@@ -44,19 +45,18 @@ subroutine set_up_h1_crs
   implicit none
 
   integer :: gs_handle
-  integer :: null_space,e
+  integer :: null_space
 
   character(3) :: cb
   real(DP) :: cmlt(lcr,lelv),mask(lcr,lelv)
   integer, allocatable :: ia(:,:,:), ja(:,:,:)
   real :: z
 
-  integer :: key(2),aa(2)
   real(DP), allocatable :: a(:)
  
   real(DP), allocatable :: h1(:), h2(:), w1(:), w2(:)
 
-  integer*8 :: ngv
+  integer(i8) :: ngv
 
   real(DP) :: t0
   integer :: nxc, ncr, ntot, nzc, nfaces, ie, iface, nz, n
@@ -168,11 +168,11 @@ end subroutine set_up_h1_crs
 
 !-----------------------------------------------------------------------
 subroutine set_jl_crs_mask(n, mask, se_to_gcrs)
-  use kinds, only : DP
+  use kinds, only : DP, i8
   implicit none
   integer :: n
   real(DP) :: mask(1)
-  integer*8 :: se_to_gcrs(1)
+  integer(i8) :: se_to_gcrs(1)
 
   integer :: i
   do i=1,n
@@ -518,9 +518,9 @@ end subroutine get_vertex
 subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
   implicit none
   integer :: gllnid(1),iunsort(1),nelgt,nelgv, np
-  integer :: e,eg
+  integer :: eg
 
-  integer :: ip, k, npp, nmod, nel, nelgs, nnpstr, npstar, log2p, np2
+  integer :: nelgs, nnpstr, npstar, log2p, np2
   integer, external :: ivlmax, log2
 
   log2p = log2(np)
@@ -612,7 +612,7 @@ subroutine get_vert
   use zper, only : ifgfdm
   implicit none
 
-  integer :: e,eg, ncrnr
+  integer :: ncrnr
   integer, save :: icalld = 0
 
   if (icalld > 0) return
@@ -642,6 +642,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
 
   logical :: ifgfdm
 
+  integer :: nlv, nel
   integer :: vertex(nlv,1)
   character(4) :: suffix
 
@@ -651,7 +652,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   integer, allocatable :: wk(:,:)   ! room for long ints, if desired
 
   integer :: e,eg,eg0,eg1, iok, lfname, neli, nnzi, npass, len, msg_id
-  integer :: ipass, m, k, ntuple, lng, i, key, nkey, iflag, nv, mid, nlv, nel
+  integer :: ipass, m, k, ntuple, lng, i, key, nkey, iflag, nv, mid
   integer, external :: iglmax, irecv
 
   character(132) :: mapfle
@@ -885,8 +886,8 @@ subroutine gbtuple_rank(tuple,m,n,nmax,cr_h,nid,np,ind)
   call crystal_ituple_transfer(cr_h, tuple,m,ni,nmax, ky)
 
   nk = 1  ! restore to original order, local rank: 2; global: 3
-  ky = 2
-  call ituple_sort(tuple,m,n,ky,nk,ind,wtuple)
+  key(1) = 2
+  call ituple_sort(tuple,m,n,key,nk,ind,wtuple)
 
   return
 end subroutine gbtuple_rank
@@ -898,13 +899,13 @@ end subroutine gbtuple_rank
 !!  than 2**31 (integer-4 limit).
 !!  if nelgt < 2**31/12 we're ok for sure (independent of N)!
 subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m, only : lelt, ndim, nid, nelt
   use parallel, only : cr_h, np, nelgt, lglel
   use topol, only : icface, skpdat
   implicit none
 
-  integer*8 :: glo_num(1),ngv
+  integer(i8) :: glo_num(1),ngv
   integer :: vertex(0:1,0:1,0:1,1),nx
   logical :: ifcenter
 
@@ -912,18 +913,19 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
 
   integer, parameter :: nsafe=8   ! OFTEN, nsafe=2 suffices
 
+  integer :: vertex_flat(8)
   integer :: etuple(4,12*lelt*nsafe)
   integer :: ftuple(5,6,lelt*nsafe)
   integer :: ind(12*lelt*nsafe)
   equivalence  (etuple,ftuple)
 
-  integer :: gvf(4),facet(4),aa(3),key(3),e
+  integer :: gvf(4),facet(4),key(3),e
   logical :: ifij
         
-  integer*8 :: igv,ig0
-  integer*8 :: ngvv,ngve,ngvs,ngvi,ngvm
-  integer*8 :: n_on_edge,n_on_face,n_in_interior
-  integer*8 :: i8glmax
+  integer(i8) :: igv,ig0
+  integer(i8) :: ngvv,ngve,ngvs,ngvi,ngvm
+  integer(i8) :: n_on_edge,n_on_face,n_in_interior
+  integer(i8) :: i8glmax
 
   integer :: ny, nz, nxyz, nlv, nel, k, j, i, il, ile, kswap, m, n, nmax
   integer :: n_unique_edges, iedg_loc, i0, i0e, nfaces, ncrnr, ifac, icrn
@@ -979,14 +981,20 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
   enddo
 
 !   Sort edges by bounding vertices.
-  do i=0,12*nel-1
-      if (edge(0,i,0,1,1) > edge(1,i,0,1,1)) then
-          kswap = edge(0,i,0,1,1)
-          edge(0,i,0,1,1) = edge(1,i,0,1,1)
-          edge(1,i,0,1,1) = kswap
-      endif
-      etuple(3,i+1) = edge(0,i,0,1,1)
-      etuple(4,i+1) = edge(1,i,0,1,1)
+  do e=1,nel
+    do i = 1,3
+      do k=0,1
+        do j=0,1
+          if (edge(0,j,k,i,e) > edge(1,j,k,i,e)) then
+              kswap = edge(0,j,k,i,e)
+              edge(0,j,k,i,e) = edge(1,j,k,i,e)
+              edge(1,j,k,i,e) = kswap
+          endif
+          etuple(3,1+j+k*2+(i-1)*4+12*(e-1)) = edge(0,j,k,i,e)
+          etuple(4,1+j+k*2+(i-1)*4+12*(e-1)) = edge(1,j,k,i,e)
+        enddo
+      enddo
+    enddo
   enddo
 
 !   Assign a number (rank) to each unique edge
@@ -994,8 +1002,10 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
   n    = 12*nel
   nmax = 12*lelt*nsafe  ! nsafe for crystal router factor of safety
   call gbtuple_rank(etuple,m,n,nmax,cr_h,nid,np,ind)
-  do i=1,12*nel
-      enum(i,1) = etuple(3,i)
+  do i=1,nel
+    do j = 1,12
+      enum(j,i) = etuple(3,j+(i-1)*12)
+    enddo
   enddo
   n_unique_edges = iglmax(enum,12*nel)
 
@@ -1086,10 +1096,11 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
   nfaces=ndim*2
   ncrnr =2**(ndim-1)
   do e=1,nel
+      vertex_flat = reshape(vertex(:,:,:,e), (/8/))
       do ifac=1,nfaces
           do icrn=1,ncrnr
-              i                  = icface(icrn,ifac)-1
-              facet(icrn)        = vertex(i,0,0,e)
+              i                  = icface(icrn,ifac)
+              facet(icrn)        = vertex_flat(i)
           enddo
           call isort(facet,ind,ncrnr)
           call icopy(ftuple(3,ifac,e),facet,ncrnr-1)
@@ -1101,8 +1112,10 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
   n    = 6*nel
   nmax = 6*lelt*nsafe  ! nsafe for crystal router factor of safety
   call gbtuple_rank(ftuple,m,n,nmax,cr_h,nid,np,ind)
-  do i=1,6*nel
-      fnum(i,1) = ftuple(3,i,1)
+  do e = 1,nel
+    do i=1,6
+      fnum(i,e) = ftuple(3,i,e)
+    enddo
   enddo
   n_unique_faces = iglmax(fnum,6*nel)
 
@@ -1257,14 +1270,15 @@ end subroutine setvert3d
 
 !-----------------------------------------------------------------------
 subroutine check_p_bc(glo_num,nx,ny,nz,nel)
+  use kinds, only : i8
   use size_m, only : ndim, nelt
   use input, only : ifflow, cbc
   implicit none
 
-  integer*8 :: glo_num(nx,ny,nz,nel)
   integer :: nx, ny, nz, nel
+  integer(i8) :: glo_num(nx,ny,nz,nel)
 
-  integer*8 :: gmn
+  integer(i8) :: gmn
   integer :: e,f,fo,ef,efo, ifld, nface, k, j, i
   integer, save :: eface0(6) = (/ 4,2,1,3,5,6 /)
 

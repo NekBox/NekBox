@@ -3,6 +3,7 @@
 subroutine cdscal (igeom)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid, mxprev
+  use helmholtz, only : hsolve
   use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh, ifprint
   use geom, only : bintm1, binvm1
   use soln, only : t, bq, tmask, tmult
@@ -27,7 +28,7 @@ subroutine cdscal (igeom)
 !max    include 'ORTHOT'
 
 !max  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
-  if (.not. allocated(approx)) allocate(approx(1,1))
+  if (.not. allocated(approx)) allocate(approx(1,0:1))
 
 
 

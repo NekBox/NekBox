@@ -267,11 +267,13 @@ subroutine genwz
       CALL ZWGLL (ZGM1(1,1),WXM1,NX1)
       CALL ZWGLL (ZGM1(1,2),WYM1,NY1)
       CALL ZWGLL (ZGM1(1,3),WZM1,NZ1)
-      DO 700 IZ=1,NZ1
-          DO 700 IY=1,NY1
-              DO 700 IX=1,NX1
+      DO IZ=1,NZ1
+          DO IY=1,NY1
+              DO IX=1,NX1
                   W3M1(IX,IY,IZ)=WXM1(IX)*WYM1(IY)*WZM1(IZ)
-      700 END DO
+              enddo
+          enddo
+      END DO
   
   !     Compute derivative matrices
   
@@ -291,11 +293,13 @@ subroutine genwz
           CALL ZWGL  (ZGM2(1,2),WYM2,NY2)
           CALL ZWGL  (ZGM2(1,3),WZM2,NZ2)
       ENDIF
-      DO 800 IZ=1,NZ2
-          DO 800 IY=1,NY2
-              DO 800 IX=1,NX2
+      DO IZ=1,NZ2
+          DO IY=1,NY2
+              DO IX=1,NX2
                   W3M2(IX,IY,IZ)=WXM2(IX)*WYM2(IY)*WZM2(IZ)
-      800 END DO
+              enddo
+          enddo
+      END DO
   
   !     Gauss-Loabtto Legendre mesh (suffix M3).
   !     Generate collocation points and weights.
@@ -303,11 +307,13 @@ subroutine genwz
       CALL ZWGLL (ZGM3(1,1),WXM3,NX3)
       CALL ZWGLL (ZGM3(1,2),WYM3,NY3)
       CALL ZWGLL (ZGM3(1,3),WZM3,NZ3)
-      DO 900 IZ=1,NZ3
-          DO 900 IY=1,NY3
-              DO 900 IX=1,NX3
+      DO IZ=1,NZ3
+          DO IY=1,NY3
+              DO IX=1,NX3
                   W3M3(IX,IY,IZ)=WXM3(IX)*WYM3(IY)*WZM3(IZ)
-      900 END DO
+              enddo
+          enddo
+      END DO
   
   !     Compute derivative matrices
   
@@ -561,15 +567,16 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   ELSE
       DO 500 IEL=1,NELT
           IF (IFRZER(IEL)) THEN
-              DO 510 J=1,NY1
-                  DO 510 I=1,NX1
+              DO J=1,NY1
+                  DO I=1,NX1
                       IF (J > 1) THEN
                           WJ(I,J,1,IEL) = YM1(I,J,1,IEL)/ &
                           (JACM1(I,J,1,IEL)*(1.+ZAM1(J)))
                       ELSE
                           WJ(I,J,1,IEL) = YSM1(I,J,1,IEL)/JACM1(I,J,1,IEL)
                       ENDIF
-              510 END DO
+                  enddo
+              END DO
           ELSE
               CALL INVCOL3 (WJ(1,1,1,IEL),YM1(1,1,1,IEL), &
               JACM1(1,1,1,IEL),NXYZ1)
@@ -985,7 +992,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   ,             ZTM1(LX1,LY1,LZ1,LELT)
 
   real(DP), allocatable :: A(:,:,:,:), B(:,:,:,:), C(:,:,:,:), dot(:,:,:,:)
-  integer :: nxy1, nface, ntot, nsrf, iel, iz, iy, ix, ifc
+  integer :: nxy1, nface, ntot, nsrf, iel, iz, iy, ix
   real(DP) :: weight
 
   NXY1  = NX1*NY1
@@ -1000,9 +1007,9 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   CALL VCROSS(A,B,C,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1,NTOT)
   CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
 
-  DO 100 IEL=1,NELT
-      DO 100 IZ=1,NZ1
-          DO 100 IY=1,NY1
+  DO IEL=1,NELT
+      DO IZ=1,NZ1
+          DO IY=1,NY1
               WEIGHT = WYM1(IY)*WZM1(IZ)
               AREA(IY,IZ,2,IEL) = SQRT(DOT(NX1,IY,IZ,IEL))*WEIGHT
               AREA(IY,IZ,4,IEL) = SQRT(DOT(  1,IY,IZ,IEL))*WEIGHT
@@ -1012,15 +1019,17 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
               UNY (IY,IZ,2,IEL) =  B(NX1,IY,IZ,IEL)
               UNZ (IY,IZ,4,IEL) = -C(  1,IY,IZ,IEL)
               UNZ (IY,IZ,2,IEL) =  C(NX1,IY,IZ,IEL)
-  100 END DO
+          enddo
+      enddo
+  END DO
 
 !      "S"
 
   CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XTM1,YTM1,ZTM1,NTOT)
   CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
-  DO 200 IEL=1,NELT
-      DO 200 IZ=1,NZ1
-          DO 200 IX=1,NX1
+  DO IEL=1,NELT
+      DO IZ=1,NZ1
+          DO IX=1,NX1
               WEIGHT=WXM1(IX)*WZM1(IZ)
               AREA(IX,IZ,1,IEL) = SQRT(DOT(IX,  1,IZ,IEL))*WEIGHT
               AREA(IX,IZ,3,IEL) = SQRT(DOT(IX,NY1,IZ,IEL))*WEIGHT
@@ -1030,15 +1039,17 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
               UNY (IX,IZ,3,IEL) = -B(IX,NY1,IZ,IEL)
               UNZ (IX,IZ,1,IEL) =  C(IX,  1,IZ,IEL)
               UNZ (IX,IZ,3,IEL) = -C(IX,NY1,IZ,IEL)
-  200 END DO
+          enddo
+      enddo
+  END DO
 
 !      "T"
 
   CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,NTOT)
   CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
-  DO 300 IEL=1,NELT
-      DO 300 IX=1,NX1
-          DO 300 IY=1,NY1
+  DO IEL=1,NELT
+      DO IX=1,NX1
+          DO IY=1,NY1
               WEIGHT=WXM1(IX)*WYM1(IY)
               AREA(IX,IY,5,IEL) = SQRT(DOT(IX,IY,  1,IEL))*WEIGHT
               AREA(IX,IY,6,IEL) = SQRT(DOT(IX,IY,NZ1,IEL))*WEIGHT
@@ -1048,7 +1059,9 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
               UNY (IX,IY,6,IEL) =  B(IX,IY,NZ1,IEL)
               UNZ (IX,IY,5,IEL) = -C(IX,IY,  1,IEL)
               UNZ (IX,IY,6,IEL) =  C(IX,IY,NZ1,IEL)
-  300 END DO
+          enddo
+      enddo
+  END DO
 
   CALL UNITVEC (UNX,UNY,UNZ,NSRF)
 
@@ -1135,7 +1148,7 @@ subroutine setinvm()
       IFIELD = 1
       NTOT   = NXYZ1*NELV
       CALL COPY    (BINVM1,BM1,NTOT)
-      CALL DSSUM   (BINVM1,NX1,NY1,NZ1)
+      CALL DSSUM   (BINVM1)
       CALL INVCOL1 (BINVM1,NTOT)
   ENDIF
 
@@ -1148,7 +1161,7 @@ subroutine setinvm()
       IFIELD = 2
       NTOT   = NXYZ1*NELT
       CALL COPY    (BINTM1,BM1,NTOT)
-      CALL DSSUM   (BINTM1,NX1,NY1,NZ1)
+      CALL DSSUM   (BINTM1)
       CALL INVCOL1 (BINTM1,NTOT)
   ENDIF
 

@@ -1245,8 +1245,8 @@ subroutine pprint_all(s,n_in,io)
   implicit none
 
   integer, intent(in) :: n_in, io
-  character(1), intent(in) :: s(n_in)
-  character(1) :: w(132)
+  character(n_in), intent(in) :: s
+  character(132) :: w
   integer :: n, mtag, m, i, k, l
 
   n = min(132,n_in)
@@ -1257,7 +1257,7 @@ subroutine pprint_all(s,n_in,io)
 
   if (nid == 0) then
       l = ltrunc(s,n)
-      write(io,1) (s(k),k=1,l)
+      write(io,1) (s(k:k),k=1,l)
       1 format(132a1)
 
       do i=1,np-1
@@ -1267,11 +1267,11 @@ subroutine pprint_all(s,n_in,io)
           call crecv(i,w,m)
           if (m <= 132) then
               l = ltrunc(w,m)
-              write(io,1) (w(k),k=1,l)
+              write(io,1) (w(k:k),k=1,l)
           else
               write(io,*) 'pprint long message: ',i,m
               l = ltrunc(w,132)
-              write(io,1) (w(k),k=1,l)
+              write(io,1) (w(k:k),k=1,l)
           endif
       enddo
   else

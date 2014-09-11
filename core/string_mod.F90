@@ -260,13 +260,13 @@ END FUNCTION IFGTIL
 integer function ltrunc(string,l)
   implicit none
   integer :: l
-  CHARACTER(1) :: STRING(L)
+  CHARACTER(L) :: STRING
   integer :: i, l1
   CHARACTER(1) :: BLNK=' '
 
   DO 100 I=L,1,-1
       L1=I
-      IF (STRING(I) /= BLNK) GOTO 200
+      IF (STRING(I:I) /= BLNK) GOTO 200
   100 END DO
   L1=0
   200 CONTINUE

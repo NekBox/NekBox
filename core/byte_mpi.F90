@@ -83,11 +83,12 @@ end subroutine byte_read_mpi
 
 !--------------------------------------------------------------------------
 subroutine byte_write_mpi(buf,icount,iorank,mpi_fh,ierr)
+  use kinds, only : r4
   use size_m
   use restart
   implicit none
 
-  real*4 :: buf(1)          ! buffer
+  real(r4) :: buf(1)          ! buffer
   integer :: icount, iorank, mpi_fh, ierr
 
 #ifdef MPIIO

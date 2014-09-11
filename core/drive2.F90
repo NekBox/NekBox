@@ -742,7 +742,9 @@ end subroutine geneig
 !! (5) Lagrangian/"Eulerian"(operator splitting) modes
 !-----------------------------------------------------------------------
 subroutine fluid (igeom)
+  use kinds, only : DP
   use size_m, only : nid
+  use ctimer, only : dnekclock
   use input, only : ifnav, ifsplit, iftran, param
   use tstep, only : ifield, imesh, istep, time
 
@@ -750,7 +752,7 @@ subroutine fluid (igeom)
 
   integer, intent(inout) :: igeom
  
-  real*8 :: ts, dnekclock
+  real(DP) :: ts
    
   ifield = 1
   imesh  = 1
@@ -820,14 +822,16 @@ end subroutine fluid
 !!  (5) A passive scalar has its own multiplicity (B.C.).
 !-----------------------------------------------------------------------
 subroutine heat (igeom)
+  use kinds, only : DP
   use size_m, only : nid, nfield
+  use ctimer, only : dnekclock
   use input, only : ifcvode, ifsplit, iftmsh
   use tstep, only : ifield, imesh, istep, time
 
   implicit none
 
   integer, intent(inout) :: igeom
-  real*8 :: ts, dnekclock
+  real(DP) :: ts
   integer :: intype, igeo
 
   ts = dnekclock()
@@ -1346,7 +1350,7 @@ end subroutine opcount
 !-----------------------------------------------------------------------
 !> \brief count degrees of freedom
 subroutine dofcnt
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m, only : nx1, ny1, nz1, nelv, nid
   use size_m, only : nx2, ny2, nz2, lctmp1
   use input, only : ifflow, ifsplit
@@ -1360,7 +1364,7 @@ subroutine dofcnt
   real(DP) :: vpts, ppts
   real(DP), external :: glsum
   integer, external :: glsc2, i8glsum
-  integer*8 :: ntot,ntotp,ntotv
+  integer(i8) :: ntot,ntotp,ntotv
 
   nxyz  = nx1*ny1*nz1
   nel   = nelv

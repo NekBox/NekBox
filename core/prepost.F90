@@ -3,7 +3,7 @@
 !!  Recent updates:
 !!  p65 now indicates the number of parallel i/o files; iff p66 >= 6
 subroutine prepost(ifdoin,prefin)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : lx1, ly1, lz1, lelv, ldimt1, nid
   use ctimer, only : icalld, nprep, etime1, dnekclock, tprep
   use input, only : schfle, ifschclob, ifpsco
@@ -18,26 +18,9 @@ subroutine prepost(ifdoin,prefin)
 
   real(DP) :: tdmp(4)
 
-  real*4 ::         test_pattern
-
   character(3) :: prefix
-  character(1) ::    fhdfle1(132)
-  character(132) ::   fhdfle
-  equivalence   (fhdfle,fhdfle1)
-  character(1) ::    fldfile2(120)
-  integer ::        fldfilei( 60)
-  equivalence   (fldfilei,fldfile2)
 
   logical, save :: ifdoit = .FALSE.
-
-  real(DP) :: hdump(25)
-  real(DP) :: xpart(10),ypart(10),zpart(10)
-  character(10) :: frmat
-  integer, save :: nopen(99)
-  data    nopen /99*0/
-
-  integer ndumps
-  data ndumps / 0 /
 
   real(DP), allocatable ::  pm1(:,:,:,:)
 
@@ -74,9 +57,10 @@ subroutine prepost(ifdoin,prefin)
           endif
           goto 45
           44 ierr = 1
-      45 endif
+      endif
+      45 continue
       call err_chk(ierr,'.sch file already exists. Use IFSCHCLOB=F to &
-      disable this check BUT BEWARE!!!!!!$')
+     & disable this check BUT BEWARE!!!!!!$')
   endif
 
   allocate(pm1(lx1,ly1,lz1,lelv))
@@ -164,7 +148,7 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
 !   Work arrays and temporary arrays
   real(DP) :: pa(lx1,ly2,lz2),pb(lx1,ly1,lz2)
   integer :: e
-  integer :: ntotm1, ntotm2, ifldt, ntot1, nyz2, nxy1, nxyz, nxyz2, iz, ntot2 
+  integer :: ntot1, nyz2, nxy1, nxyz, nxyz2, iz
 
   if (isave == 0) then ! map to GLL grid
 
@@ -267,7 +251,7 @@ end subroutine prepost_map
 !-----------------------------------------------------------------------
 !> \brief output .fld file
 subroutine outfld(prefix, pm1)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : lx1, ly1, lz1, lelv, ldimt1, nid
   use input, only : param
   use tstep, only : istep, time
@@ -278,24 +262,10 @@ subroutine outfld(prefix, pm1)
   integer, parameter :: lxyz=lx1*ly1*lz1
   integer, parameter :: lpsc9=ldimt1+9
 
-  real*4 ::         test_pattern
-
   character(3) ::    prefix
-  character(1) ::    fhdfle1(132)
-  character(132) ::   fhdfle
-  equivalence   (fhdfle,fhdfle1)
-  character(1) ::    fldfile2(120)
-  integer ::        fldfilei( 60)
-  equivalence   (fldfilei,fldfile2)
 
-  character(1) :: excode(30)
-  character(10) :: frmat
 
   real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
-  integer, save :: nopen(99)
-
-
-  logical :: ifxyo_s
 
   real(DP) :: p66
 
@@ -480,13 +450,11 @@ subroutine outhis(ifhis, pm1)
 
   real :: hdump(25)
   real :: xpart(10),ypart(10),zpart(10)
-  character(30) :: excode
-  character(10) :: frmat
   logical :: ifhis
 
   integer, save :: icalld = 0
   integer :: iohis, nvar, ih, ii, ihisps, mtype, len, iobj, isk, iq
-  integer :: ipart, i, iel, k, j, i1, ip, kp, ielp, ix, iy, iz, ieg, jnid, ie
+  integer :: ipart, i, iel, k, j, ip, kp, ielp, ix, iy, iz, ieg, jnid, ie
   real(DP) :: rmin, x, y, z, r, one
   real(DP), external :: glmax
 
@@ -509,10 +477,10 @@ subroutine outhis(ifhis, pm1)
                   ELSE
                   !               Kludge: Find Closest point
                       RMIN=1.0E7
-                      DO 20 IEL=1,NELV
-                          DO 20 K=1,NZ1
-                              DO 20 J=1,NY1
-                                  DO 20 II=1,NX1
+                      DO IEL=1,NELV
+                          DO K=1,NZ1
+                              DO J=1,NY1
+                                  DO II=1,NX1
                                       X = XM1(II,J,K,IEL)
                                       Y = YM1(II,J,K,IEL)
                                       Z = ZM1(II,J,K,IEL)
@@ -525,7 +493,10 @@ subroutine outhis(ifhis, pm1)
                                           KP=K
                                           IELP=IEL
                                       ENDIF
-                      20 END DO
+                                  enddo
+                              enddo
+                          enddo
+                      END DO
                       XPART(IPART) = XPART(IPART) + DT * VX(IP,JP,KP,IELP)
                       YPART(IPART) = YPART(IPART) + DT * VY(IP,JP,KP,IELP)
                       ZPART(IPART) = ZPART(IPART) + DT * VZ(IP,JP,KP,IELP)
@@ -665,10 +636,10 @@ end subroutine outhis
 
 !=======================================================================
 subroutine copyX4(a,b,n)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   implicit none
-  REAL*4 :: A(1)
-  REAL(DP) ::   B(1)
+  REAL(r4) :: A(1)
+  REAL(DP) :: B(1)
   integer :: n,i
   DO 100 I = 1, N
       A(I) = B(I)
@@ -678,10 +649,10 @@ end subroutine copyX4
 
 !=======================================================================
 subroutine copy4r(a,b,n)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   implicit none
-  real(DP) ::   a(1)
-  real*4 :: b(1)
+  real(DP) :: a(1)
+  real(r4) :: b(1)
   integer :: n, i
   do i = 1, n
       a(i) = b(i)
@@ -729,7 +700,7 @@ end function i_find_prefix
 !-----------------------------------------------------------------------
 !> \brief mult-file output
 subroutine mfo_outfld(prefix, pm1) 
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use ctimer, only : dnekclock_sync
   use size_m, only : lx1, ly1, lz1, lelv, lelt, ldimt, lxo
   use size_m, only : nx1, ny1, nz1, nelt, nid, ndim
@@ -746,7 +717,7 @@ subroutine mfo_outfld(prefix, pm1)
 
   real(DP) :: pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
 
-  integer*8 :: offs0,offs,nbyte,stride,strideB,nxyzo8
+  integer(i8) :: offs0,offs,stride,strideB,nxyzo8
   logical :: ifxyo_s
 
   real(DP) :: tiostart, dnbyte, tio
@@ -945,7 +916,6 @@ subroutine io_init ! determine which nodes will output
   use restart, only : fid0, pid0, pid1, wdsizo, nrg, nelB, pid00
   implicit none
 
-  character(132) :: hname
   integer :: nn
   integer, external :: igl_running_sum
   real(DP), external :: glmin
@@ -1212,7 +1182,7 @@ subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
   integer, parameter :: ltot1=lx1*ly1*lz1*lelt
   integer, parameter :: ltot2=lx2*ly2*lz2*lelv
   real(DP), allocatable :: w1(:), w2(:), w3(:), wp(:), wt(:,:)
-  real :: v1(1),v2(1),v3(1),vp(1),vt(ltot1,1)
+  real(DP) :: v1(1),v2(1),v3(1),vp(1),vt(ltot1,1)
   character(3) :: name3
   logical :: if_save(ldimt)
 
@@ -1278,7 +1248,7 @@ end subroutine outpost2
 
 !-----------------------------------------------------------------------
 subroutine mfo_mdatav(u,v,w,nel)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, ndim, nelt, nid, lelt
   use input, only : if3d
   use restart, only : pid0, pid1
@@ -1287,7 +1257,7 @@ subroutine mfo_mdatav(u,v,w,nel)
   real(DP) :: u(lx1*ly1*lz1,1),v(lx1*ly1*lz1,1),w(lx1*ly1*lz1,1)
   integer :: nel
 
-  real*4 :: buffer(1+6*lelt)
+  real(r4) :: buffer(1+6*lelt)
 
   integer :: e, inelp, mtype, k, idum, nout, j, ierr, leo, len, nxyz, n
   real(DP), external :: vlmin, vlmax
@@ -1372,7 +1342,7 @@ end subroutine mfo_mdatav
 
 !-----------------------------------------------------------------------
 subroutine mfo_mdatas(u,nel)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nelt, nid
   use restart, only : pid0, pid1
   implicit none
@@ -1380,7 +1350,7 @@ subroutine mfo_mdatas(u,nel)
   real(DP) :: u(lx1*ly1*lz1,1)
   integer :: nel
 
-  real*4 :: buffer(1+2*lelt)
+  real(r4) :: buffer(1+2*lelt)
 
   integer :: e, inelp, mtype, k, idum, nout, j, ierr, leo, len, n, nxyz
   real(DP), external :: vlmin, vlmax
@@ -1456,14 +1426,13 @@ subroutine mfo_outs(u,nel,mx,my,mz)
   use restart, only : wdsizo, pid0, pid1
   implicit none
 
-  real(DP) :: u(mx,my,mz,1)
   integer :: nel, mx, my, mz
+  real(DP) :: u(mx,my,mz,1)
 
-  real(r4) :: u4(2+lxo*lxo*lxo*2*lelt)
-  real(DP) :: u8(1+lxo*lxo*lxo*1*lelt)
-  equivalence    (u4,u8)
+  real(r4), allocatable :: u4(:)
+  real(DP), allocatable :: u8(:)
 
-  integer :: e, nxyz, len, leo, ntot, idum, ierr, nout, k, mtype
+  integer :: nxyz, len, leo, ntot, idum, ierr, nout, k, mtype
 
   call nekgsync() ! clear outstanding message queues.
   if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
@@ -1479,6 +1448,12 @@ subroutine mfo_outs(u,nel,mx,my,mz)
   idum = 1
   ierr = 0
 
+  if (wdsizo == 4) then
+    allocate(u4(2+lxo*lxo*lxo*2*lelt))
+  else
+    allocate(u8(1+lxo*lxo*lxo*1*lelt))
+  endif
+
   if (nid == pid0) then
 
       if (wdsizo == 4) then             ! 32-bit output
@@ -1486,12 +1461,19 @@ subroutine mfo_outs(u,nel,mx,my,mz)
       else
           call copy   (u8,u,ntot)
       endif
+      if(wdsizo == 4 .and. ierr == 0) then
       nout = wdsizo/4 * ntot
-      if(ierr == 0) then
 #ifdef MPIIO 
       call byte_write_mpi(u4,nout,-1,ifh_mbyte,ierr)
 #else 
       call byte_write(u4,nout,ierr)          ! u4 :=: u8
+#endif
+      elseif(ierr == 0) then
+      nout = wdsizo/4 * ntot
+#ifdef MPIIO 
+      call byte_write_mpi(u8,nout,-1,ifh_mbyte,ierr)
+#else 
+      call byte_write(u8,nout,ierr)          ! u4 :=: u8
 #endif
       endif
 
@@ -1500,35 +1482,40 @@ subroutine mfo_outs(u,nel,mx,my,mz)
       do k=pid0+1,pid1
           mtype = k
           call csend(mtype,idum,4,k,0)       ! handshake
-          call crecv(mtype,u4,len)
-          nout  = wdsizo/4 * nxyz * u8(1)
           if (wdsizo == 4 .AND. ierr == 0) then
+            call crecv(mtype,u4,len)
+            nout  = wdsizo/4 * nxyz * u4(1)
 #ifdef MPIIO
-              call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
+            call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
 #else
-              call byte_write(u4(3),nout,ierr)
+            call byte_write(u4(3),nout,ierr)
 #endif
           elseif(ierr == 0) then
+            call crecv(mtype,u8,len)
+            nout  = wdsizo/4 * nxyz * u8(1)
 #ifdef MPIIO
-              call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
+            call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
 #else
-              call byte_write(u8(2),nout,ierr)
+            call byte_write(u8(2),nout,ierr)
 #endif
           endif
       enddo
 
   else
 
-      u8(1)= nel
       if (wdsizo == 4) then             ! 32-bit output
-          call copyx4 (u4(3),u,ntot)
+        u4(1)= nel
+        call copyx4 (u4(3),u,ntot)
+        mtype = nid
+        call crecv(mtype,idum,4)            ! hand-shake
+        call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
       else
-          call copy   (u8(2),u,ntot)
+        u8(1)= nel
+        call copy   (u8(2),u,ntot)
+        mtype = nid
+        call crecv(mtype,idum,4)            ! hand-shake
+        call csend(mtype,u8,leo,pid0,0)     ! u4 :=: u8
       endif
-
-      mtype = nid
-      call crecv(mtype,idum,4)            ! hand-shake
-      call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
 
   endif
 
@@ -1546,17 +1533,14 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
   use restart, only : wdsizo, pid0, pid1
   implicit none
  
-  real(DP) :: u(mx*my*mz,1),v(mx*my*mz,1),w(mx*my*mz,1)
   integer :: mx, my, mz
+  real(DP) :: u(mx*my*mz,1),v(mx*my*mz,1),w(mx*my*mz,1)
 
-  real(r4) :: u4(2+lxo*lxo*lxo*6*lelt)
-  real(DP) :: u8(1+lxo*lxo*lxo*3*lelt)
-  equivalence    (u4,u8)
+  real(r4), allocatable :: u4(:)
+  real(DP), allocatable :: u8(:)
 
   integer :: nxyz, len, leo, nel, idum, ierr
   integer :: j, iel, nout, k, mtype
-
-  integer :: e
 
   call nekgsync() ! clear outstanding message queues.
   if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
@@ -1570,6 +1554,12 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
   idum = 1
   ierr = 0
 
+  if (wdsizo == 4) then
+    allocate(u4(2+lxo*lxo*lxo*6*lelt))
+  else
+    allocate(u8(1+lxo*lxo*lxo*3*lelt))
+  endif
+  
   if (nid == pid0) then
       j = 0
       if (wdsizo == 4) then             ! 32-bit output
@@ -1596,27 +1586,35 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
           enddo
       endif
       nout = wdsizo/4 * ndim*nel * nxyz
-      if(ierr == 0) then
+      if (wdsizo == 4 .and. ierr == 0) then
 #ifdef MPIIO 
       call byte_write_mpi(u4,nout,-1,ifh_mbyte,ierr)
 #else 
       call byte_write(u4,nout,ierr)          ! u4 :=: u8
+#endif
+      elseif (ierr == 0) then
+#ifdef MPIIO 
+      call byte_write_mpi(u8,nout,-1,ifh_mbyte,ierr)
+#else 
+      call byte_write(u8,nout,ierr)          ! u4 :=: u8
 #endif
       endif
   ! write out the data of my childs
       do k=pid0+1,pid1
           mtype = k
           call csend(mtype,idum,4,k,0)           ! handshake
-          call crecv(mtype,u4,len)
-          nout  = wdsizo/4 * ndim*nxyz * u8(1)
 
           if (wdsizo == 4 .AND. ierr == 0) then
+              call crecv(mtype,u4,len)
+              nout  = wdsizo/4 * ndim*nxyz * u4(1)
 #ifdef MPIIO
               call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
 #else
               call byte_write(u4(3),nout,ierr)
 #endif
           elseif(ierr == 0) then
+              call crecv(mtype,u8,len)
+              nout  = wdsizo/4 * ndim*nxyz * u8(1)
 #ifdef MPIIO
               call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
 #else
@@ -1626,8 +1624,8 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
       enddo
   else
 
-      u8(1) = nel
       if (wdsizo == 4) then             ! 32-bit output
+          u4(1) = nel
           j = 2
           do iel = 1,nel
               call copyx4   (u4(j+1),u(1,iel),nxyz)
@@ -1639,7 +1637,11 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
                   j = j + nxyz
               endif
           enddo
+        mtype = nid
+        call crecv(mtype,idum,4)            ! hand-shake
+        call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
       else
+          u8(1) = nel
           j = 1
           do iel = 1,nel
               call copy     (u8(j+1),u(1,iel),nxyz)
@@ -1651,12 +1653,10 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
                   j = j + nxyz
               endif
           enddo
+        mtype = nid
+        call crecv(mtype,idum,4)            ! hand-shake
+        call csend(mtype,u8,leo,pid0,0)     ! u4 :=: u8
       endif
-
-      mtype = nid
-      call crecv(mtype,idum,4)            ! hand-shake
-      call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
-
   endif
 
   call err_chk(ierr,'Error writing data to .f00 in mfo_outv. $')
@@ -1666,7 +1666,7 @@ end subroutine mfo_outv
 !-----------------------------------------------------------------------
 !> \brief write hdr, byte key, els.
 subroutine mfo_write_hdr          
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : nid, nelt, lelt, ldimt
   use input, only : ifxyo, ifvo, ifpo, ifto, ifpsco
   use parallel, only : nelgt, lglel
@@ -1675,11 +1675,10 @@ subroutine mfo_write_hdr
   use tstep, only : istep, time
   implicit none
 
-  real*4 :: test_pattern
+  real(r4) :: test_pattern
   integer :: lglist(0:lelt)
 
   character(132) :: hdr
-  integer*8 :: ioff
 
   integer :: idum, nfileoo, nelo, j, mtype, inelp, ierr, i, npscalo, k
   integer :: ibsw_out, len

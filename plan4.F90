@@ -116,7 +116,7 @@ subroutine plan4
   call ophinv  (dv1,dv2,dv3,res1,res2,res3,h1,h2,tolhv,nmxh)
   deallocate(res1, res2, res3, h1, h2)
 
-  call opadd2  (vx,vy,vz,dv1,dv2,dv3)
+  vx = vx + dv1; vy = vy + dv2; vz = vz + dv3
 
 !    if (ifexplvis) call redo_split_vis
 
@@ -359,8 +359,9 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
 !max      CALL COL2 (TA3, OMASK,NTOT)
   endif
 
-  call opsub2  (resv1,resv2,resv3,ta1,ta2,ta3)
-  call opadd2  (resv1,resv2,resv3,bfx,bfy,bfz)
+  resv1 = resv1 + bfx - ta1
+  resv2 = resv2 + bfy - ta2
+  resv3 = resv3 + bfz - ta3
 
   return
 end subroutine cresvsp

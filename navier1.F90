@@ -40,7 +40,7 @@ end subroutine ctolspl
 !> \brief   Orthogonalize the residual in the pressure solver with respect
 !! to (1,1,...,1)T  (only if all Dirichlet b.c.).
 subroutine ortho (respr)
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m, only : lx2, ly2, lz2, lelv, nx2, ny2, nz2, nelv
   use geom, only : ifvcor, ifbcor
   use input, only : ifldmhd
@@ -49,7 +49,7 @@ subroutine ortho (respr)
   implicit none
 
   real(DP) :: respr (lx2,ly2,lz2,lelv)
-  integer*8 :: ntotg,nxyz2
+  integer(i8) :: ntotg,nxyz2
   integer :: ntot
   real(DP) :: rlam
   real(DP), external :: glsum
@@ -136,8 +136,6 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   real(DP) ::  wx  (lx1*ly1*lz1) &
   ,             ta1 (lx1*ly1*lz1) &
   ,             ta2 (lx1*ly1*lz1)
-
-  REAL ::           DUAX(LX1)
 
   integer :: e
   integer :: nxyz1, nxyz2, nxy1, nyz2, n1, n2, ny12, i1, i2, iz
@@ -350,8 +348,6 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
   real(DP) ::  ta1 (lx1*ly1*lz1) &
   ,             ta2 (lx1*ly1*lz1) &
   ,             ta3 (lx1*ly1*lz1)
-
-  real(DP) ::           duax(lx1)
 
   integer :: e
   integer :: nxyz1, nxy2, nxyz2, n1, n2, ny12, i1, i2, iz, nyz1
@@ -761,18 +757,21 @@ subroutine nekuf (f1,f2,f3)
   REAL(DP) :: F3 (LX1,LY1,LZ1,LELV)
 
   integer :: i, j, k, ielg, iel
-  CALL OPRZERO (F1,F2,F3)
-  DO 100 IEL=1,NELV
+  f1 = 0._dp; f2 = 0._dp; f3=0._dp 
+  DO IEL=1,NELV
       ielg = lglel(iel)
-      DO 100 K=1,NZ1
-          DO 100 J=1,NY1
-              DO 100 I=1,NX1
+      DO K=1,NZ1
+          DO J=1,NY1
+              DO I=1,NX1
                   CALL NEKASGN (I,J,K,IEL)
                   CALL USERF   (I,J,K,IELG)
                   F1(I,J,K,IEL) = FFX
                   F2(I,J,K,IEL) = FFY
                   F3(I,J,K,IEL) = FFZ
-  100 END DO
+              enddo
+          enddo
+      enddo
+  END DO
   return
 end subroutine nekuf
 
@@ -902,19 +901,18 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   use kinds, only : DP
   implicit none
 
-  REAL(DP) :: AB(NAB),DTLAG(NAB)
   integer :: nab, nbd
+  REAL(DP) :: AB(NAB),DTLAG(nbd)
 
   real(DP) :: dt0, dt1, dt2, dta, dts, dtb, dtc, dtd, dte
-  DT0 = DTLAG(1)
-  DT1 = DTLAG(2)
-  DT2 = DTLAG(3)
 
   IF ( NAB == 1 ) THEN
   
       AB(1) = 1.0
   
   ELSEIF ( NAB == 2 ) THEN
+      DT0 = DTLAG(1)
+      DT1 = DTLAG(2)
   
       DTA =  DT0/DT1
   
@@ -931,7 +929,10 @@ subroutine setabbd (ab,dtlag,nab,nbd)
       ENDIF
   
   ELSEIF ( NAB == 3 ) THEN
-  
+      DT0 = DTLAG(1)
+      DT1 = DTLAG(2)  
+      DT2 = DTLAG(3)
+
       DTS =  DT1 + DT2
       DTA =  DT0 / DT1
       DTB =  DT1 / DT2
@@ -971,7 +972,7 @@ subroutine setbd (bd,dtbd,nbd)
   use kinds, only : DP
   implicit none
 
-  REAL :: BD(1),DTBD(1)
+  REAL :: BD(*),DTBD(*)
   integer :: nbd
 
   integer, PARAMETER :: NDIM = 10
@@ -1249,35 +1250,6 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   return
 end subroutine normvc
 
-!> ?
-subroutine opadd2 (a1,a2,a3,b1,b2,b3)
-  use kinds, only : DP
-  use size_m, only : ndim, nx1, ny1, nz1, nelv
-  implicit none
-
-  REAL(DP) :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
-  integer :: ntot1
-  NTOT1=NX1*NY1*NZ1*NELV
-  CALL ADD2(A1,B1,NTOT1)
-  CALL ADD2(A2,B2,NTOT1)
-  IF(NDIM == 3)CALL ADD2(A3,B3,NTOT1)
-  return
-end subroutine opadd2
-
-subroutine opsub2 (a1,a2,a3,b1,b2,b3)
-  use kinds, only : DP
-  use size_m, only : ndim, nx1, ny1, nz1, nelv
-  implicit none
-
-  REAL(DP) :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1)
-  integer :: ntot1
-  NTOT1=NX1*NY1*NZ1*NELV
-  CALL SUB2(A1,B1,NTOT1)
-  CALL SUB2(A2,B2,NTOT1)
-  IF(NDIM == 3)CALL SUB2(A3,B3,NTOT1)
-  return
-end subroutine opsub2
-
 subroutine opcolv (a1,a2,a3,c)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, ndim
@@ -1360,7 +1332,7 @@ subroutine opdssum (a,b,c)! NOTE: opdssum works on FLUID/MHD arrays only!
       call rotate_cyc  (a,b,c,0)
 #endif
   else
-      call vec_dssum   (a,b,c,nx1,ny1,nz1)
+      call vec_dssum   (a,b,c)
   endif
 
   return
@@ -1378,7 +1350,7 @@ subroutine opdsop (a,b,c,op)! opdsop works on FLUID/MHD arrays only!
 
   if (ifcyclic) then
       if (op == '*  ' .OR. op == 'mul' .OR. op == 'MUL') then
-          call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
+          call vec_dsop    (a,b,c,op)
       else
           write(*,*) "Oops: op"
 #if 0
@@ -1388,114 +1360,18 @@ subroutine opdsop (a,b,c,op)! opdsop works on FLUID/MHD arrays only!
 #endif
       endif
   else
-      call vec_dsop    (a,b,c,nx1,ny1,nz1,op)
+      call vec_dsop    (a,b,c,op)
   endif
 
   return
 end subroutine opdsop
 
 !-----------------------------------------------------------------------
-subroutine oprzero (a,b,c)
-  use kinds, only : DP
-  use size_m
-  implicit none
-  REAL(DP) :: A(1),B(1),C(1)
-  integer :: ntot1
-  NTOT1=NX1*NY1*NZ1*NELV
-  CALL RZERO(A,NTOT1)
-  CALL RZERO(B,NTOT1)
-  IF(NDIM == 3) CALL RZERO(C,NTOT1)
-  return
-end subroutine oprzero
-
-!-----------------------------------------------------------------------
-subroutine opadd2col(a1,a2,a3,b1,b2,b3,c)
-  use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nelv, ndim
-  use opctr, only : isclld, nrout, myrout, rname, dct, ncall, dcount
-  implicit none
-  REAL(DP) :: A1(1),A2(1),A3(1)
-  REAL(DP) :: B1(1),B2(1),B3(1),C(1)
-  integer :: ntot1, i, isbcnt
-  NTOT1=NX1*NY1*NZ1*NELV
-
-#ifndef NOTIMER
-  if (isclld == 0) then
-      isclld=1
-      nrout=nrout+1
-      myrout=nrout
-      rname(myrout) = 'opa2cl'
-  endif
-
-  isbcnt = ntot1*(ndim*2)
-  dct(myrout) = dct(myrout) + (isbcnt)
-  ncall(myrout) = ncall(myrout) + 1
-  dcount      =      dcount + (isbcnt)
-#endif
-
-  IF (NDIM == 3) THEN
-      DO 100 I=1,NTOT1
-          A1(I)=A1(I)+b1(i)*c(i)
-          A2(I)=A2(I)+b2(i)*c(i)
-          A3(I)=A3(I)+b3(i)*c(i)
-      100 END DO
-  ELSE
-      DO 200 I=1,NTOT1
-          A1(I)=A1(I)+b1(i)*c(i)
-          A2(I)=A2(I)+b2(i)*c(i)
-      200 END DO
-  ENDIF
-  return
-end subroutine opadd2col
-
-!-----------------------------------------------------------------------
-subroutine opcolv3c(a1,a2,a3,b1,b2,b3,c,d)
-  use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nelv, ndim
-  use opctr, only : isclld, nrout, myrout, rname, dct, ncall, dcount
-  implicit none
-  REAL(DP) :: A1(1),A2(1),A3(1)
-  REAL(DP) :: B1(1),B2(1),B3(1)
-  REAL(DP) :: C (1), d
-  integer :: ntot1, i, isbcnt
-
-  NTOT1=NX1*NY1*NZ1*NELV
-
-#ifndef NOTIMER
-  if (isclld == 0) then
-      isclld=1
-      nrout=nrout+1
-      myrout=nrout
-      rname(myrout) = 'opcv3c'
-  endif
-
-  isbcnt = ntot1*ndim*2
-  dct(myrout) = dct(myrout) + (isbcnt)
-  ncall(myrout) = ncall(myrout) + 1
-  dcount      =      dcount + (isbcnt)
-#endif
-
-  IF (NDIM == 3) THEN
-      DO 100 I=1,NTOT1
-          A1(I)=B1(I)*C(I)*d
-          A2(I)=B2(I)*C(I)*d
-          A3(I)=B3(I)*C(I)*d
-      100 END DO
-  ELSE
-      DO 200 I=1,NTOT1
-          A1(I)=B1(I)*C(I)*d
-          A2(I)=B2(I)*C(I)*d
-      200 END DO
-  ENDIF
-  return
-end subroutine opcolv3c
-
-!-----------------------------------------------------------------------
 subroutine transpose(a,lda,b,ldb)
   use kinds, only : DP
   implicit none
-  real(DP) :: a(lda,1),b(ldb,1)
   integer :: lda, ldb
+  real(DP) :: a(lda,1),b(ldb,1)
   integer :: i, j
 
   do j=1,ldb
@@ -1623,45 +1499,36 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
   implicit none
 
   integer, parameter :: lxyz=lx1*ly1*lz1
-  real(DP) :: ux(lxyz,1),uy(lxyz,1),uz(lxyz,1),u(lxyz,1)
+  real(DP) :: ux(lx1,ly1,lz1,1),uy(lx1,ly1,lz1,1),uz(lx1,ly1,lz1,1),u(lxyz,1)
 
-  real(DP) :: ur(lxyz),us(lxyz),ut(lxyz)
+  real(DP) :: ur(lx1,ly1,lz1),us(lx1,ly1,lz1),ut(lx1,ly1,lz1)
 
-  integer :: e, n, nel, i
+  integer :: e, n, nel
 
   N = nx1-1
   do e=1,nel
-      if (if3d) then
-          call local_grad3(ur,us,ut,u,N,e,dxm1,dxtm1)
-          do i=1,lxyz
-              ux(i,e) = w3m1(i,1,1)*(ur(i)*rxm1(i,1,1,e) &
-              + us(i)*sxm1(i,1,1,e) &
-              + ut(i)*txm1(i,1,1,e) )
-              uy(i,e) = w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
-              + us(i)*sym1(i,1,1,e) &
-              + ut(i)*tym1(i,1,1,e) )
-              uz(i,e) = w3m1(i,1,1)*(ur(i)*rzm1(i,1,1,e) &
-              + us(i)*szm1(i,1,1,e) &
-              + ut(i)*tzm1(i,1,1,e) )
-          enddo
-      else
+    if (if3d) then
+      call local_grad3(ur,us,ut,u,N,e,dxm1,dxtm1)
+      ux(:,:,:,e) = w3m1*(ur*rxm1(:,:,:,e) + us*sxm1(:,:,:,e) + ut*txm1(:,:,:,e))
+      uy(:,:,:,e) = w3m1*(ur*rym1(:,:,:,e) + us*sym1(:,:,:,e) + ut*tym1(:,:,:,e))
+      uz(:,:,:,e) = w3m1*(ur*rzm1(:,:,:,e) + us*szm1(:,:,:,e) + ut*tzm1(:,:,:,e))
+    else
 #if 0
-          if (ifaxis) then
-              call setaxdy (ifrzer(e))  ! reset dytm1
-              call setaxw1 (ifrzer(e))  ! reset w3m1
-          endif
-
-          call local_grad2(ur,us,u,N,e,dxm1,dytm1)
-
-          do i=1,lxyz
-              ux(i,e) =w3m1(i,1,1)*(ur(i)*rxm1(i,1,1,e) &
-              + us(i)*sxm1(i,1,1,e) )
-              uy(i,e) =w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
-              + us(i)*sym1(i,1,1,e) )
-          enddo
-#endif
+      if (ifaxis) then
+        call setaxdy (ifrzer(e))  ! reset dytm1
+        call setaxw1 (ifrzer(e))  ! reset w3m1
       endif
 
+      call local_grad2(ur,us,u,N,e,dxm1,dytm1)
+
+      do i=1,lxyz
+        ux(i,e) =w3m1(i,1,1)*(ur(i)*rxm1(i,1,1,e) &
+        + us(i)*sxm1(i,1,1,e) )
+        uy(i,e) =w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
+        + us(i)*sym1(i,1,1,e) )
+      enddo
+#endif
+    endif
   enddo
 
   return
@@ -1677,7 +1544,7 @@ subroutine wlaplacian(out,a,diff,ifld)
   use tstep, only : ifield, nelfld, imesh
   implicit none
 
-  real(DP) :: out(1),a(1),diff(1)
+  real(DP) :: out(*),a(*),diff(*)
   real(DP), allocatable :: wrk(:,:,:,:)
   real(DP), allocatable :: h2(:,:,:,:)
   integer :: ifld

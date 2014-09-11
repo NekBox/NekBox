@@ -7,7 +7,7 @@ subroutine get_session_info(intracomm)
   implicit none
   include 'mpif.h'
 
-  real(DP) :: mpi_is_initialized
+  integer :: mpi_is_initialized
   integer :: ierr, intracomm
 
 !   Find out the session name:
@@ -33,7 +33,8 @@ subroutine get_session_info(intracomm)
       write(6,*) 'PATH=. and SESSION=NEK.'
       PATH='.'
       SESSION='NEK'
-  23 ENDIF
+  ENDIF
+  23 continue
 
   call err_chk(ierr,' Cannot open SESSION.NAME!$')
      
@@ -46,30 +47,40 @@ subroutine get_session_info(intracomm)
 end subroutine get_session_info
 
 !-----------------------------------------------------------------------
+!> \brief  Dummy for singlmesh
 subroutine userchk_set_xfer
-!   Dummy for singlmesh
   return
 end subroutine userchk_set_xfer
 
 !-----------------------------------------------------------------------
+!> \brief  Dummy for singlmesh
 subroutine setintercomm(nekcommtrue,nptrue)
-!   Dummy for singlmesh
+  implicit none
+  integer :: nekcommtrue, nptrue
   return
 end subroutine setintercomm
 
 !-----------------------------------------------------------------------
+!> \brief  Dummy for singlmesh
 subroutine unsetintercomm(nekcommtrue,nptrue)
-!   Dummy for singlmesh
+  implicit none
+  integer :: nekcommtrue, nptrue
   return
 end subroutine unsetintercomm
 !------------------------------------------------------------------------
+!> \brief  Dummy for singlmesh
 subroutine uglmin(a,n)
-!   Dummy for singlmesh
+  use kinds, only : DP
+  implicit none
+  real(DP) :: a
+  integer :: n
   return
 end subroutine uglmin
 !------------------------------------------------------------------------
+!> \brief  Dummy for singlmesh
 subroutine happy_check(iflag)
-!   Dummy for singlmesh
+  implicit none
+  integer :: iflag
   return
 end subroutine happy_check
 !------------------------------------------------------------------------

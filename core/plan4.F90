@@ -126,7 +126,7 @@ subroutine plan4
 !     Calculate Divergence norms of new VX,VY,VZ
   allocate(dvc(lx1,ly1,lz1,lelv), dfc(lx1,ly1,lz1,lelv))
   CALL OPDIV   (DVC,VX,VY,VZ)
-  CALL DSSUM   (DVC,NX1,NY1,NZ1)
+  CALL DSSUM   (DVC)
   CALL COL2    (DVC,BINVM1,NTOT1)
 
   CALL COL3    (DV1,DVC,BM1,NTOT1)
@@ -183,22 +183,22 @@ subroutine crespsp (respr, vext)
   use tstep, only : imesh, bd, dt, ifield
   implicit none
 
-  REAL(DP) :: RESPR (LX2*LY2*LZ2*LELV)
+  REAL(DP) :: RESPR (LX2,LY2,LZ2,LELV)
   real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
 
-  real(DP), allocatable :: TA1 (:,:), TA2(:,:), TA3(:,:)
-  real(DP), allocatable :: WA1(:),    WA2(:),   WA3(:)
+  real(DP), allocatable, dimension(:,:,:,:) :: TA1, TA2, TA3
+  real(DP), allocatable, dimension(:,:,:,:) :: WA1, WA2, WA3
   real(DP), allocatable ::  W1(:),     W2(:)
 
   CHARACTER CB*3
-
+ 
   integer :: nxyz1, ntot1, nfaces       
-  integer :: i, n, ifc, iel
+  integer :: n, ifc, iel
   real(DP) :: scale, dtbd
 
-  allocate(TA1 (LX1*LY1*LZ1,LELV) &
-  , TA2 (LX1*LY1*LZ1,LELV) &
-  , TA3 (LX1*LY1*LZ1,LELV) )
+  allocate(TA1 (LX1,LY1,LZ1,LELV) &
+  , TA2 (LX1,LY1,LZ1,LELV) &
+  , TA3 (LX1,LY1,LZ1,LELV) )
   allocate(W1 (LX1*LY1*LZ1*LELV) &
   , W2  (LX1*LY1*LZ1*LELV) )
  
@@ -214,9 +214,9 @@ subroutine crespsp (respr, vext)
 !max      CALL COL2 (TA3, OMASK,NTOT1)
   endif
 
-  allocate( WA1 (LX1*LY1*LZ1*LELV) &
-  , WA2 (LX1*LY1*LZ1*LELV) &
-  , WA3 (LX1*LY1*LZ1*LELV) )
+  allocate( WA1 (LX1,LY1,LZ1,LELV) &
+  , WA2 (LX1,LY1,LZ1,LELV) &
+  , WA3 (LX1,LY1,LZ1,LELV) )
   call op_curl  (wa1,wa2,wa3,ta1,ta2,ta3, .TRUE. ,w1,w2)
   deallocate(w2)
 
@@ -246,30 +246,24 @@ subroutine crespsp (respr, vext)
 
 !   add explicit (NONLINEAR) terms
   n = nx1*ny1*nz1*nelv
-  do i=1,n
-      ta1(i,1) = bfx(i,1,1,1)/vtrans(i,1,1,1,1)-wa1(i)
-      ta2(i,1) = bfy(i,1,1,1)/vtrans(i,1,1,1,1)-wa2(i)
-      ta3(i,1) = bfz(i,1,1,1)/vtrans(i,1,1,1,1)-wa3(i)
-  enddo
+  ta1 = bfx/vtrans(:,:,:,:,1)-wa1
+  ta2 = bfy/vtrans(:,:,:,:,1)-wa2
+  ta3 = bfz/vtrans(:,:,:,:,1)-wa3
+
   call opdssum (ta1,ta2,ta3)
-  do i=1,n
-      ta1(i,1) = ta1(i,1)*binvm1(i,1,1,1)
-      ta2(i,1) = ta2(i,1)*binvm1(i,1,1,1)
-      ta3(i,1) = ta3(i,1)*binvm1(i,1,1,1)
-  enddo
+  ta1 = ta1*binvm1
+  ta2 = ta2*binvm1
+  ta3 = ta3*binvm1
+
   if (if3d) then
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
-      do i=1,n
-          respr(i) = respr(i)+wa1(i)+wa2(i)+wa3(i)
-      enddo
+      respr = respr + wa1 + wa2 + wa3
   else
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
-      do i=1,n
-          respr(i) = respr(i)+wa1(i)+wa2(i)
-      enddo
+      respr = respr + wa1 + wa2 
   endif
   deallocate(wa1,wa2,wa3)
 
@@ -297,10 +291,10 @@ subroutine crespsp (respr, vext)
               (TA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
 #endif
           ENDIF
-          CALL ADD2   (TA1(1,IEL),TA2(1,IEL),NXYZ1)
+          CALL ADD2   (TA1(:,:,:,IEL),TA2(:,:,:,IEL),NXYZ1)
           IF (NDIM == 3) &
-          CALL ADD2   (TA1(1,IEL),TA3(1,IEL),NXYZ1)
-          CALL FACCL2 (TA1(1,IEL),AREA(1,1,IFC,IEL),IFC)
+          CALL ADD2   (TA1(:,:,:,IEL),TA3(:,:,:,IEL),NXYZ1)
+          CALL FACCL2 (TA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
       END DO
       CALL CMULT(TA1,dtbd,NTOT1)
       CALL SUB2 (RESPR,TA1,NTOT1)
@@ -379,11 +373,12 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use tstep, only : ifield
   implicit none
 
-  real(DP) :: w1(1),w2(1),w3(1),work1(1),work2(1),u1(1),u2(1),u3(1)
+  real(DP) :: w1(*),w2(*),w3(*)
+  real(DP) :: u1(*),u2(*),u3(*)
+  real(DP) :: work1(*),work2(*)
   logical :: ifavg
 
-  real :: duax(lx1)!, ta(lx1,ly1,lz1,lelv)
-  integer :: ntot, nxyz, iel, ifielt
+  integer :: ntot, nxyz, ifielt
 
   ntot  = nx1*ny1*nz1*nelv
   nxyz  = nx1*ny1*nz1

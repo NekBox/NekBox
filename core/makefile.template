@@ -219,7 +219,7 @@ $(OBJDIR)/zper_mod.o	:$S/zper_mod.F90;		$(F90) -c $(FL2) $< -o $@
 
 $(OBJDIR)/drive.o	:$S/drive.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/drive1.o	:$S/drive1.F90;			$(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/drive2.o	:$S/drive2.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/drive2.o	:$S/drive2.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/prepost.o	:$S/prepost.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/postpro.o	:$S/postpro.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/connect1.o	:$S/connect1.F90;		$(F90) -c $(FL2) $< -o $@
@@ -262,7 +262,7 @@ $(OBJDIR)/gfdm_par.o	:$S/gfdm_par.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/gfdm_solve.o	:$S/gfdm_solve.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/gfdm_op.o	:$S/gfdm_op.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/coef.o	:$S/coef.F90;			$(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/plan4.o	:$S/plan4.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/plan4.o	:$S/plan4.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/qthermal.o	:$S/qthermal.F90;   		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/setprop.o	:$S/setprop.F90;   		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/init_plugin.o	:$S/init_plugin.F90;	 	$(F90) -c $(FL2) $< -o $@

@@ -241,7 +241,7 @@ $(OBJDIR)/bdry.o	:$S/bdry.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/ic.o		:$S/ic.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/conduct.o	:$S/conduct.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier0.o	:$S/navier0.F90;		$(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/navier1.o	:$S/navier1.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/navier1.o	:$S/navier1.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier2.o	:$S/navier2.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier3.o	:$S/navier3.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier4.o	:$S/navier4.F90;		$(F77) -c $(FL2) $< -o $@

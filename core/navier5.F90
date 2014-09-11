@@ -17,30 +17,21 @@ subroutine q_filter(wght)
   integer, parameter :: lxv=lx1-1
   integer, parameter :: lxp=lx2-1
 
-  real(DP), save :: intdv(lx1,lx1)
-  real(DP), save :: intuv(lx1,lx1)
-  real(DP), save :: intdp(lx1,lx1)
-  real(DP), save :: intup(lx1,lx1)
   real(DP), save :: intv(lx1,lx1)
-  real(DP), save :: intp(lx1,lx1)
 
-  real(DP) :: intw(lx1,lx1)
   real(DP) :: intt(lx1,lx1)
   real(DP), allocatable :: wk1  (:,:,:,:)
   real(DP) :: wk2  (lx1,lx1,lx1)
-  real(DP) :: zgmv(lx1),wgtv(lx1),zgmp(lx1),wgtp(lx1)
   real(DP) :: tmax(100),omax(103)
 
 !   outpost arrays
   integer, parameter :: lt=lx1*ly1*lz1*lelv
 
-  character(18) :: sfmt
-
   integer, save :: icalld = 0
 
-  integer :: imax, jmax, ncut, ifldt, j, mmax, nfldt, ifld, k
+  integer :: imax, jmax, ncut, ifldt, mmax, nfldt, ifld, k
   integer, external :: iglmax
-  real(DP) :: w0, umax, vmax, wmax, pmax
+  real(DP) :: umax, vmax, wmax, pmax
   real(DP), external :: glmax
   logical :: if_fltv
 
@@ -183,9 +174,9 @@ subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
   use tstep, only : nelfld, ifield
   implicit none
 
+  integer :: nx, nz
   real(DP) :: v(nx*nx*nz,nelt),w1(1),w2(1)
   real(DP) :: f(nx,nx),ft(nx,nx)
-  integer :: nx, nz
   real(DP) :: dmax
   logical :: if3d
 
@@ -242,10 +233,10 @@ end subroutine filterq
 subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
   use kinds, only : DP
   implicit none
+  integer :: N,e
   real(DP) :: ur(0:N,0:N,0:N),us(0:N,0:N,0:N),ut(0:N,0:N,0:N)
   real(DP) :: u (0:N,0:N,0:N,1)
   real(DP) :: D (0:N,0:N),Dt(0:N,0:N)
-  integer :: N,e
 
   integer :: m1, m2, k
   m1 = N+1
@@ -269,8 +260,8 @@ subroutine gaujordf(a,m,n,indr,indc,ipiv,ierr,rmult)
   use kinds, only : DP
   implicit none
 
-  real(DP) :: a(m,n),rmult(m)
   integer :: m, n, indr(m),indc(n),ipiv(n), ierr
+  real(DP) :: a(m,n),rmult(m)
 
   real(DP) :: eps
   integer :: i, j, k, ir, jc

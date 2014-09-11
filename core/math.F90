@@ -1,3 +1,37 @@
+!> \brief local inner product, with weight
+real(DP) FUNCTION VLSC3(X,Y,B,N)
+  use kinds, only : DP
+  use opctr, only : isclld, nrout, myrout, rname, dct, ncall, dcount
+  implicit none
+
+  real(DP) :: X(1),Y(1),B(1)
+  integer :: n
+
+  REAL(DP) :: DT, T
+  integer :: isbcnt, i
+
+  if (isclld == 0) then
+      isclld=1
+      nrout=nrout+1
+      myrout=nrout
+      rname(myrout) = 'VLSC3 '
+  endif
+  isbcnt = 3*n
+  dct(myrout) = dct(myrout) + float(isbcnt)
+  ncall(myrout) = ncall(myrout) + 1
+  dcount      =      dcount + float(isbcnt)
+
+  DT = 0.0
+  DO 10 I=1,N
+      T = X(I)*Y(I)*B(I)
+      DT = DT+T
+  10 END DO
+  T=DT
+  VLSC3 = T
+  RETURN
+END FUNCTION VLSC3
+
+
 !-----------------------------------------------------------------------
     SUBROUTINE BLANK(A,N)
     CHARACTER(1) :: A(1)

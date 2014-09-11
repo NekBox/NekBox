@@ -1,39 +1,15 @@
-!> \brief local inner product, with weight
-real(DP) FUNCTION VLSC3(X,Y,B,N)
-  use kinds, only : DP
-  use opctr, only : isclld, nrout, myrout, rname, dct, ncall, dcount
+!-----------------------------------------------------------------------
+!> \brief THE ROUTINES BELOW ARE THE NEW Helmholtz projectors
+!-----------------------------------------------------------------------
+
+module helmholtz
   implicit none
+  private
 
-  real(DP) :: X(1),Y(1),B(1)
-  integer :: n
+  public :: hsolve
 
-  REAL(DP) :: DT, T
-  integer :: isbcnt, i
+contains
 
-  if (isclld == 0) then
-      isclld=1
-      nrout=nrout+1
-      myrout=nrout
-      rname(myrout) = 'VLSC3 '
-  endif
-  isbcnt = 3*n
-  dct(myrout) = dct(myrout) + dfloat(isbcnt)
-  ncall(myrout) = ncall(myrout) + 1
-  dcount      =      dcount + dfloat(isbcnt)
-
-  DT = 0.0
-  DO 10 I=1,N
-      T = X(I)*Y(I)*B(I)
-      DT = DT+T
-  10 END DO
-  T=DT
-  VLSC3 = T
-  RETURN
-END FUNCTION VLSC3
-
-!-----------------------------------------------------------------------
-!     THE ROUTINES BELOW ARE THE NEW Helmholtz projectors
-!-----------------------------------------------------------------------
 !> \brief     Orthogonalize the rhs wrt previous rhs's for which we already
 !!     know the soln.
 !!     Input:   r         -- residual
@@ -53,10 +29,10 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
 
   integer, parameter :: lt=lx1*ly1*lz1*lelt
 
-  real(DP) :: r(1),h1(1),h2(1),vml(1),vmk(1)
-  real(DP) :: bi(1)
-  real(DP) :: wl(1),ws(1)
-  real(DP) :: approx(lt,0:1)
+  real(DP) :: r(*),h1(*),h2(*),vml(*),vmk(*)
+  real(DP) :: bi(*)
+  real(DP) :: wl(*),ws(*)
+  real(DP) :: approx(:,0:)
   integer :: napprox(2)
   character(4) :: name4
 
@@ -85,18 +61,18 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
 !   Perform Gram-Schmidt for previous soln's
 
   do i=1,n_sav
-      ws(i) = vlsc3(r,approx(1,i),vml,ntot)
+      ws(i) = vlsc3(r,approx(:,i),vml,ntot)
   enddo
   call gop    (ws,ws(n_sav+1),'+  ',n_sav)
 
-  call cmult2   (approx(1,0),approx(1,1),ws(1),ntot)
+  approx(:,0) = approx(:,1) * ws(1)
   do i=2,n_sav
-      call add2s2(approx(1,0),approx(1,i),ws(i),ntot)
+    approx(:,0) = approx(:,0) + approx(:,i) * ws(i)
   enddo
 
-  call axhelm  (wl,approx(1,0),h1,h2,1,1)
+  call axhelm  (wl,approx(:,0),h1,h2,1,1)
   call col2    (wl,vmk,ntot)
-  call dssum   (wl,nx1,ny1,nz1)
+  call dssum   (wl)
   call sub2    (r ,wl,ntot)
 !...............................................................
 ! Diag.
@@ -117,18 +93,23 @@ end subroutine projh
 !-----------------------------------------------------------------------
 !> \brief Reconstruct the solution to the original problem by adding back
 !!     the previous solutions
-subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,wl,ws,name4)
+subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
-  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx1, ly1, lz1, lelt, mxprev
   use mesh, only : niterhm
   use tstep, only : nelfld, ifield
   implicit none
 
   integer, parameter :: lt=lx1*ly1*lz1*lelt
-  real :: v1(1),h1(1),h2(1),vml(1),vmk(1)
-  real :: wl(1),ws(1)
-  real :: approx(lt,0:1)
+  REAL(DP) :: V1   (LX1,LY1,LZ1,*)
+  REAL(DP) :: H1   (LX1,LY1,LZ1,*)
+  REAL(DP) :: H2   (LX1,LY1,LZ1,*)
+  REAL(DP) :: vmk  (LX1,LY1,LZ1,*)
+  REAL(DP) :: vml  (LX1,LY1,LZ1,*)
+  real(DP) :: ws(2+2*mxprev)
+
+  real(DP) :: approx(:,0:)
   integer :: napprox(2)
   character(4) :: name4
 
@@ -144,8 +125,8 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,wl,ws,name4)
   
       if (niterhm > 0) then      ! new vector not in space
           n_sav = n_sav+1
-          call copy(approx(1,n_sav),v1,ntot)
-          call add2(v1,approx(1,0),ntot)
+          call copy(approx(:,n_sav),v1,ntot)
+          call add2(v1,approx(:,0),ntot)
       !           orthogonalize rhs against previous rhs and normalize
           call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
 
@@ -154,13 +135,13 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,wl,ws,name4)
 
       else
 
-          call add2(v1,approx(1,0),ntot)
+          call add2(v1,approx(:,0),ntot)
 
       endif
   else
       n_sav = 1
-      call add2(v1,approx(1,0),ntot)
-      call copy(approx(1,n_sav),v1,ntot)
+      call add2(v1,approx(:,0),ntot)
+      call copy(approx(:,n_sav),v1,ntot)
   !        normalize
       call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
       if (ierr /= 0) n_sav = 0
@@ -182,7 +163,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
 
   integer, parameter :: lt=lx1*ly1*lz1*lelt
   integer :: k, ierr
-  real(DP) :: approx(lt,0:1),h1(1),h2(1),vml(1),vmk(1),ws(1)
+  real(DP) :: approx(:,0:),h1(1),h2(1),vml(1),vmk(1),ws(1)
   character(4) :: name4
 
   integer :: i, ntot, km1 
@@ -192,27 +173,27 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   ierr=0
   ntot=nx1*ny1*nz1*nelfld(ifield)
 
-  call axhelm  (approx(1,0),approx(1,k),h1,h2,1,1)
-  call col2    (approx(1,0),vmk,ntot)
-  call dssum   (approx(1,0),nx1,ny1,nz1)
-  call col2    (approx(1,0),vml        ,ntot)
+  call axhelm  (approx(:,0),approx(:,k),h1,h2,1,1)
+  call col2    (approx(:,0),vmk,ntot)
+  call dssum   (approx(:,0))
+  call col2    (approx(:,0),vml        ,ntot)
 
 !   Compute part of the norm   (Note:  a(0) already scaled by vml)
 
-  alpha = glsc2(approx(1,0),approx(1,k),ntot)
+  alpha = glsc2(approx(:,0),approx(:,k),ntot)
   alph1 = alpha
 
 !   Gram-Schmidt
 
   km1=k-1
   do i=1,km1
-      ws(i) = vlsc2(approx(1,0),approx(1,i),ntot)
+      ws(i) = vlsc2(approx(:,0),approx(:,i),ntot)
   enddo
   if (km1 > 0) call gop(ws,ws(k),'+  ',km1)
 
   do i=1,km1
       alpham = -ws(i)
-      call add2s2(approx(1,k),approx(1,i),alpham,ntot)
+      call add2s2(approx(:,k),approx(:,i),alpham,ntot)
       alpha = alpha - ws(i)**2
   enddo
 
@@ -232,18 +213,18 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   else
       ierr=0
       alpha = 1.0/sqrt(alpha)
-      call cmult(approx(1,k),alpha,ntot)
+      call cmult(approx(:,k),alpha,ntot)
   endif
 
   if (ierr /= 0) then
-      call axhelm  (approx(1,0),approx(1,k),h1,h2,1,1)
-      call col2    (approx(1,0),vmk,ntot)
-      call dssum   (approx(1,0),nx1,ny1,nz1)
-      call col2    (approx(1,0),vml        ,ntot)
+      call axhelm  (approx(:,0),approx(:,k),h1,h2,1,1)
+      call col2    (approx(:,0),vmk,ntot)
+      call dssum   (approx(:,0))
+      call col2    (approx(:,0),vml        ,ntot)
   
   !        Compute part of the norm   (Note:  a(0) already scaled by vml)
   
-      alpha = glsc2(approx(1,0),approx(1,k),ntot)
+      alpha = glsc2(approx(:,0),approx(:,k),ntot)
       if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
       if (alpha <= 0) then
           ierr=3
@@ -251,7 +232,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
           return
       endif
       alpha = 1.0/sqrt(alpha)
-      call cmult(approx(1,k),alpha,ntot)
+      call cmult(approx(:,k),alpha,ntot)
       ierr = 0
   endif
 
@@ -379,19 +360,20 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   implicit none
 
   CHARACTER(4) ::    NAME
-  REAL(DP) ::           U    (LX1,LY1,LZ1,1)
-  REAL(DP) ::           R    (LX1,LY1,LZ1,1)
-  REAL(DP) ::           H1   (LX1,LY1,LZ1,1)
-  REAL(DP) ::           H2   (LX1,LY1,LZ1,1)
-  REAL(DP) ::           vmk  (LX1,LY1,LZ1,1)
-  REAL(DP) ::           vml  (LX1,LY1,LZ1,1)
-  REAL(DP) ::           bi   (LX1,LY1,LZ1,1)
-  REAL(DP) ::           approx (1)
-  integer ::        napprox(1)
+  REAL(DP) ::           U    (LX1,LY1,LZ1,*)
+  REAL(DP) ::           R    (LX1,LY1,LZ1,*)
+  REAL(DP) ::           H1   (LX1,LY1,LZ1,*)
+  REAL(DP) ::           H2   (LX1,LY1,LZ1,*)
+  REAL(DP) ::           vmk  (LX1,LY1,LZ1,*)
+  REAL(DP) ::           vml  (LX1,LY1,LZ1,*)
+  REAL(DP) ::           bi   (LX1,LY1,LZ1,*)
+  REAL(DP) ::           approx (:,0:)
+  integer ::        napprox(2)
   integer :: imsh, maxit, isd
   real(DP) :: tol
 
-  real(DP) :: w1(lx1,ly1,lz1,lelt), w2(2+2*mxprev)
+  real(DP), allocatable :: w1(:)
+  real(DP) :: w2(2+2*mxprev)
 
   logical :: ifstdh
   character(4) ::  cname
@@ -415,17 +397,21 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   if (ifstdh) then
       call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
   else
-
+      
       n = nx1*ny1*nz1*nelfld(ifield)
 
-      call dssum  (r,nx1,ny1,nz1)
+      call dssum  (r)
       call col2   (r,vmk,n)
+      allocate(w1(lx1*ly1*lz1*lelt))
       call projh  (r,h1,h2,bi,vml,vmk,approx,napprox,w1,w2,name)
+      deallocate(w1)
       call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
-      call gensh  (u,h1,h2,vml,vmk,approx,napprox,w1,w2,name)
+      call gensh  (u,h1,h2,vml,vmk,approx,napprox,w2,name)
 
   endif
 
   return
 end subroutine hsolve
 !-----------------------------------------------------------------------
+
+end module helmholtz

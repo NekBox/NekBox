@@ -16,6 +16,7 @@ subroutine plan4
   use size_m, only : nx1, ny1, nz1, nelv
   use ctimer, only : icalld, tpres, npres, etime1, dnekclock
   use geom, only : binvm1, bm1, volvm1
+  use helmholtz, only : hsolve
   use soln, only : qtl, usrdiv, vx, vy, vz, v1mask, v2mask, v3mask
   use soln, only : vtrans, pmask, vmult, pr
   use tstep, only : imesh, nmxh, tolhv

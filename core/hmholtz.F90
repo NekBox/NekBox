@@ -54,7 +54,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   if (name == 'PRES') kfldfdm =  ndim+1
 !   if (.not.iffdm) kfldfdm=-1
 
-  call dssum   (rhs,nx1,ny1,nz1)
+  call dssum   (rhs)
   call col2    (rhs,mask,ntot)
   if (nid == 0 .AND. istep <= 10) &
   write(6,*) param(22),' p22 ',istep,imsh
@@ -99,8 +99,6 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   REAL(DP) ::           TM1   (LX1,LY1,LZ1)
   REAL(DP) ::           TM2   (LX1,LY1,LZ1)
   REAL(DP) ::           TM3   (LX1,LY1,LZ1)
-  REAL(DP) ::           DUAX  (LX1)
-  REAL(DP) ::           YSM1  (LX1)
 
   integer :: nel, nxy, nyz, nxz, nxyz, ntot
   real(DP) :: h1 
@@ -295,7 +293,7 @@ subroutine setfast (helm1,helm2,imesh)
   REAL(DP) :: HELM1(NX1,NY1,NZ1,1), HELM2(NX1,NY1,NZ1,1)
  
   integer :: nel, nxyz, ntot, ie 
-  real(DP) :: delta, x, y, diff, epsm, h1min, h1max, testh1, testh2
+  real(DP) :: delta, x, y, diff, epsm, h1min, h1max, testh1
   real(DP) :: den
   real(DP), external :: vlmin, vlmax, vlamax
 
@@ -354,48 +352,57 @@ subroutine sfastax()
   NXX=NX1*NX1
   IF (IFIRST) THEN
       CALL RZERO(WDDX,NXX)
-      DO 100 I=1,NX1
-          DO 100 J=1,NX1
-              DO 100 IP=1,NX1
+      DO I=1,NX1
+          DO J=1,NX1
+              DO IP=1,NX1
                   WDDX(I,J) = WDDX(I,J) + WXM1(IP)*DXM1(IP,I)*DXM1(IP,J)
-      100 END DO
+              enddo
+          enddo
+      END DO
       NYY=NY1*NY1
       CALL RZERO(WDDYT,NYY)
-      DO 200 I=1,NY1
-          DO 200 J=1,NY1
-              DO 200 IP=1,NY1
+      DO I=1,NY1
+          DO J=1,NY1
+              DO IP=1,NY1
                   WDDYT(J,I) = WDDYT(J,I) + WYM1(IP)*DYM1(IP,I)*DYM1(IP,J)
-      200 END DO
+              enddo
+          enddo
+      END DO
       NZZ=NZ1*NZ1
       CALL RZERO(WDDZT,NZZ)
-      DO 300 I=1,NZ1
-          DO 300 J=1,NZ1
-              DO 300 IP=1,NZ1
+      DO I=1,NZ1
+          DO J=1,NZ1
+              DO IP=1,NZ1
                   WDDZT(J,I) = WDDZT(J,I) + WZM1(IP)*DZM1(IP,I)*DZM1(IP,J)
-      300 END DO
+              enddo
+          enddo
+      END DO
       IFIRST= .FALSE. 
   ENDIF
 
   IF (NDIM == 3) THEN
       DO 1001 IE=1,NELT
           IF ( .NOT. IFDFRM(IE)) THEN
-              DO 1000 IZ=1,NZ1
-                  DO 1000 IY=1,NY1
-                      DO 1000 IX=1,NX1
+              DO IZ=1,NZ1
+                  DO IY=1,NY1
+                      DO IX=1,NX1
                           G4M1(IX,IY,IZ,IE)=G1M1(IX,IY,IZ,IE)/WXM1(IX)
                           G5M1(IX,IY,IZ,IE)=G2M1(IX,IY,IZ,IE)/WYM1(IY)
                           G6M1(IX,IY,IZ,IE)=G3M1(IX,IY,IZ,IE)/WZM1(IZ)
-              1000 END DO
+                      enddo
+                  enddo
+              END DO
           ENDIF
       1001 END DO
   ELSE
       DO 2001 IE=1,NELT
           IF ( .NOT. IFDFRM(IE)) THEN
-              DO 2000 IY=1,NY1
-                  DO 2000 IX=1,NX1
+              DO IY=1,NY1
+                  DO IX=1,NX1
                       G4M1(IX,IY,1,IE)=G1M1(IX,IY,1,IE)/WXM1(IX)
                       G5M1(IX,IY,1,IE)=G2M1(IX,IY,1,IE)/WYM1(IY)
-              2000 END DO
+                  enddo
+              END DO
           ENDIF
       2001 END DO
   ENDIF
@@ -441,29 +448,38 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
 
 !      IF (IFAXIS) CALL SETAXDY ( IFRZER(IE) )
 
-      DO 320 IQ=1,NX1
-          DO 320 IZ=1,NZ1
-              DO 320 IY=1,NY1
-                  DO 320 IX=1,NX1
+      DO IQ=1,NX1
+          DO IZ=1,NZ1
+              DO IY=1,NY1
+                  DO IX=1,NX1
                       DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
                       G1M1(IQ,IY,IZ,IE) * DXTM1(IX,IQ)**2
-      320 END DO
-      DO 340 IQ=1,NY1
-          DO 340 IZ=1,NZ1
-              DO 340 IY=1,NY1
-                  DO 340 IX=1,NX1
+                  enddo
+              enddo
+          enddo
+      END DO
+      DO IQ=1,NY1
+          DO IZ=1,NZ1
+              DO IY=1,NY1
+                  DO IX=1,NX1
                       DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
                       G2M1(IX,IQ,IZ,IE) * DYTM1(IY,IQ)**2
-      340 END DO
+                  enddo
+              enddo
+          enddo
+      END DO
 
       IF (NDIM == 3) THEN
-          DO 360 IQ=1,NZ1
-              DO 360 IZ=1,NZ1
-                  DO 360 IY=1,NY1
-                      DO 360 IX=1,NX1
+          DO IQ=1,NZ1
+              DO IZ=1,NZ1
+                  DO IY=1,NY1
+                      DO IX=1,NX1
                           DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
                           G3M1(IX,IY,IQ,IE) * DZTM1(IZ,IQ)**2
-          360 END DO
+                      enddo
+                  enddo
+              enddo
+          END DO
       
       !       Add cross terms if element is deformed.
       
@@ -535,8 +551,8 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
               CALL MXM(YM1(1,1,1,IEL),NX1,DATM1,NY1,YSM1,1)
           ENDIF
       
-          DO 1190 J=1,NY1
-              DO 1190 I=1,NX1
+          DO J=1,NY1
+              DO I=1,NX1
                   IF (YM1(I,J,1,IEL) /= 0.) THEN
                       TERM1 = BM1(I,J,1,IEL)/YM1(I,J,1,IEL)**2
                       IF (IFRZER(IEL)) THEN
@@ -548,11 +564,12 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
                       DPCM1(I,J,1,IEL) = DPCM1(I,J,1,IEL) &
                       + HELM1(I,J,1,IEL)*(TERM1+TERM2)
                   ENDIF
-          1190 END DO
+              enddo
+          END DO
       1200 END DO
   ENDIF
 
-  CALL DSSUM (DPCM1,NX1,NY1,NZ1)
+  CALL DSSUM (DPCM1)
   CALL INVCOL1 (DPCM1,NTOT)
 
   return
@@ -668,7 +685,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use tstep, only : istep, imesh
   implicit none
 
-  real(DP) :: x(1),f(1),h1(1),h2(1),mask(1),mult(1),binv(1)
+  real(DP) :: x(*),f(*),h1(*),h2(*),mask(*),mult(*),binv(*)
   integer :: imsh, isd, maxit
   real(DP) :: tin
   character(4) :: name
@@ -749,7 +766,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
       smean = -1./glsum(bm1,n) ! Modified 5/4/12 pff
       rmean = smean*glsc2(r,mult,n)
       call copy(x,bm1,n)
-      call dssum(x,nx1,ny1,nz1)
+      call dssum(x)
       call add2s2(r,x,rmean,n)
       call rzero(x,n)
   endif
@@ -826,7 +843,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
           if (iter == 1) beta=0.0
           call add2s1 (p,z,beta,n)
           call axhelm (w,p,h1,h2,imsh,isd)
-          call dssum  (w,nx1,ny1,nz1)
+          call dssum  (w)
           call col2   (w,mask,n)
       
           rho0 = rho
@@ -904,14 +921,15 @@ subroutine set_fdm_prec_h1b(d,h1,h2,nel)
   real(DP) :: h2(nx1,ny1,nz1,1)
   integer :: nel
 
+d = 0._dp
+  return 
+
+#if 0
   integer :: nxyz, i1, i2, ie, i3, k1, k2, k3
   real(DP) :: h1b, h2b, vol, vl1, vl2, vl3, den
   real(DP), external :: vlsum, vlsc2
 
-  d = 0._dp
-  return 
 
-#if 0
 !   Set up diagonal for FDM for each spectral element
   nxyz = nx1*ny1*nz1
   if (if3d) then
@@ -1004,9 +1022,9 @@ subroutine generalev(a,b,lam,n,w)
   use parallel, only : ifdblas
   implicit none
 
+  integer, intent(in) :: n
   real :: a(n,n),b(n,n),lam(n),w(n,n)
   real :: aa(100),bb(100)
-  integer, intent(in) :: n
 
   integer, parameter :: lbw=4*lx1*ly1*lz1*lelv
   real(DP), allocatable :: bw(:)
@@ -1048,8 +1066,8 @@ subroutine outmat2(a,m,n,k,name)
   use size_m, only : nid
   use kinds, only : DP
   implicit none
-  real(DP) :: a(m,n)
   integer :: m,n,k
+  real(DP) :: a(m,n)
   character(4) :: name
   integer :: n2, i, j
 

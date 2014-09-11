@@ -1498,7 +1498,7 @@ subroutine geom_reset(icall)
   ntot = nx1*ny1*nz1*nelt
 
   if (lx3 == lx1) then
-      CALL GEOM1 (XM1,YM1,ZM1)
+      CALL GEOM1 ()!XM1,YM1,ZM1)
   else
       allocate(xm3(lx1,ly1,lz1,lelt), ym3(lx1,ly1,lz1,lelt), zm3(lx1,ly1,lz1,lelt))
 #if 0

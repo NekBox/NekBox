@@ -2,7 +2,7 @@
 !> \brief Set initial conditions.
 !-----------------------------------------------------------------------
 subroutine setics
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m, only : lx1, ly1, lz1, lelv, lx2, ly2, ldimt, ldimt1
   use size_m, only : nx1, ny1, nz1, nelt, nx2, ny2, nz2, nelv
   use size_m, only : nid, lpert, npert, nfield
@@ -23,7 +23,7 @@ subroutine setics
    
   LOGICAL ::  IFANYP
   real(DP), allocatable :: work(:,:,:,:)
-  integer*8 :: ntotg,nn
+  integer(i8) :: ntotg,nn
 
   real :: psmax(LDIMT)
 
@@ -211,7 +211,7 @@ subroutine setics
   allocate(work(lx1,ly1,lz1,lelv))
   call rone(work,ntotv)
   ifield = 1
-  call dssum(work,nx1,ny1,nz1)
+  call dssum(work)
   call col2(work,vmult,ntotv)
   rdif = glsum(work,ntotv)
   deallocate(work)
@@ -265,10 +265,10 @@ subroutine setics
 
   if (ifheat) then
       ifield = 2
-      call dssum(t ,nx1,ny1,nz1)
+      call dssum(t)
       call col2 (t ,tmult,ntott)
       do ifield=3,nfield
-          call dssum(t(1,1,1,1,i-1),nx1,ny1,nz1)
+          call dssum(t(1,1,1,1,i-1))
           if(iftmsh(ifield)) then
               call col2 (t(1,1,1,1,i-1),tmult,ntott)
           else
@@ -283,7 +283,7 @@ subroutine setics
           call opdssum(vxp(1,jp),vyp(1,jp),vzp(1,jp))
           call opcolv (vxp(1,jp),vyp(1,jp),vzp(1,jp),vmult)
           ifield = 2
-          call dssum(tp(1,1,jp),nx1,ny1,nz1)
+          call dssum(tp(1,1,jp))
           call col2 (tp(1,1,jp),tmult,ntotv)
       !           note... must be updated for addl pass. scal's. pff 4/26/04
           vxmax = glamax(vxp(1,jp),ntotv)
@@ -525,7 +525,7 @@ end subroutine slogic
 !!       subsequent files are for B-field or perturbation fields
 !----------------------------------------------------------------------
 subroutine restart_driver(nfiles)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : lx1, ly1, lz1, lelv, lelt, ldimt, ldimt1
   use size_m, only : nid, nx1, ny1, nz1, nx2, ny2, nz2, nelv
   use restart, only : nxr, nyr, nzr
@@ -554,7 +554,7 @@ subroutine restart_driver(nfiles)
   real(DP) :: SDUMP(LXYZT,7)
   integer :: mesg(40)
 
-  real*4, allocatable :: tdump(:,:)
+  real(r4), allocatable :: tdump(:,:)
 
   REAL :: SDMP2(LXYZT,LDIMT)
 
@@ -570,9 +570,6 @@ subroutine restart_driver(nfiles)
 
   integer ::       hnami (30)
   character(132) :: hname
-  character(1) ::   hname1(132)
-  equivalence  (hname,hname1)
-  equivalence  (hname,hnami )
 
   CHARACTER(132) :: header
 
@@ -581,12 +578,12 @@ subroutine restart_driver(nfiles)
   integer :: iposx,iposz,iposu,iposw,iposp,ipost,ipsps(ldimt1)
 
   logical :: ifbytsw, if_byte_swap_test
-  real*4 ::   bytetest
+  real(r4) ::   bytetest
 
   real(DP) :: p67, rstime, cdump
   integer :: ifile, ndumps, ierr, len, idump, neltr, istepr, i, icase, ipass
   integer :: nxyz2, mid, ieg, nerr, ips, ii, nxyzr, ixyzz, nouts
-  integer :: jxyz, ie2, ie1, ie, j, iiel, iel, ntotv, ntott
+  integer :: jxyz, ntotv, ntott
   integer :: nxyz1, lname, is, nps0, nps1, i1, iposv, iposy, nps
 
   allocate(TDUMP(LXYZR,LPSC9))
@@ -630,8 +627,6 @@ subroutine restart_driver(nfiles)
               open (unit=91,file=fname,status='old',err=500)
           else
               len= ltrunc(fname,79)
-              call izero (hnami,20)
-              call chcopy(hname1,fname,len)
           !           test for presence of file
               open (unit=91,file=hname &
               ,form='unformatted',status='old',err=500)
@@ -1228,7 +1223,7 @@ end subroutine sioflag
 
 !----------------------------------------------------------------------
 subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nid, lelt
   use parallel, only : np, gllnid, nullpid, gllel
   implicit none
@@ -1240,7 +1235,7 @@ subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
   integer, PARAMETER :: LXYZR=LXR*LYR*LZR
 
   REAL(DP) :: SDUMP(LXYZ1,LELT)
-  REAL*4   :: TDUMP(LXYZR)
+  REAL(r4)   :: TDUMP(LXYZR)
   integer :: ieg, nxr, nyr, nzr
   logical :: if_byte_sw
 
@@ -1310,15 +1305,15 @@ end subroutine mapdmp
 !! Input:  real*4,  Output:  default precision
 !---------------------------------------------------------------
 subroutine mapab4R(x,y,nxr,nel)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m, only : nid, ndim
   use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1
   use wz_m, only : zgm1
   implicit none
 
   integer :: nxr, nel
-  REAL*4 :: X(NX1,NY1,NZ1,NEL)
-  REAL ::   Y(NXR,NXR,NXR,NEL)
+  REAL(DP) :: X(NX1,NY1,NZ1,NEL)
+  REAL(r4) :: Y(NXR,NXR,NXR,NEL)
 
   integer, parameter :: LXR=LX1+6
   integer, parameter :: LYR=LY1+6
@@ -1387,35 +1382,41 @@ subroutine nekuic
 
   IF (IFMODEL .AND. IFKEPS .AND. IFIELD == IFLDK) THEN
   
-      DO 100 IEL=1,NEL
+      DO IEL=1,NEL
           ieg = lglel(iel)
-          DO 100 K=1,NZ1
-              DO 100 J=1,NY1
-                  DO 100 I=1,NX1
+          DO K=1,NZ1
+              DO J=1,NY1
+                  DO I=1,NX1
                       CALL NEKASGN (I,J,K,IEL)
                       CALL USERIC  (I,J,K,IEG)
                       T(I,J,K,IEL,IFIELD-1) = TURBK
-      100 END DO
+                  enddo
+              enddo
+          enddo
+      END DO
   
   ELSEIF (IFMODEL .AND. IFKEPS .AND. IFIELD == IFLDE) THEN
   
-      DO 200 IEL=1,NEL
+      DO IEL=1,NEL
           ieg = lglel(iel)
-          DO 200 K=1,NZ1
-              DO 200 J=1,NY1
-                  DO 200 I=1,NX1
+          DO K=1,NZ1
+              DO J=1,NY1
+                  DO I=1,NX1
                       CALL NEKASGN (I,J,K,IEL)
                       CALL USERIC  (I,J,K,IEG)
                       T(I,J,K,IEL,IFIELD-1) = TURBE
-      200 END DO
+                  enddo
+              enddo
+          enddo
+      END DO
   
   ELSE
   
-      DO 300 IEL=1,NEL
+      DO IEL=1,NEL
           ieg = lglel(iel)
-          DO 300 K=1,NZ1
-              DO 300 J=1,NY1
-                  DO 300 I=1,NX1
+          DO K=1,NZ1
+              DO J=1,NY1
+                  DO I=1,NX1
                       CALL NEKASGN (I,J,K,IEL)
                       CALL USERIC  (I,J,K,IEG)
                       if (jp == 0) then
@@ -1440,8 +1441,10 @@ subroutine nekuic
                               TP(IJKE,IFIELD-1,jp) = TEMP
                           ENDIF
                       endif
-
-      300 END DO
+                  enddo
+              enddo
+          enddo
+      END DO
   
   ENDIF
 
@@ -1450,15 +1453,15 @@ end subroutine nekuic
 
 !-----------------------------------------------------------------------
 logical function if_byte_swap_test(bytetest,ierr)
-  use kinds, only : DP
+  use kinds, only : DP, r4
   use size_m
   implicit none
    
-  real*4 :: bytetest
+  real(r4) :: bytetest
   integer :: ierr
 
-  real*4 :: test2
-  real*4, save :: test_pattern
+  real(r4) :: test2
+  real(r4), save :: test_pattern
   real(DP) :: eps, etest
    
   test_pattern = 6.54321
@@ -1498,10 +1501,12 @@ subroutine geom_reset(icall)
       CALL GEOM1 (XM1,YM1,ZM1)
   else
       allocate(xm3(lx1,ly1,lz1,lelt), ym3(lx1,ly1,lz1,lelt), zm3(lx1,ly1,lz1,lelt))
+#if 0
       call map13_all(xm3,xm1)
       call map13_all(ym3,ym1)
       if (if3d) call map13_all(zm3,zm1)
       CALL GEOM1 (XM3,YM3,ZM3)
+#endif
       deallocate(xm3,ym3,zm3)
   endif
 
@@ -1540,12 +1545,12 @@ subroutine dsavg(u)
   if (ifflow) then
       ifield = 1
       ntot = nx1*ny1*nz1*nelv
-      call dssum(u,nx1,ny1,nz1)
+      call dssum(u)
       call col2 (u,vmult,ntot)
   else
       ifield = 2
       ntot = nx1*ny1*nz1*nelt
-      call dssum(u,nx1,ny1,nz1)
+      call dssum(u)
       call col2 (u,tmult,ntot)
   endif
   ifield = ifieldo
@@ -1568,15 +1573,9 @@ subroutine mbyte_open(hname,fid,ierr)
   character(8), save :: eight = "????????"
 
   character(132) :: fname
-  character(1) ::  fname1(132)
-  equivalence (fname1,fname)
-
-  integer ::      iname(33)
-  equivalence (iname,fname)
 
   integer :: len, ipass, k, i1, ierr
 
-  call izero  (iname,33)
   len = ltrunc(hname,132)
   call chcopy (fname,hname,len)
 
@@ -1587,7 +1586,7 @@ subroutine mbyte_open(hname,fid,ierr)
               write(fmt,1) k,k
               1 format('(i',i1,'.',i1,')')
               write(s8,fmt) fid
-              call chcopy(fname1(i1),s8,k)
+              call chcopy(fname(i1:),s8,k)
               goto 10
           endif
       enddo
@@ -1596,11 +1595,11 @@ subroutine mbyte_open(hname,fid,ierr)
           
 #ifdef MPIIO
   call byte_open_mpi(fname,ifh_mbyte,ierr)
-  if(nid == 0) write(6,6) istep,(fname1(k),k=1,len)
+  if(nid == 0) write(6,6) istep,(fname(k:k),k=1,len)
   6 format(1i8,' OPEN: ',132a1)
 #else
   call byte_open(fname,ierr)
-  write(6,6) nid,istep,(fname1(k),k=1,len)
+  write(6,6) nid,istep,(fname(k:k),k=1,len)
   6 format(2i8,' OPEN: ',132a1)
 #endif
 

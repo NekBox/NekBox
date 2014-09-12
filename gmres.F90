@@ -152,7 +152,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       rnorm = 0.
       if(gamma(1) == 0.) goto 9000
       temp = 1./gamma(1)
-      call cmult2(v(1,1),r,temp,n)             ! v  = r / gamma
+      v(:,1) = r * temp  ! v  = r / gamma
   !  1            1
       do j=1,m
           iter = iter+1
@@ -260,7 +260,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           if (j == m) goto 1000 !not converged, restart
 
           temp = 1./alpha
-          call cmult2(v(1,j+1),w,temp,n)   ! v    = w / alpha
+          v(:,j+1) = w * temp  ! v    = w / alpha
       !  j+1
       enddo
       900 iconv = 1

@@ -1022,7 +1022,7 @@ END SUBROUTINE NEKASGN
 !-----------------------------------------------------------------------
 SUBROUTINE LFALSE (IFA,N)
   implicit none
-  LOGICAL :: IFA(1)
+  LOGICAL :: IFA(*)
   integer :: n, i
   DO 100 I=1,N
       IFA(I)= .FALSE. 
@@ -1030,32 +1030,21 @@ SUBROUTINE LFALSE (IFA,N)
   RETURN
 END SUBROUTINE LFALSE
 !-----------------------------------------------------------------------
-SUBROUTINE RZERO3 (A,B,C,N)
-  use kinds, only : DP
-  implicit none
-  real(DP) :: A(1),B(1),C(1)
-  integer :: n, i
-  DO 100 I=1,N
-      A(I)=0.0
-      B(I)=0.0
-      C(I)=0.0
-  100 END DO
-  RETURN
-END SUBROUTINE RZERO3
-!-----------------------------------------------------------------------
 SUBROUTINE UNITVEC (X,Y,Z,N)
   use kinds, only : DP
   implicit none
-  real(DP) :: X(1),Y(1),Z(1), xlngth
-  integer :: n, i
-  DO 100 I=1,N
+  integer, intent(in) :: n
+  real(DP), intent(inout) :: X(n),Y(n),Z(n)
+  real(DP) :: xlngth
+  integer :: i
+  DO I=1,N
       XLNGTH = SQRT( X(I)**2 + Y(I)**2 + Z(I)**2 )
       IF (XLNGTH /= 0.0) THEN
           X(I) = X(I)/XLNGTH
           Y(I) = Y(I)/XLNGTH
           Z(I) = Z(I)/XLNGTH
       ENDIF
-  100 END DO
+  END DO
   RETURN
 END SUBROUTINE UNITVEC
 !-----------------------------------------------------------------------

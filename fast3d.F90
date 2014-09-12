@@ -74,10 +74,10 @@ subroutine plane_space(lr,ls,lt,i1,i2,w,x,y,z,nx,nxn,nz0,nzn)
   implicit none
 
   integer :: nx, nz0, nxn, nzn, i1, i2
-  real(DP) :: w(1),lr(1),ls(1),lt(1)
-  real(DP) :: x(0:nxn,0:nxn,nz0:nzn,1)
-  real(DP) :: y(0:nxn,0:nxn,nz0:nzn,1)
-  real(DP) :: z(0:nxn,0:nxn,nz0:nzn,1)
+  real(DP) :: w(*),lr(*),ls(*),lt(*)
+  real(DP) :: x(0:nxn,0:nxn,nz0:nzn,*)
+  real(DP) :: y(0:nxn,0:nxn,nz0:nzn,*)
+  real(DP) :: z(0:nxn,0:nxn,nz0:nzn,*)
   real(DP) :: lr2,ls2,lt2
 
   integer :: ny, nz, j1, k1, j2, k2, ie, k, j, i
@@ -539,8 +539,8 @@ end subroutine row_zero
 subroutine swap(b,ind,n,temp)
   use kinds, only : DP
   implicit none
-  real(DP) :: B(1),TEMP(1)
-  integer :: n, IND(1)
+  real(DP) :: B(*),TEMP(*)
+  integer :: n, IND(*)
   integer :: i, jj
 
 !***

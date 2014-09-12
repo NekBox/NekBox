@@ -171,8 +171,8 @@ subroutine set_jl_crs_mask(n, mask, se_to_gcrs)
   use kinds, only : DP, i8
   implicit none
   integer :: n
-  real(DP) :: mask(1)
-  integer(i8) :: se_to_gcrs(1)
+  real(DP) :: mask(*)
+  integer(i8) :: se_to_gcrs(*)
 
   integer :: i
   do i=1,n
@@ -206,7 +206,7 @@ subroutine ituple_sort(a,lda,n,key,nkey,ind,aa)
 
   integer :: lda, n, nkey
   integer :: a(lda,n),aa(lda)
-  integer :: ind(1),key(nkey)
+  integer :: ind(*),key(nkey)
   logical :: iftuple_ialtb
 
   integer :: j, L, ir, ii, i
@@ -267,7 +267,7 @@ end subroutine ituple_sort
 logical function iftuple_ialtb(a,b,key,nkey)
   implicit none
   integer :: nkey
-  integer :: a(1),b(1)
+  integer :: a(*),b(*)
   integer :: key(nkey)
 
   integer :: i, k
@@ -290,7 +290,7 @@ end function iftuple_ialtb
 logical function iftuple_ianeb(a,b,key,nkey)
   implicit none
   integer :: nkey
-  integer :: a(1),b(1)
+  integer :: a(*),b(*)
   integer :: key(nkey)
 
   integer :: i, k
@@ -354,7 +354,7 @@ end subroutine specmpn
 subroutine irank(A,IND,N)
   use kinds, only : DP
   implicit none
-  integer :: A(1),IND(1), n
+  integer :: A(*),IND(*), n
 
   integer :: j, L, ir, i, q, indx
 
@@ -410,7 +410,7 @@ subroutine get_local_crs_galerkin(a,ncl,nxc,h1,h2,w1,w2)
   implicit none
 
   integer :: ncl, nxc
-  real ::    a(ncl,ncl,1),h1(1),h2(1)
+  real ::    a(ncl,ncl,*),h1(*),h2(*)
   real ::    w1(nx1*ny1*nz1,nelv),w2(nx1*ny1*nz1,nelv)
 
   integer, parameter :: lcrd=lx1**ldim
@@ -517,7 +517,7 @@ end subroutine get_vertex
 !-----------------------------------------------------------------------
 subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
   implicit none
-  integer :: gllnid(1),iunsort(1),nelgt,nelgv, np
+  integer :: gllnid(*),iunsort(*),nelgt,nelgv, np
   integer :: eg
 
   integer :: nelgs, nnpstr, npstar, log2p, np2
@@ -643,7 +643,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   logical :: ifgfdm
 
   integer :: nlv, nel
-  integer :: vertex(nlv,1)
+  integer :: vertex(nlv,*)
   character(4) :: suffix
 
   integer, parameter :: mdw=2+2**ldim
@@ -905,8 +905,8 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
   use topol, only : icface, skpdat
   implicit none
 
-  integer(i8) :: glo_num(1),ngv
-  integer :: vertex(0:1,0:1,0:1,1),nx
+  integer(i8) :: glo_num(*),ngv
+  integer :: vertex(0:1,0:1,0:1,*),nx
   logical :: ifcenter
 
   integer ::  edge(0:1,0:1,0:1,3,lelt),enum(12,lelt),fnum(6,lelt)

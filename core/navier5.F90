@@ -2,20 +2,16 @@
 !> \brief filter vx,vy,vz, and p by simple interpolation
 subroutine q_filter(wght)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lx2, lelt, lelv
-  use size_m, only : nx1, ny1, nz1, nx2, nid, npert, ndim
+  use size_m, only : lx1, lelt
+  use size_m, only : nx1, nz1, nid, ndim
   use input, only : ifflow, ifbase, if3d, ifsplit, ifldmhd, ifpert, ifheat
   use input, only : ifcvode, param, ifmhd, iflomach, npscal
-  use soln, only : vx, vy, vz, pr, bx, by, bz, vxp, vyp, vzp, tp, t
+  use soln, only : vx, vy, vz, pr, t
   use tstep, only : ifield, istep
-  use wz_m, only : zgm1, zgm2
+  use wz_m, only : zgm1
   implicit none
 
   real(DP) :: wght
-
-!     These are the dimensions that we interpolate onto for v and p:
-  integer, parameter :: lxv=lx1-1
-  integer, parameter :: lxp=lx2-1
 
   real(DP), save :: intv(lx1,lx1)
 
@@ -25,8 +21,6 @@ subroutine q_filter(wght)
   real(DP) :: tmax(100),omax(103)
 
 !   outpost arrays
-  integer, parameter :: lt=lx1*ly1*lz1*lelv
-
   integer, save :: icalld = 0
 
   integer :: imax, jmax, ncut, ifldt, mmax, nfldt, ifld, k
@@ -40,7 +34,7 @@ subroutine q_filter(wght)
   jmax = iglmax(imax,1)
   if (icalld == 0) then
       icalld = 1
-      ncut = param(101)+1
+      ncut = int(param(101)+1)
       call build_new_filter(intv,zgm1,nx1,ncut,wght,nid)
   elseif (icalld < 0) then   ! old (std.) filter
       write(*,*) "Oops: icalld < 0 in qfilter"
@@ -277,6 +271,7 @@ subroutine gaujordf(a,m,n,indr,indc,ipiv,ierr,rmult)
   eps = 1.e-9
   call izero(ipiv,m)
 
+  ir = -1
   do k=1,m
       amx=0.
       do i=1,m                    ! Pivot search

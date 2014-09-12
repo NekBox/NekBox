@@ -41,7 +41,7 @@ subroutine initdat
   use size_m,   only : lx1, lx2, lelt, nx1, ny1, nz1, nx2, ny2, nz2
   use input,    only : IFCVODE, IFEXPLVIS, ifsplit, param, ccurve, xc, yc, zc
   use parallel, only : ifgprnt 
-  use soln,     only : abx1, abx2, aby1, aby2, abz1, abz2, vgradt1, vgradt2, usrdiv
+  use soln,     only : abx1, abx2, aby1, aby2, abz1, abz2, vgradt1, vgradt2
   use tstep,    only : if_full_pres
   implicit none
 
@@ -229,18 +229,18 @@ subroutine setvar
   DT     = abs(PARAM(12))
   DTINIT = DT
   FINTIM = PARAM(10)
-  NSTEPS = PARAM(11)
-  IOCOMM = PARAM(13)
+  NSTEPS = int(PARAM(11))
+  IOCOMM = int(PARAM(13))
   TIMEIO = PARAM(14)
-  IOSTEP = PARAM(15)
+  IOSTEP = int(PARAM(15))
   LASTEP = 0
   TOLPDF = abs(PARAM(21))
   TOLHDF = abs(PARAM(22))
   TOLREL = abs(PARAM(24))
   TOLABS = abs(PARAM(25))
   CTARG  = PARAM(26)
-  NBDINP = PARAM(27)
-  NABMSH = PARAM(28)
+  NBDINP = int(PARAM(27))
+  NABMSH = int(PARAM(28))
 
   if (nbdinp > lorder) then
       if (nid == 0) then
@@ -397,7 +397,6 @@ subroutine echopar
   ,/,2X,'ABORTING IN ROUTINE ECHOPAR.')
   CALL exitt
 
-  500 CONTINUE
   WRITE(6,501)
   501 FORMAT(2X,'ERROR READING LOGICAL DATA' &
   ,/,2X,'ABORTING IN ROUTINE ECHOPAR.')
@@ -410,12 +409,9 @@ end subroutine echopar
 !> \brief Generate geometry data
 !----------------------------------------------------------------------
 subroutine gengeom (igeom)
-  use kinds, only : DP
-  use size_m, only : nid, nx3, ny3, nz3, lx3, ly3, lz3, lelt
-  use soln, only : tmult, vmult
+  use size_m, only : nid
   use geom, only : ifgeom
-  use input, only : ifheat, if3d
-  use tstep, only : istep, ifield
+  use tstep, only : istep
   implicit none
 
   integer, intent(in) :: igeom
@@ -495,10 +491,6 @@ subroutine files
   integer :: ls, lpp, lsp, l1, ln, len
 
   CHARACTER(132) :: NAME, slash
-  CHARACTER(1) ::   SESS1(132),PATH1(132),NAM1(132)
-!   EQUIVALENCE  (SESSION,SESS1)
-!   EQUIVALENCE  (PATH,PATH1)
-!   EQUIVALENCE  (NAME,NAM1)
   CHARACTER(1) ::  DMP(4),FLD(4),REA(4),HIS(4),SCH(4) ,ORE(4), NRE(4)
   CHARACTER(1) ::  RE2(4)
   CHARACTER(4) ::  DMP4  ,FLD4  ,REA4  ,HIS4  ,SCH4   ,ORE4  , NRE4
@@ -529,14 +521,11 @@ subroutine files
 ! 23  ENDIF
 !     call err_chk(ierr,' Cannot open SESSION.NAME!$')
 
-  sess1 = transfer(session, sess1)
-  path1 = transfer(path, path1)
-  nam1 = transfer(name, nam1)
   slash = '/'
 
   len = ltrunc(path,132)
-  if(indx1(path1(len),slash,1) < 1) then
-      call chcopy(path1(len+1),slash,1)
+  if(indx1(path(len:len),slash,1) < 1) then
+      call chcopy(path(len+1:len+1),slash,1)
   endif
 
 !     call bcast(SESSION,132*CSIZE)
@@ -555,49 +544,48 @@ subroutine files
 !    Construct file names containing full path to host:
 
   LS=LTRUNC(SESSION,132)
-  path = transfer(path1, path)
   LPP=LTRUNC(PATH,132)
   LSP=LS+LPP
 
-  call chcopy(nam1(    1),path1,lpp)
-  call chcopy(nam1(lpp+1),sess1,ls )
+  call chcopy(name(1:1),path,lpp)
+  call chcopy(name(lpp+1:lpp+1),session,ls )
   l1 = lpp+ls+1
   ln = lpp+ls+4
 
 
 !.rea file
-  call chcopy(nam1  (l1),rea , 4)
-  call chcopy(reafle    ,nam1,ln)
+  call chcopy(name(l1:l1),rea , 4)
+  call chcopy(reafle    ,name,ln)
 !     write(6,*) 'reafile:',reafle
 
 !.re2 file
-  call chcopy(nam1  (l1),re2 , 4)
-  call chcopy(re2fle    ,nam1,ln)
+  call chcopy(name(l1:l1),re2 , 4)
+  call chcopy(re2fle    ,name,ln)
 
 !.fld file
-  call chcopy(nam1  (l1),fld , 4)
-  call chcopy(fldfle    ,nam1,ln)
+  call chcopy(name(l1:l1),fld , 4)
+  call chcopy(fldfle    ,name,ln)
 
 !.his file
-  call chcopy(nam1  (l1),his , 4)
-  call chcopy(hisfle    ,nam1,ln)
+  call chcopy(name(l1:l1),his , 4)
+  call chcopy(hisfle    ,name,ln)
 
 !.sch file
-  call chcopy(nam1  (l1),sch , 4)
-  call chcopy(schfle    ,nam1,ln)
+  call chcopy(name(l1:l1),sch , 4)
+  call chcopy(schfle    ,name,ln)
 
 
 !.dmp file
-  call chcopy(nam1  (l1),dmp , 4)
-  call chcopy(dmpfle    ,nam1,ln)
+  call chcopy(name(l1:l1),dmp , 4)
+  call chcopy(dmpfle    ,name,ln)
 
 !.ore file
-  call chcopy(nam1  (l1),ore , 4)
-  call chcopy(orefle    ,nam1,ln)
+  call chcopy(name(l1:l1),ore , 4)
+  call chcopy(orefle    ,name,ln)
 
 !.nre file
-  call chcopy(nam1  (l1),nre , 4)
-  call chcopy(nrefle    ,nam1,ln)
+  call chcopy(name(l1:l1),nre , 4)
+  call chcopy(nrefle    ,name,ln)
 
 !    Write the name of the .rea file to the logfile.
 
@@ -609,8 +597,6 @@ subroutine files
       1001 FORMAT(/,' ')
   ENDIF
 
-  path = transfer(path1, path)
-  session = transfer(sess1, session)
 
   RETURN
 
@@ -631,7 +617,7 @@ subroutine settime
 
   integer :: ilag, irst, nabmsh, nbdmsh
 
-  irst = param(46)
+  irst = int(param(46))
 
 !   Set time step.
 
@@ -659,7 +645,7 @@ subroutine settime
   CALL SETABBD (AB,DTLAG,NAB,NBD)
   IF (IFMVBD) THEN
       NBDMSH = 1
-      NABMSH = PARAM(28)
+      NABMSH = int(PARAM(28))
       IF (NABMSH > ISTEP .AND. irst <= 0) NABMSH = ISTEP
       IF (IFSURT)          NABMSH = NBD
       CALL RZERO   (ABMSH,10)
@@ -745,7 +731,7 @@ subroutine fluid (igeom)
   use kinds, only : DP
   use size_m, only : nid
   use ctimer, only : dnekclock
-  use input, only : ifnav, ifsplit, iftran, param
+  use input, only : ifnav, ifsplit, iftran
   use tstep, only : ifield, imesh, istep, time
 
   implicit none
@@ -1289,10 +1275,7 @@ end subroutine pprint_all
 !-----------------------------------------------------------------------
 !> \brief init opcounter
 subroutine opcount(ICALL)
-  use kinds, only : DP
-  use size_m, only : nid
-  use parallel, only : np, wdsize
-  use opctr, only : nrout, dcount, ncall, dct, rct, rname, maxrts
+  use opctr, only : nrout, dcount, ncall, dct, maxrts
   implicit none
 
   integer, intent(in) :: icall
@@ -1371,12 +1354,12 @@ subroutine dofcnt
 
 ! unique points on v-mesh
   vpts = glsum(vmult,nel*nxyz) + .1
-  nvtot=vpts
+  nvtot=int(vpts)
 
 ! unique points on pressure mesh
   work(1)=nel*nxyz
   ppts = glsum(work,1) + .1
-  ntot=ppts
+  ntot=int(ppts)
 
   if (nid == 0) write(6,'(A,2i13)') &
   'gridpoints unique/tot: ',nvtot,ntot

@@ -11,7 +11,7 @@
 !!         - GAUSS-LOBATTO JACOBI   MESH (SUFFIX M1/M2/M3)
 !-----------------------------------------------------------------
 subroutine genwz
-  use size_m, only : ly1, ndim, nx1, ny1, nz1, nx2, ny2, nz2, nx3, ny3, nz3
+  use size_m, only : ndim, nx1, ny1, nz1, nx2, ny2, nz2, nx3, ny3, nz3
   use dxyz, only : dxm1, dxtm1, dym1, dytm1, dzm1, dztm1, dxm3, dxtm3
   use dxyz, only : dym3, dytm3, dzm3, dztm3, dxm12, dxtm12, dym12, dytm12
   use dxyz, only : dzm12, dztm12
@@ -381,7 +381,7 @@ end subroutine genwz
 !-----------------------------------------------------------------------
 subroutine geom1 ()!xm3,ym3,zm3)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, lx3, ly3, lz3
+  use size_m, only : lx1, ly1, lz1, lelt
   use geom, only : ifgmsh3
   use tstep, only : istep
   implicit none
@@ -527,11 +527,10 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelt, ndim
-  use geom, only : ifgmsh3, jacm1, ifrzer, ym1
+  use geom, only : ifgmsh3, jacm1, ifrzer, ym1, bm1
   use geom, only : g1m1, rxm1, rym1, rzm1, g2m1, sxm1, sym1, szm1
   use geom, only : g3m1, txm1, tym1, tzm1, g4m1, g5m1, g6m1
   use input, only : ifaxis
-  use geom, only : bm1, baxm1, yinvm1
   use tstep, only : istep
   use wz_m, only : zam1, w3m1
   implicit none

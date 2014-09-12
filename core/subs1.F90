@@ -112,7 +112,7 @@ subroutine setdt
   COURNO = DT*UMAX
 
 ! synchronize time step for multiple sessions
-  if (ifneknek) dt=uglmin(dt,1)
+!max  if (ifneknek) dt=uglmin(dt,1)
 
   if (iffxdt .AND. abs(courno) > 10.*abs(ctarg)) then
       if (nid == 0) write(6,*) 'CFL, Ctarg!',courno,ctarg
@@ -578,7 +578,7 @@ subroutine sethlm (h1,h2,intloc)
   real(DP) :: h1(lx1,ly1,lz1,lelt),h2(lx1,ly1,lz1,lelt)
   integer :: intloc
 
-  integer :: nel, ntot1, i
+  integer :: nel, ntot1
   real(DP) :: dtbd
 
   nel   = nelfld(ifield)

@@ -558,7 +558,7 @@ END SUBROUTINE BCMASK
 !! Use IFIELD as a guide to which boundary conditions are to be applied.
 SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, ndim, lelv, lx1, ly1, lz1
+  use size_m, only : nx1, ny1, nz1, ndim, lelv
   use ctimer, only : icalld, tusbc, nusbc, etime1, dnekclock
   use input, only : if3d, cbc, bc, ifstrs
   use tstep, only : ifield, nelfld

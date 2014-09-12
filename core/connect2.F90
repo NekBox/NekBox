@@ -465,7 +465,7 @@ subroutine rdparam
   if (param(30) > 0)  ifuservp = .TRUE. 
   if (param(31) /= 0.) ifpert = .TRUE. 
   if (param(31) < 0.) ifbase = .FALSE.   ! don't time adv base flow
-  npert = abs(param(31))
+  npert = int(abs(param(31)))
 
   IF (NPSCL1 > LDIMT .AND. IFMHD) THEN
       if(nid == 0) then
@@ -502,9 +502,9 @@ subroutine rdparam
 
 !   Check here for global fast diagonalization method or z-homogeneity.
 !   This is here because it influence the mesh read, which follows.
-  nelx   = abs(param(116))   ! check for global tensor-product structure
-  nely   = abs(param(117))
-  nelz   = abs(param(118))
+  nelx   = int(abs(param(116)))  ! check for global tensor-product structure
+  nely   = int(abs(param(117)))
+  nelz   = int(abs(param(118)))
   n_o    = 0
 
   if (n_o == 0) then
@@ -991,9 +991,8 @@ subroutine rdbdry
                       !              Mesh B.C.'s in 1st column of 1st field
                           IF (CHTEMP /= ' ') CBC(ISIDE,IEL,0)(1:1)= CHTEMP
                       !              check for fortran function as denoted by lower case bc's:
-                          CBC1=CBC(ISIDE,IEL,IFIELD)
                           CBC3=CBC(ISIDE,IEL,IFIELD)
-                          ICBC1=ICHAR(CBC1)
+                          ICBC1=ICHAR(CBC3(1:1))
                       !              IF (ICBC1.GE.97.AND.ICBC1.LE.122) THEN
                       !                 IF(CBC3(3:3).NE.'i')NLINES=BC(1,ISIDE,IEL,IFIELD)
                       !                 IF(CBC3(3:3).EQ.'i')NLINES=BC(4,ISIDE,IEL,IFIELD)

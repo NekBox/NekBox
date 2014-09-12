@@ -693,8 +693,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   logical :: ifmcor,ifprint_hmh
 
   integer, parameter :: lg=lx1*ly1*lz1*lelt
-  real(DP) :: d (lg), scalar(2)
-  real(DP) :: r (lg) , w (lg) , p (lg) , z (lg)
+  real(DP) :: scalar(2)
+  real(DP), allocatable :: d (:)
+  real(DP), allocatable :: r (:) , w (:) , p (:) , z (:)
 
   integer, parameter :: maxcg=900
   real(DP), allocatable :: diagt(:), upper(:)
@@ -704,7 +705,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   real(DP) :: rtz1, rtz2, rbn2, rbn0, beta, rho0, alpha, alphm
   real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, vlsc32, glsc3
 
-  allocatE(diagt(maxcg),upper(maxcg))
 
   if (ifsplit .AND. name == 'PRES' .AND. param(42) == 0) then
       n = nx1*ny1*nz1*nelv
@@ -716,8 +716,8 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 !      write(6,*) ifsplit,name,param(44),' P44 C'
 
 ! **  zero out stuff for Lanczos eigenvalue estimator
-  call rzero(diagt,maxcg)
-  call rzero(upper,maxcg)
+  allocate(diagt(maxcg),upper(maxcg))
+  diagt = 0_dp; upper = 0_dp
   rho = 0.00
 
 !     Initialization
@@ -742,15 +742,16 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
 !     Set up diag preconditioner.
 
+  allocate(d(lg)); d = 0_dp
   if (kfldfdm < 0) then
       call setprec(D,h1,h2,imsh,isd)
   elseif(param(100) /= 2) then
 !max      call set_fdm_prec_h1b(d,h1,h2,nel)
   endif
 
-  call copy (r,f,n)
+  allocate(r(lg))
+  r(1:n) = f(1:n)
   call rzero(x,n)
-  call rzero(p,n)
 
 !     Check for non-trivial null-space
 
@@ -775,6 +776,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   rtz1=1.0
   niterhm = 0
 
+  allocate(z(lg)); z = 0_dp
+  allocate(w(lg)); w = 0_dp
+  allocate(p(lg)); p = 0_dp
   do iter=1,niter
   
       if (kfldfdm < 0) then  ! Jacobi Preconditioner
@@ -862,32 +866,33 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
               diagt(iter)    = (beta**2 * rho0 + rho ) / rtz1
               upper(iter-1)  = -beta * rho0 / sqrt(rtz2 * rtz1)
           endif
-          1000 enddo
-          niter = iter-1
-      
-          if (nid == 0) write (6,3001) istep,niter,name,rbn2,rbn0,tol
-          3000 format(4x,i7,4x,'Hmholtz ',a4,': ',I6,1p6E13.4)
-          3001 format(2i6,' **ERROR**: Failed in HMHOLTZ: ',a4,1p6E13.4)
-          3002 format(i3,i6,' Helmholtz ',a4,1x,l4,':',1p6E13.4)
-          9999 continue
-          niterhm = niter
-          ifsolv = .FALSE. 
-      
-      
-      !     Call eigenvalue routine for Lanczos scheme:
-      !          two work arrays are req'd if you want to save "diag & upper"
-      
-      !     if (iter.ge.3) then
-      !        niter = iter-1
-      !        call calc (diagt,upper,w,z,krylov,dmax,dmin)
-      !        cond = dmax/dmin
-      !        if (nid.eq.0) write(6,6) istep,cond,dmin,dmax,' lambda'
-      !     endif
-      !   6 format(i9,1p3e12.4,4x,a7)
-      
-      !     if (n.gt.0) write(6,*) 'quit in cggo'
-      !     if (n.gt.0) call exitt
-      !     call exitt
+  enddo
+
+  niter = iter-1
+
+  if (nid == 0) write (6,3001) istep,niter,name,rbn2,rbn0,tol
+  3000 format(4x,i7,4x,'Hmholtz ',a4,': ',I6,1p6E13.4)
+  3001 format(2i6,' **ERROR**: Failed in HMHOLTZ: ',a4,1p6E13.4)
+  3002 format(i3,i6,' Helmholtz ',a4,1x,l4,':',1p6E13.4)
+  9999 continue
+  niterhm = niter
+  ifsolv = .FALSE. 
+    
+    
+    !     Call eigenvalue routine for Lanczos scheme:
+    !          two work arrays are req'd if you want to save "diag & upper"
+    
+    !     if (iter.ge.3) then
+    !        niter = iter-1
+    !        call calc (diagt,upper,w,z,krylov,dmax,dmin)
+    !        cond = dmax/dmin
+    !        if (nid.eq.0) write(6,6) istep,cond,dmin,dmax,' lambda'
+    !     endif
+    !   6 format(i9,1p3e12.4,4x,a7)
+    
+    !     if (n.gt.0) write(6,*) 'quit in cggo'
+    !     if (n.gt.0) call exitt
+    !     call exitt
   return
 end subroutine cggo
 

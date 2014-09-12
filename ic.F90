@@ -3,7 +3,7 @@
 !-----------------------------------------------------------------------
 subroutine setics
   use kinds, only : DP, i8
-  use size_m, only : lx1, ly1, lz1, lelv, lx2, ly2, ldimt, ldimt1
+  use size_m, only : lx1, ly1, lz1, lelv, ldimt, ldimt1
   use size_m, only : nx1, ny1, nz1, nelt, nx2, ny2, nz2, nelv
   use size_m, only : nid, lpert, npert, nfield
   use geom, only : ifvcor, xm1, ym1, zm1
@@ -52,7 +52,7 @@ subroutine setics
 
   jp = 0                  ! set counter for perturbation analysis
 
-  irst = param(46)        ! for lee's restart (rarely used)
+  irst = int(param(46))        ! for lee's restart (rarely used)
   if (irst > 0)  call setup_convect(2)
 
 
@@ -526,16 +526,15 @@ end subroutine slogic
 !----------------------------------------------------------------------
 subroutine restart_driver(nfiles)
   use kinds, only : DP, r4
-  use size_m, only : lx1, ly1, lz1, lelv, lelt, ldimt, ldimt1
-  use size_m, only : nid, nx1, ny1, nz1, nx2, ny2, nz2, nelv
+  use size_m, only : lx1, ly1, lz1, lelt, ldimt, ldimt1
+  use size_m, only : nid, nx1, ny1, nz1, nx2, ny2, nz2
   use restart, only : nxr, nyr, nzr
   use restart, only : ifgetx, ifgetz, ifgetu, ifgetw, ifgetp, ifgett, ifgtim
   use restart, only : ifgtps
   use geom, only : xm1, ym1, zm1
-  use input, only : ifaxis, ifsplit, ifpert, ifmhd, if3d, npscal, param, initc
+  use input, only : ifpert, ifmhd, if3d, npscal, param, initc
   use parallel, only : nelgt, isize, gllnid
-  use soln, only : vx, vy, vz, t, vxp, vyp, vzp, prp, tp, pm
-  use soln, only : bx, by, bz
+  use soln, only : vx, vy, vz, t
   use string, only : ltrunc, i1_from_char
   use tstep, only : time
   implicit none
@@ -1055,7 +1054,6 @@ subroutine restart_driver(nfiles)
       ,//,2X,'Quitting in routine RESTART.')
       CLOSE(UNIT=91)
       call exitt
-      5002 CONTINUE
       IF (NID == 0) WRITE(6,5001) HNAME
       call exitt
   
@@ -1319,7 +1317,6 @@ subroutine mapab4R(x,y,nxr,nel)
   integer, parameter :: LYR=LY1+6
   integer, parameter :: LZR=LZ1+6
   integer, parameter :: LXYZR=LXR*LYR*LZR
-  integer, parameter :: LXYZ1=LX1*LY1*LZ1
 
   real(DP) ::   xa(lxyzr)      ,xb(lx1,ly1,lzr) ,xc(lxyzr) &
   , zgmr(lxr)      ,wgtr(lxr)
@@ -1464,7 +1461,7 @@ logical function if_byte_swap_test(bytetest,ierr)
   real(r4), save :: test_pattern
   real(DP) :: eps, etest
    
-  test_pattern = 6.54321
+  test_pattern = 6.54321_r4
   eps          = 0.00020
   etest        = abs(test_pattern-bytetest)
   if_byte_swap_test = .TRUE. 
@@ -1483,8 +1480,6 @@ subroutine geom_reset(icall)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, lx3
   use size_m, only : nx1, ny1, nz1, nelt, nid
-  use geom, only : xm1, ym1, zm1
-  use input, only : if3d
   implicit none
 
   integer :: icall

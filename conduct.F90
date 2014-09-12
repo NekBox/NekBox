@@ -17,7 +17,6 @@ subroutine cdscal (igeom)
   real(DP), allocatable :: TA(:,:,:,:), TB(:,:,:,:)
   real(DP), allocatable :: H1(:,:,:,:), H2(:,:,:,:)
 
-  integer, parameter :: ktot = lx1*ly1*lz1*lelt
   integer, parameter :: laxt = mxprev
 
   integer, save :: napprox(2) = 0

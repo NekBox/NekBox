@@ -9,7 +9,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   use tstep, only : istep, nelfld, ifield
   implicit none
 
-  CHARACTER      NAME*4
+  CHARACTER(4)      NAME
   REAL(DP) ::           U    (LX1,LY1,LZ1,*)
   REAL(DP) ::           RHS  (LX1,LY1,LZ1,*)
   REAL(DP) ::           H1   (LX1,LY1,LZ1,*)
@@ -80,10 +80,10 @@ end subroutine hmholtz
 !------------------------------------------------------------------
 subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, ny1, nz1, nelt, nelv, ndim
   use ctimer, only : icalld, taxhm, naxhm, etime1, dnekclock
-  use geom, only : g4m1, g5m1, g6m1, ifrzer
+  use geom, only : g4m1, g5m1, g6m1
   use dxyz, only : wddx, wddyt, wddzt
   use input, only : ifaxis
   use geom, only : bm1
@@ -284,7 +284,7 @@ end subroutine axhelm
 !-------------------------------------------------------------------
 subroutine setfast (helm1,helm2,imesh)
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nelt, nelv, lelt
+  use size_m, only : nx1, ny1, nz1, nelt, nelv
   use input, only : ifaxis, ifmodel
   use mesh, only : iffast, ifdfrm
   implicit none
@@ -297,6 +297,7 @@ subroutine setfast (helm1,helm2,imesh)
   real(DP) :: den
   real(DP), external :: vlmin, vlmax, vlamax
 
+  nel = -1
   IF (IMESH == 1) NEL=NELV
   IF (IMESH == 2) NEL=NELT
   NXYZ = NX1*NY1*NZ1
@@ -335,8 +336,6 @@ subroutine setfast (helm1,helm2,imesh)
 !!        and geometric factors for fast evaluation of Ax.
 !----------------------------------------------------------------------
 subroutine sfastax()
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelt, ndim
   use dxyz, only : dxm1, dym1, dzm1
   use dxyz, only : wddx, wddyt, wddzt
@@ -414,7 +413,7 @@ subroutine sfastax()
 !-------------------------------------------------------------------
 subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, lelt, nelt, nelv, ndim
+  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, nelt, nelv, ndim
   use dxyz, only : dxtm1, dytm1, dztm1, datm1, dam1
   use geom, only : ifrzer, g1m1, g2m1, g3m1, ym1, jacm1
   use input, only : ifaxis
@@ -582,7 +581,7 @@ end subroutine setprec
 !-------------------------------------------------------------------
 subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, ny1, nz1, nelv, nelt, nid
   use eigen, only : eigaa, eigga
   use input, only : ifprint
@@ -626,6 +625,10 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   ELSEIF (IMESH == 2) THEN
       NL  = NELT
       VOL = VOLTM1
+  else
+    nl = -1
+    vol = -1.0
+    write(*,*) "Got somewhere bad"
   ENDIF
 
   allocate(W1(nx1,ny1,nz1,nl), W2(nx1,ny1,nz1,nl))
@@ -681,7 +684,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param, ifprint
   use geom, only : volvm1, voltm1, bm1
-  use mesh, only : ifdfrm, ifsolv, niterhm
+  use mesh, only : ifsolv, niterhm
   use tstep, only : istep, imesh
   implicit none
 
@@ -760,6 +763,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   skmin = glmin(mask,n)
   if (skmin > 0 .AND. h2max == 0) ifmcor = .TRUE. 
 
+  smean = 0.
   if (name == 'PRES') then
   !        call ortho (r)           ! Commented out March 15, 2011,pff
   elseif (ifmcor) then
@@ -900,8 +904,8 @@ end subroutine cggo
 real(DP) function vlsc32(r,b,m,n)
   use kinds, only : DP
   implicit none
-  real(DP) :: r(n),b(n),m(n)
   integer :: n
+  real(DP) :: r(n),b(n),m(n)
   real(DP) :: s
   integer :: i
   s = 0.
@@ -914,11 +918,8 @@ end function vlsc32
 
 !=======================================================================
 subroutine set_fdm_prec_h1b(d,h1,h2,nel)
-  use kinds, only : DP, DP_eps
+  use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
-  use fdmh1, only : ktype, elsize, dd, ifbhalf, kfldfdm
-  use geom, only : ym1
-  use input, only : if3d, ifaxis
   implicit none
 
   real(DP) :: d (nx1,ny1,nz1,1)
@@ -930,6 +931,13 @@ d = 0._dp
   return 
 
 #if 0
+!  use kinds, only : DP, DP_eps
+!  use size_m, only : nx1, ny1, nz1
+!  use fdmh1, only : ktype, elsize, dd, ifbhalf, kfldfdm
+!  use geom, only : ym1
+!  use input, only : if3d, ifaxis
+
+
   integer :: nxyz, i1, i2, ie, i3, k1, k2, k3
   real(DP) :: h1b, h2b, vol, vl1, vl2, vl3, den
   real(DP), external :: vlsum, vlsc2

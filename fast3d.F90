@@ -1,7 +1,6 @@
 !-----------------------------------------------------------------------
 !> \brief Generate fast diagonalization matrices for each element
 subroutine gen_fast_spacing()
-  use size_m, only : nx1, ny1, nz1, nelv
   use input, only : param
   implicit none
 

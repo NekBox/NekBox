@@ -141,7 +141,7 @@ end subroutine hsmg_setup_intpm
 !----------------------------------------------------------------------
 subroutine hsmg_setup_dssum
   use kinds, only : i8
-  use size_m, only : lx1, ly1, lz1, lelv, ldim, nelv, ndim
+  use size_m, only : lx1, ly1, lz1, lelv, nelv, ndim
   use input, only : if3d
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
@@ -182,7 +182,7 @@ subroutine h1mg_setup_wtmask
   use kinds, only : DP
   use size_m, only : ndim, ldim, nelv, lelv
   use hsmg, only : mg_mask_index, mg_lmax, mg_rstr_wt_index, mg_nh, mg_nhz
-  use hsmg, only : mg_fld, lmgs, lmg_rwt, mg_rstr_wt, mg_mask
+  use hsmg, only : mg_fld, lmgs, lmg_rwt, mg_rstr_wt
   implicit none
 
   real(DP), allocatable :: work(:)
@@ -214,7 +214,7 @@ subroutine hsmg_setup_wtmask
   use kinds, only : DP
   use size_m, only : ndim, ldim, nelv, lelv
   use hsmg, only : mg_mask_index, mg_lmax, mg_rstr_wt_index, mg_nh, mg_nhz
-  use hsmg, only : lmgs, lmg_rwt, mg_rstr_wt, mg_mask, mg_fld
+  use hsmg, only : lmgs, lmg_rwt, mg_rstr_wt, mg_fld
   implicit none
 
   real(DP), allocatable :: work(:)
@@ -339,7 +339,6 @@ end subroutine hsmg_dssum
 
 !----------------------------------------------------------------------
 subroutine hsmg_dsprod(u,l)
-  use kinds, only : DP
   use ctimer, only : ifsync
   use hsmg, only : mg_gsh_handle, mg_fld
   implicit none
@@ -354,7 +353,6 @@ end subroutine hsmg_dsprod
 
 !----------------------------------------------------------------------
 subroutine hsmg_schwarz_dssum(u,l)
-  use kinds, only : DP
   use ctimer, only : ifsync, etime1, dnekclock, tdadd
   use hsmg, only : mg_gsh_schwarz_handle, mg_fld
   implicit none
@@ -436,7 +434,6 @@ end subroutine hsmg_extrude
 !----------------------------------------------------------------------
 subroutine h1mg_schwarz(e,r,sigma,l)
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nelv, nid
   use hsmg, only : mg_h1_n, mg_fld
   implicit none
 
@@ -456,7 +453,6 @@ end subroutine h1mg_schwarz
 subroutine h1mg_schwarz_part1 (e,r,l)
   use kinds, only : DP
   use size_m, only : nelv
-  use size_m, only : nx1, ny1, nz1, nelv
   use input, only : if3d
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
   use tstep, only : ifield, nelfld
@@ -640,7 +636,7 @@ end subroutine hsmg_setup_fdm
 subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
   use kinds, only : DP
   use hsmg, only : lr, llr, lrr, lmr, ls, lls, lms, lrs, lt, llt, lmt, lrt
-  use size_m, only : nid, lx1, ndim, nelv, lelt
+  use size_m, only : nid, ndim, nelv
   use input, only : if3d
   implicit none
 
@@ -682,7 +678,7 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
                   else
                   !                 write(6,2) ie,'Reset Eig in hsmg setup fast:',i,j,l
                   !    $                         ,eps,diag,lr(i),ls(j)
-                      2 format(i6,1x,a21,3i5,1p4e12.4)
+                  !    2 format(i6,1x,a21,3i5,1p4e12.4)
                       d(il,ie) = 0.0
                   endif
                   il=il+1
@@ -700,7 +696,7 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
                       else
                       !                 write(6,3) ie,'Reset Eig in hsmg setup fast:',i,j,k,l
                       !    $                         ,eps,diag,lr(i),ls(j),lt(k)
-                          3 format(i6,1x,a21,4i5,1p5e12.4)
+                      !    3 format(i6,1x,a21,4i5,1p5e12.4)
                           d(il,ie) = 0.0
                       endif
                       il=il+1
@@ -952,7 +948,6 @@ end subroutine hsmg_do_wt
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
-  use kinds, only : DP
   use size_m, only : nelv, ndim
   use input, only : if3d
   implicit none
@@ -1218,7 +1213,6 @@ end subroutine hsmg_setup_solve
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_mg_nx()
-  use kinds, only : DP
   use size_m, only : lx2, nx1, ly1, lz1, lx1, nid
   use input, only : if3d
   use hsmg, only : mg_lmax, mg_nz, mg_ny, mg_nx
@@ -1274,7 +1268,7 @@ end subroutine hsmg_setup_mg_nx
 !----------------------------------------------------------------------
 !> \brief initialize index sets
 subroutine hsmg_index_0 
-  use hsmg, only : mg_rstr_wt_index, mg_mask_index, mg_solve_index, lmgn, lmgs
+  use hsmg, only : mg_rstr_wt_index, mg_solve_index, lmgn, lmgs
   use hsmg, only : mg_fast_s_index, mg_fast_d_index, mg_schwarz_wt_index
   implicit none
 
@@ -1295,8 +1289,7 @@ end subroutine hsmg_index_0
 !     Assumes that preprocessing has been completed via h1mg_setup()
 subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nelv, nid
-  use size_m, only : lx1, ly1, lz1, lelv, lelt
+  use size_m, only : lx1, ly1, lz1, lelt
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
   implicit none
@@ -1505,8 +1498,7 @@ end subroutine h1mg_rstr
 
 !----------------------------------------------------------------------
 subroutine h1mg_setup()
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nelt
+  use size_m, only : nx1, ny1, nz1, nelt
   use hsmg, only : mg_h1_lmax
   use input, only : param
   implicit none
@@ -1540,11 +1532,10 @@ end subroutine h1mg_setup
 
 !-----------------------------------------------------------------------
 subroutine h1mg_setup_mg_nx()
-  use kinds, only : DP
   use size_m, only : lx2, nx1, lx1, ly1, lz1, ldimt1, nid
   use input, only : if3d
   use hsmg, only : mg_h1_n, mg_lmax, mg_h1_lmax, mg_nz, mg_ny, mg_nx
-  use tstep, only : ifield, nelfld
+  use tstep, only : nelfld
   implicit none
 
   integer :: mgn2(10) = (/ 1, 2, 2, 2, 2, 3, 3, 5, 5, 5/)
@@ -1629,7 +1620,7 @@ end subroutine h1mg_setup_semhat
 !----------------------------------------------------------------------
 subroutine h1mg_setup_dssum
   use kinds, only : i8
-  use size_m, only : lx1, ly1, lz1, lelt, ldim, nelv, ndim
+  use size_m, only : lx1, ly1, lz1, lelt, nelv, ndim
   use input, only : if3d
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle

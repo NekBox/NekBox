@@ -17,7 +17,7 @@ subroutine plan4
   use ctimer, only : icalld, tpres, npres, etime1, dnekclock
   use geom, only : binvm1, bm1, volvm1
   use helmholtz, only : hsolve
-  use soln, only : qtl, usrdiv, vx, vy, vz, v1mask, v2mask, v3mask
+  use soln, only : qtl, vx, vy, vz, v1mask, v2mask, v3mask
   use soln, only : vtrans, pmask, vmult, pr
   use tstep, only : imesh, nmxh, tolhv
   implicit none
@@ -178,8 +178,8 @@ subroutine crespsp (respr, vext)
   use geom, only : area
   use input, only : ifaxis, if3d, cbc
   use geom, only : bm1, binvm1
-  use soln, only : vx, vy, vz, bfx, bfy, bfz, pr
-  use soln, only : vtrans, vdiff, qtl, omask
+  use soln, only : bfx, bfy, bfz, pr
+  use soln, only : vtrans, vdiff, qtl
   use tstep, only : imesh, bd, dt, ifield
   implicit none
 
@@ -190,7 +190,7 @@ subroutine crespsp (respr, vext)
   real(DP), allocatable, dimension(:,:,:,:) :: WA1, WA2, WA3
   real(DP), allocatable, dimension(:,:,:,:) :: W1,  W2
 
-  CHARACTER CB*3
+  CHARACTER(3) :: CB
  
   integer :: nxyz1, ntot1, nfaces       
   integer :: n, ifc, iel
@@ -314,7 +314,7 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   use size_m, only : nx1, ny1, nz1, nelv
   use size_m, only : lx1, ly1, lz1, lelv
   use input, only : ifaxis
-  use soln, only : vx, vy, vz, vdiff, qtl, pr, omask, bfx, bfy, bfz
+  use soln, only : vx, vy, vz, vdiff, qtl, pr, bfx, bfy, bfz
   implicit none
 
   real(DP) :: resv1(lx1,ly1,lz1,lelv) &
@@ -365,11 +365,9 @@ end subroutine cresvsp
 subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
-  use dxyz, only : datm1
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
-  use geom, only : jacm1, ifrzer
+  use geom, only : jacm1, bm1, binvm1
   use input, only : if3d, ifaxis, ifcyclic
-  use geom, only : yinvm1, bm1, binvm1
   use tstep, only : ifield
   implicit none
 

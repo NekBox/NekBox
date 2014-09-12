@@ -49,10 +49,10 @@ end subroutine setup_convect
 !! If idir ^= 0, then apply transpose operator  (md to mx)
 subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   use kinds, only : DP
-  use size_m, only : lxd, ldim
+  use size_m, only : lxd, ldim, nid
   implicit none
 
-  real(DP) ::    ju(1),u(1)
+  real(DP) :: ju(*),u(*)
   integer :: mx, md, idir
   logical :: if3d
 
@@ -63,6 +63,8 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   real(DP) :: w(ld**ldim,2)
   integer :: ldw, i
 
+  real(DP), external :: vlsc3
+  real(DP) :: foo
   call lim_chk(md,ld,'md   ','ld   ','grad_rstd ')
   call lim_chk(mx,ld,'mx   ','ld   ','grad_rstd ')
 
@@ -71,8 +73,10 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   call get_int_ptr (i, jgl, jgt, mx,md)
 
   if (idir == 0) then
+      ju(1:md*md*md) = 0._dp
       call specmpn(ju,md,u,mx,jgl(i),jgt(i),if3d,w,ldw)
   else
+      ju(1:mx*mx*mx) = 0._dp
       call specmpn(ju,mx,u,md,jgt(i),jgl(i),if3d,w,ldw)
   endif
 

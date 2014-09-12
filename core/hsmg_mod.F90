@@ -70,6 +70,7 @@ module hsmg
   contains
 
   subroutine init_hsmg()
+    use kinds, only : dp
     use size_m
     implicit none
     allocate(mg_nx(lmgn), mg_ny(lmgn), mg_nz(lmgn))
@@ -106,6 +107,7 @@ module hsmg
 !    , mg_work2     (lxm*lym*lzm*lelt)    & ! two lower level extended
     , mg_worke     (lxm*lym*lzm,6) &      ! schwarz arrays
     )
+    mg_schwarz_wt = 0_dp
 
     allocate(mg_imask(0:lmgs*lmg_rwt*4*ldim*lelt-1)) ! verified
 

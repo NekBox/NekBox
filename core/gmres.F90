@@ -82,6 +82,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   integer :: m, n
   integer :: i, j, k, iconv
 
+!> \todo move these allocations to where they are needed
   allocate(x(lx2*ly2*lz2*lelv))
   allocate(r(lx2*ly2*lz2*lelv))
   allocate(w(lx2*ly2*lz2*lelv)) 
@@ -94,6 +95,10 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
   if (.not. allocated(ml)) allocate(ml(lx2*ly2*lz2*lelv))
   if (.not. allocated(mu)) allocate(mu(lx2*ly2*lz2*lelv)) 
+
+  !> \todo check if these inits are nessesary
+  x = 0_dp; w = 0_dp; h = 0_dp; gamma=0_dp; c = 0_dp; s = 0_dp
+  v = 0_dp; z = 0_dp;
 
 
   n = nx1*ny1*nz1*nelv
@@ -119,7 +124,6 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   tolpss = tolps
 
   iconv = 0
-  call rzero(x,n)
 
   outer = 0
   do while (iconv == 0 .AND. iter < 500)
@@ -242,7 +246,6 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           h(j,j) = l
           gamma(j+1) = -s(j) * gamma(j)
           gamma(j)   =  c(j) * gamma(j)
-
           rnorm = abs(gamma(j+1))*norm_fac
           ratio = rnorm/div0
           if (ifprint .AND. nid == 0) &

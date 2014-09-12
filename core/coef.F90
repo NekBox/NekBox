@@ -803,11 +803,11 @@ subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
   implicit none
 
   real(DP) :: &
-    XRM1(LX1,LY1,LZ1,1),YRM1(LX1,LY1,LZ1,1) &
-  , ZRM1(LX1,LY1,LZ1,1),XSM1(LX1,LY1,LZ1,1) &
-  , YSM1(LX1,LY1,LZ1,1),ZSM1(LX1,LY1,LZ1,1) &
-  , XTM1(LX1,LY1,LZ1,1),YTM1(LX1,LY1,LZ1,1) &
-  , ZTM1(LX1,LY1,LZ1,1)
+    XRM1(LX1,LY1,LZ1,*),YRM1(LX1,LY1,LZ1,*) &
+  , ZRM1(LX1,LY1,LZ1,*),XSM1(LX1,LY1,LZ1,*) &
+  , YSM1(LX1,LY1,LZ1,*),ZSM1(LX1,LY1,LZ1,*) &
+  , XTM1(LX1,LY1,LZ1,*),YTM1(LX1,LY1,LZ1,*) &
+  , ZTM1(LX1,LY1,LZ1,*)
   LOGICAL :: IFAXIS
 
   integer :: nxy1, nyz1, iel, iz
@@ -953,8 +953,8 @@ subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
   NSRF  = 6*NX1*NZ1*NELT
 
-  CALL RZERO  (AREA,NSRF)
-  CALL RZERO3 (UNX,UNY,UNZ,NSRF)
+  area = 0_dp
+  unx  = 0_dp; uny = 0_dp; unz = 0_dp
 !  CALL RZERO3 (T1X,T1Y,T1Z,NSRF)
 !  CALL RZERO3 (T2X,T2Y,T2Z,NSRF)
 

@@ -514,7 +514,7 @@ subroutine rand_fld_h1(x)
   use size_m, only : nx1, ny1, nz1, nelt
   implicit none
 
-  real(DP) :: x(1)
+  real(DP) :: x(*)
   real(DP), external :: ran1
 
   integer :: n, id, i

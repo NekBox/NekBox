@@ -9,9 +9,9 @@ subroutine tensr3(v,nv,u,nu,A,Bt,Ct,w)
   implicit none
 
   integer :: nv, nu
-  real(DP) :: v(1),u(1)
-  real(DP) :: A(1),Bt(1),Ct(1)
-  real(DP) :: w(1)
+  real(DP) :: v(*),u(*)
+  real(DP) :: A(*),Bt(*),Ct(*)
+  real(DP) :: w(*)
 
   integer :: nuv, nvv, k, l, iz
 

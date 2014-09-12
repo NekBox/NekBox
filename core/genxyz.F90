@@ -373,7 +373,7 @@ subroutine linquad(xl,yl,zl,nxl,nyl,nzl)
   implicit none
 
   integer :: nxl, nyl, nzl
-  real(DP) :: xl(nxl*nyl*nzl,1),yl(nxl*nyl*nzl,1),zl(nxl*nyl*nzl,1)
+  real(DP) :: xl(nxl*nyl*nzl,*),yl(nxl*nyl*nzl,*),zl(nxl*nyl*nzl,*)
 
   integer :: e, nedge, k
   logical :: ifmid

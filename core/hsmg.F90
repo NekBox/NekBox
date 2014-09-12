@@ -125,7 +125,7 @@ subroutine hsmg_setup_intpm(jh,zf,zc,nf,nc)
   use size_m, only : lx1
   implicit none
   integer :: nf,nc
-  real(DP) :: jh(nf,nc),zf(1),zc(1)
+  real(DP) :: jh(nf,nc),zf(*),zc(*)
   real(DP) :: w(2*lx1+2)
 
   integer :: i, j
@@ -259,7 +259,7 @@ subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   implicit none
 
   integer :: nv,nu
-  real(DP) :: v(1),u(1),A(1),At(1)
+  real(DP) :: v(*),u(*),A(*),At(*)
 
   if ( .NOT. if3d) then
 !max        call hsmg_tnsr2d(v,nv,u,nu,A,At)
@@ -277,7 +277,7 @@ subroutine hsmg_tnsr3d(v,nv,u,nu,A,Bt,Ct)
   implicit none
 
   integer :: nv,nu
-  real(DP) :: v(nv*nv*nv,nelv),u(nu*nu*nu,nelv),A(1),Bt(1),Ct(1)
+  real(DP) :: v(nv*nv*nv,nelv),u(nu*nu*nu,nelv),A(*),Bt(*),Ct(*)
 
   integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
   real(DP) :: work(0:lwk-1),work2(0:lwk-1)
@@ -301,7 +301,7 @@ subroutine hsmg_tnsr3d_el(v,nv,u,nu,A,Bt,Ct)
   implicit none
 
   integer :: nv,nu
-  real(DP) :: v(nv*nv*nv),u(nu*nu*nu),A(1),Bt(1),Ct(1)
+  real(DP) :: v(nv*nv*nv),u(nu*nu*nu),A(*),Bt(*),Ct(*)
 
   integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
   real(DP) :: work(0:lwk-1),work2(0:lwk-1)
@@ -1708,7 +1708,7 @@ subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
   use input, only : if3d
   implicit none
 
-  integer :: mask(1)        ! Pointer to Dirichlet BCs
+  integer :: mask(*)        ! Pointer to Dirichlet BCs
   integer :: nx,ny,nz,nel,l
   real(DP) :: w(nx,ny,nz,nel)
         

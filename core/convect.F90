@@ -90,7 +90,7 @@ subroutine gen_int(jgl,jgt,mp,np,w)
   implicit none
 
   integer, intent(in) :: mp, np
-  real(DP) :: jgl(mp,np),jgt(np*mp),w(1)
+  real(DP) :: jgl(mp,np),jgt(np*mp),w(*)
 
   integer :: iz, id, n, i, j
 
@@ -124,7 +124,7 @@ subroutine gen_dgl(dgl,dgt,mp,np,w)
   implicit none
 
   integer, intent(in) :: mp, np
-  real(DP) :: dgl(mp,np),dgt(np*mp),w(1)
+  real(DP) :: dgl(mp,np),dgt(np*mp),w(*)
 
   integer :: iz, id, ndgt, ldgt, n, i, j
 
@@ -279,7 +279,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   use input, only : if3d
   implicit none
 
-  real(DP) :: bdu(1),u(1),cx(1),cy(1),cz(1)
+  real(DP) :: bdu(*),u(*),cx(*),cy(*),cz(*)
   logical :: ifuf,ifcf            ! u and/or c already on fine mesh?
 
   integer, parameter :: ltd=lxd*lyd*lzd
@@ -376,8 +376,8 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
 
-  real :: cr(ltd,1),cs(ltd,1),ct(ltd,1)
-  real :: ux(lxy,1),uy(lxy,1),uz(lxy,1)
+  real :: cr(ltd,*),cs(ltd,*),ct(ltd,*)
+  real :: ux(lxy,*),uy(lxy,*),uz(lxy,*)
 
   real(DP) :: fx(ltd), fy(ltd), fz(ltd)!, ur, us, ut, tr, uf
 

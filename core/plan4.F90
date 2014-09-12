@@ -188,7 +188,7 @@ subroutine crespsp (respr, vext)
 
   real(DP), allocatable, dimension(:,:,:,:) :: TA1, TA2, TA3
   real(DP), allocatable, dimension(:,:,:,:) :: WA1, WA2, WA3
-  real(DP), allocatable ::  W1(:),     W2(:)
+  real(DP), allocatable, dimension(:,:,:,:) :: W1,  W2
 
   CHARACTER CB*3
  
@@ -199,8 +199,8 @@ subroutine crespsp (respr, vext)
   allocate(TA1 (LX1,LY1,LZ1,LELV) &
   , TA2 (LX1,LY1,LZ1,LELV) &
   , TA3 (LX1,LY1,LZ1,LELV) )
-  allocate(W1 (LX1*LY1*LZ1*LELV) &
-  , W2  (LX1*LY1*LZ1*LELV) )
+  allocate(W1 (LX1,LY1,LZ1,LELV) &
+  , W2  (LX1,LY1,LZ1,LELV) )
  
   NXYZ1  = NX1*NY1*NZ1
   NTOT1  = NXYZ1*NELV
@@ -224,7 +224,7 @@ subroutine crespsp (respr, vext)
 !max      CALL COL2  (WA2, OMASK,NTOT1)
 !max      CALL COL2  (WA3, OMASK,NTOT1)
   endif
-  call opcolv   (wa1,wa2,wa3,bm1)
+  wa1 = wa1 * bm1; wa2 = wa2 * bm1; wa3 = wa3 * bm1
 
   call opgrad   (ta1,ta2,ta3,QTL)
   if(IFAXIS) then
@@ -235,7 +235,7 @@ subroutine crespsp (respr, vext)
   scale = -4./3.
   call opadd2cm (wa1,wa2,wa3,ta1,ta2,ta3,scale)
   call invcol3  (w1,vdiff,vtrans,ntot1)
-  call opcolv   (wa1,wa2,wa3,w1)
+  wa1 = wa1 * w1; wa2 = wa2 * w1; wa3 = wa3 * w1
   deallocate(w1)
 
 !   add old pressure term because we solve for delta p
@@ -373,7 +373,8 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use tstep, only : ifield
   implicit none
 
-  real(DP) :: w1(*),w2(*),w3(*)
+
+  real(DP) :: w1(lx1,ly1,lz1,lelv),w2(lx1,ly1,lz1,lelv),w3(lx1,ly1,lz1,lelv)
   real(DP) :: u1(*),u2(*),u3(*)
   real(DP) :: work1(*),work2(*)
   logical :: ifavg
@@ -429,9 +430,9 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
       ifielt = ifield
       ifield = 1
              
-      call opcolv  (w1,w2,w3,bm1)
+      w1 = w1 * bm1; w2 = w2 * bm1; w3 = w3 * bm1
       call opdssum (w1,w2,w3)
-      call opcolv  (w1,w2,w3,binvm1)
+      w1 = w1 * binvm1; w2 = w2 * binvm1; w3 = w3 * binvm1
 
       ifield = ifielt
 

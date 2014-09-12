@@ -252,7 +252,7 @@ subroutine setics
   if(ifflow) then
       ifield = 1
       call opdssum(vx,vy,vz)
-      call opcolv (vx,vy,vz,vmult)
+      vx = vx * vmult; vy = vy * vmult; vz = vz * vmult
       if (ifsplit) call dsavg(pr)  ! continuous pressure
       if (ifvcor)  call ortho(pr)  ! remove any mean
   endif
@@ -260,7 +260,7 @@ subroutine setics
   if (ifmhd) then
       ifield = ifldmhd
       call opdssum(bx,by,bz)
-      call opcolv (bx,by,bz,vmult)
+      bx = bx * vmult; by = by * vmult; bz = bz * vmult
   endif
 
   if (ifheat) then

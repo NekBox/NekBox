@@ -739,7 +739,7 @@ subroutine makeuf
 
   TIME = TIME-DT
   CALL NEKUF   (BFX,BFY,BFZ)
-  CALL OPCOLV (BFX,BFY,BFZ,BM1)
+  bfx = bfx * bm1; bfy = bfy * bm1; bfz = bfz * bm1
   TIME = TIME+DT
 
   return
@@ -1371,7 +1371,7 @@ subroutine transpose(a,lda,b,ldb)
   use kinds, only : DP
   implicit none
   integer :: lda, ldb
-  real(DP) :: a(lda,1),b(ldb,1)
+  real(DP) :: a(lda,*),b(ldb,*)
   integer :: i, j
 
   do j=1,ldb
@@ -1400,8 +1400,8 @@ subroutine convop(conv,fi)
   implicit none
 
 !     Arrays in parameter list
-  REAL(DP) :: CONV (LX1,LY1,LZ1,1)
-  REAL(DP) :: FI   (LX1,LY1,LZ1,1)
+  REAL(DP) :: CONV (LX1,LY1,LZ1,*)
+  REAL(DP) :: FI   (LX1,LY1,LZ1,*)
 
   integer :: nxyz1, ntot1, ntotz
 

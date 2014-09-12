@@ -10,12 +10,12 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   implicit none
 
   CHARACTER      NAME*4
-  REAL(DP) ::           U    (LX1,LY1,LZ1,1)
-  REAL(DP) ::           RHS  (LX1,LY1,LZ1,1)
-  REAL(DP) ::           H1   (LX1,LY1,LZ1,1)
-  REAL(DP) ::           H2   (LX1,LY1,LZ1,1)
-  REAL(DP) ::           MASK (LX1,LY1,LZ1,1)
-  REAL(DP) ::           MULT (LX1,LY1,LZ1,1)
+  REAL(DP) ::           U    (LX1,LY1,LZ1,*)
+  REAL(DP) ::           RHS  (LX1,LY1,LZ1,*)
+  REAL(DP) ::           H1   (LX1,LY1,LZ1,*)
+  REAL(DP) ::           H2   (LX1,LY1,LZ1,*)
+  REAL(DP) ::           MASK (LX1,LY1,LZ1,*)
+  REAL(DP) ::           MULT (LX1,LY1,LZ1,*)
   real(DP) :: tli
   integer :: imsh, maxit, isd
 
@@ -91,10 +91,10 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   implicit none
 
   integer :: imesh, isd
-  REAL(DP) ::           AU    (LX1,LY1,LZ1,1) &
-  ,             U     (LX1,LY1,LZ1,1) &
-  ,             HELM1 (LX1,LY1,LZ1,1) &
-  ,             HELM2 (LX1,LY1,LZ1,1)
+  REAL(DP) :: AU    (LX1,LY1,LZ1,*) &
+  ,           U     (LX1,LY1,LZ1,*) &
+  ,           HELM1 (LX1,LY1,LZ1,*) &
+  ,           HELM2 (LX1,LY1,LZ1,*)
 
   REAL(DP) ::           TM1   (LX1,LY1,LZ1)
   REAL(DP) ::           TM2   (LX1,LY1,LZ1)
@@ -290,7 +290,7 @@ subroutine setfast (helm1,helm2,imesh)
   implicit none
 
   integer :: imesh
-  REAL(DP) :: HELM1(NX1,NY1,NZ1,1), HELM2(NX1,NY1,NZ1,1)
+  REAL(DP) :: HELM1(NX1,NY1,NZ1,*), HELM2(NX1,NY1,NZ1,*)
  
   integer :: nel, nxyz, ntot, ie 
   real(DP) :: delta, x, y, diff, epsm, h1min, h1max, testh1
@@ -423,8 +423,8 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   use wz_m, only : wxm1, wam1
   implicit none
 
-  REAL(DP) ::            DPCM1 (LX1,LY1,LZ1,1)
-  REAL(DP) ::            HELM1(NX1,NY1,NZ1,1), HELM2(NX1,NY1,NZ1,1)
+  REAL(DP) ::            DPCM1 (LX1,LY1,LZ1,*)
+  REAL(DP) ::            HELM1(NX1,NY1,NZ1,*), HELM2(NX1,NY1,NZ1,*)
   integer :: imsh, isd
 
   REAL(DP) :: YSM1(LY1)
@@ -590,11 +590,11 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   implicit none
 
   real(DP) :: tol
-  REAL(DP) :: RES  (LX1,LY1,LZ1,1)
-  REAL(DP) :: H1   (LX1,LY1,LZ1,1)
-  REAL(DP) :: H2   (LX1,LY1,LZ1,1)
-  REAL(DP) :: MASK (LX1,LY1,LZ1,1)
-  REAL(DP) :: MULT (LX1,LY1,LZ1,1)
+  REAL(DP) :: RES  (LX1,LY1,LZ1,*)
+  REAL(DP) :: H1   (LX1,LY1,LZ1,*)
+  REAL(DP) :: H2   (LX1,LY1,LZ1,*)
+  REAL(DP) :: MASK (LX1,LY1,LZ1,*)
+  REAL(DP) :: MULT (LX1,LY1,LZ1,*)
   integer :: imesh, isd
 
   real(DP), allocatable :: W1(:,:,:,:), W2(:,:,:,:)
@@ -900,7 +900,7 @@ end subroutine cggo
 real(DP) function vlsc32(r,b,m,n)
   use kinds, only : DP
   implicit none
-  real(DP) :: r(1),b(1),m(1)
+  real(DP) :: r(n),b(n),m(n)
   integer :: n
   real(DP) :: s
   integer :: i

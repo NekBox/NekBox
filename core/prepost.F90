@@ -3,8 +3,8 @@
 !!  Recent updates:
 !!  p65 now indicates the number of parallel i/o files; iff p66 >= 6
 subroutine prepost(ifdoin,prefin)
-  use kinds, only : DP, r4
-  use size_m, only : lx1, ly1, lz1, lelv, ldimt1, nid
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nid
   use ctimer, only : icalld, nprep, etime1, dnekclock, tprep
   use input, only : schfle, ifschclob, ifpsco
   use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump
@@ -12,9 +12,6 @@ subroutine prepost(ifdoin,prefin)
 
   logical :: ifdoin
   character(3) :: prefin
-
-  integer, parameter :: lxyz=lx1*ly1*lz1
-  integer, parameter :: lpsc9=ldimt1+9
 
   real(DP) :: tdmp(4)
 
@@ -100,7 +97,7 @@ subroutine prepost(ifdoin,prefin)
 
   tdmp(1)=iiidmp
   call gop(tdmp,tdmp(3),'+  ',1)
-  iiidmp= tdmp(1)
+  iiidmp= int(tdmp(1))
   if (iiidmp < 0) maxstep=abs(iiidmp)
   if (istep >= maxstep .OR. iiidmp == -2) lastep=1
   if (iiidmp == -2) return
@@ -132,13 +129,11 @@ end subroutine prepost
 !> \brief Store results for later postprocessing
 subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, lx2, ly2, lz2, lelt, ldimt
-  use size_m, only : nx1, ny1, nz1, nelt, nelv, nx2, ny2, nz2
-  use geom, only : ym1, ifrzer
-  use input, only : ifaxis, ifflow, ifheat, ifsplit, npscal
+  use size_m, only : lx1, ly1, lz1, lelv, ly2, lz2
+  use size_m, only : nx1, ny1, nz1, nelv, nx2, ny2, nz2
+  use input, only : ifaxis, ifsplit
   use ixyz, only : ixm21, iytm21, iztm21
-  use ixyz, only : iatjl2, iatjl1
-  use soln, only : vx, vy, pr, t
+  use soln, only : pr
   use tstep, only : if_full_pres
   implicit none
 
@@ -251,19 +246,15 @@ end subroutine prepost_map
 !-----------------------------------------------------------------------
 !> \brief output .fld file
 subroutine outfld(prefix, pm1)
-  use kinds, only : DP, r4
-  use size_m, only : lx1, ly1, lz1, lelv, ldimt1, nid
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nid
   use input, only : param
   use tstep, only : istep, time
   implicit none
 
 !   Work arrays and temporary arrays
 
-  integer, parameter :: lxyz=lx1*ly1*lz1
-  integer, parameter :: lpsc9=ldimt1+9
-
   character(3) ::    prefix
-
 
   real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
 
@@ -459,7 +450,7 @@ subroutine outhis(ifhis, pm1)
   real(DP), external :: glmax
 
   iohis=1
-  if (param(52) >= 1) iohis=param(52)
+  if (param(52) >= 1) iohis = int(param(52))
   if (mod(istep,iohis) == 0 .AND. ifhis) then
       if (nhis > 0) then
           IPART=0
@@ -638,11 +629,12 @@ end subroutine outhis
 subroutine copyX4(a,b,n)
   use kinds, only : DP, r4
   implicit none
-  REAL(r4) :: A(1)
-  REAL(DP) :: B(1)
-  integer :: n,i
+  integer, intent(in) :: n
+  REAL(r4), intent(out) :: A(n)
+  REAL(DP), intent(in) :: B(n)
+  integer :: i
   DO 100 I = 1, N
-      A(I) = B(I)
+      A(I) = real(B(I), kind=r4)
   100 END DO
   return
 end subroutine copyX4
@@ -702,7 +694,7 @@ end function i_find_prefix
 subroutine mfo_outfld(prefix, pm1) 
   use kinds, only : DP, i8
   use ctimer, only : dnekclock_sync
-  use size_m, only : lx1, ly1, lz1, lelv, lelt, ldimt, lxo
+  use size_m, only : lx1, ly1, lz1, lelv, ldimt, lxo
   use size_m, only : nx1, ny1, nz1, nelt, nid, ndim
   use restart, only : nxo, nyo, nzo, nrg, iheadersize, pid0, nelb, wdsizo
   use restart, only : ifh_mbyte, nfileo
@@ -943,7 +935,7 @@ subroutine io_init ! determine which nodes will output
 
 #else
   if(param(65) < 0) ifdiro = .TRUE. !  p65 < 0 --> multi subdirectories
-  nfileo  = abs(param(65))
+  nfileo  = int(abs(param(65)))
   if(nfileo == 0) nfileo = 1
   if(np < nfileo) nfileo=np
   nproc_o = np / nfileo              !  # processors pointing to pid0
@@ -969,7 +961,7 @@ subroutine io_init ! determine which nodes will output
   nelB = igl_running_sum(nn)
   nelB = nelB - nelt
        
-  pid00 = glmin(pid0,1)
+  pid00 = int(glmin(pid0,1))
 
   return
 end subroutine io_init
@@ -982,10 +974,9 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   use string, only : ltrunc
   implicit none
 
-  character(1) :: prefix(3)
+  character(3) :: prefix
   integer :: ierr
 
-  character(3) :: prefx
   character(132) ::  fname
   character(1) ::   fnam1(132)
   equivalence  (fnam1,fname)
@@ -1004,8 +995,7 @@ subroutine mfo_open_files(prefix,ierr) ! open files
 
   call blank(fname,132)      !  zero out for byte_open()
 
-  prefx = transfer(prefix, prefx)
-  iprefix        = i_find_prefix(prefx,99)
+  iprefix        = i_find_prefix(prefix,99)
   if (ifreguo) then
       nopen(iprefix,2) = nopen(iprefix,2)+1
       nfld             = nopen(iprefix,2)
@@ -1014,18 +1004,18 @@ subroutine mfo_open_files(prefix,ierr) ! open files
       nfld             = nopen(iprefix,1)
   endif
 
-  call chcopy(prefx,prefix,3)        ! check for full-restart request
-  if (prefx == 'rst' .AND. max_rst > 0) nfld = mod1(nfld,max_rst)
+  ! check for full-restart request
+  if (prefix == 'rst' .AND. max_rst > 0) nfld = mod1(nfld,max_rst)
 
-  call restart_nfld( nfld, prefx ) ! Check for Restart option.
-  if (prefx == '   ' .AND. nfld == 1) ifxyo_ = .TRUE. ! 1st file
+  call restart_nfld( nfld, prefix ) ! Check for Restart option.
+  if (prefix == '   ' .AND. nfld == 1) ifxyo_ = .TRUE. ! 1st file
 
 #ifdef MPIIO
   rfileo = 1
 #else
   rfileo = nfileo
 #endif
-  ndigit = log10(rfileo) + 1
+  ndigit = int(log10(rfileo) + 1)
        
   k = 1
   if (ifdiro) then                                  !  Add directory
@@ -1036,8 +1026,8 @@ subroutine mfo_open_files(prefix,ierr) ! open files
       k = k+1
   endif
 
-  if (prefix(1) /= ' ' .AND. prefix(2) /= ' ' .AND.     & !  Add prefix
-  prefix(3) /= ' ') then
+  if (prefix(1:1) /= ' ' .AND. prefix(2:2) /= ' ' .AND.     & !  Add prefix
+  prefix(3:3) /= ' ') then
   call chcopy(fnam1(k),prefix,3)
   k = k+3
   endif
@@ -1254,7 +1244,7 @@ subroutine mfo_mdatav(u,v,w,nel)
   use restart, only : pid0, pid1
   implicit none
 
-  real(DP) :: u(lx1*ly1*lz1,1),v(lx1*ly1*lz1,1),w(lx1*ly1*lz1,1)
+  real(DP) :: u(lx1*ly1*lz1,*),v(lx1*ly1*lz1,*),w(lx1*ly1*lz1,*)
   integer :: nel
 
   real(r4) :: buffer(1+6*lelt)
@@ -1274,14 +1264,14 @@ subroutine mfo_mdatav(u,v,w,nel)
   if (nid == pid0) then
       j = 1
       do e=1,nel
-          buffer(j+0) = vlmin(u(1,e),nxyz)
-          buffer(j+1) = vlmax(u(1,e),nxyz)
-          buffer(j+2) = vlmin(v(1,e),nxyz)
-          buffer(j+3) = vlmax(v(1,e),nxyz)
+          buffer(j+0) = real(vlmin(u(1,e),nxyz), kind=r4)
+          buffer(j+1) = real(vlmax(u(1,e),nxyz), kind=r4)
+          buffer(j+2) = real(vlmin(v(1,e),nxyz), kind=r4)
+          buffer(j+3) = real(vlmax(v(1,e),nxyz), kind=r4)
           j = j + 4
           if(if3d) then
-              buffer(j+0) = vlmin(w(1,e),nxyz)
-              buffer(j+1) = vlmax(w(1,e),nxyz)
+              buffer(j+0) = real(vlmin(w(1,e),nxyz), kind=r4)
+              buffer(j+1) = real(vlmax(w(1,e),nxyz), kind=r4)
               j = j + 2
           endif
       enddo
@@ -1302,7 +1292,7 @@ subroutine mfo_mdatav(u,v,w,nel)
           mtype = k
           call csend(mtype,idum,4,k,0)           ! handshake
           call crecv(mtype,buffer,len)
-          inelp = buffer(1)
+          inelp = int(buffer(1))
           nout  = n*inelp
           if(ierr == 0) then
 #ifdef MPIIO
@@ -1317,14 +1307,14 @@ subroutine mfo_mdatav(u,v,w,nel)
       buffer(j) = nel
       j = j + 1
       do e=1,nel
-          buffer(j+0) = vlmin(u(1,e),nxyz)
-          buffer(j+1) = vlmax(u(1,e),nxyz)
-          buffer(j+2) = vlmin(v(1,e),nxyz)
-          buffer(j+3) = vlmax(v(1,e),nxyz)
+          buffer(j+0) = real(vlmin(u(1,e),nxyz), kind=r4)
+          buffer(j+1) = real(vlmax(u(1,e),nxyz), kind=r4)
+          buffer(j+2) = real(vlmin(v(1,e),nxyz), kind=r4)
+          buffer(j+3) = real(vlmax(v(1,e),nxyz), kind=r4)
           j = j + 4
           if(n == 6) then
-              buffer(j+0) = vlmin(w(1,e),nxyz)
-              buffer(j+1) = vlmax(w(1,e),nxyz)
+              buffer(j+0) = real(vlmin(w(1,e),nxyz), kind=r4)
+              buffer(j+1) = real(vlmax(w(1,e),nxyz), kind=r4)
               j = j + 2
           endif
       enddo
@@ -1347,7 +1337,7 @@ subroutine mfo_mdatas(u,nel)
   use restart, only : pid0, pid1
   implicit none
 
-  real(DP) :: u(lx1*ly1*lz1,1)
+  real(DP) :: u(lx1*ly1*lz1,*)
   integer :: nel
 
   real(r4) :: buffer(1+2*lelt)
@@ -1367,8 +1357,8 @@ subroutine mfo_mdatas(u,nel)
   if (nid == pid0) then
       j = 1
       do e=1,nel
-          buffer(j+0) = vlmin(u(1,e),nxyz)
-          buffer(j+1) = vlmax(u(1,e),nxyz)
+          buffer(j+0) = real(vlmin(u(1,e),nxyz), kind=r4)
+          buffer(j+1) = real(vlmax(u(1,e),nxyz), kind=r4)
           j = j + 2
       enddo
 
@@ -1387,7 +1377,7 @@ subroutine mfo_mdatas(u,nel)
           mtype = k
           call csend(mtype,idum,4,k,0)           ! handshake
           call crecv(mtype,buffer,len)
-          inelp = buffer(1)
+          inelp = int(buffer(1))
           nout  = n*inelp
           if(ierr == 0) then
 #ifdef MPIIO
@@ -1402,8 +1392,8 @@ subroutine mfo_mdatas(u,nel)
       buffer(j) = nel
       j = j + 1
       do e=1,nel
-          buffer(j+0) = vlmin(u(1,e),nxyz)
-          buffer(j+1) = vlmax(u(1,e),nxyz)
+          buffer(j+0) = real(vlmin(u(1,e),nxyz), kind=r4)
+          buffer(j+1) = real(vlmax(u(1,e),nxyz), kind=r4)
           j = j + 2
       enddo
 
@@ -1484,7 +1474,7 @@ subroutine mfo_outs(u,nel,mx,my,mz)
           call csend(mtype,idum,4,k,0)       ! handshake
           if (wdsizo == 4 .AND. ierr == 0) then
             call crecv(mtype,u4,len)
-            nout  = wdsizo/4 * nxyz * u4(1)
+            nout  = wdsizo/4 * nxyz * int(u4(1))
 #ifdef MPIIO
             call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
 #else
@@ -1492,7 +1482,7 @@ subroutine mfo_outs(u,nel,mx,my,mz)
 #endif
           elseif(ierr == 0) then
             call crecv(mtype,u8,len)
-            nout  = wdsizo/4 * nxyz * u8(1)
+            nout  = wdsizo/4 * nxyz * int(u8(1))
 #ifdef MPIIO
             call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
 #else
@@ -1534,7 +1524,7 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
   implicit none
  
   integer :: mx, my, mz
-  real(DP) :: u(mx*my*mz,1),v(mx*my*mz,1),w(mx*my*mz,1)
+  real(DP) :: u(mx*my*mz,*),v(mx*my*mz,*),w(mx*my*mz,*)
 
   real(r4), allocatable :: u4(:)
   real(DP), allocatable :: u8(:)
@@ -1606,7 +1596,7 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
 
           if (wdsizo == 4 .AND. ierr == 0) then
               call crecv(mtype,u4,len)
-              nout  = wdsizo/4 * ndim*nxyz * u4(1)
+              nout  = wdsizo/4 * ndim*nxyz * int(u4(1))
 #ifdef MPIIO
               call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
 #else
@@ -1614,7 +1604,7 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
 #endif
           elseif(ierr == 0) then
               call crecv(mtype,u8,len)
-              nout  = wdsizo/4 * ndim*nxyz * u8(1)
+              nout  = wdsizo/4 * ndim*nxyz * int(u8(1))
 #ifdef MPIIO
               call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
 #else
@@ -1666,11 +1656,11 @@ end subroutine mfo_outv
 !-----------------------------------------------------------------------
 !> \brief write hdr, byte key, els.
 subroutine mfo_write_hdr          
-  use kinds, only : DP, r4
+  use kinds, only : r4
   use size_m, only : nid, nelt, lelt, ldimt
   use input, only : ifxyo, ifvo, ifpo, ifto, ifpsco
   use parallel, only : nelgt, lglel
-  use restart, only : nfileo, pid0, pid1, rdcode, rdcode1, wdsizo, nxo, nyo, nzo
+  use restart, only : nfileo, pid0, pid1, rdcode1, wdsizo, nxo, nyo, nzo
   use restart, only : fid0, iheadersize
   use tstep, only : istep, time
   implicit none
@@ -1751,7 +1741,7 @@ subroutine mfo_write_hdr
   !      if (ibsw_out.ne.0) call set_bytesw_write(ibsw_out)
       if (ibsw_out /= 0) call set_bytesw_write(0)
 
-      test_pattern = 6.54321           ! write test pattern for byte swap
+      test_pattern = 6.54321_r4           ! write test pattern for byte swap
 
 #ifdef MPIIO
   ! only rank0 (pid00) will write hdr + test_pattern

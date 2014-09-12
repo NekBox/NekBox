@@ -292,7 +292,7 @@ subroutine setdtc(umax)
       
           CALL MAKEUF
           CALL OPDSSUM (BFX,BFY,BFZ)
-          CALL OPCOLV  (BFX,BFY,BFZ,BINVM1)
+          bfx = bfx * binvm1; bfy = bfy * binvm1; bfz = bfz * binvm1
           FMAX=0.0
           CALL RZERO (U,NTOTD)
           DO 600 I=1,NTOT
@@ -449,7 +449,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
 
 !   Zero out scratch arrays U,V,W for ALL declared elements...
 
-  CALL RZERO3 (U,V,W,NTOTL)
+  u = 0_dp; v = 0_dp; w = 0_dp
 
   allocate(x(lx1,ly1,lz1,lelv), r(lx1,ly1,lz1,lelv))
 
@@ -569,12 +569,13 @@ end subroutine faccl2
 subroutine sethlm (h1,h2,intloc)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
+  use size_m, only : lx1, ly1, lz1, lelt
   use input, only : iftran, param
   use soln, only : vdiff, vtrans
   use tstep, only : ifield, nelfld, bd, dt
   implicit none
 
-  real(DP) :: h1(1),h2(1)
+  real(DP) :: h1(lx1,ly1,lz1,lelt),h2(lx1,ly1,lz1,lelt)
   integer :: intloc
 
   integer :: nel, ntot1, i
@@ -585,20 +586,14 @@ subroutine sethlm (h1,h2,intloc)
 
   if (iftran) then
       dtbd = bd(1)/dt
-      call copy  (h1,vdiff (1,1,1,1,ifield),ntot1)
+      h1 = vdiff(:,:,:,:,ifield)
       if (intloc == 0) then
           call rzero (h2,ntot1)
       else
           if (ifield == 1 .OR. param(107) == 0) then
-
-              call cmult2 (h2,vtrans(1,1,1,1,ifield),dtbd,ntot1)
-
+              h2 = vtrans(:,:,:,:,ifield) * dtbd
           else   ! unsteady reaction-diffusion type equation
-
-              do i=1,ntot1
-                  h2(i) = dtbd*vtrans(i,1,1,1,ifield) + param(107)
-              enddo
-
+              h2 = vtrans(:,:,:,:,ifield) * dtbd + param(107)
           endif
 
       endif
@@ -837,17 +832,6 @@ SUBROUTINE FACEXV (A1,A2,A3,B1,B2,B3,IFACE1,IOP)
 
   RETURN
 END SUBROUTINE FACEXV
-
-SUBROUTINE CMULT2 (A,B,CONST,N)
-  use kinds, only : DP
-  implicit none
-  real(DP) :: A(1),B(1), const
-  integer :: n, i
-  DO I=1,N
-      A(I)=B(I)*CONST
-  END DO
-  RETURN
-END SUBROUTINE CMULT2
 
 SUBROUTINE UPDMSYS (IFLD)
   use size_m

@@ -40,10 +40,6 @@ subroutine hsmg_setup()
   use tstep, only : ifield
   implicit none
 
-  integer :: nf,nc,nr
-  integer :: nx,ny,nz
-
-
   mg_fld = 1
   if (ifield > 1) mg_fld = 2
   if (ifield == 1) call hsmg_index_0 ! initialize index sets
@@ -144,6 +140,7 @@ end subroutine hsmg_setup_intpm
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_dssum
+  use kinds, only : i8
   use size_m, only : lx1, ly1, lz1, lelv, ldim, nelv, ndim
   use input, only : if3d
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
@@ -154,7 +151,7 @@ subroutine hsmg_setup_dssum
 
   integer, parameter :: lxyz=(lx1+2)*(ly1+2)*(lz1+2)
 
-  integer*8, allocatable :: glo_num(:)
+  integer(i8), allocatable :: glo_num(:)
   integer :: nx,ny,nz, ncrnr
   integer :: l
        
@@ -248,7 +245,7 @@ subroutine hsmg_intp(uf,uc,l) ! l is coarse level
   use kinds, only : DP
   use hsmg, only : mg_nh, mg_jh, mg_jht
   implicit none
-  real(DP) :: uf(1),uc(1)
+  real(DP) :: uf(*),uc(*)
   integer :: l
   call hsmg_tnsr(uf,mg_nh(l+1),uc,mg_nh(l),mg_jh(1,l),mg_jht(1,l))
   return
@@ -325,7 +322,7 @@ subroutine hsmg_dssum(u,l)
   use ctimer, only : dnekclock, etime1, tdadd, ifsync
   use hsmg, only : mg_gsh_handle, mg_fld
   implicit none
-  real(DP) :: u
+  real(DP) :: u(*)
   integer :: l
 
   if (ifsync) call nekgsync()
@@ -439,10 +436,11 @@ end subroutine hsmg_extrude
 !----------------------------------------------------------------------
 subroutine h1mg_schwarz(e,r,sigma,l)
   use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, nid
   use hsmg, only : mg_h1_n, mg_fld
   implicit none
 
-  real(DP) :: e(1),r(1), sigma
+  real(DP) :: e(*),r(*), sigma
   integer :: l, n
 
   n = mg_h1_n(l,mg_fld)
@@ -458,12 +456,13 @@ end subroutine h1mg_schwarz
 subroutine h1mg_schwarz_part1 (e,r,l)
   use kinds, only : DP
   use size_m, only : nelv
+  use size_m, only : nx1, ny1, nz1, nelv
   use input, only : if3d
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
   use tstep, only : ifield, nelfld
   implicit none
 
-  real(DP) :: e(1),r(1)
+  real(DP) :: e(*),r(*)
 
   integer :: enx,eny,enz,pm, n, i, l
   real(DP) :: zero, one, onem
@@ -645,9 +644,9 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
   use input, only : if3d
   implicit none
 
+  integer :: nl
   real(DP) :: s(nl*nl,2,ndim,nelv)
   real(DP) :: d(nl**ndim,nelv)
-  integer :: nl
   real(DP) :: ah(1),bh(1)
   integer :: n
       
@@ -803,7 +802,7 @@ subroutine hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
   real(DP) :: bh(0:n)
         
   real(DP) :: fac
-  integer :: i,j,i0,i1
+  integer :: i,i0,i1
   i0=0
   if(lbc == 1) i0=1
   i1=n
@@ -840,7 +839,7 @@ subroutine hsmg_fdm(e,r,l)
   use hsmg, only : mg_fast_s, mg_fast_d, mg_fast_s_index, mg_fast_d_index
   use hsmg, only : mg_nh, mg_fld
   implicit none
-  real(DP) :: e, r
+  real(DP) :: e(*), r(*)
   integer :: l
   call hsmg_do_fast(e,r, &
   mg_fast_s(mg_fast_s_index(l,mg_fld)), &
@@ -857,11 +856,11 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   use input, only : if3d
   implicit none
 
+  integer :: nl
   real(DP) :: e(nl**ndim,nelv)
   real(DP) :: r(nl**ndim,nelv)
   real(DP) :: s(nl*nl,2,ndim,nelv)
   real(DP) :: d(nl**ndim,nelv)
-  integer :: nl
         
   integer :: ie,nn,i
   nn=nl**ndim
@@ -903,7 +902,7 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
   real(DP) :: u(nx,ny,nz,nelv)
   real(DP) :: wt(nx,nz,2,ndim,nelv)
         
-  integer :: e, i, j, k, ie
+  integer :: i, j, k, ie
 
 !   if (nx.eq.2) then
 !      do e=1,nelv
@@ -1112,7 +1111,7 @@ subroutine hsmg_schwarz_wt(e,l)
   use input, only : if3d
   use hsmg, only : mg_schwarz_wt, mg_schwarz_wt_index, mg_fld, mg_nh
   implicit none
-  real(DP) :: e
+  real(DP) :: e(*)
   integer :: l
           
 #if 0
@@ -1133,7 +1132,6 @@ subroutine hsmg_schwarz_wt3d(e,wt,n)
   integer :: n
   real(DP) :: e(n,n,n,nelv)
   real(DP) :: wt(n,n,4,3,nelv)
-        
   integer :: ie,i,j,k
   do ie=1,nelv
       do k=1,n
@@ -1173,8 +1171,6 @@ subroutine hsmg_coarse_solve(e,r)
   implicit none
   real(DP) :: e(1),r(1)
 
-  integer, save :: n_crs_tot = 0
-
   if (icalld == 0) then ! timer info
       ncrsl=0
       tcrsl=0.0
@@ -1203,7 +1199,7 @@ subroutine hsmg_setup_solve
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, lmg_solve, mg_fld, mg_solve_index
   implicit none
         
-  integer :: l,i,nl,nlz, itmp
+  integer :: l,i, itmp
 
   i = mg_solve_index(mg_lmax+1,mg_fld-1)
   do l=1,mg_lmax
@@ -1227,10 +1223,6 @@ subroutine hsmg_setup_mg_nx()
   use input, only : if3d
   use hsmg, only : mg_lmax, mg_nz, mg_ny, mg_nx
   implicit none
-
-  real(DP) :: w(lx1+2)
-  integer :: nf,nc,nr
-  integer :: nx,ny,nz
 
   integer :: p82, mgnx1, mgnx2, i
 
@@ -1303,17 +1295,18 @@ end subroutine hsmg_index_0
 !     Assumes that preprocessing has been completed via h1mg_setup()
 subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
   use kinds, only : DP
+  use size_m, only : nx1, ny1, nz1, nelv, nid
   use size_m, only : lx1, ly1, lz1, lelv, lelt
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
   implicit none
 
-  real(DP) :: z(1),rhs(1)
+  real(DP) :: z(*),rhs(*)
   logical :: if_hybrid
        
   integer, parameter :: lt=lx1*ly1*lz1*lelt
   real(DP), allocatable :: e(:),w(:),r(:)
-  integer :: p_msk,p_b
+  integer :: p_msk
 
   real(DP) :: op, om, sigma
   integer :: nel, l, n, is, im, i1, i
@@ -1332,7 +1325,6 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
   l     = mg_h1_lmax
   n     = mg_h1_n(l,mg_fld)
   is    = 1                                       ! solve index
-
   call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M       rhs
 !               Schwarz
   allocate(r(lt))
@@ -1340,7 +1332,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
 !max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
 !  l
 
-  allocate(e(2*lt))
+  allocate(e(2*lt)); e = 0_dp
   do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
       is = is + n
       n  = mg_h1_n(l,mg_fld)
@@ -1369,7 +1361,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
 !     call outnxfld (e(is),nx,nelv,'ecrsaf',is)
 !     call exitt
 
-  allocate(w(lt))
+  allocate(w(lt)); w = 0_dp
   do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
       im = is
       is = is - n
@@ -1519,7 +1511,7 @@ subroutine h1mg_setup()
   use input, only : param
   implicit none
 
-  integer :: p_h1,p_h2,p_g,p_b,p_msk, n, l
+  integer :: p_msk, n, l
 
   param(59) = 1
   call geom_reset(1)  ! Recompute g1m1 etc. with deformed only
@@ -1554,9 +1546,6 @@ subroutine h1mg_setup_mg_nx()
   use hsmg, only : mg_h1_n, mg_lmax, mg_h1_lmax, mg_nz, mg_ny, mg_nx
   use tstep, only : ifield, nelfld
   implicit none
-  real(DP) :: w(lx1+2)
-  integer :: nf,nc,nr
-  integer :: nx,ny,nz
 
   integer :: mgn2(10) = (/ 1, 2, 2, 2, 2, 3, 3, 5, 5, 5/)
   integer :: p82, mgnx1, mgnx2, i, ifld, l
@@ -1639,6 +1628,7 @@ end subroutine h1mg_setup_semhat
 
 !----------------------------------------------------------------------
 subroutine h1mg_setup_dssum
+  use kinds, only : i8
   use size_m, only : lx1, ly1, lz1, lelt, ldim, nelv, ndim
   use input, only : if3d
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
@@ -1649,7 +1639,7 @@ subroutine h1mg_setup_dssum
 
   integer, parameter :: lxyz=(lx1+2)*(ly1+2)*(lz1+2)
 
-  integer*8, allocatable :: glo_num(:)
+  integer(i8), allocatable :: glo_num(:)
   integer :: nx,ny,nz, ncrnr
   integer :: l
   
@@ -1719,14 +1709,15 @@ subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
   implicit none
 
   integer :: mask(1)        ! Pointer to Dirichlet BCs
-  integer :: nx,ny,nz,l
+  integer :: nx,ny,nz,nel,l
   real(DP) :: w(nx,ny,nz,nel)
         
   integer :: e,count,ptr
   integer :: lbr,rbr,lbs,rbs,lbt,rbt,two
-  integer :: nxyz, n, ierrmx, i, nel, ierr, nm
+  integer :: nxyz, n, ierrmx, i, ierr, nm
   integer, external :: iglmax
   real(DP) :: zero
+  real(DP) :: w_flat(nx*ny*nz)
 
   zero = 0
   nxyz = nx*ny*nz
@@ -1773,8 +1764,9 @@ subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
       count   = 0          ! # Dirchlet points on element e
       ptr     = mask(e)
 
+      w_flat = reshape(w(:,:,:,e), (/nxyz/))
       do i=1,nxyz
-          if (w(i,1,1,e) == 0) then
+          if (w_flat(i) == 0) then
               nm    = nm   +1
               count = count+1
               ptr   = ptr  +1
@@ -1863,7 +1855,6 @@ subroutine h1mg_setup_schwarz_wt3d_2(wt,ie,n,work,ifsqrt)
   real(DP) :: work(n,n,n)
         
   integer :: i,j,k, ii, ierr
-  integer :: lbr,rbr,lbs,rbs,lbt,rbt
 
   ierr = 0
   do k=1,n
@@ -1935,7 +1926,7 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   ns = enx*eny*enz*nelfld(ifield)
   i  = ns+1
 
-  allocate(work(2*ns))
+  allocate(work(2*ns)); work = 0_dp
   call rone(work(i),ns)
    
 !   Sum overlap region (border excluded)

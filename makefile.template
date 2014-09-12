@@ -235,7 +235,7 @@ $(OBJDIR)/induct.o	:$S/induct.F90;	      		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/convect.o	:$S/convect.F90;	      	$(F90) -c $(FL2) $< -o $@
 #$(OBJDIR)/perturb.o	:$S/perturb.F90;	     	$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/genbox.o	:$S/genbox.F90;			$(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/hsmg.o	:$S/hsmg.F90;			$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/hsmg.o	:$S/hsmg.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/gmres.o	:$S/gmres.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/papi.o	:$S/papi.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/bdry.o	:$S/bdry.F90;			$(F90) -c $(FL2) $< -o $@
@@ -250,7 +250,6 @@ $(OBJDIR)/navier5.o	:$S/navier5.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier6.o	:$S/navier6.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier7.o	:$S/navier7.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/navier8.o	:$S/navier8.F90;		$(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/speclib.o	:$S/speclib.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/calcz.o	:$S/calcz.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/fast3d.o	:$S/fast3d.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/dssum.o	:$S/dssum.F90;			$(F90) -c $(FL2) $< -o $@
@@ -272,13 +271,16 @@ $(OBJDIR)/makeq.o      	:$S/makeq.F90;			$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/makeq_aux.o  	:$S/makeq_aux.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/hmholtz.o	:$S/hmholtz.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/fasts.o	:$S/fasts.F90;		        $(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/comm_mpi.o	:$S/comm_mpi.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/mpi_dummy.o	:$S/mpi_dummy.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/byte_mpi.o	:$S/byte_mpi.F90;		$(F90) -c $(FL2) $< -o $@
-$(OBJDIR)/math.o	:$S/math.F90;			$(F77) -c $(FL4) $< -o $@
 $(OBJDIR)/multimesh.o	:$S/multimesh.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/singlmesh.o	:$S/singlmesh.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/lb_setqvol.o	:$S/lb_setqvol.F90;		$(F90) -c $(FL2) $< -o $@
+
+$(OBJDIR)/speclib.o	:$S/speclib.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/comm_mpi.o	:$S/comm_mpi.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/math.o	:$S/math.F90;			$(F77) -c $(FL4) $< -o $@
+
 .F90.o:                                                    
 	$(F77) -c $(FL2) $*.F90                            
                                                            

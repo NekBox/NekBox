@@ -68,10 +68,12 @@ module soln
   contains
 
   subroutine init_soln()
+    use kinds, only : DP
     use size_m
     implicit none 
     
     allocate(BQ(LX1,LY1,LZ1,LELT,LDIMT))
+    bq = 0_dp
 
     allocate( &
 !     Can be used for post-processing runs (SIZE .gt. 10+3*LDIMT flds)

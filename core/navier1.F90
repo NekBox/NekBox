@@ -2,7 +2,7 @@
 !> \brief Compute the pressure tolerance
 subroutine ctolspl (tolspl,respr)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, lx2, ly2, lz2
+  use size_m, only : lelv, lx2, ly2, lz2
   use size_m, only : nx1, ny1, nz1, nelv, nid
   use geom, only : bm1, volvm1
   use tstep, only : dt, tolpdf, tolps, prelax
@@ -40,7 +40,7 @@ end subroutine ctolspl
 !> \brief   Orthogonalize the residual in the pressure solver with respect
 !! to (1,1,...,1)T  (only if all Dirichlet b.c.).
 subroutine ortho (respr)
-  use kinds, only : DP, i8
+  use kinds, only : DP, i8, i4
   use size_m, only : lx2, ly2, lz2, lelv, nx2, ny2, nz2, nelv
   use geom, only : ifvcor, ifbcor
   use input, only : ifldmhd
@@ -55,7 +55,7 @@ subroutine ortho (respr)
   real(DP), external :: glsum
 
   nxyz2 = nx2*ny2*nz2
-  ntot  = nxyz2*nelv
+  ntot  = int(nxyz2*nelv, kind=i4)
   ntotg = nxyz2*nelgv
 
   if (ifield == 1) then
@@ -115,14 +115,14 @@ end subroutine opgrad
 !-------------------------------------------------------------
 subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv, lelt
+  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
   use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, ndim
   use ctimer, only : icalld, tcdtp, ncdtp, etime1, dnekclock
-  use dxyz, only : dym12, dam12, dcm12, dxtm12, dzm12, datm1
+  use dxyz, only : dym12, dam12, dcm12, dxtm12, dzm12
   use geom, only : ifrzer, jacm2, ym2, jacm1
   use input, only : ifaxis, ifsplit
-  use ixyz, only : iym12, iam12, icm12, ixtm12
-  use geom, only : bm1, bm2, baxm1
+  use ixyz, only : iym12, iam12, icm12
+  use geom, only : bm1, bm2
   use wz_m, only : w3m2, w2am2, w2cm2
   implicit none
 
@@ -327,7 +327,7 @@ end subroutine cdtp
 !---------------------------------------------------------------------
 subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
   use kinds, only : DP
-  use size_m, only : lx2, ly2, lz2, lx1, ly1, lz1, lelv, lelt
+  use size_m, only : lx2, ly2, lz2, lx1, ly1, lz1, lelv
   use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, ndim
   use ctimer, only : icalld, tmltd, nmltd, etime1, dnekclock
   use dxyz, only : dytm12, datm12, dctm12, dxm12, dztm12
@@ -646,24 +646,24 @@ end subroutine ophx
 !--------------------------------------------------------------
 subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, ny1, nz1, nelv, nelt, ndim
   use dxyz, only : dxm1, dytm1, dztm1
-  use geom, only : ifrzer, jacmi
-  use input, only : ifaxis
+  use geom, only : jacmi
   implicit none
 
   integer :: imsh, isd
-  REAL(DP) ::  DU  (LX1,LY1,LZ1,1)
-  REAL(DP) ::  U   (LX1,LY1,LZ1,1)
-  REAL(DP) ::  RM1 (LX1,LY1,LZ1,1)
-  REAL(DP) ::  SM1 (LX1,LY1,LZ1,1)
-  REAL(DP) ::  TM1 (LX1,LY1,LZ1,1)
-  REAL(DP) ::  JM1 (LX1,LY1,LZ1,1)
+  REAL(DP) ::  DU  (LX1,LY1,LZ1,*)
+  REAL(DP) ::  U   (LX1,LY1,LZ1,*)
+  REAL(DP) ::  RM1 (LX1,LY1,LZ1,*)
+  REAL(DP) ::  SM1 (LX1,LY1,LZ1,*)
+  REAL(DP) ::  TM1 (LX1,LY1,LZ1,*)
+  REAL(DP) ::  JM1 (LX1,LY1,LZ1,*)
 
   REAL(DP) ::  DRST(LX1,LY1,LZ1)
   integer :: nel, nxy1, nyz1, nxyz1, ntot, iel, iz
 
+  nel = -1
   IF (imsh == 1) NEL = NELV
   IF (imsh == 2) NEL = NELT
   NXY1  = NX1*NY1
@@ -781,7 +781,7 @@ end subroutine nekuf
 !---------------------------------------------------------------
 subroutine advab()
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nelv, lx1, ly1, lz1, lelv, ndim
+  use size_m, only : nx1, ny1, nz1, nelv, ndim
   use geom, only : bm1
   use soln, only : vx, vy, vz, bfx, bfy, bfz
   implicit none
@@ -848,7 +848,6 @@ end subroutine makebdf
 subroutine makeabf
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, ndim
-  use size_m, only : lx1, ly1, lz1, lelv
   use soln, only : abx1, aby1, abz1, abx2, aby2, abz2, bfx, bfy, bfz, vtrans
   use tstep, only : ab
   implicit none
@@ -980,7 +979,7 @@ subroutine setbd (bd,dtbd,nbd)
   INTEGER :: IR(NDIM),IC(NDIM)
   integer :: nsys, i, ibd
 
-  CALL RZERO (BD,10)
+  CALL RZERO (BD,10); bdf = -1
   IF (NBD == 1) THEN
       BD(1) = 1.
       BDF   = 1.
@@ -997,13 +996,13 @@ subroutine setbd (bd,dtbd,nbd)
 
 !   Normalize
 
-  DO 100 IBD=NBD,1,-1
+  DO IBD=NBD,1,-1
       BD(IBD+1) = BD(IBD)
-  100 END DO
+  END DO
   BD(1) = 1.
-  DO 200 IBD=1,NBD+1
+  DO IBD=1,NBD+1
       BD(IBD) = BD(IBD)/BDF
-  200 END DO
+  END DO
 !   write(6,1) (bd(k),k=1,nbd+1)
 ! 1 format('bd:',1p8e13.5)
 
@@ -1142,7 +1141,12 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   ELSEIF (IMESH == 2) THEN
       NEL = NELT
       VOL = VOLTM1
+  else
+    nel = -1
+    vol = -1.
+    write(*,*) "IMESH \notin {1,2}"
   ENDIF
+
   LENGTH = VOL**(1./(NDIM))
   NXYZ1  = NX1*NY1*NZ1
   NTOT1  = NXYZ1*NEL
@@ -1318,7 +1322,6 @@ end subroutine opcopy
 !-----------------------------------------------------------------------
 subroutine opdssum (a,b,c)! NOTE: opdssum works on FLUID/MHD arrays only!
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1
   use input, only : ifcyclic
   implicit none
 
@@ -1341,7 +1344,6 @@ end subroutine opdssum
 !-----------------------------------------------------------------------
 subroutine opdsop (a,b,c,op)! opdsop works on FLUID/MHD arrays only!
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1
   use input, only : ifcyclic
   implicit none
 
@@ -1390,7 +1392,7 @@ end subroutine transpose
 subroutine convop(conv,fi)
   use kinds, only : DP
   use ctimer, only : icalld, tadvc, nadvc, etime1, dnekclock
-  use size_m, only : lx1, ly1, lz1, lelv
+  use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, ny1, nz1, nelv
   use dealias, only : vxd, vyd, vzd
   use input, only : param, ifpert

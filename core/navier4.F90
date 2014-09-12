@@ -22,12 +22,10 @@ contains
 !!              ws        -- small work array of size 2*max vecs
 subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nelv, nid
+  use size_m, only : nx1, ny1, nz1, nelv, nid
   use geom, only : voltm1, volvm1
   use tstep, only : istep, ifield, nelfld
   implicit none
-
-  integer, parameter :: lt=lx1*ly1*lz1*lelt
 
   real(DP) :: r(*),h1(*),h2(*),vml(*),vmk(*)
   real(DP) :: bi(*)
@@ -96,12 +94,11 @@ end subroutine projh
 subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
-  use size_m, only : lx1, ly1, lz1, lelt, mxprev
+  use size_m, only : lx1, ly1, lz1, mxprev
   use mesh, only : niterhm
   use tstep, only : nelfld, ifield
   implicit none
 
-  integer, parameter :: lt=lx1*ly1*lz1*lelt
   REAL(DP) :: V1   (LX1,LY1,LZ1,*)
   REAL(DP) :: H1   (LX1,LY1,LZ1,*)
   REAL(DP) :: H2   (LX1,LY1,LZ1,*)
@@ -156,14 +153,13 @@ end subroutine gensh
 !> \brief Orthonormalize the kth vector against vector set
 subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nid
+  use size_m, only : nx1, ny1, nz1, nid
   use parallel, only : wdsize
   use tstep, only : istep, ifield, nelfld
   implicit none
 
-  integer, parameter :: lt=lx1*ly1*lz1*lelt
   integer :: k, ierr
-  real(DP) :: approx(:,0:),h1(1),h2(1),vml(1),vmk(1),ws(1)
+  real(DP) :: approx(:,0:),h1(*),h2(*),vml(*),vmk(*),ws(*)
   character(4) :: name4
 
   integer :: i, ntot, km1 
@@ -300,7 +296,7 @@ end subroutine updrhsh
 !-----------------------------------------------------------------------
 subroutine hmhzpf(name,u,r,h1,h2,mask,mult,imesh,tli,maxit,isd,bi)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, ny1, nz1, nelv, nelt, ndim
   use ctimer, only : etime1, dnekclock, thmhz
   use fdmh1, only : kfldfdm

@@ -82,7 +82,6 @@ module geom
   end subroutine init_geom
 
   subroutine compress_geom()
-    use kinds, only : DP_eps
     use size_m, only : lx1,ly1,lz1,nelt, nid
     implicit none
 

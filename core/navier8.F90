@@ -35,7 +35,7 @@ end subroutine set_vert
 subroutine set_up_h1_crs
   use kinds, only : DP, i8
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nid
-  use size_m, only : lx1, ly1, lz1, lelv, lelt, ldim
+  use size_m, only : lx1, ly1, lz1, lelv
   use domain, only : nx_crs, nxyz_c, se_to_gcrs, lcr
   use geom, only : ifvcor, ifbcor
   use input, only : if3d, ifldmhd, cbc
@@ -352,7 +352,6 @@ end subroutine specmpn
 !-----------------------------------------------------------------------
 !> \brief Use Heap Sort (p 233 Num. Rec.), 5/26/93 pff.
 subroutine irank(A,IND,N)
-  use kinds, only : DP
   implicit none
   integer :: A(*),IND(*), n
 
@@ -633,7 +632,6 @@ end subroutine get_vert
 
 !-----------------------------------------------------------------------
 subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
-  use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, ldim, nid, nelt, nelv, ndim
   use input, only : reafle
   use parallel, only : np, gllnid, isize, gllel, nelgt, nelgv, cr_h
@@ -899,7 +897,7 @@ end subroutine gbtuple_rank
 !!  than 2**31 (integer-4 limit).
 !!  if nelgt < 2**31/12 we're ok for sure (independent of N)!
 subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
-  use kinds, only : DP, i8
+  use kinds, only : i8
   use size_m, only : lelt, ndim, nid, nelt
   use parallel, only : cr_h, np, nelgt, lglel
   use topol, only : icface, skpdat
@@ -940,6 +938,8 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
   key(1)=1
   key(2)=2
   key(3)=3
+
+  ngvs = -1
 
 !   Assign hypercube ordering of vertices
 !   -------------------------------------
@@ -1143,10 +1143,10 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
       
       !        We would count from c-->a, then towards d.
       
-          gvf(1) = glo_num(i0+nx*(j0-1)+nxyz*(e-1))
-          gvf(2) = glo_num(i1+nx*(j0-1)+nxyz*(e-1))
-          gvf(3) = glo_num(i0+nx*(j1-1)+nxyz*(e-1))
-          gvf(4) = glo_num(i1+nx*(j1-1)+nxyz*(e-1))
+          gvf(1) = int(glo_num(i0+nx*(j0-1)+nxyz*(e-1)))
+          gvf(2) = int(glo_num(i1+nx*(j0-1)+nxyz*(e-1)))
+          gvf(3) = int(glo_num(i0+nx*(j1-1)+nxyz*(e-1)))
+          gvf(4) = int(glo_num(i1+nx*(j1-1)+nxyz*(e-1)))
       
           call irank(gvf,ind,4)
       
@@ -1169,6 +1169,10 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
               idir = -1
               jdir = -1
               if (gvf(3) < gvf(2)) ifij = .TRUE. 
+          else
+            idir = 0
+            jdir = 0
+            write(*,*) "Wasn't supposed to get here!"
           endif
       
           if (idir < 0) then

@@ -1,0 +1,14 @@
+language: fortran
+
+before_install: 
+ - export ROOT_DIR=`pwd`
+ - sudo apt-get update -qq
+ - sudo apt-get install -y gfortran 
+ - sudo apt-get install -y mpich2 libmpich2-dev libmpich2-3 
+ - sudo apt-get install -y liblapack-dev
+
+ - git clone https://github.com/maxhutch/nek-tests.git
+ - cd nek-tests/RTI-LST/
+
+script: 
+ - ../../makenek RTI_LST $ROOT_DIR

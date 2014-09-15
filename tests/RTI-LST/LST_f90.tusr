@@ -1,0 +1,161 @@
+!-----------------------------------------------------------------------
+    subroutine uservp(ix,iy,iz,eg) ! set variable properties
+    use size_m
+    use nekuse
+    implicit none
+
+    integer :: ix, iy, iz
+    integer :: e,f,eg
+
+    return
+    end subroutine uservp
+!-----------------------------------------------------------------------
+    subroutine userf(ix,iy,iz,eg) ! set acceleration term
+    use size_m
+    use nekuse
+    implicit none
+
+!     Note: this is an acceleration term, NOT a force!
+!     Thus, ffx will subsequently be multiplied by rho(x,t).
+
+    real :: rayleigh, atwood, amp0, delta
+    integer :: kmax, kmin
+    common /myvalues/ rayleigh, atwood, kmax, kmin, amp0, delta
+
+    integer :: ix, iy, iz, eg
+    integer :: e,f
+
+
+    ffx = 0.0
+    ffy = 0.0
+    ffz = rayleigh*temp
+
+    return
+    end subroutine userf
+!-----------------------------------------------------------------------
+    subroutine userq(ix,iy,iz,eg) ! set source term
+    use size_m
+    use nekuse
+    implicit none
+
+    integer :: ix, iy, iz, eg
+
+    qvol   = 0.0
+
+    return
+    end subroutine userq
+!-----------------------------------------------------------------------
+    subroutine userq2(q) ! set source term
+    use size_m
+    use nekuse
+    implicit none
+
+    real :: q(lx1, ly1, lz1, lelt)
+
+    return
+    end subroutine userq2
+!-----------------------------------------------------------------------
+    subroutine userbc(ix,iy,iz,iside,ieg) ! set up boundary conditions
+    use size_m
+    use nekuse
+    implicit none
+
+    integer :: ix, iy, iz, iside, ieg
+!      if (cbc(iside,gllel(ieg),ifield).eq.'v01')
+
+    ux   = 0.0
+    uy   = 0.0
+    uz   = 0.0
+    temp = 0.0
+
+    return
+    end subroutine userbc
+!-----------------------------------------------------------------------
+    subroutine useric(ix,iy,iz,eg) ! set up initial conditions
+!      use ifport, only : random_number, random_seed
+    use size_m
+    use nekuse
+    use zper
+    implicit none
+
+    real :: rayleigh, atwood, amp0, delta
+    integer :: kmax, kmin
+    common /myvalues/ rayleigh, atwood, kmax, kmin, amp0, delta
+
+    integer :: ix, iy, iz, e, eg
+    integer :: i,j,ij, k
+    integer :: ppm, pps
+    real, parameter :: pi = 3.14159265358
+
+    real :: eps, kx, ky
+    real :: zz
+
+    real :: amp(4, 64*64)
+    real :: rtmp
+    integer :: kwav(2,64*64)
+    save amp, kwav
+
+    integer :: init
+    save init
+    data init / 0 /
+
+    integer :: key
+    save    key
+    data    key  / 9999 /
+
+    ux   = 0.0
+    uy   = 0.0
+    uz   = 0.0
+
+    zz = 0.
+    zz = zz + amp0/kmin*sin(kmin*2*pi*x)
+    zz = -(z + zz)/delta
+
+    temp = atwood*erf(zz)/2
+    return
+    end subroutine useric
+!-----------------------------------------------------------------------
+    subroutine userchk()
+    use size_m
+    use tstep
+    use soln
+    implicit none
+
+    if (istep == 0) call outpost(vx,vy,vz,pr,t,'   ')
+
+    return
+    end subroutine userchk
+!-----------------------------------------------------------------------
+    subroutine usrdat()   ! This routine to modify element vertices
+    use size_m
+    implicit none
+
+    return
+    end subroutine usrdat
+!-----------------------------------------------------------------------
+    subroutine usrdat2()  ! This routine to modify mesh coordinates
+    use size_m
+    implicit none
+
+    real :: rayleigh, atwood, amp0, delta
+    integer :: kmax, kmin
+
+    common /myvalues/ rayleigh, atwood, kmax, kmin, amp0, delta
+
+    atwood = {atwood}
+    kmax = {kmax}
+    kmin = {kmin}
+    amp0 = {amp0}
+    rayleigh = 9.8
+    delta = 0.25 * ({extent_mesh[2]} - ({root_mesh[2]})) / ({shape_mesh[2]})
+
+    return
+    end subroutine usrdat2
+!-----------------------------------------------------------------------
+    subroutine usrdat3()
+    use size_m
+    implicit none
+
+    return
+    end subroutine usrdat3
+!-----------------------------------------------------------------------

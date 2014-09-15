@@ -4,6 +4,7 @@
 
 # source path 
 SOURCE_ROOT="$HOME/nek" 
+SOURCE_ROOT="$HOME/maxhutch/nek" 
 
 # Fortran compiler
 F77="mpif90 "

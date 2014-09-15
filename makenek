@@ -6,21 +6,23 @@
 SOURCE_ROOT="$HOME/src/nek" 
 
 # Fortran compiler
-F77="mpif90 -g -traceback"
-CHECKS=" -g -check all -debug all -ftrapuv -heap-arrays -warn all -stand f90 -debug-parameters all -fpe0 "
-#F77="gfortran -I/opt/openmpi/include -I/opt/openmpi/lib -L/opt/openmpi/lib -lmpi_f90 -lmpi_f77 -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil -O0 "
-#CHECKS="-Wall -Wextra -pedantic -fbounds-check -fbacktrace -fcheck=all"
+F77="mpif90 "
+#F77="mpif90 -g -traceback"
+#CHECKS=" -check all -debug all -ftrapuv -heap-arrays -warn all -stand f90 -debug-parameters all -fpe0 "
+#F77="gfortran -I/opt/openmpi/include -I/opt/openmpi/lib -L/opt/openmpi/lib -lmpi_f90 -lmpi_f77 -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil -g " #-fcheck=array-temps -fcheck=do -fcheck=mem -fcheck=pointer -fcheck=recursion  "
+CHECKS="-Wall -Wextra -pedantic -fbacktrace -fcheck=all " #-ffpe-trap=invalid,zero,overflow "
 
 # C compiler
-CC="mpicc -g -traceback -fp-model strict "
-#CC="gcc -I/opt/openmpi/include -pthread -L/opt/openmpi/lib -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil -O0"
+CC="mpicc "
+#CC="mpicc -g -traceback -fp-model strict "
+#CC="gcc -I/opt/openmpi/include -pthread -L/opt/openmpi/lib -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil -g  "
 
 # pre-processor symbol list 
 # (set PPLIST=? to get a list of available symbols)
-#PPLIST="?" 
+#PPLIST="NO_LAPACK" 
 
 # plug-in list
-PLUGIN_LIST=""
+#PLUGIN_LIST=""
 
 
 # OPTIONAL SETTINGS
@@ -35,15 +37,18 @@ PLUGIN_LIST=""
 #USR=""
 
 # linking flags
-USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core"
+#USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core"
+USR_LFLAGS="-lblas -llapack"
 
 
 # generic compiler flags
-#G="-g"
+G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans "
 
 # optimization flags
-#OPT_FLAGS_STD=""
-#OPT_FLAGS_MAG=""
+#OPT_FLAGS_STD="-O3 -ip -ftz -xHost -no-prec-div -ipo -fp-model fast=2"
+#OPT_FLAGS_MAG="-O3 -ip -ftz -xHost -no-prec-div -ipo -fp-model fast=2"
+#OPT_FLAGS_STD=" "
+#OPT_FLAGS_MAG=" "
 
 # enable AMG coarse grid solver (default XXT)
 #IFAMG="true"

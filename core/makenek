@@ -92,7 +92,7 @@ fi
 source $SOURCE_ROOT/makenek.inc
 # compile
 make -j2 -f makefile 2>&1 | tee compiler.out
-if [-e nek5000]; then
+if [ -e nek5000 ]; then
   return 0
 else
   return 1

@@ -1,11 +1,13 @@
 language: fortran
 
 before_install: 
-  git clone git@github.com:maxhutch/nek-tests.git
-  cd nek-tests/RTI-LST/
-  sudo apt-get update
-  sudo apt-get install mpich2 libmpich2-dev libmpich2-3 gfortran
-  sudo apt-get install liblapack3 libblas3
+ - sudo apt-get update -qq
+ - sudo apt-get install -y gfortran 
+ - sudo apt-get install -y mpich2 libmpich2-dev libmpich2-3 
+ - sudo apt-get install -y liblapack3 libblas3
 
-install: 
-  ../../makenek
+ - git clone git@github.com:maxhutch/nek-tests.git
+ - cd nek-tests/RTI-LST/
+
+script: 
+ - ../../makenek

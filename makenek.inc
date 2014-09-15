@@ -80,8 +80,8 @@ if [ -f SIZEu ]; then
    mv -v SIZEu SIZE
 fi
 
-if [ ! -f SIZE ]; then
-   echo "FATAL ERROR: Cannot find SIZE!"
+if [ ! -f size_mod.F90 ]; then
+   echo "FATAL ERROR: Cannot find size_mod.F90!"
    exit 1
 fi
 
@@ -190,7 +190,6 @@ if [ $F77ok -eq 0 ]; then
   F77comp="unknown"
 fi
 
-F77comp=$F77
 # assign F77 compiler specific flags
 case $F77comp in
   *pgf*)        P="-r8 -Mpreprocess"
@@ -489,71 +488,6 @@ do
     echo "found plug-in" $i in $plugindir
   fi
 done
-
-# tweak SIZE file
-if [ -f "./SIZE" ]; then
-  cat SIZE | grep -i 'lxo' >/dev/null
-  if [ $? -ne 0 ]; then
-     echo >>SIZE
-     echo 'c automatically added by makenek' >>SIZE
-     echo '      parameter(lxo   = lx1) ! max output grid size (lxo>=lx1)' >>SIZE
-  fi
-  cat SIZE | grep -i 'lpart' >/dev/null
-  if [ $? -ne 0 ]; then
-     echo >>SIZE
-     echo 'c automatically added by makenek' >>SIZE
-     echo '      parameter(lpart = 1  ) ! max number of particles/proc' >>SIZE
-  fi
-  cat SIZE | grep -i 'ax1' >/dev/null
-  if [ $? -ne 0 ]; then
-     echo >>SIZE
-     echo 'c automatically added by makenek' >>SIZE
-     echo '      integer ax1,ay1,az1,ax2,ay2,az2' >> SIZE
-     echo '      parameter (ax1=lx1,ay1=ly1,az1=lz1,ax2=lx2,ay2=ly2,az2=lz2) ! running averages' >> SIZE
-  fi
-  cat SIZE | grep -i 'lys=lxs' >/dev/null
-  if [ $? -ne 0 ]; then
-     cat SIZE | grep -iv lxs > SIZE.x; mv SIZE.x SIZE  # Clean existing SIZE file of old version
-     echo >>SIZE
-     echo 'c automatically added by makenek' >>SIZE
-     echo '      parameter (lxs=1,lys=lxs,lzs=(lxs-1)*(ldim-2)+1) !New Pressure Preconditioner' >> SIZE
-
-  fi
-  cat SIZE | grep -i 'lfdm' >/dev/null
-  if [ $? -ne 0 ]; then
-     echo >>SIZE
-     echo 'c automatically added by makenek' >>SIZE
-     echo '      parameter (lfdm=0)  ! == 1 for fast diagonalization method' >> SIZE
-  fi
-
-  echo $PPLIST | grep 'CVODE' >/dev/null
-  if [ $? -eq 0 ]; then
-  cat SIZE | grep -i 'cv_maxl' >/dev/null
-  if [ $? -ne 0 ]; then
-      echo >>SIZE
-      echo 'c automatically added by makenek' >>SIZE
-      echo '      integer cv_maxl' >> SIZE
-      echo '      parameter(cv_maxl = 20  ) ! Size of Krylov Space'  >>SIZE
-  fi
-  cat SIZE | grep -i 'cv_delt' >/dev/null
-  if [ $? -ne 0 ]; then
-      echo >>SIZE
-      echo 'c automatically added by makenek' >>SIZE
-      echo '      real cv_delt' >> SIZE
-      echo '      parameter(cv_delt = 0.1 ) ! linear convergence factor ' >>SIZE
-  fi
-  cat SIZE | grep -i 'cv_sigs' >/dev/null
-  if [ $? -ne 0 ]; then
-      echo >>SIZE
-      echo 'c automatically added by makenek' >>SIZE
-      echo '      real cv_sigs' >> SIZE
-      echo '      parameter(cv_sigs = 0.01) ! Jacobian DQ perturbation scaling factor'  >>SIZE
-  fi
-  fi
-else
-  echo "FATAL ERROR: Cannot find SIZE"
-  exit 1
-fi
 
 # tweak .usr (actually, .f ) file
 rm -f $CASENAME.F90

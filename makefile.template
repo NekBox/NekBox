@@ -182,7 +182,7 @@ ifeq ($(IFMPI),false)
 	@rm -rf $S/mpif.h
 endif
 
-$(NOBJS_F) : SIZE
+$(NOBJS_F) : $(OBJDIR)/size_mod.o
 
 # NEK CORE     ##################################################################
 $(OBJDIR)/kinds_mod.o	:$S/kinds_mod.F90;		$(F90) -c $(FL2) $< -o $@

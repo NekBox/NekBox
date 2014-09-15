@@ -57,7 +57,7 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   logical :: if3d
 
   integer, parameter :: ldg=lxd**3
-  real(DP) :: jgl(ldg), jgt(ldg)
+  real(DP), save :: jgl(ldg), jgt(ldg)
 
   integer, parameter :: ld=2*lxd
   real(DP) :: w(ld**ldim,2)
@@ -72,10 +72,8 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   call get_int_ptr (i, jgl, jgt, mx,md)
 
   if (idir == 0) then
-      ju(1:md*md*md) = 0._dp
       call specmpn(ju,md,u,mx,jgl(i),jgt(i),if3d,w,ldw)
   else
-      ju(1:mx*mx*mx) = 0._dp
       call specmpn(ju,mx,u,md,jgt(i),jgl(i),if3d,w,ldw)
   endif
 
@@ -172,6 +170,9 @@ subroutine lim_chk(n,m,avar5,lvar5,sub_name10)
 end subroutine lim_chk
 !-----------------------------------------------------------------------
 !> \brief Get pointer to jgl() for interpolation pair (mx,md)
+!!
+!! The interpolation matrices jgl, jgt are being memoized.
+!!  pjgl is a map from (mx,md) pair to (ip) index of jgl, jgt
 subroutine get_int_ptr (ip, jgl, jgt, mx,md) ! GLL-->GL pointer
   use kinds, only : DP
   use size_m
@@ -180,7 +181,7 @@ subroutine get_int_ptr (ip, jgl, jgt, mx,md) ! GLL-->GL pointer
   integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
 
   integer, intent(out) :: ip
-  real(DP), intent(out) :: jgl(ldg), jgt(ldg)
+  real(DP), intent(inout) :: jgl(ldg), jgt(ldg)
   integer, intent(in) :: mx, md
 
   real(DP) :: wkd(lwkd)
@@ -194,7 +195,7 @@ subroutine get_int_ptr (ip, jgl, jgt, mx,md) ! GLL-->GL pointer
   ip = pjgl(ij)
 
   if (ip == 0) then
-  
+
       nstore   = pjgl(0)
       pjgl(ij) = nstore+1
       nstore   = nstore + md*mx
@@ -259,7 +260,8 @@ subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   logical :: if3d
 
   integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
-  real(DP) :: dg(ldg), dgt(ldg), wkd(lwkd)
+  real(DP), save :: dg(ldg), dgt(ldg)
+  real(DP) ::  wkd(lwkd)
   integer :: m0, ip
 
   m0 = md-1

@@ -314,10 +314,11 @@ subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)
   use kinds, only : DP
   implicit none
 
-  logical :: if3d
-  integer :: nb, na, ldw
-  real(DP) :: b(nb,nb,nb),a(na,na,na)
-  real(DP) :: w(ldw)
+  logical, intent(in) :: if3d
+  integer, intent(in) :: nb, na, ldw
+  real(DP), intent(out) :: b(nb,nb,nb)
+  real(DP), intent(in) :: a(na,na,na)
+  real(DP), intent(out) :: w(ldw) !>!< work buffer
 
   integer :: ltest, nab, nbb, k, l, iz
   real(DP) :: ba, ab

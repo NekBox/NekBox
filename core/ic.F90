@@ -1557,6 +1557,7 @@ end subroutine dsavg
 !> \brief open  blah000.fldnn
 subroutine mbyte_open(hname,fid,ierr) 
   use size_m, only : nid
+  use iso_c_binding, only : c_null_char
   use string, only : ltrunc, indx1
   use tstep, only : istep
   implicit none
@@ -1573,6 +1574,7 @@ subroutine mbyte_open(hname,fid,ierr)
 
   len = ltrunc(hname,132)
   call chcopy (fname,hname,len)
+  fname(len+1:len+1) = c_null_char
 
   do ipass=1,2      ! 2nd pass, in case 1 file/directory
       do k=8,1,-1

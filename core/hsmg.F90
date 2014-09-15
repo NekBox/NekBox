@@ -1385,8 +1385,8 @@ subroutine h1mg_mask(w,mask,nel)
   use kinds, only : DP
   implicit none
 
-  real(DP) ::    w   (1)
-  integer :: mask(1)        ! Pointer to Dirichlet BCs
+  real(DP) ::  w(*)
+  integer :: mask(*)        ! Pointer to Dirichlet BCs
   integer :: nel
 
   integer :: e, im
@@ -1442,7 +1442,7 @@ subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
   implicit none
 
   integer :: nv,nu
-  real(DP) :: v(1),A(1),Bt(1),Ct(1)
+  real(DP) :: v(*),A(*),Bt(*),Ct(*)
 
   integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
   real(DP) :: work(0:lwk-1),work2(0:lwk-1)

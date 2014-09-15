@@ -3,7 +3,7 @@
 !     Compute matrix-matrix product C = A*B
 !     for contiguously packed matrices A,B, and C.
 
-
+  use kinds, only : DP
     use size_m
     use opctr
     use dealias
@@ -23,8 +23,10 @@
   use turbo
   use wz_m
   use wzf
-
-    real :: a(n1,n2),b(n2,n3),c(n1,n3)
+    
+    integer, intent(in) :: n1, n2, n3
+    real(DP), intent(in) :: a(n1,n2),b(n2,n3)
+    real(DP), intent(out) :: c(n1,n3)
     integer :: aligned
     integer :: K10_mxm
 

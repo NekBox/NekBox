@@ -1,0 +1,6 @@
+before_install: git clone git@github.com:maxhutch/nek-tests.git
+before_install: cd nek-tests/RTI-LST/
+before_install: sudo apt-get update
+before_install: sudo apt-get install mpich2 libmpich2-dev libmpich2-3 gfortran
+before_install: sudo apt-get install liblapack3 libblas3
+install: ../../makenek

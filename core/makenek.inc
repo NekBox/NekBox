@@ -190,11 +190,12 @@ if [ $F77ok -eq 0 ]; then
   F77comp="unknown"
 fi
 
+F77comp=$F77
 # assign F77 compiler specific flags
 case $F77comp in
   *pgf*)        P="-r8 -Mpreprocess"
                ;;
-  *gfortran*)   P="-fdefault-real-8 -fdefault-double-8 -x f77-cpp-input"
+  *gfortran*)   P="-fdefault-real-8 -fdefault-double-8 " #-x f77-cpp-input"
                ;;
   *ifort*)      P="-r8 -fpconstant -fpp"
                ;;

@@ -6,8 +6,8 @@
 SUBROUTINE LU(A,N,NDIM,IR,IC)
   use kinds, only : DP
   implicit none
-  integer :: ndim, n, ir(1), ic(1)
-  real(DP) :: A(NDIM,1)
+  integer :: ndim, n, ir(*), ic(*)
+  real(DP) :: A(NDIM,*)
 
   integer :: i, j, k, l, m, irl, icm, k1
   real(DP) :: xmax, y, b, c
@@ -81,8 +81,8 @@ SUBROUTINE SOLVE(F,A,K,N,NDIM,IR,IC)
   implicit none
 
   integer :: n, k, ndim
-  real(DP) :: A(NDIM,1),F(NDIM,1)
-  integer :: IR(1),IC(1) 
+  real(DP) :: A(NDIM,*),F(NDIM,*)
+  integer :: IR(*),IC(*) 
 
   real(DP) :: G(2000)
 

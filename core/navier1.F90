@@ -16,7 +16,7 @@ subroutine ctolspl (tolspl,respr)
   real(DP) :: rinit, tolmin, tolold
   real(DP), external :: glsum
 
-  allocate(WORK(nx1,ny1,nz1,nelv))
+  allocate(WORK(lx2,ly2,lz2,lelv)); work = 0_dp
   NTOT1 = NX1*NY1*NZ1*NELV
   work = respr*respr / bm1
   RINIT  = SQRT (GLSUM (WORK,NTOT1)/VOLVM1)
@@ -772,6 +772,7 @@ subroutine nekuf (f1,f2,f3)
           enddo
       enddo
   END DO
+
   return
 end subroutine nekuf
 
@@ -1501,7 +1502,7 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
   implicit none
 
   integer, parameter :: lxyz=lx1*ly1*lz1
-  real(DP) :: ux(lx1,ly1,lz1,1),uy(lx1,ly1,lz1,1),uz(lx1,ly1,lz1,1),u(lxyz,1)
+  real(DP) :: ux(lx1,ly1,lz1,*),uy(lx1,ly1,lz1,*),uz(lx1,ly1,lz1,*),u(lxyz,*)
 
   real(DP) :: ur(lx1,ly1,lz1),us(lx1,ly1,lz1),ut(lx1,ly1,lz1)
 

@@ -169,7 +169,7 @@ subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
   implicit none
 
   integer :: nx, nz
-  real(DP) :: v(nx*nx*nz,nelt),w1(1),w2(1)
+  real(DP) :: v(nx*nx*nz,nelt),w1(*),w2(*)
   real(DP) :: f(nx,nx),ft(nx,nx)
   real(DP) :: dmax
   logical :: if3d
@@ -229,7 +229,7 @@ subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
   implicit none
   integer :: N,e
   real(DP) :: ur(0:N,0:N,0:N),us(0:N,0:N,0:N),ut(0:N,0:N,0:N)
-  real(DP) :: u (0:N,0:N,0:N,1)
+  real(DP) :: u (0:N,0:N,0:N,*)
   real(DP) :: D (0:N,0:N),Dt(0:N,0:N)
 
   integer :: m1, m2, k

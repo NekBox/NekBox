@@ -445,7 +445,7 @@ subroutine opadd2cm (a1,a2,a3,b1,b2,b3,c)
   use size_m, only : nx1, ny1, nz1, nelv, ndim
   implicit none
 
-  REAL(DP) :: A1(1),A2(1),A3(1),B1(1),B2(1),B3(1),C
+  REAL(DP) :: A1(*),A2(*),A3(*),B1(*),B2(*),B3(*),C
   integer :: ntot1, i
 
   NTOT1=NX1*NY1*NZ1*NELV

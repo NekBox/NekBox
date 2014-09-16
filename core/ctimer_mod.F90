@@ -36,8 +36,8 @@ contains
 
 !-----------------------------------------------------------------------
 real(DP) function dnekclock()
+  use mpif, only : mpi_wtime
   implicit none
-  include 'mpif.h'
 
   dnekclock=mpi_wtime()
 
@@ -46,8 +46,8 @@ END function
 
 !-----------------------------------------------------------------------
 real(DP) function dnekclock_sync()
+  use mpif, only : mpi_wtime
   implicit none
-  include 'mpif.h'
 
   call nekgsync()
   dnekclock_sync=mpi_wtime()

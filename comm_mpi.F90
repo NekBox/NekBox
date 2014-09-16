@@ -1,12 +1,13 @@
 !---------------------------------------------------------------------
   subroutine iniproc(intracomm)
     use kinds, only : DP
+    use mpif, only : mpi_comm_world, mpi_double_precision, mpi_real
+    use mpif, only : mpi_tag_ub
     use size_m, only : nid, lp, lelg
     use parallel, only : np, wdsize, ifdblas, isize, lsize, csize, pid
     use parallel, only : nullpid, node0, node, cr_h
     use parallel, only : np_=>np,nekcomm,nekreal
     implicit none
-    include 'mpif.h'
 
     integer :: intracomm
     logical :: flag
@@ -83,11 +84,11 @@
 
     return
   end subroutine iniproc
+
 !-----------------------------------------------------------------------
   subroutine init_nek_comm(intracomm)
     use parallel, only : nid,np,nekcomm
     implicit none
-    include 'mpif.h'
 
     integer :: intracomm
     integer, external :: mynode, numnodes
@@ -102,10 +103,10 @@
 !> \brief Global vector commutative operation
   subroutine gop( x, w, op, n)
     use kinds, only : DP
+    use mpif, only : mpi_max, mpi_min, mpi_prod, mpi_sum
     use ctimer, only : ifsync, icalld, tgop, ngop, etime1, dnekclock
     use parallel, only :nid,nekcomm,nekreal 
     implicit none
-    include 'mpif.h'
 
     integer :: n
     real(DP) :: x(n), w(n)
@@ -149,9 +150,9 @@
 !-----------------------------------------------------------------------
 !> \brief Global vector commutative operation
   subroutine igop( x, w, op, n)
+    use mpif, only : mpi_integer, mpi_max, mpi_min, mpi_prod, mpi_sum
     use parallel, only : nid,nekcomm
     implicit none
-    include 'mpif.h'
 
     integer :: n
     integer :: x(n), w(n)
@@ -178,9 +179,9 @@
 !-----------------------------------------------------------------------
 !> \brief Global vector commutative operation
   subroutine i8gop( x, w, op, n)
+    use mpif, only : mpi_integer8, mpi_max, mpi_min, mpi_prod, mpi_sum
     use parallel, only : nid,nekcomm
     implicit none
-    include 'mpif.h'
     integer :: n
     integer*8 :: x(n), w(n)
     character(3) :: op
@@ -205,9 +206,9 @@
     end subroutine i8gop
 !-----------------------------------------------------------------------
   subroutine csend(mtype,buf,len,jnid,jpid)
+    use mpif, only : mpi_byte
     use parallel, only : nekcomm
     implicit none
-    include 'mpif.h'
     real*4 :: buf(1)
     integer :: mtype, len, jnid, jpid
     integer :: ierr
@@ -217,10 +218,10 @@
     return
     end subroutine csend
 !-----------------------------------------------------------------------
-    subroutine crecv(mtype,buf,lenm)
+  subroutine crecv(mtype,buf,lenm)
+    use mpif, only : mpi_any_source, mpi_byte, mpi_status_size
     use parallel, only : nekcomm, nid
     implicit none
-    include 'mpif.h'
     integer :: mtype,  lenm
     real*4 :: buf(1)
 
@@ -239,55 +240,34 @@
     endif
 
     return
-    end subroutine crecv
+  end subroutine crecv
 !-----------------------------------------------------------------------
-    integer function numnodes()
+  integer function numnodes()
     use parallel, only : nekcomm
     implicit none
-    include 'mpif.h'
     integer :: ierr
 
     call mpi_comm_size (nekcomm, numnodes , ierr)
 
     return
-    end function numnodes
+  end function numnodes
 !-----------------------------------------------------------------------
-    integer function mynode()
+  integer function mynode()
     use parallel, only : nekcomm
     implicit none
-    include 'mpif.h'
     integer :: myid, ierr
 
     call mpi_comm_rank (nekcomm, myid, ierr)
     mynode = myid
 
     return
-    end function mynode
-!-----------------------------------------------------------------------
-    real*8 function dnekclock()
-    implicit none
-    include 'mpif.h'
-
-    dnekclock=mpi_wtime()
-
-    return
-    END function
-!-----------------------------------------------------------------------
-    real*8 function dnekclock_sync()
-    implicit none
-    include 'mpif.h'
-
-    call nekgsync()
-    dnekclock_sync=mpi_wtime()
-
-    return
-    END function
+  end function mynode
 !-----------------------------------------------------------------------
 !> \brief Broadcast logical variable to all processors.
-    subroutine lbcast(ifif)
+  subroutine lbcast(ifif)
+    use kinds, only : r4
     use parallel, only : np, isize
     implicit none
-    include 'mpif.h'
 
     logical :: ifif
     integer :: item
@@ -296,30 +276,31 @@
 
     item=0
     if (ifif) item=1
-    call bcast(item,isize)
+    call bcast(real(item, kind=r4),isize)
     ifif= .FALSE. 
     if (item == 1) ifif= .TRUE. 
 
     return
-    end subroutine lbcast
+  end subroutine lbcast
 !-----------------------------------------------------------------------
-    subroutine bcast(buf,len)
+  subroutine bcast(buf,len)
+    use mpif, only : mpi_byte
     use parallel, only : nekcomm
+
     implicit none
-    include 'mpif.h'
-    real*4 :: buf(1)
+    real*4 :: buf
     integer :: len, ierr
 
     call mpi_bcast (buf,len,mpi_byte,0,nekcomm,ierr)
 
     return
-    end subroutine bcast
+  end subroutine bcast
 !-----------------------------------------------------------------------
 !     Note: len in bytes
-    integer function irecv(msgtag,x,len)
+  integer function irecv(msgtag,x,len)
+    use mpif, only : mpi_any_source, mpi_byte
     use parallel, only : nekcomm
     implicit none
-    include 'mpif.h'
     integer :: msgtag, x(1), len
     integer :: ierr, imsg
 
@@ -328,18 +309,17 @@
     irecv = imsg
 
     return
-    end function irecv
+  end function irecv
 !-----------------------------------------------------------------------
-    subroutine nekgsync()
+  subroutine nekgsync()
     use parallel, only : nekcomm
     implicit none
-    include 'mpif.h'
     integer :: ierr
 
     call mpi_barrier(nekcomm,ierr)
 
     return
-    end subroutine nekgsync
+  end subroutine nekgsync
 !-----------------------------------------------------------------------
 subroutine exitti(stringi,idata)
   use size_m, only : nid
@@ -405,7 +385,6 @@ end subroutine err_chk
 !-----------------------------------------------------------------------
 subroutine exitt0
   implicit none
-  include 'mpif.h'
 
   real*4 :: papi_mflops
   integer*8 :: papi_flops
@@ -435,7 +414,6 @@ subroutine exitt
   use parallel, only : nvtot, np
   use tstep, only : istep
   implicit none
-  include 'mpif.h'
 
   real*4 :: papi_mflops
   integer*8 :: papi_flops
@@ -508,9 +486,9 @@ subroutine printHeader
 end subroutine printHeader
 !-----------------------------------------------------------------------
 integer function igl_running_sum(in)
+  use mpif, only : mpi_integer, mpi_status_size, mpi_sum
   use parallel, only : nekcomm
   implicit none
-  include 'mpif.h'
   integer :: in
   integer :: status(mpi_status_size)
   integer :: x,w,r, ierr

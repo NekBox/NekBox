@@ -11,8 +11,6 @@ end subroutine byte_sync_mpi
 
 !--------------------------------------------------------------------------
 subroutine byte_open_mpi(fname,mpi_fh,ierr)
-  use size_m
-  use restart
   implicit none
 
   character(132) :: fname
@@ -44,8 +42,6 @@ end subroutine byte_open_mpi
 !--------------------------------------------------------------------------
 subroutine byte_read_mpi(buf,icount,iorank,mpi_fh,ierr)
   use kinds, only : r4
-  use size_m
-  use restart
   implicit none
 
   real(r4) :: buf(1)          ! buffer
@@ -84,8 +80,6 @@ end subroutine byte_read_mpi
 !--------------------------------------------------------------------------
 subroutine byte_write_mpi(buf,icount,iorank,mpi_fh,ierr)
   use kinds, only : r4
-  use size_m
-  use restart
   implicit none
 
   real(r4) :: buf(1)          ! buffer
@@ -121,8 +115,7 @@ end subroutine byte_write_mpi
 
 !--------------------------------------------------------------------------
 subroutine byte_close_mpi(mpi_fh,ierr)
-  use size_m
-  use restart
+  use size_m, only : nid
   implicit none
 
   integer :: mpi_fh, ierr
@@ -148,8 +141,6 @@ end subroutine byte_close_mpi
 !--------------------------------------------------------------------------
 subroutine byte_set_view(ioff_in,mpi_fh)
   use kinds, only : i8
-  use size_m
-  use restart
   implicit none
 
   integer(i8) :: ioff_in
@@ -178,9 +169,6 @@ end subroutine byte_set_view
 
 !--------------------------------------------------------------------------
 subroutine nek_comm_io(nn)
-  use size_m
-  use parallel
-  use restart
   implicit none
 
   integer :: nn

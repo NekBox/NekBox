@@ -1,6 +1,7 @@
 subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
   use kinds, only : DP, i8
   use size_m, only : nid
+  use ctimer, only : dnekclock
   use parallel, only : mp=>np, nekcomm
   implicit none
 
@@ -10,7 +11,6 @@ subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
 
   real(DP) :: t0, t1
   integer :: nx, nel, ntot, ny, nz, melg
-  real(DP), external :: dnekclock
 
   t0 = dnekclock()
 

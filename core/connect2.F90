@@ -3,6 +3,7 @@
 subroutine readat()
   use kinds, only : DP
   use size_m, only : nid, lelt, ndim, lx1, lx2, lx3
+  use ctimer, only : dnekclock
   use input, only : reafle, ifmoab, h5mfle, numflu, numoth, ifheat
   use input, only : matids, matindx, imatie, ifchar, numsts
   use input, only : numbcs, ibcsts, bcf, bctyps
@@ -18,7 +19,6 @@ subroutine readat()
 
   real(DP) :: edif, e1, e2, x
   integer :: i, iset, nelgs, maxrd, mread, iread
-  real(DP), external :: dnekclock
 
 !   Test timer accuracy
   edif = 0.0

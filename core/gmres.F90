@@ -42,6 +42,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv, lgmres
   use size_m, only : nx1, ny1, nz1, nelv, nid
+  use ctimer, only : dnekclock
   use input, only : param, ifmgrid, ifprint
   use geom, only : volvm1
   use soln, only : pmask, vmult
@@ -74,7 +75,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   logical, save :: iflag = .false., if_hyb = .false.
   real, save ::  norm_fac
 
-  real(DP) :: etime1, etime2, etime_p, dnekclock
+  real(DP) :: etime1, etime2, etime_p
   real(DP) :: rnorm, tolpss, div0, ratio
   real(DP), external :: glsc3, vlsc3
 

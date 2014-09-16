@@ -36,6 +36,7 @@ subroutine set_up_h1_crs
   use kinds, only : DP, i8
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nid
   use size_m, only : lx1, ly1, lz1, lelv
+  use ctimer, only : dnekclock
   use domain, only : nx_crs, nxyz_c, se_to_gcrs, lcr
   use geom, only : ifvcor, ifbcor
   use input, only : if3d, ifldmhd, cbc
@@ -60,7 +61,6 @@ subroutine set_up_h1_crs
 
   real(DP) :: t0
   integer :: nxc, ncr, ntot, nzc, nfaces, ie, iface, nz, n
-  real(DP), external :: dnekclock
 
   allocate(ia(lcr,lcr,lelv), ja(lcr,lcr,lelv))
   t0 = dnekclock()

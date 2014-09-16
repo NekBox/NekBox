@@ -179,11 +179,12 @@
 !-----------------------------------------------------------------------
 !> \brief Global vector commutative operation
   subroutine i8gop( x, w, op, n)
+    use kinds, only : i8
     use mpif, only : mpi_integer8, mpi_max, mpi_min, mpi_prod, mpi_sum
     use parallel, only : nid,nekcomm
     implicit none
     integer :: n
-    integer*8 :: x(n), w(n)
+    integer(i8) :: x(n), w(n)
     character(3) :: op
     integer :: ierr
 
@@ -206,10 +207,11 @@
     end subroutine i8gop
 !-----------------------------------------------------------------------
   subroutine csend(mtype,buf,len,jnid,jpid)
+    use kinds, only : r4
     use mpif, only : mpi_byte
     use parallel, only : nekcomm
     implicit none
-    real*4 :: buf(1)
+    real(r4) :: buf(1)
     integer :: mtype, len, jnid, jpid
     integer :: ierr
 
@@ -219,11 +221,12 @@
     end subroutine csend
 !-----------------------------------------------------------------------
   subroutine crecv(mtype,buf,lenm)
+    use kinds, only : r4
     use mpif, only : mpi_any_source, mpi_byte, mpi_status_size
     use parallel, only : nekcomm, nid
     implicit none
     integer :: mtype,  lenm
-    real*4 :: buf(1)
+    real(r4) :: buf(1)
 
     integer :: status(mpi_status_size)
     integer :: len, jnid, ierr
@@ -284,11 +287,12 @@
   end subroutine lbcast
 !-----------------------------------------------------------------------
   subroutine bcast(buf,len)
+    use kinds, only : r4
     use mpif, only : mpi_byte
     use parallel, only : nekcomm
 
     implicit none
-    real*4 :: buf
+    real(r4) :: buf
     integer :: len, ierr
 
     call mpi_bcast (buf,len,mpi_byte,0,nekcomm,ierr)
@@ -356,7 +360,7 @@ subroutine err_chk(ierr,istring)
 
   integer :: ierr
 
-  character(132) :: istring
+  character(*) :: istring
   character(132) :: ostring
   character(10) :: s10
 
@@ -386,8 +390,6 @@ end subroutine err_chk
 subroutine exitt0
   implicit none
 
-  real*4 :: papi_mflops
-  integer*8 :: papi_flops
   integer :: ierr
 
   write(6,*) 'Emergency exit'
@@ -407,7 +409,7 @@ subroutine exitt0
 end subroutine exitt0
 !-----------------------------------------------------------------------
 subroutine exitt
-  use kinds, only : DP
+  use kinds, only : DP, i8
   use size_m, only : nid, nx1, ny1, nz1
   use ctimer, only : dnekclock, ttotal, etimes, ttime
   use input, only : ifneknek
@@ -415,8 +417,11 @@ subroutine exitt
   use tstep, only : istep
   implicit none
 
-  real*4 :: papi_mflops
-  integer*8 :: papi_flops
+#ifdef PAPI
+  real(r4) :: papi_mflops
+#endif
+  integer(i8) :: papi_flops
+
   logical :: ifopen              !check for opened files
 
   real(DP) :: tstop, dtmp1, dtmp2, dtmp3, dgp
@@ -429,7 +434,7 @@ subroutine exitt
 
   call nekgsync()
 
-
+  papi_flops = 0
 #ifdef PAPI
   call nek_flops(papi_flops,papi_mflops)
 #endif
@@ -486,11 +491,10 @@ subroutine printHeader
 end subroutine printHeader
 !-----------------------------------------------------------------------
 integer function igl_running_sum(in)
-  use mpif, only : mpi_integer, mpi_status_size, mpi_sum
+  use mpif, only : mpi_integer, mpi_sum
   use parallel, only : nekcomm
   implicit none
   integer :: in
-  integer :: status(mpi_status_size)
   integer :: x,w,r, ierr
 
   x = in  ! running sum

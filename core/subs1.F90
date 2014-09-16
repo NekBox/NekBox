@@ -3,7 +3,7 @@
 subroutine setdt
   use kinds, only : DP
   use size_m, only : nid
-  use input, only : param, ifflow, ifneknek, ifprint
+  use input, only : param, ifflow, ifprint
   use soln, only : vx, vy, vz
   use tstep, only : dt, dtinit, time, fintim, lastep, courno, ctarg
   implicit none
@@ -229,7 +229,7 @@ subroutine setdtc(umax)
       return
   endif
 
-  irst = param(46)
+  irst = int(param(46))
   if (irst > 0) ifirst=1
 
 !   First time around

@@ -291,9 +291,9 @@ $(OBJDIR)/byte_mpi.o	:$S/byte_mpi.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/multimesh.o	:$S/multimesh.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/singlmesh.o	:$S/singlmesh.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/lb_setqvol.o	:$S/lb_setqvol.F90;		$(F90) -c $(FL2) $< -o $@
+$(OBJDIR)/comm_mpi.o	:$S/comm_mpi.F90;		$(F90) -c $(FL2) $< -o $@
 
 $(OBJDIR)/speclib.o	:$S/speclib.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/comm_mpi.o	:$S/comm_mpi.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/math.o	:$S/math.F90;			$(F77) -c $(FL4) $< -o $@
 
 .F90.o:                                                    

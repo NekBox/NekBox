@@ -1,11 +1,10 @@
 !-----------------------------------------------------------------------
 subroutine get_session_info(intracomm)
-  use kinds, only : DP
+  use mpif, only : mpi_comm_world
   use size_m, only : nid
   use input, only : session, path, ifneknek
   use parallel, only : csize
   implicit none
-  include 'mpif.h'
 
   integer :: mpi_is_initialized
   integer :: ierr, intracomm

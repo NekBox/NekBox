@@ -6,7 +6,7 @@ module geom
   real(DP), allocatable, target, dimension(:,:,:,:) :: XM1, YM1, ZM1
   real(DP), pointer,             dimension(:,:,:,:) :: XM2, YM2, ZM2
 
-  real(DP), allocatable :: jacmi (:,:)
+  real(DP), allocatable :: jacmi (:,:,:,:)
 
   real(DP), allocatable, target, dimension(:,:,:,:) :: &
      RXM1, SXM1, TXM1, RYM1, SYM1, TYM1, RZM1, SZM1, TZM1, JACM1 
@@ -55,7 +55,7 @@ module geom
     allocate( RXM1(LX1,LY1,LZ1,LELT), SXM1(LX1,LY1,LZ1,LELT), TXM1(LX1,LY1,LZ1,LELT) &
             , RYM1(LX1,LY1,LZ1,LELT), SYM1(LX1,LY1,LZ1,LELT), TYM1(LX1,LY1,LZ1,LELT) &
             , RZM1(LX1,LY1,LZ1,LELT), SZM1(LX1,LY1,LZ1,LELT), TZM1(LX1,LY1,LZ1,LELT) )
-    allocate( JACM1(LX1,LY1,LZ1,LELT), jacmi(lx1*ly1*lz1,lelt) )
+    allocate( JACM1(LX1,LY1,LZ1,LELT), jacmi(lx1,ly1,lz1,lelt) )
 
 
     allocate(rx(lxd*lyd*lzd,ldim*ldim,lelv)) !verified

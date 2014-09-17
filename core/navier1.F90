@@ -1471,9 +1471,11 @@ subroutine opdiv(outfld,inpx,inpy,inpz)
   real(DP) :: inpy   (lx1,ly1,lz1,nelv)
   real(DP) :: inpz   (lx1,ly1,lz1,nelv)
   
-  real(DP) :: work (lx2,ly2,lz2,lelv)
+  real(DP), allocatable :: work (:,:,:,:)
 
   integer :: iflg, ntot2
+
+  allocate(work(lx2,ly2,lz2,lelv))
 
   iflg = 1
 

@@ -550,12 +550,12 @@ subroutine restart_driver(nfiles)
   integer, parameter :: LXYZT=LX1*LY1*LZ1*LELT
   integer, parameter :: LPSC9=LDIMT+9
 
-  real(DP) :: SDUMP(LXYZT,7)
+  real(DP), allocatable :: sdump(:,:)
   integer :: mesg(40)
 
   real(r4), allocatable :: tdump(:,:)
 
-  REAL :: SDMP2(LXYZT,LDIMT)
+  REAL(DP), allocatable :: SDMP2(:,:)
 
 !   cdump comes in via PARALLEL (->TOTAL)
 
@@ -992,6 +992,7 @@ subroutine restart_driver(nfiles)
               enddo
 #endif
           else  ! Std. Case
+              allocate(sdump(LXYZT,7))
               if (ifgetx) call copy(xm1,sdump(1,1),ntott)
               if (ifgetx) call copy(ym1,sdump(1,2),ntott)
               if (ifgetz) call copy(zm1,sdump(1,3),ntott)
@@ -1001,6 +1002,7 @@ subroutine restart_driver(nfiles)
 !max              if (ifgetp) call copy(pm1,sdump(1,7),ntotv)
               if (ifgett) call copy(t,sdmp2(1,1),ntott)
           !              passive scalars
+              allocate(sdmp2(lxyzt,ldimt))
               do i=1,NPSCAL
                   if (ifgtps(i)) &
                   call copy(t(1,1,1,1,i+1),sdmp2(1,i+1),ntott)
@@ -1232,13 +1234,14 @@ subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
   integer, PARAMETER :: LZR=LZ1+6
   integer, PARAMETER :: LXYZR=LXR*LYR*LZR
 
-  REAL(DP) :: SDUMP(LXYZ1,LELT)
+  REAL(DP), allocatable :: SDUMP(:,:)
   REAL(r4)   :: TDUMP(LXYZR)
   integer :: ieg, nxr, nyr, nzr
   logical :: if_byte_sw
 
   integer :: nxyz, nxyr, ierr, jnid, mtype, len, le1, ie
   real(DP) :: dummy
+
 
   NXYZ=NX1*NY1*NZ1
   NXYR=NXR*NYR*NZR
@@ -1247,6 +1250,7 @@ subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
 !   Serial processor code:
 
   IF (NP == 1) THEN
+      allocate(sdump(lxyz1,lelt))
 
       IF (if_byte_sw) call byte_reverse(TDUMP,NXYR,ierr)
       if(ierr /= 0) call exitti("Error in mapdmp")
@@ -1281,6 +1285,7 @@ subroutine mapdmp(sdump,tdump,ieg,nxr,nyr,nzr,if_byte_sw)
   !        to appropriate element.
   
       IF (JNID == NID) THEN
+          allocate(sdump(lxyz1,lelt))
           IE=GLLEL(IEG)
           IF (if_byte_sw) call byte_reverse(TDUMP,NXYR,ierr)
           IF (NXR == NX1 .AND. NYR == NY1 .AND. NZR == NZ1) THEN

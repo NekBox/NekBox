@@ -65,7 +65,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
 
   real(DP) :: divex
-  real(DP) :: d(lx1*ly1*lz1*lelv)
+  real(DP), allocatable :: d(:)
 
   real(DP) :: wk1(lgmres)
 
@@ -82,7 +82,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   integer :: m, n
   integer :: i, j, k, iconv
 
-!> \todo move these allocations to where they are needed
+  !> \todo move these allocations to where they are needed
   allocate(x(lx2*ly2*lz2*lelv))
   allocate(r(lx2*ly2*lz2*lelv))
   allocate(w(lx2*ly2*lz2*lelv)) 
@@ -92,6 +92,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
   allocate(v(lx2*ly2*lz2*lelv,lgmres)) ! verified
   allocate(z(lx2*ly2*lz2*lelv,lgmres)) ! verified
+
 
   if (.not. allocated(ml)) allocate(ml(lx2*ly2*lz2*lelv))
   if (.not. allocated(mu)) allocate(mu(lx2*ly2*lz2*lelv)) 
@@ -115,7 +116,10 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       norm_fac = 1./sqrt(volvm1)
   endif
 
+  !> \todo Do we need this?
+  allocate(d(lx1*ly1*lz1*lelv))
   if (param(100) /= 2) call set_fdm_prec_h1b(d,h1,h2,nelv)
+  deallocate(d)
 
   call chktcg1(tolps,res,h1,h2,pmask,vmult,1,1)
   if (param(21) > 0 .AND. tolps > abs(param(21))) &

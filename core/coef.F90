@@ -547,7 +547,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   ,             ZRM1(LX1,LY1,LZ1,LELT)
   real(DP) ::  ZSM1(LX1,LY1,LZ1,LELT) &
   ,             ZTM1(LX1,LY1,LZ1,LELT) 
-  real(DP) ::  WJ(LX1,LY1,LZ1,LELT)
+  real(DP), allocatable ::  WJ(:,:,:,:)
 
   integer :: nxyz1, ntot1, iel, j, i
 
@@ -561,6 +561,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 !                IFAXIS)
   endif
 
+  allocate(WJ(LX1,LY1,LZ1,LELT))
   IF ( .NOT. IFAXIS) THEN
       wj = 1_dp / jacm1
   ELSE
@@ -614,6 +615,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       CALL COL2  (G6M1,WJ,NTOT1)
 #endif
   ENDIF
+  deallocate(wj)
 
 !   Multiply the geometric factors GiM1,i=1,5 with the
 !   weights on mesh M1.

@@ -1133,6 +1133,7 @@ end subroutine lagmass
 !!     in DSSUM routine for IMESH=1 and IMESH=2.
 !--------------------------------------------------------------------
 subroutine setinvm()
+  use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, nelt, nfield
   use input, only : ifflow, ifheat, iftmsh
   use geom, only : bm1, binvm1, bintm1
@@ -1150,7 +1151,7 @@ subroutine setinvm()
       NTOT   = NXYZ1*NELV
       CALL COPY    (BINVM1,BM1,NTOT)
       CALL DSSUM   (BINVM1)
-      CALL INVCOL1 (BINVM1,NTOT)
+      binvm1 = 1._dp / binvm1 
   ENDIF
 
   any_iftmsh = .false.
@@ -1163,7 +1164,7 @@ subroutine setinvm()
       NTOT   = NXYZ1*NELT
       CALL COPY    (BINTM1,BM1,NTOT)
       CALL DSSUM   (BINTM1)
-      CALL INVCOL1 (BINTM1,NTOT)
+      bintm1 = 1._dp / bintm1
   ENDIF
 
   ifield = store_field

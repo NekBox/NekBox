@@ -133,13 +133,13 @@ subroutine setup_topo()
       vmltmax=glmax(vmult,ntotv)
       ivmltmax=vmltmax
       if (nid == 0) write(6,*) ivmltmax,' max multiplicity'
-      call invcol1 (vmult,ntotv)
+      vmult = 1._dp / vmult
   endif
   if (ifheat) then
       ifield = 2
-      call rone    (tmult,ntott)
+      tmult(:,:,:,:,1) = 1._dp
       call dssum   (tmult,nx1,ny1,nz1)
-      call invcol1 (tmult,ntott)
+      tmult(:,:,:,:,1) = 1._dp / tmult(:,:,:,:,1)
   endif
   if ( .NOT. ifflow) call copy(vmult,tmult,ntott)
   if (ifmvbd)  call copy (wmult,vmult,ntott)

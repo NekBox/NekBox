@@ -460,14 +460,14 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
       CALL VDOT2  (X,XRM1,YRM1,XRM1,YRM1,NTOT)
       CALL COL2   (R,X,NTOT)
       r = sqrt(r) 
-      CALL INVCOL2(U,R,NTOT)
+      u = u / r
   
       CALL VDOT2  (V,V1  ,V2  ,SXM1,SYM1,NTOT)
       CALL VDOT2  (R,SXM1,SYM1,SXM1,SYM1,NTOT)
       CALL VDOT2  (X,XSM1,YSM1,XSM1,YSM1,NTOT)
       CALL COL2   (R,X,NTOT)
       r = sqrt(r) 
-      CALL INVCOL2(V,R,NTOT)
+      v = v / r
   
   ELSE
   
@@ -476,21 +476,21 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
       CALL VDOT3  (X,XRM1,YRM1,ZRM1,XRM1,YRM1,ZRM1,NTOT)
       CALL COL2   (R,X,NTOT)
       r = sqrt(r) 
-      CALL INVCOL2(U,R,NTOT)
+      u = u / r
   
       CALL VDOT3  (V,V1  ,V2  ,V3  ,SXM1,SYM1,SZM1,NTOT)
       CALL VDOT3  (R,SXM1,SYM1,SZM1,SXM1,SYM1,SZM1,NTOT)
       CALL VDOT3  (X,XSM1,YSM1,ZSM1,XSM1,YSM1,ZSM1,NTOT)
       CALL COL2   (R,X,NTOT)
       r = sqrt(r) 
-      CALL INVCOL2(V,R,NTOT)
+      v = v / r
   
       CALL VDOT3  (W,V1  ,V2  ,V3  ,TXM1,TYM1,TZM1,NTOT)
       CALL VDOT3  (R,TXM1,TYM1,TZM1,TXM1,TYM1,TZM1,NTOT)
       CALL VDOT3  (X,XTM1,YTM1,ZTM1,XTM1,YTM1,ZTM1,NTOT)
       CALL COL2   (R,X,NTOT)
       r = sqrt(r) 
-      CALL INVCOL2(W,R,NTOT)
+      w = w / r
   
   endif
 

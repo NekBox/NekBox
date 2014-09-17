@@ -111,7 +111,7 @@ subroutine getdr(dri,zgm1,nx1)
   enddo
   dri(nx1) = zgm1(nx1) - zgm1(nx1-1)
 
-  call invcol1(dri,nx1)
+  dri = 1._dp / dri
 
   return
 end subroutine getdr

@@ -569,7 +569,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   ENDIF
 
   CALL DSSUM (DPCM1)
-  CALL INVCOL1 (DPCM1,NTOT)
+  dpcm1(:,:,:,1:nel) = 1._dp / dpcm1(:,:,:,1:nel)
 
   return
 end subroutine setprec

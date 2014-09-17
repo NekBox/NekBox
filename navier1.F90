@@ -133,7 +133,7 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   real(DP) :: sm2  (lx2*ly2*lz2,lelv)
   real(DP) :: tm2  (lx2*ly2*lz2,lelv)
 
-  real(DP) ::  wx  (lx1*ly1*lz1) &
+  real(DP) ::  wx  (lx1,ly1,lz1) &
   ,             ta1 (lx1*ly1*lz1) &
   ,             ta2 (lx1*ly1*lz1)
 
@@ -176,14 +176,14 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   
       if(ifsplit) then
           call col3 (wx,bm1(1,1,1,e),x(1,e),nxyz1)
-          call invcol2(wx,jacm1(1,1,1,e),nxyz1)
+          wx = wx / jacm1(:,:,:,e)
       else
           if ( .NOT. ifaxis) call col3 (wx,w3m2,x(1,e),nxyz2)
       
           if (ifaxis) then
               if (ifrzer(e)) then
                   call col3    (wx,x(1,e),bm2(1,1,1,e),nxyz2)
-                  call invcol2 (wx,jacm2(1,1,1,e),nxyz2)
+                  wx = wx / jacm2(:,:,:,e)
               else
                   call col3    (wx,w3m2,x(1,e),nxyz2)
                   call col2    (wx,ym2(1,1,1,e),nxyz2)
@@ -299,7 +299,7 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
 
           if (ifaxis .AND. (isd == 2)) then
               call col3    (ta1,x(1,e),bm2(1,1,1,e),nxyz2)
-              call invcol2 (ta1,ym2(1,1,1,e),nxyz2)
+              ta = ta / ym2(:,:,:,e)
               call mxm     (ixtm12,nx1,ta1,nx2,ta2,ny2)
               call mxm     (ta2,nx1,iym12,ny2,ta1,ny1)
               call add2    (dtx(1,e),ta1,nxyz1)
@@ -467,7 +467,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
 
       if(ifsplit) then
           call col2   (dx(1,e),bm1(1,1,1,e),nxyz1)
-          call invcol2(dx(1,e),jacm1(1,1,1,e),nxyz1)
+          dx(:,e) = dx(:,e) / reshape(jacm1(:,:,:,e), (/nxyz1/))
       else
           write(*,*) "Whoops! multd"
 #if 0
@@ -475,7 +475,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
           if (ifaxis) then
               if (ifrzer(e)) then
                   call col2    (dx(1,e),bm2(1,1,1,e),nxyz2)
-                  call invcol2 (dx(1,e),jacm2(1,1,1,e),nxyz2)
+                  dx(:,e) = dx(:,e) / reshape(jacm2(:,:,:,e), (/nxyz2/))
               else
                   call col2    (dx(1,e),w3m2,nxyz2)
                   call col2    (dx(1,e),ym2(1,1,1,e),nxyz2)
@@ -1438,10 +1438,10 @@ subroutine convop(conv,fi)
       else
           call convect_new (conv,fi, .FALSE. ,vxd,vyd,vzd, .TRUE. )
       endif
-      call invcol2     (conv,bm1,ntot1)  ! local mass inverse
+      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) / bm1 ! local mass inverse
   elseif (param(99) == 5) then
 !max        call convect_cons(conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
-      call invcol2     (conv,bm1,ntot1)  ! local mass inverse
+      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) / bm1 ! local mass inverse
   else
 !max        call conv1 (conv,fi)  !    use the convective form
   endif

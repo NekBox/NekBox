@@ -47,65 +47,6 @@ SUBROUTINE BLANK(A,N)
 END SUBROUTINE BLANK
 
 !-----------------------------------------------------------------------
-    subroutine invcol1(a,n)
-    use opctr
-    REAL :: A(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'invcl1'
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=1./A(I)
-    100 END DO
-    return
-    end subroutine invcol1
-!-----------------------------------------------------------------------
-    subroutine invcol2(a,b,n)
-    use ctimer
-    use opctr
-
-    REAL :: A(1),B(1)
-
-#ifndef NOTIMER
-    if (icalld == 0) tinvc=0.0
-    icalld=icalld+1
-    ninvc=icalld
-    etime1=dnekclock()
-
-
-
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'invcl2'
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=A(I)/B(I)
-    100 END DO
-#ifndef NOTIMER
-    tinvc=tinvc+(dnekclock()-etime1)
-#endif
-    return
-    end subroutine invcol2
-!-----------------------------------------------------------------------
     subroutine invcol3(a,b,c,n)
     use ctimer
     use opctr

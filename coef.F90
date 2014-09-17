@@ -514,7 +514,7 @@ subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       call exitt
   endif
 
-  call invers2(jacmi,jacm1,ntot1)
+  jacmi = 1_dp / jacm1
 
   RETURN
 end subroutine glmapm1
@@ -562,7 +562,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   endif
 
   IF ( .NOT. IFAXIS) THEN
-      CALL INVERS2 (WJ,JACM1,NTOT1)
+      wj = 1_dp / jacm1
   ELSE
       DO 500 IEL=1,NELT
           IF (IFRZER(IEL)) THEN
@@ -677,7 +677,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
                   ENDDO
               ENDDO
           ELSE
-              CALL INVERS2(YINVM1(1,1,1,IEL),YM1(1,1,1,IEL),NXYZ1)
+              yinvm1(:,:,:,iel) = 1_dp / ym(:,:,:,iel)
           ENDIF
       ENDDO
 #endif

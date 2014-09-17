@@ -47,54 +47,6 @@ SUBROUTINE BLANK(A,N)
 END SUBROUTINE BLANK
 
 !-----------------------------------------------------------------------
-    SUBROUTINE VSQRT(A,N)
-    use opctr
-    DIMENSION  A(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'vsqrt '
-    endif
-    isbcnt = N
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I = 1, N
-        A(I) = SQRT(A(I))
-    100 END DO
-    RETURN
-    END SUBROUTINE VSQRT
-!-----------------------------------------------------------------------
-    subroutine invers2(a,b,n)
-    use opctr
-    REAL :: A(1),B(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'inver2'
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=1./B(I)
-    100 END DO
-    return
-    end subroutine invers2
-!-----------------------------------------------------------------------
     subroutine invcol1(a,n)
     use opctr
     REAL :: A(1)

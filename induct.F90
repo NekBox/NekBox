@@ -44,13 +44,13 @@ subroutine compute_cfl(cfl,u,v,w,dt)
                       l = l+1
                       ur = ( u(i,j,k,e)*rxm1(i,j,k,e) &
                       +   v(i,j,k,e)*rym1(i,j,k,e) &
-                      +   w(i,j,k,e)*rzm1(i,j,k,e) ) * jacmi(l,1)
+                      +   w(i,j,k,e)*rzm1(i,j,k,e) ) * jacmi(i,j,k,e)
                       us = ( u(i,j,k,e)*sxm1(i,j,k,e) &
                       +   v(i,j,k,e)*sym1(i,j,k,e) &
-                      +   w(i,j,k,e)*szm1(i,j,k,e) ) * jacmi(l,1)
+                      +   w(i,j,k,e)*szm1(i,j,k,e) ) * jacmi(i,j,k,e)
                       ut = ( u(i,j,k,e)*txm1(i,j,k,e) &
                       +   v(i,j,k,e)*tym1(i,j,k,e) &
-                      +   w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(l,1)
+                      +   w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(i,j,k,e)
                        
                       cflr = abs(dt*ur*dri(i))
                       cfls = abs(dt*us*dsi(j))

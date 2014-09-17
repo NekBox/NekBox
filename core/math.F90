@@ -31,43 +31,21 @@ real(DP) FUNCTION VLSC3(X,Y,B,N)
   RETURN
 END FUNCTION VLSC3
 
-
 !-----------------------------------------------------------------------
-    SUBROUTINE BLANK(A,N)
-    CHARACTER(1) :: A(1)
-    CHARACTER(1) :: BLNK
-    SAVE        BLNK
-    DATA        BLNK /' '/
+!> \brief blank a string
+SUBROUTINE BLANK(A,N)
+  implicit none
+  CHARACTER(1) :: A(*)
+  integer :: n
+  CHARACTER(1) :: BLNK = ' '
+  integer :: i
 
-    DO 10 I=1,N
-        A(I)=BLNK
-    10 END DO
-    RETURN
-    END SUBROUTINE BLANK
-!-----------------------------------------------------------------------
-    SUBROUTINE VSQ (A,N)
-    use opctr
-    DIMENSION  A(1)
+  DO 10 I=1,N
+      A(I)=BLNK
+  10 END DO
+  RETURN
+END SUBROUTINE BLANK
 
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'vsq   '
-    endif
-    isbcnt = N
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I = 1, N
-        A(I) = A(I)**2
-    100 END DO
-    RETURN
-    END SUBROUTINE VSQ
 !-----------------------------------------------------------------------
     SUBROUTINE VSQRT(A,N)
     use opctr
@@ -209,54 +187,6 @@ END FUNCTION VLSC3
 #endif
     return
     end subroutine invcol3
-!-----------------------------------------------------------------------
-    subroutine col4(a,b,c,d,n)
-    use opctr
-    REAL :: A(1),B(1),C(1),D(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'col4  '
-    endif
-    isbcnt = 2*n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=B(I)*C(I)*D(I)
-    100 END DO
-    return
-    end subroutine col4
-!-----------------------------------------------------------------------
-    subroutine Xaddcol3(a,b,c,n)
-    use opctr
-    REAL :: A(1),B(1),C(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'addcl3'
-    endif
-    isbcnt = 2*n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=A(I)+B(I)*C(I)
-    100 END DO
-    return
-    end subroutine Xaddcol3
 !-----------------------------------------------------------------------
     subroutine addcol4(a,b,c,d,n)
     use opctr
@@ -419,14 +349,6 @@ END FUNCTION VLSC3
     return
     end subroutine izero
 !-----------------------------------------------------------------------
-    subroutine ione(a,n)
-    INTEGER ::   A(1)
-    DO 100 I = 1, N
-        A(I ) = 1
-    100 END DO
-    return
-    end subroutine ione
-!-----------------------------------------------------------------------
     subroutine rone(a,n)
     DIMENSION  A(1)
     DO 100 I = 1, N
@@ -444,15 +366,6 @@ END FUNCTION VLSC3
     return
     end subroutine cfill
 !-----------------------------------------------------------------------
-    subroutine ifill(ia,ib,n)
-    DIMENSION IA(1)
-
-    DO 100 I = 1, N
-        IA(I) = IB
-    100 END DO
-    return
-    end subroutine ifill
-!-----------------------------------------------------------------------
     subroutine copy(a,b,n)
     real :: a(1),b(1)
 
@@ -462,17 +375,6 @@ END FUNCTION VLSC3
 
     return
     end subroutine copy
-!-----------------------------------------------------------------------
-    subroutine copyi4(a,b,n)
-    integer :: a(1)
-    real ::    b(1)
-
-    do i=1,n
-        a(i)=b(i)
-    enddo
-
-    return
-    end subroutine copyi4
 !-----------------------------------------------------------------------
     subroutine chcopy(a,b,n)
     CHARACTER(1) :: A(1), B(1)
@@ -558,39 +460,6 @@ END FUNCTION VLSC3
     100 END DO
     return
     end subroutine cadd
-!-----------------------------------------------------------------------
-    subroutine iadd(i1,iscal,n)
-    DIMENSION I1(1)
-
-    DO 10 I=1,N
-        I1(I)=I1(I)+ISCAL
-    10 END DO
-    return
-    end subroutine iadd
-!-----------------------------------------------------------------------
-    subroutine cadd2(a,b,const,n)
-    use opctr
-    REAL :: A(1),B(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'cadd2 '
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=B(I)+CONST
-    100 END DO
-    return
-    end subroutine cadd2
 !-----------------------------------------------------------------------
     real function vlmin(vec,n)
     REAL :: VEC(1)
@@ -725,25 +594,6 @@ END FUNCTION VLSC3
     return
     end subroutine vdot3
 !-----------------------------------------------------------------------
-    subroutine addtnsr(s,h1,h2,h3,nx,ny,nz)
-
-!     Map and add to S a tensor product form of the three functions H1,H2,H3.
-!     This is a single element routine used for deforming geometry.
-
-    DIMENSION H1(1),H2(1),H3(1)
-    DIMENSION S(NX,NY,NZ)
-
-    DO 200 IZ=1,NZ
-        DO 200 IY=1,NY
-            HH = H2(IY)*H3(IZ)
-            DO 100 IX=1,NX
-                S(IX,IY,IZ)=S(IX,IY,IZ)+HH*H1(IX)
-            100 END DO
-    200 END DO
-    return
-    end subroutine addtnsr
-
-!-----------------------------------------------------------------------
     function mod1(i,n)
 
 !     Yields MOD(I,N) with the exception that if I=K*N, result is N.
@@ -770,19 +620,6 @@ END FUNCTION VLSC3
     LOG2=INT(RLOG)
     return
     end function log2
-!-----------------------------------------------------------------------
-    subroutine iflip(i1,n)
-    DIMENSION I1(1)
-    N1=N+1
-    N2=N/2
-    DO 10 I=1,N2
-        ILAST=N1-I
-        ITMP=I1(ILAST)
-        I1(ILAST)=I1(I)
-        I1(I)=ITMP
-    10 END DO
-    return
-    end subroutine iflip
 !-----------------------------------------------------------------------
     subroutine iswap(b,ind,n,temp)
     INTEGER :: B(1),IND(1),TEMP(1)
@@ -824,16 +661,6 @@ END FUNCTION VLSC3
 
     return
     end subroutine col2
-!-----------------------------------------------------------------------
-    subroutine col2c(a,b,c,n)
-    real :: a(1),b(1),c
-
-    do i=1,n
-        a(i)=a(i)*b(i)*c
-    enddo
-
-    return
-    end subroutine col2c
 !-----------------------------------------------------------------------
     subroutine col3(a,b,c,n)
     use opctr
@@ -1006,29 +833,6 @@ END FUNCTION VLSC3
     end subroutine add3s2
 
 !-----------------------------------------------------------------------
-    subroutine add4(a,b,c,d,n)
-    use opctr
-    REAL :: A(1),B(1),C(1),D(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'add4  '
-    endif
-    isbcnt = 2*n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=B(I)+C(I)+D(I)
-    100 END DO
-    return
-    end subroutine add4
     real function vlsc2(x,y,n)
     use size_m
     use parallel
@@ -1056,33 +860,6 @@ END FUNCTION VLSC3
     return
     end function vlsc2
 !-----------------------------------------------------------------------
-    real function vlsc21(x,y,n)
-    use size_m
-    use parallel
-    use opctr
-    real :: x(1),y(1)
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'VLSC21'
-    endif
-    isbcnt = 3*n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    s = 0.
-    do i=1,n
-        s = s + x(i)*x(i)*y(i)
-    enddo
-    vlsc21=s
-    return
-    end function vlsc21
-
 
 !----------------------------------------------------------------------------
 
@@ -1300,34 +1077,6 @@ END FUNCTION VLSC3
 !========================================================================
 
 !-----------------------------------------------------------------------
-    subroutine dcadd(a,const,n)
-    real*8 :: A(1),CONST
-
-    DO 100 I=1,N
-        A(I)=A(I)+CONST
-    100 END DO
-    return
-    end subroutine dcadd
-!-----------------------------------------------------------------------
-    subroutine dsub2(a,b,n)
-    real*8 :: A(1), B(1)
-
-    DO 100 I=1,N
-        A(I)=A(I)-B(I)
-    100 END DO
-    return
-    end subroutine dsub2
-
-!-----------------------------------------------------------------------
-    subroutine dadd2(a,b,n)
-    real*8 :: A(1), B(1)
-
-    DO 100 I=1,N
-        A(I)=A(I)+B(I)
-    100 END DO
-    return
-    end subroutine dadd2
-!-----------------------------------------------------------------------
     subroutine chswapr(b,L,ind,n,temp)
     INTEGER :: IND(1)
     CHARACTER(6) :: B(1),TEMP(1)
@@ -1363,28 +1112,6 @@ END FUNCTION VLSC3
     return
     end subroutine rrcopy
 !-----------------------------------------------------------------------
-    function ivlsum(a,n)
-    INTEGER :: A(1)
-    INTEGER :: TSUM
-    if (n == 0) then
-        ivlsum = 0
-        return
-    endif
-    TSUM=A(1)
-    DO 100 I=2,N
-        TSUM=TSUM+A(I)
-    100 END DO
-    IVLSUM=TSUM
-    return
-    end function ivlsum
-!-----------------------------------------------------------------------
-    subroutine icadd(a,c,n)
-    INTEGER :: A(1),C
-    DO 100 I = 1, N
-        A(I) = A(I) + C
-    100 END DO
-    return
-    end subroutine icadd
     subroutine isort(a,ind,n)
 
 !     Use Heap Sort (p 231 Num. Rec., 1st Ed.)
@@ -1490,54 +1217,6 @@ END FUNCTION VLSC3
     GOTO 100
     end subroutine sort
 !-----------------------------------------------------------------------
-#if 0
-    subroutine iswapt_ip(x,p,n)
-    integer :: x(1),t1,t2
-    integer :: p(1)
-
-!     In-place permutation: x'(p) = x
-
-    do k=1,n
-        if (p(k) > 0) then   ! not swapped
-            loop_start = k
-            next       = p(loop_start)
-            t1         = x(loop_start)
-            do j=1,n
-                if (next < 0) then
-                    write(6,*) 'Hey! iswapt_ip problem.',j,k,n,next
-                    call exitt
-                elseif (next == loop_start) then
-                    x(next) = t1
-                    p(next) = -p(next)
-                    goto 10
-                else
-                    t2      =  x(next)
-                    x(next) =  t1
-                    t1      =  t2
-                    nextp   =  p(next)
-                    p(next) = -p(next)
-                    next    =  nextp
-                endif
-            enddo
-            10 continue
-        endif
-    enddo
-
-    do k=1,n
-        p(k) = -p(k)
-    enddo
-    return
-    end subroutine iswapt_ip
-#endif
-!-----------------------------------------------------------------------
-    subroutine add3s12(x,y,z,c1,c2,n)
-    real :: x(1),y(1),z(1),c1,c2
-    do i=1,n
-        x(i) = c1*y(i)+c2*z(i)
-    enddo
-    return
-    end subroutine add3s12
-!-----------------------------------------------------------------------
     integer*8 function i8glmax(a,n)
     integer*8 :: a(1),tmax
     integer*8 :: tmp(1),work(1)
@@ -1560,25 +1239,6 @@ END FUNCTION VLSC3
     100 END DO
     return
     end subroutine admcol3
-!-----------------------------------------------------------------------
-    subroutine add2col2(a,b,c,n)
-    real :: a(1),b(1),c(1)
-
-    do i=1,n
-        a(i) = a(i) + b(i)*c(i)
-    enddo
-    return
-    end subroutine add2col2
-!-----------------------------------------------------------------------
-    subroutine col2s2(x,y,s,n)
-    real :: x(n),y(n)
-
-    do i=1,n
-        x(i)=s*x(i)*y(i)
-    enddo
-
-    return
-    end subroutine col2s2
 !-----------------------------------------------------------------------
 subroutine ident(a,n)
   use kinds, only : DP

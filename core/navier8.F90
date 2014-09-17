@@ -123,7 +123,7 @@ subroutine set_up_h1_crs
   call gs_free (gs_handle)
   call set_jl_crs_mask(ntot,mask,se_to_gcrs)
 
-  call invcol1(cmlt,ntot)
+  cmlt = 1._dp / cmlt
 
 !   Setup local SEM-based Neumann operators (for now, just full...)
 

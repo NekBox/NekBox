@@ -1335,13 +1335,13 @@ end subroutine opcount
 subroutine dofcnt
   use kinds, only : DP, i8
   use size_m, only : nx1, ny1, nz1, nelv, nid
-  use size_m, only : nx2, ny2, nz2, lctmp1
+  use size_m, only : nx2, ny2, nz2
   use input, only : ifflow, ifsplit
   use parallel, only : nvtot
   use soln, only : vmult, tmult, tmask, v1mask, pmask
   implicit none
 
-  real(DP) :: WORK(LCTMP1)
+  real(DP) :: WORK(1)!LCTMP1)
 
   integer :: nxyz, nel, ntot1, ntot2
   real(DP) :: vpts, ppts

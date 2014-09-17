@@ -86,7 +86,7 @@ subroutine plan4
   deallocate(vext)
 
   allocate(h1(lx1,ly1,lz1,lelv), h2(lx1,ly1,lz1,lelv))
-  call invers2  (h1,vtrans,ntot1)
+  h1 = 1_dp / vtrans(:,:,:,:,1)
   call rzero    (h2,ntot1)
   call ctolspl  (tolspl,respr)
 
@@ -239,7 +239,7 @@ subroutine crespsp (respr, vext)
   deallocate(w1)
 
 !   add old pressure term because we solve for delta p
-  CALL INVERS2 (TA1,VTRANS,NTOT1)
+  ta1 = 1_dp / vtrans(:,:,:,:,1)
   CALL RZERO   (TA2,NTOT1)
   CALL AXHELM  (RESPR,PR,TA1,TA2,IMESH,1)
   CALL CHSIGN  (RESPR,NTOT1)

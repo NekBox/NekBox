@@ -105,8 +105,7 @@ subroutine cdscal (igeom)
           if (ifconv) goto 2000
 
       !        Radiation case, smooth convergence, avoid flip-flop (ER).
-          CALL CMULT (TA,0.5,NTOT)
-          T(:,:,:,:,IFIELD-1) = T(:,:,:,:,IFIELD-1) - TA
+          T(:,:,:,:,IFIELD-1) = T(:,:,:,:,IFIELD-1) - 0.5_dp*TA
 
       END DO
       2000 CONTINUE
@@ -290,8 +289,7 @@ subroutine makebdq()
   NEL   = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
 
-  CALL COL3  (TB,BM1,T(1,1,1,1,IFIELD-1),NTOT1)
-  CALL CMULT (TB,BD(2),NTOT1)
+  tb = bd(2) * bm1 * t(:,:,:,:,ifield-1)
 
   DO ILAG=2,NBD
       IF (IFGEOM) THEN

@@ -873,7 +873,7 @@ subroutine setside
       enddo
   END DO
   AVWGHT=1.0/FLOAT(NCRNR)
-  CALL CMULT(SIDE,AVWGHT,24*NELT)
+  side = side*avwght
 
 !   call exitt
   RETURN

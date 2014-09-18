@@ -437,14 +437,15 @@ subroutine h1mg_schwarz(e,r,sigma,l)
   use hsmg, only : mg_h1_n, mg_fld
   implicit none
 
-  real(DP) :: e(*),r(*), sigma
+  real(DP) :: e(*),r(*)
+  real(DP), intent(in) :: sigma
   integer :: l, n
 
   n = mg_h1_n(l,mg_fld)
 
   call h1mg_schwarz_part1 (e,r,l)
   call hsmg_schwarz_wt    (e,l)          ! e  := W e
-  call cmult              (e,sigma,n)    !  l       l
+  e(1:n) = e(1:n) * sigma
 
   return
 end subroutine h1mg_schwarz

@@ -817,7 +817,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
           call ortho (z)
       elseif (ifmcor) then
           rmean = smean*glsc2(z,bm1,n)
-          call cadd(z,rmean,n)
+          z = z + rmean
       endif
   !        write(6,*) rmean,ifmcor,' ifmcor'
   

@@ -1479,8 +1479,7 @@ subroutine vrdsmsh()
 !   write(6,1)
 !  $(nid,'taaf',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)
 
-  CALL RONE (TB,NTOT)
-  CALL SUB2 (TB,TA,NTOT)
+  tb = 1._dp - ta
   DO IE=1,NELT
       ieg=lglel(ie)
       DO IZ=1,NZ1
@@ -1533,8 +1532,8 @@ subroutine vrdsmsh()
   CALL COPY(TB,XM1,NTOT)
   CALL DSOP(TA,'MIN')
   CALL DSOP(TB,'MAX')
-  CALL SUB2(TA,XM1,NTOT)
-  CALL SUB2(TB,XM1,NTOT)
+  ta = ta - xm1
+  tb = tb - xm1
   CALL COL2(TA,QMASK,NTOT)
   CALL COL2(TB,QMASK,NTOT)
   DO IE=1,NELT
@@ -1571,8 +1570,8 @@ subroutine vrdsmsh()
   CALL COPY(TB,YM1,NTOT)
   CALL DSOP(TA,'MIN')
   CALL DSOP(TB,'MAX')
-  CALL SUB2(TA,YM1,NTOT)
-  CALL SUB2(TB,YM1,NTOT)
+  ta = ta - ym1
+  tb = tb - ym1
   CALL COL2(TA,QMASK,NTOT)
   CALL COL2(TB,QMASK,NTOT)
   DO IE=1,NELT
@@ -1610,8 +1609,8 @@ subroutine vrdsmsh()
       CALL COPY(TB,ZM1,NTOT)
       CALL DSOP(TA,'MIN')
       CALL DSOP(TB,'MAX')
-      CALL SUB2(TA,ZM1,NTOT)
-      CALL SUB2(TB,ZM1,NTOT)
+      ta = ta - zm1
+      tb = tb - zm1
       CALL COL2(TA,QMASK,NTOT)
       CALL COL2(TB,QMASK,NTOT)
       DO IE=1,NELT

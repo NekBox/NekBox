@@ -145,7 +145,7 @@ subroutine plan4
   DIV2 = GLSUM (DV2,NTOT1)/VOLVM1
   DIV2 = SQRT  (DIV2)
 !     Calculate Divergence difference norms
-  CALL SUB3    (DFC,DVC,QTL,NTOT1)
+  dfc = dvc - qtl
   CALL COL3    (DV1,DFC,BM1,NTOT1)
   DIF1 = GLSUM (DV1,NTOT1)/VOLVM1
     
@@ -316,7 +316,7 @@ subroutine crespsp (respr, vext)
           CALL FACCL2 (TA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
       END DO
       CALL CMULT(TA1,dtbd,NTOT1)
-      CALL SUB2 (RESPR,TA1,NTOT1)
+      respr = respr - ta1
   END DO
   deallocate(ta1, ta2, ta3)
 
@@ -393,7 +393,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
 
   real(DP) :: w1(lx1,ly1,lz1,lelv),w2(lx1,ly1,lz1,lelv),w3(lx1,ly1,lz1,lelv)
   real(DP) :: u1(*),u2(*),u3(*)
-  real(DP) :: work1(*),work2(*)
+  real(DP) :: work1(lx1,ly1,lz1,*),work2(lx1,ly1,lz1,*)
   logical :: ifavg
 
   integer :: ntot, nxyz, ifielt
@@ -404,7 +404,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
   if (if3d) then
       call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
-      call sub3(w1,work1,work2,ntot)
+      w1 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
   else
       call copy(w1,work1,ntot)
 
@@ -428,16 +428,16 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   if (if3d) then
       call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
       call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
-      call sub3(w2,work1,work2,ntot)
+      w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
   else
       call rzero (work1,ntot)
       call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
-      call sub3(w2,work1,work2,ntot)
+      w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
   endif
 !   work1=dv/dx ; work2=du/dy
   call dudxyz(work1,u2,rxm1,sxm1,txm1,jacm1,1,1)
   call dudxyz(work2,u1,rym1,sym1,tym1,jacm1,1,2)
-  call sub3(w3,work1,work2,ntot)
+  w3 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
 
 !  Avg at bndry
 

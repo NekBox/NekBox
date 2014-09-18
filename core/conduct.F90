@@ -76,7 +76,7 @@ subroutine cdscal (igeom)
           CALL ADD2    (H2,TA,NTOT)
           CALL BCDIRSC (T(1,1,1,1,IFIELD-1))
           CALL AXHELM  (TA,T(1,1,1,1,IFIELD-1),H1,H2,IMESH,isd)
-          CALL SUB3    (TB,BQ(1,1,1,1,IFIELD-1),TA,NTOT)
+          tb = bq(:,:,:,:,ifield-1) - ta
           CALL BCNEUSC (TA,1)
           CALL ADD2    (TB,TA,NTOT)
 
@@ -106,7 +106,7 @@ subroutine cdscal (igeom)
 
       !        Radiation case, smooth convergence, avoid flip-flop (ER).
           CALL CMULT (TA,0.5,NTOT)
-          CALL SUB2  (T(1,1,1,1,IFIELD-1),TA,NTOT)
+          T(:,:,:,:,IFIELD-1) = T(:,:,:,:,IFIELD-1) - TA
 
       END DO
       2000 CONTINUE

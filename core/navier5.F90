@@ -181,6 +181,7 @@ subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
 
   call transpose(ft,nx,f,nx)
 
+  !> \todo Is this supposed to be nx*ny*nz?
   nxyz=nx*nx*nz
   dmax = 0.
 
@@ -199,7 +200,7 @@ subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
               j = j+nx*nx
           enddo
           call mxm (w2,nx*nx,ft,nx,w1,nx)
-          call sub3(w2,v(1,e),w1,nxyz)
+          w2(1:nxyz) = v(:,e) - w1(1:nxyz)
           call copy(v(1,e),w1,nxyz)
           smax = vlamax(w2,nxyz)
           dmax = max(dmax,abs(smax))
@@ -212,7 +213,7 @@ subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
           call mxm(f ,nx,w1,nx,w2,nx)
           call mxm(w2,nx,ft,nx,w1,nx)
       
-          call sub3(w2,v(1,e),w1,nxyz)
+          w2(1:nxyz) = v(:,e) - w1(1:nxyz)
           call copy(v(1,e),w1,nxyz)
           smax = vlamax(w2,nxyz)
           dmax = max(dmax,abs(smax))

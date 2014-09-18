@@ -69,7 +69,8 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   call axhelm  (wl,approx(:,0),h1,h2,1,1)
   call col2    (wl,vmk,ntot)
   call dssum   (wl)
-  call sub2    (r ,wl,ntot)
+  r(1:ntot) = r(1:ntot) - wl(1:ntot)
+
 !...............................................................
 ! Diag.
   alpha2 = glsc23(r,bi,vml,ntot)

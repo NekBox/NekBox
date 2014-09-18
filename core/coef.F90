@@ -479,26 +479,20 @@ subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       CALL RONE    (TZM1,NTOT1)
 #endif
   ELSE
-      CALL RZERO   (JACM1,NTOT1)
-      jacm1 = jacm1 + xrm1*ysm1*ztm1
-      jacm1 = jacm1 + xtm1*yrm1*zsm1
-      jacm1 = jacm1 + xsm1*ytm1*zrm1
+    jacm1 = xrm1*ysm1*ztm1 + xtm1*yrm1*zsm1 + xsm1*ytm1*zrm1 &
+          - xrm1*ytm1*zsm1 - xsm1*yrm1*ztm1 - xtm1*ysm1*zrm1
 
-      CALL SUBCOL4 (JACM1,XRM1,YTM1,ZSM1,NTOT1)
-      CALL SUBCOL4 (JACM1,XSM1,YRM1,ZTM1,NTOT1)
-      CALL SUBCOL4 (JACM1,XTM1,YSM1,ZRM1,NTOT1)
+    rxm1 = ysm1*ztm1 - ytm1*zsm1
+    rym1 = xtm1*zsm1 - xsm1*ztm1
+    rzm1 = xsm1*ytm1 - xtm1*ysm1 
 
-      rxm1 = ysm1*ztm1 - ytm1*zsm1
-      rym1 = xtm1*zsm1 - xsm1*ztm1
-      rzm1 = xsm1*ytm1 - xtm1*ysm1 
+    sxm1 = ytm1*zrm1 - yrm1*ztm1
+    sym1 = xrm1*ztm1 - xtm1*zrm1
+    szm1 = xtm1*yrm1 - xrm1*ytm1
 
-      sxm1 = ytm1*zrm1 - yrm1*ztm1
-      sym1 = xrm1*ztm1 - xtm1*zrm1
-      szm1 = xtm1*yrm1 - xrm1*ytm1
-
-      txm1 = yrm1*zsm1 - ysm1*zrm1
-      tym1 = xsm1*zrm1 - xrm1*zsm1
-      tzm1 = xrm1*ysm1 - xsm1*yrm1
+    txm1 = yrm1*zsm1 - ysm1*zrm1
+    tym1 = xsm1*zrm1 - xrm1*zsm1
+    tzm1 = xrm1*ysm1 - xsm1*yrm1
   ENDIF
 
   kerr = 0

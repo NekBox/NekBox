@@ -794,12 +794,12 @@ subroutine advab()
   allocate(TA(nx1,ny1,nz1,nelv)) 
   NTOT1 = NX1*NY1*NZ1*NELV
   CALL CONVOP  (TA,VX)
-  CALL SUBCOL3 (BFX,BM1,TA,NTOT1)
+  bfx = bfx - bm1*ta
   CALL CONVOP  (TA,VY)
-  CALL SUBCOL3 (BFY,BM1,TA,NTOT1)
+  bfy = bfy - bm1*ta
   IF (NDIM /= 2) THEN
       CALL CONVOP  (TA,VZ)
-      CALL SUBCOL3 (BFZ,BM1,TA,NTOT1)
+      bfz = bfz - bm1*ta
   ENDIF
 
   return

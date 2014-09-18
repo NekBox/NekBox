@@ -234,7 +234,7 @@ subroutine crespsp (respr, vext)
 
   scale = -4./3.
   call opadd2cm (wa1,wa2,wa3,ta1,ta2,ta3,scale)
-  call invcol3  (w1,vdiff,vtrans,ntot1)
+  w1 = vdiff(:,:,:,:,1) / vtrans(:,:,:,:,1)
   wa1 = wa1 * w1; wa2 = wa2 * w1; wa3 = wa3 * w1
   deallocate(w1)
 

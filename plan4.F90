@@ -1,5 +1,9 @@
 !> \file plan4.F90
 !! \brief Routine plan4 and supporting routines
+!!
+!! This file contains high-level routines for computing the 
+!! right hand sides for the Helmholtz and Poisson solves in the
+!! P(N)-P(N) formalism (colocation). 
 
 !-----------------------------------------------------------------------
 !> \brief Splitting scheme A.G. Tomboulides et al.
@@ -55,14 +59,18 @@ subroutine plan4
   INTYPE = -1
   NTOT1  = NX1*NY1*NZ1*NELV
 
-! add user defined divergence to qtl
+  ! add user defined divergence to qtl
 !max  call add2 (qtl,usrdiv,ntot1)
 
   allocate(vext(lx1*ly1*lz1*lelv,3))
+
+  ! Time-advance velocity with AB(k)
   CALL V_EXTRAP(vext)
 
-! compute explicit contributions bfx,bfy,bfz
+  ! compute explicit contributions (bf{x,y,z}) with BDF(k)
   CALL MAKEF()
+
+  ! store the velocity field for later
   CALL LAGVEL()
 
 ! split viscosity into explicit/implicit part
@@ -70,7 +78,7 @@ subroutine plan4
 
 ! extrapolate velocity
 
-! mask Dirichlet boundaries
+  ! mask Dirichlet boundaries
   CALL BCDIRVC  (VX,VY,VZ,v1mask,v2mask,v3mask)
 
 !     first, compute pressure
@@ -92,10 +100,10 @@ subroutine plan4
 
   allocate(dpr(lx2,ly2,lz2,lelv))
   napprox(1) = laxt
-  call hsolve   ('PRES',dpr,respr,h1,h2 &
-  ,pmask,vmult &
+  call hsolve ('PRES', dpr, respr, h1, h2, pmask, vmult &
   ,imesh,tolspl,nmxh,1 &
   ,approx,napprox,binvm1)
+
   deallocate(respr)
   call add2    (pr,dpr,ntot1)
   deallocate(dpr)
@@ -170,6 +178,17 @@ end subroutine plan4
 
 !-----------------------------------------------------------------------
 !> \brief Compute start residual/right-hand-side in the pressure
+!!
+!! \details \f$ R = \vec{F_b} 
+!!   - \nabla \times \nabla \times \vec{v} 
+!!   - \nabla \left(P + \frac{1}{3} H_1 \nabla \cdot Q \right) \f$
+!!
+!!   where \f$ F_b \f$ is the boundary force, 
+!!   \f$ A \f$ is the stiffness matrix, 
+!!   \f$ B \f$ is the mass matrix, 
+!!   \f$ \vec{v} \f$ is the velocity, 
+!!   \f$ P \f$ is the pressure, and
+!!   \f$ \nabla \cdot Q \f$ is the "thermal divergence"
 subroutine crespsp (respr, vext)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
@@ -184,7 +203,7 @@ subroutine crespsp (respr, vext)
   implicit none
 
   REAL(DP) :: RESPR (LX2,LY2,LZ2,LELV)
-  real(DP) :: VEXT  (LX1*LY1*LZ1*LELV,3)
+  real(DP), intent(in) :: VEXT  (LX1*LY1*LZ1*LELV,3)
 
   real(DP), allocatable, dimension(:,:,:,:) :: TA1, TA2, TA3
   real(DP), allocatable, dimension(:,:,:,:) :: WA1, WA2, WA3
@@ -465,39 +484,33 @@ subroutine opadd2cm (a1,a2,a3,b1,b2,b3,c)
 end subroutine opadd2cm
 
 !-----------------------------------------------------------------------
-!> \brief extrapolate velocity
+!> \brief Extrapolate the velocity forward in time with AB(k)
+!!
+!! \details This is the first half of (6.5.8) in HOMfIFF:
+!! \f$ \hat{v} = \sum_{j=1}^k \beta_{k-j} v^{n+1-j} + ... \f$
 subroutine v_extrap(vext)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
+  use size_m, only : lx1, ly1, lz1, lelv
   use input, only : if3d
   use soln, only : vx, vy, vz, vxlag, vylag, vzlag
   use tstep, only : ab, nab
   implicit none
        
-  real(DP) :: vext(lx1*ly1*lz1*lelv,3)
-
-  integer :: ntot
+  real(DP), intent(out) :: vext(lx1,ly1,lz1,lelv,3)
   real(DP) :: AB0, AB1, AB2
-
-  NTOT = NX1*NY1*NZ1*NELV
 
   AB0 = AB(1)
   AB1 = AB(2)
   AB2 = AB(3)
 
-!   call copy(vext(1,1),vx,ntot)
-!   call copy(vext(1,2),vy,ntot)
-!   call copy(vext(1,3),vz,ntot)
-!   return
-
-  call add3s2(vext(1,1),vx,vxlag,ab0,ab1,ntot)
-  call add3s2(vext(1,2),vy,vylag,ab0,ab1,ntot)
-  if(if3d) call add3s2(vext(1,3),vz,vzlag,ab0,ab1,ntot)
-
   if(nab == 3) then
-      call add2s2(vext(1,1),vxlag(1,1,1,1,2),ab2,ntot)
-      call add2s2(vext(1,2),vylag(1,1,1,1,2),ab2,ntot)
-      if(if3d) call add2s2(vext(1,3),vzlag(1,1,1,1,2),ab2,ntot)
+             vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1) + ab2*vxlag(:,:,:,:,2)
+             vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1) + ab2*vylag(:,:,:,:,2)
+    if(if3d) vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1) + ab2*vzlag(:,:,:,:,2)
+  else
+             vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1)
+             vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1)
+    if(if3d) vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1)
   endif
 
   return

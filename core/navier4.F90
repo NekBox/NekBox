@@ -4,22 +4,15 @@
 
 module helmholtz
   implicit none
+
   private
 
   public :: hsolve
 
 contains
 
-!> \brief     Orthogonalize the rhs wrt previous rhs's for which we already
-!!     know the soln.
-!!     Input:   r         -- residual
-!!              h1,h2     -- Helmholtz arrays
-!!              bi        -- inverse mass matrix
-!!              vml,vmk   -- multiplicity and mask arrays
-!!              approx    -- approximation space
-!!              napprox   -- (1) = max vecs,  (2) = current number of vecs
-!!              wl        -- large work array of size lx1*ly1*lz1*nelv
-!!              ws        -- small work array of size 2*max vecs
+!> \brief Orthogonalize the rhs wrt previous rhs's for which we already
+!! know the soln.
 subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, nid
@@ -27,11 +20,16 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   use tstep, only : istep, ifield, nelfld
   implicit none
 
-  real(DP) :: r(*),h1(*),h2(*),vml(*),vmk(*)
-  real(DP) :: bi(*)
-  real(DP) :: wl(*),ws(*)
-  real(DP) :: approx(:,0:)
-  integer :: napprox(2)
+  real(DP) :: r(*) !>!< residual
+  real(DP) :: h1(*) !>!< coefficient of A (stiffness)
+  real(DP) :: h2(*) !>!< coefficient of M (mass)
+  real(DP) :: vml(*) !>!< multiplicity array
+  real(DP) :: vmk(*) !>!< mask array
+  real(DP) :: bi(*) !>!< inverse mass matrix
+  real(DP) :: wl(*) !>!< large work array (size lx1*ly1*lz1*nelv)
+  real(DP) :: ws(*) !>!< small work array (size 2*max vecs)
+  real(DP) :: approx(:,0:) !>!< approximation space
+  integer :: napprox(2) !>!< (/ max vecs, current number of vecs /)
   character(4) :: name4
 
   integer :: n_max, n_sav, nel, ntot, i, n10
@@ -355,18 +353,20 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   use tstep, only : ifield, nelfld, istep
   implicit none
 
-  CHARACTER(4) ::    NAME
-  REAL(DP) ::           U    (LX1,LY1,LZ1,*)
-  REAL(DP) ::           R    (LX1,LY1,LZ1,*)
-  REAL(DP) ::           H1   (LX1,LY1,LZ1,*)
-  REAL(DP) ::           H2   (LX1,LY1,LZ1,*)
-  REAL(DP) ::           vmk  (LX1,LY1,LZ1,*)
-  REAL(DP) ::           vml  (LX1,LY1,LZ1,*)
-  REAL(DP) ::           bi   (LX1,LY1,LZ1,*)
-  REAL(DP) ::           approx (:,0:)
-  integer ::        napprox(2)
-  integer :: imsh, maxit, isd
-  real(DP) :: tol
+  CHARACTER(4) :: NAME !>!< name of field we're solving for
+  REAL(DP) :: U    (LX1,LY1,LZ1,*) !>!< solution vector
+  REAL(DP) :: R    (LX1,LY1,LZ1,*) !>!< right hand side
+  REAL(DP) :: H1   (LX1,LY1,LZ1,*) !>!< coefficient of A (stiffness)
+  REAL(DP) :: H2   (LX1,LY1,LZ1,*) !>!< coefficient of M (mass)
+  REAL(DP) :: vmk  (LX1,LY1,LZ1,*) !>!< mask array
+  REAL(DP) :: vml  (LX1,LY1,LZ1,*) !>!< multiplicity array
+  integer  :: imsh                 !>!< imesh?
+  real(DP) :: tol                  !>!< residual tolerance
+  integer  :: maxit                !>!< maximum number of iterations
+  integer  :: isd                  !>!< something to do with axi-symmetric
+  REAL(DP) :: approx (:,0:)        !>!< past solutions for projection
+  integer  :: napprox(2)           !>!< (/ max vecs, current number of vecs /)
+  REAL(DP) :: bi   (LX1,LY1,LZ1,*) !>!< inverse of mass matrix
 
   real(DP), allocatable :: w1(:)
   real(DP) :: w2(2+2*mxprev)

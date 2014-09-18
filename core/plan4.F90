@@ -202,8 +202,8 @@ subroutine crespsp (respr, vext)
   use tstep, only : imesh, bd, dt, ifield
   implicit none
 
-  REAL(DP) :: RESPR (LX2,LY2,LZ2,LELV)
-  real(DP), intent(in) :: VEXT  (LX1*LY1*LZ1*LELV,3)
+  REAL(DP), intent(out) :: RESPR (LX2,LY2,LZ2,LELV)
+  real(DP), intent(in)  :: VEXT  (LX1*LY1*LZ1*LELV,3)
 
   real(DP), allocatable, dimension(:,:,:,:) :: TA1, TA2, TA3
   real(DP), allocatable, dimension(:,:,:,:) :: WA1, WA2, WA3
@@ -252,9 +252,10 @@ subroutine crespsp (respr, vext)
   endif
 
   scale = -4./3.
-  call opadd2cm (wa1,wa2,wa3,ta1,ta2,ta3,scale)
   w1 = vdiff(:,:,:,:,1) / vtrans(:,:,:,:,1)
-  wa1 = wa1 * w1; wa2 = wa2 * w1; wa3 = wa3 * w1
+  wa1 = w1*(wa1 + scale*ta1)
+  wa2 = w1*(wa2 + scale*ta2)
+  wa3 = w1*(wa3 + scale*ta3)
   deallocate(w1)
 
 !   add old pressure term because we solve for delta p
@@ -325,7 +326,8 @@ subroutine crespsp (respr, vext)
   CALL ORTHO (RESPR)
 
   return
-  end subroutine crespsp
+end subroutine crespsp
+
 !----------------------------------------------------------------------
 !> \brief Compute the residual for the velocity
 subroutine cresvsp (resv1,resv2,resv3,h1,h2)
@@ -336,19 +338,16 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   use soln, only : vx, vy, vz, vdiff, qtl, pr, bfx, bfy, bfz
   implicit none
 
-  real(DP) :: resv1(lx1,ly1,lz1,lelv) &
-  , resv2(lx1,ly1,lz1,lelv) &
-  , resv3(lx1,ly1,lz1,lelv) &
-  , h1   (lx1,ly1,lz1,lelv) &
-  , h2   (lx1,ly1,lz1,lelv)
+  real(DP), intent(out) :: resv1(lx1,ly1,lz1,lelv) 
+  real(DP), intent(out) :: resv2(lx1,ly1,lz1,lelv) 
+  real(DP), intent(out) :: resv3(lx1,ly1,lz1,lelv) 
+  real(DP), intent(out)  :: h1   (lx1,ly1,lz1,lelv) 
+  real(DP), intent(out)  :: h2   (lx1,ly1,lz1,lelv)
 
-  real(DP), allocatable :: TA1(:,:,:,:), TA2(:,:,:,:) &
-                         , TA3(:,:,:,:), TA4(:,:,:,:)
+  real(DP), allocatable, dimension(:,:,:,:) :: TA1, TA2, TA3, TA4
 
   integer :: ntot, intype
   real(DP) :: scale
-
-
 
   NTOT = NX1*NY1*NZ1*NELV
   INTYPE = -1
@@ -381,6 +380,9 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
 end subroutine cresvsp
 
 !-----------------------------------------------------------------------
+!> \brief Compute curl of U.
+!!
+!! \f$ (w_1, w_2, w_3) = \nabla \times (u_1, u_2, u_3) \f$
 subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
@@ -391,10 +393,15 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   implicit none
 
 
-  real(DP) :: w1(lx1,ly1,lz1,lelv),w2(lx1,ly1,lz1,lelv),w3(lx1,ly1,lz1,lelv)
-  real(DP) :: u1(*),u2(*),u3(*)
-  real(DP) :: work1(lx1,ly1,lz1,*),work2(lx1,ly1,lz1,*)
-  logical :: ifavg
+  real(DP), intent(out) :: w1(lx1,ly1,lz1,lelv) !>!< 1st component of curl U
+  real(DP), intent(out) :: w2(lx1,ly1,lz1,lelv) !>!< 2nd component of curl U
+  real(DP), intent(out) :: w3(lx1,ly1,lz1,lelv) !>!< 3rd component of curl U
+  real(DP), intent(in)  :: u1(*) !>!< 1st component of U
+  real(DP), intent(in)  :: u2(*) !>!< 2nd component of U
+  real(DP), intent(in)  :: u3(*) !>!< 3rd component of U
+  real(DP), intent(out) :: work1(lx1,ly1,lz1,*) !>!< work array
+  real(DP), intent(out) :: work2(lx1,ly1,lz1,*) !>!< work array
+  logical, intent(in)   :: ifavg !>!< Average at boundary? 
 
   integer :: ntot, nxyz, ifielt
 
@@ -459,31 +466,6 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
 end subroutine op_curl
 
 !-----------------------------------------------------------------------
-subroutine opadd2cm (a1,a2,a3,b1,b2,b3,c)
-  use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nelv, ndim
-  implicit none
-
-  REAL(DP) :: A1(*),A2(*),A3(*),B1(*),B2(*),B3(*),C
-  integer :: ntot1, i
-
-  NTOT1=NX1*NY1*NZ1*NELV
-  if (ndim == 3) then
-      do i=1,ntot1
-          a1(i) = a1(i) + b1(i)*c
-          a2(i) = a2(i) + b2(i)*c
-          a3(i) = a3(i) + b3(i)*c
-      enddo
-  else
-      do i=1,ntot1
-          a1(i) = a1(i) + b1(i)*c
-          a2(i) = a2(i) + b2(i)*c
-      enddo
-  endif
-  return
-end subroutine opadd2cm
-
-!-----------------------------------------------------------------------
 !> \brief Extrapolate the velocity forward in time with AB(k)
 !!
 !! \details This is the first half of (6.5.8) in HOMfIFF:
@@ -495,8 +477,9 @@ subroutine v_extrap(vext)
   use soln, only : vx, vy, vz, vxlag, vylag, vzlag
   use tstep, only : ab, nab
   implicit none
-       
-  real(DP), intent(out) :: vext(lx1,ly1,lz1,lelv,3)
+
+  !> velocity (3 components) extrapolated forward in time
+  real(DP), intent(out) :: vext(lx1,ly1,lz1,lelv,3) 
   real(DP) :: AB0, AB1, AB2
 
   AB0 = AB(1)

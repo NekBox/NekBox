@@ -90,12 +90,13 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   use mesh, only : iffast, ifsolv
   implicit none
 
-  integer :: imesh, isd
-  REAL(DP) :: AU    (LX1,LY1,LZ1,*) &
-  ,           U     (LX1,LY1,LZ1,*) &
-  ,           HELM1 (LX1,LY1,LZ1,*) &
-  ,           HELM2 (LX1,LY1,LZ1,*)
+  integer, intent(in) :: imesh, isd
+  REAL(DP), intent(out) :: AU    (LX1,LY1,LZ1,*)
+  real(DP), intent(in)  :: U     (LX1,LY1,LZ1,*) 
+  real(DP), intent(in)  :: HELM1 (LX1,LY1,LZ1,*) 
+  real(DP), intent(in)  :: HELM2 (LX1,LY1,LZ1,*)
 
+  ! locals
   REAL(DP) ::           TM1   (LX1,LY1,LZ1)
   REAL(DP) ::           TM2   (LX1,LY1,LZ1)
   REAL(DP) ::           TM3   (LX1,LY1,LZ1)
@@ -290,8 +291,8 @@ subroutine setfast (helm1,helm2,imesh)
   use mesh, only : iffast, ifdfrm
   implicit none
 
-  integer :: imesh
-  REAL(DP) :: HELM1(NX1,NY1,NZ1,*), HELM2(NX1,NY1,NZ1,*)
+  integer, intent(in) :: imesh
+  REAL(DP), intent(in) :: HELM1(NX1,NY1,NZ1,*), HELM2(NX1,NY1,NZ1,*)
  
   integer :: nel, nxyz, ntot, ie 
   real(DP) :: delta, x, y, diff, epsm, h1min, h1max, testh1
@@ -330,7 +331,7 @@ subroutine setfast (helm1,helm2,imesh)
   100 END DO
 
   return
-  end subroutine setfast
+end subroutine setfast
 
 !----------------------------------------------------------------------
 !> \brief For undeformed elements, set up appropriate elemental matrices
@@ -423,9 +424,9 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   use wz_m, only : wxm1, wam1
   implicit none
 
-  REAL(DP) ::            DPCM1 (LX1,LY1,LZ1,*)
-  REAL(DP) ::            HELM1(NX1,NY1,NZ1,*), HELM2(NX1,NY1,NZ1,*)
-  integer :: imsh, isd
+  REAL(DP), intent(out) ::  DPCM1 (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)  ::  HELM1(NX1,NY1,NZ1,*), HELM2(NX1,NY1,NZ1,*)
+  integer, intent(in) :: imsh, isd
 
   REAL(DP) :: YSM1(LY1)
 
@@ -589,13 +590,13 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   use geom, only : volvm1, voltm1, binvm1, bintm1, bm1
   implicit none
 
-  real(DP) :: tol
-  REAL(DP) :: RES  (LX1,LY1,LZ1,*)
-  REAL(DP) :: H1   (LX1,LY1,LZ1,*)
-  REAL(DP) :: H2   (LX1,LY1,LZ1,*)
-  REAL(DP) :: MASK (LX1,LY1,LZ1,*)
-  REAL(DP) :: MULT (LX1,LY1,LZ1,*)
-  integer :: imesh, isd
+  real(DP), intent(out) :: tol
+  REAL(DP), intent(in)  :: RES  (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)  :: H1   (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)  :: H2   (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)  :: MASK (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)  :: MULT (LX1,LY1,LZ1,*)
+  integer,  intent(in)  :: imesh, isd
 
   real(DP), allocatable :: W1(:,:,:,:), W2(:,:,:,:)
 
@@ -690,13 +691,14 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   implicit none
 
   real(DP), intent(out) :: x(*) !>!< solution vector
-  real(DP), intent(in) :: f(*) !>!< residual vector
-  real(DP), intent(in) :: h1(*) !>!< coefficient of A (stiffness)
-  real(DP), intent(in) :: h2(*) !>!< coefficient of M (mass)
-  real(DP), intent(in) :: mask(*)
-  real(DP) :: mult(*),binv(*)
-  integer :: imsh, isd, maxit
-  real(DP) :: tin
+  real(DP), intent(in)  :: f(*) !>!< residual vector
+  real(DP), intent(in)  :: h1(*) !>!< coefficient of A (stiffness)
+  real(DP), intent(in)  :: h2(*) !>!< coefficient of M (mass)
+  real(DP), intent(in)  :: mask(*) !>!< mask array
+  real(DP), intent(in)  :: mult(*) !>!< multiplicity array
+  real(DP), intent(in)  :: binv(*) !>!< inverse of mass matrix
+  integer,  intent(in)  :: imsh, isd, maxit
+  real(DP), intent(in)  :: tin !>!< input tolerance
   character(4) :: name
 
   logical :: ifmcor,ifprint_hmh
@@ -910,15 +912,14 @@ end subroutine cggo
 real(DP) function vlsc32(r,b,m,n)
   use kinds, only : DP
   implicit none
-  integer :: n
-  real(DP) :: r(n),b(n),m(n)
-  real(DP) :: s
+  integer, intent(in) :: n
+  real(DP), intent(in) :: r(n),b(n),m(n)
+
   integer :: i
-  s = 0.
+  vlsc32 = 0.
   do i=1,n
-      s = s + b(i)*m(i)*r(i)*r(i)
+      vlsc32 = vlsc32 + b(i)*m(i)*r(i)*r(i)
   enddo
-  vlsc32 = s
   return
 end function vlsc32
 
@@ -928,12 +929,12 @@ subroutine set_fdm_prec_h1b(d,h1,h2,nel)
   use size_m, only : nx1, ny1, nz1
   implicit none
 
-  real(DP) :: d (nx1,ny1,nz1,1)
-  real(DP) :: h1(nx1,ny1,nz1,1)
-  real(DP) :: h2(nx1,ny1,nz1,1)
-  integer :: nel
+  real(DP), intent(out) :: d (nx1,ny1,nz1,1)
+  real(DP), intent(in)  :: h1(nx1,ny1,nz1,1)
+  real(DP), intent(in)  :: h2(nx1,ny1,nz1,1)
+  integer,  intent(in)  :: nel
 
-d = 0._dp
+  d = 0._dp
   return 
 
 #if 0
@@ -1042,8 +1043,11 @@ subroutine generalev(a,b,lam,n,w)
   implicit none
 
   integer, intent(in) :: n
-  real :: a(n,n),b(n,n),lam(n),w(n,n)
-  real :: aa(100),bb(100)
+  real(DP), intent(inout) :: a(n,n), b(n,n)
+  real(DP), intent(out)   :: lam(n)
+  real(DP), intent(in) :: w(n,n) !>!< unused
+
+  real(DP) :: aa(100),bb(100)
 
   integer, parameter :: lbw=4*lx1*ly1*lz1*lelv
   real(DP), allocatable :: bw(:)

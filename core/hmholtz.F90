@@ -689,7 +689,12 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use tstep, only : istep, imesh
   implicit none
 
-  real(DP) :: x(*),f(*),h1(*),h2(*),mask(*),mult(*),binv(*)
+  real(DP), intent(out) :: x(*) !>!< solution vector
+  real(DP), intent(in) :: f(*) !>!< residual vector
+  real(DP), intent(in) :: h1(*) !>!< coefficient of A (stiffness)
+  real(DP), intent(in) :: h2(*) !>!< coefficient of M (mass)
+  real(DP), intent(in) :: mask(*)
+  real(DP) :: mult(*),binv(*)
   integer :: imsh, isd, maxit
   real(DP) :: tin
   character(4) :: name

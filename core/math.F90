@@ -128,54 +128,6 @@ END SUBROUTINE BLANK
     end subroutine chsign
 
 !-----------------------------------------------------------------------
-    subroutine cmult(a,const,n)
-    use opctr
-    REAL :: A(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'cmult '
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=A(I)*CONST
-    100 END DO
-    return
-    end subroutine cmult
-!-----------------------------------------------------------------------
-    subroutine cadd(a,const,n)
-    use opctr
-    REAL :: A(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'cadd  '
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=A(I)+CONST
-    100 END DO
-    return
-    end subroutine cadd
-!-----------------------------------------------------------------------
     real function vlmin(vec,n)
     REAL :: VEC(1)
     TMIN = 99.0E20

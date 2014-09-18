@@ -293,10 +293,8 @@ subroutine crespsp (respr, vext)
    
 !   surface terms
   DO IFC=1,NFACES
-      CALL RZERO  (TA1,NTOT1)
-      CALL RZERO  (TA2,NTOT1)
-      IF (NDIM == 3) &
-      CALL RZERO  (TA3,NTOT1)
+      ta1 = 0._dp; ta2 = 0._dp
+      IF (NDIM == 3) ta3 = 0._dp
       DO IEL=1,NELV
           CB = CBC(IFC,IEL,IFIELD)
           IF (CB(1:1) == 'V' .OR. CB(1:1) == 'v') THEN
@@ -316,8 +314,7 @@ subroutine crespsp (respr, vext)
           CALL ADD2   (TA1(:,:,:,IEL),TA3(:,:,:,IEL),NXYZ1)
           CALL FACCL2 (TA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
       END DO
-      CALL CMULT(TA1,dtbd,NTOT1)
-      respr = respr - ta1
+      respr = respr - dtbd*ta1
   END DO
   deallocate(ta1, ta2, ta3)
 

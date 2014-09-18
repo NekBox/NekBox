@@ -211,7 +211,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   else
       ierr=0
       alpha = 1.0/sqrt(alpha)
-      call cmult(approx(:,k),alpha,ntot)
+      approx(:,k) = alpha * approx(:,k)
   endif
 
   if (ierr /= 0) then
@@ -230,7 +230,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
           return
       endif
       alpha = 1.0/sqrt(alpha)
-      call cmult(approx(:,k),alpha,ntot)
+      approx(:,k) = alpha * approx(:,k)
       ierr = 0
   endif
 

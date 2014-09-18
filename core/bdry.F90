@@ -822,7 +822,7 @@ SUBROUTINE BCNEUSC(S,ITYPE)
   use tstep, only : ifield, nelfld
   implicit none
 
-  real(DP) :: S(LX1,LY1,LZ1,LELT)
+  real(DP), intent(out) :: S(LX1,LY1,LZ1,LELT)
   integer :: itype
 
   CHARACTER(3) CB

@@ -480,21 +480,25 @@ subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 #endif
   ELSE
       CALL RZERO   (JACM1,NTOT1)
-      CALL ADDCOL4 (JACM1,XRM1,YSM1,ZTM1,NTOT1)
-      CALL ADDCOL4 (JACM1,XTM1,YRM1,ZSM1,NTOT1)
-      CALL ADDCOL4 (JACM1,XSM1,YTM1,ZRM1,NTOT1)
+      jacm1 = jacm1 + xrm1*ysm1*ztm1
+      jacm1 = jacm1 + xtm1*yrm1*zsm1
+      jacm1 = jacm1 + xsm1*ytm1*zrm1
+
       CALL SUBCOL4 (JACM1,XRM1,YTM1,ZSM1,NTOT1)
       CALL SUBCOL4 (JACM1,XSM1,YRM1,ZTM1,NTOT1)
       CALL SUBCOL4 (JACM1,XTM1,YSM1,ZRM1,NTOT1)
-      CALL ASCOL5  (RXM1,YSM1,ZTM1,YTM1,ZSM1,NTOT1)
-      CALL ASCOL5  (RYM1,XTM1,ZSM1,XSM1,ZTM1,NTOT1)
-      CALL ASCOL5  (RZM1,XSM1,YTM1,XTM1,YSM1,NTOT1)
-      CALL ASCOL5  (SXM1,YTM1,ZRM1,YRM1,ZTM1,NTOT1)
-      CALL ASCOL5  (SYM1,XRM1,ZTM1,XTM1,ZRM1,NTOT1)
-      CALL ASCOL5  (SZM1,XTM1,YRM1,XRM1,YTM1,NTOT1)
-      CALL ASCOL5  (TXM1,YRM1,ZSM1,YSM1,ZRM1,NTOT1)
-      CALL ASCOL5  (TYM1,XSM1,ZRM1,XRM1,ZSM1,NTOT1)
-      CALL ASCOL5  (TZM1,XRM1,YSM1,XSM1,YRM1,NTOT1)
+
+      rxm1 = ysm1*ztm1 - ytm1*zsm1
+      rym1 = xtm1*zsm1 - xsm1*ztm1
+      rzm1 = xsm1*ytm1 - xtm1*ysm1 
+
+      sxm1 = ytm1*zrm1 - yrm1*ztm1
+      sym1 = xrm1*ztm1 - xtm1*zrm1
+      szm1 = xtm1*yrm1 - xrm1*ytm1
+
+      txm1 = yrm1*zsm1 - ysm1*zrm1
+      tym1 = xsm1*zrm1 - xrm1*zsm1
+      tzm1 = xrm1*ysm1 - xsm1*yrm1
   ENDIF
 
   kerr = 0
@@ -578,8 +582,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
                   enddo
               END DO
           ELSE
-              CALL INVCOL3 (WJ(1,1,1,IEL),YM1(1,1,1,IEL), &
-              JACM1(1,1,1,IEL),NXYZ1)
+              wj(:,:,:,iel) = ym1(:,:,:,iel) / jacm1(:,:,:,iel)
           ENDIF
       500 END DO
   ENDIF

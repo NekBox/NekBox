@@ -182,19 +182,20 @@ ifeq ($(IFMPI),false)
 	@rm -rf $S/mpif.h
 endif
 
+.PHONY : doc
+
 doc:
 	rm -rf ./doc
 	doxygen Doxyfile
 
 pub_doc: doc
-	cd ./doc/html/
-	git init
-	git checkout -b gh-pages
-	git add .
-	git add origin git@github.com:maxhutch/nek.git
-	git remote add origin git@github.com:maxhutch/nek.git
-	git commit -m "Updating Doxygen"
-	git push origin gh-pages --force
+	cd ./doc/html/ && \
+	git init && \
+	git checkout -b gh-pages && \
+	git add . && \
+	git remote add origin git@github.com:maxhutch/nek.git && \
+	git commit -m "Updating Doxygen" && \
+	git push origin gh-pages --force 
 
 $(NOBJS_F) : $(OBJDIR)/size_mod.o
 

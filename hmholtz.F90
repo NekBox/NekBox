@@ -240,7 +240,8 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   
   100 END DO
 
-  call addcol4 (au,helm2,bm1,u,ntot)
+  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(:,:,:,1:nel)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
+!  call addcol4 (au,helm2,bm1,u,ntot)
 
 !   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
 

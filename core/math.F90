@@ -47,54 +47,6 @@ SUBROUTINE BLANK(A,N)
 END SUBROUTINE BLANK
 
 !-----------------------------------------------------------------------
-    subroutine subcol3(a,b,c,n)
-    use opctr
-    REAL :: A(1),B(1),C(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'subcl3'
-    endif
-    isbcnt = 2*n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=A(I)-B(I)*C(I)
-    100 END DO
-    return
-    end subroutine subcol3
-!-----------------------------------------------------------------------
-    subroutine subcol4(a,b,c,d,n)
-    use opctr
-    REAL :: A(1),B(1),C(1),D(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'subcl4'
-    endif
-    isbcnt = 3*n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=A(I)-B(I)*C(I)*D(I)
-    100 END DO
-    return
-    end subroutine subcol4
-!-----------------------------------------------------------------------
     subroutine rzero(a,n)
     DIMENSION  A(1)
     DO 100 I = 1, N

@@ -234,7 +234,7 @@ subroutine convab()
   NTOT1 = NX1*NY1*NZ1*NEL
   CALL CONVOP  (TA,T(1,1,1,1,IFIELD-1))
   CALL COL2    (TA,VTRANS(1,1,1,1,IFIELD),NTOT1)
-  CALL SUBCOL3 (BQ(1,1,1,1,IFIELD-1),BM1,TA,NTOT1)
+  bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) - bm1*ta
 
   return
 end subroutine convab

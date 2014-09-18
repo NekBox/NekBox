@@ -281,7 +281,7 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
       CALL COL3 (X1,BINVM1,Y1,NTOT1)
       XX     = GLSC3 (X1,Y1,MULT,NTOT1)
       XNORM  = 1./SQRT(XX)
-      CALL CMULT (X1,XNORM,NTOT1)
+      x1 = x1 * xnorm
   1000 END DO
   2000 CONTINUE
 
@@ -298,10 +298,10 @@ SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
   use geom, only : bm1
   implicit none
 
-  REAL(DP) :: X1   (LX1,LY1,LZ1,1)
+  REAL(DP), intent(out) :: X1   (LX1,LY1,LZ1,1)
   REAL(DP) :: Y1   (LX1,LY1,LZ1,1)
-  REAL(DP) :: MASK (LX1,LY1,LZ1,1)
-  REAL(DP) :: MULT (LX1,LY1,LZ1,1)
+  REAL(DP), intent(in) :: MASK (LX1,LY1,LZ1,1)
+  REAL(DP), intent(in) :: MULT (LX1,LY1,LZ1,1)
   integer :: nel
 
   integer :: ntot1
@@ -322,7 +322,7 @@ SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
   CALL DSSUM      (Y1)
   XX     = GLSC3 (X1,Y1,MULT,NTOT1)
   XNORM  = 1./SQRT(XX)
-  CALL CMULT      (X1,XNORM,NTOT1)
+  x1 = x1 * xnorm
 
   RETURN
 END SUBROUTINE STARTX1

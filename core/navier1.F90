@@ -61,12 +61,12 @@ subroutine ortho (respr)
   if (ifield == 1) then
       if (ifvcor) then
           rlam  = glsum (respr,ntot)/ntotg
-          call cadd (respr,-rlam,ntot)
+          respr = respr - rlam
       endif
   elseif (ifield == ifldmhd) then
       if (ifbcor) then
           rlam = glsum (respr,ntot)/ntotg
-          call cadd (respr,-rlam,ntot)
+          respr = respr - rlam
       endif
   else
       call exitti('ortho: unaccounted ifield = $',ifield)

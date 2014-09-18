@@ -20,16 +20,16 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   use tstep, only : istep, ifield, nelfld
   implicit none
 
-  real(DP) :: r(*) !>!< residual
-  real(DP) :: h1(*) !>!< coefficient of A (stiffness)
-  real(DP) :: h2(*) !>!< coefficient of M (mass)
-  real(DP) :: vml(*) !>!< multiplicity array
-  real(DP) :: vmk(*) !>!< mask array
-  real(DP) :: bi(*) !>!< inverse mass matrix
-  real(DP) :: wl(*) !>!< large work array (size lx1*ly1*lz1*nelv)
-  real(DP) :: ws(*) !>!< small work array (size 2*max vecs)
-  real(DP) :: approx(:,0:) !>!< approximation space
-  integer :: napprox(2) !>!< (/ max vecs, current number of vecs /)
+  real(DP), intent(inout) :: r(*) !>!< residual
+  real(DP), intent(in)    :: h1(*) !>!< coefficient of A (stiffness)
+  real(DP), intent(in)    :: h2(*) !>!< coefficient of M (mass)
+  real(DP), intent(in)    :: vml(*) !>!< multiplicity array
+  real(DP), intent(in)    :: vmk(*) !>!< mask array
+  real(DP), intent(in)    :: bi(*) !>!< inverse mass matrix
+  real(DP), intent(out)   :: wl(*) !>!< large work array (size lx1*ly1*lz1*nelv)
+  real(DP), intent(out)   :: ws(*) !>!< small work array (size 2*max vecs)
+  real(DP), intent(inout) :: approx(:,0:) !>!< approximation space
+  integer, intent(inout)  :: napprox(2) !>!< (/ max vecs, current number of vecs /)
   character(4) :: name4
 
   integer :: n_max, n_sav, nel, ntot, i, n10
@@ -98,12 +98,12 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   use tstep, only : nelfld, ifield
   implicit none
 
-  REAL(DP) :: V1   (LX1,LY1,LZ1,*)
-  REAL(DP) :: H1   (LX1,LY1,LZ1,*)
-  REAL(DP) :: H2   (LX1,LY1,LZ1,*)
-  REAL(DP) :: vmk  (LX1,LY1,LZ1,*)
-  REAL(DP) :: vml  (LX1,LY1,LZ1,*)
-  real(DP) :: ws(2+2*mxprev)
+  REAL(DP), intent(inout) :: V1   (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)    :: H1   (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,*)
+  real(DP), intent(out)   :: ws(2+2*mxprev) !>!< workspace?
 
   real(DP) :: approx(:,0:)
   integer :: napprox(2)
@@ -157,9 +157,12 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   use tstep, only : istep, ifield, nelfld
   implicit none
 
-  integer :: k, ierr
-  real(DP) :: approx(:,0:),h1(*),h2(*),vml(*),vmk(*),ws(*)
+  integer, intent(in) :: k
+  real(DP), intent(inout) :: approx(:,0:)
+  real(DP), intent(in) :: h1(*),h2(*),vml(*),vmk(*)
+  real(DP), intent(out) :: ws(*)
   character(4) :: name4
+  integer, intent(out) :: ierr
 
   integer :: i, ntot, km1 
   real(DP) :: alpha, ratio, eps, alpham, alph1
@@ -244,8 +247,10 @@ subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
   implicit none
 
   integer, parameter :: lt=lx1*ly1*lz1*lelt
-  real(DP) :: approx(lt,0:1),h1(1),h2(1),vml(1),vmk(1),ws(1)
-  integer :: napprox(2)
+  real(DP), intent(inout) :: approx(lt,0:1)
+  real(DP), intent(in)    :: h1(1),h2(1),vml(1),vmk(1)
+  real(DP), intent(out) :: ws(1)
+  integer, intent(inout) :: napprox(2)
   character(4) :: name4
 
   logical :: ifupdate
@@ -303,13 +308,13 @@ subroutine hmhzpf(name,u,r,h1,h2,mask,mult,imesh,tli,maxit,isd,bi)
   implicit none
 
   CHARACTER(4) ::    NAME
-  REAL(DP) ::           U    (LX1,LY1,LZ1,1)
-  REAL(DP) ::           R    (LX1,LY1,LZ1,1)
-  REAL(DP) ::           H1   (LX1,LY1,LZ1,1)
-  REAL(DP) ::           H2   (LX1,LY1,LZ1,1)
-  REAL(DP) ::           MASK (LX1,LY1,LZ1,1)
-  REAL(DP) ::           MULT (LX1,LY1,LZ1,1)
-  REAL(DP) ::           bi   (LX1,LY1,LZ1,1)
+  REAL(DP), intent(out) :: U    (LX1,LY1,LZ1,1) !>!< solution vector
+  REAL(DP), intent(in)  :: R    (LX1,LY1,LZ1,1) !>!< right hand side
+  REAL(DP), intent(in)  :: H1   (LX1,LY1,LZ1,1) !>!< coefficient of A (stiffness)
+  REAL(DP), intent(in)  :: H2   (LX1,LY1,LZ1,1) !>!< coefficient of M (mass)
+  REAL(DP), intent(in)  :: MASK (LX1,LY1,LZ1,1) !>!< mask array
+  REAL(DP), intent(in)  :: MULT (LX1,LY1,LZ1,1) !>!< multiplicity array
+  REAL(DP), intent(in)  :: bi   (LX1,LY1,LZ1,1) !>!< inverse of mass matrix
   real(DP) :: tli
   integer :: imesh, maxit, isd
 
@@ -354,20 +359,20 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   use tstep, only : ifield, nelfld, istep
   implicit none
 
-  CHARACTER(4) :: NAME !>!< name of field we're solving for
-  REAL(DP) :: U    (LX1,LY1,LZ1,*) !>!< solution vector
-  REAL(DP) :: R    (LX1,LY1,LZ1,*) !>!< right hand side
-  REAL(DP) :: H1   (LX1,LY1,LZ1,*) !>!< coefficient of A (stiffness)
-  REAL(DP) :: H2   (LX1,LY1,LZ1,*) !>!< coefficient of M (mass)
-  REAL(DP) :: vmk  (LX1,LY1,LZ1,*) !>!< mask array
-  REAL(DP) :: vml  (LX1,LY1,LZ1,*) !>!< multiplicity array
-  integer  :: imsh                 !>!< imesh?
-  real(DP) :: tol                  !>!< residual tolerance
-  integer  :: maxit                !>!< maximum number of iterations
-  integer  :: isd                  !>!< something to do with axi-symmetric
-  REAL(DP) :: approx (:,0:)        !>!< past solutions for projection
-  integer  :: napprox(2)           !>!< (/ max vecs, current number of vecs /)
-  REAL(DP) :: bi   (LX1,LY1,LZ1,*) !>!< inverse of mass matrix
+  CHARACTER(4), intent(in) :: NAME !>!< name of field we're solving for
+  REAL(DP), intent(out)   :: U    (LX1,LY1,LZ1,*) !>!< solution vector
+  REAL(DP), intent(inout) :: R    (LX1,LY1,LZ1,*) !>!< right hand side
+  REAL(DP), intent(in)    :: H1   (LX1,LY1,LZ1,*) !>!< coefficient of A (stiffness)
+  REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,*) !>!< coefficient of M (mass)
+  REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,*) !>!< mask array
+  REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,*) !>!< multiplicity array
+  integer,  intent(in)    :: imsh                 !>!< imesh?
+  real(DP), intent(in)    :: tol                  !>!< residual tolerance
+  integer,  intent(in)    :: maxit                !>!< maximum number of iterations
+  integer,  intent(in)    :: isd                  !>!< something to do with axi-symmetric
+  REAL(DP), intent(inout) :: approx (:,0:)        !>!< past solutions for projection
+  integer,  intent(inout) :: napprox(2)           !>!< (/ max vecs, current number of vecs /)
+  REAL(DP), intent(in)    :: bi   (LX1,LY1,LZ1,*) !>!< inverse of mass matrix
 
   real(DP), allocatable :: w1(:)
   real(DP) :: w2(2+2*mxprev)

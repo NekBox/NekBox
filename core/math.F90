@@ -47,54 +47,6 @@ SUBROUTINE BLANK(A,N)
 END SUBROUTINE BLANK
 
 !-----------------------------------------------------------------------
-    subroutine sub2(a,b,n)
-    use opctr
-    REAL :: A(1),B(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'sub2  '
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=A(I)-B(I)
-    100 END DO
-    return
-    end subroutine sub2
-!-----------------------------------------------------------------------
-    subroutine sub3(a,b,c,n)
-    use opctr
-    REAL :: A(1),B(1),C(1)
-
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'sub3  '
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    DO 100 I=1,N
-        A(I)=B(I)-C(I)
-    100 END DO
-    return
-    end subroutine sub3
-!-----------------------------------------------------------------------
     subroutine subcol3(a,b,c,n)
     use opctr
     REAL :: A(1),B(1),C(1)

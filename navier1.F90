@@ -1549,7 +1549,7 @@ subroutine wlaplacian(out,a,diff,ifld)
   use tstep, only : ifield, nelfld, imesh
   implicit none
 
-  real(DP) :: out(*),a(*),diff(*)
+  real(DP) :: out(lx1,ly1,lz1,*),a(*),diff(*)
   real(DP), allocatable :: wrk(:,:,:,:)
   real(DP), allocatable :: h2(:,:,:,:)
   integer :: ifld
@@ -1569,7 +1569,7 @@ subroutine wlaplacian(out,a,diff,ifld)
 
   call bcneusc(out,1)
   call axhelm(wrk,a,diff,h2,imesh,1)
-  call sub2 (out,wrk,ntot)
+  out(:,:,:,1:nelfld(ifld)) = out(:,:,:,1:nelfld(ifld)) - wrk
    
   ifield = ifield_
 

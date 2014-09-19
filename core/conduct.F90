@@ -137,7 +137,7 @@ subroutine makeuq
 
   call rzero   ( bq(1,1,1,1,ifield-1) ,    ntot)
   call setqvol ( bq(1,1,1,1,ifield-1)          )
-  call col2    ( bq(1,1,1,1,ifield-1) ,bm1,ntot)
+  bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) * bm1
 
   time = time+dt        ! Restore time
 
@@ -232,8 +232,7 @@ subroutine convab()
   NEL = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
   CALL CONVOP  (TA,T(1,1,1,1,IFIELD-1))
-  CALL COL2    (TA,VTRANS(1,1,1,1,IFIELD),NTOT1)
-  bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) - bm1*ta
+  bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) - bm1*ta *vtrans(:,:,:,:,ifield)
 
   return
 end subroutine convab

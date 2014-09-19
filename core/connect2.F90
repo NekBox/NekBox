@@ -1532,10 +1532,8 @@ subroutine vrdsmsh()
   CALL COPY(TB,XM1,NTOT)
   CALL DSOP(TA,'MIN')
   CALL DSOP(TB,'MAX')
-  ta = ta - xm1
-  tb = tb - xm1
-  CALL COL2(TA,QMASK,NTOT)
-  CALL COL2(TB,QMASK,NTOT)
+  ta = (ta - xm1) * qmask
+  tb = (tb - xm1) * qmask
   DO IE=1,NELT
       XSCMAX = VLMAX(XM1(1,1,1,IE),NXYZ1)
       XSCMIN = VLMIN(XM1(1,1,1,IE),NXYZ1)
@@ -1570,10 +1568,8 @@ subroutine vrdsmsh()
   CALL COPY(TB,YM1,NTOT)
   CALL DSOP(TA,'MIN')
   CALL DSOP(TB,'MAX')
-  ta = ta - ym1
-  tb = tb - ym1
-  CALL COL2(TA,QMASK,NTOT)
-  CALL COL2(TB,QMASK,NTOT)
+  ta = (ta - ym1) * qmask
+  tb = (tb - ym1) * qmask
   DO IE=1,NELT
       YSCMAX = VLMAX(YM1(1,1,1,IE),NXYZ1)
       YSCMIN = VLMIN(YM1(1,1,1,IE),NXYZ1)
@@ -1609,10 +1605,8 @@ subroutine vrdsmsh()
       CALL COPY(TB,ZM1,NTOT)
       CALL DSOP(TA,'MIN')
       CALL DSOP(TB,'MAX')
-      ta = ta - zm1
-      tb = tb - zm1
-      CALL COL2(TA,QMASK,NTOT)
-      CALL COL2(TB,QMASK,NTOT)
+      ta = (ta - zm1) * qmask
+      tb = (tb - zm1) * qmask
       DO IE=1,NELT
           ZSCMAX = VLMAX(ZM1(1,1,1,IE),NXYZ1)
           ZSCMIN = VLMIN(ZM1(1,1,1,IE),NXYZ1)

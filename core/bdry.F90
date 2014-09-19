@@ -678,9 +678,9 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
 !   Copy temporary array to velocity arrays.
 
   IF ( .NOT. IFSTRS ) THEN
-      CALL COL2(V1,mask1,NTOT)
-      CALL COL2(V2,mask2,NTOT)
-      IF (IF3D) CALL COL2(V3,mask3,NTOT)
+      v1 = v1 * mask1
+      v2 = v2 * mask2
+      IF (IF3D) v3 = v3 * mask3 
       if (ifonbc) then
         write(*,*) "Oops: ifonbc"
 #if 0
@@ -792,7 +792,7 @@ SUBROUTINE BCDIRSC(S)
 
 !     Copy temporary array to temperature array.
 
-  CALL COL2(S,TMASK(1,1,1,1,IFIELD-1),NTOT)
+  s = s * tmask(:,:,:,:,ifield-1)
   CALL ADD2(S,TMP,NTOT)
 
 #ifndef NOTIMER

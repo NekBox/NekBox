@@ -210,8 +210,7 @@ SUBROUTINE EIGENV
 
   IF (IFGA) THEN
       NTOT1  = NX1*NY1*NZ1*NELV
-      CALL RONE    (H1,NTOT1)
-      CALL RZERO   (H2,NTOT1)
+      h1 = 1._dp; h2 = 0._dp
       IF ( .NOT. IFSTRS) THEN
           CALL GAMMAM1 (EIGGA1,V1MASK,VMULT,H1,H2,1)
           CALL GAMMAM1 (EIGGA2,V2MASK,VMULT,H1,H2,2)
@@ -299,11 +298,11 @@ SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
   use geom, only : bm1
   implicit none
 
+  integer :: nel
   REAL(DP), intent(out) :: X1   (LX1,LY1,LZ1,NEL)
   REAL(DP) :: Y1   (LX1,LY1,LZ1,NEL)
   REAL(DP), intent(in) :: MASK (LX1,LY1,LZ1,NEL)
   REAL(DP), intent(in) :: MULT (LX1,LY1,LZ1,NEL)
-  integer :: nel
 
   integer :: ntot1
   real(DP) :: small, xx, xnorm

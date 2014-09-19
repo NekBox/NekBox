@@ -362,7 +362,7 @@ subroutine generate_semhat(a,b,c,d,z,dgll,jgll,bgl,zgl,dgl,jgl,n,w)
       enddo
   enddo
 
-  call rzero(a,np*np)
+  a = 0._dp
   do j=0,n
       do i=0,n
           do k=0,n

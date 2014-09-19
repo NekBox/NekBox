@@ -602,10 +602,8 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   , TMP2(nx1,ny1,nz1,nelfld(ifield)) &
   , TMP3(nx1,ny1,nz1,nelfld(ifield)) )
 
-
-  CALL RZERO(TMP1,NTOT)
-  CALL RZERO(TMP2,NTOT)
-  IF (IF3D) CALL RZERO(TMP3,NTOT)
+  tmp1 = 0._dp; tmp2 = 0._dp
+  IF (IF3D) tmp3 = 0._dp
 
 !   Velocity boundary conditions
 
@@ -751,7 +749,7 @@ SUBROUTINE BCDIRSC(S)
   NFLDT  = NFIELD - 1
 
   allocate(tmp(nx1,ny1,nz1,nelfld(ifield)))
-  CALL RZERO(TMP,NTOT)
+  tmp = 0._dp
 
 !     Temperature boundary condition
 
@@ -844,7 +842,7 @@ SUBROUTINE BCNEUSC(S,ITYPE)
   NXYZ  =NX1*NY1*NZ1
   NEL   =NELFLD(IFIELD)
   NTOT  =NXYZ*NEL
-  CALL RZERO(S,NTOT)
+  s = 0._dp
 
   IF (ITYPE == -1) THEN
   

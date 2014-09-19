@@ -27,7 +27,7 @@ subroutine setics
 
   real :: psmax(LDIMT)
 
-  integer :: nxyz2, ntot2, nxyz1, ntott, ntotv, ifld, irst, maxfld, mfldt
+  integer :: nxyz2, ntot2, nxyz1, ntott, ntotv, irst, maxfld, mfldt
   integer :: itest, nbdmax, nbdsav, i, ntot, ifldsave, nfiles
   real(DP) :: rdif, rtotg, vxmax, vymax, vzmax, prmax, ttmax, small
   real(DP) :: xxmax, yymax, zzmax
@@ -42,13 +42,7 @@ subroutine setics
   ntott=nelt*nxyz1
   ntotv=nelv*nxyz1
 
-  call rzero(vx,ntott)
-  call rzero(vy,ntott)
-  call rzero(vz,ntott)
-  call rzero(pr,nxyz2*nelt)
-  do 10 ifld=1,ldimt
-      call rzero(t(1,1,1,1,ifld),ntott)
-  10 END DO
+  vx = 0._dp; vy = 0._dp; vz = 0._dp; pr = 0._dp; t = 0._dp
 
   jp = 0                  ! set counter for perturbation analysis
 

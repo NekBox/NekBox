@@ -94,8 +94,8 @@ subroutine plan4
   deallocate(vext)
 
   allocate(h1(lx1,ly1,lz1,lelv), h2(lx1,ly1,lz1,lelv))
-  h1 = 1_dp / vtrans(:,:,:,:,1)
-  call rzero    (h2,ntot1)
+  h1 = 1._dp / vtrans(:,:,:,:,1)
+  h2 = 0._dp
   call ctolspl  (tolspl,respr)
 
   allocate(dpr(lx2,ly2,lz2,lelv))
@@ -256,8 +256,8 @@ subroutine crespsp (respr, vext)
   deallocate(w1)
 
 !   add old pressure term because we solve for delta p
-  ta1 = 1_dp / vtrans(:,:,:,:,1)
-  CALL RZERO   (TA2,NTOT1)
+  ta1 = 1._dp / vtrans(:,:,:,:,1)
+  ta2 = 0._dp
   CALL AXHELM  (RESPR,PR,TA1,TA2,IMESH,1)
   CALL CHSIGN  (RESPR,NTOT1)
 
@@ -433,7 +433,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
       call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
       w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
   else
-      call rzero (work1,ntot)
+      work1(:,:,:,1:nelv) = 0._dp
       call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
       w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
   endif

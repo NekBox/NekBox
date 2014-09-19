@@ -286,7 +286,7 @@ subroutine crespsp (respr, vext)
 
 !   add thermal divergence
   dtbd = BD(1)/DT
-  call admcol3(respr,QTL,bm1,dtbd,ntot1)
+  respr = respr + qtl * bm1 * dtbd
    
 !   surface terms
   DO IFC=1,NFACES

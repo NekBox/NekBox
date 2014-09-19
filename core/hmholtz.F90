@@ -90,13 +90,14 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   use mesh, only : iffast, ifsolv
   implicit none
 
-  integer, intent(in) :: imesh, isd
-  REAL(DP), intent(out) :: AU    (LX1,LY1,LZ1,*)
-  real(DP), intent(in)  :: U     (LX1,LY1,LZ1,*) 
-  real(DP), intent(in)  :: HELM1 (LX1,LY1,LZ1,*) 
-  real(DP), intent(in)  :: HELM2 (LX1,LY1,LZ1,*)
+  real(DP), intent(out) :: AU    (LX1,LY1,LZ1,*) !>!< H u
+  real(DP), intent(in)  :: U     (LX1,LY1,LZ1,*) !>!< u
+  real(DP), intent(in)  :: HELM1 (LX1,LY1,LZ1,*) !>!< coefficient of stif
+  real(DP), intent(in)  :: HELM2 (LX1,LY1,LZ1,*) !>!< coefficient of mass
+  integer,  intent(in)  :: imesh !>!< mesh index (v or t)
+  integer,  intent(in)  :: isd !>!< axi-symmetric flag of sorts
 
-  ! locals
+   ! locals
   REAL(DP) ::           TM1   (LX1,LY1,LZ1)
   REAL(DP) ::           TM2   (LX1,LY1,LZ1)
   REAL(DP) ::           TM3   (LX1,LY1,LZ1)
@@ -177,28 +178,15 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
               h1 = helm1(1,1,1,e)
 
               call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
-              do 5 iz=1,nz1
+              do iz=1,nz1
                   call mxm   (u(1,1,iz,e),nx1,wddyt,ny1,tm2(1,1,iz),ny1)
-              5 END DO
+              END DO
               call mxm   (u(1,1,1,e),nxy,wddzt,nz1,tm3,nz1)
-#if 0
-              call col2  (tm1,g4m1(1,1,1,e),nxyz)
-              call col2  (tm2,g5m1(1,1,1,e),nxyz)
-              call col2  (tm3,g6m1(1,1,1,e),nxyz)
-
-              call add3  (au(1,1,1,e),tm1,tm2,nxyz)
-              call add2  (au(1,1,1,e),tm3,nxyz)
-
-              call cmult (au(1,1,1,e),h1,nxyz)
-#else
-                 
-              au(:,:,:,e) = &
-              h1 * ( &
-              au(:,:,:,e) + tm1*g4m1(:,:,:,e) &
-              + tm2*g5m1(:,:,:,e) + tm3*g6m1(:,:,:,e) &
-              )
-#endif
-
+           
+              au(:,:,:,e) = h1 * (            &
+                            tm1*g4m1(:,:,:,e) &
+                          + tm2*g5m1(:,:,:,e) &
+                          + tm3*g6m1(:,:,:,e) )
             
           else
               write(*,*) "Woops! axhelm"
@@ -241,8 +229,8 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   
   100 END DO
 
-  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(:,:,:,1:nel)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
-!  call addcol4 (au,helm2,bm1,u,ntot)
+  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(1,1,1,1)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
+!  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(:,:,:,1:nel)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
 
 !   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
 

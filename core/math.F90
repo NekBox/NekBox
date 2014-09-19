@@ -668,15 +668,6 @@ END SUBROUTINE BLANK
     return
     END function
 !-----------------------------------------------------------------------
-    subroutine admcol3(a,b,c,d,n)
-    REAL :: A(1),B(1),C(1),D
-
-    DO 100 I=1,N
-        A(I)=A(I)+B(I)*C(I)*D
-    100 END DO
-    return
-    end subroutine admcol3
-!-----------------------------------------------------------------------
 subroutine ident(a,n)
   use kinds, only : DP
   implicit none

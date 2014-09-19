@@ -294,7 +294,7 @@ subroutine setdtc(umax)
           CALL OPDSSUM (BFX,BFY,BFZ)
           bfx = bfx * binvm1; bfy = bfy * binvm1; bfz = bfz * binvm1
           FMAX=0.0
-          CALL RZERO (U,NTOTD)
+          u = 0._dp
           DO 600 I=1,NTOT
               U(I,1,1,1) = ABS(BFX(I,1,1,1))
               V(I,1,1,1) = ABS(BFY(I,1,1,1))
@@ -588,7 +588,7 @@ subroutine sethlm (h1,h2,intloc)
       dtbd = bd(1)/dt
       h1 = vdiff(:,:,:,:,ifield)
       if (intloc == 0) then
-          call rzero (h2,ntot1)
+          h2 = 0._dp
       else
           if (ifield == 1 .OR. param(107) == 0) then
               h2 = vtrans(:,:,:,:,ifield) * dtbd
@@ -605,7 +605,7 @@ subroutine sethlm (h1,h2,intloc)
 
   ELSE
       CALL COPY  (H1,VDIFF (1,1,1,1,IFIELD),NTOT1)
-      CALL RZERO (H2,NTOT1)
+      h2 = 0._dp
       if (param(107) /= 0) then
           write(6,*) 'SPECIAL SETHLM!!',param(107)
       !           call cfill (h2,param(107),ntot1)

@@ -718,6 +718,7 @@ end subroutine rdparam
 !! .Selectively read mesh (defined by element vertices, and group numbers)
 !!  on each processor
 subroutine rdmesh
+  use kinds, only : DP
   use size_m, only : ndim, nid
   use input, only : iffmtin, igroup, xc, yc, zc
   use parallel, only : nelgt, gllnid, gllel
@@ -744,7 +745,7 @@ subroutine rdmesh
           IF(NDIM == 2)THEN
               READ(9,*,ERR=500,END=600) (XC(IC,IEL),IC=1,4)
               READ(9,*,ERR=500,END=600) (YC(IC,IEL),IC=1,4)
-              call rzero (zc(1 ,iel)     ,4)
+              zc(:,iel) = 0._dp
           ELSE IF(NDIM == 3)THEN
               READ(9,*,ERR=500,END=600) (XC(IC,IEL),IC=1,4)
               READ(9,*,ERR=500,END=600) (YC(IC,IEL),IC=1,4)
@@ -819,7 +820,7 @@ subroutine rdcurve
   
       READ(9,*)
       READ(9,*)NCURVE
-      CALL RZERO(CURVE ,72*LELT)
+      curve = 0._dp
       CALL BLANK(CCURVE,12*LELT)
       IF (NCURVE > 0) THEN
           DO 50 ICURVE=1,NCURVE
@@ -861,7 +862,7 @@ subroutine rdcurve
   !     Read unformatted curve side data
   
       READ(8) NCURVE
-      CALL RZERO(CURVE ,72*LELT)
+      curve = 0._dp
       CALL BLANK(CCURVE,12*LELT)
       IF (NCURVE > 0) THEN
           DO 1050 ICURVE=1,NCURVE
@@ -891,10 +892,11 @@ subroutine rdcurve
   ENDIF
   end subroutine rdcurve
 !-----------------------------------------------------------------------
-!> \brief .Read Boundary Conditions (and connectivity data)
+!> \brief Read Boundary Conditions (and connectivity data).
 !! .Disperse boundary condition data to all processors
 !!  according to sequential partition scheme
 subroutine rdbdry
+  use kinds, only : DP
   use size_m, only : ndim, lelt, ldimt1, nid
   use input, only : cbc, bc, vnekton, npscal
   use input, only : ifheat, ifmhd, ifflow, iffmtin, iftmsh
@@ -924,7 +926,7 @@ subroutine rdbdry
 
   LCBC=18*LELT*(LDIMT1 + 1)
   LRBC=30*LELT*(LDIMT1 + 1)
-  CALL RZERO(BC ,LRBC)
+  bc = 0._dp
   CALL BLANK(CBC,LCBC)
 
 !-----------------------------------------------------------------
@@ -1148,6 +1150,7 @@ end subroutine rdicdf
 !!  .Disperse material properties to all processors according
 !!   to sequential partition scheme
 subroutine rdmatp
+  use kinds, only : DP
   use size_m, only : ldimt1, nid
   use input, only : matype, cpgrp, ifvps
   use parallel, only : isize, wdsize
@@ -1157,7 +1160,7 @@ subroutine rdmatp
   integer :: nskip, npacks, iig, igrp, ifld, itype, iprop
 
   CALL IZERO(MATYPE,16*LDIMT1)
-  CALL RZERO(CPGRP ,48*LDIMT1)
+  cpgrp = 0._dp
 
 !   Read material property data
 

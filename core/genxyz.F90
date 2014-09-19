@@ -54,7 +54,7 @@ subroutine setdef()
 
   DO 500 IE=1,NELT
   
-      call rzero(vec,36)
+      vec = 0._dp
       IF (IF3D) THEN
           DO 100 IEDG=1,8
               IF(CCURVE(IEDG,IE) /= ' ') THEN
@@ -309,15 +309,14 @@ subroutine setzgml (zgml,e,nxl,nyl,nzl,ifaxl)
   use wz_m, only : zgm1
   implicit none
 
-  real(DP) :: zgml(lx1,3)
+  real(DP), intent(out) :: zgml(lx1,3)
   integer :: e, nxl, nyl, nzl
   logical :: ifaxl
 
   integer :: k
   real(DP) :: zam1
 
-  call rzero (zgml,3*nx1)
-
+  zgml = 0._dp
 
   if (nxl == 3 .AND. .NOT. ifaxl) then
       do k=1,3

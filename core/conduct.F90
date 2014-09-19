@@ -123,6 +123,7 @@ end subroutine cdscal
 !> \brief Fill up user defined forcing function and collocate will the
 !! mass matrix on the Gauss-Lobatto mesh.
 subroutine makeuq
+  use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
   use geom, only : bm1
   use soln, only : bq
@@ -135,7 +136,7 @@ subroutine makeuq
 
   time = time-dt        ! Set time to t^n-1 for user function
 
-  call rzero   ( bq(1,1,1,1,ifield-1) ,    ntot)
+  bq(:,:,:,:,ifield-1) = 0._dp
   call setqvol ( bq(1,1,1,1,ifield-1)          )
   bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) * bm1
 

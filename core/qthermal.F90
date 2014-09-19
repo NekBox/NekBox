@@ -24,7 +24,7 @@ subroutine qthermal()
   ntot = nx1*ny1*nz1*nelv
 
   if ( .NOT. iflomach) then
-      call rzero(qtl,ntot)
+      qtl = 0._dp
       return
   endif
 

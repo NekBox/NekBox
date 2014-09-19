@@ -748,12 +748,8 @@ subroutine genxyzl()
   INDX(7)=8
   INDX(8)=7
 
-  CALL RZERO(XML,NTOT3)
-  CALL RZERO(YML,NTOT3)
-  CALL RZERO(ZML,NTOT3)
-  CALL RZERO(XCB,8)
-  CALL RZERO(YCB,8)
-  CALL RZERO(ZCB,8)
+  xml = 0._dp; yml = 0._dp; zml = 0._dp
+  xcb = 0._dp; ycb = 0._dp; zcb = 0._dp
 
   DO 5000 IE=1,NELT
   
@@ -827,7 +823,7 @@ subroutine setside
 !   Flip vertex array structure
 
 !   write(6,*) nelv,nelt,if3d
-  call rzero(xyz,24*nelt)
+  xyz = 0._dp
   if (if3d) then
       do ie=1,nelt
           do j=1,8
@@ -855,7 +851,7 @@ subroutine setside
 
   NFACES=NDIM*2
   NCRNR =2**(NDIM-1)
-  CALL RZERO(SIDE,24*NELT)
+  side = 0._dp
   DO ICRN=1,NCRNR
       DO IFAC=1,NFACES
           IVTX = ICFACE(ICRN,IFAC)

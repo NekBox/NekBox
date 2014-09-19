@@ -306,7 +306,7 @@ subroutine setvar
 !     Initialize order of time-stepping scheme (BD)
 !     Initialize time step array.
   NBD    = 0
-  CALL RZERO (DTLAG,10)
+  dtlag = 0._dp
 
 !     Useful constants
   one = 1.
@@ -609,6 +609,7 @@ end subroutine files
 !! Set time-dependent coefficients in time-stepping schemes.
 !----------------------------------------------------------------------
 subroutine settime
+  use kinds, only : DP
   use geom,  only : ifsurt
   use input, only : ifmvbd, param, ifprint
   use tstep, only : dtlag, ab, abmsh, bd, dt, iocomm
@@ -637,18 +638,18 @@ subroutine settime
 
   CALL SETORDBD
   if (irst > 0) nbd = nbdinp
-  CALL RZERO (BD,10)
+  bd = 0._dp
   CALL SETBD (BD,DTLAG,NBD)
   NAB = 3
   IF (ISTEP <= 2 .AND. irst <= 0) NAB = ISTEP
-  CALL RZERO   (AB,10)
+  ab = 0._dp
   CALL SETABBD (AB,DTLAG,NAB,NBD)
   IF (IFMVBD) THEN
       NBDMSH = 1
       NABMSH = int(PARAM(28))
       IF (NABMSH > ISTEP .AND. irst <= 0) NABMSH = ISTEP
       IF (IFSURT)          NABMSH = NBD
-      CALL RZERO   (ABMSH,10)
+      abmsh = 0._dp
       CALL SETABBD (ABMSH,DTLAG,NABMSH,NBDMSH)
   ENDIF
 

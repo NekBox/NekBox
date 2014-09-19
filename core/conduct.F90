@@ -73,12 +73,12 @@ subroutine cdscal (igeom)
           IF (IFTRAN) INTYPE = -1
           CALL SETHLM  (H1,H2,INTYPE)
           CALL BCNEUSC (TA,-1)
-          CALL ADD2    (H2,TA,NTOT)
+          h2 = h2 + ta
           CALL BCDIRSC (T(1,1,1,1,IFIELD-1))
           CALL AXHELM  (TA,T(1,1,1,1,IFIELD-1),H1,H2,IMESH,isd)
           tb = bq(:,:,:,:,ifield-1) - ta
           CALL BCNEUSC (TA,1)
-          CALL ADD2    (TB,TA,NTOT)
+          tb = tb + ta
 
       !        CALL HMHOLTZ (name4,TA,TB,H1,H2
       !    $                 ,TMASK(1,1,1,1,IFIELD-1)
@@ -99,7 +99,7 @@ subroutine cdscal (igeom)
               ,approx,napprox,binvm1)
           endif
 
-          call add2    (t(1,1,1,1,ifield-1),ta,ntot)
+          t(:,:,:,:,ifield-1) = t(:,:,:,:,ifield-1) + ta
 
           call cvgnlps (ifconv) ! Check convergence for nonlinear problem
           if (ifconv) goto 2000
@@ -111,7 +111,7 @@ subroutine cdscal (igeom)
       2000 CONTINUE
       deallocate(h1,h2,tb)
       CALL BCNEUSC (TA,1)
-      CALL ADD2 (BQ(1,1,1,1,IFIELD-1),TA,NTOT) ! no idea why... pf
+      bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) + ta ! no idea why... pf
       deallocate(ta)
 
   endif
@@ -299,7 +299,7 @@ subroutine makebdq()
   END DO
 
   tb = (1./DT) * tb * vtrans(:,:,:,:,ifield)
-  CALL ADD2 (BQ(1,1,1,1,IFIELD-1),TB,NTOT1)
+  bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) + tb
 
   return
 end subroutine makebdq

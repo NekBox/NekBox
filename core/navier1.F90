@@ -444,7 +444,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
               i2=i2+n2
           enddo
           call mxm     (ta2,nxy2,iztm12,nz1,ta1,nz2)
-          call addcol3 (dx(:,:,:,e),ta1,sm2(:,:,:,e),nxyz2)
+          dx(:,:,:,e) = dx(:,:,:,e) + reshape(ta1,(/lx2,ly2,lz2/)) * sm2(:,:,:,e)
 
       !            call mxm (ixm12,nx2,x(1,e),nx1,ta1,nyz1) ! reuse ta3 from above
           i1=1
@@ -455,7 +455,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
               i2=i2+n2
           enddo
           call mxm (ta2,nxy2,dztm12,nz1,ta3,nz2)
-          call addcol3 (dx(:,:,:,e),ta3,tm2(:,:,:,e),nxyz2)
+          dx(:,:,:,e) = dx(:,:,:,e) + reshape(ta3,(/lx2,ly2,lz2/)) * tm2(:,:,:,e)
       !           endif
       endif
   
@@ -668,6 +668,7 @@ subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
   NXYZ1 = NX1*NY1*NZ1
   NTOT  = NXYZ1*NEL
 
+  !> \todo why this loop?
   DO 1000 IEL=1,NEL
   
 !max      IF (IFAXIS) CALL SETAXDY (IFRZER(IEL) )
@@ -676,16 +677,16 @@ subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
           CALL MXM     (DXM1,NX1,U(1,1,1,IEL),NX1,DU(1,1,1,IEL),NYZ1)
           du(:,:,:,iel) = du(:,:,:,iel) * rm1(:,:,:,iel)
           CALL MXM     (U(1,1,1,IEL),NX1,DYTM1,NY1,DRST,NY1)
-          CALL ADDCOL3 (DU(1,1,1,IEL),DRST,SM1(1,1,1,IEL),NXYZ1)
+          du(:,:,:,iel) = du(:,:,:,iel) + drst * sm1(:,:,:,iel)
       ELSE
           CALL MXM   (DXM1,NX1,U(1,1,1,IEL),NX1,DU(1,1,1,IEL),NYZ1)
           du(:,:,:,iel) = du(:,:,:,iel) * rm1(:,:,:,iel)
           DO 20 IZ=1,NZ1
               CALL MXM  (U(1,1,IZ,IEL),NX1,DYTM1,NY1,DRST(1,1,IZ),NY1)
           20 END DO
-          CALL ADDCOL3 (DU(1,1,1,IEL),DRST,SM1(1,1,1,IEL),NXYZ1)
+          du(:,:,:,iel) = du(:,:,:,iel) + drst * sm1(:,:,:,iel)
           CALL MXM     (U(1,1,1,IEL),NXY1,DZTM1,NZ1,DRST,NZ1)
-          CALL ADDCOL3 (DU(1,1,1,IEL),DRST,TM1(1,1,1,IEL),NXYZ1)
+          du(:,:,:,iel) = du(:,:,:,iel) + drst * tm1(:,:,:,iel)
       ENDIF
   
   1000 END DO
@@ -863,24 +864,21 @@ subroutine makeabf
   AB1 = AB(2)
   AB2 = AB(3)
 
-  CALL ADD3S2 (TA,ABX1,ABX2,AB1,AB2,NTOT1)
+  ta = ab1 * abx1 + ab2 * abx2
   CALL COPY   (ABX2,ABX1,NTOT1)
   CALL COPY   (ABX1,BFX,NTOT1)
-  CALL ADD2S1 (BFX,TA,AB0,NTOT1)
-  bfx = bfx * vtrans(:,:,:,:,1) ! multiply by density
+  bfx = (ab0 * bfx + ta) * vtrans(:,:,:,:,1) ! multiply by density
 
-  CALL ADD3S2 (TA,ABY1,ABY2,AB1,AB2,NTOT1)
+  ta = ab1 * aby1 + ab2 * aby2
   CALL COPY   (ABY2,ABY1,NTOT1)
   CALL COPY   (ABY1,BFY,NTOT1)
-  CALL ADD2S1 (BFY,TA,AB0,NTOT1)
-  bfy = bfy * vtrans(:,:,:,:,1) ! multiply by density
+  bfy = (ab0 * bfy + ta) * vtrans(:,:,:,:,1) ! multiply by density
 
   IF (NDIM == 3) THEN
-    CALL ADD3S2 (TA,ABZ1,ABZ2,AB1,AB2,NTOT1)
+    ta = ab1 * abz1 + ab2 * abz2
     CALL COPY   (ABZ2,ABZ1,NTOT1)
     CALL COPY   (ABZ1,BFZ,NTOT1)
-    CALL ADD2S1 (BFZ,TA,AB0,NTOT1)
-    bfz = bfz * vtrans(:,:,:,:,1) ! multiply by density
+    bfz = (ab0 * bfz + ta) * vtrans(:,:,:,:,1) ! multiply by density
   ENDIF
 
   return
@@ -1478,10 +1476,10 @@ subroutine opdiv(outfld,inpx,inpy,inpz)
   call multd (work,inpx,rxm2,sxm2,txm2,1,iflg)
   call copy  (outfld,work,ntot2)
   call multd (work,inpy,rym2,sym2,tym2,2,iflg)
-  call add2  (outfld,work,ntot2)
+  outfld = outfld + work
   if (ndim == 3) then
       call multd (work,inpz,rzm2,szm2,tzm2,3,iflg)
-      call add2  (outfld,work,ntot2)
+      outfld = outfld + work
   endif
 
   return

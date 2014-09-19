@@ -122,21 +122,21 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
       if (niterhm > 0) then      ! new vector not in space
           n_sav = n_sav+1
           call copy(approx(:,n_sav),v1,ntot)
-          call add2(v1,approx(:,0),ntot)
+          v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
+                                     + reshape(approx(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
       !           orthogonalize rhs against previous rhs and normalize
           call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
 
       !           if (ierr.ne.0) n_sav = n_sav-1
           if (ierr /= 0) n_sav = 0
-
       else
-
-          call add2(v1,approx(:,0),ntot)
-
+          v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
+                                     + reshape(approx(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
       endif
   else
       n_sav = 1
-      call add2(v1,approx(:,0),ntot)
+      v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
+                                 + reshape(approx(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
       call copy(approx(:,n_sav),v1,ntot)
   !        normalize
       call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
@@ -192,7 +192,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
 
   do i=1,km1
       alpham = -ws(i)
-      call add2s2(approx(:,k),approx(:,i),alpham,ntot)
+      approx(:,k) = approx(:,k) + alpham * approx(:,i)
       alpha = alpha - ws(i)**2
   enddo
 

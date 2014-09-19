@@ -315,7 +315,7 @@ SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
 
   call rand_fld_h1(y1)            ! pff 3/21/12
   small = 0.001*glamax(x1,ntot1)
-  call add2s2(x1,y1,small,ntot1)
+  x1 = x1 + small * y1
 
 
   x1 = x1 * mask

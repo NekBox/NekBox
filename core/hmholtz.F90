@@ -540,8 +540,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
       ENDIF
   1000 END DO
 
-  dpcm1(:,:,:,1:nel) = dpcm1(:,:,:,1:nel) * helm1(:,:,:,1:nel)
-  CALL ADDCOL3 (DPCM1,HELM2,BM1,NTOT)
+  dpcm1(:,:,:,1:nel) = dpcm1(:,:,:,1:nel)*helm1(:,:,:,1:nel) + bm1*helm2(:,:,:,1:nel)
 
 !   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
 
@@ -779,7 +778,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
       rmean = smean*glsc2(r,mult,n)
       call copy(x,bm1,n)
       call dssum(x)
-      call add2s2(r,x,rmean,n)
+      r = r + rmean * x(1:n)
       call rzero(x,n)
   endif
 
@@ -856,7 +855,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
       
           beta = rtz1/rtz2
           if (iter == 1) beta=0.0
-          call add2s1 (p,z,beta,n)
+          p = beta * p + z
           call axhelm (w,p,h1,h2,imsh,isd)
           call dssum  (w)
           w = w * mask(1:n)
@@ -865,8 +864,8 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
           rho  = glsc3(w,p,mult,n)
           alpha=rtz1/rho
           alphm=-alpha
-          call add2s2(x,p ,alpha,n)
-          call add2s2(r,w ,alphm,n)
+          x(1:n) = x(1:n) + alpha * p
+          r = r + alphm * w
       
       !        Generate tridiagonal matrix for Lanczos scheme
           if (iter == 1) then

@@ -270,7 +270,7 @@ subroutine gaujordf(a,m,n,indr,indc,ipiv,ierr,rmult)
 
   ierr = 0
   eps = 1.e-9
-  call izero(ipiv,m)
+  ipiv(1:m) = 0
 
   ir = -1
   do k=1,m

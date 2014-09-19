@@ -1277,12 +1277,12 @@ subroutine hsmg_index_0
   integer :: n
   n = lmgn*(lmgs+1)
 
-  call izero( mg_rstr_wt_index      , n )
 !  call izero( mg_mask_index         , n )
-  call izero( mg_solve_index        , n )
-  call izero( mg_fast_s_index       , n )
-  call izero( mg_fast_d_index       , n )
-  call izero( mg_schwarz_wt_index   , n )
+  mg_rstr_wt_index    = 0
+  mg_solve_index      = 0
+  mg_fast_s_index     = 0
+  mg_fast_d_index     = 0
+  mg_schwarz_wt_index = 0
         
   return
 end subroutine hsmg_index_0
@@ -1716,7 +1716,7 @@ subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
   nxyz = nx*ny*nz
   n    = nx*ny*nz*nel
 
-  call rone(w,n)   ! Init everything to 1
+  w = 1._dp   ! Init everything to 1
 
   ierrmx = 0       ! BC verification
   two    = 2
@@ -1919,8 +1919,8 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   ns = enx*eny*enz*nelfld(ifield)
   i  = ns+1
 
-  allocate(work(2*ns)); work = 0_dp
-  call rone(work(i),ns)
+  allocate(work(2*ns))
+  work(1:ns) = 0._dp; work(i:i+ns-1) = 1._dp
    
 !   Sum overlap region (border excluded)
   call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)

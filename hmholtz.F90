@@ -650,7 +650,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
       TOL = RMIN
   ENDIF
 
-  CALL RONE (W1,NTOT1)
+  w1 = 1._dp
   BCNEU1 = GLSC3(W1,MASK,MULT,NTOT1)
   BCNEU2 = GLSC3(W1,W1  ,MULT,NTOT1)
   BCTEST = ABS(BCNEU1-BCNEU2)

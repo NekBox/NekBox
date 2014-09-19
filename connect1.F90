@@ -128,7 +128,7 @@ subroutine setup_topo()
 
   if (ifflow) then
       ifield = 1
-      call rone    (vmult,ntotv)
+      vmult = 1._dp
       call dssum   (vmult,nx1,ny1,nz1)
       vmltmax=glmax(vmult,ntotv)
       ivmltmax=vmltmax
@@ -362,7 +362,7 @@ subroutine setedge()
       enddo
   ENDIF
 
-  CALL IZERO(INVEDG,27)
+  invedg = 0
   DO II=1,20
       IX=IEDGE(II)
       INVEDG(IX)=II

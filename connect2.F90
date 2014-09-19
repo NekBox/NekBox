@@ -1159,7 +1159,7 @@ subroutine rdmatp
   CHARACTER(132) :: LINE
   integer :: nskip, npacks, iig, igrp, ifld, itype, iprop
 
-  CALL IZERO(MATYPE,16*LDIMT1)
+  matype = 0
   cpgrp = 0._dp
 
 !   Read material property data
@@ -1208,7 +1208,7 @@ subroutine rdhist
   integer :: ierr, i, ii, i2
 
   CALL BLANK (HCODE ,11*lhis)
-  CALL IZERO (LOCHIS, 4*lhis)
+  lochis = 0
 
   ierr=0
   IF(NID == 0) THEN
@@ -1507,7 +1507,7 @@ subroutine vrdsmsh()
 
 !   Set up QMASK quickly to annihilate checks on periodic bc's
 
-  CALL RONE(QMASK,NTOT)
+  qmask = 1._dp
   DO IEL=1,NELT
       DO IFACE=1,NFACES
           CB =CBC(IFACE,IEL,IFIELD)

@@ -130,7 +130,7 @@ subroutine set_proc_map()
 
   if ( .NOT. ifmoab) then
       IEL=0
-      CALL IZERO(GLLEL,NELGT)
+      gllel = 0
       DO IEG=1,NELGT
           IF (GLLNID(IEG) == NID) THEN
               IEL = IEL + 1

@@ -203,7 +203,7 @@ subroutine setics
   ifield = 2
   if (ifflow) ifield = 1
   allocate(work(lx1,ly1,lz1,lelv))
-  call rone(work,ntotv)
+  work = 1._dp
   ifield = 1
   call dssum(work)
   work = work * vmult

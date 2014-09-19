@@ -91,8 +91,8 @@ subroutine set_up_h1_crs
   ntot=nelv*nxyz_c
   nzc=1
   if (if3d) nzc=nxc
-  call rone(mask,ntot)
-  call rone(cmlt,ntot)
+  mask = 1._dp
+  cmlt = 1._dp
   nfaces=2*ndim
 !   ifield=1			!c? avo: set in set_overlap through 'TSTEP'?
 

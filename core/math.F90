@@ -47,32 +47,6 @@ SUBROUTINE BLANK(A,N)
 END SUBROUTINE BLANK
 
 !-----------------------------------------------------------------------
-    subroutine izero(a,n)
-    INTEGER :: A(1)
-
-    DO 100 I = 1, N
-        A(I ) = 0
-    100 END DO
-    return
-    end subroutine izero
-!-----------------------------------------------------------------------
-    subroutine rone(a,n)
-    DIMENSION  A(1)
-    DO 100 I = 1, N
-        A(I ) = 1.0
-    100 END DO
-    return
-    end subroutine rone
-!-----------------------------------------------------------------------
-    subroutine cfill(a,b,n)
-    DIMENSION  A(1)
-
-    DO 100 I = 1, N
-        A(I) = B
-    100 END DO
-    return
-    end subroutine cfill
-!-----------------------------------------------------------------------
     subroutine copy(a,b,n)
     real :: a(1),b(1)
 

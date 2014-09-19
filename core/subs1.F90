@@ -697,8 +697,8 @@ subroutine vprops
       
           CDIFF  = CPGRP(IGRP,IFIELD,1)
           CTRANS = CPGRP(IGRP,IFIELD,2)
-          CALL CFILL(VDIFF (1,1,1,IEL,IFIELD),CDIFF,NXYZ1)
-          CALL CFILL(VTRANS(1,1,1,IEL,IFIELD),CTRANS,NXYZ1)
+          vdiff(:,:,:,iel,ifield) = cdiff
+          vtrans(:,:,:,iel,ifield) = ctrans
           IF (CDIFF <= 0.0) THEN
               WRITE(6,100) CDIFF,IFIELD,IGRP
               100 FORMAT(2X,'ERROR:  Non-positive diffusivity (' &
@@ -728,8 +728,9 @@ subroutine vprops
           CDIFF  = CPFLD(IFIELD,1)
           CTRANS = CPFLD(IFIELD,2)
       !           write(6,*) 'vdiff:',ifield,cdiff,ctrans
-          CALL CFILL(VDIFF (1,1,1,IEL,IFIELD),CDIFF,NXYZ1)
-          CALL CFILL(VTRANS(1,1,1,IEL,IFIELD),CTRANS,NXYZ1)
+          vdiff(:,:,:,iel,ifield) = cdiff
+          vtrans(:,:,:,iel,ifield) = ctrans
+
           IF (CDIFF <= 0.0) THEN
               WRITE(6,200) CDIFF,IFIELD
               200 FORMAT(2X,'ERROR:  Non-positive diffusivity (' &

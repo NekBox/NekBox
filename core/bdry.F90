@@ -302,11 +302,11 @@ END SUBROUTINE CHKCBC
 !-----------------------------------------------------------------------
 !> \brief Zero out masks corresponding to Dirichlet boundary points.
 SUBROUTINE BCMASK
+  use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nfield
   use input, only : ifmvbd, ifflow, cbc, ifstrs, ifheat, ipscal, ifmhd, ifaziv
-  use input, only : ifldmhd, if3d, ifaxis
-  use soln, only : v1mask, v2mask, v3mask, pmask, omask, tmask, bpmask
-  use soln, only : b1mask, b2mask, b3mask
+  use input, only : ifaxis
+  use soln, only : v1mask, v2mask, v3mask, pmask, omask, tmask
   use tstep, only : ifield, nelfld
   implicit none
 
@@ -349,7 +349,7 @@ SUBROUTINE BCMASK
   
   !        Pressure mask
   
-      CALL RONE(PMASK,NTOT)
+      pmask = 1._dp
       DO IEL=1,NELV
           DO IFACE=1,NFACES
               CB=CBC(IFACE,IEL,IFIELD)
@@ -370,10 +370,10 @@ SUBROUTINE BCMASK
 !max            CALL STSMASK (V1MASK,V2MASK,V3MASK)
       ELSE
       
-          CALL RONE(V1MASK,NTOT)
-          CALL RONE(V2MASK,NTOT)
-          CALL RONE(V3MASK,NTOT)
-          if (ifaxis) CALL RONE( OMASK,NTOT)
+          v1mask = 1._dp
+          v2mask = 1._dp
+          v3mask = 1._dp
+!max          if (ifaxis) CALL RONE( OMASK,NTOT)
       
           DO IEL=1,NELV
               DO IFACE=1,NFACES
@@ -436,7 +436,7 @@ SUBROUTINE BCMASK
           IPSCAL = IFIELD-1
           NEL    = NELFLD(IFIELD)
           NTOT   = NXYZ*NEL
-          CALL RONE (TMASK(1,1,1,1,IPSCAL),NTOT)
+          tmask(:,:,:,:,ipscal) = 1._dp
           DO IEL=1,NEL
               DO IFACE=1,NFACES
                   CB =CBC(IFACE,IEL,IFIELD)
@@ -461,6 +461,8 @@ SUBROUTINE BCMASK
 !   Masks for B-field
 
   if (ifmhd) then
+    write(*,*) "Oops: ifmhd"
+#if 0
       ifield = ifldmhd
       nel    = nelfld(ifield)
       ntot   = nxyz*nel
@@ -549,6 +551,7 @@ SUBROUTINE BCMASK
           call dsop(b2mask,'MUL')
           if (ndim == 3) call dsop(b3mask,'MUL')
       endif
+#endif
   endif
 
   RETURN

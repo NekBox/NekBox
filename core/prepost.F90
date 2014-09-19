@@ -294,7 +294,7 @@ subroutine outfld(prefix, pm1)
       if (p66 < 1.0) then
           open(unit=24,file=fldfle,form='formatted',status='unknown')
       else
-          call  izero    (fldfilei,33)
+          fldfilei = 0
           len = ltrunc   (fldfle,131)
           call chcopy    (fldfile2,fldfle,len)
           call byte_open (fldfile2,ierr)
@@ -468,6 +468,7 @@ subroutine outhis(ifhis, pm1)
                   ELSE
                   !               Kludge: Find Closest point
                       RMIN=1.0E7
+                      ip = 1; jp = 1; kp = 1; ielp = 1
                       DO IEL=1,NELV
                           DO K=1,NZ1
                               DO J=1,NY1

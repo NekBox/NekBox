@@ -167,7 +167,7 @@ subroutine setqvol(bql)
       igrp = igroup(iel)
       if (matype(igrp,ifield) == 1) then ! constant source within a group
           cqvol = cpgrp(igrp,ifield,3)
-          call cfill (bql(1,iel),cqvol,nxyz1)
+          bql(:,iel) = cqvol
       else  !  pff 2/6/96 ............ default is to look at userq
           call nekuq (bql,iel)
       endif

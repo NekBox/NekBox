@@ -294,8 +294,7 @@ subroutine sethmat(h,zgml,nxl,nyl,nzl)
           h(iz,3,2)=(1.0+zgml(iz,3))*0.5
       30 END DO
   else
-      call rone(h(1,3,1),nzl)
-      call rone(h(1,3,2),nzl)
+      h(:,3,:) = 1._dp
   endif
 
   return

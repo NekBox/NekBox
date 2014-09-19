@@ -127,15 +127,15 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   implicit none
 
   integer :: isd
-  real(DP) :: dtx  (lx1*ly1*lz1,lelv)
-  real(DP) :: x    (lx2*ly2*lz2,lelv)
-  real(DP) :: rm2  (lx2*ly2*lz2,lelv)
-  real(DP) :: sm2  (lx2*ly2*lz2,lelv)
-  real(DP) :: tm2  (lx2*ly2*lz2,lelv)
+  real(DP) :: dtx  (lx1,ly1,lz1,lelv)
+  real(DP) :: x    (lx2,ly2,lz2,lelv)
+  real(DP) :: rm2  (lx2,ly2,lz2,lelv)
+  real(DP) :: sm2  (lx2,ly2,lz2,lelv)
+  real(DP) :: tm2  (lx2,ly2,lz2,lelv)
 
   real(DP) ::  wx  (lx1,ly1,lz1) &
-  ,             ta1 (lx1*ly1*lz1) &
-  ,             ta2 (lx1*ly1*lz1)
+  ,             ta1 (lx1,ly1,lz1) &
+  ,             ta2 (lx1,ly1,lz1)
 
   integer :: e
   integer :: nxyz1, nxyz2, nxy1, nyz2, n1, n2, ny12, i1, i2, iz
@@ -175,19 +175,16 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   !      Collocate with weights
   
       if(ifsplit) then
-          call col3 (wx,bm1(1,1,1,e),x(1,e),nxyz1)
-          wx = wx / jacm1(:,:,:,e)
+          wx = bm1(:,:,:,e) * x(:,:,:,e) / jacm1(:,:,:,e)
       else
-          if ( .NOT. ifaxis) call col3 (wx,w3m2,x(1,e),nxyz2)
-      
           if (ifaxis) then
               if (ifrzer(e)) then
-                  call col3    (wx,x(1,e),bm2(1,1,1,e),nxyz2)
-                  wx = wx / jacm2(:,:,:,e)
+                  wx = x(:,:,:,e) * bm2(:,:,:,e) / jacm2(:,:,:,e)
               else
-                  call col3    (wx,w3m2,x(1,e),nxyz2)
-                  call col2    (wx,ym2(1,1,1,e),nxyz2)
+                  wx = w3m2 * x(:,:,:,e) * ym2(:,:,:,e)
               endif
+          else
+            wx = w3m2 * x(:,:,:,e) 
           endif
       endif
   
@@ -221,20 +218,20 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
 #endif
       else
           if (ifsplit) then
-              call col3 (ta1,wx,rm2(1,e),nxyz2)
-              call mxm  (dxtm12,nx1,ta1,nx2,dtx(1,e),nyz2)
-              call col3 (ta1,wx,sm2(1,e),nxyz2)
+              ta1 = wx * rm2(:,:,:,e)
+              call mxm  (dxtm12,nx1,ta1,nx2,dtx(:,:,:,e),nyz2)
+              ta1 = wx * sm2(:,:,:,e) 
               i1 = 1
               i2 = 1
               do iz=1,nz2
-                  call mxm  (ta1(i2),nx1,dym12,ny2,ta2(i1),ny1)
+                  call mxm  (ta1(:,:,iz),nx1,dym12,ny2,ta2(:,:,iz),ny1)
                   i1 = i1 + n1
                   i2 = i2 + n2
               enddo
-              call add2 (dtx(1,e),ta2,nxyz1)
-              call col3 (ta1,wx,tm2(1,e),nxyz2)
+              dtx(:,:,:,e) = dtx(:,:,:,e) + ta2
+              ta1 = wx * tm2(:,:,:,e)
               call mxm  (ta1,nxy1,dzm12,nz2,ta2,nz1)
-              call add2 (dtx(1,e),ta2,nxyz1)
+              dtx(:,:,:,e) = dtx(:,:,:,e) + ta2
           else
               write(*,*) "Whoops! cdtp"
 #if 0
@@ -339,11 +336,11 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
   implicit none
 
   integer :: isd, iflg
-  real(DP) ::           dx   (lx2*ly2*lz2,lelv)
-  real(DP) ::           x    (lx1*ly1*lz1,lelv)
-  real(DP) ::           rm2  (lx2*ly2*lz2,lelv)
-  real(DP) ::           sm2  (lx2*ly2*lz2,lelv)
-  real(DP) ::           tm2  (lx2*ly2*lz2,lelv)
+  real(DP) ::           dx   (lx2,ly2,lz2,lelv)
+  real(DP) ::           x    (lx1,ly1,lz1,lelv)
+  real(DP) ::           rm2  (lx2,ly2,lz2,lelv)
+  real(DP) ::           sm2  (lx2,ly2,lz2,lelv)
+  real(DP) ::           tm2  (lx2,ly2,lz2,lelv)
 
   real(DP) ::  ta1 (lx1*ly1*lz1) &
   ,             ta2 (lx1*ly1*lz1) &
@@ -427,7 +424,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
 
       !           else ! PN - PN-2
 
-          call mxm (dxm12,nx2,x(1,e),nx1,ta1,nyz1)
+          call mxm (dxm12,nx2,x(:,:,:,e),nx1,ta1,nyz1)
           i1=1
           i2=1
           do iz=1,nz1
@@ -435,10 +432,10 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
               i1=i1+n1
               i2=i2+n2
           enddo
-          call mxm  (ta2,nxy2,iztm12,nz1,dx(1,e),nz2)
-          call col2 (dx(1,e),rm2(1,e),nxyz2)
+          call mxm  (ta2,nxy2,iztm12,nz1,dx(:,:,:,e),nz2)
+          dx(:,:,:,e) = dx(:,:,:,e) * rm2(:,:,:,e)
 
-          call mxm  (ixm12,nx2,x(1,e),nx1,ta3,nyz1) ! reuse ta3 below
+          call mxm  (ixm12,nx2,x(:,:,:,e),nx1,ta3,nyz1) ! reuse ta3 below
           i1=1
           i2=1
           do iz=1,nz1
@@ -447,7 +444,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
               i2=i2+n2
           enddo
           call mxm     (ta2,nxy2,iztm12,nz1,ta1,nz2)
-          call addcol3 (dx(1,e),ta1,sm2(1,e),nxyz2)
+          call addcol3 (dx(:,:,:,e),ta1,sm2(:,:,:,e),nxyz2)
 
       !            call mxm (ixm12,nx2,x(1,e),nx1,ta1,nyz1) ! reuse ta3 from above
           i1=1
@@ -458,7 +455,7 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
               i2=i2+n2
           enddo
           call mxm (ta2,nxy2,dztm12,nz1,ta3,nz2)
-          call addcol3 (dx(1,e),ta3,tm2(1,e),nxyz2)
+          call addcol3 (dx(:,:,:,e),ta3,tm2(:,:,:,e),nxyz2)
       !           endif
       endif
   
@@ -466,8 +463,8 @@ subroutine multd (dx,x,rm2,sm2,tm2,isd,iflg)
 
 
       if(ifsplit) then
-          call col2   (dx(1,e),bm1(1,1,1,e),nxyz1)
-          dx(:,e) = dx(:,e) / reshape(jacm1(:,:,:,e), (/nxyz1/))
+          dx(:,:,:,e) = dx(:,:,:,e) * bm1(:,:,:,e)
+          dx(:,:,:,e) = dx(:,:,:,e) / jacm1(:,:,:,e)
       else
           write(*,*) "Whoops! multd"
 #if 0
@@ -677,12 +674,12 @@ subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
   
       IF (NDIM == 2) THEN
           CALL MXM     (DXM1,NX1,U(1,1,1,IEL),NX1,DU(1,1,1,IEL),NYZ1)
-          CALL COL2    (DU(1,1,1,IEL),RM1(1,1,1,IEL),NXYZ1)
+          du(:,:,:,iel) = du(:,:,:,iel) * rm1(:,:,:,iel)
           CALL MXM     (U(1,1,1,IEL),NX1,DYTM1,NY1,DRST,NY1)
           CALL ADDCOL3 (DU(1,1,1,IEL),DRST,SM1(1,1,1,IEL),NXYZ1)
       ELSE
           CALL MXM   (DXM1,NX1,U(1,1,1,IEL),NX1,DU(1,1,1,IEL),NYZ1)
-          CALL COL2  (DU(1,1,1,IEL),RM1(1,1,1,IEL),NXYZ1)
+          du(:,:,:,iel) = du(:,:,:,iel) * rm1(:,:,:,iel)
           DO 20 IZ=1,NZ1
               CALL MXM  (U(1,1,IZ,IEL),NX1,DYTM1,NY1,DRST(1,1,IZ),NY1)
           20 END DO
@@ -694,7 +691,7 @@ subroutine dudxyz (du,u,rm1,sm1,tm1,jm1,imsh,isd)
   1000 END DO
 
 !    CALL INVCOL2 (DU,JM1,NTOT)
-  CALL COL2 (DU,JACMI,NTOT)
+  du(:,:,:,1:nel) = du(:,:,:,1:nel) * jacmi
 
   return
 end subroutine dudxyz
@@ -870,20 +867,20 @@ subroutine makeabf
   CALL COPY   (ABX2,ABX1,NTOT1)
   CALL COPY   (ABX1,BFX,NTOT1)
   CALL ADD2S1 (BFX,TA,AB0,NTOT1)
-  CALL COL2   (BFX,VTRANS,NTOT1)          ! multiply by density
+  bfx = bfx * vtrans(:,:,:,:,1) ! multiply by density
 
   CALL ADD3S2 (TA,ABY1,ABY2,AB1,AB2,NTOT1)
   CALL COPY   (ABY2,ABY1,NTOT1)
   CALL COPY   (ABY1,BFY,NTOT1)
   CALL ADD2S1 (BFY,TA,AB0,NTOT1)
-  CALL COL2   (BFY,VTRANS,NTOT1)
+  bfy = bfy * vtrans(:,:,:,:,1) ! multiply by density
 
   IF (NDIM == 3) THEN
-      CALL ADD3S2 (TA,ABZ1,ABZ2,AB1,AB2,NTOT1)
-      CALL COPY   (ABZ2,ABZ1,NTOT1)
-      CALL COPY   (ABZ1,BFZ,NTOT1)
-      CALL ADD2S1 (BFZ,TA,AB0,NTOT1)
-      CALL COL2   (BFZ,VTRANS,NTOT1)
+    CALL ADD3S2 (TA,ABZ1,ABZ2,AB1,AB2,NTOT1)
+    CALL COPY   (ABZ2,ABZ1,NTOT1)
+    CALL COPY   (ABZ1,BFZ,NTOT1)
+    CALL ADD2S1 (BFZ,TA,AB0,NTOT1)
+    bfz = bfz * vtrans(:,:,:,:,1) ! multiply by density
   ENDIF
 
   return
@@ -1126,7 +1123,7 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   implicit none
 
   real(DP) :: h1, semi, l2, linf
-  real(DP) ::           X  (LX1,LY1,LZ1,1)
+  real(DP), intent(in) :: X  (LX1,LY1,LZ1,*)
   integer :: imesh
 
   real(DP), allocatable, dimension(:,:,:,:) :: y, ta1, ta2
@@ -1159,15 +1156,14 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
 
   LINF = GLAMAX (X,NTOT1)
 
-  CALL COL3   (TA1,X,X,NTOT1)
-  CALL COL2   (TA1,BM1,NTOT1)
+  ta1 = x(:,:,:,1:nel)*x(:,:,:,1:nel) * bm1
   L2   = GLSUM  (TA1,NTOT1)
   IF (L2 < 0.0) L2 = 0.
 
   CALL RONE   (TA1,NTOT1)
   CALL RZERO  (TA2,NTOT1)
   CALL AXHELM (Y,X,TA1,TA2,IMESH,1)
-  CALL COL3   (TA1,Y,X,NTOT1)
+  ta1 = y * x(:,:,:,1:nel)
   SEMI = GLSUM  (TA1,NTOT1)
   IF (SEMI < 0.0) SEMI = 0.
 
@@ -1237,13 +1233,12 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   CALL RONE  (TA1,NTOT1)
   CALL RZERO (TA2,NTOT1)
   CALL OPHX  (Y1,Y2,Y3,X1,X2,X3,TA1,TA2)
-  CALL COL3  (TA1,Y1,X1,NTOT1)
-  CALL COL3  (TA2,Y2,X2,NTOT1)
-  CALL ADD2  (TA1,TA2,NTOT1)
   IF (NDIM == 3) THEN
-      CALL COL3  (TA2,Y3,X3,NTOT1)
-      CALL ADD2  (TA1,TA2,NTOT1)
+    ta1 = y1*x1 + y2*x2 + y3*x3
+  else
+    ta1 = y1*x1 + y2*x2
   ENDIF
+
   SEMI = GLSUM (TA1,NTOT1)
   IF (SEMI < 0.0) SEMI = 0.
 

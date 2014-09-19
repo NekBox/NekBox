@@ -55,7 +55,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
 !   if (.not.iffdm) kfldfdm=-1
 
   call dssum   (rhs)
-  call col2    (rhs,mask,ntot)
+  rhs(:,:,:,1:nelfld(ifield)) = rhs(:,:,:,1:nelfld(ifield)) * mask(:,:,:,1:nelfld(ifield))
   if (nid == 0 .AND. istep <= 10) &
   write(6,*) param(22),' p22 ',istep,imsh
   if (param(22) == 0 .OR. istep <= 10) &
@@ -540,7 +540,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
       ENDIF
   1000 END DO
 
-  CALL COL2    (DPCM1,HELM1,NTOT)
+  dpcm1(:,:,:,1:nel) = dpcm1(:,:,:,1:nel) * helm1(:,:,:,1:nel)
   CALL ADDCOL3 (DPCM1,HELM2,BM1,NTOT)
 
 !   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
@@ -637,10 +637,10 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   NTOT1 = NX1*NY1*NZ1*NL
 
   IF (IMESH == 1) THEN
-      CALL COL3 (W2,BINVM1,RES,NTOT1)
+      w2 = binvm1 * res(:,:,:,1:nl)
       RINIT  = SQRT(GLSC3 (W2,res,MULT,NTOT1)/VOLVM1)
   ELSE
-      CALL COL3 (W2,BINTM1,res,NTOT1)
+      w2 = bintm1 * res(:,:,:,1:nl)
       RINIT  = SQRT(GLSC3 (W2,res,MULT,NTOT1)/VOLTM1)
   ENDIF
   RMIN   = EPS*RINIT
@@ -656,8 +656,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   BCTEST = ABS(BCNEU1-BCNEU2)
 
   CALL AXHELM (W2,W1,H1,H2,IMESH,ISD)
-  CALL COL2   (W2,W2,NTOT1)
-  CALL COL2   (W2,BM1,NTOT1)
+  w2 = w2 * w2 * bm1
   BCROB  = SQRT(GLSUM(W2,NTOT1)/VOL)
 
   IF ((BCTEST < .1) .AND. (BCROB < (EPS*ACONDNO))) THEN
@@ -795,7 +794,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   
       if (kfldfdm < 0) then  ! Jacobi Preconditioner
       !           call copy(z,r,n)
-          call col3(z,r,d,n)
+          z = r * d
       else                                       ! Schwarz Preconditioner
       write (*,*) "Oops: kfldfdm"
 #if 0
@@ -860,7 +859,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
           call add2s1 (p,z,beta,n)
           call axhelm (w,p,h1,h2,imsh,isd)
           call dssum  (w)
-          call col2   (w,mask,n)
+          w = w * mask(1:n)
       
           rho0 = rho
           rho  = glsc3(w,p,mult,n)

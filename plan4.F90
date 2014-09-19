@@ -135,30 +135,27 @@ subroutine plan4
   allocate(dvc(lx1,ly1,lz1,lelv), dfc(lx1,ly1,lz1,lelv))
   CALL OPDIV   (DVC,VX,VY,VZ)
   CALL DSSUM   (DVC)
-  CALL COL2    (DVC,BINVM1,NTOT1)
+  dvc = dvc * binvm1
 
-  CALL COL3    (DV1,DVC,BM1,NTOT1)
+  dv1 = dvc * bm1
   DIV1 = GLSUM (DV1,NTOT1)/VOLVM1
 
-  CALL COL3    (DV2,DVC,DVC,NTOT1)
-  CALL COL2    (DV2,BM1   ,NTOT1)
+  dv2 = dvc * dvc * bm1
   DIV2 = GLSUM (DV2,NTOT1)/VOLVM1
   DIV2 = SQRT  (DIV2)
 !     Calculate Divergence difference norms
   dfc = dvc - qtl
-  CALL COL3    (DV1,DFC,BM1,NTOT1)
+  dv1 = dfc * bm1
   DIF1 = GLSUM (DV1,NTOT1)/VOLVM1
     
-  CALL COL3    (DV2,DFC,DFC,NTOT1)
-  CALL COL2    (DV2,BM1   ,NTOT1)
+  dv2 = dfc * dfc * bm1
   DIF2 = GLSUM (DV2,NTOT1)/VOLVM1
   DIF2 = SQRT  (DIF2)
 
-  CALL COL3    (DV1,QTL,BM1,NTOT1)
+  dv1 = qtl * bm1
   QTL1 = GLSUM (DV1,NTOT1)/VOLVM1
     
-  CALL COL3    (DV2,QTL,QTL,NTOT1)
-  CALL COL2    (DV2,BM1   ,NTOT1)
+  dv2 = qtl * qtl * bm1
   QTL2 = GLSUM (DV2,NTOT1)/VOLVM1
   QTL2 = SQRT  (QTL2)
 

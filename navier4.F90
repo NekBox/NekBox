@@ -67,7 +67,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   enddo
 
   call axhelm  (wl,approx(:,0),h1,h2,1,1)
-  call col2    (wl,vmk,ntot)
+  wl(1:ntot) = wl(1:ntot) * vmk(1:ntot)
   call dssum   (wl)
   r(1:ntot) = r(1:ntot) - wl(1:ntot)
 
@@ -164,17 +164,18 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   character(4) :: name4
   integer, intent(out) :: ierr
 
-  integer :: i, ntot, km1 
+  integer :: i, ntot, km1 , nel
   real(DP) :: alpha, ratio, eps, alpham, alph1
   real(DP), external :: glsc2, vlsc2
 
   ierr=0
-  ntot=nx1*ny1*nz1*nelfld(ifield)
+  nel = nelfld(ifield)
+  ntot=nx1*ny1*nz1*nel
 
   call axhelm  (approx(:,0),approx(:,k),h1,h2,1,1)
-  call col2    (approx(:,0),vmk,ntot)
+  approx(:,0) = approx(:,0) * vmk(1:ntot)
   call dssum   (approx(:,0))
-  call col2    (approx(:,0),vml        ,ntot)
+  approx(:,0) = approx(:,0) * vml(1:ntot)
 
 !   Compute part of the norm   (Note:  a(0) already scaled by vml)
 
@@ -216,9 +217,9 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
 
   if (ierr /= 0) then
       call axhelm  (approx(:,0),approx(:,k),h1,h2,1,1)
-      call col2    (approx(:,0),vmk,ntot)
+      approx(:,0) = approx(:,0) * vmk(1:ntot)
       call dssum   (approx(:,0))
-      call col2    (approx(:,0),vml        ,ntot)
+      approx(:,0) = approx(:,0) * vml(1:ntot)
   
   !        Compute part of the norm   (Note:  a(0) already scaled by vml)
   
@@ -379,7 +380,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
   logical :: ifstdh
   character(4) ::  cname
-  integer :: n
+  integer :: n, nel
 
   call chcopy(cname,name,4)
   call capit (cname,4)
@@ -399,11 +400,11 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   if (ifstdh) then
       call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
   else
-      
-      n = nx1*ny1*nz1*nelfld(ifield)
+      nel = nelfld(ifield)
+      n = nx1*ny1*nz1*nel
 
       call dssum  (r)
-      call col2   (r,vmk,n)
+      r(:,:,:,1:nel) = r(:,:,:,1:nel) * vmk(:,:,:,1:nel)
       allocate(w1(lx1*ly1*lz1*lelt))
       call projh  (r,h1,h2,bi,vml,vmk,approx,napprox,w1,w2,name)
       deallocate(w1)

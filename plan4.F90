@@ -105,7 +105,7 @@ subroutine plan4
   ,approx,napprox,binvm1)
 
   deallocate(respr)
-  call add2    (pr,dpr,ntot1)
+  pr = pr + dpr
   deallocate(dpr)
   call ortho   (pr)
 #ifndef NOTIMER
@@ -306,9 +306,11 @@ subroutine crespsp (respr, vext)
               (TA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
 #endif
           ENDIF
-          CALL ADD2   (TA1(:,:,:,IEL),TA2(:,:,:,IEL),NXYZ1)
-          IF (NDIM == 3) &
-          CALL ADD2   (TA1(:,:,:,IEL),TA3(:,:,:,IEL),NXYZ1)
+          IF (NDIM == 3) then 
+            ta1(:,:,:,iel) = ta1(:,:,:,iel) + ta2(:,:,:,iel) + ta3(:,:,:,iel)
+          else
+            ta1(:,:,:,iel) = ta1(:,:,:,iel) + ta2(:,:,:,iel)
+          endif
           CALL FACCL2 (TA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
       END DO
       respr = respr - dtbd*ta1

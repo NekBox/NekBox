@@ -140,7 +140,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       ! pdate residual
           call copy  (r,res,n)                  ! r = res
           call ax    (w,x,h1,h2,n)              ! w = A x
-          call add2s2(r,w,-1.,n)                ! r = r - w
+          r = r - w  
       !      -1
           r = r * ml ! r = L   r
       endif
@@ -216,7 +216,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           call gop(h(1,j),wk1,'+  ',j)          ! sum over P procs
 
           do i=1,j
-              call add2s2(w,v(1,i),-h(i,j),n)    ! w = w - h    v
+              w = w - v(:,i) * h(i,j) ! w = w - h    v
           enddo                                 !          i,j  i
 
 
@@ -281,7 +281,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       enddo
   ! um up Arnoldi vectors
       do i=1,j
-          call add2s2(x,z(1,i),c(i),n)     ! x = x + c  z
+          x = x + z(:,i) * c(i)  ! x = x + c  z
       enddo                               !          i  i
   !        if(iconv.eq.1) call dbg_write(x,nx1,ny1,nz1,nelv,'esol',3)
   enddo

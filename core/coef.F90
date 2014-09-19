@@ -813,6 +813,7 @@ subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
   NXY1=NX1*NY1
   NYZ1=NY1*NZ1
 
+  !> \todo why this loop?
   DO 100 IEL=1,NELT
     
       IF (IFAXIS) then
@@ -835,9 +836,9 @@ subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
           CALL MXM (YM1(1,1,1,IEL),NXY1,DZTM1,NZ1,YTM1(1,1,1,IEL),NZ1)
           CALL MXM (ZM1(1,1,1,IEL),NXY1,DZTM1,NZ1,ZTM1(1,1,1,IEL),NZ1)
       ELSE
-          CALL RZERO (XTM1(1,1,1,IEL),NXY1)
-          CALL RZERO (YTM1(1,1,1,IEL),NXY1)
-          CALL RONE  (ZTM1(1,1,1,IEL),NXY1)
+          xtm1 (:,:,:,iel) = 0._dp
+          ytm1 (:,:,:,iel) = 0._dp
+          ztm1 (:,:,:,iel) = 1._dp
       ENDIF
   
   100 END DO

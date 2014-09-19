@@ -203,7 +203,7 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
       if (ifsplit) then
           call copy(pm1,pr,ntot1)
       elseif (if_full_pres) then
-          call rzero(pm1,ntot1)
+          pm1 = 0._dp
           do e=1,nelv
               call copy(pm1(1,1,1,e),pr(1,1,1,e),nxyz2)
           enddo

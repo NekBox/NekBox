@@ -128,6 +128,7 @@ module soln
     allocate(PR(LX2,LY2,LZ2,LELV))
 !    allocate(PRLAG(LX2,LY2,LZ2,LELV,LORDER2)) 
 
+    !> \todo Is qtl ever non-zero for .not. iflomach?
     allocate(QTL(LX2,LY2,LZ2,LELT))
 !    allocate(USRDIV(LX2,LY2,LZ2,LELT))
 

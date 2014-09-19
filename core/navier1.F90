@@ -975,7 +975,7 @@ subroutine setbd (bd,dtbd,nbd)
   INTEGER :: IR(NDIM),IC(NDIM)
   integer :: nsys, i, ibd
 
-  CALL RZERO (BD,10); bdf = -1
+  BD(1:ndim) = 0._dp; bdf = -1
   IF (NBD == 1) THEN
       BD(1) = 1.
       BDF   = 1.
@@ -1015,7 +1015,7 @@ subroutine bdsys (a,b,dt,nbd,ndim)
 
   integer :: n, j, k, i
   real(DP) :: sumdt
-  CALL RZERO (A,NDIM**2)
+  a = 0._dp
   N = NBD+1
   DO 10 J=1,NBD
       A(1,J) = 1.
@@ -1158,8 +1158,7 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   L2   = GLSUM  (TA1,NTOT1)
   IF (L2 < 0.0) L2 = 0.
 
-  CALL RONE   (TA1,NTOT1)
-  CALL RZERO  (TA2,NTOT1)
+  ta1 = 1._dp; ta2 = 0._dp
   CALL AXHELM (Y,X,TA1,TA2,IMESH,1)
   ta1 = y * x(:,:,:,1:nel)
   SEMI = GLSUM  (TA1,NTOT1)
@@ -1228,8 +1227,7 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   L2 = GLSUM  (TA1,NTOT1)
   IF (L2 < 0.0) L2 = 0.
 
-  CALL RONE  (TA1,NTOT1)
-  CALL RZERO (TA2,NTOT1)
+  ta1 = 1._dp; ta2 = 0._dp
   CALL OPHX  (Y1,Y2,Y3,X1,X2,X3,TA1,TA2)
   IF (NDIM == 3) THEN
     ta1 = y1*x1 + y2*x2 + y3*x3
@@ -1412,7 +1410,7 @@ subroutine convop(conv,fi)
   NTOT1 = NX1*NY1*NZ1*NELV
   NTOTZ = NX1*NY1*NZ1*nelfld(ifield)
 
-  CALL RZERO  (CONV,NTOTZ)
+  conv(:,:,:,1:nelfld(ifield)) = 0._dp
 
   if (param(86) /= 0.0) then  ! skew-symmetric form
 !max        call convopo(conv,fi)
@@ -1555,7 +1553,7 @@ subroutine wlaplacian(out,a,diff,ifld)
 
 
   allocate(wrk(nx1,ny1,nz1,nelfld(ifld)), h2(lx1,ly1,lz1,lelt))
-  call rzero(h2,ntot)
+  h2 = 0._dp
 
   ifield_ = ifield
   ifield = ifld

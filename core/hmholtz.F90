@@ -120,7 +120,7 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   etime1=dnekclock()
 
   IF ( .NOT. IFSOLV) CALL SETFAST(HELM1,HELM2,IMESH)
-  CALL RZERO (AU,NTOT)
+  au(:,:,:,1:nel) = 0._dp
 
   do 100 e=1,nel
   
@@ -338,6 +338,7 @@ end subroutine setfast
 !!        and geometric factors for fast evaluation of Ax.
 !----------------------------------------------------------------------
 subroutine sfastax()
+  use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelt, ndim
   use dxyz, only : dxm1, dym1, dzm1
   use dxyz, only : wddx, wddyt, wddzt
@@ -352,7 +353,7 @@ subroutine sfastax()
 
   NXX=NX1*NX1
   IF (IFIRST) THEN
-      CALL RZERO(WDDX,NXX)
+      wddx = 0._dp
       DO I=1,NX1
           DO J=1,NX1
               DO IP=1,NX1
@@ -361,7 +362,7 @@ subroutine sfastax()
           enddo
       END DO
       NYY=NY1*NY1
-      CALL RZERO(WDDYT,NYY)
+      wddyt = 0._dp
       DO I=1,NY1
           DO J=1,NY1
               DO IP=1,NY1
@@ -370,7 +371,7 @@ subroutine sfastax()
           enddo
       END DO
       NZZ=NZ1*NZ1
-      CALL RZERO(WDDZT,NZZ)
+      wddzt = 0._dp
       DO I=1,NZ1
           DO J=1,NZ1
               DO IP=1,NZ1
@@ -444,7 +445,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
 !   if (ifield.eq.2) call copy(dpcm1,bintm1,ntot)
 !   return
 
-  CALL RZERO(DPCM1,NTOT)
+  dpcm1(:,:,:,1:nel) = 0._dp
   DO 1000 IE=1,NEL
 
 !      IF (IFAXIS) CALL SETAXDY ( IFRZER(IE) )
@@ -760,7 +761,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   allocate(r(lg))
   r(1:n) = f(1:n)
-  call rzero(x,n)
+  x(1:n) = 0._dp
 
 !     Check for non-trivial null-space
 
@@ -779,7 +780,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
       call copy(x,bm1,n)
       call dssum(x)
       r = r + rmean * x(1:n)
-      call rzero(x,n)
+      x (1:n) = 0._dp
   endif
 
   krylov = 0

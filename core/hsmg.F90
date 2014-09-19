@@ -523,7 +523,7 @@ subroutine hsmg_schwarz_toext3d(a,b,n)
   real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
         
   integer :: i,j,k,ie
-  call rzero(a,(n+2)*(n+2)*(n+2)*nelv)
+  a = 0._dp
   do ie=1,nelv
       do k=1,n
           do j=1,n
@@ -758,8 +758,8 @@ subroutine hsmg_setup_fast1d_a(a,lbc,rbc,ll,lm,lr,ah,n)
   if(lbc == 1) i0=1
   i1=n
   if(rbc == 1) i1=n-1
-        
-  call rzero(a,(n+3)*(n+3))
+       
+  a = 0._dp 
   fac = 2.0/lm
   a(1,1)=1.0
   a(n+1,n+1)=1.0
@@ -805,7 +805,7 @@ subroutine hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
   i1=n
   if(rbc == 1) i1=n-1
         
-  call rzero(b,(n+3)*(n+3))
+  b = 0._dp
   fac = 0.5*lm
   b(1,1)=1.0
   b(n+1,n+1)=1.0
@@ -949,6 +949,7 @@ end subroutine hsmg_do_wt
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
+  use kinds, only : DP
   use size_m, only : nelv, ndim
   use input, only : if3d
   implicit none
@@ -959,7 +960,7 @@ subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
         
   integer :: ie, i, j, k
 ! nit border nodes to 1
-  call rzero(w,nx*ny*nz*nelv)
+  w = 0._dp
 !     print *, 'Setup rstr wt: ',nx,ny,nz,nelv
   if ( .NOT. if3d) then
       do ie=1,nelv

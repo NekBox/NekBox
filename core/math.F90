@@ -47,14 +47,6 @@ SUBROUTINE BLANK(A,N)
 END SUBROUTINE BLANK
 
 !-----------------------------------------------------------------------
-    subroutine rzero(a,n)
-    DIMENSION  A(1)
-    DO 100 I = 1, N
-        A(I ) = 0.0
-    100 END DO
-    return
-    end subroutine rzero
-!-----------------------------------------------------------------------
     subroutine izero(a,n)
     INTEGER :: A(1)
 

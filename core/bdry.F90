@@ -702,9 +702,8 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
 #endif
   ENDIF
 
-  CALL ADD2(V1,TMP1,NTOT)
-  CALL ADD2(V2,TMP2,NTOT)
-  IF (IF3D) CALL ADD2(V3,TMP3,NTOT)
+  v1 = v1 + tmp1; v2 = v2 + tmp2 
+  IF (IF3D) v3 = v3 + tmp3
 
 
 #ifndef NOTIMER
@@ -792,8 +791,7 @@ SUBROUTINE BCDIRSC(S)
 
 !     Copy temporary array to temperature array.
 
-  s = s * tmask(:,:,:,:,ifield-1)
-  CALL ADD2(S,TMP,NTOT)
+  s = s * tmask(:,:,:,:,ifield-1) + tmp
 
 #ifndef NOTIMER
   tusbc=tusbc+(dnekclock()-etime1)

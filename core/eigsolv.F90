@@ -239,10 +239,10 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
   implicit none
 
   real(DP) :: gamma
-  REAL(DP) ::            MASK (LX1,LY1,LZ1,1)
-  REAL(DP) ::            MULT (LX1,LY1,LZ1,1)
-  REAL(DP) ::            H1   (LX1,LY1,LZ1,1)
-  REAL(DP) ::            H2   (LX1,LY1,LZ1,1)
+  REAL(DP) ::            MASK (LX1,LY1,LZ1,*)
+  REAL(DP) ::            MULT (LX1,LY1,LZ1,*)
+  REAL(DP) ::            H1   (LX1,LY1,LZ1,*)
+  REAL(DP) ::            H2   (LX1,LY1,LZ1,*)
   integer :: isd
 
   real(DP), allocatable :: X1(:,:,:,:), Y1(:,:,:,:)
@@ -263,9 +263,10 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
 !   pff (2/15/96)
   if (isd == 1) CALL STARTX1 (X1,Y1,MASK,MULT,NEL)
 
+  rq = 0._dp
   DO 1000 ITER=1,NMXE
       CALL AXHELM (Y1,X1,H1,H2,IMESH,ISD)
-      CALL COL2   (Y1,MASK,NTOT1)
+      y1 = y1 * mask(:,:,:,1:nel)
       CALL DSSUM  (Y1)
       RQ     = GLSC3 (X1,Y1,MULT,NTOT1)
       EVOLD  = EVNEW
@@ -278,7 +279,7 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
   !            write(6,*) iter,' eig_max A:',evnew,crit,tolev
   !         endif
       IF (CRIT < TOLEV)                  GOTO 2000
-      CALL COL3 (X1,BINVM1,Y1,NTOT1)
+      x1 = binvm1 * y1
       XX     = GLSC3 (X1,Y1,MULT,NTOT1)
       XNORM  = 1./SQRT(XX)
       x1 = x1 * xnorm
@@ -298,10 +299,10 @@ SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
   use geom, only : bm1
   implicit none
 
-  REAL(DP), intent(out) :: X1   (LX1,LY1,LZ1,1)
-  REAL(DP) :: Y1   (LX1,LY1,LZ1,1)
-  REAL(DP), intent(in) :: MASK (LX1,LY1,LZ1,1)
-  REAL(DP), intent(in) :: MULT (LX1,LY1,LZ1,1)
+  REAL(DP), intent(out) :: X1   (LX1,LY1,LZ1,NEL)
+  REAL(DP) :: Y1   (LX1,LY1,LZ1,NEL)
+  REAL(DP), intent(in) :: MASK (LX1,LY1,LZ1,NEL)
+  REAL(DP), intent(in) :: MULT (LX1,LY1,LZ1,NEL)
   integer :: nel
 
   integer :: ntot1
@@ -317,8 +318,8 @@ SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
   call add2s2(x1,y1,small,ntot1)
 
 
-  CALL COL2       (X1,MASK,NTOT1)
-  CALL COL3       (Y1,BM1,X1,NTOT1)
+  x1 = x1 * mask
+  y1 = bm1 * x1
   CALL DSSUM      (Y1)
   XX     = GLSC3 (X1,Y1,MULT,NTOT1)
   XNORM  = 1./SQRT(XX)

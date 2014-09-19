@@ -30,7 +30,7 @@ subroutine ax(w,x,h1,h2,n)
   isd  = 1
   call axhelm (w,x,h1,h2,imsh,isd)
   call dssum  (w)
-  call col2   (w,pmask,n)
+  w = w * reshape(pmask, (/ n /))
 
   return
 end subroutine ax
@@ -134,7 +134,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       outer = outer+1
 
       if(iter == 0) then               !      -1
-          call col3(r,ml,res,n)         ! r = L  res
+          r = ml * res          ! r = L  res
       !           call copy(r,res,n)
       else
       ! pdate residual
@@ -142,7 +142,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           call ax    (w,x,h1,h2,n)              ! w = A x
           call add2s2(r,w,-1.,n)                ! r = r - w
       !      -1
-          call col2(r,ml,n)                     ! r = L   r
+          r = r * ml ! r = L   r
       endif
   !            ______
       gamma(1) = sqrt(glsc3(r,r,wt,n))         ! gamma  = \/ (r,r)
@@ -161,7 +161,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       do j=1,m
           iter = iter+1
       !       -1
-          call col3(w,mu,v(1,j),n)              ! w  = U   v
+          w = mu * v(:,j)               ! w  = U   v
       !           j
 
       ! . . . . . Overlapping Schwarz + coarse-grid . . . . . . .
@@ -196,7 +196,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !        j
                
       !      -1
-          call col2(w,ml,n)                     ! w = L   w
+          w = w * ml  ! w = L   w
 
       !           !modified Gram-Schmidt
 

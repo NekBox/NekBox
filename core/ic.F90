@@ -13,7 +13,7 @@ subroutine setics
   use mvgeom, only : wx, wy, wz
   use parallel, only : nelgv
   use soln, only : vx, vy, vz, pr, t, jp, vmult, bx, by, bz
-  use soln, only : tmult, vxp, vyp, vzp, tp
+  use soln, only : tmult
   use tstep, only : ifield, nbdinp, time, timeio, nelfld, ntdump
   implicit none
    
@@ -212,7 +212,7 @@ subroutine setics
   call rone(work,ntotv)
   ifield = 1
   call dssum(work)
-  call col2(work,vmult,ntotv)
+  work = work * vmult
   rdif = glsum(work,ntotv)
   deallocate(work)
   rtotg = ntotg
@@ -266,18 +266,21 @@ subroutine setics
   if (ifheat) then
       ifield = 2
       call dssum(t)
-      call col2 (t ,tmult,ntott)
+      t = t * tmult
       do ifield=3,nfield
           call dssum(t(1,1,1,1,i-1))
           if(iftmsh(ifield)) then
-              call col2 (t(1,1,1,1,i-1),tmult,ntott)
+              t(:,:,:,:,i-1) = t(:,:,:,:,i-1) * tmult(:,:,:,:,1)
+!              call col2 (t(1,1,1,1,i-1),tmult,ntott)
           else
-              call col2 (t(1,1,1,1,i-1),vmult,ntotv)
+              t(:,:,:,:,i-1) = t(:,:,:,:,i-1) * vmult
+!              call col2 (t(1,1,1,1,i-1),vmult,ntotv)
           endif
       enddo
   endif
 
   if (ifpert) then
+#if 0
       do jp=1,npert
           ifield = 1
           call opdssum(vxp(1,jp),vyp(1,jp),vzp(1,jp))
@@ -291,6 +294,7 @@ subroutine setics
           if (nid == 0) write(6,111) jp,vxmax,vymax
           111 format(i5,1p2e12.4,' max pert vel')
       enddo
+#endif
   endif
   jp = 0
 
@@ -1546,12 +1550,12 @@ subroutine dsavg(u)
       ifield = 1
       ntot = nx1*ny1*nz1*nelv
       call dssum(u)
-      call col2 (u,vmult,ntot)
+      u = u * vmult
   else
       ifield = 2
       ntot = nx1*ny1*nz1*nelt
       call dssum(u)
-      call col2 (u,tmult,ntot)
+      u = u * tmult(:,:,:,:,1)
   endif
   ifield = ifieldo
 

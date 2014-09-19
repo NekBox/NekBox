@@ -304,55 +304,6 @@ END SUBROUTINE BLANK
     return
     end subroutine iswap
 !-----------------------------------------------------------------------
-    subroutine col2(a,b,n)
-    use opctr
-    real :: a(1),b(1)
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'col2  '
-    endif
-    isbcnt = N
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-! bm* unroll (10)
-    do i=1,n
-        a(i)=a(i)*b(i)
-    enddo
-
-    return
-    end subroutine col2
-!-----------------------------------------------------------------------
-    subroutine col3(a,b,c,n)
-    use opctr
-    real :: a(1),b(1),c(1)
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'col3  '
-    endif
-    isbcnt = N
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-! bm* unroll (10)
-    do i=1,n
-        a(i)=b(i)*c(i)
-    enddo
-    return
-    end subroutine col3
-!-----------------------------------------------------------------------
     subroutine add2(a,b,n)
     use opctr
     real :: a(1),b(1)

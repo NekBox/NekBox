@@ -600,16 +600,16 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       CALL VDOT3 (G1M1,RXM1,RYM1,RZM1,RXM1,RYM1,RZM1,NTOT1)
       CALL VDOT3 (G2M1,SXM1,SYM1,SZM1,SXM1,SYM1,SZM1,NTOT1)
       CALL VDOT3 (G3M1,TXM1,TYM1,TZM1,TXM1,TYM1,TZM1,NTOT1)
-      CALL COL2  (G1M1,WJ,NTOT1)
-      CALL COL2  (G2M1,WJ,NTOT1)
-      CALL COL2  (G3M1,WJ,NTOT1)
+      g1m1 = g1m1 * wj
+      g2m1 = g2m1 * wj
+      g3m1 = g3m1 * wj
 #if 1
       CALL VDOT3 (G4M1,RXM1,RYM1,RZM1,SXM1,SYM1,SZM1,NTOT1)
       CALL VDOT3 (G5M1,RXM1,RYM1,RZM1,TXM1,TYM1,TZM1,NTOT1)
       CALL VDOT3 (G6M1,SXM1,SYM1,SZM1,TXM1,TYM1,TZM1,NTOT1)
-      CALL COL2  (G4M1,WJ,NTOT1)
-      CALL COL2  (G5M1,WJ,NTOT1)
-      CALL COL2  (G6M1,WJ,NTOT1)
+      g4m1 = g4m1 * wj
+      g5m1 = g5m1 * wj
+      g6m1 = g6m1 * wj
 #endif
   ENDIF
   deallocate(wj)
@@ -617,23 +617,23 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 !   Multiply the geometric factors GiM1,i=1,5 with the
 !   weights on mesh M1.
 
-  DO 580 IEL=1,NELT
+  DO IEL=1,NELT
 !max      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
-      CALL COL2 (G1M1(1,1,1,IEL),W3M1,NXYZ1)
-      CALL COL2 (G2M1(1,1,1,IEL),W3M1,NXYZ1)
+      g1m1(:,:,:,iel) = g1m1(:,:,:,iel) * w3m1
+      g2m1(:,:,:,iel) = g2m1(:,:,:,iel) * w3m1
   !            CALL COL2 (G4M1(1,1,1,IEL),W3M1,NXYZ1)
       IF (NDIM == 3) THEN
-          CALL COL2 (G3M1(1,1,1,IEL),W3M1,NXYZ1)
+        g3m1(:,:,:,iel) = g3m1(:,:,:,iel) * w3m1
       !            CALL COL2 (G5M1(1,1,1,IEL),W3M1,NXYZ1)
       !            CALL COL2 (G6M1(1,1,1,IEL),W3M1,NXYZ1)
       ENDIF
-  580 END DO
+  END DO
 
 !   Compute the mass matrix on mesh M1.
 
   DO IEL=1,NELT
 !max      IF (IFAXIS) CALL SETAXW1 ( IFRZER(IEL) )
-      CALL COL3 (BM1  (1,1,1,IEL),JACM1(1,1,1,IEL),W3M1,NXYZ1)
+      bm1(:,:,:,iel) = jacm1(:,:,:,iel) * w3m1
       IF (IFAXIS) THEN
         write(*,*) "Oops: ifaxis"
 #if 0

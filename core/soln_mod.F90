@@ -48,8 +48,8 @@ module soln
 
   real(DP), allocatable, dimension(:,:,:,:) :: V1MASK, V2MASK, V3MASK, PMASK
   real(DP), allocatable, dimension(:,:,:,:,:) :: TMASK
-  real(DP), allocatable, dimension(:,:,:,:) :: OMASK, VMULT
-  real(DP), allocatable, dimension(:,:,:,:,:) :: TMULT
+  real(DP), pointer, dimension(:,:,:,:) :: OMASK, VMULT
+  real(DP), allocatable, target, dimension(:,:,:,:,:) :: TMULT
   real(DP), allocatable, dimension(:,:,:,:) :: B1MASK, B2MASK, B3MASK! masks for mag. field
   real(DP), allocatable, dimension(:,:,:,:) :: BPMASK ! magnetic pressure
 
@@ -138,8 +138,8 @@ module soln
     , PMASK  (LX1,LY1,LZ1,LELV) &
     , TMASK  (LX1,LY1,LZ1,LELT,LDIMT) &
 !    , OMASK  (LX1,LY1,LZ1,LELT) &
-    , VMULT  (LX1,LY1,LZ1,LELV) &
-    , TMULT  (LX1,LY1,LZ1,LELT,LDIMT) &
+!    , VMULT  (LX1,LY1,LZ1,LELV) &
+!    , TMULT  (LX1,LY1,LZ1,LELT,LDIMT) &
     , B1MASK (LBX1,LBY1,LBZ1,LBELV)   & ! masks for mag. field
     , B2MASK (LBX1,LBY1,LBZ1,LBELV) &
     , B3MASK (LBX1,LBY1,LBZ1,LBELV) &

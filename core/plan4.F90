@@ -6,8 +6,7 @@
 !! P(N)-P(N) formalism (colocation). 
 
 !-----------------------------------------------------------------------
-!> \brief Splitting scheme A.G. Tomboulides et al.
-!! Journal of Sci.Comp.,Vol. 12, No. 2, 1998
+!> \brief Splitting scheme \cite Tomboulides1989 
 !!
 !! NOTE: QTL denotes the so called thermal
 !!       divergence and has to be provided

@@ -1,3 +1,5 @@
+!-----------------------------------------------------------------------
+!> \brief setup data structures for direct stiffness operations
 subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
   use kinds, only : DP, i8
   use size_m, only : nid
@@ -31,7 +33,9 @@ subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
 
   return
 end subroutine setupds
+
 !-----------------------------------------------------------------------
+!> \brief Direct stiffness sum
 subroutine dssum(u)
   use kinds, only : DP
   use ctimer, only : ifsync, icalld, tdsmx, tdsmn, etime1, dnekclock
@@ -41,7 +45,7 @@ subroutine dssum(u)
   use tstep, only : ifield
   implicit none
 
-  real(DP) :: u(1)
+  real(DP), intent(inout) :: u(*)
   
   integer :: ifldt
   real(DP) :: timee
@@ -96,6 +100,22 @@ subroutine dssum(u)
 end subroutine dssum
 
 !-----------------------------------------------------------------------
+!> \brief generalization of dssum to other reducers.
+!!
+!!  o gs recognized operations:
+!!          o "+" ==> addition.
+!!          o "*" ==> multiplication.
+!!          o "M" ==> maximum.
+!!          o "m" ==> minimum.
+!!          o "A" ==> (fabs(x)>fabs(y)) ? (x) : (y), ident=0.0.
+!!          o "a" ==> (fabs(x)<fabs(y)) ? (x) : (y), ident=MAX_DBL
+!!          o "e" ==> ((x)==0.0) ? (y) : (x),        ident=0.0.
+!!          o note: a binary function pointer flavor exists.
+!!
+!!  o gs level:
+!!          o level=0 ==> pure tree
+!!          o level>=num_nodes-1 ==> pure pairwise
+!!          o level = 1,...num_nodes-2 ==> mix tree/pairwise.
 subroutine dsop(u,op)
   use kinds, only : DP
   use ctimer, only : ifsync
@@ -108,33 +128,11 @@ subroutine dsop(u,op)
   character(3) :: op
   integer :: ifldt
 
-!   o gs recognized operations:
-
-!           o "+" ==> addition.
-!           o "*" ==> multiplication.
-!           o "M" ==> maximum.
-!           o "m" ==> minimum.
-!           o "A" ==> (fabs(x)>fabs(y)) ? (x) : (y), ident=0.0.
-!           o "a" ==> (fabs(x)<fabs(y)) ? (x) : (y), ident=MAX_DBL
-!           o "e" ==> ((x)==0.0) ? (y) : (x),        ident=0.0.
-
-!           o note: a binary function pointer flavor exists.
-
-
-!   o gs level:
-
-!           o level=0 ==> pure tree
-!           o level>=num_nodes-1 ==> pure pairwise
-!           o level = 1,...num_nodes-2 ==> mix tree/pairwise.
-
   ifldt = ifield
 !   if (ifldt.eq.0)       ifldt = 1
   if (ifldt == ifldmhd) ifldt = 1
 
-!   if (nid.eq.0)
-!  $   write(6,*) istep,' dsop: ',op,ifield,ifldt,gsh_fld(ifldt)
-
-  if(ifsync) call nekgsync()
+  if (ifsync) call nekgsync()
 
   if (op == '+  ') call gs_op(gsh_fld(ifldt),u,1,1,0)
   if (op == 'sum') call gs_op(gsh_fld(ifldt),u,1,1,0)

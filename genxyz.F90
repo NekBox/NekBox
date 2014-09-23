@@ -401,8 +401,8 @@ end subroutine linquad
 !> \brief Generate bi- or trilinear mesh
 subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
   use kinds, only : DP
-  use size_m
-  use input
+  use size_m, only : lx1, ly1, lz1, ndim
+  use input, only : xc, yc, zc
   implicit none
 
   integer :: nxl, nyl, nzl, e

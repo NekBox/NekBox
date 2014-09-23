@@ -126,20 +126,27 @@ subroutine setup_topo()
   ntotv = nx1*ny1*nz1*nelv
   ntott = nx1*ny1*nz1*nelt
 
+  if (ifheat) then
+      ifield = 2
+      allocate(tmult(nx1,ny1,nz1,nelt,1))
+      tmult(:,:,:,:,1) = 1._dp
+      call dssum   (tmult)
+      tmult(:,:,:,:,1) = 1._dp / tmult(:,:,:,:,1)
+  endif
+
   if (ifflow) then
+    if (ifheat) then
+      vmult => tmult(:,:,:,:,1)
+    else
       ifield = 1
+      allocate(vmult(nx1,ny1,nz1,nelv))
       vmult = 1._dp
-      call dssum   (vmult,nx1,ny1,nz1)
+      call dssum   (vmult)
       vmltmax=glmax(vmult,ntotv)
       ivmltmax=vmltmax
       if (nid == 0) write(6,*) ivmltmax,' max multiplicity'
       vmult = 1._dp / vmult
-  endif
-  if (ifheat) then
-      ifield = 2
-      tmult(:,:,:,:,1) = 1._dp
-      call dssum   (tmult,nx1,ny1,nz1)
-      tmult(:,:,:,:,1) = 1._dp / tmult(:,:,:,:,1)
+    endif
   endif
   if ( .NOT. ifflow) call copy(vmult,tmult,ntott)
   if (ifmvbd)  call copy (wmult,vmult,ntott)

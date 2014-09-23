@@ -350,6 +350,7 @@ SUBROUTINE BCMASK
   !        Pressure mask
   
       pmask = 1._dp
+#if 0
       DO IEL=1,NELV
           DO IFACE=1,NFACES
               CB=CBC(IFACE,IEL,IFIELD)
@@ -361,6 +362,7 @@ SUBROUTINE BCMASK
   !        Zero out mask at Neumann-Dirichlet interfaces
   
       CALL DSOP(PMASK,'MUL',NX1,NY1,NZ1)
+#endif
   
   !        Velocity masks
   
@@ -559,6 +561,17 @@ END SUBROUTINE BCMASK
 !-----------------------------------------------------------------------
 !> \brief Apply Dirichlet boundary conditions to surface of vector (V1,V2,V3).
 !! Use IFIELD as a guide to which boundary conditions are to be applied.
+!!
+!! \attention Most of the utility of this routine has been removed to avoid
+!! temporary allocations.  This modification is not valid for the  boundaries
+!!  - v
+!!  - vl
+!!  - ws
+!!  - wsl
+!!  - mv
+!!  - mvn
+!!  - d
+!!  - on
 SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, ndim, lelv
@@ -601,12 +614,14 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   NEL   =NELFLD(IFIELD)
   NTOT  =NXYZ*NEL
 
+#if 0
   allocate(TMP1(nx1,ny1,nz1,nelfld(ifield)) &
   , TMP2(nx1,ny1,nz1,nelfld(ifield)) &
   , TMP3(nx1,ny1,nz1,nelfld(ifield)) )
 
   tmp1 = 0._dp; tmp2 = 0._dp
   IF (IF3D) tmp3 = 0._dp
+#endif
 
 !   Velocity boundary conditions
 
@@ -657,6 +672,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
               ENDIF
           enddo
       END DO
+#if 0
       DO IE=1,NEL
           DO IFACE=1,NFACES
               IF (CBC(IFACE,IE,IFIELD) == 'W  ') THEN
@@ -666,7 +682,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
               ENDIF
           enddo
       END DO
-  
+ 
   !        Take care of Neumann-Dirichlet shared edges...
   
       if (isweep == 1) then
@@ -674,8 +690,8 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
       else
           call opdsop(tmp1,tmp2,tmp3,'MNA')
       endif
+#endif
   END DO
-
 !   Copy temporary array to velocity arrays.
 
   IF ( .NOT. IFSTRS ) THEN
@@ -703,8 +719,10 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
 #endif
   ENDIF
 
+#if 0
   v1 = v1 + tmp1; v2 = v2 + tmp2 
   IF (IF3D) v3 = v3 + tmp3
+#endif
 
 
 #ifndef NOTIMER

@@ -1,69 +1,74 @@
-    subroutine mxmf2(A,N1,B,N2,C,N3)
+!>     unrolled loop version
+subroutine mxmf2(A,N1,B,N2,C,N3)
+  use kinds, only : DP
+  integer :: n1, n2, n3
+  real(DP) :: a(n1,n2),b(n2,n3),c(n1,n3)
 
-!     unrolled loop version
+  select case (n2)
+    case (1 : 8)
+      select case (n2)
+        case (8)
+          call mxf8(a,n1,b,n2,c,n3)
+        case (1)
+          call mxf1(a,n1,b,n2,c,n3)
+        case (2)
+          call mxf2(a,n1,b,n2,c,n3)
+        case (3)
+          call mxf3(a,n1,b,n2,c,n3)
+        case (4)
+          call mxf4(a,n1,b,n2,c,n3)
+        case (5)
+          call mxf5(a,n1,b,n2,c,n3)
+        case (6)
+          call mxf6(a,n1,b,n2,c,n3)
+        case (7)
+          call mxf7(a,n1,b,n2,c,n3)
+      end select
+    case (9 : 16)
+      select case (n2)
+        case (12)
+          call mxf12(a,n1,b,n2,c,n3)
+        case (9)
+          call mxf9(a,n1,b,n2,c,n3)
+        case (10)
+          call mxf10(a,n1,b,n2,c,n3)
+        case (11)
+          call mxf11(a,n1,b,n2,c,n3)
+        case (13)
+          call mxf13(a,n1,b,n2,c,n3)
+        case (14)
+          call mxf14(a,n1,b,n2,c,n3)
+        case (15)
+          call mxf15(a,n1,b,n2,c,n3)
+        case (16)
+          call mxf16(a,n1,b,n2,c,n3)
+      end select
+    case (17 : 24)
+      select case (n2)
+        case (17)
+          call mxf17(a,n1,b,n2,c,n3)
+        case (18)
+          call mxf18(a,n1,b,n2,c,n3)
+        case (19)
+          call mxf19(a,n1,b,n2,c,n3)
+        case (20)
+          call mxf20(a,n1,b,n2,c,n3)
+        case (21)
+          call mxf21(a,n1,b,n2,c,n3)
+        case (22)
+          call mxf22(a,n1,b,n2,c,n3)
+        case (23)
+          call mxf23(a,n1,b,n2,c,n3)
+        case (24)
+          call mxf24(a,n1,b,n2,c,n3)
+      end select
+    case default 
+      call mxm44_0(a,n1,b,n2,c,n3)
+  end select 
 
-    real :: a(n1,n2),b(n2,n3),c(n1,n3)
+  return
+end subroutine mxmf2
 
-    if (n2 <= 8) then
-        if (n2 == 1) then
-            call mxf1(a,n1,b,n2,c,n3)
-        elseif (n2 == 2) then
-            call mxf2(a,n1,b,n2,c,n3)
-        elseif (n2 == 3) then
-            call mxf3(a,n1,b,n2,c,n3)
-        elseif (n2 == 4) then
-            call mxf4(a,n1,b,n2,c,n3)
-        elseif (n2 == 5) then
-            call mxf5(a,n1,b,n2,c,n3)
-        elseif (n2 == 6) then
-            call mxf6(a,n1,b,n2,c,n3)
-        elseif (n2 == 7) then
-            call mxf7(a,n1,b,n2,c,n3)
-        else
-            call mxf8(a,n1,b,n2,c,n3)
-        endif
-    elseif (n2 <= 16) then
-        if (n2 == 9) then
-            call mxf9(a,n1,b,n2,c,n3)
-        elseif (n2 == 10) then
-            call mxf10(a,n1,b,n2,c,n3)
-        elseif (n2 == 11) then
-            call mxf11(a,n1,b,n2,c,n3)
-        elseif (n2 == 12) then
-            call mxf12(a,n1,b,n2,c,n3)
-        elseif (n2 == 13) then
-            call mxf13(a,n1,b,n2,c,n3)
-        elseif (n2 == 14) then
-            call mxf14(a,n1,b,n2,c,n3)
-        elseif (n2 == 15) then
-            call mxf15(a,n1,b,n2,c,n3)
-        else
-            call mxf16(a,n1,b,n2,c,n3)
-        endif
-    elseif (n2 <= 24) then
-        if (n2 == 17) then
-            call mxf17(a,n1,b,n2,c,n3)
-        elseif (n2 == 18) then
-            call mxf18(a,n1,b,n2,c,n3)
-        elseif (n2 == 19) then
-            call mxf19(a,n1,b,n2,c,n3)
-        elseif (n2 == 20) then
-            call mxf20(a,n1,b,n2,c,n3)
-        elseif (n2 == 21) then
-            call mxf21(a,n1,b,n2,c,n3)
-        elseif (n2 == 22) then
-            call mxf22(a,n1,b,n2,c,n3)
-        elseif (n2 == 23) then
-            call mxf23(a,n1,b,n2,c,n3)
-        elseif (n2 == 24) then
-            call mxf24(a,n1,b,n2,c,n3)
-        endif
-    else
-        call mxm44_0(a,n1,b,n2,c,n3)
-    endif
-
-    return
-    end subroutine mxmf2
 !-----------------------------------------------------------------------
     subroutine mxf1(a,n1,b,n2,c,n3)
 

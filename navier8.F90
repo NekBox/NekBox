@@ -222,19 +222,19 @@ subroutine ituple_sort(a,lda,n,key,nkey,ind,aa)
   if (l > 1) then
       l=l-1
   !           aa  = a  (l)
-      call icopy(aa,a(1,l),lda)
+      aa = a(:,l)
       ii  = ind(l)
   else
   !           aa =   a(ir)
-      call icopy(aa,a(1,ir),lda)
+      aa = a(:,ir)
       ii = ind(ir)
   !           a(ir) =   a( 1)
-      call icopy(a(1,ir),a(1,1),lda)
+      a(:,ir) = a(:,1)
       ind(ir) = ind( 1)
       ir=ir-1
       if (ir == 1) then
       !              a(1) = aa
-          call icopy(a(1,1),aa,lda)
+          a(:,1) = aa
           ind(1) = ii
           return
       endif
@@ -248,7 +248,7 @@ subroutine ituple_sort(a,lda,n,key,nkey,ind,aa)
       endif
       if (iftuple_ialtb(aa,a(1,j),key,nkey)) then
       !              a(i) = a(j)
-          call icopy(a(1,i),a(1,j),lda)
+          a(:,i) = a(:,j)
           ind(i) = ind(j)
           i=j
           j=j+j
@@ -258,7 +258,7 @@ subroutine ituple_sort(a,lda,n,key,nkey,ind,aa)
       GOTO 200
   endif
 !       a(i) = aa
-  call icopy(a(1,i),aa,lda)
+  a(:,i) = aa
   ind(i) = ii
   GOTO 100
 end subroutine ituple_sort
@@ -759,7 +759,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   else
       nv = 2**ndim
       do e=1,nelt
-          call icopy(vertex(1,e),wk(3,e),nv)
+          vertex(:,e) = wk(3:2+nv,e)
       enddo
   endif
 
@@ -812,14 +812,14 @@ subroutine irank_vecn(ind,nn,a,m,n,key,nkey,aa)
   call ituple_sort(a,m,n,key,nk,ind,aa)
 
 !   Find unique a's
-  call icopy(aa,a,m)
+  aa = a(:,1)
   nn     = 1
   ind(1) = nn
 
   do i=2,n
       a_ne_b = iftuple_ianeb(aa,a(1,i),key,nk)
       if (a_ne_b) then
-          call icopy(aa,a(1,i),m)
+          aa = a(:,i)
           nn = nn+1
       endif
       ind(i) = nn ! set ind() to rank
@@ -1100,7 +1100,7 @@ subroutine setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
               facet(icrn)        = vertex_flat(i)
           enddo
           call isort(facet,ind,ncrnr)
-          call icopy(ftuple(3,ifac,e),facet,ncrnr-1)
+          ftuple(3:1+ncrnr, ifac, e) = facet(1:ncrnr-1)
       enddo
   enddo
 

@@ -1285,19 +1285,6 @@ subroutine opcolv (a1,a2,a3,c)
   return
 end subroutine opcolv
 
-subroutine opchsgn (a,b,c)
-  use kinds, only : DP
-  use size_m
-  implicit none
-  REAL(DP) :: A(1),B(1),C(1)
-  integer :: ntot1
-  NTOT1=NX1*NY1*NZ1*NELV
-  CALL CHSIGN(A,NTOT1)
-  CALL CHSIGN(B,NTOT1)
-  IF(NDIM == 3)CALL CHSIGN(C,NTOT1)
-  return
-end subroutine opchsgn
-
 subroutine opcopy (a1,a2,a3,b1,b2,b3)
   use kinds, only : DP
   use size_m

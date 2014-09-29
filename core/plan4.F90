@@ -258,7 +258,6 @@ subroutine crespsp (respr, vext)
   ta1 = 1._dp / vtrans(:,:,:,:,1)
   ta2 = 0._dp
   CALL AXHELM  (RESPR,PR,TA1,TA2,IMESH,1)
-  CALL CHSIGN  (RESPR,NTOT1)
 
 !   add explicit (NONLINEAR) terms
   n = nx1*ny1*nz1*nelv
@@ -275,11 +274,11 @@ subroutine crespsp (respr, vext)
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
-      respr = respr + wa1 + wa2 + wa3
+      respr = -respr + wa1 + wa2 + wa3
   else
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
-      respr = respr + wa1 + wa2 
+      respr = -respr + wa1 + wa2 
   endif
   deallocate(wa1,wa2,wa3)
 
@@ -350,7 +349,6 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   CALL SETHLM  (H1,H2,INTYPE)
 
   CALL OPHX    (RESV1,RESV2,RESV3,VX,VY,VZ,H1,H2)
-  CALL OPCHSGN (RESV1,RESV2,RESV3)
 
   scale = -1./3.
   allocate(TA1(LX1,LY1,LZ1,LELV) &
@@ -367,9 +365,9 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
 !max      CALL COL2 (TA3, OMASK,NTOT)
   endif
 
-  resv1 = resv1 + bfx - ta1
-  resv2 = resv2 + bfy - ta2
-  resv3 = resv3 + bfz - ta3
+  resv1 = -resv1 + bfx - ta1
+  resv2 = -resv2 + bfy - ta2
+  resv3 = -resv3 + bfz - ta3
 
   return
 end subroutine cresvsp

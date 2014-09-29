@@ -522,6 +522,7 @@ subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
 
   integer :: nelgs, nnpstr, npstar, log2p, np2
   integer, external :: ivlmax, log2
+  integer :: e, ip, k, nel, nmod, npp
 
   log2p = log2(np)
   np2   = 2**log2p
@@ -569,7 +570,6 @@ subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
 !  add 1 contiguous entry out of the sorted list to NODE_i
 !  where i = np-mod(nelgt,np) ... np
 
-#if 0
   nel   = nelgt/np       ! number of elements per processor
   nmod  = mod(nelgt,np)  ! bounded between 1 ... np-1
   npp   = np - nmod      ! how many paritions of size nel
@@ -598,7 +598,6 @@ subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
 ! unddo sorting to restore initial ordering by
 ! global element number
   call iswapt_ip(gllnid,iunsort,nelgt)
-#endif
 
   return
 end subroutine assign_gllnid
@@ -708,11 +707,8 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
       close(80)
       ntuple = m
   elseif (nid < npass) then
-    write(*,*) "Oops: nid < npass"
-#if 0
       call msgwait(msg_id)
       ntuple = ndw
-#endif
   else
       ntuple = 0
   endif

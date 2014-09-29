@@ -507,3 +507,13 @@ integer function igl_running_sum(in)
   return
 end function igl_running_sum
 !-----------------------------------------------------------------------
+subroutine msgwait(imsg)
+  use mpif, only : mpi_status_size
+  implicit none
+  integer :: status(mpi_status_size)
+  integer :: imsg, ierr
+
+  call mpi_wait (imsg,status,ierr)
+
+  return
+end subroutine msgwait

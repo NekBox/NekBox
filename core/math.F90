@@ -681,3 +681,44 @@ subroutine ident(a,n)
   return
 end subroutine ident
 !-----------------------------------------------------------------------
+subroutine iswapt_ip(x,p,n)
+  implicit none
+  integer, intent(in) :: n
+  integer, intent(inout) :: x(n)
+  integer, intent(inout) :: p(n)
+
+  integer :: j, k, loop_start, next, nextp, t1, t2
+
+!   In-place permutation: x'(p) = x
+
+  do k=1,n
+      if (p(k) > 0) then   ! not swapped
+          loop_start = k
+          next       = p(loop_start)
+          t1         = x(loop_start)
+          do j=1,n
+              if (next < 0) then
+                  write(6,*) 'Hey! iswapt_ip problem.',j,k,n,next
+                  call exitt
+              elseif (next == loop_start) then
+                  x(next) = t1
+                  p(next) = -p(next)
+                  goto 10
+              else
+                  t2      =  x(next)
+                  x(next) =  t1
+                  t1      =  t2
+                  nextp   =  p(next)
+                  p(next) = -p(next)
+                  next    =  nextp
+              endif
+          enddo
+          10 continue
+      endif
+  enddo
+
+  do k=1,n
+      p(k) = -p(k)
+  enddo
+  return
+end subroutine iswapt_ip

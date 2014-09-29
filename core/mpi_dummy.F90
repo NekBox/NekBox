@@ -23,11 +23,11 @@
 
     else if ( datatype == mpi_integer ) then
 
-        call icopy (  data2, data1, n )
+        data2 = data1
 
     else if ( datatype == mpi_integer8 ) then
 
-        call i8copy ( data2, data1, n )
+        data2 = data1
 
     else if ( datatype == mpi_real ) then
 

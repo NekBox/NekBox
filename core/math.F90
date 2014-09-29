@@ -65,34 +65,6 @@ END SUBROUTINE BLANK
     100 END DO
     return
     end subroutine chcopy
-
-    subroutine icopy(a,b,n)
-    INTEGER :: A(1), B(1)
-
-    DO 100 I = 1, N
-        A(I) = B(I)
-    100 END DO
-    return
-    end subroutine icopy
-!-----------------------------------------------------------------------
-    subroutine i8copy(a,b,n)
-    INTEGER*8 :: A(1), B(1)
-
-    DO 100 I = 1, N
-        A(I) = B(I)
-    100 END DO
-    return
-    end subroutine i8copy
-!-----------------------------------------------------------------------
-    subroutine chsign(a,n)
-    REAL :: A(1)
-
-    DO 100 I=1,N
-        A(I) = -A(I)
-    100 END DO
-    return
-    end subroutine chsign
-
 !-----------------------------------------------------------------------
     real function vlmin(vec,n)
     REAL :: VEC(1)

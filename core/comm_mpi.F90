@@ -154,9 +154,9 @@
     use parallel, only : nid,nekcomm
     implicit none
 
-    integer :: n
-    integer :: x(n), w(n)
-    character(3) :: op
+    integer, intent(in) :: n
+    integer, intent(inout) :: x(n), w(n)
+    character(3), intent(in) :: op
     integer :: ierr
 
     if     (op == '+  ') then
@@ -172,7 +172,7 @@
         call exitt
     endif
 
-    call icopy(x,w,n)
+    x = w
 
     return
     end subroutine igop
@@ -201,7 +201,7 @@
         call exitt
     endif
 
-    call i8copy(x,w,n)
+    x = w
 
     return
     end subroutine i8gop

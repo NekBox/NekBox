@@ -1784,7 +1784,7 @@ subroutine mfo_write_hdr
       call crecv(mtype,idum,4)          ! hand-shake
               
       lglist(0) = nelt
-      call icopy(lglist(1),lglel,nelt)
+      lglist(1:nelt) = lglel(1:nelt)
 
       len = 4*(nelt+1)
       call csend(mtype,lglist,len,pid0,0)

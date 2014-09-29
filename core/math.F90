@@ -66,55 +66,6 @@ END SUBROUTINE BLANK
     return
     end subroutine chcopy
 !-----------------------------------------------------------------------
-    real function vlmin(vec,n)
-    REAL :: VEC(1)
-    TMIN = 99.0E20
-
-    DO 100 I=1,N
-        TMIN = MIN(TMIN,VEC(I))
-    100 END DO
-    VLMIN = TMIN
-    return
-    end function vlmin
-!-----------------------------------------------------------------------
-    integer function ivlmin(vec,n)
-    integer :: vec(1),tmin
-    if (n == 0) then
-        ivlmin=0
-        return
-    endif
-    tmin = 8888888
-    do i=1,n
-        tmin = min(tmin,vec(i))
-    enddo
-    ivlmin = tmin
-    return
-    end function ivlmin
-!-----------------------------------------------------------------------
-    integer function ivlmax(vec,n)
-    integer :: vec(1),tmax
-    if (n == 0) then
-        ivlmax=0
-        return
-    endif
-    TMAX =-8888888
-    do i=1,n
-        TMAX = MAX(TMAX,VEC(I))
-    enddo
-    Ivlmax = tmax
-    return
-    end function ivlmax
-!-----------------------------------------------------------------------
-    real function vlmax(vec,n)
-    REAL :: VEC(1)
-    TMAX =-99.0E20
-    do i=1,n
-        TMAX = MAX(TMAX,VEC(I))
-    enddo
-    VLMAX = TMAX
-    return
-    end function vlmax
-!-----------------------------------------------------------------------
     real function vlamax(vec,n)
     REAL :: VEC(1)
     TAMAX = 0.0

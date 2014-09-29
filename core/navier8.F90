@@ -521,14 +521,14 @@ subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
   integer :: eg
 
   integer :: nelgs, nnpstr, npstar, log2p, np2
-  integer, external :: ivlmax, log2
+  integer, external :: log2
   integer :: e, ip, k, nel, nmod, npp
 
   log2p = log2(np)
   np2   = 2**log2p
   if (np2 == np .AND. nelgv == nelgt) then   ! std power of 2 case
 
-      npstar = ivlmax(gllnid,nelgt)+1
+      npstar = maxval(gllnid(1:nelgt))+1
       nnpstr = npstar/np
       do eg=1,nelgt
           gllnid(eg) = gllnid(eg)/nnpstr
@@ -539,7 +539,7 @@ subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
   elseif (np2 == np) then   ! std power of 2 case, conjugate heat xfer
 
   !        Assign fluid elements
-      npstar = max(np,ivlmax(gllnid,nelgv)+1)
+      npstar = max(np,maxval(gllnid(1:nelgv))+1)
       nnpstr = npstar/np
       do eg=1,nelgv
           gllnid(eg) = gllnid(eg)/nnpstr
@@ -547,7 +547,7 @@ subroutine assign_gllnid(gllnid,iunsort,nelgt,nelgv,np)
 
   !        Assign solid elements
       nelgs  = nelgt-nelgv  ! number of solid elements
-      npstar = max(np,ivlmax(gllnid(nelgv+1),nelgs)+1)
+      npstar = max(np,maxval(gllnid(nelgv+1:nelgv+nelgs))+1)
       nnpstr = npstar/np
       do eg=nelgv+1,nelgt
           gllnid(eg) = gllnid(eg)/nnpstr

@@ -1435,7 +1435,7 @@ subroutine vrdsmsh()
   real(DP) :: eps, xmx, xmn, ymx, ymn, zmx, zmn, xscmax, xscmin
   real(DP) :: scal1, scal2, scal3, xscale, yscmax, yscmin, zscale
   real(DP) :: yscale, zscmax, zscmin
-  real(DP), external :: glmin, glmax, vlmin, vlmax
+  real(DP), external :: glmin, glmax
   integer :: iglsum
 
 !    call  vrdsmshx  ! verify mesh topology
@@ -1538,8 +1538,8 @@ subroutine vrdsmsh()
   ta = (ta - xm1) * qmask
   tb = (tb - xm1) * qmask
   DO IE=1,NELT
-      XSCMAX = VLMAX(XM1(1,1,1,IE),NXYZ1)
-      XSCMIN = VLMIN(XM1(1,1,1,IE),NXYZ1)
+      XSCMAX = maxval(XM1(:,:,:,IE))
+      XSCMIN = minval(XM1(:,:,:,IE))
       SCAL1=ABS(XSCMAX-XSCMIN)
       SCAL2=ABS(XSCMAX)
       SCAL3=ABS(XSCMIN)
@@ -1574,8 +1574,8 @@ subroutine vrdsmsh()
   ta = (ta - ym1) * qmask
   tb = (tb - ym1) * qmask
   DO IE=1,NELT
-      YSCMAX = VLMAX(YM1(1,1,1,IE),NXYZ1)
-      YSCMIN = VLMIN(YM1(1,1,1,IE),NXYZ1)
+      YSCMAX = MAXVAL(YM1(:,:,:,IE))
+      YSCMIN = MINVAL(YM1(:,:,:,IE))
       SCAL1=ABS(YSCMAX-YSCMIN)
       SCAL2=ABS(YSCMAX)
       SCAL3=ABS(YSCMIN)
@@ -1611,8 +1611,8 @@ subroutine vrdsmsh()
       ta = (ta - zm1) * qmask
       tb = (tb - zm1) * qmask
       DO IE=1,NELT
-          ZSCMAX = VLMAX(ZM1(1,1,1,IE),NXYZ1)
-          ZSCMIN = VLMIN(ZM1(1,1,1,IE),NXYZ1)
+          ZSCMAX = MAXVAL(ZM1(:,:,:,IE))
+          ZSCMIN = MINVAL(ZM1(:,:,:,IE))
           SCAL1=ABS(ZSCMAX-ZSCMIN)
           SCAL2=ABS(ZSCMAX)
           SCAL3=ABS(ZSCMIN)

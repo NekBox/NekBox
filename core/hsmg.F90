@@ -652,7 +652,6 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
   integer :: lbr,rbr,lbs,rbs,lbt,rbt,two
   integer :: ierr, ierrmx
   integer, external :: iglmax
-  real(DP), external :: vlmax
   real(DP) :: eps,diag
 
   two  = 2
@@ -670,7 +669,7 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
       ,llt(ie),lmt(ie),lrt(ie),ah,bh,n,ie)
       il=1
       if( .NOT. if3d) then
-          eps = 1.e-5*(vlmax(lr(2),nr-2) + vlmax(ls(2),ns-2))
+          eps = 1.e-5*(maxval(lr(2:nr-1)) + maxval(ls(2:ns-1)))
           do j=1,ns
               do i=1,nr
                   diag = lr(i)+ls(j)
@@ -686,8 +685,8 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
               enddo
           enddo
       else
-          eps = 1.e-5 * (vlmax(lr(2),nr-2) &
-          + vlmax(ls(2),ns-2) + vlmax(lt(2),nt-2))
+          eps = 1.e-5 * (maxval(lr(2:nr-1)) &
+          + maxval(ls(2:ns-1)) + maxval(lt(2:nt-1)))
           do k=1,nt
               do j=1,ns
                   do i=1,nr

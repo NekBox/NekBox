@@ -285,7 +285,7 @@ subroutine setfast (helm1,helm2,imesh)
   integer :: nel, nxyz, ntot, ie 
   real(DP) :: delta, x, y, diff, epsm, h1min, h1max, testh1
   real(DP) :: den
-  real(DP), external :: vlmin, vlmax, vlamax
+  real(DP), external :: vlamax
 
   nel = -1
   IF (IMESH == 1) NEL=NELV
@@ -306,8 +306,8 @@ subroutine setfast (helm1,helm2,imesh)
           IFFAST(ie) = .FALSE. 
       !            write(*,*) IFDFRM(ie), IFAXIS, IFMODEL
       ELSE
-          H1MIN  = VLMIN(HELM1(1,1,1,ie),NXYZ)
-          H1MAX  = VLMAX(HELM1(1,1,1,ie),NXYZ)
+          H1MIN  = MINVAL(HELM1(:,:,:,ie))
+          H1MAX  = MAXVAL(HELM1(:,:,:,ie))
           den    = abs(h1max)+abs(h1min)
           if (den > 0) then
               TESTH1 = ABS((H1MAX-H1MIN)/(H1MAX+H1MIN))

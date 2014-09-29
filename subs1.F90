@@ -420,7 +420,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
 
   integer :: ntot, ntotl, ntotd
   integer :: i, ie, ix, iy, iz
-  real(DP), external :: vlmax, glmax
+  real(DP), external :: glmax
 
 
   NTOT  = NX1*NY1*NZ1*NELV
@@ -510,9 +510,9 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
       enddo
   END DO
 
-  U3(1)   = VLMAX(U,NTOT)
-  U3(2)   = VLMAX(V,NTOT)
-  U3(3)   = VLMAX(W,NTOT)
+  U3(1)   = MAXVAL(U)
+  U3(2)   = MAXVAL(V)
+  U3(3)   = MAXVAL(W)
   UMAX    = GLMAX(U3,3)
 
   return

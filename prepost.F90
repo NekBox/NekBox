@@ -1251,7 +1251,6 @@ subroutine mfo_mdatav(u,v,w,nel)
   real(r4) :: buffer(1+6*lelt)
 
   integer :: e, inelp, mtype, k, idum, nout, j, ierr, leo, len, nxyz, n
-  real(DP), external :: vlmin, vlmax
 
   call nekgsync() ! clear outstanding message queues.
 
@@ -1265,14 +1264,14 @@ subroutine mfo_mdatav(u,v,w,nel)
   if (nid == pid0) then
       j = 1
       do e=1,nel
-          buffer(j+0) = real(vlmin(u(1,e),nxyz), kind=r4)
-          buffer(j+1) = real(vlmax(u(1,e),nxyz), kind=r4)
-          buffer(j+2) = real(vlmin(v(1,e),nxyz), kind=r4)
-          buffer(j+3) = real(vlmax(v(1,e),nxyz), kind=r4)
+          buffer(j+0) = real(minval(u(:,e)), kind=r4)
+          buffer(j+1) = real(maxval(u(:,e)), kind=r4)
+          buffer(j+2) = real(minval(v(:,e)), kind=r4)
+          buffer(j+3) = real(maxval(v(:,e)), kind=r4)
           j = j + 4
           if(if3d) then
-              buffer(j+0) = real(vlmin(w(1,e),nxyz), kind=r4)
-              buffer(j+1) = real(vlmax(w(1,e),nxyz), kind=r4)
+              buffer(j+0) = real(minval(w(:,e)), kind=r4)
+              buffer(j+1) = real(maxval(w(:,e)), kind=r4)
               j = j + 2
           endif
       enddo
@@ -1308,14 +1307,14 @@ subroutine mfo_mdatav(u,v,w,nel)
       buffer(j) = nel
       j = j + 1
       do e=1,nel
-          buffer(j+0) = real(vlmin(u(1,e),nxyz), kind=r4)
-          buffer(j+1) = real(vlmax(u(1,e),nxyz), kind=r4)
-          buffer(j+2) = real(vlmin(v(1,e),nxyz), kind=r4)
-          buffer(j+3) = real(vlmax(v(1,e),nxyz), kind=r4)
+          buffer(j+0) = real(minval(u(:,e)), kind=r4)
+          buffer(j+1) = real(maxval(u(:,e)), kind=r4)
+          buffer(j+2) = real(minval(v(:,e)), kind=r4)
+          buffer(j+3) = real(maxval(v(:,e)), kind=r4)
           j = j + 4
           if(n == 6) then
-              buffer(j+0) = real(vlmin(w(1,e),nxyz), kind=r4)
-              buffer(j+1) = real(vlmax(w(1,e),nxyz), kind=r4)
+              buffer(j+0) = real(minval(w(:,e)), kind=r4)
+              buffer(j+1) = real(maxval(w(:,e)), kind=r4)
               j = j + 2
           endif
       enddo
@@ -1344,7 +1343,6 @@ subroutine mfo_mdatas(u,nel)
   real(r4) :: buffer(1+2*lelt)
 
   integer :: e, inelp, mtype, k, idum, nout, j, ierr, leo, len, n, nxyz
-  real(DP), external :: vlmin, vlmax
 
   call nekgsync() ! clear outstanding message queues.
 
@@ -1358,8 +1356,8 @@ subroutine mfo_mdatas(u,nel)
   if (nid == pid0) then
       j = 1
       do e=1,nel
-          buffer(j+0) = real(vlmin(u(1,e),nxyz), kind=r4)
-          buffer(j+1) = real(vlmax(u(1,e),nxyz), kind=r4)
+          buffer(j+0) = real(minval(u(:,e)), kind=r4)
+          buffer(j+1) = real(maxval(u(:,e)), kind=r4)
           j = j + 2
       enddo
 
@@ -1393,8 +1391,8 @@ subroutine mfo_mdatas(u,nel)
       buffer(j) = nel
       j = j + 1
       do e=1,nel
-          buffer(j+0) = real(vlmin(u(1,e),nxyz), kind=r4)
-          buffer(j+1) = real(vlmax(u(1,e),nxyz), kind=r4)
+          buffer(j+0) = real(minval(u(:,e)), kind=r4)
+          buffer(j+1) = real(maxval(u(:,e)), kind=r4)
           j = j + 2
       enddo
 

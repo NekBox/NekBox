@@ -96,36 +96,6 @@ END SUBROUTINE BLANK
     return
     end subroutine vcross
 !-----------------------------------------------------------------------
-    subroutine vdot2 (dot,u1,u2,v1,v2,n)
-
-!     Compute a Cartesian vector dot product. 2-d version
-
-    DIMENSION DOT(1)
-    DIMENSION U1(1),U2(1)
-    DIMENSION V1(1),V2(1)
-
-
-    DO 100 I=1,N
-        DOT(I) = U1(I)*V1(I) + U2(I)*V2(I)
-    100 END DO
-    return
-    end subroutine vdot2
-!-----------------------------------------------------------------------
-    subroutine vdot3 (dot,u1,u2,u3,v1,v2,v3,n)
-
-!     Compute a Cartesian vector dot product. 3-d version
-
-    DIMENSION DOT(1)
-    DIMENSION U1(1),U2(1),U3(1)
-    DIMENSION V1(1),V2(1),V3(1)
-
-
-    DO 100 I=1,N
-        DOT(I) = U1(I)*V1(I) + U2(I)*V2(I) + U3(I)*V3(I)
-    100 END DO
-    return
-    end subroutine vdot3
-!-----------------------------------------------------------------------
     function mod1(i,n)
 
 !     Yields MOD(I,N) with the exception that if I=K*N, result is N.

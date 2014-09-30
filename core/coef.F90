@@ -898,7 +898,7 @@ subroutine volume
   use tstep, only : volfld
   implicit none
 
-  real(DP), external :: glsum, vlsum
+  real(DP), external :: glsum
   integer :: e, mfield, nfldt, ifld, nxyz
 
   volvm1=glsum(bm1,nx1*ny1*nz1*nelv)
@@ -923,7 +923,7 @@ subroutine volume
 
   nxyz = nx1*ny1*nz1
   do e=1,nelt
-      volel(e) = vlsum(bm1(1,1,1,e),nxyz)
+      volel(e) = sum(bm1(:,:,:,e))
   enddo
 
   return

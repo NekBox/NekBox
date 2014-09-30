@@ -417,7 +417,7 @@ subroutine get_local_crs_galerkin(a,ncl,nxc,h1,h2,w1,w2)
   real(DP) :: b(lcrd,8)
 
   integer :: e, i, j, isd, imsh, nxyz
-  real(DP), external :: vlsc2
+  real(DP), external :: ddot
 
   do j=1,ncl
       call gen_crs_basis(b(1,j),j) ! bi- or tri-linear interpolant
@@ -436,7 +436,7 @@ subroutine get_local_crs_galerkin(a,ncl,nxc,h1,h2,w1,w2)
 
       do e = 1,nelv
           do i = 1,ncl
-              a(i,j,e) = vlsc2(b(1,i),w2(1,e),nxyz)  ! bi^T * A^e * bj
+              a(i,j,e) = ddot(nxyz, b(:,i), 1, w2(:,e), 1)  ! bi^T * A^e * bj
           enddo
       enddo
 

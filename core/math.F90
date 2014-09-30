@@ -10,6 +10,7 @@ real(DP) FUNCTION VLSC3(X,Y,B,N)
   REAL(DP) :: DT, T
   integer :: isbcnt, i
 
+#ifndef NOTIMER
   if (isclld == 0) then
       isclld=1
       nrout=nrout+1
@@ -20,6 +21,7 @@ real(DP) FUNCTION VLSC3(X,Y,B,N)
   dct(myrout) = dct(myrout) + float(isbcnt)
   ncall(myrout) = ncall(myrout) + 1
   dcount      =      dcount + float(isbcnt)
+#endif
 
   DT = 0.0
   DO 10 I=1,N
@@ -76,32 +78,6 @@ END SUBROUTINE BLANK
     VLAMAX = TAMAX
     return
     end function vlamax
-!-----------------------------------------------------------------------
-    real function vlsum(vec,n)
-    use opctr
-    REAL :: VEC(1)
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'vlsum '
-    endif
-    isbcnt = n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    SUM = 0.
-
-    DO 100 I=1,N
-        SUM=SUM+VEC(I)
-    100 END DO
-    VLSUM = SUM
-    return
-    end function vlsum
 !-----------------------------------------------------------------------
     subroutine vcross (u1,u2,u3,v1,v2,v3,w1,w2,w3,n)
 
@@ -193,36 +169,6 @@ END SUBROUTINE BLANK
     return
     end subroutine iswap
 !-----------------------------------------------------------------------
-    real function vlsc2(x,y,n)
-    use size_m
-    use parallel
-    use opctr
-    REAL :: X(1),Y(1)
-
-#ifndef NOTIMER
-    if (isclld == 0) then
-        isclld=1
-        nrout=nrout+1
-        myrout=nrout
-        rname(myrout) = 'VLSC2 '
-    endif
-    isbcnt = 2*n
-    dct(myrout) = dct(myrout) + (isbcnt)
-    ncall(myrout) = ncall(myrout) + 1
-    dcount      =      dcount + (isbcnt)
-#endif
-
-    s = 0.
-    do i=1,n
-        s = s + x(i)*y(i)
-    enddo
-    vlsc2=s
-    return
-    end function vlsc2
-!-----------------------------------------------------------------------
-
-!----------------------------------------------------------------------------
-
 !     Vector reduction routines which require communication
 !     on a parallel machine. These routines must be substituted with
 !     appropriate routines which take into account the specific architecture.

@@ -166,7 +166,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
 
   integer :: i, ntot, km1 , nel
   real(DP) :: alpha, ratio, eps, alpham, alph1
-  real(DP), external :: glsc2, vlsc2
+  real(DP), external :: glsc2, ddot
 
   ierr=0
   nel = nelfld(ifield)
@@ -186,7 +186,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
 
   km1=k-1
   do i=1,km1
-      ws(i) = vlsc2(approx(:,0),approx(:,i),ntot)
+      ws(i) = ddot(ntot, approx(:,0), 1, approx(:,i), 1)
   enddo
   if (km1 > 0) call gop(ws,ws(k),'+  ',km1)
 

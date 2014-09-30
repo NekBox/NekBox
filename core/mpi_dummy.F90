@@ -31,7 +31,7 @@
 
     else if ( datatype == mpi_real ) then
 
-        call rrcopy ( data2, data1, n )
+        data2 = data1
 
     else
 

@@ -347,46 +347,6 @@ END SUBROUTINE BLANK
     return
     end subroutine gllog
 !-----------------------------------------------------------------------
-
-!========================================================================
-!     Double precision matrix and vector routines
-!========================================================================
-
-!-----------------------------------------------------------------------
-    subroutine chswapr(b,L,ind,n,temp)
-    INTEGER :: IND(1)
-    CHARACTER(6) :: B(1),TEMP(1)
-!***
-!***  SORT ASSOCIATED ELEMENTS BY PUTTING ITEM(JJ)
-!***  INTO ITEM(I), WHERE JJ=IND(I).
-!***
-    DO 20 I=1,N
-        JJ=IND(I)
-        TEMP(I)=B(JJ)
-    20 END DO
-    DO 30 I=1,N
-        B(I)=TEMP(I)
-    30 END DO
-    return
-    end subroutine chswapr
-!-----------------------------------------------------------------------
-    subroutine drcopy(r,d,N)
-    real*8 ::    d(1)
-    dimension r(1)
-    do 10 i=1,n
-        r(i)=d(i)
-    10 END DO
-    return
-    end subroutine drcopy
-!-----------------------------------------------------------------------
-    subroutine rrcopy(r,d,N)
-    real*4 :: d(1)
-    real*4 :: r(1)
-    do 10 i=1,n
-        r(i)=d(i)
-    10 END DO
-    return
-    end subroutine rrcopy
 !-----------------------------------------------------------------------
     subroutine isort(a,ind,n)
 
@@ -440,6 +400,7 @@ END SUBROUTINE BLANK
     ind(i) = ii
     GOTO 100
     end subroutine isort
+
     subroutine sort(a,ind,n)
 
 !     Use Heap Sort (p 231 Num. Rec., 1st Ed.)
@@ -492,26 +453,37 @@ END SUBROUTINE BLANK
     ind(i) = ii
     GOTO 100
     end subroutine sort
+
 !-----------------------------------------------------------------------
-    integer*8 function i8glmax(a,n)
-    integer*8 :: a(1),tmax
-    integer*8 :: tmp(1),work(1)
-    tmax= -999999
-    do i=1,n
-        tmax=max(tmax,a(i))
-    enddo
-    tmp(1)=tmax
-    call i8gop(tmp,work,'M  ',1)
-    i8glmax=tmp(1)
-    if (i8glmax == -999999) i8glmax=0
-    return
-    END function
+!> \brief Global maximum of long integer array
+integer(i8) function i8glmax(a,n)
+  use kinds, only : i8
+  integer, intent(in) :: n
+  integer(i8), intent(inout) :: a(n)
+  integer(i8) :: tmp(1),work(1),tmax
+
+  tmax= -999999
+  do i=1,n
+      tmax=max(tmax,a(i))
+  enddo
+
+  tmp(1)=tmax
+  call i8gop(tmp,work,'M  ',1)
+
+  i8glmax=tmp(1)
+  if (i8glmax == -999999) i8glmax=0
+
+  return
+END function
+
 !-----------------------------------------------------------------------
+!> \brief Construct A = I_n (identity matrix)
 subroutine ident(a,n)
   use kinds, only : DP
   implicit none
-  integer :: n, i
-  real(DP) ::  a(n,n)
+  integer, intent(in) :: n
+  real(DP), intent(out) ::  a(n,n)
+  integer :: i
 
   a = 0._dp
   do i=1,n
@@ -519,6 +491,7 @@ subroutine ident(a,n)
   enddo
   return
 end subroutine ident
+
 !-----------------------------------------------------------------------
 subroutine iswapt_ip(x,p,n)
   implicit none

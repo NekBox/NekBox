@@ -597,20 +597,13 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       CALL RZERO (G6M1,NTOT1)
 #endif
   ELSE
-      CALL VDOT3 (G1M1,RXM1,RYM1,RZM1,RXM1,RYM1,RZM1,NTOT1)
-      CALL VDOT3 (G2M1,SXM1,SYM1,SZM1,SXM1,SYM1,SZM1,NTOT1)
-      CALL VDOT3 (G3M1,TXM1,TYM1,TZM1,TXM1,TYM1,TZM1,NTOT1)
-      g1m1 = g1m1 * wj
-      g2m1 = g2m1 * wj
-      g3m1 = g3m1 * wj
-#if 1
-      CALL VDOT3 (G4M1,RXM1,RYM1,RZM1,SXM1,SYM1,SZM1,NTOT1)
-      CALL VDOT3 (G5M1,RXM1,RYM1,RZM1,TXM1,TYM1,TZM1,NTOT1)
-      CALL VDOT3 (G6M1,SXM1,SYM1,SZM1,TXM1,TYM1,TZM1,NTOT1)
-      g4m1 = g4m1 * wj
-      g5m1 = g5m1 * wj
-      g6m1 = g6m1 * wj
-#endif
+      g1m1 = wj * (rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1)
+      g2m1 = wj * (sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1)
+      g3m1 = wj * (txm1 * txm1 + tym1 * tym1 + tzm1 * tzm1)
+
+      g4m1 = wj * (rxm1 * sxm1 + rym1 * sym1 + rzm1 * szm1)
+      g5m1 = wj * (rxm1 * txm1 + rym1 * tym1 + rzm1 * tzm1)
+      g6m1 = wj * (txm1 * sxm1 + tym1 * sym1 + tzm1 * szm1)
   ENDIF
   deallocate(wj)
 
@@ -1004,7 +997,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   allocate(A(lx1,ly1,lz1,lelt), B(lx1,ly1,lz1,lelt), C(lx1,ly1,lz1,lelt))
   allocate(dot(lx1,ly1,lz1,lelt))
   CALL VCROSS(A,B,C,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1,NTOT)
-  CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
+  dot = a*a + b*b + c*c
 
   DO IEL=1,NELT
       DO IZ=1,NZ1
@@ -1025,7 +1018,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 !      "S"
 
   CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XTM1,YTM1,ZTM1,NTOT)
-  CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
+  dot = a*a + b*b + c*c
   DO IEL=1,NELT
       DO IZ=1,NZ1
           DO IX=1,NX1
@@ -1045,7 +1038,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 !      "T"
 
   CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,NTOT)
-  CALL VDOT3 (DOT,A,B,C,A,B,C,NTOT)
+  dot = a*a + b*b + c*c
   DO IEL=1,NELT
       DO IX=1,NX1
           DO IY=1,NY1

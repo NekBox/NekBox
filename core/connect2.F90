@@ -953,7 +953,8 @@ subroutine rdbdry
 
 
           if (indx1(tmp_string,'NO ',3) == 0) then ! we have acitve bc info
-          
+ 
+              nbcrea = -1 ! below should catch
               IF(VNEKTON <= 2.52) NBCREA = 3
               IF(VNEKTON >= 2.55) NBCREA = 5
           

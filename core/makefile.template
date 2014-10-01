@@ -295,10 +295,10 @@ $(OBJDIR)/lb_setqvol.o	:$S/lb_setqvol.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/comm_mpi.o	:$S/comm_mpi.F90;		$(F90) -c $(FL2) $< -o $@
 
 $(OBJDIR)/speclib.o	:$S/speclib.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/math.o	:$S/math.F90;			$(F77) -c $(FL4) $< -o $@
+$(OBJDIR)/math.o	:$S/math.F90;			$(F90) -c $(FL4) $< -o $@
 
 .F90.o:                                                    
-	$(F77) -c $(FL2) $*.F90                            
+	$(F90) -c $(FL2) $*.F90                            
                                                            
 # MXM       ############################################################################
 $(OBJDIR)/mxm_wrapper.o	  :$S/mxm_wrapper.F90;		$(F77) -c $(FL2) $< -o $@ 

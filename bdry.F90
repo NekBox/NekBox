@@ -585,8 +585,6 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   real(DP) :: mask1(nx1,ny1,nz1,lelv),mask2(nx1,ny1,nz1,lelv) &
   ,mask3(nx1,ny1,nz1,lelv)
 
-  real(DP), allocatable :: TMP1(:,:,:,:), tmp2(:,:,:,:), tmp3(:,:,:,:) 
-
   character(3) cb
   character(1) :: cb1(3)
   equivalence (cb1,cb)

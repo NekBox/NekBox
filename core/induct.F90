@@ -126,6 +126,7 @@ subroutine set_dealias_rx
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
   use input, only : if3d
   use tstep , only : istep 
+  use speclib, only : zwgl
   implicit none
 
   real(DP) ::  zd(lxd),wd(lxd)

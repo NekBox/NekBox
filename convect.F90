@@ -88,6 +88,7 @@ end subroutine intp_rstd
 !!   mp   = number of points on GL  grid
 subroutine gen_int(jgl,jgt,mp,np,w)
   use kinds, only : DP
+  use speclib, only : zwgl, zwgll
   implicit none
 
   integer, intent(in) :: mp, np
@@ -122,6 +123,7 @@ end subroutine gen_int
 !!  mp   = number of points on GL  grid
 subroutine gen_dgl(dgl,dgt,mp,np,w)
   use kinds, only : DP
+  use speclib, only : zwgl
   implicit none
 
   integer, intent(in) :: mp, np

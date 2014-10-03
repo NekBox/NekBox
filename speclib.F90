@@ -1,103 +1,91 @@
 !==============================================================================
+!> \file  speclib.F90
+!! \brief LIBRARY ROUTINES FOR SPECTRAL METHODS
+!! \date  March 1989
+!! \author Einar Malvin Ronquit
+!!
+!!     ABBRIVIATIONS:
+!!
+!!     M   - Set of mesh points
+!!     Z   - Set of collocation/quadrature points
+!!     W   - Set of quadrature weights
+!!     H   - Lagrangian interpolant
+!!     D   - Derivative operator
+!!     I   - Interpolation operator
+!!     GL  - Gauss Legendre
+!!     GLL - Gauss-Lobatto Legendre
+!!     GJ  - Gauss Jacobi
+!!     GLJ - Gauss-Lobatto Jacobi
+!!
+!!     MAIN ROUTINES:
+!!
+!!     Points and weights:
+!!     ZWGL      Compute Gauss Legendre points and weights
+!!     ZWGLL     Compute Gauss-Lobatto Legendre points and weights
+!!     ZWGJ      Compute Gauss Jacobi points and weights (general)
+!!     ZWGLJ     Compute Gauss-Lobatto Jacobi points and weights (general)
+!!
+!!     Lagrangian interpolants:
+!!     HGL       Compute Gauss Legendre Lagrangian interpolant
+!!     HGLL      Compute Gauss-Lobatto Legendre Lagrangian interpolant
+!!     HGJ       Compute Gauss Jacobi Lagrangian interpolant (general)
+!!     HGLJ      Compute Gauss-Lobatto Jacobi Lagrangian interpolant (general)
+!!
+!!     Derivative operators:
+!!     DGLL      Compute Gauss-Lobatto Legendre derivative matrix
+!!     DGLLGL    Compute derivative matrix for a staggered mesh (GLL->GL)
+!!     DGJ       Compute Gauss Jacobi derivative matrix (general)
+!!     DGLJ      Compute Gauss-Lobatto Jacobi derivative matrix (general)
+!!     DGLJGJ    Compute derivative matrix for a staggered mesh (GLJ->GJ) (general)
+!!
+!!     Interpolation operators:
+!!     IGLM      Compute interpolation operator GL  -> M
+!!     IGLLM     Compute interpolation operator GLL -> M
+!!     IGJM      Compute interpolation operator GJ  -> M  (general)
+!!     IGLJM     Compute interpolation operator GLJ -> M  (general)
+!!
+!!     Other:
+!!     PNLEG     Compute Legendre polynomial of degree N
+!!     PNDLEG    Compute derivative of Legendre polynomial of degree N
+!!
+!!     Comments:
+!!     Note that many of the above routines exist in both single and
+!!     double precision. If the name of the single precision routine is
+!!     SUB, the double precision version is called SUBD. In most cases
+!!     all the "low-level" arithmetic is done in double precision, even
+!!     for the single precsion versions.
+!!
+!!     Useful references:
+!! [1] Gabor Szego: Orthogonal Polynomials, American Mathematical Society,
+!!     Providence, Rhode Island, 1939.
+!! [2] Abramowitz & Stegun: Handbook of Mathematical Functions,
+!!     Dover, New York, 1972.
+!! [3] Canuto, Hussaini, Quarteroni & Zang: Spectral Methods in Fluid
+!!     Dynamics, Springer-Verlag, 1988.
+!!==============================================================================
 
-!     LIBRARY ROUTINES FOR SPECTRAL METHODS
+module speclib
+  use kinds, only : DP
 
-!     March 1989
+  integer, PARAMETER :: nmax = 84
+  public zwgl, zwgll, igllm, dgll, dgllgl, zwglj
+  private
 
-!     For questions, comments or suggestions, please contact:
-
-!     Einar Malvin Ronquist
-!     Room 3-243
-!     Department of Mechanical Engineering
-!     Massachusetts Institute of Technology
-!     77 Massachusetts Avenue
-!     Cambridge, MA 0299
-!     U.S.A.
-
-!------------------------------------------------------------------------------
-
-!     ABBRIVIATIONS:
-
-!     M   - Set of mesh points
-!     Z   - Set of collocation/quadrature points
-!     W   - Set of quadrature weights
-!     H   - Lagrangian interpolant
-!     D   - Derivative operator
-!     I   - Interpolation operator
-!     GL  - Gauss Legendre
-!     GLL - Gauss-Lobatto Legendre
-!     GJ  - Gauss Jacobi
-!     GLJ - Gauss-Lobatto Jacobi
-
-
-!     MAIN ROUTINES:
-
-!     Points and weights:
-
-!     ZWGL      Compute Gauss Legendre points and weights
-!     ZWGLL     Compute Gauss-Lobatto Legendre points and weights
-!     ZWGJ      Compute Gauss Jacobi points and weights (general)
-!     ZWGLJ     Compute Gauss-Lobatto Jacobi points and weights (general)
-
-!     Lagrangian interpolants:
-
-!     HGL       Compute Gauss Legendre Lagrangian interpolant
-!     HGLL      Compute Gauss-Lobatto Legendre Lagrangian interpolant
-!     HGJ       Compute Gauss Jacobi Lagrangian interpolant (general)
-!     HGLJ      Compute Gauss-Lobatto Jacobi Lagrangian interpolant (general)
-
-!     Derivative operators:
-
-!     DGLL      Compute Gauss-Lobatto Legendre derivative matrix
-!     DGLLGL    Compute derivative matrix for a staggered mesh (GLL->GL)
-!     DGJ       Compute Gauss Jacobi derivative matrix (general)
-!     DGLJ      Compute Gauss-Lobatto Jacobi derivative matrix (general)
-!     DGLJGJ    Compute derivative matrix for a staggered mesh (GLJ->GJ) (general)
-
-!     Interpolation operators:
-
-!     IGLM      Compute interpolation operator GL  -> M
-!     IGLLM     Compute interpolation operator GLL -> M
-!     IGJM      Compute interpolation operator GJ  -> M  (general)
-!     IGLJM     Compute interpolation operator GLJ -> M  (general)
-
-!     Other:
-
-!     PNLEG     Compute Legendre polynomial of degree N
-!     PNDLEG    Compute derivative of Legendre polynomial of degree N
-
-!     Comments:
-
-!     Note that many of the above routines exist in both single and
-!     double precision. If the name of the single precision routine is
-!     SUB, the double precision version is called SUBD. In most cases
-!     all the "low-level" arithmetic is done in double precision, even
-!     for the single precsion versions.
-
-!     Useful references:
-
-! [1] Gabor Szego: Orthogonal Polynomials, American Mathematical Society,
-!     Providence, Rhode Island, 1939.
-! [2] Abramowitz & Stegun: Handbook of Mathematical Functions,
-!     Dover, New York, 1972.
-! [3] Canuto, Hussaini, Quarteroni & Zang: Spectral Methods in Fluid
-!     Dynamics, Springer-Verlag, 1988.
-
-
-!==============================================================================
+contains
 
 !--------------------------------------------------------------------
     SUBROUTINE ZWGL (Z,W,NP)
 !--------------------------------------------------------------------
-
-!     Generate NP Gauss Legendre points (Z) and weights (W)
-!     associated with Jacobi polynomial P(N)(alpha=0,beta=0).
-!     The polynomial degree N=NP-1.
-!     Z and W are in single precision, but all the arithmetic
-!     operations are done in double precision.
-
+!> \brief Generate NP Gauss Legendre points (Z) and weights (W)
+!!        associated with Jacobi polynomial P(N)(alpha=0,beta=0).
+!! The polynomial degree N=NP-1.
+!! Z and W are in single precision, but all the arithmetic
+!! operations are done in double precision.
 !--------------------------------------------------------------------
-    REAL :: Z(1),W(1)
+    implicit none
+    integer, intent(in) :: NP
+    REAL(DP), intent(out) :: Z(NP), W(NP)
+    real(DP) :: alpha, beta
     ALPHA = 0.
     BETA  = 0.
     CALL ZWGJ (Z,W,NP,ALPHA,BETA)
@@ -106,15 +94,16 @@
 
     SUBROUTINE ZWGLL (Z,W,NP)
 !--------------------------------------------------------------------
-
 !     Generate NP Gauss-Lobatto Legendre points (Z) and weights (W)
 !     associated with Jacobi polynomial P(N)(alpha=0,beta=0).
 !     The polynomial degree N=NP-1.
 !     Z and W are in single precision, but all the arithmetic
 !     operations are done in double precision.
-
 !--------------------------------------------------------------------
-    REAL :: Z(1),W(1)
+    implicit none
+    integer, intent(in) :: NP
+    REAL(DP), intent(out) :: Z(NP),W(NP)
+    real(DP) :: alpha, beta
     ALPHA = 0.
     BETA  = 0.
     CALL ZWGLJ (Z,W,NP,ALPHA,BETA)
@@ -130,10 +119,14 @@
 !     Single precision version.
 
 !--------------------------------------------------------------------
-    PARAMETER (NMAX=84)
-    PARAMETER (NZD = NMAX)
-    REAL*8 ::  ZD(NZD),WD(NZD),APHAD,BETAD
-    REAL :: Z(1),W(1),ALPHA,BETA
+    implicit none
+    integer, parameter :: NZD = NMAX
+
+    integer,  intent(in)  :: NP
+    REAL(DP), intent(out) :: Z(NP), W(NP)
+    real(DP), intent(in)  :: ALPHA, BETA
+    REAL(DP) :: ZD(NZD),WD(NZD),ALPHAD,BETAD
+    integer :: npmax, i
 
     NPMAX = NZD
     IF (NP > NPMAX) THEN
@@ -154,20 +147,24 @@
 
     SUBROUTINE ZWGJD (Z,W,NP,ALPHA,BETA)
 !--------------------------------------------------------------------
-
 !     Generate NP GAUSS JACOBI points (Z) and weights (W)
 !     associated with Jacobi polynomial P(N)(alpha>-1,beta>-1).
 !     The polynomial degree N=NP-1.
 !     Double precision version.
-
 !--------------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  Z(1),W(1),ALPHA,BETA
+    implicit none
+    integer, intent(in)   :: NP
+    REAL(DP), intent(out) :: Z(NP),W(NP)
+    real(DP), intent(in)  :: ALPHA,BETA
+
+    integer :: n, np1, np2, i
+    real(DP) :: dn, one, two, apb, dnp1, dnp2, fac1, fac2, fac3, fnorm
+    real(DP) :: rcoef, P, PD, PM1, PDM1, PM2, PDM2
 
     N     = NP-1
     DN    = ((N))
-    ONE   = 1.
-    TWO   = 2.
+    ONE   = 1._dp
+    TWO   = 2._dp
     APB   = ALPHA+BETA
 
     IF (NP <= 0) THEN
@@ -213,10 +210,14 @@
 !     Single precision version.
 
 !--------------------------------------------------------------------
-    PARAMETER (NMAX=84)
-    PARAMETER (NZD = NMAX)
-    REAL*8 ::  ZD(NZD),WD(NZD),ALPHAD,BETAD
-    REAL :: Z(1),W(1),ALPHA,BETA
+    implicit none
+    integer, PARAMETER :: NZD = NMAX
+    integer,  intent(in)  :: NP
+    REAL(DP), intent(out) :: Z(NP),W(NP)
+    real(DP), intent(in)  :: ALPHA,BETA
+    REAL(DP) ::  ZD(NZD),WD(NZD),ALPHAD,BETAD
+
+    integer :: npmax, i
 
     NPMAX = NZD
     IF (NP > NPMAX) THEN
@@ -237,20 +238,22 @@
 
     SUBROUTINE ZWGLJD (Z,W,NP,ALPHA,BETA)
 !--------------------------------------------------------------------
-
 !     Generate NP GAUSS LOBATTO JACOBI points (Z) and weights (W)
 !     associated with Jacobi polynomial P(N)(alpha>-1,beta>-1).
 !     The polynomial degree N=NP-1.
 !     Double precision version.
-
 !--------------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  Z(NP),W(NP),ALPHA,BETA
+    implicit none
+    integer, intent(in) :: np
+    REAL(DP), intent(out) ::  Z(NP),W(NP)
+    REAL(DP), intent(in) ::  ALPHA,BETA
 
+    integer :: n, nm1, i
+    real(DP) :: one, two, alpg, betg, p, pd, pm1, pdm1, pm2, pdm2
     N     = NP-1
     NM1   = N-1
-    ONE   = 1.
-    TWO   = 2.
+    ONE   = 1._dp
+    TWO   = 2._dp
 
     IF (NP <= 1) THEN
         WRITE (6,*) 'ZWGLJD: Minimum number of Gauss-Lobatto points is 2'
@@ -280,14 +283,19 @@
     RETURN
     END SUBROUTINE ZWGLJD
 
-    REAL*8 FUNCTION ENDW1 (N,ALPHA,BETA)
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  ALPHA,BETA
-    ZERO  = 0.
-    ONE   = 1.
-    TWO   = 2.
-    THREE = 3.
-    FOUR  = 4.
+    REAL(DP) FUNCTION ENDW1 (N,ALPHA,BETA)
+    implicit none
+    integer, intent(in) :: n
+    real(DP), intent(in) :: alpha, beta
+
+    integer :: i
+    real(DP) :: zero, one, two, three, four, apb
+    real(DP) :: f1, f2, fint1, fint2, f3, a1, a2, a3, abn, abnn, di
+    ZERO  = 0._dp
+    ONE   = 1._dp
+    TWO   = 2._dp
+    THREE = 3._dp
+    FOUR  = 4._dp
     APB   = ALPHA+BETA
     IF (N == 0) THEN
         ENDW1 = ZERO
@@ -324,9 +332,15 @@
     RETURN
     END FUNCTION
 
-    REAL*8 FUNCTION ENDW2 (N,ALPHA,BETA)
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  ALPHA,BETA
+    REAL(DP) FUNCTION ENDW2 (N,ALPHA,BETA)
+    implicit none
+    integer, intent(in) :: n
+    real(DP), intent(in) :: alpha, beta
+
+    integer :: i
+    real(DP) :: zero, one, two, three, four, apb
+    real(DP) :: f1, f2, fint1, fint2, f3, a1, a2, a3, abn, abnn, di
+
     ZERO  = 0.
     ONE   = 1.
     TWO   = 2.
@@ -368,14 +382,16 @@
     RETURN
     END FUNCTION
 
-    REAL*8 FUNCTION GAMMAF (X)
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  X
-    ZERO = 0.0
-    HALF = 0.5
-    ONE  = 1.0
-    TWO  = 2.0
-    FOUR = 4.0
+    REAL(DP) FUNCTION GAMMAF (X)
+    implicit none
+    REAL(DP), intent(in) :: X
+
+    real(DP) :: zero, half, one, two, four, pi
+    ZERO = 0.0_dp
+    HALF = 0.5_dp
+    ONE  = 1.0_dp
+    TWO  = 2.0_dp
+    FOUR = 4.0_dp
     PI   = FOUR*ATAN(ONE)
     GAMMAF = ONE
     IF (X == -HALF) GAMMAF = -TWO*SQRT(PI)
@@ -392,11 +408,16 @@
     RETURN
     END FUNCTION
 
-    REAL*8  FUNCTION PNORMJ (N,ALPHA,BETA)
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  ALPHA,BETA
-    ONE   = 1.
-    TWO   = 2.
+    REAL(DP)  FUNCTION PNORMJ (N,ALPHA,BETA)
+    implicit none
+    integer, intent(in) :: n
+    REAL(DP), intent(in) ::  ALPHA,BETA
+
+    real(DP) :: one, two, dn, const, prod, dindx, frac
+    integer :: i
+
+    ONE   = 1._dp
+    TWO   = 2._dp
     DN    = ((N))
     CONST = ALPHA+BETA+ONE
     IF (N <= 1) THEN
@@ -418,23 +439,31 @@
     RETURN
     END FUNCTION
 
+
     SUBROUTINE JACG (XJAC,NP,ALPHA,BETA)
 !--------------------------------------------------------------------
-
 !     Compute NP Gauss points XJAC, which are the zeros of the
 !     Jacobi polynomial J(NP) with parameters ALPHA and BETA.
 !     ALPHA and BETA determines the specific type of Gauss points.
 !     Examples:
 !     ALPHA = BETA =  0.0  ->  Legendre points
 !     ALPHA = BETA = -0.5  ->  Chebyshev points
-
 !--------------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  XJAC(1)
+    implicit none
+    integer, intent(in) :: np
+    REAL(DP), intent(out) ::  XJAC(NP)
+    real(DP), intent(in) :: alpha, beta
+
+    real(DP) :: eps, one, dth, x, xlast, x1, x2, swap, xmin, delx
+    real(DP) :: p, pd, pm1, pdm1, pm2, pdm2, recsum
+    integer :: n, kstop, j, k, i, jmin, jm
     DATA KSTOP /10/
-    DATA EPS/1.0e-12/
+
+    kstop = 10
+    eps = 1.d-12
+
     N   = NP-1
-    one = 1.
+    one = 1._dp
     DTH = 4.*ATAN(one)/(2.*((N))+2.)
     DO 40 J=1,NP
         IF (J == 1) THEN
@@ -484,7 +513,15 @@
 !     of degree N at X.
 
 !--------------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
+    implicit none
+    real(DP), intent(out) :: poly, pder, polym1, pderm1, polym2, pderm2
+    real(DP), intent(in) :: alp, bet, x
+    integer, intent(in) :: n
+
+    real(DP) :: apb, polyl, pderl, dk, a1, a2, a3, b3, a4, polyn, pdern
+    real(DP) :: psave, pdsave
+    integer :: k
+
     APB  = ALP+BET
     POLY = 1.
     PDER = 0.
@@ -517,18 +554,20 @@
     RETURN
     END SUBROUTINE JACOBF
 
-    REAL FUNCTION HGJ (II,Z,ZGJ,NP,ALPHA,BETA)
+    REAL(DP) FUNCTION HGJ (II,Z,ZGJ,NP,ALPHA,BETA)
 !---------------------------------------------------------------------
-
 !     Compute the value of the Lagrangian interpolant HGJ through
 !     the NP Gauss Jacobi points ZGJ at the point Z.
 !     Single precision version.
-
 !---------------------------------------------------------------------
-    PARAMETER (NMAX=84)
-    PARAMETER (NZD = NMAX)
-    REAL*8 ::  ZD,ZGJD(NZD),HGJD,ALPHAD,BETAD
-    REAL :: Z,ZGJ(1),ALPHA,BETA
+    implicit none
+    integer, PARAMETER :: NZD = NMAX
+    integer, intent(in) :: np, ii
+    REAL, intent(in) :: Z,ZGJ(np),ALPHA,BETA
+
+    REAL(DP) ::  ZD,ZGJD(NZD),ALPHAD,BETAD
+    integer :: i, npmax
+
     NPMAX = NZD
     IF (NP > NPMAX) THEN
         WRITE (6,*) 'Too large polynomial degree in HGJ'
@@ -546,16 +585,19 @@
     RETURN
     END FUNCTION HGJ
 
-    REAL*8 FUNCTION HGJD (II,Z,ZGJ,NP,ALPHA,BETA)
+    REAL(DP) FUNCTION HGJD (II,Z,ZGJ,NP,ALPHA,BETA)
 !---------------------------------------------------------------------
-
 !     Compute the value of the Lagrangian interpolant HGJD through
 !     the NZ Gauss-Lobatto Jacobi points ZGJ at the point Z.
 !     Double precision version.
-
 !---------------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  Z,ZGJ(1),ALPHA,BETA
+    implicit none
+    integer, intent(in) :: ii, np
+    REAL(DP), intent(in) :: Z,ZGJ(np),ALPHA,BETA
+
+    real(DP) :: eps, one, zi, dz
+    real(DP) :: pzi, pdzi, pm1, pdm1, pm2, pdm2, pz, pdz
+
     EPS = 1.e-5
     ONE = 1.
     ZI  = ZGJ(II)
@@ -570,18 +612,21 @@
     RETURN
     END FUNCTION
 
-    REAL FUNCTION HGLJ (II,Z,ZGLJ,NP,ALPHA,BETA)
+    REAL(DP) FUNCTION HGLJ (II,Z,ZGLJ,NP,ALPHA,BETA)
 !---------------------------------------------------------------------
-
 !     Compute the value of the Lagrangian interpolant HGLJ through
 !     the NZ Gauss-Lobatto Jacobi points ZGLJ at the point Z.
 !     Single precision version.
-
 !---------------------------------------------------------------------
-    PARAMETER (NMAX=84)
-    PARAMETER (NZD = NMAX)
-    REAL*8 ::  ZD,ZGLJD(NZD),HGLJD,ALPHAD,BETAD
-    REAL :: Z,ZGLJ(1),ALPHA,BETA
+    implicit none
+    integer, PARAMETER :: NZD = NMAX
+    integer,  intent(in) :: ii, NP
+    REAL(DP), intent(in) :: Z,ZGLJ(NP)
+    REAL(DP), intent(in) :: ALPHA,BETA
+
+    REAL(DP) :: ZD,ZGLJD(NZD),ALPHAD,BETAD
+    integer :: npmax, i
+
     NPMAX = NZD
     IF (NP > NPMAX) THEN
         WRITE (6,*) 'Too large polynomial degree in HGLJ'
@@ -599,16 +644,20 @@
     RETURN
     END FUNCTION HGLJ
 
-    REAL*8 FUNCTION HGLJD (I,Z,ZGLJ,NP,ALPHA,BETA)
+    REAL(DP) FUNCTION HGLJD (I,Z,ZGLJ,NP,ALPHA,BETA)
 !---------------------------------------------------------------------
-
 !     Compute the value of the Lagrangian interpolant HGLJD through
 !     the NZ Gauss-Lobatto Jacobi points ZJACL at the point Z.
 !     Double precision version.
-
 !---------------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  Z,ZGLJ(1),ALPHA,BETA
+    implicit none
+    integer,  intent(in) :: i, np
+    REAL(DP), intent(in) ::  Z,ZGLJ(NP),ALPHA,BETA
+
+    real(DP) :: eps, one, dz, zi, dn, eigval, const
+    real(DP) :: p, pd, pi, pdi, pm1, pdm1, pm2, pdm2
+    integer :: n
+
     EPS = 1.e-5
     ONE = 1.
     ZI  = ZGLJ(I)
@@ -629,18 +678,20 @@
 
     SUBROUTINE DGJ (D,DT,Z,NZ,NZD,ALPHA,BETA)
 !-----------------------------------------------------------------
-
 !     Compute the derivative matrix D and its transpose DT
 !     associated with the Nth order Lagrangian interpolants
 !     through the NZ Gauss Jacobi points Z.
 !     Note: D and DT are square matrices.
 !     Single precision version.
-
 !-----------------------------------------------------------------
-    PARAMETER (NMAX=84)
-    PARAMETER (NZDD = NMAX)
-    REAL*8 ::  DD(NZDD,NZDD),DTD(NZDD,NZDD),ZD(NZDD),ALPHAD,BETAD
-    REAL :: D(NZD,NZD),DT(NZD,NZD),Z(1),ALPHA,BETA
+    implicit none
+    integer, PARAMETER :: NZDD = NMAX
+    integer :: nz, nzd
+    REAL(DP), intent(out) :: D(NZD,NZD),DT(NZD,NZD)
+    real(DP), intent(in) :: Z(nz),ALPHA,BETA
+
+    REAL(DP) ::  DD(NZDD,NZDD),DTD(NZDD,NZDD),ZD(NZDD),ALPHAD,BETAD
+    integer :: i, j
 
     IF (NZ <= 0) THEN
         WRITE (6,*) 'DGJ: Minimum number of Gauss points is 1'
@@ -672,16 +723,21 @@
 
     SUBROUTINE DGJD (D,DT,Z,NZ,NZD,ALPHA,BETA)
 !-----------------------------------------------------------------
-
 !     Compute the derivative matrix D and its transpose DT
 !     associated with the Nth order Lagrangian interpolants
 !     through the NZ Gauss Jacobi points Z.
 !     Note: D and DT are square matrices.
 !     Double precision version.
-
 !-----------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  D(NZD,NZD),DT(NZD,NZD),Z(1),ALPHA,BETA
+    implicit none
+    integer,  intent(in)  :: nz, nzd
+    REAL(DP), intent(out) :: D(NZD,NZD),DT(NZD,NZD)
+    real(DP), intent(in)  :: Z(NZ),ALPHA,BETA
+
+    integer :: n, i, j
+    real(DP) :: dn, one, two
+    real(DP) :: pi, pdi, pm1, pdm1, pm2, pdm2, pj, pdj
+
     N    = NZ-1
     DN   = ((N))
     ONE  = 1.
@@ -710,18 +766,20 @@
 
     SUBROUTINE DGLJ (D,DT,Z,NZ,NZD,ALPHA,BETA)
 !-----------------------------------------------------------------
-
 !     Compute the derivative matrix D and its transpose DT
 !     associated with the Nth order Lagrangian interpolants
 !     through the NZ Gauss-Lobatto Jacobi points Z.
 !     Note: D and DT are square matrices.
 !     Single precision version.
-
 !-----------------------------------------------------------------
-    PARAMETER (NMAX=84)
-    PARAMETER (NZDD = NMAX)
-    REAL*8 ::  DD(NZDD,NZDD),DTD(NZDD,NZDD),ZD(NZDD),ALPHAD,BETAD
-    REAL :: D(NZD,NZD),DT(NZD,NZD),Z(1),ALPHA,BETA
+    implicit none
+    integer, PARAMETER :: NZDD = NMAX
+    integer, intent(in) :: nz, nzd
+    REAL(DP), intent(out) :: D(NZD,NZD),DT(NZD,NZD)
+    REAL(DP), intent(in) :: Z(NZ),ALPHA,BETA
+
+    REAL(DP) :: DD(NZDD,NZDD),DTD(NZDD,NZDD),ZD(NZDD),ALPHAD,BETAD
+    integer :: i, j
 
     IF (NZ <= 1) THEN
         WRITE (6,*) 'DGLJ: Minimum number of Gauss-Lobatto points is 2'
@@ -753,16 +811,20 @@
 
     SUBROUTINE DGLJD (D,DT,Z,NZ,NZD,ALPHA,BETA)
 !-----------------------------------------------------------------
-
 !     Compute the derivative matrix D and its transpose DT
 !     associated with the Nth order Lagrangian interpolants
 !     through the NZ Gauss-Lobatto Jacobi points Z.
 !     Note: D and DT are square matrices.
 !     Double precision version.
-
 !-----------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  D(NZD,NZD),DT(NZD,NZD),Z(1),ALPHA,BETA
+    implicit none
+    integer, intent(in) :: nz, nzd
+    REAL(DP), intent(out) ::  D(NZD,NZD),DT(NZD,NZD)
+    REAL(DP), intent(in) ::  Z(NZ),ALPHA,BETA
+
+    integer :: n, i, j
+    real(DP) :: dn, one, two, eigval
+    real(DP) :: pi, pdi, pm1, pdm1, pm2, pdm2, pj, pdj, ci, cj
     N    = NZ-1
     DN   = ((N))
     ONE  = 1.
@@ -799,15 +861,18 @@
 
     SUBROUTINE DGLL (D,DT,Z,NZ,NZD)
 !-----------------------------------------------------------------
-
 !     Compute the derivative matrix D and its transpose DT
 !     associated with the Nth order Lagrangian interpolants
 !     through the NZ Gauss-Lobatto Legendre points Z.
 !     Note: D and DT are square matrices.
-
 !-----------------------------------------------------------------
-    PARAMETER (NMAX=84)
-    REAL :: D(NZD,NZD),DT(NZD,NZD),Z(1)
+    implicit none
+    integer, intent(in) :: nz, nzd 
+    REAL(DP), intent(out) :: D(NZD,NZD),DT(NZD,NZD)
+    REAL(DP), intent(in) :: Z(NZ)
+
+    integer :: n, i, j
+    real(DP) :: fn, d0
     N  = NZ-1
     IF (NZ > NMAX) THEN
         WRITE (6,*) 'Subroutine DGLL'
@@ -832,14 +897,18 @@
     RETURN
     END SUBROUTINE DGLL
 
-    REAL FUNCTION HGLL (I,Z,ZGLL,NZ)
+    REAL(DP) FUNCTION HGLL (I,Z,ZGLL,NZ)
 !---------------------------------------------------------------------
-
 !     Compute the value of the Lagrangian interpolant L through
 !     the NZ Gauss-Lobatto Legendre points ZGLL at the point Z.
-
 !---------------------------------------------------------------------
-    REAL :: ZGLL(1)
+    implicit none
+    integer, intent(in) :: i, nz
+    REAL(DP), intent(in) :: z, ZGLL(nz)
+
+    integer :: n
+    real(DP) :: eps, dz, alfan
+
     EPS = 1.E-5
     DZ = Z - ZGLL(I)
     IF (ABS(DZ) < EPS) THEN
@@ -853,14 +922,18 @@
     RETURN
     END FUNCTION HGLL
 
-    REAL FUNCTION HGL (I,Z,ZGL,NZ)
+    REAL(DP) FUNCTION HGL (I,Z,ZGL,NZ)
 !---------------------------------------------------------------------
-
 !     Compute the value of the Lagrangian interpolant HGL through
 !     the NZ Gauss Legendre points ZGL at the point Z.
-
 !---------------------------------------------------------------------
-    REAL :: ZGL(1)
+    implicit none
+    integer, intent(in) :: i, nz
+    REAL(DP), intent(in) :: z, ZGL(nz)
+
+    real(DP) :: eps, dz
+    integer :: n
+
     EPS = 1.E-5
     DZ = Z - ZGL(I)
     IF (ABS(DZ) < EPS) THEN
@@ -872,19 +945,18 @@
     RETURN
     END FUNCTION HGL
 
-    REAL FUNCTION PNLEG (Z,N)
+    REAL(DP) FUNCTION PNLEG (Z,N)
 !---------------------------------------------------------------------
-
 !     Compute the value of the Nth order Legendre polynomial at Z.
 !     (Simpler than JACOBF)
 !     Based on the recursion formula for the Legendre polynomials.
-
 !---------------------------------------------------------------------
+    implicit none
+    real(DP), intent(in) :: z
+    integer,  intent(in) :: n
 
-!     This next statement is to overcome the underflow bug in the i860.
-!     It can be removed at a later date.  11 Aug 1990   pff.
-
-    IF(ABS(Z) < 1.0E-25) Z = 0.0
+    real(DP) :: p1, p2, p3, fk
+    integer :: k
 
     P1   = 1.
     IF (N == 0) THEN
@@ -904,14 +976,18 @@
     RETURN
     END FUNCTION PNLEG
 
-    REAL FUNCTION PNDLEG (Z,N)
+    REAL(DP) FUNCTION PNDLEG (Z,N)
 !----------------------------------------------------------------------
-
 !     Compute the derivative of the Nth order Legendre polynomial at Z.
 !     (Simpler than JACOBF)
 !     Based on the recursion formula for the Legendre polynomials.
-
 !----------------------------------------------------------------------
+    implicit none
+    real(DP), intent(in) :: z
+    integer,  intent(in) :: n
+
+    real(DP) :: p1, p2, p3, p1d, p2d, p3d
+    integer :: k, fk
     P1   = 1.
     P2   = Z
     P1D  = 0.
@@ -933,7 +1009,6 @@
 
     SUBROUTINE DGLLGL (D,DT,ZM1,ZM2,IM12,NZM1,NZM2,ND1,ND2)
 !-----------------------------------------------------------------------
-
 !     Compute the (one-dimensional) derivative matrix D and its
 !     transpose DT associated with taking the derivative of a variable
 !     expanded on a Gauss-Lobatto Legendre mesh (M1), and evaluate its
@@ -941,9 +1016,15 @@
 !     Need the one-dimensional interpolation operator IM12
 !     (see subroutine IGLLGL).
 !     Note: D and DT are rectangular matrices.
-
 !-----------------------------------------------------------------------
-    REAL :: D(ND2,ND1), DT(ND1,ND2), ZM1(ND1), ZM2(ND2), IM12(ND2,ND1)
+    implicit none
+    integer, intent(in) :: nd1, nd2, nzm1, nzm2
+    REAL(DP), intent(out) :: D(ND2,ND1), DT(ND1,ND2)
+    REAL(DP), intent(in)  :: ZM1(ND1), ZM2(ND2), IM12(ND2,ND1)
+
+    integer :: ip, jq, nm1
+    real(DP) :: zp, zq, eps
+
     IF (NZM1 == 1) THEN
         D (1,1) = 0.
         DT(1,1) = 0.
@@ -968,7 +1049,6 @@
 
     SUBROUTINE DGLJGJ (D,DT,ZGL,ZG,IGLG,NPGL,NPG,ND1,ND2,ALPHA,BETA)
 !-----------------------------------------------------------------------
-
 !     Compute the (one-dimensional) derivative matrix D and its
 !     transpose DT associated with taking the derivative of a variable
 !     expanded on a Gauss-Lobatto Jacobi mesh (M1), and evaluate its
@@ -977,14 +1057,18 @@
 !     (see subroutine IGLJGJ).
 !     Note: D and DT are rectangular matrices.
 !     Single precision version.
-
 !-----------------------------------------------------------------------
-    REAL :: D(ND2,ND1), DT(ND1,ND2), ZGL(ND1), ZG(ND2), IGLG(ND2,ND1)
-    PARAMETER (NMAX=84)
-    PARAMETER (NDD = NMAX)
-    REAL*8 ::  DD(NDD,NDD), DTD(NDD,NDD)
-    REAL*8 ::  ZGD(NDD), ZGLD(NDD), IGLGD(NDD,NDD)
-    REAL*8 ::  ALPHAD, BETAD
+    implicit none
+    integer, intent(in) :: nd1, nd2, npgl, npg
+    REAL(DP), intent(out) :: D(ND2,ND1), DT(ND1,ND2)
+    REAL(DP), intent(in)  :: ZGL(ND1), ZG(ND2), IGLG(ND2,ND1)
+    real(DP), intent(in)  :: alpha, beta
+
+    integer, PARAMETER :: NDD = NMAX
+    REAL(DP) ::  DD(NDD,NDD), DTD(NDD,NDD)
+    REAL(DP) ::  ZGD(NDD), ZGLD(NDD), IGLGD(NDD,NDD)
+    REAL(DP) ::  ALPHAD, BETAD
+    integer :: i, j
 
     IF (NPGL <= 1) THEN
         WRITE(6,*) 'DGLJGJ: Minimum number of Gauss-Lobatto points is 2'
@@ -1022,7 +1106,6 @@
 
     SUBROUTINE DGLJGJD (D,DT,ZGL,ZG,IGLG,NPGL,NPG,ND1,ND2,ALPHA,BETA)
 !-----------------------------------------------------------------------
-
 !     Compute the (one-dimensional) derivative matrix D and its
 !     transpose DT associated with taking the derivative of a variable
 !     expanded on a Gauss-Lobatto Jacobi mesh (M1), and evaluate its
@@ -1031,12 +1114,15 @@
 !     (see subroutine IGLJGJ).
 !     Note: D and DT are rectangular matrices.
 !     Double precision version.
-
 !-----------------------------------------------------------------------
-    IMPLICIT REAL*8  (A-H,O-Z)
-    REAL*8 ::  D(ND2,ND1), DT(ND1,ND2), ZGL(ND1), ZG(ND2)
-    REAL*8 ::  IGLG(ND2,ND1), ALPHA, BETA
+    implicit none
+    integer, intent(in) :: nd1, nd2, npgl, npg
+    REAL(DP), intent(out) ::  D(ND2,ND1), DT(ND1,ND2)
+    REAL(DP), intent(in) ::  ZGL(ND1), ZG(ND2), IGLG(ND2,ND1), ALPHA, BETA
 
+    real(DP) :: eps, one, two, faci, facj, const, dz, dn, eigval
+    real(DP) :: pj, pdj, pm1, pdm1, pm2, pdm2, pi, pdi
+    integer :: i, j, ngl
     IF (NPGL <= 1) THEN
         WRITE(6,*) 'DGLJGJD: Minimum number of Gauss-Lobatto points is 2'
         call exitt
@@ -1075,15 +1161,20 @@
 
     SUBROUTINE IGLM (I12,IT12,Z1,Z2,NZ1,NZ2,ND1,ND2)
 !----------------------------------------------------------------------
-
 !     Compute the one-dimensional interpolation operator (matrix) I12
 !     ands its transpose IT12 for interpolating a variable from a
 !     Gauss Legendre mesh (1) to a another mesh M (2).
 !     Z1 : NZ1 Gauss Legendre points.
 !     Z2 : NZ2 points on mesh M.
-
 !--------------------------------------------------------------------
-    REAL :: I12(ND2,ND1),IT12(ND1,ND2),Z1(ND1),Z2(ND2)
+    implicit none
+    integer, intent(in) :: nz1, nz2, nd1, nd2
+    REAL(DP), intent(out) :: I12(ND2,ND1),IT12(ND1,ND2)
+    REAL(DP), intent(in) :: Z1(ND1),Z2(ND2)
+
+    integer :: i, j
+    real(DP) :: zi
+
     IF (NZ1 == 1) THEN
         I12 (1,1) = 1.
         IT12(1,1) = 1.
@@ -1100,15 +1191,20 @@
 
     SUBROUTINE IGLLM (I12,IT12,Z1,Z2,NZ1,NZ2,ND1,ND2)
 !----------------------------------------------------------------------
-
 !     Compute the one-dimensional interpolation operator (matrix) I12
 !     ands its transpose IT12 for interpolating a variable from a
 !     Gauss-Lobatto Legendre mesh (1) to a another mesh M (2).
 !     Z1 : NZ1 Gauss-Lobatto Legendre points.
 !     Z2 : NZ2 points on mesh M.
-
 !--------------------------------------------------------------------
-    REAL :: I12(ND2,ND1),IT12(ND1,ND2),Z1(ND1),Z2(ND2)
+    implicit none
+    integer, intent(in) :: nz1, nz2, nd1, nd2
+    REAL(DP), intent(out) :: I12(ND2,ND1),IT12(ND1,ND2)
+    REAL(DP), intent(in) :: Z1(ND1),Z2(ND2)
+
+    integer :: i, j
+    real(DP) :: zi
+
     IF (NZ1 == 1) THEN
         I12 (1,1) = 1.
         IT12(1,1) = 1.
@@ -1125,16 +1221,19 @@
 
     SUBROUTINE IGJM (I12,IT12,Z1,Z2,NZ1,NZ2,ND1,ND2,ALPHA,BETA)
 !----------------------------------------------------------------------
-
 !     Compute the one-dimensional interpolation operator (matrix) I12
 !     ands its transpose IT12 for interpolating a variable from a
 !     Gauss Jacobi mesh (1) to a another mesh M (2).
 !     Z1 : NZ1 Gauss Jacobi points.
 !     Z2 : NZ2 points on mesh M.
 !     Single precision version.
-
 !--------------------------------------------------------------------
-    REAL :: I12(ND2,ND1),IT12(ND1,ND2),Z1(ND1),Z2(ND2)
+    integer, intent(in) :: nz1, nz2, nd1, nd2
+    REAL(DP), intent(out) :: I12(ND2,ND1),IT12(ND1,ND2)
+    REAL(DP), intent(in) :: Z1(ND1),Z2(ND2)
+
+    integer :: i, j
+    real(DP) :: zi
     IF (NZ1 == 1) THEN
         I12 (1,1) = 1.
         IT12(1,1) = 1.
@@ -1151,16 +1250,20 @@
 
     SUBROUTINE IGLJM (I12,IT12,Z1,Z2,NZ1,NZ2,ND1,ND2,ALPHA,BETA)
 !----------------------------------------------------------------------
-
 !     Compute the one-dimensional interpolation operator (matrix) I12
 !     ands its transpose IT12 for interpolating a variable from a
 !     Gauss-Lobatto Jacobi mesh (1) to a another mesh M (2).
 !     Z1 : NZ1 Gauss-Lobatto Jacobi points.
 !     Z2 : NZ2 points on mesh M.
 !     Single precision version.
-
 !--------------------------------------------------------------------
-    REAL :: I12(ND2,ND1),IT12(ND1,ND2),Z1(ND1),Z2(ND2)
+    implicit none
+    integer, intent(in) :: nz1, nz2, nd1, nd2
+    REAL(DP), intent(out) :: I12(ND2,ND1),IT12(ND1,ND2)
+    REAL(DP), intent(in) :: Z1(ND1),Z2(ND2), alpha, beta
+
+    integer :: i, j
+    real(DP) :: zi
     IF (NZ1 == 1) THEN
         I12 (1,1) = 1.
         IT12(1,1) = 1.
@@ -1174,3 +1277,5 @@
     10 END DO
     RETURN
     END SUBROUTINE IGLJM
+
+end module speclib

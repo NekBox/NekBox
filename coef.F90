@@ -23,6 +23,7 @@ subroutine genwz
   use wz_m, only : zgm1, zgm2, zgm3
   use wz_m, only : wxm1, wym1, wzm1, wxm2, wym2, wzm2, wxm3, wym3, wzm3
   use wz_m, only : w3m1, w3m2, w3m3
+  use speclib, only : zwgl, zwgll, dgll, zwglj, igllm, dgllgl
   implicit none
 
   integer :: ix, iy, iz

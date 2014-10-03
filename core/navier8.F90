@@ -448,7 +448,8 @@ end subroutine get_local_crs_galerkin
 !-----------------------------------------------------------------------
 subroutine gen_crs_basis(b,j) ! bi- tri-linear
   use kinds, only : DP
-  use size_m
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, ndim
+  use speclib, only : zwgll
   implicit none
 
   real(DP) :: b(nx1,ny1,nz1)

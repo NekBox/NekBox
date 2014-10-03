@@ -2,6 +2,7 @@
 !> \brief Generate fast diagonalization matrices for each element
 subroutine gen_fast_spacing()
   use input, only : param
+  use speclib, only : zwgll, zwgl
   implicit none
 
 #if 0
@@ -325,6 +326,7 @@ end subroutine do_semhat_weight
 !! Currently, this is set up for pressure nodes on the interior GLL pts.
 subroutine generate_semhat(a,b,c,d,z,dgll,jgll,bgl,zgl,dgl,jgl,n,w)
   use kinds, only : DP
+  use speclib, only : zwgll, zwgl
   implicit none
 
   integer :: n

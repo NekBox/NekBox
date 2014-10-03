@@ -1310,6 +1310,7 @@ subroutine mapab4R(x,y,nxr,nel)
   use size_m, only : nid, ndim
   use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1
   use wz_m, only : zgm1
+  use speclib, only : zwgll, igllm
   implicit none
 
   integer :: nxr, nel

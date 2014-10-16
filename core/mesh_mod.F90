@@ -14,6 +14,7 @@ module mesh
     use size_m, only : lelt, ldim
     implicit none
 
+    ifsolv = .false.
     allocate(vertex((2**ldim)*lelt))
     allocate(ifdfrm(LELT), iffast(lelt))
     

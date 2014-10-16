@@ -1271,12 +1271,13 @@ end subroutine hsmg_setup_mg_nx
 subroutine hsmg_index_0 
   use hsmg, only : mg_rstr_wt_index, mg_solve_index, lmgn, lmgs
   use hsmg, only : mg_fast_s_index, mg_fast_d_index, mg_schwarz_wt_index
+  use hsmg, only : mg_mask_index
   implicit none
 
   integer :: n
   n = lmgn*(lmgs+1)
 
-!  call izero( mg_mask_index         , n )
+  mg_mask_index       = 0
   mg_rstr_wt_index    = 0
   mg_solve_index      = 0
   mg_fast_s_index     = 0

@@ -138,7 +138,7 @@ subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
   implicit none
 
   integer, intent(in) :: isave
-  real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
+  real(DP), intent(out) ::  pm1    (lx1,ly1,lz1,lelv)
 
 !   Work arrays and temporary arrays
   real(DP) :: pa(lx1,ly2,lz2),pb(lx1,ly1,lz2)
@@ -254,9 +254,9 @@ subroutine outfld(prefix, pm1)
 
 !   Work arrays and temporary arrays
 
-  character(3) ::    prefix
+  character(3), intent(in) ::    prefix
 
-  real(DP) ::  pm1    (lx1,ly1,lz1,lelv)
+  real(DP), intent(in) ::  pm1    (lx1,ly1,lz1,lelv)
 
   real(DP) :: p66
 
@@ -706,9 +706,9 @@ subroutine mfo_outfld(prefix, pm1)
   use tstep, only : istep, time
   implicit none
 
-  character(3) :: prefix
+  character(3), intent(in) :: prefix
 
-  real(DP) :: pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
+  real(DP), intent(in) :: pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
 
   integer(i8) :: offs0,offs,stride,strideB,nxyzo8
   logical :: ifxyo_s
@@ -1245,8 +1245,8 @@ subroutine mfo_mdatav(u,v,w,nel)
   use restart, only : pid0, pid1
   implicit none
 
-  real(DP) :: u(lx1*ly1*lz1,*),v(lx1*ly1*lz1,*),w(lx1*ly1*lz1,*)
-  integer :: nel
+  real(DP), intent(in) :: u(lx1*ly1*lz1,*),v(lx1*ly1*lz1,*),w(lx1*ly1*lz1,*)
+  integer, intent(in) :: nel
 
   real(r4) :: buffer(1+6*lelt)
 
@@ -1337,8 +1337,8 @@ subroutine mfo_mdatas(u,nel)
   use restart, only : pid0, pid1
   implicit none
 
-  real(DP) :: u(lx1*ly1*lz1,*)
-  integer :: nel
+  real(DP), intent(in) :: u(lx1*ly1*lz1,*)
+  integer, intent(in) :: nel
 
   real(r4) :: buffer(1+2*lelt)
 
@@ -1415,8 +1415,8 @@ subroutine mfo_outs(u,nel,mx,my,mz)
   use restart, only : wdsizo, pid0, pid1
   implicit none
 
-  integer :: nel, mx, my, mz
-  real(DP) :: u(mx,my,mz,1)
+  integer, intent(in) :: nel, mx, my, mz
+  real(DP), intent(in) :: u(mx,my,mz,1)
 
   real(r4), allocatable :: u4(:)
   real(DP), allocatable :: u8(:)
@@ -1522,8 +1522,8 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
   use restart, only : wdsizo, pid0, pid1
   implicit none
  
-  integer :: mx, my, mz
-  real(DP) :: u(mx*my*mz,*),v(mx*my*mz,*),w(mx*my*mz,*)
+  integer, intent(in) :: mx, my, mz
+  real(DP), intent(in) :: u(mx*my*mz,*),v(mx*my*mz,*),w(mx*my*mz,*)
 
   real(r4), allocatable :: u4(:)
   real(DP), allocatable :: u8(:)

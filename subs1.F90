@@ -415,7 +415,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
 
   real(DP), allocatable :: x(:,:,:,:), r(:,:,:,:)
 
-  real(DP) :: drst(lx1), drsti(lx1)
+  real(DP), save :: drst(lx1), drsti(lx1)
 
   real(DP) :: U3(3)
   INTEGER, save :: ICALLD = 0
@@ -501,7 +501,6 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
 
   deallocate(xrm1, xsm1, xtm1, yrm1, ysm1, ytm1, zrm1, zsm1, ztm1)
   deallocate(x,r)
-
 
   DO IE=1,NELV
       DO IX=1,NX1

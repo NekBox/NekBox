@@ -91,7 +91,7 @@ fi
 # do some checks and create makefile
 source $SOURCE_ROOT/makenek.inc
 # compile
-make -j2 -f makefile 2>&1 | tee compiler.out
+make -f makefile 2>&1 | tee compiler.out
 if [ -e nek5000 ]; then
   exit 0
 else

@@ -451,7 +451,7 @@ subroutine exitt
       dtmp3 = 0
       if(istep > 0) then
           dgp   = nvtot
-          dgp   = max(dgp,1.)
+          dgp   = max(dgp,1._dp)
           dtmp1 = np*ttime/(dgp*max(istep,1))
           dtmp2 = ttime/max(istep,1)
           dtmp3 = 1.*papi_flops/1e6

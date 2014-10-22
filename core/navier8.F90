@@ -51,7 +51,7 @@ subroutine set_up_h1_crs
   character(3) :: cb
   real(DP) :: cmlt(lcr,lelv),mask(lcr,lelv)
   integer, allocatable :: ia(:,:,:), ja(:,:,:)
-  real :: z
+  real(DP) :: z
 
   real(DP), allocatable :: a(:)
  
@@ -410,8 +410,8 @@ subroutine get_local_crs_galerkin(a,ncl,nxc,h1,h2,w1,w2)
   implicit none
 
   integer :: ncl, nxc
-  real ::    a(ncl,ncl,*),h1(*),h2(*)
-  real ::    w1(nx1*ny1*nz1,nelv),w2(nx1*ny1*nz1,nelv)
+  real(DP) ::    a(ncl,ncl,*),h1(*),h2(*)
+  real(DP) ::    w1(nx1*ny1*nz1,nelv),w2(nx1*ny1*nz1,nelv)
 
   integer, parameter :: lcrd=lx1**ldim
   real(DP) :: b(lcrd,8)

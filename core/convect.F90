@@ -383,8 +383,8 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
 
-  real :: cr(ltd,*),cs(ltd,*),ct(ltd,*)
-  real :: ux(lxy,*),uy(lxy,*),uz(lxy,*)
+  real(DP) :: cr(ltd,*),cs(ltd,*),ct(ltd,*)
+  real(DP) :: ux(lxy,*),uy(lxy,*),uz(lxy,*)
 
   real(DP) :: fx(ltd), fy(ltd), fz(ltd)!, ur, us, ut, tr, uf
 

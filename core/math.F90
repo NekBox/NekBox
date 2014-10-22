@@ -50,9 +50,10 @@ END SUBROUTINE BLANK
 
 !-----------------------------------------------------------------------
 subroutine copy(a,b,n)
+  use kinds, only : DP
   implicit none
   integer :: n, i
-  real :: a(n),b(n)
+  real(DP) :: a(n),b(n)
 
   do i=1,n
       a(i)=b(i)

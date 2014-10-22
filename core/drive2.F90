@@ -943,26 +943,36 @@ end subroutine time00
 !> \brief print run statistics from ctimer
 subroutine runstat
 #ifndef NOTIMER
-  use ctimer
+  use kinds, only : DP
+  use ctimer, only : ifsync, nadvc, naxhm, ncdtp, ncrsl, ndadd, nddsl
+  use ctimer, only : pinvc, pinv3, phmhz, peslv, pdsum, pddsl, pdadd
+  use ctimer, only : pvdss, pusbc, pspro, psolv, ppres, pprep, pmltd, pcrsl
+  use ctimer, only : pcdtp, paxhm
+  use ctimer, only : tgop_sync, tgop, teslv, tdsum, tddsl, tdadd, tcrsl, tcdtp
+  use ctimer, only : tspro, tsolv, tpres, tprep, tmltd, tinvc, tinv3, thmhz
+  use ctimer, only : taxhm, tadvc, twal, tvdss, tusbc, tttstp, ttime, tsyc
+  use ctimer, only : nwal, nvdss, nusbc, nsyc, nspro, nsolv, npres, nprep
+  use ctimer, only : ninvc, ninv3, nhmhz, ngop, neslv, nmltd, ndsum
+  use ctimer, only : dnekclock
   use size_m, only : nid
   use parallel, only : np
   implicit none
 
-  real :: min_dsum, max_dsum, avg_dsum
-  real :: min_vdss, max_vdss, avg_vdss
-  real :: min_gop,  max_gop,  avg_gop
-  real :: min_gop_sync,  max_gop_sync,  avg_gop_sync
-  real :: min_crsl, max_crsl, avg_crsl
-  real :: min_usbc, max_usbc, avg_usbc
-  real :: min_syc, max_syc, avg_syc
-  real :: min_wal, max_wal, avg_wal
-  real :: min_irc, max_irc, avg_irc
-  real :: min_isd, max_isd, avg_isd
-  real :: min_comm, max_comm, avg_comm
-  real :: tstop, tirc, tisd, trc, tsd, tcomm, wwork, padvc
+  real(DP) :: min_dsum, max_dsum, avg_dsum
+  real(DP) :: min_vdss, max_vdss, avg_vdss
+  real(DP) :: min_gop,  max_gop,  avg_gop
+  real(DP) :: min_gop_sync,  max_gop_sync,  avg_gop_sync
+  real(DP) :: min_crsl, max_crsl, avg_crsl
+  real(DP) :: min_usbc, max_usbc, avg_usbc
+  real(DP) :: min_syc, max_syc, avg_syc
+  real(DP) :: min_wal, max_wal, avg_wal
+  real(DP) :: min_irc, max_irc, avg_irc
+  real(DP) :: min_isd, max_isd, avg_isd
+  real(DP) :: min_comm, max_comm, avg_comm
+  real(DP) :: tstop, tirc, tisd, trc, tsd, tcomm, wwork, padvc
   integer :: nirc, nisd
 
-  real :: comm_timers(8)
+  real(DP) :: comm_timers(8)
   integer :: comm_counters(8)
   character(132) :: s132
 

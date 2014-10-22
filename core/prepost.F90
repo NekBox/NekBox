@@ -439,8 +439,8 @@ subroutine outhis(ifhis, pm1)
 
   real(DP) :: pm1    (lx1,ly1,lz1,lelv)
 
-  real :: hdump(25)
-  real :: xpart(10),ypart(10),zpart(10)
+  real(DP) :: hdump(25)
+  real(DP) :: xpart(10),ypart(10),zpart(10)
   logical :: ifhis
 
   integer, save :: icalld = 0

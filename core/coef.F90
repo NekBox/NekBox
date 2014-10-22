@@ -855,7 +855,7 @@ subroutine chkjac(jac,n,iel,X,Y,Z,IERR)
   ierr = 1
   SIGN = JAC(1)
   DO 100 I=2,N
-      IF (SIGN*JAC(I) <= 0.0) THEN
+      IF (SIGN*JAC(I) <= 0._dp) THEN
           ieg = lglel(iel)
           WRITE(6,101) nid,I,ieg
           write(6,*) jac(i-1),jac(i)

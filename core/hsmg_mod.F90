@@ -33,27 +33,27 @@ module hsmg
   integer, allocatable :: mg_solve_index(:,:)
   integer, allocatable :: mg_g_index(:,:), mg_schwarz_wt_index(:,:)
 
-  real, allocatable :: mg_jh(:,:) !c-to-f interpolation matrices
-  real, allocatable :: mg_jht(:,:) !transpose of mg_jh
-  real, allocatable :: mg_jhfc(:,:) !c-to-f interpolation matrices
-  real, allocatable :: mg_jhfct(:,:) !transpose of mg_jh
+  real(DP), allocatable :: mg_jh(:,:) !c-to-f interpolation matrices
+  real(DP), allocatable :: mg_jht(:,:) !transpose of mg_jh
+  real(DP), allocatable :: mg_jhfc(:,:) !c-to-f interpolation matrices
+  real(DP), allocatable :: mg_jhfct(:,:) !transpose of mg_jh
 
-  real, allocatable :: mg_ah(:,:) !A hat matrices
-  real, allocatable :: mg_bh(:,:) !B hat matrices
-  real, allocatable :: mg_ch(:,:) !C hat matrices
-  real, allocatable :: mg_dh(:,:) !D hat matrices
-  real, allocatable :: mg_dht(:,:) !D hat transpose matrices
-  real, allocatable :: mg_zh(:,:) !Nodal coordinates
-  real, allocatable :: mg_rstr_wt(:) !restriction wt
-  real, allocatable :: mg_mask(:) !b.c. mask (Max: might not be used)
-  real, allocatable :: mg_fast_s(:), mg_fast_d(:)
-  real, allocatable :: mg_schwarz_wt(:)
-  real, allocatable :: mg_solve_e(:), mg_solve_r(:)
-  real, allocatable, dimension(:) :: mg_h1,mg_h2,mg_b
-  real, allocatable :: mg_g(:) ! metrics matrices
+  real(DP), allocatable :: mg_ah(:,:) !A hat matrices
+  real(DP), allocatable :: mg_bh(:,:) !B hat matrices
+  real(DP), allocatable :: mg_ch(:,:) !C hat matrices
+  real(DP), allocatable :: mg_dh(:,:) !D hat matrices
+  real(DP), allocatable :: mg_dht(:,:) !D hat transpose matrices
+  real(DP), allocatable :: mg_zh(:,:) !Nodal coordinates
+  real(DP), allocatable :: mg_rstr_wt(:) !restriction wt
+  real(DP), allocatable :: mg_mask(:) !b.c. mask (Max: might not be used)
+  real(DP), allocatable :: mg_fast_s(:), mg_fast_d(:)
+  real(DP), allocatable :: mg_schwarz_wt(:)
+  real(DP), allocatable :: mg_solve_e(:), mg_solve_r(:)
+  real(DP), allocatable, dimension(:) :: mg_h1,mg_h2,mg_b
+  real(DP), allocatable :: mg_g(:) ! metrics matrices
 
 ! must be able to hold two lower level extended schwarz arrays
-  real, allocatable :: mg_work(:),mg_work2(:),mg_worke(:,:) 
+  real(DP), allocatable :: mg_work(:),mg_work2(:),mg_worke(:,:) 
 
   integer, allocatable :: mg_imask(:) ! For h1mg, mask is a ptr
 

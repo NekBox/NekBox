@@ -86,8 +86,8 @@ contains
     integer, intent(in) :: NP
     REAL(DP), intent(out) :: Z(NP), W(NP)
     real(DP) :: alpha, beta
-    ALPHA = 0.
-    BETA  = 0.
+    ALPHA = 0._dp
+    BETA  = 0._dp
     CALL ZWGJ (Z,W,NP,ALPHA,BETA)
     RETURN
     END SUBROUTINE ZWGL
@@ -104,8 +104,8 @@ contains
     integer, intent(in) :: NP
     REAL(DP), intent(out) :: Z(NP),W(NP)
     real(DP) :: alpha, beta
-    ALPHA = 0.
-    BETA  = 0.
+    ALPHA = 0._dp
+    BETA  = 0._dp
     CALL ZWGLJ (Z,W,NP,ALPHA,BETA)
     RETURN
     END SUBROUTINE ZWGLL
@@ -296,6 +296,7 @@ contains
     TWO   = 2._dp
     THREE = 3._dp
     FOUR  = 4._dp
+    F3    = -1._dp
     APB   = ALPHA+BETA
     IF (N == 0) THEN
         ENDW1 = ZERO
@@ -341,12 +342,13 @@ contains
     real(DP) :: zero, one, two, three, four, apb
     real(DP) :: f1, f2, fint1, fint2, f3, a1, a2, a3, abn, abnn, di
 
-    ZERO  = 0.
-    ONE   = 1.
-    TWO   = 2.
-    THREE = 3.
-    FOUR  = 4.
+    ZERO  = 0._dp
+    ONE   = 1._dp
+    TWO   = 2._dp
+    THREE = 3._dp
+    FOUR  = 4._dp
     APB   = ALPHA+BETA
+    F3 = -1._dp
     IF (N == 0) THEN
         ENDW2 = ZERO
         RETURN
@@ -398,13 +400,13 @@ contains
     IF (X == HALF) GAMMAF =  SQRT(PI)
     IF (X == ONE ) GAMMAF =  ONE
     IF (X == TWO ) GAMMAF =  ONE
-    IF (X == 1.5  ) GAMMAF =  SQRT(PI)/2.
-    IF (X == 2.5) GAMMAF =  1.5*SQRT(PI)/2.
-    IF (X == 3.5) GAMMAF =  0.5*(2.5*(1.5*SQRT(PI)))
-    IF (X == 3. ) GAMMAF =  2.
-    IF (X == 4. ) GAMMAF = 6.
-    IF (X == 5. ) GAMMAF = 24.
-    IF (X == 6. ) GAMMAF = 120.
+    IF (X == 1.5_dp  ) GAMMAF =  SQRT(PI)/2._dp
+    IF (X == 2.5_dp) GAMMAF =  1.5_dp*SQRT(PI)/2._dp
+    IF (X == 3.5_dp) GAMMAF =  0.5_dp*(2.5_dp*(1.5_dp*SQRT(PI)))
+    IF (X == 3._dp ) GAMMAF =  2._dp
+    IF (X == 4._dp ) GAMMAF = 6._dp
+    IF (X == 5._dp ) GAMMAF = 24._dp
+    IF (X == 6._dp ) GAMMAF = 120._dp
     RETURN
     END FUNCTION
 
@@ -460,22 +462,23 @@ contains
     DATA KSTOP /10/
 
     kstop = 10
-    eps = 1.d-12
+    eps = 1.e-12_dp
 
     N   = NP-1
     one = 1._dp
-    DTH = 4.*ATAN(one)/(2.*((N))+2.)
+    DTH = 4._dp*ATAN(one)/(2._dp*((N))+2._dp)
+    JMIN = -1
     DO 40 J=1,NP
         IF (J == 1) THEN
-            X = COS((2.*(((J))-1.)+1.)*DTH)
+            X = COS((2._dp*(((J))-1._dp)+1._dp)*DTH)
         ELSE
-            X1 = COS((2.*(((J))-1.)+1.)*DTH)
+            X1 = COS((2._dp*(((J))-1._dp)+1._dp)*DTH)
             X2 = XLAST
-            X  = (X1+X2)/2.
+            X  = (X1+X2)/2._dp
         ENDIF
         DO 30 K=1,KSTOP
             CALL JACOBF (P,PD,PM1,PDM1,PM2,PDM2,NP,ALPHA,BETA,X)
-            RECSUM = 0.
+            RECSUM = 0._dp
             JM = J-1
             DO 29 I=1,JM
                 RECSUM = RECSUM+1./(X-XJAC(NP-I+1))
@@ -489,7 +492,7 @@ contains
         XLAST        = X
     40 END DO
     DO 200 I=1,NP
-        XMIN = 2.
+        XMIN = 2._dp
         DO 100 J=I,NP
             IF (XJAC(J) < XMIN) THEN
                 XMIN = XJAC(J)
@@ -523,21 +526,23 @@ contains
     integer :: k
 
     APB  = ALP+BET
-    POLY = 1.
-    PDER = 0.
+    POLY = 1._dp
+    PDER = 0._dp
     IF (N == 0) RETURN
     POLYL = POLY
     PDERL = PDER
-    POLY  = (ALP-BET+(APB+2.)*X)/2.
-    PDER  = (APB+2.)/2.
+    POLY  = (ALP-BET+(APB+2._dp)*X)/2._dp
+    PDER  = (APB+2._dp)/2._dp
+    PSAVE = 0._dp
+    PDSAVE = 0._dp
     IF (N == 1) RETURN
     DO 20 K=2,N
         DK = ((K))
-        A1 = 2.*DK*(DK+APB)*(2.*DK+APB-2.)
-        A2 = (2.*DK+APB-1.)*(ALP**2-BET**2)
-        B3 = (2.*DK+APB-2.)
-        A3 = B3*(B3+1.)*(B3+2.)
-        A4 = 2.*(DK+ALP-1.)*(DK+BET-1.)*(2.*DK+APB)
+        A1 = 2._dp*DK*(DK+APB)*(2._dp*DK+APB-2._dp)
+        A2 = (2._dp*DK+APB-1._dp)*(ALP**2-BET**2)
+        B3 = (2._dp*DK+APB-2._dp)
+        A3 = B3*(B3+1._dp)*(B3+2._dp)
+        A4 = 2._dp*(DK+ALP-1._dp)*(DK+BET-1._dp)*(2._dp*DK+APB)
         POLYN  = ((A2+A3*X)*POLY-A4*POLYL)/A1
         PDERN  = ((A2+A3*X)*PDER-A4*PDERL+A3*POLY)/A1
         PSAVE  = POLYL
@@ -563,7 +568,7 @@ contains
     implicit none
     integer, PARAMETER :: NZD = NMAX
     integer, intent(in) :: np, ii
-    REAL, intent(in) :: Z,ZGJ(np),ALPHA,BETA
+    REAL(DP), intent(in) :: Z,ZGJ(np),ALPHA,BETA
 
     REAL(DP) ::  ZD,ZGJD(NZD),ALPHAD,BETAD
     integer :: i, npmax
@@ -598,8 +603,8 @@ contains
     real(DP) :: eps, one, zi, dz
     real(DP) :: pzi, pdzi, pm1, pdm1, pm2, pdm2, pz, pdz
 
-    EPS = 1.e-5
-    ONE = 1.
+    EPS = 1.e-5_dp
+    ONE = 1._dp
     ZI  = ZGJ(II)
     DZ  = Z-ZI
     IF (ABS(DZ) < EPS) THEN
@@ -658,8 +663,8 @@ contains
     real(DP) :: p, pd, pi, pdi, pm1, pdm1, pm2, pdm2
     integer :: n
 
-    EPS = 1.e-5
-    ONE = 1.
+    EPS = 1.e-5_dp
+    ONE = 1._dp
     ZI  = ZGLJ(I)
     DZ  = Z-ZI
     IF (ABS(DZ) < EPS) THEN
@@ -740,8 +745,8 @@ contains
 
     N    = NZ-1
     DN   = ((N))
-    ONE  = 1.
-    TWO  = 2.
+    ONE  = 1._dp
+    TWO  = 2._dp
 
     IF (NZ <= 1) THEN
         WRITE (6,*) 'DGJD: Minimum number of Gauss-Lobatto points is 2'
@@ -827,8 +832,8 @@ contains
     real(DP) :: pi, pdi, pm1, pdm1, pm2, pdm2, pj, pdj, ci, cj
     N    = NZ-1
     DN   = ((N))
-    ONE  = 1.
-    TWO  = 2.
+    ONE  = 1._dp
+    TWO  = 2._dp
     EIGVAL = -DN*(DN+ALPHA+BETA+ONE)
 
     IF (NZ <= 1) THEN
@@ -880,14 +885,14 @@ contains
         WRITE (6,*) 'Polynomial degree         =',NZ
     ENDIF
     IF (NZ == 1) THEN
-        D(1,1) = 0.
+        D(1,1) = 0._dp
         RETURN
     ENDIF
     FN = (N)
-    d0 = FN*(FN+1.)/4.
+    d0 = FN*(FN+1._dp)/4._dp
     DO 200 I=1,NZ
         DO 200 J=1,NZ
-            D(I,J) = 0.
+            D(I,J) = 0._dp
             IF  (I /= J) D(I,J) = PNLEG(Z(I),N)/ &
             (PNLEG(Z(J),N)*(Z(I)-Z(J)))
             IF ((I == J) .AND. (I == 1))  D(I,J) = -d0
@@ -909,15 +914,15 @@ contains
     integer :: n
     real(DP) :: eps, dz, alfan
 
-    EPS = 1.E-5
+    EPS = 1.E-5_dp
     DZ = Z - ZGLL(I)
     IF (ABS(DZ) < EPS) THEN
-        HGLL = 1.
+        HGLL = 1._dp
         RETURN
     ENDIF
     N = NZ - 1
-    ALFAN = (N)*((N)+1.)
-    HGLL = - (1.-Z*Z)*PNDLEG(Z,N)/ &
+    ALFAN = (N)*((N)+1._dp)
+    HGLL = - (1._dp-Z*Z)*PNDLEG(Z,N)/ &
     (ALFAN*PNLEG(ZGLL(I),N)*(Z-ZGLL(I)))
     RETURN
     END FUNCTION HGLL
@@ -934,10 +939,10 @@ contains
     real(DP) :: eps, dz
     integer :: n
 
-    EPS = 1.E-5
+    EPS = 1.E-5_dp
     DZ = Z - ZGL(I)
     IF (ABS(DZ) < EPS) THEN
-        HGL = 1.
+        HGL = 1._dp
         RETURN
     ENDIF
     N = NZ-1
@@ -958,7 +963,7 @@ contains
     real(DP) :: p1, p2, p3, fk
     integer :: k
 
-    P1   = 1.
+    P1   = 1._dp
     IF (N == 0) THEN
         PNLEG = P1
         RETURN
@@ -967,12 +972,12 @@ contains
     P3   = P2
     DO 10 K = 1, N-1
         FK  = (K)
-        P3  = ((2.*FK+1.)*Z*P2 - FK*P1)/(FK+1.)
+        P3  = ((2._dp*FK+1._dp)*Z*P2 - FK*P1)/(FK+1._dp)
         P1  = P2
         P2  = P3
     10 END DO
     PNLEG = P3
-    if (n == 0) pnleg = 1.
+    if (n == 0) pnleg = 1._dp
     RETURN
     END FUNCTION PNLEG
 
@@ -988,22 +993,22 @@ contains
 
     real(DP) :: p1, p2, p3, p1d, p2d, p3d
     integer :: k, fk
-    P1   = 1.
+    P1   = 1._dp
     P2   = Z
-    P1D  = 0.
-    P2D  = 1.
-    P3D  = 1.
+    P1D  = 0._dp
+    P2D  = 1._dp
+    P3D  = 1._dp
     DO 10 K = 1, N-1
         FK  = (K)
-        P3  = ((2.*FK+1.)*Z*P2 - FK*P1)/(FK+1.)
-        P3D = ((2.*FK+1.)*P2 + (2.*FK+1.)*Z*P2D - FK*P1D)/(FK+1.)
+        P3  = ((2._dp*FK+1._dp)*Z*P2 - FK*P1)/(FK+1._dp)
+        P3D = ((2._dp*FK+1._dp)*P2 + (2._dp*FK+1._dp)*Z*P2D - FK*P1D)/(FK+1._dp)
         P1  = P2
         P2  = P3
         P1D = P2D
         P2D = P3D
     10 END DO
     PNDLEG = P3D
-    IF (N == 0) pndleg = 0.
+    IF (N == 0) pndleg = 0._dp
     RETURN
     END FUNCTION PNDLEG
 
@@ -1026,18 +1031,18 @@ contains
     real(DP) :: zp, zq, eps
 
     IF (NZM1 == 1) THEN
-        D (1,1) = 0.
-        DT(1,1) = 0.
+        D (1,1) = 0._dp
+        DT(1,1) = 0._dp
         RETURN
     ENDIF
-    EPS = 1.E-6
+    EPS = 1.E-6_dp
     NM1 = NZM1-1
     DO 10 IP = 1, NZM2
         DO 10 JQ = 1, NZM1
             ZP = ZM2(IP)
             ZQ = ZM1(JQ)
             IF ((ABS(ZP) < EPS) .AND. (ABS(ZQ) < EPS)) THEN
-                D(IP,JQ) = 0.
+                D(IP,JQ) = 0._dp
             ELSE
                 D(IP,JQ) = (PNLEG(ZP,NM1)/PNLEG(ZQ,NM1) &
                 -IM12(IP,JQ))/(ZP-ZQ)
@@ -1080,7 +1085,7 @@ contains
         WRITE(6,*) 'Here NPGL=',NPGL
         call exitt
     ENDIF
-    IF ((ALPHA <= -1.) .OR. (BETA <= -1.)) THEN
+    IF ((ALPHA <= -1._dp) .OR. (BETA <= -1._dp)) THEN
         WRITE(6,*) 'DGLJGJ: Alpha and Beta must be greater than -1'
         call exitt
     ENDIF
@@ -1132,9 +1137,9 @@ contains
         call exitt
     ENDIF
 
-    EPS    = 1.e-6
-    ONE    = 1.
-    TWO    = 2.
+    EPS    = 1.e-6_dp
+    ONE    = 1._dp
+    TWO    = 2._dp
     NGL    = NPGL-1
     DN     = ((NGL))
     EIGVAL = -DN*(DN+ALPHA+BETA+ONE)
@@ -1176,8 +1181,8 @@ contains
     real(DP) :: zi
 
     IF (NZ1 == 1) THEN
-        I12 (1,1) = 1.
-        IT12(1,1) = 1.
+        I12 (1,1) = 1._dp
+        IT12(1,1) = 1._dp
         RETURN
     ENDIF
     DO 10 I=1,NZ2
@@ -1206,8 +1211,8 @@ contains
     real(DP) :: zi
 
     IF (NZ1 == 1) THEN
-        I12 (1,1) = 1.
-        IT12(1,1) = 1.
+        I12 (1,1) = 1._dp
+        IT12(1,1) = 1._dp
         RETURN
     ENDIF
     DO 10 I=1,NZ2
@@ -1228,15 +1233,16 @@ contains
 !     Z2 : NZ2 points on mesh M.
 !     Single precision version.
 !--------------------------------------------------------------------
+    implicit none
     integer, intent(in) :: nz1, nz2, nd1, nd2
     REAL(DP), intent(out) :: I12(ND2,ND1),IT12(ND1,ND2)
-    REAL(DP), intent(in) :: Z1(ND1),Z2(ND2)
+    REAL(DP), intent(in) :: Z1(ND1),Z2(ND2), ALPHA, BETA
 
     integer :: i, j
     real(DP) :: zi
     IF (NZ1 == 1) THEN
-        I12 (1,1) = 1.
-        IT12(1,1) = 1.
+        I12 (1,1) = 1._dp
+        IT12(1,1) = 1._dp
         RETURN
     ENDIF
     DO 10 I=1,NZ2
@@ -1265,8 +1271,8 @@ contains
     integer :: i, j
     real(DP) :: zi
     IF (NZ1 == 1) THEN
-        I12 (1,1) = 1.
-        IT12(1,1) = 1.
+        I12 (1,1) = 1._dp
+        IT12(1,1) = 1._dp
         RETURN
     ENDIF
     DO 10 I=1,NZ2

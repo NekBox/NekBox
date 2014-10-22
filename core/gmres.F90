@@ -55,13 +55,13 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   real(DP) ::             wt   (lx1,ly1,lz1,lelv)
   integer :: iter
 
-  real, allocatable :: x(:),r(:),w(:)
-  real, allocatable :: h(:,:),gamma(:)
-  real, allocatable :: c(:),s(:) ! store the Givens rotations
-  real, allocatable :: v(:,:) ! stores the orthogonal Krylov subspace basis
-  real, allocatable :: z(:,:) ! Z = M**(-1) V
+  real(DP), allocatable :: x(:),r(:),w(:)
+  real(DP), allocatable :: h(:,:),gamma(:)
+  real(DP), allocatable :: c(:),s(:) ! store the Givens rotations
+  real(DP), allocatable :: v(:,:) ! stores the orthogonal Krylov subspace basis
+  real(DP), allocatable :: z(:,:) ! Z = M**(-1) V
 
-  real, allocatable, save :: ml(:), mu(:)
+  real(DP), allocatable, save :: ml(:), mu(:)
 
 
   real(DP) :: divex
@@ -73,7 +73,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   integer :: outer
 
   logical, save :: iflag = .false., if_hyb = .false.
-  real, save ::  norm_fac
+  real(DP), save ::  norm_fac
 
   real(DP) :: etime1, etime2, etime_p
   real(DP) :: rnorm, tolpss, div0, ratio
@@ -98,8 +98,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   if (.not. allocated(mu)) allocate(mu(lx2*ly2*lz2*lelv)) 
 
   !> \todo check if these inits are nessesary
-  x = 0_dp; w = 0_dp; h = 0_dp; gamma=0_dp; c = 0_dp; s = 0_dp
-  v = 0_dp; z = 0_dp;
+  x = 0._dp; w = 0._dp; h = 0._dp; gamma=0._dp; c = 0._dp; s = 0._dp
+  v = 0._dp; z = 0._dp;
 
 
   n = nx1*ny1*nz1*nelv

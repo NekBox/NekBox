@@ -25,7 +25,7 @@ subroutine setics
   real(DP), allocatable :: work(:,:,:,:)
   integer(i8) :: ntotg,nn
 
-  real :: psmax(LDIMT)
+  real(DP) :: psmax(LDIMT)
 
   integer :: nxyz2, ntot2, nxyz1, ntott, ntotv, irst, maxfld, mfldt
   integer :: itest, nbdmax, nbdsav, i, ntot, ifldsave, nfiles
@@ -648,7 +648,7 @@ subroutine restart_driver(nfiles)
           ! read header
               if (iffmat) then
                   ierr = 2
-                  if(mod(param(67),1.0) == 0) then ! old header format
+                  if(mod(param(67),1._dp) == 0) then ! old header format
                       if(nelgt < 10000) then
                           read(91,91,err=10,end=10) &
                           neltr,nxr,nyr,nzr,rstime,istepr,(excoder1(i),i=1,30)
@@ -667,7 +667,7 @@ subroutine restart_driver(nfiles)
                       ierr=0
                   endif
               else
-                  if(mod(param(67),1.0) == 0) then  ! old header format
+                  if(mod(param(67),1._dp) == 0) then  ! old header format
                       call byte_read(hnami,20,ierr)
                       if(ierr /= 0) goto 10
                       icase = 2
@@ -788,7 +788,7 @@ subroutine restart_driver(nfiles)
                       NOUTS=NOUTS + 1
                       IPOST=NOUTS
                   ENDIF
-                  IF(mod(param(67),1.0) == 0.0) THEN
+                  IF(mod(param(67),1._dp) == 0.0) THEN
                       i1 = i1_from_char(excoder1(i))
                       if (0 < i1 .AND. i1 < 10) then
                           if (i1 <= ldimt1) then

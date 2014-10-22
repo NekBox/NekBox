@@ -339,10 +339,11 @@ end subroutine hsmg_dssum
 
 !----------------------------------------------------------------------
 subroutine hsmg_dsprod(u,l)
+  use kinds, only : DP
   use ctimer, only : ifsync
   use hsmg, only : mg_gsh_handle, mg_fld
   implicit none
-  real :: u(1)
+  real(DP) :: u(1)
   integer :: l
 
   if (ifsync) call nekgsync()
@@ -353,10 +354,11 @@ end subroutine hsmg_dsprod
 
 !----------------------------------------------------------------------
 subroutine hsmg_schwarz_dssum(u,l)
+  use kinds, only : DP
   use ctimer, only : ifsync, etime1, dnekclock, tdadd
   use hsmg, only : mg_gsh_schwarz_handle, mg_fld
   implicit none
-  real :: u(1)
+  real(DP) :: u(1)
   integer :: l
 
   if (ifsync) call nekgsync()
@@ -954,8 +956,8 @@ subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
   implicit none
 
   integer, intent(in) :: nx,ny,nz,l
-  real, intent(out) :: w(nx,ny,nz,nelv)
-  real, intent(out) :: wt(nx,nz,2,ndim,nelv)
+  real(DP), intent(out) :: w(nx,ny,nz,nelv)
+  real(DP), intent(out) :: wt(nx,nz,2,ndim,nelv)
         
   integer :: ie, i, j, k
 ! nit border nodes to 1
@@ -1788,13 +1790,14 @@ end subroutine h1mg_setup_mask
 
 !----------------------------------------------------------------------
 subroutine gxfer_e (g,ng,e)
+  use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
   use geom, only : g1m1, g2m1, g3m1, g4m1, g5m1, g6m1
   use input, only : if3d
   implicit none
 
   integer :: ng, e
-  real :: g(ng,1)
+  real(DP) :: g(ng,1)
   integer :: nxyz, i
 
   nxyz = nx1*ny1*nz1

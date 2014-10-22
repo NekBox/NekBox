@@ -967,7 +967,7 @@ subroutine setbd (bd,dtbd,nbd)
   use kinds, only : DP
   implicit none
 
-  REAL :: BD(*),DTBD(*)
+  REAL(DP) :: BD(*),DTBD(*)
   integer :: nbd
 
   integer, PARAMETER :: NDIM = 10
@@ -1011,7 +1011,7 @@ subroutine bdsys (a,b,dt,nbd,ndim)
   implicit none
 
   integer :: nbd, ndim
-  REAL :: A(NDIM,9),B(9),DT(9)
+  REAL(DP) :: A(NDIM,9),B(9),DT(9)
 
   integer :: n, j, k, i
   real(DP) :: sumdt
@@ -1191,7 +1191,7 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   REAL(DP) :: X3 (LX1,LY1,LZ1,lelt)
 
   real(DP), allocatable, dimension(:,:,:,:) :: Y1, Y2, Y3, TA1, TA2
-  REAL :: LENGTH
+  REAL(DP) :: LENGTH
   integer :: imesh, nel, nxyz1, ntot1
   real(DP) :: vol
   real(DP), external :: glamax, glsum

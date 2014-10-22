@@ -214,7 +214,7 @@ subroutine setdtc(umax)
   real(DP) :: umax
   real(DP), allocatable :: u(:,:,:,:), v(:,:,:,:), w(:,:,:,:)
 
-  REAL, save :: VCOUR
+  REAL(DP), save :: VCOUR
 
   INTEGER, save :: IFIRST = 0
   integer :: irst, iconv, ntot, ntotl, ntotd, i

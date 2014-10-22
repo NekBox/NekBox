@@ -10,7 +10,7 @@ subroutine setdef()
 
   real(DP) :: XCC(8),YCC(8),ZCC(8)
   integer :: INDX(8)
-  REAL :: VEC(3,12)
+  REAL(DP) :: VEC(3,12)
   LOGICAL :: IFVCHK
 
   integer :: ie, iedg, i, i1, j, i2

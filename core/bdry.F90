@@ -361,7 +361,7 @@ SUBROUTINE BCMASK
   
   !        Zero out mask at Neumann-Dirichlet interfaces
   
-      CALL DSOP(PMASK,'MUL',NX1,NY1,NZ1)
+      CALL DSOP(PMASK,'MUL')
 #endif
   
   !        Velocity masks
@@ -419,7 +419,7 @@ SUBROUTINE BCMASK
               enddo
           END DO
 
-          if (ifaxis) CALL DSOP  ( OMASK,'MUL',NX1,NY1,NZ1)
+          if (ifaxis) CALL DSOP  ( OMASK,'MUL')
           call opdsop(v1mask,v2mask,v3mask,'MUL') ! no rotation for mul
 
 
@@ -455,7 +455,7 @@ SUBROUTINE BCMASK
                   IEL,IFACE,0.0,NX1,NY1,NZ1)
               enddo
           END DO
-          CALL DSOP (TMASK(1,1,1,1,IPSCAL),'MUL',NX1,NY1,NZ1)
+          CALL DSOP (TMASK(1,1,1,1,IPSCAL),'MUL')
       END DO
   
   ENDIF
@@ -802,8 +802,8 @@ SUBROUTINE BCDIRSC(S)
   
   !        Take care of Neumann-Dirichlet shared edges...
   
-      IF (ISWEEP == 1) CALL DSOP(TMP,'MXA',NX1,NY1,NZ1)
-      IF (ISWEEP == 2) CALL DSOP(TMP,'MNA',NX1,NY1,NZ1)
+      IF (ISWEEP == 1) CALL DSOP(TMP,'MXA')
+      IF (ISWEEP == 2) CALL DSOP(TMP,'MNA')
   END DO
 
 !     Copy temporary array to temperature array.

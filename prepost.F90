@@ -1665,12 +1665,14 @@ subroutine mfo_write_hdr
   implicit none
 
   real(r4) :: test_pattern
+  real(r4), allocatable :: padding(:)
   integer :: lglist(0:lelt)
 
   character(132) :: hdr
 
   integer :: idum, nfileoo, nelo, j, mtype, inelp, ierr, i, npscalo, k
   integer :: ibsw_out, len
+  integer :: pad_size
 
   call nekgsync()
   idum = 1
@@ -1731,7 +1733,7 @@ subroutine mfo_write_hdr
        
       write(hdr,1) wdsizo,nxo,nyo,nzo,nelo,nelgt,time,istep,fid0,nfileoo &
       ,   (rdcode1(i),i=1,10)        ! 74+20=94
-      1 format('#std',1x,i1,1x,i2,1x,i2,1x,i2,1x,i10,1x,i10,1x,e20.13, &
+      1 format('#max',1x,i1,1x,i2,1x,i2,1x,i2,1x,i10,1x,i10,1x,e20.13, &
       &        1x,i9,1x,i6,1x,i6,1x,10a)
 
   ! if we want to switch the bytes for output
@@ -1742,14 +1744,20 @@ subroutine mfo_write_hdr
 
       test_pattern = 6.54321_r4           ! write test pattern for byte swap
 
+      pad_size = (8 * (2**20) - (iHeaderSize + 4) ) / 4
+      allocate(padding(pad_size)); padding = 0.
 #ifdef MPIIO
   ! only rank0 (pid00) will write hdr + test_pattern
       call byte_write_mpi(hdr,iHeaderSize/4,pid00,ifh_mbyte,ierr)
       call byte_write_mpi(test_pattern,1,pid00,ifh_mbyte,ierr)
+      call byte_write_mpi(padding, pad_size, pid00, ifh_mbyte, ierr)
 #else
       call byte_write(hdr,iHeaderSize/4,ierr)
       call byte_write(test_pattern,1,ierr)
+      ! pad up to 8MB
+      call byte_write(padding, pad_size, ierr)
 #endif
+      deallocate(padding)
 
   endif
 
@@ -1758,12 +1766,13 @@ subroutine mfo_write_hdr
 ! write global element numbering for this group
   if(nid == pid0) then
 #ifdef MPIIO
-      ioff = iHeaderSize + 4 + nelB*isize
+      ioff = iHeaderSize + 4 + 4*pad_size + nelB*isize
       call byte_set_view (ioff,ifh_mbyte)
       call byte_write_mpi(lglel,nelt,-1,ifh_mbyte,ierr)
 #else
       call byte_write(lglel,nelt,ierr)
 #endif
+      pad_size = -nelt
       do j = pid0+1,pid1
           mtype = j
           call csend(mtype,idum,4,j,0)   ! handshake
@@ -1775,8 +1784,22 @@ subroutine mfo_write_hdr
 #else
               call byte_write(lglist(1),lglist(0),ierr)
 #endif
+          pad_size = pad_size - lglist(0)
           endif
       enddo
+
+    ! pad up to 8MB
+    do while (pad_size < 0) 
+      pad_size = pad_size + (8 * (2**20)) / 4
+    enddo
+    allocate(padding(pad_size)); padding = 0.
+#ifdef MPIIO
+    call byte_write_mpi(padding, pad_size, pid00, ifh_mbyte, ierr)
+#else
+    call byte_write(padding, pad_size, ierr)
+#endif
+    deallocate(padding)
+
   else
       mtype = nid
       call crecv(mtype,idum,4)          ! hand-shake
@@ -1787,6 +1810,8 @@ subroutine mfo_write_hdr
       len = 4*(nelt+1)
       call csend(mtype,lglist,len,pid0,0)
   endif
+
+ 
 
   call err_chk(ierr,'Error writing global nums in mfo_write_hdr$')
   return

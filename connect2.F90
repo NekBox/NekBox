@@ -159,7 +159,13 @@ subroutine readat()
         write(*,*) "Oops: ifre2"
 !max            call bin_rd1(ifbswap) ! rank0 will read mesh data + distribute
       else
-          maxrd = 32               ! max # procs to read at once
+
+#if 1
+          ! generate the mesh without reading
+          call nekgsync()
+          call genmesh
+#else
+          maxrd = 32            ! max # procs to read at once
           mread = (np-1)/maxrd+1   ! mod param
           iread = 0                ! mod param
           x     = 0
@@ -182,7 +188,13 @@ subroutine readat()
               endif
               iread = iread + 1
           enddo
+#endif
       endif
+  endif
+
+  if (nid == 0) then
+    call cscan(tmp_string,'TAIL OPTS',9)
+    read(9,*) tmp_string
   endif
 
 !   Read Restart options / Initial Conditions / Drive Force
@@ -717,6 +729,173 @@ end subroutine rdparam
 !!  to number of elements and processors
 !! .Selectively read mesh (defined by element vertices, and group numbers)
 !!  on each processor
+subroutine genmesh
+  use kinds, only : DP
+  use size_m, only : ndim, nid, lelt
+  use input, only : iffmtin, igroup, xc, yc, zc
+  use input, only : curve, ccurve
+  use input, only : bc, cbc
+  use parallel, only : nelgt, gllnid, gllel
+  implicit none
+
+  character(1) :: adum
+  integer :: nsides, ieg, iel, ic, lcbc, ldimt1, lrbc, iside, ii
+  integer :: shape_x(3)
+  integer :: ix(3)
+  real(DP) :: start_x(3)
+  real(DP) :: end_x(3)
+  real(DP) :: dx(3)
+  real(DP) :: root(3)
+  character(3) :: boundaries(6), tboundaries(6)
+
+!   Read elemental mesh data, formatted
+  iffmtin = .TRUE. 
+  shape_x(1) = 16
+  shape_x(2) = 16
+  shape_x(3) = 8
+
+  start_x(1) = 0._dp
+  start_x(2) = 0._dp
+  start_x(3) = -0.00390625_dp
+
+  end_x(1) = 0.015625_dp
+  end_x(2) = 0.015625_dp
+  end_x(3) = 0.00390625_dp
+
+  boundaries(1) = 'P'
+  boundaries(2) = 'P'
+  boundaries(3) = 'P'
+  boundaries(4) = 'P'
+  boundaries(5) = 'W'
+  boundaries(6) = 'W'
+  tboundaries = boundaries
+  tboundaries(5) = 'I'
+  tboundaries(6) = 'I'
+
+  dx = (end_x - start_x) / shape_x
+
+  ldimt1 = 2
+  curve = 0._dp
+  CALL BLANK(CCURVE,12*LELT)
+  LCBC=18*LELT*(LDIMT1 + 1)
+  LRBC=30*LELT*(LDIMT1 + 1)
+  bc = 0._dp
+  CALL BLANK(CBC,LCBC)
+
+  NSIDES=NDIM*2
+  DO IEG=1,NELGT
+      IF (GLLNID(IEG) == NID) THEN
+          IEL=GLLEL(IEG)
+
+          ix(1) = mod(ieg - 1, shape_x(1))
+          ix(2) = mod((ieg-1)/shape_x(1), shape_x(2))
+          ix(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
+
+          root = start_x + ix * dx
+
+          igroup(iel) = 0
+          XC(1,iel) = root(1)
+          XC(2,iel) = root(1) + dx(1)
+          XC(3,iel) = root(1) + dx(1)
+          XC(4,iel) = root(1)
+          XC(5,iel) = root(1)
+          XC(6,iel) = root(1) + dx(1)
+          XC(7,iel) = root(1) + dx(1)
+          XC(8,iel) = root(1)
+
+          YC(1,iel) = root(2)
+          YC(2,iel) = root(2)
+          YC(3,iel) = root(2) + dx(2)
+          YC(4,iel) = root(2) + dx(2)
+          YC(5,iel) = root(2)
+          YC(6,iel) = root(2)
+          YC(7,iel) = root(2) + dx(2)
+          YC(8,iel) = root(2) + dx(2)
+
+          ZC(1,iel) = root(3)
+          ZC(2,iel) = root(3)
+          ZC(3,iel) = root(3)
+          ZC(4,iel) = root(3)
+          ZC(5,iel) = root(3) + dx(3)
+          ZC(6,iel) = root(3) + dx(3)
+          ZC(7,iel) = root(3) + dx(3)
+          ZC(8,iel) = root(3) + dx(3)
+
+          CBC(:,IEL,:) = 'E'
+          if (ix(2) == 0) then
+            CBC(1,IEL,:) = boundaries(1)
+            bc(1,1,iel,:) = ieg + (shape_x(2)-1)*shape_x(1)
+          else
+            bc(1,1,iel,:) = ieg - shape_x(1)
+          endif
+
+          if (ix(2) == shape_x(2) - 1) then
+            CBC(3,IEL,:) = boundaries(3)
+            bc(1,3,iel,:) = ieg - ix(2)*shape_x(1)
+          else
+            bc(1,3,iel,:) = ieg + shape_x(1)
+          endif
+
+          if (ix(1) == 0)  then
+            CBC(4,IEL,:) = boundaries(4)
+            bc(1,4,iel,:) = ieg + (shape_x(1) - 1)
+          else
+            bc(1,4,iel,:) = ieg - 1
+          endif
+
+          if (ix(1) == shape_x(1) - 1) then
+            CBC(2,IEL,:) = boundaries(2)
+            bc(1,2,iel,:) = ieg - ix(1)
+          else
+            bc(1,2,iel,:) = ieg +1
+          endif
+
+          if (ix(3) == 0) then
+            CBC(5,IEL,1) = boundaries(5)
+            CBC(5,IEL,2) = tboundaries(5)
+            bc(1,5,iel,:) = ieg + (shape_x(3) - 1)*shape_x(2)*shape_x(1)
+          else
+            bc(1,5,iel,:) = ieg - shape_x(2)*shape_x(1)
+          endif
+          if (ix(3) == shape_x(3) - 1) then
+            CBC(6,IEL,1) = boundaries(6)
+            CBC(6,IEL,2) = tboundaries(6)
+            bc(1,6,iel,:) = ieg - ix(3) * shape_x(2)*shape_x(1)
+          else
+            bc(1,6,iel,:) = ieg + shape_x(2)*shape_x(1)
+          endif
+
+          bc(2, 1, iel, :) = 3
+          bc(2, 2, iel, :) = 4
+          bc(2, 3, iel, :) = 1
+          bc(2, 4, iel, :) = 2
+          bc(2, 5, iel, :) = 6
+          bc(2, 6, iel, :) = 5
+          if (nid == 3) then  
+          DO ISIDE=1,NSIDES
+                              write(*,*) CBC(ISIDE,IEL,1),0,0, &
+                              (BC(II,ISIDE,IEL,1),II=1,5)
+                              write(*,*) " "
+          enddo
+          endif
+        
+      ENDIF
+  END DO
+
+
+!   End of mesh read.
+
+  return
+end subroutine genmesh
+
+
+
+!-----------------------------------------------------------------------
+!> \brief Read number of elements.
+!! .Construct sequential element-processor partition according
+!!  to number of elements and processors
+!! .Selectively read mesh (defined by element vertices, and group numbers)
+!!  on each processor
 subroutine rdmesh
   use kinds, only : DP
   use size_m, only : ndim, nid
@@ -891,6 +1070,7 @@ subroutine rdcurve
       return
   ENDIF
   end subroutine rdcurve
+
 !-----------------------------------------------------------------------
 !> \brief Read Boundary Conditions (and connectivity data).
 !! .Disperse boundary condition data to all processors
@@ -978,6 +1158,11 @@ subroutine rdbdry
                               CBC(ISIDE,IEL,IFIELD),ID1,ID2, &
                               (BC(II,ISIDE,IEL,IFIELD),II=1,NBCREA)
                               51 FORMAT(A1,A3,I5,I1,5G14.6)
+                              if (nid == 3) then
+                              write(*,*) CBC(ISIDE,IEL,IFIELD),ID1,ID2, &
+                              (BC(II,ISIDE,IEL,IFIELD),II=1,NBCREA)
+                              endif
+
                           ELSEIF (NELGT < 1000000) THEN
                               READ(9,52,ERR=500,END=500) &
                               CHTEMP, &
@@ -994,6 +1179,7 @@ subroutine rdbdry
                       !              Mesh B.C.'s in 1st column of 1st field
                           IF (CHTEMP /= ' ') CBC(ISIDE,IEL,0)(1:1)= CHTEMP
                       !              check for fortran function as denoted by lower case bc's:
+                          if (nid == 3 )write(*,*)  CBC(ISIDE,IEL,0), CHTEMP
                           CBC3=CBC(ISIDE,IEL,IFIELD)
                           ICBC1=ICHAR(CBC3(1:1))
                       !              IF (ICBC1.GE.97.AND.ICBC1.LE.122) THEN

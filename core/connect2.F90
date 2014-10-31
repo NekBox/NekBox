@@ -194,7 +194,6 @@ subroutine readat()
 
   if (nid == 0) then
     call cscan(tmp_string,'TAIL OPTS',9)
-    read(9,*) tmp_string
   endif
 
 !   Read Restart options / Initial Conditions / Drive Force
@@ -724,22 +723,21 @@ subroutine rdparam
 end subroutine rdparam
 
 !-----------------------------------------------------------------------
-!> \brief Read number of elements.
-!! .Construct sequential element-processor partition according
-!!  to number of elements and processors
-!! .Selectively read mesh (defined by element vertices, and group numbers)
-!!  on each processor
+!> \brief Generate local mesh elements.
+!! 
+!! Populate xc, yc, zc with element corner positions
+!! Populate cbc, bc with element boundary conditions
+!! \note Can't handle curves (zeros out)
 subroutine genmesh
   use kinds, only : DP
   use size_m, only : ndim, nid, lelt
   use input, only : iffmtin, igroup, xc, yc, zc
   use input, only : curve, ccurve
   use input, only : bc, cbc
-  use parallel, only : nelgt, gllnid, gllel
+  use parallel, only : nelgt, gllnid, gllel, wdsize
   implicit none
 
-  character(1) :: adum
-  integer :: nsides, ieg, iel, ic, lcbc, ldimt1, lrbc, iside, ii
+  integer :: nsides, ieg, iel, lcbc, ldimt1
   integer :: shape_x(3)
   integer :: ix(3)
   real(DP) :: start_x(3)
@@ -750,27 +748,20 @@ subroutine genmesh
 
 !   Read elemental mesh data, formatted
   iffmtin = .TRUE. 
-  shape_x(1) = 16
-  shape_x(2) = 16
-  shape_x(3) = 8
 
-  start_x(1) = 0._dp
-  start_x(2) = 0._dp
-  start_x(3) = -0.00390625_dp
+  if (nid == 0) then
+    read(9,*) start_x(1), end_x(1), shape_x(1)
+    read(9,*) start_x(2), end_x(2), shape_x(2)
+    read(9,*) start_x(3), end_x(3), shape_x(3)
+    read(9,*) boundaries(1:6)
+    read(9,*) tboundaries(1:6)
+  endif
 
-  end_x(1) = 0.015625_dp
-  end_x(2) = 0.015625_dp
-  end_x(3) = 0.00390625_dp
-
-  boundaries(1) = 'P'
-  boundaries(2) = 'P'
-  boundaries(3) = 'P'
-  boundaries(4) = 'P'
-  boundaries(5) = 'W'
-  boundaries(6) = 'W'
-  tboundaries = boundaries
-  tboundaries(5) = 'I'
-  tboundaries(6) = 'I'
+  call bcast(start_x,3*wdsize)  
+  call bcast(end_x,  3*wdsize)  
+  call bcast(shape_x,3*wdsize)  
+  call bcast(boundaries,3*6)  
+  call bcast(tboundaries,3*6)  
 
   dx = (end_x - start_x) / shape_x
 
@@ -778,7 +769,6 @@ subroutine genmesh
   curve = 0._dp
   CALL BLANK(CCURVE,12*LELT)
   LCBC=18*LELT*(LDIMT1 + 1)
-  LRBC=30*LELT*(LDIMT1 + 1)
   bc = 0._dp
   CALL BLANK(CBC,LCBC)
 
@@ -871,24 +861,12 @@ subroutine genmesh
           bc(2, 4, iel, :) = 2
           bc(2, 5, iel, :) = 6
           bc(2, 6, iel, :) = 5
-          if (nid == 3) then  
-          DO ISIDE=1,NSIDES
-                              write(*,*) CBC(ISIDE,IEL,1),0,0, &
-                              (BC(II,ISIDE,IEL,1),II=1,5)
-                              write(*,*) " "
-          enddo
-          endif
-        
+       
       ENDIF
   END DO
 
-
-!   End of mesh read.
-
   return
 end subroutine genmesh
-
-
 
 !-----------------------------------------------------------------------
 !> \brief Read number of elements.
@@ -1158,11 +1136,6 @@ subroutine rdbdry
                               CBC(ISIDE,IEL,IFIELD),ID1,ID2, &
                               (BC(II,ISIDE,IEL,IFIELD),II=1,NBCREA)
                               51 FORMAT(A1,A3,I5,I1,5G14.6)
-                              if (nid == 3) then
-                              write(*,*) CBC(ISIDE,IEL,IFIELD),ID1,ID2, &
-                              (BC(II,ISIDE,IEL,IFIELD),II=1,NBCREA)
-                              endif
-
                           ELSEIF (NELGT < 1000000) THEN
                               READ(9,52,ERR=500,END=500) &
                               CHTEMP, &
@@ -1179,7 +1152,6 @@ subroutine rdbdry
                       !              Mesh B.C.'s in 1st column of 1st field
                           IF (CHTEMP /= ' ') CBC(ISIDE,IEL,0)(1:1)= CHTEMP
                       !              check for fortran function as denoted by lower case bc's:
-                          if (nid == 3 )write(*,*)  CBC(ISIDE,IEL,0), CHTEMP
                           CBC3=CBC(ISIDE,IEL,IFIELD)
                           ICBC1=ICHAR(CBC3(1:1))
                       !              IF (ICBC1.GE.97.AND.ICBC1.LE.122) THEN

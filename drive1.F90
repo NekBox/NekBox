@@ -75,7 +75,6 @@ subroutine nek_init(intracomm)
   call init_topol()
   call init_turbo()
   call init_zper()
-  write(*,*) "Max inits"
 
   call initdim
   call initdat

@@ -1446,24 +1446,17 @@ subroutine mfo_outs(u,nel,mx,my,mz)
   if (nid == pid0) then
 
       if (wdsizo == 4) then             ! 32-bit output
-          call copyx4 (u4,u,ntot)
+          u4(1:ntot) = real(reshape(u(1:mx,1:my,1:mz,1:nel), (/ntot/)), kind=r4)
       else
-          call copy   (u8,u,ntot)
+          u8(1:ntot) = reshape(u(1:mx,1:my,1:mz,1:nel), (/ntot/))
       endif
+
       if(wdsizo == 4 .and. ierr == 0) then
-      nout = wdsizo/4 * ntot
-#ifdef MPIIO 
-      call byte_write_mpi(u4,nout,-1,ifh_mbyte,ierr)
-#else 
-      call byte_write(u4,nout,ierr)          ! u4 :=: u8
-#endif
+        nout = wdsizo/4 * ntot
+        call byte_write(u4,nout,ierr)          ! u4 :=: u8
       elseif(ierr == 0) then
-      nout = wdsizo/4 * ntot
-#ifdef MPIIO 
-      call byte_write_mpi(u8,nout,-1,ifh_mbyte,ierr)
-#else 
-      call byte_write(u8,nout,ierr)          ! u4 :=: u8
-#endif
+        nout = wdsizo/4 * ntot
+        call byte_write(u8,nout,ierr)          ! u4 :=: u8
       endif
 
   ! write out the data of my childs
@@ -1471,23 +1464,17 @@ subroutine mfo_outs(u,nel,mx,my,mz)
       do k=pid0+1,pid1
           mtype = k
           call csend(mtype,idum,4,k,0)       ! handshake
+
           if (wdsizo == 4 .AND. ierr == 0) then
             call crecv(mtype,u4,len)
             nout  = wdsizo/4 * nxyz * int(u4(1))
-#ifdef MPIIO
-            call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
-#else
             call byte_write(u4(3),nout,ierr)
-#endif
           elseif(ierr == 0) then
             call crecv(mtype,u8,len)
             nout  = wdsizo/4 * nxyz * int(u8(1))
-#ifdef MPIIO
-            call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
-#else
             call byte_write(u8(2),nout,ierr)
-#endif
           endif
+
       enddo
 
   else
@@ -1576,17 +1563,9 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
       endif
       nout = wdsizo/4 * ndim*nel * nxyz
       if (wdsizo == 4 .and. ierr == 0) then
-#ifdef MPIIO 
-      call byte_write_mpi(u4,nout,-1,ifh_mbyte,ierr)
-#else 
-      call byte_write(u4,nout,ierr)          ! u4 :=: u8
-#endif
+        call byte_write(u4,nout,ierr)          ! u4 :=: u8
       elseif (ierr == 0) then
-#ifdef MPIIO 
-      call byte_write_mpi(u8,nout,-1,ifh_mbyte,ierr)
-#else 
-      call byte_write(u8,nout,ierr)          ! u4 :=: u8
-#endif
+        call byte_write(u8,nout,ierr)          ! u4 :=: u8
       endif
   ! write out the data of my childs
       do k=pid0+1,pid1
@@ -1596,19 +1575,11 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
           if (wdsizo == 4 .AND. ierr == 0) then
               call crecv(mtype,u4,len)
               nout  = wdsizo/4 * ndim*nxyz * int(u4(1))
-#ifdef MPIIO
-              call byte_write_mpi(u4(3),nout,-1,ifh_mbyte,ierr)
-#else
               call byte_write(u4(3),nout,ierr)
-#endif
           elseif(ierr == 0) then
               call crecv(mtype,u8,len)
               nout  = wdsizo/4 * ndim*nxyz * int(u8(1))
-#ifdef MPIIO
-              call byte_write_mpi(u8(2),nout,-1,ifh_mbyte,ierr)
-#else
               call byte_write(u8(2),nout,ierr)
-#endif
           endif
       enddo
   else

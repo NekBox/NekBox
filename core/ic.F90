@@ -1,3 +1,5 @@
+#define SIMPLE_IO
+
 !-----------------------------------------------------------------------
 !> \brief Set initial conditions.
 !-----------------------------------------------------------------------
@@ -15,6 +17,7 @@ subroutine setics
   use soln, only : vx, vy, vz, pr, t, jp, vmult, bx, by, bz
   use soln, only : tmult
   use tstep, only : ifield, nbdinp, time, timeio, nelfld, ntdump
+  use io, only : load_ic
   implicit none
    
   logical  iffort(  ldimt1,0:lpert) &
@@ -91,8 +94,8 @@ subroutine setics
   if (ifmhd) maxfld = npscal+3
 
 !   Always call nekuic (pff, 12/7/11)
+#ifndef SIMPLE_IO
   do ifield=1,maxfld
-      if (nid == 0) write(6,*) 'nekuic (1) for ifld ', ifield
       call nekuic
   enddo
 
@@ -114,6 +117,7 @@ subroutine setics
           if (iffort(ifield,jp)) call nekuic
       enddo
   endif
+#endif
   jp = 0
        
 
@@ -131,6 +135,18 @@ subroutine setics
 
 
 !   Fortran function initial conditions for velocity.
+#ifdef SIMPLE_IO
+
+#if 0
+  if (nid == 0) write(6,*) 'call nekuic for all fields'
+  call nekuic
+#else
+  if (nid == 0) write(6,*) 'trying to load restart files'
+  call load_ic(4)
+#endif
+  
+#else
+
   ifield = 1
   if (iffort(ifield,jp)) then
       if (nid == 0) write(6,*) 'call nekuic for vel  '
@@ -144,6 +160,7 @@ subroutine setics
           if (nid == 0) write(6,*) 'ic vel pert:',iffort(1,jp),jp
       enddo
   endif
+#endif
   jp = 0
 
   ntotv = nx1*ny1*nz1*nelv
@@ -1421,6 +1438,12 @@ subroutine nekuic
                       CALL NEKASGN (I,J,K,IEL)
                       CALL USERIC  (I,J,K,IEG)
                       if (jp == 0) then
+#ifdef SIMPLE_IO
+                          VX(I,J,K,IEL) = UX
+                          VY(I,J,K,IEL) = UY
+                          VZ(I,J,K,IEL) = UZ
+                          T(I,J,K,IEL,1) = TEMP
+#else
                           IF (IFIELD == 1) THEN
                               VX(I,J,K,IEL) = UX
                               VY(I,J,K,IEL) = UY
@@ -1432,6 +1455,7 @@ subroutine nekuic
                           ELSE
                               T(I,J,K,IEL,IFIELD-1) = TEMP
                           ENDIF
+#endif
                       else
                           ijke = i+nx1*((j-1)+ny1*((k-1) + nz1*(iel-1)))
                           IF (IFIELD == 1) THEN

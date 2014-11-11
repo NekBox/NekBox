@@ -1446,9 +1446,11 @@ subroutine mfo_outs(u,nel,mx,my,mz)
   if (nid == pid0) then
 
       if (wdsizo == 4) then             ! 32-bit output
-          u4(1:ntot) = real(reshape(u(1:mx,1:my,1:mz,1:nel), (/ntot/)), kind=r4)
+          call copyx4 (u4,u,ntot)
+          !u4(1:ntot) = real(reshape(u(1:mx,1:my,1:mz,1:nel), (/ntot/)), kind=r4)
       else
-          u8(1:ntot) = reshape(u(1:mx,1:my,1:mz,1:nel), (/ntot/))
+          call copy   (u8,u,ntot)
+          !u8(1:ntot) = reshape(u(1:mx,1:my,1:mz,1:nel), (/ntot/))
       endif
 
       if(wdsizo == 4 .and. ierr == 0) then

@@ -644,8 +644,8 @@ end subroutine copyX4
 subroutine copy4r(a,b,n)
   use kinds, only : DP, r4
   implicit none
-  real(DP) :: a(1)
-  real(r4) :: b(1)
+  real(DP) :: a(*)
+  real(r4) :: b(*)
   integer :: n, i
   do i = 1, n
       a(i) = b(i)

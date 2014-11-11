@@ -1,5 +1,4 @@
 #define SIMPLE_IO
-
 !-----------------------------------------------------------------------
 !> \brief Set initial conditions.
 !-----------------------------------------------------------------------
@@ -137,13 +136,13 @@ subroutine setics
 !   Fortran function initial conditions for velocity.
 #ifdef SIMPLE_IO
 
-#if 0
-  if (nid == 0) write(6,*) 'call nekuic for all fields'
-  call nekuic
-#else
-  if (nid == 0) write(6,*) 'trying to load restart files'
-  call load_ic(4)
-#endif
+  if (param(69) > 0) then
+    if (nid == 0) write(6,*) 'trying to load restart files'
+    call load_ic()
+  else
+    if (nid == 0) write(6,*) 'call nekuic for all fields'
+    call nekuic
+  endif
   
 #else
 

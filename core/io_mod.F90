@@ -24,6 +24,7 @@ subroutine load_ic()
   use soln, only : vx, vy, vz, t
   use restart, only : pid0, fid0
   use size_m, only : nx1, ny1, nz1
+  use tstep, only : time
 
   integer :: nelo !>!< number of i/o elements per io-node
   integer :: word_size_load !>!< number of bytes per word
@@ -36,7 +37,7 @@ subroutine load_ic()
   endif
 
   ! read and seek past header 
-  call mfo_read_header(nelo, word_size_load)
+  call mfo_read_header(nelo, word_size_load, time)
 
   ! seek past positions
   if (nid == pid0) then
@@ -63,7 +64,7 @@ end subroutine load_ic
 
 !-----------------------------------------------------------------------
 !> \brief Read header and return number of elements and word size
-subroutine mfo_read_header(nelo,  word_size_file)
+subroutine mfo_read_header(nelo, word_size_file, time)
   use kinds, only : r4, DP
   use size_m, only : nid, nelt, lelt
   use parallel, only : lglel, isize
@@ -73,6 +74,7 @@ subroutine mfo_read_header(nelo,  word_size_file)
 
   integer, intent(out) :: nelo
   integer, intent(out) :: word_size_file ! (intent out)
+  real(DP), intent(out) :: time
 
   integer :: nelo_file !>!< number of i/o elements per io-node (from file)
   real(r4) :: test_pattern
@@ -80,7 +82,6 @@ subroutine mfo_read_header(nelo,  word_size_file)
   integer :: lglist(0:lelt)
   character(1) :: rdcode1(10)
   integer :: fid0, istep, nelgt
-  real(DP) :: time
   character(132) :: hdr
 
   integer :: idum, nfileoo, j, mtype, inelp, ierr, i
@@ -121,6 +122,7 @@ subroutine mfo_read_header(nelo,  word_size_file)
       deallocate(padding)
   endif
   call bcast(word_size_file, isize)
+  call bcast(time, 8)
 
   call err_chk(ierr,'Error writing header in mfo_write_hdr. $')
 

@@ -354,19 +354,21 @@ end subroutine hmhzpf
 subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
     ,approx,napprox,bi)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, mxprev
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, mxprev, lelv
   use input, only : ifflow, param
   use string, only : capit
   use tstep, only : ifield, nelfld, istep
+  use geom, only : binvm1
+  use poisson, only : spectral_solve
   implicit none
 
   CHARACTER(4), intent(in) :: NAME !>!< name of field we're solving for
-  REAL(DP), intent(out)   :: U    (LX1,LY1,LZ1,*) !>!< solution vector
-  REAL(DP), intent(inout) :: R    (LX1,LY1,LZ1,*) !>!< right hand side
-  REAL(DP), intent(in)    :: H1   (LX1,LY1,LZ1,*) !>!< coefficient of A (stiffness)
-  REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,*) !>!< coefficient of M (mass)
-  REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,*) !>!< mask array
-  REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,*) !>!< multiplicity array
+  REAL(DP), intent(out)   :: U    (LX1,LY1,LZ1,lelv) !>!< solution vector
+  REAL(DP), intent(inout) :: R    (LX1,LY1,LZ1,lelv) !>!< right hand side
+  REAL(DP), intent(in)    :: H1   (LX1,LY1,LZ1,lelv) !>!< coefficient of A (stiffness)
+  REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,lelv) !>!< coefficient of M (mass)
+  REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,lelv) !>!< mask array
+  REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,lelv) !>!< multiplicity array
   integer,  intent(in)    :: imsh                 !>!< imesh?
   real(DP), intent(in)    :: tol                  !>!< residual tolerance
   integer,  intent(in)    :: maxit                !>!< maximum number of iterations
@@ -377,10 +379,13 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
   real(DP), allocatable :: w1(:)
   real(DP) :: w2(2+2*mxprev)
+  real(DP), allocatable :: tmp(:,:,:,:)
 
-  logical :: ifstdh
+  logical :: ifstdh, spectral_h
   character(4) ::  cname
   integer :: n, nel
+
+  spectral_h = .false.
 
   call chcopy(cname,name,4)
   call capit (cname,4)
@@ -398,7 +403,16 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   if (param(93) == 0) ifstdh = .TRUE. 
 
   if (ifstdh) then
-      call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
+
+    call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
+
+  else if (spectral_h) then
+
+    call spectral_solve(u, r, h1, vmk, vml, imsh, isd)
+    allocate(tmp(lx1,ly1,lz1,lelv))
+    call cggo (tmp,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,binvm1,name)
+    u = u + tmp
+
   else
       nel = nelfld(ifield)
       n = nx1*ny1*nz1*nel

@@ -6,7 +6,13 @@ before_install:
  - sudo apt-get install -y gfortran 
  - sudo apt-get install -y mpich2 libmpich2-dev libmpich2-3 
  - sudo apt-get install -y liblapack-dev
- - sudo apt-get install -y libfftw3-mpi-dev libfftw3-mpi3
+ - wget http://www.fftw.org/fftw-3.3.4.tar.gz
+ - tar xf fftw-3.3.4.tar.gz
+ - cd fftw-3.3.4
+ - ./configure --enable-mpi --prefix=${ROOT_DIR}/fftw3/
+ - make
+ - make install
+ - cd ..
 
  - git clone https://github.com/maxhutch/nek-tests.git
  - cd nek-tests/RTI-LST/

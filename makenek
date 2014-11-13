@@ -33,7 +33,7 @@ CC="mpicc "
 
 # linking flags
 #USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core"
-USR_LFLAGS="-lblas -llapack -lfftw3_mpi -lfftw3"
+USR_LFLAGS="-lblas -llapack -Lfftw3/lib -lfftw3_mpi -lfftw3"
 
 
 # generic compiler flags

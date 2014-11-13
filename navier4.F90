@@ -385,7 +385,6 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   character(4) ::  cname
   integer :: n, nel
 
-  spectral_h = .false.
 
   call chcopy(cname,name,4)
   call capit (cname,4)
@@ -402,12 +401,21 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
   if (param(93) == 0) ifstdh = .TRUE. 
 
+  if (cname == 'PRES') then
+    ifstdh = .FALSE. 
+    spectral_h = .true.
+  else
+    spectral_h = .false.
+  endif
+
   if (ifstdh) then
 
     call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
 
   else if (spectral_h) then
 
+    call dssum   (r)
+    r = r * vmk
     call spectral_solve(u, r, h1, vmk, vml, imsh, isd)
     allocate(tmp(lx1,ly1,lz1,lelv))
     call cggo (tmp,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,binvm1,name)

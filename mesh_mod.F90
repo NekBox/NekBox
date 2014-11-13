@@ -1,5 +1,6 @@
 !> cleaned
 module mesh
+  use kinds, only : DP
   implicit none
 
   integer, allocatable :: vertex(:)
@@ -7,6 +8,12 @@ module mesh
   logical, allocatable :: iffast(:) !>!< can we use a fast method on the element?
   logical :: ifsolv !>!< are ifdfrm and iffast up to date?
   integer :: niterhm
+
+  real(DP) :: start_x(3)
+  real(DP) :: end_x(3)
+  integer  :: shape_x(3)
+
+
 
   contains
 

@@ -23,8 +23,8 @@ module poisson
 contains
 
 !#define UNITARY_TEST
-#define SHUFFLE_TEST
-#define NO_FFT
+!#define SHUFFLE_TEST
+!#define NO_FFT
 !> \brief 
 subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   use kinds, only : DP
@@ -40,6 +40,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
   use fftw3, only : FFTW_ESTIMATE, FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00
   use fftw3, only : fftw_execute_r2r, fftw_mpi_execute_r2r
+  use fft, only : fft_r2r
   use mpif, only : MPI_STATUS_IGNORE
 
   REAL(DP), intent(out)   :: U    (:,:,:,:)
@@ -102,12 +103,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   ! forward FFT
   rescale = 1._dp
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(1), int(nin_local_xy * nin_local_yz), &
-                                plane_xy, shape_x(1), 1, shape_x(1), &
-                                plane_xy, shape_x(1), 1, shape_x(1), &
-                                (/FFTW_R2HC/), FFTW_ESTIMATE)
-  call fftw_execute_r2r(dft_plan, plane_xy, plane_xy)
-  rescale = rescale * sqrt(real(shape_x(1), kind=DP)) 
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_R2HC, rescale)
 #endif
   
   allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
@@ -138,12 +134,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 #endif
 
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(2), int(nout_local_xy * nin_local_yz), &
-                                plane_yx, shape_x(2), 1, shape_x(2), &
-                                plane_yx, shape_x(2), 1, shape_x(2), &
-                                (/FFTW_R2HC/), FFTW_ESTIMATE)
-  call fftw_execute_r2r(dft_plan, plane_yx, plane_yx)
-  rescale = rescale * sqrt(real(shape_x(2), kind=DP)) 
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_R2HC, rescale)
 #endif
 
   allocate(plane_zy(0:shape_c(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
@@ -174,12 +165,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 #endif
 
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(3), int(nout_local_xy * nout_local_yz), &
-                                plane_zy, shape_x(3), 1, shape_x(3), &
-                                plane_zy, shape_x(3), 1, shape_x(3), &
-                                (/FFTW_REDFT00/), FFTW_ESTIMATE)
-  call fftw_execute_r2r(dft_plan, plane_zy, plane_zy)
-  rescale = rescale * sqrt(2.*real(shape_x(3)-1, kind=DP)) 
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT00, rescale)
 #endif
 
   ! Poisson kernel
@@ -217,12 +203,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
   ! reverse FFT
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(3), int(nout_local_xy * nout_local_yz), &
-                                plane_zy, shape_x(3), 1, shape_x(3), &
-                                plane_zy, shape_x(3), 1, shape_x(3), &
-                                (/FFTW_REDFT00/), FFTW_ESTIMATE)
-  call fftw_execute_r2r(dft_plan, plane_zy, plane_zy)
-  rescale = rescale * sqrt(2.*real(shape_x(3)-1, kind=DP)) 
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT00, rescale)
 #endif
 
   allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
@@ -236,12 +217,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   deallocate(plane_zy)
 
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(2), int(nout_local_xy * nin_local_yz), &
-                                plane_yx, shape_x(2), 1, shape_x(2), &
-                                plane_yx, shape_x(2), 1, shape_x(2), &
-                                (/FFTW_HC2R/), FFTW_ESTIMATE)
-  call fftw_execute_r2r(dft_plan, plane_yx, plane_yx)
-  rescale = rescale * sqrt(real(shape_x(2), kind=DP)) 
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_HC2R, rescale)
 #endif
 
   allocate(plane_xy(0:shape_c(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
@@ -254,12 +230,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   enddo
 
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(1), int(nin_local_xy * nin_local_yz), &
-                                plane_xy, shape_x(1), 1, shape_x(1), &
-                                plane_xy, shape_x(1), 1, shape_x(1), &
-                                (/FFTW_HC2R/), FFTW_ESTIMATE)
-  call fftw_execute_r2r(dft_plan, plane_xy, plane_xy)
-  rescale = rescale * sqrt(real(shape_x(1), kind=DP)) 
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_HC2R, rescale)
 #endif
 
 
@@ -350,6 +321,7 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   call nekgsync()
   write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
 
+  interface_initialized = .true.
 
 end subroutine init_comm_infrastructure
 
@@ -475,5 +447,7 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
     call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
   enddo
 end subroutine grid_to_mesh
+
+
 
 end module poisson

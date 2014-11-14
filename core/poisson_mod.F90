@@ -7,6 +7,7 @@
 !! This module implements a coarse solve (preconditioner) for the pressure
 !! Poisson equation.
 module poisson
+  use, intrinsic :: iso_c_binding
   implicit none
 
   public spectral_solve
@@ -16,10 +17,13 @@ module poisson
   integer :: nxy, nyz, ixy, iyz, offset_xy
   logical :: interface_initialized = .false.
 
+  integer(C_INTPTR_T) :: alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
+  integer(C_INTPTR_T) :: alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
+
 contains
 
-!#define UNITARY_TEST
-#define SHUFFLE_TEST
+#define UNITARY_TEST
+!#define SHUFFLE_TEST
 !> \brief 
 subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   use, intrinsic :: iso_c_binding
@@ -53,8 +57,6 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   integer :: i, ieg, ierr
   type(C_PTR) :: transpose_plan
   type(C_PTR) :: dft_plan
-  integer(C_INTPTR_T) :: alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
-  integer(C_INTPTR_T) :: alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
   integer :: fftw_error
   integer(C_INTPTR_T) :: shape_c(3), dest_pid, src_pid
   integer(C_INTPTR_T), parameter :: zero = 0, one = 1
@@ -64,6 +66,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   integer :: n_mpi_reqs
   real(DP) :: rescale
   real(DP) :: err
+  real(DP) :: h2(1,1,1,1)
 
   if (.not. interface_initialized) then
     call init_comm_infrastructure(nekcomm)
@@ -88,14 +91,15 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
                 nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz)
  
   write(*,'(A,6(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy
+  call nekgsync()
   write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
 
   allocate(plane_xy(0:shape_c(1)-1, 0:nin_local_xy-1, 0:(shape_c(3)/nxy-1)) )
   allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
 
-#ifdef SHUFFLE_TEST
+#if defined(SHUFFLE_TEST) || defined(UNITARY_TEST)
   do i = 1, nelm
-    rhs_coarse(i) = nid * nelm + i
+    rhs_coarse(i) = lglel(i)
   enddo
 #endif
 
@@ -106,7 +110,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
     ix(1) = mod(ieg - 1, shape_x(1))
     ix(2) = mod((ieg-1)/shape_x(1), shape_x(2))
     ix(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
-    dest_pid = ix(3) * nxy / shape_c(3) * offset_xy + ix(2) / nin_local_xy
+    dest_pid = ieg_to_pid(ix(1), ix(2), ix(3), shape_x)
     if (dest_pid == nid) then
       ! store locally
       plane_xy(ix(1), ix(2)-idx_in_local_xy, ix(3) - ixy * shape_c(3)/ nxy) = rhs_coarse(i)
@@ -135,10 +139,10 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
     call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
   enddo
 
-#ifdef UNITARY_TEST
+#if defined(UNITARY_TESTT) || defined(NO_FFTT)
   do idx = 0, shape_c(1)-1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = ixy * shape_c(3) / nxy, (ixy+1) * shape_c(3) / nxy - 1
+      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
         ieg = 1 + idx + idy * shape_c(1) + idz * shape_c(1) * shape_c(2)
         plane_xy(idx, idy-idx_in_local_xy, idz - ixy * shape_c(3)/ nxy) = ieg
       enddo
@@ -254,7 +258,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 #ifdef UNITARY_TEST
   do idx = 0, shape_c(1)-1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = ixy * shape_c(3) / nxy, (ixy+1) * shape_c(3) / nxy - 1
+      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
         ieg = 1 + idx + idy * shape_c(1) + idz * shape_c(1) * shape_c(2)
         err = abs(plane_xy(idx, idy-idx_in_local_xy, idz - ixy * shape_c(3)/ nxy) - ieg)
         if (err > 0.001) then
@@ -264,6 +268,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
       enddo
     enddo
   enddo
+  if (nid == 0) write(*,*) "Passed unitary test"
 #endif
 
   allocate(soln_coarse(nelm)); soln_coarse = 0._dp
@@ -291,7 +296,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
     ix(1) = mod(ieg - 1, shape_x(1))
     ix(2) = mod((ieg-1)/shape_x(1), shape_x(2))
     ix(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
-    src_pid = ix(3) * nxy / shape_c(3) * offset_xy + ix(2) / nin_local_xy
+    src_pid = ieg_to_pid(ix(1), ix(2), ix(3), shape_x)
     if (src_pid /= nid) then
       n_mpi_reqs = n_mpi_reqs + 1
       call MPI_Irecv(soln_coarse(i), 1, nekreal, src_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
@@ -304,7 +309,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
 #ifdef SHUFFLE_TEST
   do i = 1, nelm
-    err = abs(soln_coarse(i) - (i + nid * nelm))
+    err = abs(soln_coarse(i) - lglel(i))
     if (err > 0.001) then
       write(*,*) "WARNING: shuffle not working", nid, i, nid*nelm + i, err
       exit
@@ -319,7 +324,8 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
   ! update residual
   allocate(tmp_fine(size(u,1), size(u,2), size(u,3), size(u,4)))
-  call axhelm (tmp_fine, u, h1, 0, imsh, isd)
+  h2 = 0._dp
+  call axhelm (tmp_fine, u, h1, h2, imsh, isd)
   RHS = RHS - tmp_fine 
  
  
@@ -334,9 +340,17 @@ subroutine init_comm_infrastructure(comm_world)
 
   nxy =  2; ixy = 2*nid/comm_size; offset_xy = comm_size / nxy
   call MPI_Comm_split(comm_world, ixy, 0, comm_xy, ierr)
-  nyz =  comm_size/2; iyz = nid/2
+  nyz =  comm_size/nxy; iyz = mod(nid,nyz)
   call MPI_Comm_split(comm_world, iyz, 0, comm_yz, ierr)
 
 end subroutine init_comm_infrastructure
+
+integer function ieg_to_pid(ix, iy, iz, shape_x)
+  integer, intent(in) :: ix, iy, iz
+  integer, intent(in) :: shape_x(3)
+
+  ieg_to_pid = (iz * nxy / shape_x(3)) * nyz + iy *nyz / shape_x(2)
+
+end function
 
 end module poisson

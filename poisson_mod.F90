@@ -22,8 +22,9 @@ module poisson
 
 contains
 
-#define UNITARY_TEST
+!#define UNITARY_TEST
 !#define SHUFFLE_TEST
+#define NO_FFT
 !> \brief 
 subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   use, intrinsic :: iso_c_binding
@@ -97,7 +98,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   allocate(plane_xy(0:shape_c(1)-1, 0:nin_local_xy-1, 0:(shape_c(3)/nxy-1)) )
   allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
 
-#if defined(SHUFFLE_TEST) || defined(UNITARY_TEST)
+#if defined(SHUFFLE_TEST) || defined(UNITARY_TEST) || defined(NO_FFT)
   do i = 1, nelm
     rhs_coarse(i) = lglel(i)
   enddo
@@ -151,12 +152,15 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 #endif
 
   ! forward FFT
+  rescale = 1._dp
+#ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(1), int(nin_local_xy * shape_c(3) / nxy), &
                                 plane_xy, shape_x(1), 1, shape_x(1), &
                                 plane_xy, shape_x(1), 1, shape_x(1), &
                                 (/FFTW_R2HC/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_xy, plane_xy)
-  rescale = sqrt(real(shape_x(1), kind=DP)) 
+  rescale = rescale * sqrt(real(shape_x(1), kind=DP)) 
+#endif
   
   allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:(shape_c(3)/nxy-1)) )
   plane_yx = 0._dp
@@ -171,12 +175,31 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   enddo
   deallocate(plane_xy)
 
+#ifdef NO_FFT
+  do idx = 0, nout_local_xy - 1
+    do idy = 0, shape_x(2) - 1
+      do idz = 0, nin_local_yz - 1
+        ieg = 1 + idx + idx_out_local_xy + shape_x(1)*idy &
+                + shape_x(1) * shape_x(2) * (idz + idx_in_local_yz)
+        err = abs(plane_yx(idy,idx,idz) - ieg)
+        if (err > 0.001) then
+          write(*,'(A,6(I6))') "WARNING: confused about k after xy", nid, idx, idy, idz, ieg, int(plane_yx(idy,idx,idz))
+          return
+        endif
+      enddo
+    enddo
+  enddo
+  if (nid == 0) write(*,*) "Passed xy transpose"
+#endif
+
+#ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(2), int(nout_local_xy * shape_c(3) / nxy), &
                                 plane_yx, shape_x(1), 1, shape_x(2), &
                                 plane_yx, shape_x(1), 1, shape_x(2), &
                                 (/FFTW_R2HC/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_yx, plane_yx)
   rescale = rescale * sqrt(real(shape_x(2), kind=DP)) 
+#endif
 
   allocate(plane_zy(0:shape_c(3), 0:nout_local_yz-1, 0:nout_local_xy-1) )
   transpose_plan = fftw_mpi_plan_many_transpose( &
@@ -186,12 +209,14 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   call fftw_mpi_execute_r2r(transpose_plan, plane_yx, plane_zy)
   deallocate(plane_yx)
 
+#ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(3), int(nout_local_xy * nout_local_yz), &
                                 plane_zy, shape_x(1), 1, shape_x(3), &
                                 plane_zy, shape_x(1), 1, shape_x(3), &
                                 (/FFTW_REDFT00/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_zy, plane_zy)
   rescale = rescale * sqrt(2.*real(shape_x(3)-1, kind=DP)) 
+#endif
 
   ! Poisson kernel
 #if !(defined(UNITARY_TEST) || defined(SHUFFLE_TEST))

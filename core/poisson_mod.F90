@@ -23,8 +23,8 @@ module poisson
 contains
 
 !#define UNITARY_TEST
-#define SHUFFLE_TEST
-#define NO_FFT
+!#define SHUFFLE_TEST
+!#define NO_FFT
 !> \brief 
 subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   use, intrinsic :: iso_c_binding
@@ -387,12 +387,15 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
   ! populate U
   forall(i = 1 : nelm) u(:,:,:,i) = binvm1(:,:,:,i) * soln_coarse(i)
-  u = 0._dp
+!  u = 0._dp
 
   ! update residual
   allocate(tmp_fine(size(u,1), size(u,2), size(u,3), size(u,4)))
   h2 = 0._dp
   call axhelm (tmp_fine, u, h1, h2, imsh, isd)
+  tmp_fine = tmp_fine * mask
+  call dssum   (tmp_fine)
+
   if (nid == 0) write(*,*) "RHS before: ", maxval(abs(rhs))
   RHS = RHS - tmp_fine 
   if (nid == 0) write(*,*) "RHS after : ", maxval(abs(rhs))

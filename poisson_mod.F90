@@ -23,7 +23,7 @@ module poisson
 contains
 
 !#define UNITARY_TEST
-!#define SHUFFLE_TEST
+#define SHUFFLE_TEST
 #define NO_FFT
 !> \brief 
 subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
@@ -68,6 +68,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   real(DP) :: rescale
   real(DP) :: err
   real(DP) :: h2(1,1,1,1)
+  real(DP) :: kx, ky, kz
 
   if (.not. interface_initialized) then
     call init_comm_infrastructure(nekcomm)
@@ -201,13 +202,34 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   rescale = rescale * sqrt(real(shape_x(2), kind=DP)) 
 #endif
 
-  allocate(plane_zy(0:shape_c(3), 0:nout_local_yz-1, 0:nout_local_xy-1) )
+  allocate(plane_zy(0:shape_c(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
+  do i = 0, nout_local_xy-1
   transpose_plan = fftw_mpi_plan_many_transpose( &
-                    shape_c(3), shape_c(2), nout_local_xy, &
+                    shape_c(3), shape_c(2), one, &
                     FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
-                    plane_yx(:,:,:), plane_zy(:,:,:), comm_yz, FFTW_ESTIMATE)
-  call fftw_mpi_execute_r2r(transpose_plan, plane_yx, plane_zy)
+                    plane_yx(:,i,:), plane_zy(:,i,:), comm_yz, FFTW_ESTIMATE)
+  call fftw_mpi_execute_r2r(transpose_plan, plane_yx(:,i,:), plane_zy(:,i,:))
+  enddo
   deallocate(plane_yx)
+
+#ifdef NO_FFT
+  do idx = 0, nout_local_xy - 1
+    do idy = 0, nout_local_yz - 1
+      do idz = 0, shape_x(3) - 1
+        ieg = 1 + idx + idx_out_local_xy + shape_x(1)*(idy + idx_out_local_yz) &
+                + shape_x(1) * shape_x(2) * idz
+        err = abs(plane_zy(idz,idx,idy) - ieg)
+        if (err > 0.001) then
+          write(*,'(A,6(I6))') "WARNING: confused about k after yz", nid, idx, idy, idz, ieg, int(plane_zy(idz,idy,idx))
+          return
+        endif
+      enddo
+    enddo
+  enddo
+  if (nid == 0) write(*,*) "Passed yz transpose"
+#endif
+
+
 
 #ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(3), int(nout_local_xy * nout_local_yz), &
@@ -219,19 +241,31 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 #endif
 
   ! Poisson kernel
-#if !(defined(UNITARY_TEST) || defined(SHUFFLE_TEST))
+#if !(defined(UNITARY_TEST) || defined(SHUFFLE_TEST) || defined(NO_FFT))
   do idz = 0, shape_c(3)/nxy - 1
     do idy = 0, nout_local_yz - 1
       do idx = 0, nout_local_xy - 1
-        if (idz + idx_in_local_yz == 0 &
-           .and. idy+idx_in_local_xy == 0 &
-           .and. idx+idx_out_local_xy == 0) then
-          plane_zy(idz,idy,idx) = 0._dp
+        if (idx + idx_out_local_xy <= shape_x(1) / 2) then
+          kx = 2*pi*(idx +idx_out_local_xy)/(end_x(1)-start_x(1)) / shape_x(1)
         else
-          plane_zy(idz, idy, idx) = plane_zy(idz, idy, idx) / ( &
-            ((idz +idx_in_local_yz )/(end_x(3)-start_x(3)))**2._dp + &
-            ((idy +idx_in_local_xy )/(end_x(2)-start_x(2)))**2._dp + &
-            ((idx +idx_out_local_xy)/(end_x(1)-start_x(1)))**2._dp)  / (PI*PI)
+          kx = 2*pi*(shape_x(1) - idx - idx_out_local_xy)/(end_x(1)-start_x(1)) / shape_x(1)
+        endif
+
+        if (idy + idx_in_local_xy <= shape_x(2) / 2) then
+          ky = 2*pi*(idy +idx_in_local_xy)/(end_x(2)-start_x(2)) / shape_x(2)
+        else
+          ky = 2*pi*(shape_x(2) - idy - idx_in_local_xy)/(end_x(2)-start_x(2)) / shape_x(2)
+        endif
+
+        kz = pi*(idz)/(end_x(3)-start_x(3)) / (shape_x(3) - 1)
+
+        if (kx**2. + ky**2. + kz**2. < 1.e-6_dp) then
+          plane_zy(idz,idx,idy) = 0._dp
+        else
+          plane_zy(idz, idx, idy) = plane_zy(idz, idx, idy) / ( &
+            (kz)**2._dp + &
+            (ky)**2._dp + &
+            (kx)**2._dp)
         endif
       enddo
     enddo
@@ -240,27 +274,33 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
 
   ! reverse FFT
+#ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(3), int(nout_local_xy * nout_local_yz), &
                                 plane_zy, shape_x(1), 1, shape_x(3), &
                                 plane_zy, shape_x(1), 1, shape_x(3), &
                                 (/FFTW_REDFT00/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_zy, plane_zy)
   rescale = rescale * sqrt(2.*real(shape_x(3)-1, kind=DP)) 
+#endif
 
   allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:(shape_c(3)/nxy-1)) )
+  do i = 0, nout_local_xy - 1
   transpose_plan = fftw_mpi_plan_many_transpose( &
-                    shape_c(2), shape_c(3), nout_local_xy, &
+                    shape_c(2), shape_c(3), one, &
                     FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
-                    plane_zy(:,:,:), plane_yx(:,:,:), comm_yz, FFTW_ESTIMATE)
-  call fftw_mpi_execute_r2r(transpose_plan, plane_zy, plane_yx)
+                    plane_zy(:,i,:), plane_yx(:,i,:), comm_yz, FFTW_ESTIMATE)
+  call fftw_mpi_execute_r2r(transpose_plan, plane_zy(:,i,:), plane_yx(:,i,:))
+  enddo
   deallocate(plane_zy)
 
+#ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(2), int(nout_local_xy * shape_c(3) / nxy), &
                                 plane_yx, shape_x(1), 1, shape_x(2), &
                                 plane_yx, shape_x(1), 1, shape_x(2), &
                                 (/FFTW_HC2R/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_yx, plane_yx)
   rescale = rescale * sqrt(real(shape_x(2), kind=DP)) 
+#endif
 
   allocate(plane_xy(0:shape_c(1)-1, 0:nin_local_xy-1, 0:(shape_c(3)/nxy-1)) )
   do i = 0, shape_c(3) / nxy - 1
@@ -271,12 +311,14 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
     call fftw_mpi_execute_r2r(transpose_plan, plane_yx(:,:,i), plane_xy(:,:,i))
   enddo
 
+#ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(1), int(nin_local_xy * shape_c(3) / nxy), &
                                 plane_xy, shape_x(1), 1, shape_x(1), &
                                 plane_xy, shape_x(1), 1, shape_x(1), &
                                 (/FFTW_HC2R/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_xy, plane_xy)
   rescale = rescale * sqrt(real(shape_x(1), kind=DP)) 
+#endif
 
 
   plane_xy = plane_xy * (1._dp/ rescale)
@@ -351,7 +393,9 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   allocate(tmp_fine(size(u,1), size(u,2), size(u,3), size(u,4)))
   h2 = 0._dp
   call axhelm (tmp_fine, u, h1, h2, imsh, isd)
+  if (nid == 0) write(*,*) "RHS before: ", maxval(abs(rhs))
   RHS = RHS - tmp_fine 
+  if (nid == 0) write(*,*) "RHS after : ", maxval(abs(rhs))
  
  
 end subroutine spectral_solve

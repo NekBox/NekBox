@@ -37,7 +37,7 @@ USR_LFLAGS="-lblas -llapack -L${2}/fftw3/lib -lfftw3_mpi -lfftw3"
 
 
 # generic compiler flags
-G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans "
+G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans -I${2}/fftw3/include "
 
 # optimization flags
 #OPT_FLAGS_STD=" "

@@ -23,11 +23,10 @@ module poisson
 contains
 
 !#define UNITARY_TEST
-!#define SHUFFLE_TEST
-!#define NO_FFT
+#define SHUFFLE_TEST
+#define NO_FFT
 !> \brief 
 subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
-  use, intrinsic :: iso_c_binding
   use kinds, only : DP
   use geom, only : bm1, binvm1
   use mesh, only : shape_x, start_x, end_x
@@ -35,7 +34,6 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   use parallel, only : lglel, gllel, gllnid
   use tstep, only : PI
 
-  use fftw3, only : plan_kind
   use fftw3, only : fftw_mpi_local_size_many_transposed
   use fftw3, only : fftw_plan_many_r2r
   use fftw3, only : fftw_mpi_plan_many_transpose
@@ -58,95 +56,44 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   integer :: i, ieg, ierr
   type(C_PTR) :: transpose_plan
   type(C_PTR) :: dft_plan
-  integer :: fftw_error
   integer(C_INTPTR_T) :: shape_c(3), dest_pid, src_pid
-  integer(C_INTPTR_T), parameter :: zero = 0, one = 1
+  integer(C_INTPTR_T), parameter :: one = 1
   integer :: ix(3), idx, idy, idz
   real(DP), allocatable :: plane_xy(:,:,:), plane_yx(:,:,:), plane_zy(:,:,:)
   integer, allocatable :: mpi_reqs(:)
   integer :: n_mpi_reqs
-  real(DP) :: rescale
   real(DP) :: err
+  real(DP) :: rescale
   real(DP) :: h2(1,1,1,1)
   real(DP) :: kx, ky, kz
 
   if (.not. interface_initialized) then
-    call init_comm_infrastructure(nekcomm)
+    call init_comm_infrastructure(nekcomm, shape_x)
   endif
+  shape_c = shape_x
 
   ! convert RHS to coarse mesh
   nelm = size(rhs, 4)
   allocate(rhs_coarse(nelm))
   forall(i = 1 : nelm) rhs_coarse(i) = sum(bm1(:,:,:,i) * rhs(:,:,:,i))
- 
-  ! reorder onto sticks
-  shape_c = shape_x
-  alloc_local_xy = fftw_mpi_local_size_many_transposed( 2, &
-                (/shape_c(2), shape_c(1)/), &
-                one, FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
-                comm_xy, &
-                nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy)
-  alloc_local_yz = fftw_mpi_local_size_many_transposed( 2, &
-                (/shape_c(3), shape_c(2)/), &
-                one, FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
-                comm_yz, &
-                nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz)
- 
-  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy
-  call nekgsync()
-  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
-
-  allocate(plane_xy(0:shape_c(1)-1, 0:nin_local_xy-1, 0:(shape_c(3)/nxy-1)) )
-  allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
 
 #if defined(SHUFFLE_TEST) || defined(UNITARY_TEST) || defined(NO_FFT)
   do i = 1, nelm
     rhs_coarse(i) = lglel(i)
   enddo
 #endif
+ 
+  ! reorder onto sticks
+  allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
 
-
-  ! go through our stuff
-  do i = 1, nelm
-    ieg = lglel(i)
-    ix(1) = mod(ieg - 1, shape_x(1))
-    ix(2) = mod((ieg-1)/shape_x(1), shape_x(2))
-    ix(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
-    dest_pid = ieg_to_pid(ix(1), ix(2), ix(3), shape_x)
-    if (dest_pid == nid) then
-      ! store locally
-      plane_xy(ix(1), ix(2)-idx_in_local_xy, ix(3) - ixy * shape_c(3)/ nxy) = rhs_coarse(i)
-    else
-      ! send somewhere
-      n_mpi_reqs = n_mpi_reqs + 1
-      call MPI_Isend(rhs_coarse(i), 1, nekreal, dest_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-    endif
-  enddo
-
-  do idx = 0, shape_c(1)-1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = ixy * shape_c(3) / nxy, (ixy+1) * shape_c(3) / nxy - 1
-        ieg = 1 + idx + idy * shape_c(1) + idz * shape_c(1) * shape_c(2)
-        src_pid = gllnid(IEG)
-        if (src_pid /= nid) then
-          n_mpi_reqs = n_mpi_reqs + 1
-          call MPI_Irecv(plane_xy(idx, idy-idx_in_local_xy, idz - ixy * shape_c(3)/ nxy),&
-              1, nekreal, src_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-        endif
-      enddo
-    enddo
-  enddo
-         
-  do i = 1, n_mpi_reqs
-    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
-  enddo
+  call mesh_to_grid(rhs_coarse, plane_xy, shape_x)
 
 #if defined(UNITARY_TESTT) || defined(NO_FFTT)
   do idx = 0, shape_c(1)-1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
       do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
         ieg = 1 + idx + idy * shape_c(1) + idz * shape_c(1) * shape_c(2)
-        plane_xy(idx, idy-idx_in_local_xy, idz - ixy * shape_c(3)/ nxy) = ieg
+        plane_xy(idx, idy-idx_in_local_xy, idz-idx_in_local_yz) = ieg
       enddo
     enddo
   enddo
@@ -155,7 +102,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   ! forward FFT
   rescale = 1._dp
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(1), int(nin_local_xy * shape_c(3) / nxy), &
+  dft_plan = fftw_plan_many_r2r(1, shape_x(1), int(nin_local_xy * nin_local_yz), &
                                 plane_xy, shape_x(1), 1, shape_x(1), &
                                 plane_xy, shape_x(1), 1, shape_x(1), &
                                 (/FFTW_R2HC/), FFTW_ESTIMATE)
@@ -163,15 +110,12 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   rescale = rescale * sqrt(real(shape_x(1), kind=DP)) 
 #endif
   
-  allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:(shape_c(3)/nxy-1)) )
-  plane_yx = 0._dp
- 
-  do i = 0, shape_c(3) / nxy - 1
+  allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
+  do i = 0, nin_local_yz - 1
     transpose_plan = fftw_mpi_plan_many_transpose( &
                       shape_c(2), shape_c(1), one, &
                       nin_local_xy, nout_local_xy, &
                       plane_xy(:,:,i), plane_yx(:,:,i), comm_xy, FFTW_ESTIMATE)
-    !call fftw_mpi_execute_r2r(transpose_plan, plane_xy, plane_yx)
     call fftw_mpi_execute_r2r(transpose_plan, plane_xy(:,:,i), plane_yx(:,:,i))
   enddo
   deallocate(plane_xy)
@@ -194,9 +138,9 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 #endif
 
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(2), int(nout_local_xy * shape_c(3) / nxy), &
-                                plane_yx, shape_x(1), 1, shape_x(2), &
-                                plane_yx, shape_x(1), 1, shape_x(2), &
+  dft_plan = fftw_plan_many_r2r(1, shape_x(2), int(nout_local_xy * nin_local_yz), &
+                                plane_yx, shape_x(2), 1, shape_x(2), &
+                                plane_yx, shape_x(2), 1, shape_x(2), &
                                 (/FFTW_R2HC/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_yx, plane_yx)
   rescale = rescale * sqrt(real(shape_x(2), kind=DP)) 
@@ -204,11 +148,11 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
   allocate(plane_zy(0:shape_c(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
   do i = 0, nout_local_xy-1
-  transpose_plan = fftw_mpi_plan_many_transpose( &
-                    shape_c(3), shape_c(2), one, &
-                    FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
-                    plane_yx(:,i,:), plane_zy(:,i,:), comm_yz, FFTW_ESTIMATE)
-  call fftw_mpi_execute_r2r(transpose_plan, plane_yx(:,i,:), plane_zy(:,i,:))
+    transpose_plan = fftw_mpi_plan_many_transpose( &
+                      shape_c(3), shape_c(2), one, &
+                      FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
+                      plane_yx(:,i,:), plane_zy(:,i,:), comm_yz, FFTW_ESTIMATE)
+    call fftw_mpi_execute_r2r(transpose_plan, plane_yx(:,i,:), plane_zy(:,i,:))
   enddo
   deallocate(plane_yx)
 
@@ -229,12 +173,10 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   if (nid == 0) write(*,*) "Passed yz transpose"
 #endif
 
-
-
 #ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(3), int(nout_local_xy * nout_local_yz), &
-                                plane_zy, shape_x(1), 1, shape_x(3), &
-                                plane_zy, shape_x(1), 1, shape_x(3), &
+                                plane_zy, shape_x(3), 1, shape_x(3), &
+                                plane_zy, shape_x(3), 1, shape_x(3), &
                                 (/FFTW_REDFT00/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_zy, plane_zy)
   rescale = rescale * sqrt(2.*real(shape_x(3)-1, kind=DP)) 
@@ -276,14 +218,14 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   ! reverse FFT
 #ifndef NO_FFT
   dft_plan = fftw_plan_many_r2r(1, shape_x(3), int(nout_local_xy * nout_local_yz), &
-                                plane_zy, shape_x(1), 1, shape_x(3), &
-                                plane_zy, shape_x(1), 1, shape_x(3), &
+                                plane_zy, shape_x(3), 1, shape_x(3), &
+                                plane_zy, shape_x(3), 1, shape_x(3), &
                                 (/FFTW_REDFT00/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_zy, plane_zy)
   rescale = rescale * sqrt(2.*real(shape_x(3)-1, kind=DP)) 
 #endif
 
-  allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:(shape_c(3)/nxy-1)) )
+  allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   do i = 0, nout_local_xy - 1
   transpose_plan = fftw_mpi_plan_many_transpose( &
                     shape_c(2), shape_c(3), one, &
@@ -294,16 +236,16 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   deallocate(plane_zy)
 
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(2), int(nout_local_xy * shape_c(3) / nxy), &
-                                plane_yx, shape_x(1), 1, shape_x(2), &
-                                plane_yx, shape_x(1), 1, shape_x(2), &
+  dft_plan = fftw_plan_many_r2r(1, shape_x(2), int(nout_local_xy * nin_local_yz), &
+                                plane_yx, shape_x(2), 1, shape_x(2), &
+                                plane_yx, shape_x(2), 1, shape_x(2), &
                                 (/FFTW_HC2R/), FFTW_ESTIMATE)
   call fftw_execute_r2r(dft_plan, plane_yx, plane_yx)
   rescale = rescale * sqrt(real(shape_x(2), kind=DP)) 
 #endif
 
-  allocate(plane_xy(0:shape_c(1)-1, 0:nin_local_xy-1, 0:(shape_c(3)/nxy-1)) )
-  do i = 0, shape_c(3) / nxy - 1
+  allocate(plane_xy(0:shape_c(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
+  do i = 0, nin_local_yz - 1
     transpose_plan = fftw_mpi_plan_many_transpose( &
                       shape_c(1), shape_c(2), one, &
                       FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
@@ -312,7 +254,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   enddo
 
 #ifndef NO_FFT
-  dft_plan = fftw_plan_many_r2r(1, shape_x(1), int(nin_local_xy * shape_c(3) / nxy), &
+  dft_plan = fftw_plan_many_r2r(1, shape_x(1), int(nin_local_xy * nin_local_yz), &
                                 plane_xy, shape_x(1), 1, shape_x(1), &
                                 plane_xy, shape_x(1), 1, shape_x(1), &
                                 (/FFTW_HC2R/), FFTW_ESTIMATE)
@@ -323,11 +265,11 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
   plane_xy = plane_xy * (1._dp/ rescale)
 #ifdef UNITARY_TEST
-  do idx = 0, shape_c(1)-1
+  do idx = 0, shape_x(1)-1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
       do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-        ieg = 1 + idx + idy * shape_c(1) + idz * shape_c(1) * shape_c(2)
-        err = abs(plane_xy(idx, idy-idx_in_local_xy, idz - ixy * shape_c(3)/ nxy) - ieg)
+        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
+        err = abs(plane_xy(idx, idy-idx_in_local_xy, idz - idx_in_local_yz) - ieg)
         if (err > 0.001) then
           write(*,*) "WARNING: spectral transform not unitary", nid, idx, idy, idz, ieg, err
           exit
@@ -340,39 +282,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
   allocate(soln_coarse(nelm)); soln_coarse = 0._dp
   ! reorder to local elements
-  n_mpi_reqs = 0
-  do idx = 0, shape_c(1)-1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = ixy * shape_c(3) / nxy, (ixy+1) * shape_c(3) / nxy - 1
-        ieg = 1 + idx + idy * shape_c(1) + idz * shape_c(1) * shape_c(2)
-        dest_pid = gllnid(IEG)
-        if (dest_pid /= nid) then
-          ! send somewhere
-          n_mpi_reqs = n_mpi_reqs + 1
-          call MPI_Isend(plane_xy(idx, idy-idx_in_local_xy, idz - ixy * shape_c(3)/ nxy),&
-              1, nekreal, dest_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-        else
-          soln_coarse(gllel(ieg)) = plane_xy(idx, idy-idx_in_local_xy, idz - ixy * shape_c(3)/ nxy)
-        endif
-      enddo
-    enddo
-  enddo
-
-  do i = 1, nelm
-    ieg = lglel(i)
-    ix(1) = mod(ieg - 1, shape_x(1))
-    ix(2) = mod((ieg-1)/shape_x(1), shape_x(2))
-    ix(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
-    src_pid = ieg_to_pid(ix(1), ix(2), ix(3), shape_x)
-    if (src_pid /= nid) then
-      n_mpi_reqs = n_mpi_reqs + 1
-      call MPI_Irecv(soln_coarse(i), 1, nekreal, src_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-    endif
-  enddo
-
-  do i = 1, n_mpi_reqs
-    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
-  enddo
+  call grid_to_mesh(plane_xy, soln_coarse, shape_x)
 
 #ifdef SHUFFLE_TEST
   do i = 1, nelm
@@ -387,7 +297,9 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
   ! populate U
   forall(i = 1 : nelm) u(:,:,:,i) = binvm1(:,:,:,i) * soln_coarse(i)
-!  u = 0._dp
+#if defined(UNITARY_TEST) || defined(SHUFFLE_TEST) || defined(NO_FFT)
+  u = 0._dp
+#endif
 
   ! update residual
   allocate(tmp_fine(size(u,1), size(u,2), size(u,3), size(u,4)))
@@ -396,17 +308,24 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   tmp_fine = tmp_fine * mask
   call dssum   (tmp_fine)
 
-  if (nid == 0) write(*,*) "RHS before: ", maxval(abs(rhs))
+  if (nid == 0) write(*,*) "RHS before: ", sqrt(sum(rhs * rhs))
   RHS = RHS - tmp_fine 
-  if (nid == 0) write(*,*) "RHS after : ", maxval(abs(rhs))
+  if (nid == 0) write(*,*) "RHS after : ", sqrt(sum(rhs * rhs))
  
  
 end subroutine spectral_solve
 
-subroutine init_comm_infrastructure(comm_world)
-  integer, intent(in) :: comm_world
+!> \brief one-time setup of communication infrastructure for poisson_mod
+subroutine init_comm_infrastructure(comm_world, shape_x)
+  use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
+  use fftw3, only : fftw_mpi_local_size_many_transposed
+  integer, intent(in) :: comm_world !>!< Communicator in which to setup solver
+  integer, intent(in) :: shape_x(3) !>!< Shape of mesh
 
+  integer(C_INTPTR_T) :: shape_c(3)
+  integer(C_INTPTR_T), parameter :: one = 1
   integer :: nid, comm_size, ierr
+
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
 
@@ -415,14 +334,146 @@ subroutine init_comm_infrastructure(comm_world)
   nyz =  comm_size/nxy; iyz = mod(nid,nyz)
   call MPI_Comm_split(comm_world, iyz, 0, comm_yz, ierr)
 
+  shape_c = shape_x
+  alloc_local_xy = fftw_mpi_local_size_many_transposed( 2, &
+                (/shape_c(2), shape_c(1)/), &
+                one, FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
+                comm_xy, &
+                nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy)
+  alloc_local_yz = fftw_mpi_local_size_many_transposed( 2, &
+                (/shape_c(3), shape_c(2)/), &
+                one, FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
+                comm_yz, &
+                nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz)
+
+  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy
+  call nekgsync()
+  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
+
+
 end subroutine init_comm_infrastructure
 
-integer function ieg_to_pid(ix, iy, iz, shape_x)
+function ieg_to_xyz(ieg, shape_x) result(xyz)
+  integer, intent(in) :: ieg
+  integer, intent(in) :: shape_x(3)
+  integer :: xyz(3)
+
+  xyz(1) = mod(ieg - 1, shape_x(1))
+  xyz(2) = mod((ieg-1)/shape_x(1), shape_x(2))
+  xyz(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
+
+end function ieg_to_xyz
+
+integer function xyz_to_pid(ix, iy, iz, shape_x)
   integer, intent(in) :: ix, iy, iz
   integer, intent(in) :: shape_x(3)
 
-  ieg_to_pid = (iz * nxy / shape_x(3)) * nyz + iy *nyz / shape_x(2)
+  xyz_to_pid = (iz/nin_local_yz) * (shape_x(2)/nin_local_xy) + (iy/nin_local_xy)
 
 end function
+
+subroutine mesh_to_grid(mesh, grid, shape_x)
+  use kinds, only : DP
+  use parallel, only : nekcomm, nid, nekreal
+  use parallel, only : lglel, gllel, gllnid
+  use mpif, only : MPI_STATUS_IGNORE
+
+  real(DP), intent(in) :: mesh(:)
+  real(DP), intent(out) :: grid(0:,0:,0:)
+  integer, intent(in) :: shape_x(3)
+
+  integer, allocatable :: mpi_reqs(:)
+  integer :: n_mpi_reqs
+  integer :: dest_pid, src_pid, i, idx, idy, idz, ieg, ierr
+  integer :: ix(3)
+  integer :: nelm
+  nelm = size(mesh)
+
+  ! go through our stuff
+  allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
+  do i = 1, nelm
+    ieg = lglel(i)
+    ix = ieg_to_xyz(ieg, shape_x)
+    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x)
+    if (dest_pid == nid) then
+      ! store locally
+      grid(ix(1), ix(2)-idx_in_local_xy, ix(3)-idx_in_local_yz) = mesh(i)
+    else
+      ! send somewhere
+      n_mpi_reqs = n_mpi_reqs + 1
+      call MPI_Isend(mesh(i), 1, nekreal, dest_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+    endif
+  enddo
+
+  do idx = 0, shape_x(1)-1
+    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
+      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
+        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
+        src_pid = gllnid(IEG)
+        if (src_pid /= nid) then
+          n_mpi_reqs = n_mpi_reqs + 1
+          call MPI_Irecv(grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz),&
+              1, nekreal, src_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+        endif
+      enddo
+    enddo
+  enddo
+         
+  do i = 1, n_mpi_reqs
+    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
+  enddo
+
+end subroutine mesh_to_grid
+
+subroutine grid_to_mesh(grid, mesh, shape_x)
+  use kinds, only : DP
+  use parallel, only : nekcomm, nid, nekreal
+  use parallel, only : lglel, gllel, gllnid
+  use mpif, only : MPI_STATUS_IGNORE
+
+  real(DP), intent(in) :: grid(0:,0:,0:)
+  real(DP), intent(out) :: mesh(:)
+  integer, intent(in) :: shape_x(3)
+
+  integer, allocatable :: mpi_reqs(:)
+  integer :: n_mpi_reqs
+  integer :: dest_pid, src_pid, i, idx, idy, idz, ieg, ierr
+  integer :: ix(3)
+  integer :: nelm
+  nelm = size(mesh)
+
+  allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
+  n_mpi_reqs = 0
+  do idx = 0, shape_x(1)-1
+    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
+      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1 
+        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
+        dest_pid = gllnid(IEG)
+        if (dest_pid /= nid) then
+          ! send somewhere
+          n_mpi_reqs = n_mpi_reqs + 1
+          call MPI_Isend(grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz),&
+              1, nekreal, dest_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+        else
+          mesh(gllel(ieg)) = grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+        endif
+      enddo
+    enddo
+  enddo
+
+  do i = 1, nelm
+    ieg = lglel(i)
+    ix = ieg_to_xyz(ieg, shape_x)
+    src_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x)
+    if (src_pid /= nid) then
+      n_mpi_reqs = n_mpi_reqs + 1
+      call MPI_Irecv(mesh(i), 1, nekreal, src_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+    endif
+  enddo
+
+  do i = 1, n_mpi_reqs
+    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
+  enddo
+end subroutine grid_to_mesh
 
 end module poisson

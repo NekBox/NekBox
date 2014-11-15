@@ -16,7 +16,7 @@ contains
 subroutine fft_r2r(u, length, num, kind, rescale)
   use kinds, only : DP
   use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
-  use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00
+  use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00, FFTW_REDFT10, FFTW_REDFT01
   use fftw3, only : fftw_plan_many_r2r
   use fftw3, only : fftw_execute_r2r
 
@@ -62,6 +62,8 @@ subroutine fft_r2r(u, length, num, kind, rescale)
 
   if (kind == FFTW_REDFT00) then
     rescale = rescale * sqrt(2.*real(length-1, kind=DP))
+  else if (kind == FFTW_REDFT10 .or. kind == FFTW_REDFT01) then
+    rescale = rescale * sqrt(2.*real(length, kind=DP))
   else if (kind == FFTW_R2HC .or. kind == FFTW_HC2R) then
     rescale = rescale * sqrt(real(length, kind=DP))
   else

@@ -32,9 +32,10 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   use fftw3, only : fftw_mpi_local_size_many_transposed
   use fftw3, only : fftw_mpi_plan_many_transpose
   use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
-  use fftw3, only : FFTW_ESTIMATE, FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00
+  use fftw3, only : FFTW_ESTIMATE, FFTW_R2HC, FFTW_HC2R, FFTW_REDFT10, FFTW_REDFT01
   use fftw3, only : fftw_execute_r2r, fftw_mpi_execute_r2r
   use fft, only : fft_r2r
+  use geom, only : g4m1
 
   REAL(DP), intent(out)   :: U    (:,:,:,:)
   REAL(DP), intent(inout) :: RHS  (:,:,:,:)
@@ -65,7 +66,11 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   ! convert RHS to coarse mesh
   nelm = size(rhs, 4)
   allocate(rhs_coarse(nelm))
+  forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs(:,:,:,i))
+  if (nid == 0) write(*,*) "RHS Coarse", sqrt(sum(rhs_coarse * rhs_coarse)/512)
   forall(i = 1 : nelm) rhs_coarse(i) = sum(bm1(:,:,:,i) * rhs(:,:,:,i))
+  !forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs(:,:,:,i))
+  if (nid == 0) write(*,*) "g4m1:", g4m1(1,1,1,1)
  
   ! reorder onto sticks
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
@@ -98,25 +103,25 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   enddo
   deallocate(plane_yx)
 
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT00, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT10, rescale)
 
   ! Poisson kernel
   do idz = 0, shape_c(3) - 1
     do idy = 0, nout_local_yz - 1
       do idx = 0, nout_local_xy - 1
         if (idx + idx_out_local_xy <= shape_x(1) / 2) then
-          kx = 2*pi*(idx +idx_out_local_xy)/(end_x(1)-start_x(1)) / shape_x(1)
+          kx = 2*pi*(idx +idx_out_local_xy)/(end_x(1)-start_x(1)) 
         else
-          kx = 2*pi*(shape_x(1) - idx - idx_out_local_xy)/(end_x(1)-start_x(1)) / shape_x(1)
+          kx = 2*pi*(shape_x(1) - idx - idx_out_local_xy)/(end_x(1)-start_x(1)) 
         endif
 
-        if (idy + idx_in_local_xy <= shape_x(2) / 2) then
-          ky = 2*pi*(idy +idx_in_local_xy)/(end_x(2)-start_x(2)) / shape_x(2)
+        if (idy + idx_out_local_yz <= shape_x(2) / 2) then
+          ky = 2*pi*(idy +idx_out_local_yz)/(end_x(2)-start_x(2)) 
         else
-          ky = 2*pi*(shape_x(2) - idy - idx_in_local_xy)/(end_x(2)-start_x(2)) / shape_x(2)
+          ky = 2*pi*(shape_x(2) - idy - idx_out_local_yz)/(end_x(2)-start_x(2)) 
         endif
 
-        kz = pi*(idz)/(end_x(3)-start_x(3)) / (shape_x(3) - 1)
+        kz = pi*(idz)/(end_x(3)-start_x(3)) 
 
         if (kx**2. + ky**2. + kz**2. < 1.e-9_dp) then
           plane_zy(idz,idx,idy) = 0._dp
@@ -131,7 +136,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   enddo
 
   ! reverse FFT
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT00, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT01, rescale)
 
   allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   do i = 0, nout_local_xy - 1
@@ -163,7 +168,8 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   call grid_to_mesh(plane_xy, soln_coarse, shape_x)
 
   ! populate U
-  forall(i = 1 : nelm) u(:,:,:,i) = binvm1(:,:,:,i) * soln_coarse(i)
+  forall(i = 1 : nelm) u(:,:,:,i) = binvm1(:,:,:,i) * soln_coarse(i) 
+  !forall(i = 1 : nelm) u(:,:,:,i) = soln_coarse(i)
 
   ! update residual
   allocate(tmp_fine(size(u,1), size(u,2), size(u,3), size(u,4)))
@@ -218,6 +224,7 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 
   call transpose_test()
   call shuffle_test()
+  call cos_test()
 
   interface_initialized = .true.
 
@@ -356,7 +363,7 @@ subroutine shuffle_test()
   use fftw3, only : fftw_mpi_local_size_many_transposed
   use fftw3, only : fftw_mpi_plan_many_transpose
   use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
-  use fftw3, only : FFTW_ESTIMATE, FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00
+  use fftw3, only : FFTW_ESTIMATE, FFTW_R2HC, FFTW_HC2R, FFTW_REDFT10, FFTW_REDFT01
   use fftw3, only : fftw_execute_r2r, fftw_mpi_execute_r2r
   use fft, only : fft_r2r
 
@@ -409,10 +416,10 @@ subroutine shuffle_test()
   enddo
   deallocate(plane_yx)
 
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT00, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT10, rescale)
 
   ! reverse FFT
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT00, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT01, rescale)
 
   allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   do i = 0, nout_local_xy - 1
@@ -560,5 +567,159 @@ subroutine transpose_test()
   if (nid == 0) write(*,*) "Passed yz transpose"
  
 end subroutine transpose_test
+
+subroutine cos_test()
+  use kinds, only : DP
+  use size_m, only : nelv
+  use mesh, only : shape_x, start_x, end_x
+  use parallel, only : nekcomm, nid, lglel
+  use tstep, only : PI
+
+  use fftw3, only : fftw_mpi_local_size_many_transposed
+  use fftw3, only : fftw_mpi_plan_many_transpose
+  use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
+  use fftw3, only : FFTW_ESTIMATE, FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00
+  use fftw3, only : FFTW_REDFT10, FFTW_REDFT01
+  use fftw3, only : fftw_execute_r2r, fftw_mpi_execute_r2r
+  use fft, only : fft_r2r
+
+  real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
+  real(DP), allocatable :: tmp_fine(:,:,:,:)
+  integer :: nelm
+  integer :: i
+  type(C_PTR) :: transpose_plan
+  integer(C_INTPTR_T) :: shape_c(3)
+  integer(C_INTPTR_T), parameter :: one = 1
+  integer :: idx, idy, idz
+  integer :: ix(3)
+  real(DP), allocatable :: plane_xy(:,:,:), plane_yx(:,:,:), plane_zy(:,:,:)
+  real(DP) :: rescale
+  real(DP) :: h2(1,1,1,1)
+  real(DP) :: kx, ky, kz
+  real(DP) :: ans
+  real(DP) :: glsum
+
+  shape_c = shape_x
+
+  ! convert RHS to coarse mesh
+  nelm = nelv
+  allocate(rhs_coarse(nelm))
+  do i = 1, nelm
+    ix = ieg_to_xyz(lglel(i), shape_x)
+    
+    rhs_coarse(i) = cos(2* 2.*pi * (ix(3)+.5) / shape_x(3))
+  enddo
+ 
+  ! reorder onto sticks
+  allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
+
+  call mesh_to_grid(rhs_coarse, plane_xy, shape_x)
+
+  ! forward FFT
+  rescale = 1._dp
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_R2HC, rescale)
+  
+  allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
+  do i = 0, nin_local_yz - 1
+    transpose_plan = fftw_mpi_plan_many_transpose( &
+                      shape_c(2), shape_c(1), one, &
+                      nin_local_xy, nout_local_xy, &
+                      plane_xy(:,:,i), plane_yx(:,:,i), comm_xy, FFTW_ESTIMATE)
+    call fftw_mpi_execute_r2r(transpose_plan, plane_xy(:,:,i), plane_yx(:,:,i))
+  enddo
+  deallocate(plane_xy)
+
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_R2HC, rescale)
+
+  allocate(plane_zy(0:shape_c(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
+  do i = 0, nout_local_xy-1
+    transpose_plan = fftw_mpi_plan_many_transpose( &
+                      shape_c(3), shape_c(2), one, &
+                      FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
+                      plane_yx(:,i,:), plane_zy(:,i,:), comm_yz, FFTW_ESTIMATE)
+    call fftw_mpi_execute_r2r(transpose_plan, plane_yx(:,i,:), plane_zy(:,i,:))
+  enddo
+  deallocate(plane_yx)
+
+  !call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT00, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT10, rescale)
+
+  ! Poisson kernel
+  if (nid == 0) write(*,*) "L=", end_x(1)-start_x(1)
+#if 1
+  do idz = 0, shape_c(3) - 1
+    do idy = 0, nout_local_yz - 1
+      do idx = 0, nout_local_xy - 1
+        if (idy + idx_out_local_yz == 0 .and. idx + idx_out_local_xy == 0) then
+          write(*,*) "X_", idz, plane_zy(idz,idx,idy) / rescale, nid
+        endif
+
+        if (idx + idx_out_local_xy <= shape_x(1) / 2) then
+          kx = 2.*pi*(idx +idx_out_local_xy)/(end_x(1)-start_x(1)) 
+        else
+          kx = 2.*pi*(shape_x(1) - idx - idx_out_local_xy)/(end_x(1)-start_x(1)) 
+        endif
+
+        if (idy + idx_out_local_yz <= shape_x(2) / 2) then
+          ky = 2*pi*(idy +idx_out_local_yz)/(end_x(2)-start_x(2)) 
+        else
+          ky = 2*pi*(shape_x(2) - idy - idx_out_local_yz)/(end_x(2)-start_x(2)) 
+        endif
+
+        kz = pi*(idz)/(end_x(3)-start_x(3)) 
+
+        if (kx**2. + ky**2. + kz**2. < 1.e-9_dp) then
+          plane_zy(idz,idx,idy) = 0._dp
+        else
+          plane_zy(idz, idx, idy) = plane_zy(idz, idx, idy) / ( &
+            (kz)**2._dp + &
+            (ky)**2._dp + &
+            (kx)**2._dp)
+        endif
+      enddo
+    enddo
+  enddo
+#endif
+
+  ! reverse FFT
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT01, rescale)
+
+  allocate(plane_yx(0:shape_c(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
+  do i = 0, nout_local_xy - 1
+  transpose_plan = fftw_mpi_plan_many_transpose( &
+                    shape_c(2), shape_c(3), one, &
+                    FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
+                    plane_zy(:,i,:), plane_yx(:,i,:), comm_yz, FFTW_ESTIMATE)
+  call fftw_mpi_execute_r2r(transpose_plan, plane_zy(:,i,:), plane_yx(:,i,:))
+  enddo
+  deallocate(plane_zy)
+
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_HC2R, rescale)
+
+  allocate(plane_xy(0:shape_c(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
+  do i = 0, nin_local_yz - 1
+    transpose_plan = fftw_mpi_plan_many_transpose( &
+                      shape_c(1), shape_c(2), one, &
+                      FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
+                      plane_yx(:,:,i), plane_xy(:,:,i), comm_xy, FFTW_ESTIMATE)
+    call fftw_mpi_execute_r2r(transpose_plan, plane_yx(:,:,i), plane_xy(:,:,i))
+  enddo
+
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_HC2R, rescale)
+
+  plane_xy = plane_xy * (1._dp/ rescale)
+
+
+  ! reorder to local elements
+  allocate(soln_coarse(nelm)); soln_coarse = 0._dp
+  call grid_to_mesh(plane_xy, soln_coarse, shape_x)
+
+  ans = glsum(soln_coarse*soln_coarse, nelm)
+  if (nid == 0) write(*,*) ans
+
+  return
+ 
+end subroutine cos_test
+
 
 end module poisson

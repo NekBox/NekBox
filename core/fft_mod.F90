@@ -2,7 +2,7 @@ module fft
   use, intrinsic :: iso_c_binding
   implicit none
 
-  public fft_r2r
+  public fft_r2r, transpose_grid
   private
   integer, parameter :: nplans = 10
   integer :: n_r2r_plans = 0
@@ -71,5 +71,50 @@ subroutine fft_r2r(u, length, num, kind, rescale)
   endif
 
 end subroutine fft_r2r
+
+subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
+  use kinds, only : DP
+  use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
+  use fftw3, only : fftw_mpi_plan_many_transpose
+  use fftw3, only : fftw_mpi_execute_r2r
+
+  real(DP), intent(inout) :: grid(0:,0:,0:)
+  real(DP), intent(out) :: grid_t(0:,0:,0:)
+  integer,  intent(in) :: shape_x(3)
+  integer, intent(in) :: idx
+  integer, intent(in) :: idx_t
+  integer, intent(in) :: comm
+
+  integer(C_INTPTR_T) :: shape_c(3), block0, block1
+  integer(C_INTPTR_T), parameter :: one = 1
+  type(C_PTR) :: transpose_plan
+  integer :: i
+
+  shape_c = shape_x
+
+  if (idx == 1 .or. idx_t == 1) then
+    block0 = size(grid,2)
+    block1 = size(grid_t,2)
+    do i = 0, size(grid,3) - 1
+      transpose_plan = fftw_mpi_plan_many_transpose( &
+                        shape_c(idx_t), shape_c(idx), one, &
+                        block0, block1, &
+                        grid(:,:,i), grid_t(:,:,i), comm, FFTW_ESTIMATE)
+      call fftw_mpi_execute_r2r(transpose_plan, grid(:,:,i), grid_t(:,:,i))
+    enddo
+  else if (idx == 3 .or. idx_t == 3) then
+    block0 = size(grid,3)
+    block1 = size(grid_t,3)
+    do i = 0, size(grid,2) - 1
+      transpose_plan = fftw_mpi_plan_many_transpose( &
+                        shape_c(idx_t), shape_c(idx), one, &
+                        block0, block1, &
+                        grid(:,i,:), grid_t(:,i,:), comm, FFTW_ESTIMATE)
+      call fftw_mpi_execute_r2r(transpose_plan, grid(:,i,:), grid_t(:,i,:))
+    enddo
+  endif
+
+
+end subroutine transpose_grid
 
 end module

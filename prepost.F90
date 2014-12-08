@@ -970,7 +970,7 @@ end subroutine io_init
 !-----------------------------------------------------------------------
 subroutine mfo_open_files(prefix,ierr) ! open files
   use kinds, only : DP
-  use input, only : ifreguo, ifxyo_, session
+  use input, only : ifreguo, ifxyo_, session, param
   use restart, only : max_rst, nfileo, ifdiro, fid0
   use string, only : ltrunc
   implicit none
@@ -987,12 +987,17 @@ subroutine mfo_open_files(prefix,ierr) ! open files
 
   character(1), save :: slash = '/', dot = '.'
 
-  integer, save :: nopen(99,2)
-  data    nopen  / 198*0 /
+  logical, save :: init = .false.
+  integer, save :: nopen(99,2) = 0.
 
   integer :: iprefix, nfld, k, len, ndigit
   integer, external :: i_find_prefix, mod1
   real(DP) :: rfileo
+
+  if (.not. init) then
+    nopen = param(69)
+    init = .true.
+  endif
 
   call blank(fname,132)      !  zero out for byte_open()
 
@@ -1630,7 +1635,7 @@ end subroutine mfo_outv
 subroutine mfo_write_hdr          
   use kinds, only : r4
   use size_m, only : nid, nelt, lelt, ldimt
-  use input, only : ifxyo, ifvo, ifpo, ifto, ifpsco
+  use input, only : ifxyo, ifvo, ifpo, ifto, ifpsco, param
   use parallel, only : nelgt, lglel
   use restart, only : nfileo, pid0, pid1, rdcode1, wdsizo, nxo, nyo, nzo
   use restart, only : fid0, iheadersize
@@ -1717,7 +1722,7 @@ subroutine mfo_write_hdr
 
       test_pattern = 6.54321_r4           ! write test pattern for byte swap
 
-      pad_size = (8 * (2**20) - (iHeaderSize + 4) ) / 4
+      pad_size = (2**param(61) - (iHeaderSize + 4) ) / 4
       allocate(padding(pad_size)); padding = 0.
 #ifdef MPIIO
   ! only rank0 (pid00) will write hdr + test_pattern
@@ -1763,7 +1768,7 @@ subroutine mfo_write_hdr
 
     ! pad up to 8MB
     do while (pad_size < 0) 
-      pad_size = pad_size + (8 * (2**20)) / 4
+      pad_size = pad_size + (2**param(61)) / 4
     enddo
     allocate(padding(pad_size)); padding = 0.
 #ifdef MPIIO

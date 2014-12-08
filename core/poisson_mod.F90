@@ -26,7 +26,8 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   use kinds, only : DP
   use geom, only : bm1, binvm1
   use mesh, only : shape_x, start_x, end_x
-  use parallel, only : nekcomm, nid
+  use parallel, only : nekcomm, nid, lglel
+  use soln, only : vmult
 
   use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT10, FFTW_REDFT01
   use fft, only : fft_r2r, transpose_grid
@@ -42,10 +43,11 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
   real(DP), allocatable :: tmp_fine(:,:,:,:)
   integer :: nelm
-  integer :: i
+  integer :: i, j
   real(DP), allocatable :: plane_xy(:,:,:), plane_yx(:,:,:), plane_zy(:,:,:)
   real(DP) :: rescale
   real(DP) :: h2(1,1,1,1)
+  integer :: ix(3)
 
   nelm = size(rhs, 4)
   if (.not. interface_initialized) then
@@ -56,8 +58,6 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   allocate(rhs_coarse(nelm))
   forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs(:,:,:,i))
   if (nid == 0) write(*,*) "RHS Coarse", sqrt(sum(rhs_coarse * rhs_coarse)/512)
-  forall(i = 1 : nelm) rhs_coarse(i) = sum(bm1(:,:,:,i) * rhs(:,:,:,i))
-  !forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs(:,:,:,i))
  
   ! reorder onto sticks
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
@@ -106,7 +106,8 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   call grid_to_mesh(plane_xy, soln_coarse, shape_x)
 
   ! populate U
-  forall(i = 1 : nelm) u(:,:,:,i) = binvm1(:,:,:,i) * soln_coarse(i) 
+  forall(i = 1:nelm) soln_coarse(i) = soln_coarse(i) / sum(bm1(:,:,:,i))
+  call interpolate_into_element(soln_coarse, u)
 
   ! update residual
   allocate(tmp_fine(size(u,1), size(u,2), size(u,3), size(u,4)))
@@ -331,6 +332,81 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x)
   enddo
 end subroutine poisson_kernel
 
+subroutine interpolate_into_element(soln_coarse, soln_fine)
+  use kinds, only : DP 
+  use semhat, only : zh
+  use parallel, only : lglel
+  use mesh, only : shape_x
+
+  real(DP), intent(in) :: soln_coarse(:)
+  real(DP), intent(out) :: soln_fine(:,:,:,:)
+
+  real(DP) :: c
+  real(DP) :: ax, bx, cx, dx, x
+  real(DP) :: ay, by, cy, dy, y
+  real(DP) :: az, bz, cz, dz, z
+  real(DP) :: forward, backward
+  integer :: i, j, ix(3)
+
+  forall (i = 1: size(soln_coarse)) soln_fine(:,:,:,i) = soln_coarse(i)
+  call dssum(soln_fine)
+
+#if 0
+  do i = 1, size(soln_coarse)
+    soln_fine(:,:,:,i) = soln_coarse
+  enddo
+#else
+  do i = 1, size(soln_coarse)
+    c = soln_coarse(i) 
+    forward = soln_fine(8,2,2,i) -c 
+    backward = soln_fine(1,2,2,i) -c 
+    ax = 0!.25_dp * (backward - forward - backward + forward) / 2.
+    bx = .25_dp * (forward + backward - 2._dp * c) / 2._dp
+    cx = .25_dp * (backward + forward )
+    dx = .25_dp*(backward/2. + forward/2. + 3*c)
+
+    forward = soln_fine(2,8,2,i) - c
+    backward = soln_fine(2,1,2,i) - c 
+    ay = 0!.25_dp * (backward - forward - backward + forward) / 2.
+    by = .25_dp * (forward + backward - 2._dp * c) / 2._dp
+    cy = .25_dp * (backward + forward )
+    dy = .25_dp*(backward/2. + forward/2. + 3*c)
+
+    ix = ieg_to_xyz(lglel(i), shape_x)
+    if (ix(3) == 0) then
+      forward = soln_fine(2,2,8,i) -c
+      backward = c 
+    else if (ix(3) == shape_x(3)) then
+      forward = c 
+      backward = soln_fine(2,2,1,i) - c 
+    else
+      forward = soln_fine(2,2,8,i) - c 
+      backward = soln_fine(2,2,1,i) -c
+    endif
+    az = 0!.25_dp * (backward - forward - backward + forward) / 2.
+    bz = .25_dp * (forward + backward - 2._dp * c) / 2._dp
+    cz = .25_dp * (backward + forward )
+    dz = .25_dp*(backward/2. + forward/2. + 3*c)                      !ay = 0._dp; by = 0._dp
+
+    !az = 0._dp; bz = 0._dp
+
+    do j = 1, 8
+      x = zh(j)/2._dp
+      soln_fine(j,:,:,i) = bx*x*x + cx*x + dx/3.
+    enddo
+    do j = 1, 8
+      y = zh(j)/2._dp
+      soln_fine(:,j,:,i) = by*y*y + cy*y + dy/3. + soln_fine(:,j,:,i)
+    enddo
+    do j = 1, 8
+      z = zh(j)/2._dp
+      soln_fine(:,:,j,i) = bz*z*z + cz*z + dz/3. + soln_fine(:,:,j,i)
+    enddo
+  enddo
+#endif
+
+end subroutine interpolate_into_element
+
 subroutine shuffle_test()
   use kinds, only : DP
   use size_m, only : nelv
@@ -496,32 +572,46 @@ end subroutine transpose_test
 
 subroutine cos_test()
   use kinds, only : DP
-  use size_m, only : nelv
+  use size_m, only : lx1, ly1, lz1, nelv
+  use geom, only : bm1
   use mesh, only : shape_x, start_x, end_x
   use parallel, only : nid, lglel
-  use tstep, only : PI
+  use tstep, only : PI, imesh
+  use soln, only : pmask
 
   use fftw3, only : FFTW_R2HC, FFTW_HC2R
   use fftw3, only : FFTW_REDFT10, FFTW_REDFT01
   use fft, only : fft_r2r, transpose_grid
+  use semhat, only : zh
 
+  real(DP), allocatable :: rhs_fine(:,:,:,:), soln_fine(:,:,:,:)
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
+  real(DP), allocatable :: tmp_fine(:,:,:,:)
   integer :: nelm
-  integer :: i
+  integer :: i, j
   integer :: ix(3)
   real(DP), allocatable :: plane_xy(:,:,:), plane_yx(:,:,:), plane_zy(:,:,:)
   real(DP) :: rescale
-  real(DP) :: ans
-  real(DP) :: glsum
+  real(DP) :: c
+  real(DP) :: ax, bx, x
+  real(DP) :: ay, by, y
+  real(DP) :: az, bz, z
+  real(DP), allocatable :: h1(:,:,:,:), h2(:,:,:,:)
 
   ! convert RHS to coarse mesh
   nelm = nelv
+  allocate(rhs_fine(lx1,ly1,lz1,nelm))
   allocate(rhs_coarse(nelm))
   do i = 1, nelm
     ix = ieg_to_xyz(lglel(i), shape_x)
-    
-    rhs_coarse(i) = cos(2* 2.*pi * (ix(3)+.5) / shape_x(3))
+    do j = 1, 8 
+      rhs_fine(:,:,j,i) = bm1(:,:,j,i) * (&
+                          cos(8.*pi * (ix(3)+(zh(j)+1)/2._dp) / shape_x(3)) & 
+                        + cos(2.*pi * (ix(3)+(zh(j)+1)/2._dp) / shape_x(3)) )
+    enddo
   enddo
+  forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs_fine(:,:,:,i))
+  if (nid == 0) write(*,*) "COS TEST: rhs ", sqrt(sum(rhs_coarse*rhs_coarse))
  
   ! reorder onto sticks
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
@@ -545,7 +635,6 @@ subroutine cos_test()
   call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT10, rescale)
 
   ! Poisson kernel
-  if (nid == 0) write(*,*) "L=", end_x(1)-start_x(1)
   call poisson_kernel(plane_zy, shape_x, start_x, end_x)
 
   ! reverse FFT
@@ -568,9 +657,84 @@ subroutine cos_test()
   ! reorder to local elements
   allocate(soln_coarse(nelm)); soln_coarse = 0._dp
   call grid_to_mesh(plane_xy, soln_coarse, shape_x)
+  if (nid == 0) write(*,*) "COS TEST: u_c ", &
+    sqrt(sum(soln_coarse*soln_coarse)) * (2._dp * pi /(end_x(1)-start_x(1)))**2._dp
 
-  ans = glsum(soln_coarse*soln_coarse, nelm)
-  if (nid == 0) write(*,*) ans
+  forall(i = 1 : nelm) soln_coarse(i)  = soln_coarse(i)  / sum(bm1(:,:,:,i))
+  allocate(soln_fine(lx1,ly1,lz1,nelm))
+  !forall(i = 1 : nelm) soln_fine(:,:,:,i) = binvm1(:,:,:,i) * soln_coarse(i) / 512._dp
+#if 1
+  call interpolate_into_element(soln_coarse, soln_fine)
+#else
+#if 0
+  do i = 1, nelm
+    c = soln_coarse(i)
+    bx = (front_coarse(i) - back_coarse(i)) / 2._dp
+    ax = front_coarse(i) - bx - c
+    do j = 1, 8
+      x = zh(j)/2._dp
+      soln_fine(j,:,:,i) = c + bx * x + ax*x*x
+    enddo
+  enddo
+#else
+  forall(i = 1:nelm) soln_fine(:,:,:,i) = soln_coarse(i)
+  call dssum(soln_fine)
+  do i = 1, nelm
+    c = soln_coarse(i)
+    bx = (soln_fine(8,2,2,i) - soln_fine(1,2,2,i))/2._dp
+    ax = soln_fine(8,2,2,i) - 2*c - bx
+    by = (soln_fine(2,8,2,i) - soln_fine(2,1,2,i))/2._dp
+    ay = soln_fine(2,8,2,i) - 2*c - by
+    bz = (soln_fine(2,2,8,i) - soln_fine(2,2,1,i))/2._dp
+    az = soln_fine(2,2,8,i) - 2*c - bz
+
+    ix = ieg_to_xyz(lglel(i), shape_x)
+    if (ix(3) == 0) then
+      bz = (soln_fine(2,2,8,i) - 2.*soln_fine(2,2,1,i))/2._dp
+      az = soln_fine(2,2,8,i) - 2*c - bz
+    else if (ix(3) == shape_x(3)) then
+      bz = (2.*soln_fine(2,2,8,i) - soln_fine(2,2,1,i))/2._dp
+      az = 2.*soln_fine(2,2,8,i) - 2*c - bz
+    endif
+
+    do j = 1, 8
+      x = zh(j)/2._dp
+      soln_fine(j,:,:,i) = c + bx * x + ax*x*x
+    enddo
+    do j = 1, 8
+      y = zh(j)/2._dp
+      soln_fine(:,j,:,i) = soln_fine(:,j,:,i)  + by * y + ay*y*y
+    enddo
+    do j = 1, 8
+      z = zh(j)/2._dp
+      soln_fine(:,:,j,i) = soln_fine(:,:,j,i)  + bz * z + az*z*z
+    enddo
+  enddo
+#endif
+
+#if 0
+  forall(i = 1:nelm) soln_fine(:,:,:,i) = soln_coarse(i)
+  call dssum(soln_fine)
+  soln_fine = soln_fine * vmult
+#endif
+#endif
+
+  ! update residual
+  allocate(tmp_fine(lx1,ly1,lz1,nelm))
+  allocate(h1(lx1,ly1,lz1,nelm))
+  allocate(h2(lx1,ly1,lz1,nelm))
+  h1 = 1._dp; h2 = 0._dp
+  !call axhelm (tmp_fine, soln_fine, h1, h2, imesh, 1)
+  call axhelm (tmp_fine, soln_fine, h1, h2, imesh, 1)
+  tmp_fine = tmp_fine * pmask
+  call dssum   (tmp_fine)
+
+  !rhs_fine = rhs_fine - tmp_fine 
+  forall(i = 1 : nelm) rhs_coarse(i) = sum(tmp_fine(:,:,:,i))
+  if (nid == 0) write(*,*) "COS TEST: Au ", sqrt(sum(rhs_coarse*rhs_coarse)) 
+  rhs_fine = rhs_fine - tmp_fine 
+  forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs_fine(:,:,:,i))
+  if (nid == 0) write(*,*) "COS TEST: r ", sqrt(sum(rhs_coarse*rhs_coarse)) 
 
   return
  

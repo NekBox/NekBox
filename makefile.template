@@ -45,11 +45,11 @@ navier4.o \
 drive.o drive1.o drive2.o \
 plan4.o bdry.o coef.o conduct.o connect1.o connect2.o \
 dssum.o eigsolv.o genxyz.o  \
+hsmg.o gmres.o convect.o induct.o \
 navier0.o navier1.o navier5.o navier6.o  navier8.o \
 map2.o ic.o ssolv.o math.o mxm_wrapper.o \
 hmholtz.o \
 subs1.o \
-gmres.o hsmg.o convect.o induct.o \
 fast3d.o fasts.o  \
 byte.o \
 chelpers.o \

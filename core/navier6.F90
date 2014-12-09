@@ -32,6 +32,7 @@ subroutine set_overlap
   use size_m, only : lx1, nid
   use input, only : param, ifaxis, ifmgrid, ifmhd, ifsplit, ifldmhd
   use tstep, only : ifield
+  use hsmg_routines, only : hsmg_setup, h1mg_setup
   implicit none
 
 !max  real(DP) :: x(2*ltotd), y(2*ltotd), z(2*ltotd)

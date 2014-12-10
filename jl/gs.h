@@ -1,11 +1,8 @@
-#ifndef GS_H
-#define GS_H
+/** \file gs.h
+ *  \brief Gather/Scatter Library interface
+ *  \defgroup GS Gather Scatter Library
+ *  \ingroup GS
 
-#if !defined(COMM_H) || !defined(GS_DEFS_H) || !defined(MEM_H)
-#warning "gs.h" requires "comm.h", "gs_defs.h", and "mem.h"
-#endif
-
-/*
   Gather/Scatter Library
 
   The code
@@ -115,6 +112,12 @@
   
 
 */  
+#ifndef GS_H
+#define GS_H
+
+#if !defined(COMM_H) || !defined(GS_DEFS_H) || !defined(MEM_H)
+#warning "gs.h" requires "comm.h", "gs_defs.h", and "mem.h"
+#endif
 
 #define gs         PREFIXED_NAME(gs       )
 #define gs_vec     PREFIXED_NAME(gs_vec   )

@@ -35,8 +35,8 @@ module hsmg
 
   real(DP), allocatable :: mg_jh(:,:) !c-to-f interpolation matrices
   real(DP), allocatable :: mg_jht(:,:) !transpose of mg_jh
-  real(DP), allocatable :: mg_jhfc(:,:) !c-to-f interpolation matrices
-  real(DP), allocatable :: mg_jhfct(:,:) !transpose of mg_jh
+  !real(DP), allocatable :: mg_jhfc(:,:) !c-to-f interpolation matrices
+  !real(DP), allocatable :: mg_jhfct(:,:) !transpose of mg_jh
 
   real(DP), allocatable :: mg_ah(:,:) !A hat matrices
   real(DP), allocatable :: mg_bh(:,:) !B hat matrices
@@ -45,7 +45,7 @@ module hsmg
   real(DP), allocatable :: mg_dht(:,:) !D hat transpose matrices
   real(DP), allocatable :: mg_zh(:,:) !Nodal coordinates
   real(DP), allocatable :: mg_rstr_wt(:) !restriction wt
-  real(DP), allocatable :: mg_mask(:) !b.c. mask (Max: might not be used)
+!  real(DP), allocatable :: mg_mask(:) !b.c. mask (Max: might not be used)
   real(DP), allocatable :: mg_fast_s(:), mg_fast_d(:)
   real(DP), allocatable :: mg_schwarz_wt(:)
   real(DP), allocatable :: mg_solve_e(:), mg_solve_r(:)
@@ -84,8 +84,8 @@ module hsmg
 
     allocate(mg_jh(lxm*lxm,lmgn) &
     , mg_jht(lxm*lxm,lmgn)      & 
-    , mg_jhfc (lxm*lxm,lmgn)    & 
-    , mg_jhfct(lxm*lxm,lmgn)    &  ! verified
+!    , mg_jhfc (lxm*lxm,lmgn)    & 
+!    , mg_jhfct(lxm*lxm,lmgn)    &  ! verified
     , mg_ah(lxm*lxm,lmgn)       & 
     , mg_bh(lxm,lmgn)           & 
     , mg_dh(lxm*lxm,lmgn)       & 

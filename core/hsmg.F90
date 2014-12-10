@@ -1,5 +1,7 @@
 !-----------------------------------------------------------------------
 !> \file hsmg.F90
+!! \brief Module containing hybrid Schwarz multi-grid preconditioners
+!!
 !!  To do:
 !!  1)  Why does hsmg_schwarz_toext2d not zero out a, whereas 3d does??  DONE
 !!  2)  Convert all nelv refs to nelfld(ifield) or (nelmg?)  DONE
@@ -40,7 +42,6 @@ module hsmg_routines
   private
   public :: h1mg_setup, h1mg_solve
   public :: hsmg_setup
-
 
 contains
 
@@ -234,7 +235,7 @@ end subroutine hsmg_setup_semhat
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_intp
-  use hsmg, only : mg_lmax, mg_nh, mg_jh, mg_zh, mg_jht, mg_jhfc, mg_jhfct
+  use hsmg, only : mg_lmax, mg_nh, mg_jh, mg_zh, mg_jht!, mg_jhfc, mg_jhfct
   implicit none
 
   integer :: l,nf,nc
@@ -250,9 +251,9 @@ subroutine hsmg_setup_intp
       call transpose(mg_jht(1,l),nc,mg_jh(1,l),nf)
 
   !        Fine-to-coarse interpolation for variable-coefficient operators
-      call hsmg_setup_intpm( &
-      mg_jhfc(1,l),mg_zh(1,l),mg_zh(1,l+1),nc,nf)
-      call transpose(mg_jhfct(1,l),nf,mg_jhfc(1,l),nc)
+!      call hsmg_setup_intpm( &
+!      mg_jhfc(1,l),mg_zh(1,l),mg_zh(1,l+1),nc,nf)
+!      call transpose(mg_jhfct(1,l),nf,mg_jhfc(1,l),nc)
   !        call outmat(mg_jhfc(1,l),nc,nf,'MG_JHFC',l)
 
   enddo

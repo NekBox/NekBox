@@ -688,7 +688,7 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = makenek makefile.template LICENSE makenek.inc mktar \
-                         3rd_party jl count_commons.py search_orphan.py
+                         3rd_party count_commons.py search_orphan.py
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

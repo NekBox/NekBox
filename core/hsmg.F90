@@ -1,5 +1,7 @@
 !-----------------------------------------------------------------------
 !> \file hsmg.F90
+!! \brief Module containing hybrid Schwarz multi-grid preconditioners
+!!
 !!  To do:
 !!  1)  Why does hsmg_schwarz_toext2d not zero out a, whereas 3d does??  DONE
 !!  2)  Convert all nelv refs to nelfld(ifield) or (nelmg?)  DONE
@@ -35,6 +37,16 @@
 
 !----------------------------------------------------------------------
 
+module hsmg_routines
+
+  private
+  public :: h1mg_setup, h1mg_solve
+  public :: hsmg_setup
+
+contains
+
+!----------------------------------------------------------------------
+!> \brief Sets up hybrid Schwarz multi-grid preconditioner
 subroutine hsmg_setup()
   use hsmg, only : mg_fld
   use tstep, only : ifield
@@ -57,6 +69,134 @@ subroutine hsmg_setup()
   return
 end subroutine hsmg_setup
 
+!----------------------------------------------------------------------
+!> \brief Sets up Poisson preconditioner
+subroutine h1mg_setup()
+  use size_m, only : nx1, ny1, nz1, nelt
+  use hsmg, only : mg_h1_lmax
+  use input, only : param
+  implicit none
+
+  integer :: p_msk, n, l
+
+  param(59) = 1
+  call geom_reset(1)  ! Recompute g1m1 etc. with deformed only
+
+  n = nx1*ny1*nz1*nelt
+
+  call h1mg_setup_mg_nx
+  call h1mg_setup_semhat ! SEM hat matrices for each level
+  call hsmg_setup_intp   ! Interpolation operators
+  call h1mg_setup_dssum  ! set direct stiffness summation handles
+  call h1mg_setup_wtmask ! set restriction weight matrices and bc masks
+  call h1mg_setup_fdm    ! set up fast diagonalization method
+  call h1mg_setup_schwarz_wt( .FALSE. )
+  call hsmg_setup_solve  ! set up the solver
+
+  l=mg_h1_lmax
+  !> \todo Is it nessesary to set h1 and h2 here?  They aren't inited until
+  !! later
+!  call mg_set_h1  (p_h1 ,l)
+!  call mg_set_h2  (p_h2 ,l)
+!  call mg_set_gb  (p_g,p_b,l)
+  call mg_set_msk (p_msk,l)
+
+  return
+end subroutine h1mg_setup
+
+!----------------------------------------------------------------------
+!> \brief Solve preconditioner: z = M rhs, where \f$ M \approx A^{-1} \f$
+!!
+!! Assumes that preprocessing has been completed via h1mg_setup()
+subroutine h1mg_solve(z,rhs,if_hybrid)  
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
+  use tstep, only : nelfld, ifield
+  implicit none
+
+  real(DP), intent(out) :: z(*)      !>!< approximate solution to A z = rhs
+  real(DP), intent(in)  :: rhs(*)    !>!< right hand side to Poisson equation
+  logical,  intent(in)  :: if_hybrid !>!< Use hybrid or normal?
+       
+  integer, parameter :: lt=lx1*ly1*lz1*lelt
+  real(DP), allocatable :: e(:),w(:),r(:)
+  integer :: p_msk
+
+  real(DP) :: op, om, sigma
+  integer :: nel, l, n, is, im, i1, i
+
+  nel   = nelfld(ifield)
+
+  op    =  1.                                     ! Coefficients for h1mg_ax
+  om    = -1.
+  sigma =  1.
+  if (if_hybrid) sigma = 2./3.
+
+  l     = mg_h1_lmax
+  n     = mg_h1_n(l,mg_fld)
+  is    = 1                                       ! solve index
+  call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M  rhs
+!               Schwarz
+  allocate(r(lt))
+  call copy(r,rhs,n)                              ! r  := rhs
+!max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
+!  l
+
+  allocate(e(2*lt)); e = 0_dp
+  do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
+      is = is + n
+      n  = mg_h1_n(l,mg_fld)
+  !          T
+      call h1mg_rstr(r,l, .TRUE. )                   ! r   :=  J r
+  !  l         l+1
+  !        OVERLAPPING Schwarz exchange and solve:
+      call h1mg_schwarz(e(is),r,sigma,l)           ! e := sigma W M       r
+  !  l            Schwarz l
+
+!max        if(if_hybrid)call h1mg_axm(r,e(is),op,om,l,w)! r  := r - A e
+  !  l           l
+  enddo
+  is = is+n
+!         T
+  call h1mg_rstr(r,1, .FALSE. )                     ! r  :=  J  r
+!  l         l+1
+  p_msk = p_mg_msk(l,mg_fld)
+  call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
+  call hsmg_coarse_solve ( e(is) , r )            ! e  := A   r
+  call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
+  deallocate(r)
+
+  allocate(w(lt)); w = 0_dp
+  do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
+      im = is
+      is = is - n
+      n  = mg_h1_n(l,mg_fld)
+      call hsmg_intp (w,e(im),l-1)                 ! w   :=  J e
+      i1=is-1                                      !            l-1
+      do i=1,n
+          e(i1+i) = e(i1+i) + w(i)                  ! e   :=  e  + w
+      enddo                                        !  l       l
+  enddo
+
+  l  = mg_h1_lmax
+  n  = mg_h1_n(l,mg_fld)
+  im = is  ! solve index
+  call hsmg_intp(w,e(im),l-1)                     ! w   :=  J e
+  do i = 1,n                                      !            l-1
+      z(i) = z(i) + w(i)                           ! z := z + w
+  enddo
+  deallocate(w,e)
+
+  call dsavg(z) ! Emergency hack --- to ensure continuous z!
+
+  return
+end subroutine h1mg_solve
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+! PRIVATE IMPLEMENTATIONS
+!----------------------------------------------------------------------
 !----------------------------------------------------------------------
 subroutine hsmg_setup_semhat
   use input, only : if3d
@@ -95,7 +235,7 @@ end subroutine hsmg_setup_semhat
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_intp
-  use hsmg, only : mg_lmax, mg_nh, mg_jh, mg_zh, mg_jht, mg_jhfc, mg_jhfct
+  use hsmg, only : mg_lmax, mg_nh, mg_jh, mg_zh, mg_jht!, mg_jhfc, mg_jhfct
   implicit none
 
   integer :: l,nf,nc
@@ -111,9 +251,9 @@ subroutine hsmg_setup_intp
       call transpose(mg_jht(1,l),nc,mg_jh(1,l),nf)
 
   !        Fine-to-coarse interpolation for variable-coefficient operators
-      call hsmg_setup_intpm( &
-      mg_jhfc(1,l),mg_zh(1,l),mg_zh(1,l+1),nc,nf)
-      call transpose(mg_jhfct(1,l),nf,mg_jhfc(1,l),nc)
+!      call hsmg_setup_intpm( &
+!      mg_jhfc(1,l),mg_zh(1,l),mg_zh(1,l+1),nc,nf)
+!      call transpose(mg_jhfct(1,l),nf,mg_jhfc(1,l),nc)
   !        call outmat(mg_jhfc(1,l),nc,nf,'MG_JHFC',l)
 
   enddo
@@ -1289,101 +1429,6 @@ subroutine hsmg_index_0
   return
 end subroutine hsmg_index_0
 
-!----------------------------------------------------------------------
-!     Assumes that preprocessing has been completed via h1mg_setup()
-subroutine h1mg_solve(z,rhs,if_hybrid)  !  Solve preconditioner: Mz=rhs
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt
-  use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
-  use tstep, only : nelfld, ifield
-  implicit none
-
-  real(DP) :: z(*),rhs(*)
-  logical :: if_hybrid
-       
-  integer, parameter :: lt=lx1*ly1*lz1*lelt
-  real(DP), allocatable :: e(:),w(:),r(:)
-  integer :: p_msk
-
-  real(DP) :: op, om, sigma
-  integer :: nel, l, n, is, im, i1, i
-
-
-!     if_hybrid = .true.    ! Control this from gmres, according
-!     if_hybrid = .false.   ! to convergence efficiency
-
-  nel   = nelfld(ifield)
-
-  op    =  1.                                     ! Coefficients for h1mg_ax
-  om    = -1.
-  sigma =  1.
-  if (if_hybrid) sigma = 2./3.
-
-  l     = mg_h1_lmax
-  n     = mg_h1_n(l,mg_fld)
-  is    = 1                                       ! solve index
-  call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M       rhs
-!               Schwarz
-  allocate(r(lt))
-  call copy(r,rhs,n)                              ! r  := rhs
-!max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
-!  l
-
-  allocate(e(2*lt)); e = 0_dp
-  do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
-      is = is + n
-      n  = mg_h1_n(l,mg_fld)
-  !          T
-      call h1mg_rstr(r,l, .TRUE. )                   ! r   :=  J r
-  !  l         l+1
-  !        OVERLAPPING Schwarz exchange and solve:
-      call h1mg_schwarz(e(is),r,sigma,l)           ! e := sigma W M       r
-  !  l            Schwarz l
-
-!max        if(if_hybrid)call h1mg_axm(r,e(is),op,om,l,w)! r  := r - A e
-  !  l           l
-  enddo
-  is = is+n
-!         T
-  call h1mg_rstr(r,1, .FALSE. )                     ! r  :=  J  r
-!  l         l+1
-  p_msk = p_mg_msk(l,mg_fld)
-  call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
-  call hsmg_coarse_solve ( e(is) , r )            ! e  := A   r
-  call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
-  deallocate(r)
-!     nx = mg_nh(1)
-!     call outnxfld (e(is),nx,nelv,'ecrsb4',is)
-!     call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
-!     call outnxfld (e(is),nx,nelv,'ecrsaf',is)
-!     call exitt
-
-  allocate(w(lt)); w = 0_dp
-  do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
-      im = is
-      is = is - n
-      n  = mg_h1_n(l,mg_fld)
-      call hsmg_intp (w,e(im),l-1)                 ! w   :=  J e
-      i1=is-1                                      !            l-1
-      do i=1,n
-          e(i1+i) = e(i1+i) + w(i)                  ! e   :=  e  + w
-      enddo                                        !  l       l
-  enddo
-
-  l  = mg_h1_lmax
-  n  = mg_h1_n(l,mg_fld)
-  im = is  ! solve index
-  call hsmg_intp(w,e(im),l-1)                     ! w   :=  J e
-  do i = 1,n                                      !            l-1
-      z(i) = z(i) + w(i)                           ! z := z + w
-  enddo
-  deallocate(w,e)
-
-  call dsavg(z) ! Emergency hack --- to ensure continuous z!
-
-  return
-end subroutine h1mg_solve
-
 !-----------------------------------------------------------------------
 subroutine h1mg_mask(w,mask,nel)
   use kinds, only : DP
@@ -1499,40 +1544,6 @@ subroutine h1mg_rstr(r,l,ifdssum)
 
   return
 end subroutine h1mg_rstr
-
-!----------------------------------------------------------------------
-subroutine h1mg_setup()
-  use size_m, only : nx1, ny1, nz1, nelt
-  use hsmg, only : mg_h1_lmax
-  use input, only : param
-  implicit none
-
-  integer :: p_msk, n, l
-
-  param(59) = 1
-  call geom_reset(1)  ! Recompute g1m1 etc. with deformed only
-
-  n = nx1*ny1*nz1*nelt
-
-  call h1mg_setup_mg_nx
-  call h1mg_setup_semhat ! SEM hat matrices for each level
-  call hsmg_setup_intp   ! Interpolation operators
-  call h1mg_setup_dssum  ! set direct stiffness summation handles
-  call h1mg_setup_wtmask ! set restriction weight matrices and bc masks
-  call h1mg_setup_fdm    ! set up fast diagonalization method
-  call h1mg_setup_schwarz_wt( .FALSE. )
-  call hsmg_setup_solve  ! set up the solver
-
-  l=mg_h1_lmax
-  !> \todo Is it nessesary to set h1 and h2 here?  They aren't inited until
-  !! later
-!  call mg_set_h1  (p_h1 ,l)
-!  call mg_set_h2  (p_h2 ,l)
-!  call mg_set_gb  (p_g,p_b,l)
-  call mg_set_msk (p_msk,l)
-
-  return
-end subroutine h1mg_setup
 
 !-----------------------------------------------------------------------
 subroutine h1mg_setup_mg_nx()
@@ -1957,3 +1968,4 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
 end subroutine h1mg_setup_schwarz_wt_1
 
 !----------------------------------------------------------------------
+end module hsmg_routines

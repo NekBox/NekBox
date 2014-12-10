@@ -47,6 +47,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use geom, only : volvm1
   use soln, only : pmask, vmult
   use tstep, only : tolps, istep
+  use hsmg_routines, only : h1mg_solve
   implicit none
 
   real(DP) ::             res  (lx1*ly1*lz1*lelv)

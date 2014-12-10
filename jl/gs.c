@@ -1,3 +1,7 @@
+/** \file gs.c
+ *  \ingroup GS
+ */
+
 #include <stdio.h>
 
 #include <stddef.h>

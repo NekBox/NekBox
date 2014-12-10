@@ -401,7 +401,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
   if (param(93) == 0) ifstdh = .TRUE. 
 
-  if (cname == 'PRES') then
+  if (cname == 'PRES' .and. .false.) then
     ifstdh = .FALSE. 
     spectral_h = .true.
   else
@@ -413,13 +413,14 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
     call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
 
   else if (spectral_h) then
-
+#if 0
     call dssum   (r)
     r = r * vmk
     call spectral_solve(u, r, h1, vmk, vml, imsh, isd)
     allocate(tmp(lx1,ly1,lz1,lelv))
     call cggo (tmp,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,binvm1,name)
     u = u + tmp
+#endif
 
   else
       nel = nelfld(ifield)

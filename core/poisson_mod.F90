@@ -22,23 +22,26 @@ module poisson
 contains
 
 !> \brief 
-subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
+subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use kinds, only : DP
   use geom, only : bm1, binvm1
   use mesh, only : shape_x, start_x, end_x
   use parallel, only : nekcomm, nid, lglel
   use soln, only : vmult
+  use size_m, only : nx1, ny1, nz1, nelv
 
   use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT10, FFTW_REDFT01
   use fft, only : fft_r2r, transpose_grid
 
-  REAL(DP), intent(out)   :: U    (:,:,:,:)
-  REAL(DP), intent(inout) :: RHS  (:,:,:,:)
-  REAL(DP), intent(in)  :: H1   (:,:,:,:)
-  REAL(DP), intent(in)  :: MASK (:,:,:,:)
-  REAL(DP), intent(in)  :: MULT (:,:,:,:)
-  integer,  intent(in)  :: imsh
-  integer,  intent(in)  :: isd
+  REAL(DP), intent(out)   :: U    (:)
+  !REAL(DP), intent(out)   :: U    (:,:,:,:)
+  REAL(DP), intent(inout) :: RHS  (:)
+  !REAL(DP), intent(inout) :: RHS  (:,:,:,:)
+!  REAL(DP), intent(in)  :: H1   (:,:,:,:)
+!  REAL(DP), intent(in)  :: MASK (:,:,:,:)
+!  REAL(DP), intent(in)  :: MULT (:,:,:,:)
+!  integer,  intent(in)  :: imsh
+!  integer,  intent(in)  :: isd
 
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
   real(DP), allocatable :: tmp_fine(:,:,:,:)
@@ -49,15 +52,30 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   real(DP) :: h2(1,1,1,1)
   integer :: ix(3)
 
-  nelm = size(rhs, 4)
+  nelm = size(rhs) / 8
+
   if (.not. interface_initialized) then
     call init_comm_infrastructure(nekcomm, shape_x)
   endif
+  
+  allocate(tmp_fine(nx1, ny1, nz1, nelm))
+  tmp_fine = 0._dp
+  forall (i = 1: nelm)
+    tmp_fine(1,  1,  1,   i) = rhs(1 + (i-1)*8)
+    tmp_fine(nx1,1,  1,   i) = rhs(2 + (i-1)*8)
+    tmp_fine(1,  ny1,1,   i) = rhs(3 + (i-1)*8)
+    tmp_fine(nx1,ny1,1,   i) = rhs(4 + (i-1)*8)
+    tmp_fine(1,  1,  nz1, i) = rhs(5 + (i-1)*8)
+    tmp_fine(nx1,1,  nz1, i) = rhs(6 + (i-1)*8)
+    tmp_fine(1,  ny1,nz1, i) = rhs(7 + (i-1)*8)
+    tmp_fine(nx1,ny1,nz1, i) = rhs(8 + (i-1)*8)
+  end forall
+  call dssum(tmp_fine)
 
   ! convert RHS to coarse mesh
   allocate(rhs_coarse(nelm))
-  forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs(:,:,:,i))
-  if (nid == 0) write(*,*) "RHS Coarse", sqrt(sum(rhs_coarse * rhs_coarse)/512)
+  forall(i = 1 : nelm) rhs_coarse(i) = tmp_fine(1,1,1,i)
+  !if (nid == 0) write(*,*) "RHS Coarse", sqrt(sum(rhs_coarse * rhs_coarse)/512)
  
   ! reorder onto sticks
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
@@ -107,9 +125,27 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
 
   ! populate U
   forall(i = 1:nelm) soln_coarse(i) = soln_coarse(i) / sum(bm1(:,:,:,i))
-  call interpolate_into_element(soln_coarse, u)
+  tmp_fine = 0._dp
+  forall (i = 1: nelm)
+    tmp_fine(1,  1,  1,   i) = soln_coarse(i)
+  end forall
+  call dssum(tmp_fine)
+
+  !call interpolate_into_element(soln_coarse, u)
+  u = 0._dp
+  forall (i = 1: nelm)
+    u(1+(i-1)*8) = tmp_fine(1,  1,  1,   i) 
+    u(2+(i-1)*8) = tmp_fine(nx1,1,  1,   i) 
+    u(3+(i-1)*8) = tmp_fine(1,  ny1,1,   i) 
+    u(4+(i-1)*8) = tmp_fine(nx1,ny1,1,   i) 
+    u(5+(i-1)*8) = tmp_fine(1,  1,  nz1, i) 
+    u(6+(i-1)*8) = tmp_fine(nx1,1,  nz1, i) 
+    u(7+(i-1)*8) = tmp_fine(1,  ny1,nz1, i) 
+    u(8+(i-1)*8) = tmp_fine(nx1,ny1,nz1, i) 
+  end forall
 
   ! update residual
+#if 0
   allocate(tmp_fine(size(u,1), size(u,2), size(u,3), size(u,4)))
   h2 = 0._dp
   call axhelm (tmp_fine, u, h1, h2, imsh, isd)
@@ -119,6 +155,7 @@ subroutine spectral_solve(u,rhs,h1,mask,mult,imsh,isd)
   if (nid == 0) write(*,*) "RHS before: ", sqrt(sum(rhs * rhs))
   RHS = RHS - tmp_fine 
   if (nid == 0) write(*,*) "RHS after : ", sqrt(sum(rhs * rhs))
+#endif
 
   return
  

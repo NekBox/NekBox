@@ -113,6 +113,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   use size_m, only : lx1, ly1, lz1, lelt
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
+  use parallel, only : nid
   implicit none
 
   real(DP), intent(out) :: z(*)      !>!< approximate solution to A z = rhs
@@ -163,7 +164,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
 !  l         l+1
   p_msk = p_mg_msk(l,mg_fld)
   call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
-  call hsmg_coarse_solve ( e(is) , r )            ! e  := A   r
+  call hsmg_coarse_solve ( e(is:is+mg_h1_n(1,mg_fld)-1) , r(1:mg_h1_n(1,mg_fld)) )            ! e  := A   r
   call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
   deallocate(r)
 
@@ -1304,10 +1305,13 @@ end subroutine hsmg_schwarz_wt3d
 subroutine hsmg_coarse_solve(e,r)
   use kinds, only : DP
   use ctimer, only : icalld, ncrsl, tcrsl, ifsync, etime1, dnekclock
-  use parallel, only : xxth
-  use tstep, only : ifield
+  use parallel, only : xxth, nid
+  use tstep, only : nelfld, ifield
+  use poisson, only : spectral_solve
+ 
   implicit none
-  real(DP) :: e(1),r(1)
+  real(DP) :: e(:),r(:)
+  real(DP), allocatable :: e_spec(:)
 
   if (icalld == 0) then ! timer info
       ncrsl=0
@@ -1322,8 +1326,13 @@ subroutine hsmg_coarse_solve(e,r)
   etime1=dnekclock()
 #endif
 
-  call crs_solve(xxth(ifield),e,r)
+!  call crs_solve(xxth(ifield),e,r)
+!  e(1:nelfld(ifield)) = r(1:nelfld(ifield))
+  call spectral_solve(e, r)!, 0,0,0, 0, 0)
 
+  !if (nid == 0) write(*,*) "Coarse diff = ", sqrt(sum((e-e_spec)**2)/sum(e**2))
+  !e = e_spec
+  !e = r
 #ifndef NOTIMER
   tcrsl=tcrsl+dnekclock()-etime1
 #endif

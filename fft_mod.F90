@@ -1,8 +1,10 @@
 module fft
   use, intrinsic :: iso_c_binding
+  use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00, FFTW_REDFT10, FFTW_REDFT01
   implicit none
 
-  public fft_r2r, transpose_grid
+  public :: fft_r2r, transpose_grid
+  public :: W_FORWARD, W_BACKWARD, P_FORWARD, P_BACKWARD 
   private
   integer, parameter :: nplans = 10
   integer :: n_r2r_plans = 0
@@ -10,13 +12,17 @@ module fft
   integer :: r2r_plan_lengths(nplans)
   integer :: r2r_plan_nums(nplans)
   integer(C_INT) :: r2r_plan_kinds(nplans)
+  integer, parameter :: W_FORWARD = FFTW_REDFT10
+  integer, parameter :: W_BACKWARD = FFTW_REDFT01
+  integer, parameter :: P_FORWARD = FFTW_R2HC
+  integer, parameter :: P_BACKWARD = FFTW_HC2R
+
 
 contains
 
 subroutine fft_r2r(u, length, num, kind, rescale)
   use kinds, only : DP
   use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
-  use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00, FFTW_REDFT10, FFTW_REDFT01
   use fftw3, only : fftw_plan_many_r2r
   use fftw3, only : fftw_execute_r2r
 
@@ -62,7 +68,7 @@ subroutine fft_r2r(u, length, num, kind, rescale)
 
   if (kind == FFTW_REDFT00) then
     rescale = rescale * sqrt(2.*real(length-1, kind=DP))
-  else if (kind == FFTW_REDFT10 .or. kind == FFTW_REDFT01) then
+  else if (kind == W_FORWARD .or. kind == W_BACKWARD) then
     rescale = rescale * sqrt(2.*real(length, kind=DP))
   else if (kind == FFTW_R2HC .or. kind == FFTW_HC2R) then
     rescale = rescale * sqrt(real(length, kind=DP))
@@ -95,21 +101,21 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   if (idx == 1 .or. idx_t == 1) then
     block0 = size(grid,2)
     block1 = size(grid_t,2)
-    do i = 0, size(grid,3) - 1
       transpose_plan = fftw_mpi_plan_many_transpose( &
                         shape_c(idx_t), shape_c(idx), one, &
                         block0, block1, &
-                        grid(:,:,i), grid_t(:,:,i), comm, FFTW_ESTIMATE)
+                        grid(:,:,1), grid_t(:,:,1), comm, FFTW_ESTIMATE)
+    do i = 0, size(grid,3) - 1
       call fftw_mpi_execute_r2r(transpose_plan, grid(:,:,i), grid_t(:,:,i))
     enddo
   else if (idx == 3 .or. idx_t == 3) then
     block0 = size(grid,3)
     block1 = size(grid_t,3)
-    do i = 0, size(grid,2) - 1
       transpose_plan = fftw_mpi_plan_many_transpose( &
                         shape_c(idx_t), shape_c(idx), one, &
                         block0, block1, &
-                        grid(:,i,:), grid_t(:,i,:), comm, FFTW_ESTIMATE)
+                        grid(:,1,:), grid_t(:,1,:), comm, FFTW_ESTIMATE)
+    do i = 0, size(grid,2) - 1
       call fftw_mpi_execute_r2r(transpose_plan, grid(:,i,:), grid_t(:,i,:))
     enddo
   endif

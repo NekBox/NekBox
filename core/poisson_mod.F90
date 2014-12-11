@@ -30,7 +30,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use soln, only : vmult
   use size_m, only : nx1, ny1, nz1, nelv
 
-  use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT10, FFTW_REDFT01
+  use fft, only : P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r, transpose_grid
 
   REAL(DP), intent(out)   :: U    (:)
@@ -84,37 +84,37 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
 
   ! forward FFT
   rescale = 1._dp
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_R2HC, rescale)
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
   
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   call transpose_grid(plane_xy, plane_yx, shape_x, 1, 2, comm_xy)
   deallocate(plane_xy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_R2HC, rescale)
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
 
   allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
   call transpose_grid(plane_yx, plane_zy, shape_x, 2, 3, comm_yz)
   deallocate(plane_yx)
 
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT10, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
 
   ! Poisson kernel
   call poisson_kernel(plane_zy, shape_x, start_x, end_x)
 
   ! reverse FFT
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT01, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
 
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   call transpose_grid(plane_zy, plane_yx, shape_x, 3, 2, comm_yz)
   deallocate(plane_zy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_HC2R, rescale)
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
 
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
   call transpose_grid(plane_yx, plane_xy, shape_x, 2, 1, comm_xy)
   deallocate(plane_yx)
 
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_HC2R, rescale)
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
 
   ! normalize the FFTs
   plane_xy = plane_xy * (1._dp/ rescale)
@@ -451,7 +451,7 @@ subroutine shuffle_test()
   use parallel, only : nid
   use parallel, only : lglel
 
-  use fftw3, only :FFTW_R2HC, FFTW_HC2R, FFTW_REDFT10, FFTW_REDFT01
+  use fft, only :P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r, transpose_grid
 
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
@@ -475,34 +475,34 @@ subroutine shuffle_test()
 
   ! forward FFT
   rescale = 1._dp
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_R2HC, rescale)
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
   
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   call transpose_grid(plane_xy, plane_yx, shape_x, 1, 2, comm_xy)
   deallocate(plane_xy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_R2HC, rescale)
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
 
   allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
   call transpose_grid(plane_yx, plane_zy, shape_x, 2, 3, comm_yz)
   deallocate(plane_yx)
 
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT10, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
 
   ! reverse FFT
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT01, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
 
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   call transpose_grid(plane_zy, plane_yx, shape_x, 3, 2, comm_yz)
   deallocate(plane_zy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_HC2R, rescale)
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
 
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
   call transpose_grid(plane_yx, plane_xy, shape_x, 2, 1, comm_xy)
   deallocate(plane_yx)
 
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_HC2R, rescale)
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
 
   plane_xy = plane_xy * (1._dp/ rescale)
 
@@ -616,8 +616,8 @@ subroutine cos_test()
   use tstep, only : PI, imesh
   use soln, only : pmask
 
-  use fftw3, only : FFTW_R2HC, FFTW_HC2R
-  use fftw3, only : FFTW_REDFT10, FFTW_REDFT01
+  use fft, only : P_FORWARD, P_BACKWARD
+  use fft, only : W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r, transpose_grid
   use semhat, only : zh
 
@@ -657,37 +657,37 @@ subroutine cos_test()
 
   ! forward FFT
   rescale = 1._dp
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_R2HC, rescale)
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
   
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   call transpose_grid(plane_xy, plane_yx, shape_x, 1, 2, comm_xy)
   deallocate(plane_xy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_R2HC, rescale)
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
 
   allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
   call transpose_grid(plane_yx, plane_zy, shape_x, 2, 3, comm_yz)
   deallocate(plane_yx)
 
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT10, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
 
   ! Poisson kernel
   call poisson_kernel(plane_zy, shape_x, start_x, end_x)
 
   ! reverse FFT
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), FFTW_REDFT01, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
 
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   call transpose_grid(plane_zy, plane_yx, shape_x, 3, 2, comm_yz)
   deallocate(plane_zy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), FFTW_HC2R, rescale)
+  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
 
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
   call transpose_grid(plane_yx, plane_xy, shape_x, 2, 1, comm_xy)
   deallocate(plane_yx)
 
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), FFTW_HC2R, rescale)
+  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
   plane_xy = plane_xy * (1._dp/ rescale)
 
 

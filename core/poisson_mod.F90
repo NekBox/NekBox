@@ -74,7 +74,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
 
   ! convert RHS to coarse mesh
   allocate(rhs_coarse(nelm))
-  forall(i = 1 : nelm) rhs_coarse(i) = tmp_fine(1,1,1,i)
+  forall(i = 1 : nelm) rhs_coarse(i) = (tmp_fine(1,1,1,i) + tmp_fine(1,1,nz1,i))/2._dp
   !if (nid == 0) write(*,*) "RHS Coarse", sqrt(sum(rhs_coarse * rhs_coarse)/512)
  
   ! reorder onto sticks
@@ -127,9 +127,11 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   forall(i = 1:nelm) soln_coarse(i) = soln_coarse(i) / sum(bm1(:,:,:,i))
   tmp_fine = 0._dp
   forall (i = 1: nelm)
-    tmp_fine(1,  1,  1,   i) = soln_coarse(i)
+    tmp_fine(1,  1,  1,   i)   = 4.*soln_coarse(i) 
+    tmp_fine(1,  1,  nz1,   i) = 4.*soln_coarse(i) 
   end forall
   call dssum(tmp_fine)
+  tmp_fine = tmp_fine * vmult
 
   !call interpolate_into_element(soln_coarse, u)
   u = 0._dp

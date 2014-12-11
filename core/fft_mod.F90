@@ -6,17 +6,27 @@ module fft
   public :: fft_r2r, transpose_grid
   public :: W_FORWARD, W_BACKWARD, P_FORWARD, P_BACKWARD 
   private
+
   integer, parameter :: nplans = 10
   integer :: n_r2r_plans = 0
   type(C_PTR) :: r2r_plans(nplans)
   integer :: r2r_plan_lengths(nplans)
   integer :: r2r_plan_nums(nplans)
   integer(C_INT) :: r2r_plan_kinds(nplans)
+
   integer, parameter :: W_FORWARD = FFTW_REDFT10
   integer, parameter :: W_BACKWARD = FFTW_REDFT01
   integer, parameter :: P_FORWARD = FFTW_R2HC
   integer, parameter :: P_BACKWARD = FFTW_HC2R
 
+  integer, parameter :: max_transpose_plans = 100
+  integer :: n_transpose_plans = 0
+  type(C_PTR) :: transpose_plans(max_transpose_plans)
+  integer :: transpose_comm(max_transpose_plans)
+  integer :: transpose_n0(max_transpose_plans)
+  integer :: transpose_n1(max_transpose_plans)
+  integer :: transpose_b0(max_transpose_plans)
+  integer :: transpose_b1(max_transpose_plans)
 
 contains
 
@@ -91,32 +101,65 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   integer, intent(in) :: idx_t
   integer, intent(in) :: comm
 
-  integer(C_INTPTR_T) :: shape_c(3), block0, block1
+  real(DP), allocatable :: tmp(:,:,:)
+  integer(C_INTPTR_T) :: shape_c(3), block0, block1, n0, n1
   integer(C_INTPTR_T), parameter :: one = 1
   type(C_PTR) :: transpose_plan
-  integer :: i
+  integer :: i, plan_idx
 
   shape_c = shape_x
+
+  n0 = shape_c(idx_t)
+  n1 = shape_c(idx)
 
   if (idx == 1 .or. idx_t == 1) then
     block0 = size(grid,2)
     block1 = size(grid_t,2)
-      transpose_plan = fftw_mpi_plan_many_transpose( &
-                        shape_c(idx_t), shape_c(idx), one, &
-                        block0, block1, &
-                        grid(:,:,1), grid_t(:,:,1), comm, FFTW_ESTIMATE)
-    do i = 0, size(grid,3) - 1
-      call fftw_mpi_execute_r2r(transpose_plan, grid(:,:,i), grid_t(:,:,i))
-    enddo
+    allocate(tmp(size(grid,1),size(grid,2),2))
   else if (idx == 3 .or. idx_t == 3) then
     block0 = size(grid,3)
     block1 = size(grid_t,3)
-      transpose_plan = fftw_mpi_plan_many_transpose( &
-                        shape_c(idx_t), shape_c(idx), one, &
-                        block0, block1, &
-                        grid(:,1,:), grid_t(:,1,:), comm, FFTW_ESTIMATE)
-    do i = 0, size(grid,2) - 1
-      call fftw_mpi_execute_r2r(transpose_plan, grid(:,i,:), grid_t(:,i,:))
+    allocate(tmp(size(grid,1),size(grid,3),2))
+  endif
+
+  plan_idx = -1
+  do i = 1, n_transpose_plans
+    if ( &
+      n0 == transpose_n0(i) .and. &
+      n1 == transpose_n1(i) .and. &
+      block0 == transpose_b0(i) .and. &
+      block1 == transpose_b1(i) .and. &
+      comm   == transpose_comm(i) &
+       ) then
+      plan_idx = i
+      exit
+    endif
+  enddo
+
+  if (plan_idx < 0) then
+    if (n_transpose_plans == max_transpose_plans) then
+      write(*,*) "Out of transpose plans!"
+    endif
+    n_transpose_plans = n_transpose_plans + 1
+    transpose_n0(n_transpose_plans) = n0
+    transpose_n1(n_transpose_plans) = n1
+    transpose_b0(n_transpose_plans) = block0
+    transpose_b1(n_transpose_plans) = block1
+    transpose_comm(n_transpose_plans) = comm
+    transpose_plans(n_transpose_plans) = fftw_mpi_plan_many_transpose( &
+                    n0,n1, one, &
+                    block0, block1, &
+                    tmp(:,:,1), tmp(:,:,2), comm, FFTW_EXHAUSTIVE)
+    plan_idx = n_transpose_plans
+  endif
+
+  if (idx == 1 .or. idx_t == 1) then
+    do i = 0, size(grid,3) - 1
+      call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,:,i), grid_t(:,:,i))
+    enddo
+  else if (idx == 3 .or. idx_t == 3) then
+   do i = 0, size(grid,2) - 1
+      call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,i,:), grid_t(:,i,:))
     enddo
   endif
 

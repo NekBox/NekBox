@@ -8,6 +8,7 @@
 !! Poisson equation.
 module poisson
   use, intrinsic :: iso_c_binding
+  use kinds, only : DP
   implicit none
 
   public spectral_solve
@@ -15,16 +16,39 @@ module poisson
 
   integer :: comm_xy, comm_yz
   logical :: interface_initialized = .false.
+  logical :: mesh_to_grid_initialized = .false.
 
   integer(C_INTPTR_T) :: alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
   integer(C_INTPTR_T) :: alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
+
+  type real_p
+    real(DP), allocatable :: p(:)
+  end type real_p
+  type int_p
+    integer, allocatable :: p(:)
+  end type int_p
+
+  type(real_p), allocatable :: send_buffers(:)
+  type(real_p), allocatable :: rec_buffers(:)
+  integer, allocatable :: dest_pids(:)
+  integer, allocatable :: dest_slots(:)
+  integer, allocatable :: dest_indexes(:)
+  integer, allocatable :: dest_lengths(:)
+
+  integer, allocatable :: src_pids(:)
+  integer, allocatable :: src_lengths(:)
+  integer, allocatable :: src_slots(:,:,:)
+  integer, allocatable :: src_indexes(:,:,:)
+
+
+
 
 contains
 
 !> \brief 
 subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use kinds, only : DP
-  use geom, only : bm1, binvm1
+  use geom, only : bm1, binvm1, volvm1
   use mesh, only : shape_x, start_x, end_x
   use parallel, only : nekcomm, nid, lglel
   use soln, only : vmult
@@ -117,14 +141,16 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
 
   ! normalize the FFTs
-  plane_xy = plane_xy * (1._dp/ rescale)
+  rescale = 1._dp / (rescale * sum(bm1(:,:,:,1)))
+  plane_xy = plane_xy * rescale
 
   ! reorder to local elements
   allocate(soln_coarse(nelm)); soln_coarse = 0._dp
   call grid_to_mesh(plane_xy, soln_coarse, shape_x)
 
   ! populate U
-  forall(i = 1:nelm) soln_coarse(i) = soln_coarse(i) / sum(bm1(:,:,:,i))
+  !forall(i = 1:nelm) soln_coarse(i) = soln_coarse(i) / sum(bm1(:,:,:,i))
+  !forall(i = 1:nelm) soln_coarse(i) = soln_coarse(i) 
   tmp_fine = 0._dp
   forall (i = 1: nelm)
     tmp_fine(1,  1,  1,   i)   = 4.*soln_coarse(i) 
@@ -226,6 +252,131 @@ integer function xyz_to_pid(ix, iy, iz, shape_x)
 
 end function
 
+subroutine init_mesh_to_grid(nelm, shape_x)
+  use parallel, only : lglel, gllnid, nid
+  integer, intent(in) :: nelm
+  integer, intent(in) :: shape_x(3)
+
+  integer :: i, j, ieg, src_pid, dest_pid, npids, slot
+  integer :: idx, idy, idz
+  integer :: ix(3)
+
+  allocate(dest_pids(nelm))
+  npids = 0
+  do i = 1, nelm
+    ieg = lglel(i)
+    ix = ieg_to_xyz(ieg, shape_x)
+    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x)
+    slot =  -1
+    do j = 1, npids
+      if (dest_pid == dest_pids(j)) then
+        slot = j
+        exit
+      endif
+    enddo
+    if (slot == -1) then
+      npids = npids + 1
+      slot = npids
+      dest_pids(slot) = dest_pid
+    endif 
+  enddo
+  deallocate(dest_pids)
+  allocate(dest_pids(npids))
+  allocate(dest_lengths(npids))
+  allocate(dest_slots(nelm))
+  allocate(dest_indexes(nelm))
+  npids = 0
+  dest_lengths = 0
+  do i = 1, nelm
+    ieg = lglel(i)
+    ix = ieg_to_xyz(ieg, shape_x)
+    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x)
+    slot =  -1
+    do j = 1, npids
+      if (dest_pid == dest_pids(j)) then
+        slot = j
+        exit
+      endif
+    enddo
+    if (slot == -1) then
+      npids = npids + 1
+      slot = npids
+      dest_pids(slot) = dest_pid
+    endif 
+    dest_slots(i) = slot
+    dest_lengths(slot) = dest_lengths(slot) + 1
+    dest_indexes(i) = dest_lengths(slot) 
+  enddo
+ 
+  allocate(src_pids(shape_x(1) * nin_local_xy * nin_local_yz))
+  npids = 0
+      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
+    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
+  do idx = 0, shape_x(1)-1
+        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
+        src_pid = gllnid(IEG)
+        slot =  -1
+        do j = 1, npids
+          if (src_pid == src_pids(j)) then
+            slot = j
+            exit
+          endif
+        enddo
+        if (slot == -1) then
+          npids = npids + 1
+          slot = npids
+          src_pids(slot) = src_pid
+        endif 
+      enddo
+    enddo
+  enddo
+  deallocate(src_pids)
+
+  allocate(src_pids(npids))
+  allocate(src_lengths(npids))
+  allocate(src_slots(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
+  allocate(src_indexes(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
+  npids = 0
+  src_lengths = 0
+      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
+    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
+  do idx = 0, shape_x(1)-1
+        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
+        src_pid = gllnid(IEG)
+        slot =  -1
+        do j = 1, npids
+          if (src_pid == src_pids(j)) then
+            slot = j
+            exit
+          endif
+        enddo
+        if (slot == -1) then
+          npids = npids + 1
+          slot = npids
+          src_pids(slot) = src_pid
+        endif
+        src_slots(idx,idy-idx_in_local_xy, idz-idx_in_local_yz) = slot
+        src_lengths(slot) = src_lengths(slot) + 1
+        src_indexes(idx,idy-idx_in_local_xy, idz-idx_in_local_yz) = src_lengths(slot) 
+      enddo
+    enddo
+  enddo
+
+  allocate(send_buffers(size(dest_pids)))
+  do i = 1, size(dest_lengths)
+    allocate(send_buffers(i)%p(dest_lengths(i)))
+  enddo
+  allocate(rec_buffers(size(src_pids)))
+  do i = 1, size(src_lengths)
+    write(*,*) "Alloced rec_buffer", i, src_lengths(i)
+    allocate(rec_buffers(i)%p(src_lengths(i)))
+  enddo
+
+  call nekgsync()
+  if (nid == 0) write(*,*) "Finished init", nelm
+
+end subroutine init_mesh_to_grid
+
 subroutine mesh_to_grid(mesh, grid, shape_x)
   use kinds, only : DP
   use parallel, only : nekcomm, nid, nekreal
@@ -241,8 +392,50 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
   integer :: dest_pid, src_pid, i, idx, idy, idz, ieg, ierr
   integer :: ix(3)
   integer :: nelm
+  integer :: slot, index_in_slot
   nelm = size(mesh)
 
+  if (.not. mesh_to_grid_initialized) then
+    call init_mesh_to_grid(nelm, shape_x)
+    mesh_to_grid_initialized = .true.
+  endif
+
+#if 1
+  ! go through our stuff 
+  do i = 1, nelm
+    send_buffers(dest_slots(i))%p(dest_indexes(i)) = mesh(i)
+  enddo
+
+  allocate(mpi_reqs(size(src_pids)+size(dest_pids))); n_mpi_reqs = 0
+  do i = 1, size(dest_pids)
+    n_mpi_reqs = n_mpi_reqs + 1
+    call MPI_Isend(send_buffers(i)%p, dest_lengths(i), &
+                   nekreal, dest_pids(i), nid+dest_pids(i)*1024, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+  enddo
+
+  do i = 1, size(src_pids)
+    n_mpi_reqs = n_mpi_reqs + 1
+    call MPI_Irecv(rec_buffers(i)%p, src_lengths(i), &
+                   nekreal, src_pids(i), src_pids(i)+nid*1024, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+  enddo
+
+  do i = 1, n_mpi_reqs
+    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
+  enddo
+
+
+  do idx = 0, shape_x(1)-1
+    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
+      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
+        slot = src_slots(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+        index_in_slot = src_indexes(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+        grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz) = &
+          rec_buffers(slot)%p(index_in_slot)
+      enddo
+    enddo
+  enddo
+
+#else
   ! go through our stuff
   allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
   do i = 1, nelm
@@ -275,7 +468,9 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
          
   do i = 1, n_mpi_reqs
     call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
-  enddo
+  enddo 
+#endif
+
 
 end subroutine mesh_to_grid
 
@@ -293,9 +488,47 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
   integer :: n_mpi_reqs
   integer :: dest_pid, src_pid, i, idx, idy, idz, ieg, ierr
   integer :: ix(3)
+  integer :: slot, index_in_slot
   integer :: nelm
   nelm = size(mesh)
 
+
+#if 1
+  do idx = 0, shape_x(1)-1
+    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
+      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
+        slot = src_slots(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+        index_in_slot = src_indexes(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+        rec_buffers(slot)%p(index_in_slot) = grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+      enddo
+    enddo
+  enddo
+
+  allocate(mpi_reqs(size(src_pids)+size(dest_pids))); n_mpi_reqs = 0
+  do i = 1, size(src_pids)
+    n_mpi_reqs = n_mpi_reqs + 1
+    call MPI_Isend(rec_buffers(i)%p, src_lengths(i), &
+                   nekreal, src_pids(i), src_pids(i)+nid*1024, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+  enddo
+
+
+  do i = 1, size(dest_pids)
+    n_mpi_reqs = n_mpi_reqs + 1
+    call MPI_Irecv(send_buffers(i)%p, dest_lengths(i), &
+                   nekreal, dest_pids(i), nid+dest_pids(i)*1024, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+  enddo
+
+  do i = 1, n_mpi_reqs
+    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
+  enddo
+
+
+  ! go through our stuff 
+  do i = 1, nelm
+    mesh(i) = send_buffers(dest_slots(i))%p(dest_indexes(i))
+  enddo
+
+#else
   allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
   n_mpi_reqs = 0
   do idx = 0, shape_x(1)-1
@@ -328,6 +561,9 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
   do i = 1, n_mpi_reqs
     call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
   enddo
+#endif
+
+
 end subroutine grid_to_mesh
 
 subroutine poisson_kernel(grid, shape_x, start_x, end_x)
@@ -339,36 +575,42 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x)
   real(DP), intent(in) :: start_x(3)
   real(DP), intent(in) :: end_x(3)
   real(DP) :: kx, ky, kz
-
-  integer :: idx, idy, idz
-  do idz = 0, shape_x(3) - 1
-    do idy = 0, nout_local_yz - 1
-      do idx = 0, nout_local_xy - 1
-        if (idx + idx_out_local_xy <= shape_x(1) / 2) then
-          kx = 2*pi*(idx +idx_out_local_xy)/(end_x(1)-start_x(1)) 
-        else
-          kx = 2*pi*(shape_x(1) - idx - idx_out_local_xy)/(end_x(1)-start_x(1)) 
-        endif
-
-        if (idy + idx_out_local_yz <= shape_x(2) / 2) then
-          ky = 2*pi*(idy +idx_out_local_yz)/(end_x(2)-start_x(2)) 
-        else
-          ky = 2*pi*(shape_x(2) - idy - idx_out_local_yz)/(end_x(2)-start_x(2)) 
-        endif
-
-        kz = pi*(idz)/(end_x(3)-start_x(3)) 
-
-        if (kx**2. + ky**2. + kz**2. < 1.e-9_dp) then
-          grid(idz,idx,idy) = 0._dp
-        else
-          grid(idz, idx, idy) = grid(idz, idx, idy) / ( &
-            (kz)**2._dp + &
-            (ky)**2._dp + &
-            (kx)**2._dp)
-        endif
+  real(DP), allocatable, save :: ks(:,:,:)
+  integer :: idz, idy, idx
+ 
+  if (.not. allocated(ks)) then
+    allocate(ks(0:ubound(grid,1), 0:ubound(grid,2), 0:ubound(grid,3))) 
+    do idz = 0, shape_x(3) - 1
+      do idy = 0, nout_local_yz - 1
+        do idx = 0, nout_local_xy - 1
+          if (idx + idx_out_local_xy <= shape_x(1) / 2) then
+            kx = 2*pi*(idx +idx_out_local_xy)/(end_x(1)-start_x(1)) 
+          else
+            kx = 2*pi*(shape_x(1) - idx - idx_out_local_xy)/(end_x(1)-start_x(1)) 
+          endif
+ 
+          if (idy + idx_out_local_yz <= shape_x(2) / 2) then
+            ky = 2*pi*(idy +idx_out_local_yz)/(end_x(2)-start_x(2)) 
+          else
+            ky = 2*pi*(shape_x(2) - idy - idx_out_local_yz)/(end_x(2)-start_x(2)) 
+          endif
+ 
+          kz = pi*(idz)/(end_x(3)-start_x(3)) 
+ 
+          if (kx**2. + ky**2. + kz**2. < 1.e-9_dp) then
+            ks(idz,idx,idy) = 0._dp
+          else
+            ks(idz, idx, idy) = 1._dp / ( &
+              (kz)**2._dp + &
+              (ky)**2._dp + &
+              (kx)**2._dp)
+          endif
+        enddo
       enddo
     enddo
-  enddo
+  endif
+
+  grid = grid * ks
 end subroutine poisson_kernel
 
 subroutine interpolate_into_element(soln_coarse, soln_fine)
@@ -558,7 +800,7 @@ subroutine transpose_test()
         ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
         err = abs(plane_xy(idx, idy-idx_in_local_xy, idz-idx_in_local_yz) - ieg)
         if (err > 0.001) then
-          write(*,'(A,6(I6))') "WARNING: confused about k after init", nid, idx, idy, idz, ieg, int(plane_yx(idy,idx,idz))
+          write(*,'(A,6(I6))') "WARNING: confused about k after init", nid, idx, idy, idz, ieg, int(plane_xy(idy,idx,idz))
           return
         endif
       enddo

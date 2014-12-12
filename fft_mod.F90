@@ -23,6 +23,7 @@ module fft
   integer :: n_transpose_plans = 0
   type(C_PTR) :: transpose_plans(max_transpose_plans)
   integer :: transpose_comm(max_transpose_plans)
+  integer :: transpose_num(max_transpose_plans)
   integer :: transpose_n0(max_transpose_plans)
   integer :: transpose_n1(max_transpose_plans)
   integer :: transpose_b0(max_transpose_plans)
@@ -102,7 +103,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   integer, intent(in) :: comm
 
   real(DP), allocatable :: tmp(:,:,:)
-  integer(C_INTPTR_T) :: shape_c(3), block0, block1, n0, n1
+  integer(C_INTPTR_T) :: shape_c(3), block0, block1, n0, n1, num
   integer(C_INTPTR_T), parameter :: one = 1
   type(C_PTR) :: transpose_plan
   integer :: i, plan_idx
@@ -115,10 +116,12 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   if (idx == 1 .or. idx_t == 1) then
     block0 = size(grid,2)
     block1 = size(grid_t,2)
+    num    = size(grid,3) 
     allocate(tmp(size(grid,1),size(grid,2),2))
   else if (idx == 3 .or. idx_t == 3) then
     block0 = size(grid,3)
     block1 = size(grid_t,3)
+    num    = size(grid,2) 
     allocate(tmp(size(grid,1),size(grid,3),2))
   endif
 
@@ -129,7 +132,8 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
       n1 == transpose_n1(i) .and. &
       block0 == transpose_b0(i) .and. &
       block1 == transpose_b1(i) .and. &
-      comm   == transpose_comm(i) &
+      comm   == transpose_comm(i) .and. &
+      num   == transpose_num(i) &
        ) then
       plan_idx = i
       exit
@@ -146,6 +150,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     transpose_b0(n_transpose_plans) = block0
     transpose_b1(n_transpose_plans) = block1
     transpose_comm(n_transpose_plans) = comm
+    transpose_num(n_transpose_plans) = num
     transpose_plans(n_transpose_plans) = fftw_mpi_plan_many_transpose( &
                     n0,n1, one, &
                     block0, block1, &
@@ -154,11 +159,11 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   endif
 
   if (idx == 1 .or. idx_t == 1) then
-    do i = 0, size(grid,3) - 1
+    do i = 0, num - 1
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,:,i), grid_t(:,:,i))
     enddo
   else if (idx == 3 .or. idx_t == 3) then
-   do i = 0, size(grid,2) - 1
+   do i = 0, num - 1
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,i,:), grid_t(:,i,:))
     enddo
   endif

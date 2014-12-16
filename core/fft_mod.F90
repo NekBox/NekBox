@@ -73,7 +73,6 @@ subroutine fft_r2r(u, length, num, kind, rescale)
     r2r_plan_lengths(plan_idx) = length
     r2r_plan_nums(plan_idx)    = num
     r2r_plan_kinds(plan_idx)   = kind
-    write(*,*) "Made a plan", length, num, kind
   endif
   call fftw_execute_r2r(r2r_plans(plan_idx), u, u)
 
@@ -94,6 +93,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
   use fftw3, only : fftw_mpi_plan_many_transpose
   use fftw3, only : fftw_mpi_execute_r2r
+  use parallel, only : nid
 
   real(DP), intent(inout) :: grid(0:,0:,0:)
   real(DP), intent(out) :: grid_t(0:,0:,0:)
@@ -106,13 +106,15 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   integer(C_INTPTR_T) :: shape_c(3), block0, block1, n0, n1, num
   integer(C_INTPTR_T), parameter :: one = 1
   type(C_PTR) :: transpose_plan
-  integer :: i, plan_idx
+  integer :: i, plan_idx, ierr
 
   shape_c = shape_x
 
   n0 = shape_c(idx_t)
   n1 = shape_c(idx)
 
+  if (nid == 0) write(*,*) shape_x, idx, idx_t
+ 
   if (idx == 1 .or. idx_t == 1) then
     block0 = size(grid,2)
     block1 = size(grid_t,2)
@@ -124,6 +126,8 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     num    = size(grid,2) 
     allocate(tmp(size(grid,1),size(grid,3),2))
   endif
+
+  if (nid == 0) write(*,*) "allocated"
 
   plan_idx = -1
   do i = 1, n_transpose_plans
@@ -139,6 +143,8 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
       exit
     endif
   enddo
+  
+  if (nid == 0) write(*,*) "searched", plan_idx
 
   if (plan_idx < 0) then
     if (n_transpose_plans == max_transpose_plans) then
@@ -151,23 +157,40 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     transpose_b1(n_transpose_plans) = block1
     transpose_comm(n_transpose_plans) = comm
     transpose_num(n_transpose_plans) = num
+    call nekgsync()
+    if (nid == 0) write(*,*) "planning", n0, n1, block0, block1, num
+    call nekgsync()
+
     transpose_plans(n_transpose_plans) = fftw_mpi_plan_many_transpose( &
                     n0,n1, one, &
                     block0, block1, &
-                    tmp(:,:,1), tmp(:,:,2), comm, FFTW_EXHAUSTIVE)
+                    tmp(:,:,1), tmp(:,:,2), comm, FFTW_ESTIMATE)
+!                    tmp(:,:,1), tmp(:,:,2), comm, FFTW_EXHAUSTIVE)
+!                    grid(:,:,1), grid_t(:,:,1), comm, FFTW_ESTIMATE)
     plan_idx = n_transpose_plans
+    call MPI_Barrier(comm, ierr)
+    write(*,*) "planned", nid, comm
+    if (nid == 0) write(*,*) "planned", n0, n1, block0, block1, num
   endif
+
 
   if (idx == 1 .or. idx_t == 1) then
     do i = 0, num - 1
+      call nekgsync()
+      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,:,i), grid_t(:,:,i))
     enddo
   else if (idx == 3 .or. idx_t == 3) then
    do i = 0, num - 1
+      call nekgsync()
+      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,i,:), grid_t(:,i,:))
     enddo
+  else
+    write(*,*) "Something went wrong in transpose", nid
   endif
 
+  if (nid == 0) write(*,*) "executed"
 
 end subroutine transpose_grid
 

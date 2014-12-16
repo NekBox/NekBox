@@ -113,7 +113,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   n0 = shape_c(idx_t)
   n1 = shape_c(idx)
 
-  if (nid == 0) write(*,*) shape_x, idx, idx_t
+!  if (nid == 0) write(*,*) shape_x, idx, idx_t
  
   if (idx == 1 .or. idx_t == 1) then
     block0 = size(grid,2)
@@ -127,7 +127,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     allocate(tmp(size(grid,1),size(grid,3),2))
   endif
 
-  if (nid == 0) write(*,*) "allocated"
+!  if (nid == 0) write(*,*) "allocated"
 
   plan_idx = -1
   do i = 1, n_transpose_plans
@@ -144,7 +144,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     endif
   enddo
   
-  if (nid == 0) write(*,*) "searched", plan_idx
+!  if (nid == 0) write(*,*) "searched", plan_idx
 
   if (plan_idx < 0) then
     if (n_transpose_plans == max_transpose_plans) then
@@ -158,39 +158,39 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     transpose_comm(n_transpose_plans) = comm
     transpose_num(n_transpose_plans) = num
     call nekgsync()
-    if (nid == 0) write(*,*) "planning", n0, n1, block0, block1, num
-    call nekgsync()
+!    if (nid == 0) write(*,*) "planning", n0, n1, block0, block1, num
+!    call MPI_Barrier(comm, ierr)
 
     transpose_plans(n_transpose_plans) = fftw_mpi_plan_many_transpose( &
                     n0,n1, one, &
                     block0, block1, &
-                    tmp(:,:,1), tmp(:,:,2), comm, FFTW_ESTIMATE)
-!                    tmp(:,:,1), tmp(:,:,2), comm, FFTW_EXHAUSTIVE)
+                    tmp(:,:,1), tmp(:,:,2), comm, FFTW_EXHAUSTIVE)
+!                    tmp(:,:,1), tmp(:,:,2), comm, FFTW_ESTIMATE)
 !                    grid(:,:,1), grid_t(:,:,1), comm, FFTW_ESTIMATE)
     plan_idx = n_transpose_plans
-    call MPI_Barrier(comm, ierr)
-    write(*,*) "planned", nid, comm
-    if (nid == 0) write(*,*) "planned", n0, n1, block0, block1, num
+!    call MPI_Barrier(comm, ierr)
+!    write(*,*) "planned", nid, comm
+!    if (nid == 0) write(*,*) "planned", n0, n1, block0, block1, num
   endif
 
 
   if (idx == 1 .or. idx_t == 1) then
     do i = 0, num - 1
       call nekgsync()
-      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
+!      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,:,i), grid_t(:,:,i))
     enddo
   else if (idx == 3 .or. idx_t == 3) then
    do i = 0, num - 1
       call nekgsync()
-      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
+!      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,i,:), grid_t(:,i,:))
     enddo
   else
     write(*,*) "Something went wrong in transpose", nid
   endif
 
-  if (nid == 0) write(*,*) "executed"
+!  if (nid == 0) write(*,*) "executed"
 
 end subroutine transpose_grid
 

@@ -58,14 +58,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use fft, only : fft_r2r, transpose_grid
 
   REAL(DP), intent(out)   :: U    (:)
-  !REAL(DP), intent(out)   :: U    (:,:,:,:)
   REAL(DP), intent(inout) :: RHS  (:)
-  !REAL(DP), intent(inout) :: RHS  (:,:,:,:)
-!  REAL(DP), intent(in)  :: H1   (:,:,:,:)
-!  REAL(DP), intent(in)  :: MASK (:,:,:,:)
-!  REAL(DP), intent(in)  :: MULT (:,:,:,:)
-!  integer,  intent(in)  :: imsh
-!  integer,  intent(in)  :: isd
 
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
   real(DP), allocatable :: tmp_fine(:,:,:,:)
@@ -81,7 +74,9 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   if (.not. interface_initialized) then
     call init_comm_infrastructure(nekcomm, shape_x)
   endif
-  
+
+  ! map onto fine mesh to use dssum
+  !> \todo replace this with coarse grid dssum  
   allocate(tmp_fine(nx1, ny1, nz1, nelm))
   tmp_fine = 0._dp
   forall (i = 1: nelm)
@@ -99,7 +94,6 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   ! convert RHS to coarse mesh
   allocate(rhs_coarse(nelm))
   forall(i = 1 : nelm) rhs_coarse(i) = (tmp_fine(1,1,1,i) + tmp_fine(1,1,nz1,i))/2._dp
-  !if (nid == 0) write(*,*) "RHS Coarse", sqrt(sum(rhs_coarse * rhs_coarse)/512)
  
   ! reorder onto sticks
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
@@ -149,8 +143,6 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   call grid_to_mesh(plane_xy, soln_coarse, shape_x)
 
   ! populate U
-  !forall(i = 1:nelm) soln_coarse(i) = soln_coarse(i) / sum(bm1(:,:,:,i))
-  !forall(i = 1:nelm) soln_coarse(i) = soln_coarse(i) 
   tmp_fine = 0._dp
   forall (i = 1: nelm)
     tmp_fine(1,  1,  1,   i)   = 4.*soln_coarse(i) 
@@ -159,7 +151,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   call dssum(tmp_fine)
   tmp_fine = tmp_fine * vmult
 
-  !call interpolate_into_element(soln_coarse, u)
+  ! extract coarse values
   u = 0._dp
   forall (i = 1: nelm)
     u(1+(i-1)*8) = tmp_fine(1,  1,  1,   i) 
@@ -171,19 +163,6 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
     u(7+(i-1)*8) = tmp_fine(1,  ny1,nz1, i) 
     u(8+(i-1)*8) = tmp_fine(nx1,ny1,nz1, i) 
   end forall
-
-  ! update residual
-#if 0
-  allocate(tmp_fine(size(u,1), size(u,2), size(u,3), size(u,4)))
-  h2 = 0._dp
-  call axhelm (tmp_fine, u, h1, h2, imsh, isd)
-  tmp_fine = tmp_fine * mask
-  call dssum   (tmp_fine)
-
-  if (nid == 0) write(*,*) "RHS before: ", sqrt(sum(rhs * rhs))
-  RHS = RHS - tmp_fine 
-  if (nid == 0) write(*,*) "RHS after : ", sqrt(sum(rhs * rhs))
-#endif
 
   return
  
@@ -411,7 +390,6 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
     mesh_to_grid_initialized = .true.
   endif
 
-#if 1
   ! go through our stuff 
   do i = 1, nelm
     send_buffers(dest_slots(i))%p(dest_indexes(i)) = mesh(i)
@@ -446,43 +424,6 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
     enddo
   enddo
 
-#else
-  ! go through our stuff
-  allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
-  do i = 1, nelm
-    ieg = lglel(i)
-    ix = ieg_to_xyz(ieg, shape_x)
-    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x)
-    if (dest_pid == nid) then
-      ! store locally
-      grid(ix(1), ix(2)-idx_in_local_xy, ix(3)-idx_in_local_yz) = mesh(i)
-    else
-      ! send somewhere
-      n_mpi_reqs = n_mpi_reqs + 1
-      call MPI_Isend(mesh(i), 1, nekreal, dest_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-    endif
-  enddo
-
-  do idx = 0, shape_x(1)-1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
-        src_pid = gllnid(IEG)
-        if (src_pid /= nid) then
-          n_mpi_reqs = n_mpi_reqs + 1
-          call MPI_Irecv(grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz),&
-              1, nekreal, src_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-        endif
-      enddo
-    enddo
-  enddo
-         
-  do i = 1, n_mpi_reqs
-    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
-  enddo 
-#endif
-
-
 end subroutine mesh_to_grid
 
 subroutine grid_to_mesh(grid, mesh, shape_x)
@@ -504,7 +445,6 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
   nelm = size(mesh)
 
 
-#if 1
   do idx = 0, shape_x(1)-1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
       do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
@@ -539,42 +479,6 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
     mesh(i) = send_buffers(dest_slots(i))%p(dest_indexes(i))
   enddo
 
-#else
-  allocate(mpi_reqs(2*nelm)); n_mpi_reqs = 0
-  n_mpi_reqs = 0
-  do idx = 0, shape_x(1)-1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1 
-        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
-        dest_pid = gllnid(IEG)
-        if (dest_pid /= nid) then
-          ! send somewhere
-          n_mpi_reqs = n_mpi_reqs + 1
-          call MPI_Isend(grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz),&
-              1, nekreal, dest_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-        else
-          mesh(gllel(ieg)) = grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
-        endif
-      enddo
-    enddo
-  enddo
-
-  do i = 1, nelm
-    ieg = lglel(i)
-    ix = ieg_to_xyz(ieg, shape_x)
-    src_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x)
-    if (src_pid /= nid) then
-      n_mpi_reqs = n_mpi_reqs + 1
-      call MPI_Irecv(mesh(i), 1, nekreal, src_pid, ieg, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-    endif
-  enddo
-
-  do i = 1, n_mpi_reqs
-    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
-  enddo
-#endif
-
-
 end subroutine grid_to_mesh
 
 subroutine poisson_kernel(grid, shape_x, start_x, end_x)
@@ -588,7 +492,8 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x)
   real(DP) :: kx, ky, kz
   real(DP), allocatable, save :: ks(:,:,:)
   integer :: idz, idy, idx
- 
+
+  ! if we don't have the kernel weights, generate them 
   if (.not. allocated(ks)) then
     allocate(ks(0:ubound(grid,1), 0:ubound(grid,2), 0:ubound(grid,3))) 
     do idz = 0, shape_x(3) - 1
@@ -621,83 +526,10 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x)
     enddo
   endif
 
+  ! vector-vector rescale
   grid = grid * ks
+
 end subroutine poisson_kernel
-
-subroutine interpolate_into_element(soln_coarse, soln_fine)
-  use kinds, only : DP 
-  use semhat, only : zh
-  use parallel, only : lglel
-  use mesh, only : shape_x
-
-  real(DP), intent(in) :: soln_coarse(:)
-  real(DP), intent(out) :: soln_fine(:,:,:,:)
-
-  real(DP) :: c
-  real(DP) :: ax, bx, cx, dx, x
-  real(DP) :: ay, by, cy, dy, y
-  real(DP) :: az, bz, cz, dz, z
-  real(DP) :: forward, backward
-  integer :: i, j, ix(3)
-
-  forall (i = 1: size(soln_coarse)) soln_fine(:,:,:,i) = soln_coarse(i)
-  call dssum(soln_fine)
-
-#if 0
-  do i = 1, size(soln_coarse)
-    soln_fine(:,:,:,i) = soln_coarse
-  enddo
-#else
-  do i = 1, size(soln_coarse)
-    c = soln_coarse(i) 
-    forward = soln_fine(8,2,2,i) -c 
-    backward = soln_fine(1,2,2,i) -c 
-    ax = 0!.25_dp * (backward - forward - backward + forward) / 2.
-    bx = .25_dp * (forward + backward - 2._dp * c) / 2._dp
-    cx = .25_dp * (backward + forward )
-    dx = .25_dp*(backward/2. + forward/2. + 3*c)
-
-    forward = soln_fine(2,8,2,i) - c
-    backward = soln_fine(2,1,2,i) - c 
-    ay = 0!.25_dp * (backward - forward - backward + forward) / 2.
-    by = .25_dp * (forward + backward - 2._dp * c) / 2._dp
-    cy = .25_dp * (backward + forward )
-    dy = .25_dp*(backward/2. + forward/2. + 3*c)
-
-    ix = ieg_to_xyz(lglel(i), shape_x)
-    if (ix(3) == 0) then
-      forward = soln_fine(2,2,8,i) -c
-      backward = c 
-    else if (ix(3) == shape_x(3)) then
-      forward = c 
-      backward = soln_fine(2,2,1,i) - c 
-    else
-      forward = soln_fine(2,2,8,i) - c 
-      backward = soln_fine(2,2,1,i) -c
-    endif
-    az = 0!.25_dp * (backward - forward - backward + forward) / 2.
-    bz = .25_dp * (forward + backward - 2._dp * c) / 2._dp
-    cz = .25_dp * (backward + forward )
-    dz = .25_dp*(backward/2. + forward/2. + 3*c)                      !ay = 0._dp; by = 0._dp
-
-    !az = 0._dp; bz = 0._dp
-
-    do j = 1, 8
-      x = zh(j)/2._dp
-      soln_fine(j,:,:,i) = bx*x*x + cx*x + dx/3.
-    enddo
-    do j = 1, 8
-      y = zh(j)/2._dp
-      soln_fine(:,j,:,i) = by*y*y + cy*y + dy/3. + soln_fine(:,j,:,i)
-    enddo
-    do j = 1, 8
-      z = zh(j)/2._dp
-      soln_fine(:,:,j,i) = bz*z*z + cz*z + dz/3. + soln_fine(:,:,j,i)
-    enddo
-  enddo
-#endif
-
-end subroutine interpolate_into_element
 
 subroutine shuffle_test()
   use kinds, only : DP
@@ -896,13 +728,9 @@ subroutine cos_test()
   allocate(rhs_coarse(nelm))
   do i = 1, nelm
     ix = ieg_to_xyz(lglel(i), shape_x)
-    do j = 1, 8 
-      rhs_fine(:,:,j,i) = bm1(:,:,j,i) * (&
-                          cos(8.*pi * (ix(3)+(zh(j)+1)/2._dp) / shape_x(3)) & 
-                        + cos(2.*pi * (ix(3)+(zh(j)+1)/2._dp) / shape_x(3)) )
-    enddo
+    rhs_coarse(i) =  cos(8.*pi * (ix(3) / shape_x(3))) & 
+                   + cos(2.*pi * (ix(3) / shape_x(3)))
   enddo
-  forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs_fine(:,:,:,i))
   if (nid == 0) write(*,*) "COS TEST: rhs ", sqrt(sum(rhs_coarse*rhs_coarse))
  
   ! reorder onto sticks
@@ -951,82 +779,6 @@ subroutine cos_test()
   call grid_to_mesh(plane_xy, soln_coarse, shape_x)
   if (nid == 0) write(*,*) "COS TEST: u_c ", &
     sqrt(sum(soln_coarse*soln_coarse)) * (2._dp * pi /(end_x(1)-start_x(1)))**2._dp
-
-  forall(i = 1 : nelm) soln_coarse(i)  = soln_coarse(i)  / sum(bm1(:,:,:,i))
-  allocate(soln_fine(lx1,ly1,lz1,nelm))
-  !forall(i = 1 : nelm) soln_fine(:,:,:,i) = binvm1(:,:,:,i) * soln_coarse(i) / 512._dp
-#if 1
-  call interpolate_into_element(soln_coarse, soln_fine)
-#else
-#if 0
-  do i = 1, nelm
-    c = soln_coarse(i)
-    bx = (front_coarse(i) - back_coarse(i)) / 2._dp
-    ax = front_coarse(i) - bx - c
-    do j = 1, 8
-      x = zh(j)/2._dp
-      soln_fine(j,:,:,i) = c + bx * x + ax*x*x
-    enddo
-  enddo
-#else
-  forall(i = 1:nelm) soln_fine(:,:,:,i) = soln_coarse(i)
-  call dssum(soln_fine)
-  do i = 1, nelm
-    c = soln_coarse(i)
-    bx = (soln_fine(8,2,2,i) - soln_fine(1,2,2,i))/2._dp
-    ax = soln_fine(8,2,2,i) - 2*c - bx
-    by = (soln_fine(2,8,2,i) - soln_fine(2,1,2,i))/2._dp
-    ay = soln_fine(2,8,2,i) - 2*c - by
-    bz = (soln_fine(2,2,8,i) - soln_fine(2,2,1,i))/2._dp
-    az = soln_fine(2,2,8,i) - 2*c - bz
-
-    ix = ieg_to_xyz(lglel(i), shape_x)
-    if (ix(3) == 0) then
-      bz = (soln_fine(2,2,8,i) - 2.*soln_fine(2,2,1,i))/2._dp
-      az = soln_fine(2,2,8,i) - 2*c - bz
-    else if (ix(3) == shape_x(3)) then
-      bz = (2.*soln_fine(2,2,8,i) - soln_fine(2,2,1,i))/2._dp
-      az = 2.*soln_fine(2,2,8,i) - 2*c - bz
-    endif
-
-    do j = 1, 8
-      x = zh(j)/2._dp
-      soln_fine(j,:,:,i) = c + bx * x + ax*x*x
-    enddo
-    do j = 1, 8
-      y = zh(j)/2._dp
-      soln_fine(:,j,:,i) = soln_fine(:,j,:,i)  + by * y + ay*y*y
-    enddo
-    do j = 1, 8
-      z = zh(j)/2._dp
-      soln_fine(:,:,j,i) = soln_fine(:,:,j,i)  + bz * z + az*z*z
-    enddo
-  enddo
-#endif
-
-#if 0
-  forall(i = 1:nelm) soln_fine(:,:,:,i) = soln_coarse(i)
-  call dssum(soln_fine)
-  soln_fine = soln_fine * vmult
-#endif
-#endif
-
-  ! update residual
-  allocate(tmp_fine(lx1,ly1,lz1,nelm))
-  allocate(h1(lx1,ly1,lz1,nelm))
-  allocate(h2(lx1,ly1,lz1,nelm))
-  h1 = 1._dp; h2 = 0._dp
-  !call axhelm (tmp_fine, soln_fine, h1, h2, imesh, 1)
-  call axhelm (tmp_fine, soln_fine, h1, h2, imesh, 1)
-  tmp_fine = tmp_fine * pmask
-  call dssum   (tmp_fine)
-
-  !rhs_fine = rhs_fine - tmp_fine 
-  forall(i = 1 : nelm) rhs_coarse(i) = sum(tmp_fine(:,:,:,i))
-  if (nid == 0) write(*,*) "COS TEST: Au ", sqrt(sum(rhs_coarse*rhs_coarse)) 
-  rhs_fine = rhs_fine - tmp_fine 
-  forall(i = 1 : nelm) rhs_coarse(i) = sum(rhs_fine(:,:,:,i))
-  if (nid == 0) write(*,*) "COS TEST: r ", sqrt(sum(rhs_coarse*rhs_coarse)) 
 
   return
  

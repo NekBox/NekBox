@@ -127,8 +127,9 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     allocate(tmp(size(grid,1),size(grid,3),2))
   endif
 
-!  if (nid == 0) write(*,*) "allocated"
+  if (nid == 0) write(*,*) "allocated"
 
+  if (num > 0) then
   plan_idx = -1
   do i = 1, n_transpose_plans
     if ( &
@@ -143,9 +144,12 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
       exit
     endif
   enddo
+  endif
   
-!  if (nid == 0) write(*,*) "searched", plan_idx
+  call nekgsync()
+  if (nid == 0) write(*,*) "searched", plan_idx
 
+  if (num > 0) then
   if (plan_idx < 0) then
     if (n_transpose_plans == max_transpose_plans) then
       write(*,*) "Out of transpose plans!"
@@ -157,9 +161,8 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     transpose_b1(n_transpose_plans) = block1
     transpose_comm(n_transpose_plans) = comm
     transpose_num(n_transpose_plans) = num
-    call nekgsync()
-!    if (nid == 0) write(*,*) "planning", n0, n1, block0, block1, num
-!    call MPI_Barrier(comm, ierr)
+    call MPI_Barrier(comm, ierr)
+    if (nid == 0) write(*,*) "planning", n0, n1, block0, block1, num
 
     transpose_plans(n_transpose_plans) = fftw_mpi_plan_many_transpose( &
                     n0,n1, one, &
@@ -172,25 +175,27 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
 !    write(*,*) "planned", nid, comm
 !    if (nid == 0) write(*,*) "planned", n0, n1, block0, block1, num
   endif
+  endif
 
+
+  call nekgsync()
 
   if (idx == 1 .or. idx_t == 1) then
     do i = 0, num - 1
-      call nekgsync()
-!      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
+      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,:,i), grid_t(:,:,i))
     enddo
   else if (idx == 3 .or. idx_t == 3) then
    do i = 0, num - 1
-      call nekgsync()
-!      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
+      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,i,:), grid_t(:,i,:))
     enddo
   else
     write(*,*) "Something went wrong in transpose", nid
   endif
 
-!  if (nid == 0) write(*,*) "executed"
+  call nekgsync()
+  if (nid == 0) write(*,*) "executed"
 
 end subroutine transpose_grid
 

@@ -172,6 +172,7 @@ end subroutine spectral_solve
 subroutine init_comm_infrastructure(comm_world, shape_x)
   use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
   use fftw3, only : fftw_mpi_local_size_many_transposed
+  use mpif, only : MPI_UNDEFINED
   integer, intent(in) :: comm_world !>!< Communicator in which to setup solver
   integer, intent(in) :: shape_x(3) !>!< Shape of mesh
 
@@ -183,30 +184,54 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
 
-  nxy =  int(sqrt(real(comm_size))); ixy = nxy*nid/comm_size; offset_xy = comm_size / nxy
+  comm_size = min(comm_size, 4096)
+  !comm_size = min(comm_size, 1024)
+
+  nxy =  int(sqrt(real(comm_size))); offset_xy = comm_size / nxy
+  if (nid < comm_size) then
+    ixy = (nxy*nid/comm_size) * shape_x(3) / nxy
+  else
+    ixy = MPI_UNDEFINED
+  endif
   call MPI_Comm_split(comm_world, ixy, 0, comm_xy, ierr)
   if (ierr /= 0) write(*,*) "Comm split xy failed", nid
-  nyz =  comm_size/nxy; iyz = mod(nid,nyz)
+
+  nyz =  comm_size/nxy
+  if (nid < comm_size) then
+    iyz = mod(nid,nyz) * shape_x(2) / nyz
+  else
+    iyz = MPI_UNDEFINED
+  endif
   call MPI_Comm_split(comm_world, iyz, 0, comm_yz, ierr)
   if (ierr /= 0) write(*,*) "Comm split yz failed", nid
 
-  shape_c = shape_x
-  alloc_local_xy = fftw_mpi_local_size_many_transposed( 2, &
-                (/shape_c(2), shape_c(1)/), &
-                one, shape_c(2)/nxy, shape_c(1)/nxy, &
-                comm_xy, &
-                nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy)
-  alloc_local_yz = fftw_mpi_local_size_many_transposed( 2, &
-                (/shape_c(3), shape_c(2)/), &
-                one, shape_c(3)/nyz, shape_c(2)/nyz, &
-                comm_yz, &
-                nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz)
+  if (nid < comm_size) then
+    shape_c = shape_x
+    alloc_local_xy = fftw_mpi_local_size_many_transposed( 2, &
+                  (/shape_c(2), shape_c(1)/), &
+                  one, shape_c(2)/nxy, shape_c(1)/nxy, &
+                  comm_xy, &
+                  nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy)
+    alloc_local_yz = fftw_mpi_local_size_many_transposed( 2, &
+                  (/shape_c(3), shape_c(2)/), &
+                  one, shape_c(3)/nyz, shape_c(2)/nyz, &
+                  comm_yz, &
+                  nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz)
 
-  if (ixy /= idx_in_local_yz .or. ixy /= idx_out_local_yz) write(*,*) "fail 1", nid
-  if (iyz /= idx_in_local_xy .or. iyz /= idx_out_local_xy) write(*,*) "fail 2", nid
-  if (shape_c(1) /= alloc_local_xy .or. shape_c(2) /= alloc_local_yz) write(*,*) "fail 3", nid
+    if (ixy /= idx_in_local_yz .or. ixy /= idx_out_local_yz) write(*,*) "fail 1", nid, ixy, idx_in_local_yz, idx_out_local_yz
+    if (iyz /= idx_in_local_xy .or. iyz /= idx_out_local_xy) write(*,*) "fail 2", nid, iyz, idx_in_local_xy, idx_out_local_xy
+    !if (nxy /= 32 .or. nyz /= 32) write(*,*) "fail 3", nid, nxy, nyz
+    if (nxy /= 64 .or. nyz /= 64) write(*,*) "fail 3", nid, nxy, nyz
+    !if (shape_c(1) /= alloc_local_xy .or. shape_c(2) /= alloc_local_yz) write(*,*) "fail 3", nid
+  else
+    nin_local_xy = 0; nout_local_xy = 0
+    nin_local_yz = 0; nout_local_yz = 0
+    idx_in_local_xy = -1; idx_out_local_xy = -1
+    idx_in_local_yz = -1; idx_out_local_yz = -1
+    alloc_local_xy = 0; alloc_local_yz = 0
+  endif
 
-#if 0
+#if 1
   do i = 0, 65
     call nekgsync()
     if (nid == i) write(*,'(A,15(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_xy, idx_out_local_xy, idx_in_local_yz, idx_out_local_yz, nxy, nyz, ixy, iyz
@@ -215,6 +240,8 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   call nekgsync()
 !  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
 #endif
+
+  call nekgsync()
 
   call transpose_test()
   call shuffle_test()
@@ -235,11 +262,12 @@ function ieg_to_xyz(ieg, shape_x) result(xyz)
 
 end function ieg_to_xyz
 
-integer function xyz_to_pid(ix, iy, iz, shape_x)
+integer function xyz_to_pid(ix, iy, iz, shape_x, shape_p)
   integer, intent(in) :: ix, iy, iz
   integer, intent(in) :: shape_x(3)
+  integer, intent(in) :: shape_p(2)
 
-  xyz_to_pid = (iz/nin_local_yz) * (shape_x(2)/nin_local_xy) + (iy/nin_local_xy)
+  xyz_to_pid = (iz * shape_p(2) / shape_x(3)) * shape_p(1) + (iy * shape_p(1) / shape_x(2))
 
 end function
 
@@ -251,13 +279,17 @@ subroutine init_mesh_to_grid(nelm, shape_x)
   integer :: i, j, ieg, src_pid, dest_pid, npids, slot
   integer :: idx, idy, idz
   integer :: ix(3)
+  integer :: shape_p(2)
+
+  shape_p(1) = int(sqrt(real(comm_size)))
+  shape_p(2) = int(sqrt(real(comm_size)))
 
   allocate(dest_pids(nelm))
   npids = 0
   do i = 1, nelm
     ieg = lglel(i)
     ix = ieg_to_xyz(ieg, shape_x)
-    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x)
+    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x, shape_p)
     slot =  -1
     do j = 1, npids
       if (dest_pid == dest_pids(j)) then
@@ -281,7 +313,7 @@ subroutine init_mesh_to_grid(nelm, shape_x)
   do i = 1, nelm
     ieg = lglel(i)
     ix = ieg_to_xyz(ieg, shape_x)
-    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x)
+    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x, shape_p)
     slot =  -1
     do j = 1, npids
       if (dest_pid == dest_pids(j)) then

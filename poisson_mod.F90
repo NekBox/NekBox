@@ -40,7 +40,7 @@ module poisson
   integer, allocatable :: src_slots(:,:,:)
   integer, allocatable :: src_indexes(:,:,:)
 
-
+  integer :: comm_size
 
 
 contains
@@ -199,31 +199,43 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   integer(C_INTPTR_T) :: shape_c(3)
   integer(C_INTPTR_T), parameter :: one = 1
   integer :: nxy, nyz, ixy, iyz, offset_xy
-  integer :: nid, comm_size, ierr
+  integer :: nid, ierr, i
 
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
 
-  nxy =  2; ixy = 2*nid/comm_size; offset_xy = comm_size / nxy
+  nxy =  int(sqrt(real(comm_size))); ixy = nxy*nid/comm_size; offset_xy = comm_size / nxy
   call MPI_Comm_split(comm_world, ixy, 0, comm_xy, ierr)
+  if (ierr /= 0) write(*,*) "Comm split xy failed", nid
   nyz =  comm_size/nxy; iyz = mod(nid,nyz)
   call MPI_Comm_split(comm_world, iyz, 0, comm_yz, ierr)
+  if (ierr /= 0) write(*,*) "Comm split yz failed", nid
 
   shape_c = shape_x
   alloc_local_xy = fftw_mpi_local_size_many_transposed( 2, &
                 (/shape_c(2), shape_c(1)/), &
-                one, FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
+                one, shape_c(2)/nxy, shape_c(1)/nxy, &
                 comm_xy, &
                 nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy)
   alloc_local_yz = fftw_mpi_local_size_many_transposed( 2, &
                 (/shape_c(3), shape_c(2)/), &
-                one, FFTW_MPI_DEFAULT_BLOCK, FFTW_MPI_DEFAULT_BLOCK, &
+                one, shape_c(3)/nyz, shape_c(2)/nyz, &
                 comm_yz, &
                 nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz)
 
-  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy
+  if (ixy /= idx_in_local_yz .or. ixy /= idx_out_local_yz) write(*,*) "fail 1", nid
+  if (iyz /= idx_in_local_xy .or. iyz /= idx_out_local_xy) write(*,*) "fail 2", nid
+  if (shape_c(1) /= alloc_local_xy .or. shape_c(2) /= alloc_local_yz) write(*,*) "fail 3", nid
+
+#if 0
+  do i = 0, 65
+    call nekgsync()
+    if (nid == i) write(*,'(A,15(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_xy, idx_out_local_xy, idx_in_local_yz, idx_out_local_yz, nxy, nyz, ixy, iyz
+    !if (nid == i) write(*,'(A,6(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
+  enddo
   call nekgsync()
-  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
+!  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
+#endif
 
   call transpose_test()
   call shuffle_test()
@@ -368,7 +380,6 @@ subroutine init_mesh_to_grid(nelm, shape_x)
   enddo
   allocate(rec_buffers(size(src_pids)))
   do i = 1, size(src_lengths)
-    write(*,*) "Alloced rec_buffer", i, src_lengths(i)
     allocate(rec_buffers(i)%p(src_lengths(i)))
   enddo
 
@@ -410,13 +421,13 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
   do i = 1, size(dest_pids)
     n_mpi_reqs = n_mpi_reqs + 1
     call MPI_Isend(send_buffers(i)%p, dest_lengths(i), &
-                   nekreal, dest_pids(i), nid+dest_pids(i)*1024, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+                   nekreal, dest_pids(i), nid+dest_pids(i)*comm_size, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
   enddo
 
   do i = 1, size(src_pids)
     n_mpi_reqs = n_mpi_reqs + 1
     call MPI_Irecv(rec_buffers(i)%p, src_lengths(i), &
-                   nekreal, src_pids(i), src_pids(i)+nid*1024, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+                   nekreal, src_pids(i), src_pids(i)+nid*comm_size, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
   enddo
 
   do i = 1, n_mpi_reqs

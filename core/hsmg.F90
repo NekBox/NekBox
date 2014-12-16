@@ -1308,10 +1308,10 @@ subroutine hsmg_coarse_solve(e,r)
   use parallel, only : xxth, nid
   use tstep, only : nelfld, ifield
   use poisson, only : spectral_solve
+  use hsmg, only : use_spectral_coarse
  
   implicit none
   real(DP) :: e(:),r(:)
-  real(DP), allocatable :: e_spec(:)
 
   if (icalld == 0) then ! timer info
       ncrsl=0
@@ -1326,13 +1326,13 @@ subroutine hsmg_coarse_solve(e,r)
   etime1=dnekclock()
 #endif
 
-!  call crs_solve(xxth(ifield),e,r)
-!  e(1:nelfld(ifield)) = r(1:nelfld(ifield))
-  call spectral_solve(e, r)!, 0,0,0, 0, 0)
+!  call spectral_solve(e, r)!, 0,0,0, 0, 0)
+  if (use_spectral_coarse) then
+    call spectral_solve(e, r)!, 0,0,0, 0, 0)
+  else
+    call crs_solve(xxth(ifield),e,r)
+  endif
 
-  !if (nid == 0) write(*,*) "Coarse diff = ", sqrt(sum((e-e_spec)**2)/sum(e**2))
-  !e = e_spec
-  !e = r
 #ifndef NOTIMER
   tcrsl=tcrsl+dnekclock()-etime1
 #endif

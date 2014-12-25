@@ -172,38 +172,52 @@ end subroutine spectral_solve
 subroutine init_comm_infrastructure(comm_world, shape_x)
   use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
   use fftw3, only : fftw_mpi_local_size_many_transposed
+  use fftw3, only : fftw_mpi_init
   use mpif, only : MPI_UNDEFINED
   integer, intent(in) :: comm_world !>!< Communicator in which to setup solver
   integer, intent(in) :: shape_x(3) !>!< Shape of mesh
 
   integer(C_INTPTR_T) :: shape_c(3)
   integer(C_INTPTR_T), parameter :: one = 1
-  integer :: nxy, nyz, ixy, iyz, offset_xy
+  integer :: nxy, nyz, ixy, iyz
   integer :: nid, ierr, i
 
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
 
+  call fftw_mpi_init()
+
   comm_size = min(comm_size, 4096)
   !comm_size = min(comm_size, 1024)
+  !comm_size = min(comm_size, 256)
+  !comm_size = min(comm_size, 64)
 
-  nxy =  int(sqrt(real(comm_size))); offset_xy = comm_size / nxy
+  nxy =  int(2**int(log(real(comm_size))/log(2.) / 2))
+  comm_size = nxy*nxy
   if (nid < comm_size) then
-    ixy = (nxy*nid/comm_size) * shape_x(3) / nxy
+    ixy = ((nxy*nid/comm_size) * shape_x(3)) / nxy
   else
-    ixy = MPI_UNDEFINED
+    ixy = comm_size + 1
   endif
   call MPI_Comm_split(comm_world, ixy, 0, comm_xy, ierr)
   if (ierr /= 0) write(*,*) "Comm split xy failed", nid
+  if (nid >= comm_size) then
+    call MPI_Comm_free(comm_xy, ierr)
+    if (ierr /= 0) write(*,*) "Comm free xy failed", nid
+  endif
 
   nyz =  comm_size/nxy
   if (nid < comm_size) then
-    iyz = mod(nid,nyz) * shape_x(2) / nyz
+    iyz = (mod(nid,nyz) * shape_x(2)) / nyz
   else
-    iyz = MPI_UNDEFINED
+    iyz = comm_size + 1
   endif
   call MPI_Comm_split(comm_world, iyz, 0, comm_yz, ierr)
   if (ierr /= 0) write(*,*) "Comm split yz failed", nid
+  if (nid >= comm_size) then
+    call MPI_Comm_free(comm_yz, ierr)
+    if (ierr /= 0) write(*,*) "Comm free yz failed", nid
+  endif
 
   if (nid < comm_size) then
     shape_c = shape_x
@@ -220,8 +234,10 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 
     if (ixy /= idx_in_local_yz .or. ixy /= idx_out_local_yz) write(*,*) "fail 1", nid, ixy, idx_in_local_yz, idx_out_local_yz
     if (iyz /= idx_in_local_xy .or. iyz /= idx_out_local_xy) write(*,*) "fail 2", nid, iyz, idx_in_local_xy, idx_out_local_xy
+    !if (nxy /= 8 .or. nyz /= 8) write(*,*) "fail 3", nid, nxy, nyz
+    !if (nxy /= 16 .or. nyz /= 16) write(*,*) "fail 3", nid, nxy, nyz
     !if (nxy /= 32 .or. nyz /= 32) write(*,*) "fail 3", nid, nxy, nyz
-    if (nxy /= 64 .or. nyz /= 64) write(*,*) "fail 3", nid, nxy, nyz
+    !if (nxy /= 64 .or. nyz /= 64) write(*,*) "fail 3", nid, nxy, nyz
     !if (shape_c(1) /= alloc_local_xy .or. shape_c(2) /= alloc_local_yz) write(*,*) "fail 3", nid
   else
     nin_local_xy = 0; nout_local_xy = 0

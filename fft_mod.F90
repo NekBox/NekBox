@@ -127,7 +127,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     allocate(tmp(size(grid,1),size(grid,3),2))
   endif
 
-  if (nid == 0) write(*,*) "allocated"
+  !if (nid == 0) write(*,*) "allocated"
 
   if (num > 0) then
   plan_idx = -1
@@ -146,8 +146,8 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   enddo
   endif
   
-  call nekgsync()
-  if (nid == 0) write(*,*) "searched", plan_idx
+  !call nekgsync()
+  !if (nid == 0) write(*,*) "searched", plan_idx
 
   if (num > 0) then
   if (plan_idx < 0) then
@@ -161,8 +161,8 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
     transpose_b1(n_transpose_plans) = block1
     transpose_comm(n_transpose_plans) = comm
     transpose_num(n_transpose_plans) = num
-    call MPI_Barrier(comm, ierr)
-    if (nid == 0) write(*,*) "planning", n0, n1, block0, block1, num
+    !call MPI_Barrier(comm, ierr)
+    !if (nid == 0) write(*,*) "planning", n0, n1, block0, block1, num
 
     transpose_plans(n_transpose_plans) = fftw_mpi_plan_many_transpose( &
                     n0,n1, one, &
@@ -177,25 +177,27 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   endif
   endif
 
-
-  call nekgsync()
+  !call nekgsync()
+  !if (nid == 0) write(*,*) "nekgsync"
+  !call MPI_Barrier(comm, ierr)
+  !if (nid == 0) write(*,*) "barrier(comm)", idx, idx_t, num
 
   if (idx == 1 .or. idx_t == 1) then
     do i = 0, num - 1
-      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
+      !if (nid == 0) write(*,*) "executing ", idx, idx_t, i
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,:,i), grid_t(:,:,i))
     enddo
   else if (idx == 3 .or. idx_t == 3) then
    do i = 0, num - 1
-      if (nid == 0) write(*,*) "executing ", idx, idx_t, i
+      !if (nid == 0) write(*,*) "executing ", idx, idx_t, i
       call fftw_mpi_execute_r2r(transpose_plans(plan_idx), grid(:,i,:), grid_t(:,i,:))
     enddo
   else
     write(*,*) "Something went wrong in transpose", nid
   endif
 
-  call nekgsync()
-  if (nid == 0) write(*,*) "executed"
+  !call nekgsync()
+  !if (nid == 0) write(*,*) "executed"
 
 end subroutine transpose_grid
 

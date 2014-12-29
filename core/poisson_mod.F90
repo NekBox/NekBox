@@ -250,7 +250,10 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 #if 1
   do i = 0, 65
     call nekgsync()
-    if (nid == i) write(*,'(A,15(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_xy, idx_out_local_xy, idx_in_local_yz, idx_out_local_yz, nxy, nyz, ixy, iyz
+    if (nid == i) write(*,'(A,15(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, &
+      alloc_local_yz, nin_local_yz, nout_local_yz, &
+      idx_in_local_xy, idx_out_local_xy, idx_in_local_yz, idx_out_local_yz, &
+      nxy, nyz, ixy, iyz
     !if (nid == i) write(*,'(A,6(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
   enddo
   call nekgsync()

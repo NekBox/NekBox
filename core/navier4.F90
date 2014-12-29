@@ -389,48 +389,34 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   call chcopy(cname,name,4)
   call capit (cname,4)
 
+  ! figure out if we're projecting or not
   ifstdh = .TRUE. 
-
-  if ( .NOT. ifflow) ifstdh = .FALSE. 
-
-  if (param(95) /= 0 .AND. istep > param(95)) then
-      if (cname == 'PRES') ifstdh = .FALSE. 
-  elseif (param(94) /= 0 .AND. istep > param(94)) then
+  if (cname == 'PRES') then
+    if (param(95) /= 0 .AND. istep > param(95) .and. param(93) > 0) then
+      ifstdh = .FALSE.
+    endif
+  elseif (cname == 'VELX' .or. cname == 'VELY' .or. cname == 'VELZ') then
+    if (param(94) /= 0 .AND. istep > param(94) .and. param(92) > 0) then
       ifstdh = .FALSE. 
-  endif
-
-  if (param(93) == 0) ifstdh = .TRUE. 
-
-  if (cname == 'PRES' .and. .false.) then
-    ifstdh = .FALSE. 
-    spectral_h = .true.
-  else
-    spectral_h = .false.
+    endif
   endif
 
   if (ifstdh) then
 
     call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
 
-  else if (spectral_h) then
-#if 0
-    call dssum   (r)
-    r = r * vmk
-    call spectral_solve(u, r, h1, vmk, vml, imsh, isd)
-    allocate(tmp(lx1,ly1,lz1,lelv))
-    call cggo (tmp,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,binvm1,name)
-    u = u + tmp
-#endif
-
   else
+
       nel = nelfld(ifield)
       n = nx1*ny1*nz1*nel
 
       call dssum  (r)
       r(:,:,:,1:nel) = r(:,:,:,1:nel) * vmk(:,:,:,1:nel)
+
       allocate(w1(lx1*ly1*lz1*lelt))
       call projh  (r,h1,h2,bi,vml,vmk,approx,napprox,w1,w2,name)
       deallocate(w1)
+
       call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
       call gensh  (u,h1,h2,vml,vmk,approx,napprox,w2,name)
 

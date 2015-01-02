@@ -93,7 +93,7 @@ end subroutine projh
 subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
-  use size_m, only : lx1, ly1, lz1, mxprev
+  use size_m, only : lx1, ly1, lz1
   use mesh, only : niterhm
   use tstep, only : nelfld, ifield
   implicit none
@@ -103,7 +103,7 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,*)
-  real(DP), intent(out)   :: ws(2+2*mxprev) !>!< workspace?
+  real(DP), intent(out)   :: ws(:) !>!< workspace?
 
   real(DP) :: approx(:,0:)
   integer :: napprox(2)
@@ -354,7 +354,7 @@ end subroutine hmhzpf
 subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
     ,approx,napprox,bi)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, mxprev, lelv
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, lelv
   use input, only : ifflow, param
   use string, only : capit
   use tstep, only : ifield, nelfld, istep
@@ -378,8 +378,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   REAL(DP), intent(in)    :: bi   (LX1,LY1,LZ1,*) !>!< inverse of mass matrix
 
   real(DP), allocatable :: w1(:)
-  real(DP) :: w2(2+2*mxprev)
-  real(DP), allocatable :: tmp(:,:,:,:)
+  real(DP), allocatable :: w2(:)
 
   logical :: ifstdh, spectral_h
   character(4) ::  cname
@@ -413,6 +412,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
       call dssum  (r)
       r(:,:,:,1:nel) = r(:,:,:,1:nel) * vmk(:,:,:,1:nel)
 
+      allocate(w2(2+2*napprox(1)))
       allocate(w1(lx1*ly1*lz1*lelt))
       call projh  (r,h1,h2,bi,vml,vmk,approx,napprox,w1,w2,name)
       deallocate(w1)

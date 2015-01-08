@@ -20,14 +20,14 @@ subroutine cdscal (igeom)
   integer, parameter :: laxt = mxprev
 
   integer, save :: napprox(2) = 0
-  real(DP), allocatable, save :: approx(:,:)
+  real(DP), allocatable, save :: approx(:,:,:)
   character(4) ::     name4
 
   integer :: nel, ntot, nfldt, if1, isd, iter, intype
 !max    include 'ORTHOT'
 
 !max  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
-  if (.not. allocated(approx)) allocate(approx(1,0:1))
+  if (.not. allocated(approx)) allocate(approx(1,0:1,2))
 
 
 

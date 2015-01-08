@@ -18,6 +18,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   use size_m, only : nx1, ny1, nz1, nelv, nid
   use geom, only : voltm1, volvm1
   use tstep, only : istep, ifield, nelfld
+  use parallel, only : nid
   implicit none
 
   real(DP), intent(inout) :: r(*) !>!< residual
@@ -28,17 +29,19 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   real(DP), intent(in)    :: bi(*) !>!< inverse mass matrix
   real(DP), intent(out)   :: wl(*) !>!< large work array (size lx1*ly1*lz1*nelv)
   real(DP), intent(out)   :: ws(*) !>!< small work array (size 2*max vecs)
-  real(DP), intent(inout) :: approx(:,0:) !>!< approximation space
+  real(DP), intent(inout) :: approx(:,0:,:) !>!< approximation space
   integer, intent(inout)  :: napprox(2) !>!< (/ max vecs, current number of vecs /)
   character(4) :: name4
 
   integer :: n_max, n_sav, nel, ntot, i, n10
   real(DP) :: vol, alpha1, alpha2, ratio
   real(DP), external :: glsc23, vlsc3
+  real(DP), external :: glsc2, glsc3
 
   n_max = napprox(1)
   n_sav = napprox(2)
   if (n_sav == 0) return
+
   nel =nelfld(ifield)
   ntot=nx1*ny1*nz1*nel
 
@@ -56,20 +59,50 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
 
 !   Perform Gram-Schmidt for previous soln's
 
+#if 0
+  wl(1:ntot) = r(1:ntot)
   do i=1,n_sav
-      ws(i) = vlsc3(r,approx(:,i),vml,ntot)
+      ws(i) = vlsc3(wl,approx(:,i,2),vml,ntot)
+      call gop(ws(i),ws(n_sav+1),'+  ',1)
+      wl(1:ntot) = wl(1:ntot) - ws(i) * approx(:,i,2)
   enddo
-  call gop    (ws,ws(n_sav+1),'+  ',n_sav)
 
-  approx(:,0) = approx(:,1) * ws(1)
+  approx(:,0,1) = approx(:,1,1) * ws(1)
   do i=2,n_sav
-    approx(:,0) = approx(:,0) + approx(:,i) * ws(i)
+    approx(:,0,1) = approx(:,0,1) + approx(:,i,1) * ws(i)
+  enddo
+  approx(:,0,2) = r(1:ntot) - wl(1:ntot)
+  r(1:ntot) = wl(1:ntot)
+#else
+  wl(1:ntot) = r(1:ntot) * vml(1:ntot)
+  do i=n_sav,1,-1
+      !ws(i) = glsc3(wl,approx(:,i,2),vml,ntot)
+      ws(i) = glsc2(wl,approx(:,i,2),ntot)
+      wl(1:ntot) = wl(1:ntot) - ws(i) * approx(:,i,2)
   enddo
 
-  call axhelm  (wl,approx(:,0),h1,h2,1,1)
-  wl(1:ntot) = wl(1:ntot) * vmk(1:ntot)
-  call dssum   (wl)
-  r(1:ntot) = r(1:ntot) - wl(1:ntot)
+  approx(:,0,1) = 0._dp
+  do i=n_sav,1,-1
+    approx(:,0,1) = approx(:,0,1) + approx(:,i,1) * ws(i)
+    call axhelm  (approx(:,0,2),approx(:,0,1),h1,h2,1,1)
+    approx(:,0,2) = approx(:,0,2) * vmk(1:ntot)
+    call dssum   (approx(:,0,2))
+    wl(1:ntot) = r(1:ntot) - approx(1:ntot,0,2) 
+
+  alpha2 = glsc23(wl,bi,vml,ntot)
+  if (alpha2 > 0) alpha2 = sqrt(alpha2/vol)
+  ratio  = alpha1/alpha2
+  if (nid == 0) write(*,*) "RATIO: ", i, ratio 
+
+  enddo
+
+  call axhelm  (approx(:,0,2),approx(:,0,1),h1,h2,1,1)
+  approx(:,0,2) = approx(:,0,2) * vmk(1:ntot)
+  call dssum   (approx(:,0,2))
+  r(1:ntot) = r(1:ntot) - approx(1:ntot,0,2)
+#endif
+  !r(1:ntot) = wl(1:ntot) * (1._dp / vml(1:ntot))
+
 
 !...............................................................
 ! Diag.
@@ -94,6 +127,7 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
   use size_m, only : lx1, ly1, lz1
+  use parallel, only : nid
   use mesh, only : niterhm
   use tstep, only : nelfld, ifield
   implicit none
@@ -101,15 +135,19 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   REAL(DP), intent(inout) :: V1   (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)    :: H1   (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,*)
-  REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,*)
-  REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,*)
+  REAL(DP), intent(in)    :: vmk  (*)
+  REAL(DP), intent(in)    :: vml  (*)
   real(DP), intent(out)   :: ws(:) !>!< workspace?
 
-  real(DP) :: approx(:,0:)
-  integer :: napprox(2)
-  character(4) :: name4
+  real(DP), intent(inout) :: approx(:,0:,:)
+  integer, intent(inout) :: napprox(2)
+  character(4), intent(in) :: name4
 
+  real(DP) :: alpha, eps
+  real(DP), external :: glsc2, glsc3
   integer :: n_max, n_sav, ntot, ierr
+
+  eps = 1.e-30_dp
 
   n_max = napprox(1)
   n_sav = napprox(2)
@@ -121,26 +159,45 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   
       if (niterhm > 0) then      ! new vector not in space
           n_sav = n_sav+1
-          call copy(approx(:,n_sav),v1,ntot)
           v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
-                                     + reshape(approx(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
-      !           orthogonalize rhs against previous rhs and normalize
-          call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
+                                     + reshape(approx(:,0,1), (/lx1,ly1,lz1,nelfld(ifield)/))
+          call copy(approx(:,n_sav,1),v1,ntot)
 
-      !           if (ierr.ne.0) n_sav = n_sav-1
-          if (ierr /= 0) n_sav = 0
+          call axhelm        (approx(:,n_sav,2),approx(:,n_sav,1),h1,h2,1,1)
+          approx(:,n_sav,2) = approx(:,n_sav,2) * vmk(1:ntot)
+          call dssum         (approx(:,n_sav,2))
+          approx(:,n_sav,2) = approx(:,n_sav,2) * vml(1:ntot)
+          !alpha = glsc3(approx(:,n_sav,2),approx(:,n_sav,2),vml,ntot)
+          alpha = glsc2(approx(:,n_sav,2),approx(:,n_sav,2),ntot)
+          if (alpha > eps) approx(:,n_sav,:) = approx(:,n_sav,:) *( 1._dp/ sqrt(alpha))
+
       else
+          n_sav = n_sav+1
           v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
-                                     + reshape(approx(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
+                                     + reshape(approx(:,0,1), (/lx1,ly1,lz1,nelfld(ifield)/))
+          call copy(approx(:,n_sav,1),v1,ntot)
+          call axhelm        (approx(:,n_sav,2),approx(:,n_sav,1),h1,h2,1,1)
+          approx(:,n_sav,2) = approx(:,n_sav,2) * vmk(1:ntot)
+          call dssum         (approx(:,n_sav,2))
+          approx(:,n_sav,2) = approx(:,n_sav,2) * vml(1:ntot)
+          !alpha = glsc3(approx(:,n_sav,2),approx(:,n_sav,2),vml,ntot)
+          alpha = glsc2(approx(:,n_sav,2),approx(:,n_sav,2),ntot)
+          approx(:,n_sav,:) = approx(:,n_sav,:) *( 1._dp/ sqrt(alpha))
+
       endif
   else
       n_sav = 1
       v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
-                                 + reshape(approx(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
-      call copy(approx(:,n_sav),v1,ntot)
-  !        normalize
-      call hconj(approx,n_sav,h1,h2,vml,vmk,ws,name4,ierr)
-      if (ierr /= 0) n_sav = 0
+                                 + reshape(approx(:,0,1), (/lx1,ly1,lz1,nelfld(ifield)/))
+      call copy(approx(:,n_sav,1),v1,ntot)
+          call axhelm        (approx(:,n_sav,2),approx(:,n_sav,1),h1,h2,1,1)
+          approx(:,n_sav,2) = approx(:,n_sav,2) * vmk(1:ntot)
+          call dssum         (approx(:,n_sav,2))
+          approx(:,n_sav,2) = approx(:,n_sav,2) * vml(1:ntot)
+          !alpha = glsc3(approx(:,n_sav,2),approx(:,n_sav,2),vml,ntot)
+          alpha = glsc2(approx(:,n_sav,2),approx(:,n_sav,2),ntot)
+          if (alpha > eps) approx(:,n_sav,:) = approx(:,n_sav,:) *( 1._dp/ sqrt(alpha))
+
   endif
 
   napprox(2)=n_sav
@@ -148,6 +205,7 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   return
 end subroutine gensh
 
+#if 0
 !-----------------------------------------------------------------------
 !> \brief Orthonormalize the kth vector against vector set
 subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
@@ -158,7 +216,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   implicit none
 
   integer, intent(in) :: k
-  real(DP), intent(inout) :: approx(:,0:)
+  real(DP), intent(inout) :: approx(:,0:,:)
   real(DP), intent(in) :: h1(*),h2(*),vml(*),vmk(*)
   real(DP), intent(out) :: ws(*)
   character(4) :: name4
@@ -237,6 +295,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
 
   return
 end subroutine hconj
+#endif
 
 !-----------------------------------------------------------------------
 !> \brief Reorthogonalize approx if dt has changed
@@ -248,7 +307,7 @@ subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
   implicit none
 
   integer, parameter :: lt=lx1*ly1*lz1*lelt
-  real(DP), intent(inout) :: approx(lt,0:1)
+  real(DP), intent(inout) :: approx(:,0:,:)
   real(DP), intent(in)    :: h1(1),h2(1),vml(1),vmk(1)
   real(DP), intent(out) :: ws(1)
   integer, intent(inout) :: napprox(2)
@@ -284,6 +343,7 @@ subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
       n_sav = napprox(2)
       l     = 1
       do k=1,n_sav
+#if 0
       !           Orthogonalize kth vector against {v_1,...,v_k-1}
           if (k /= l) then
               ntot = nx1*ny1*nz1*nelfld(ifield)
@@ -291,6 +351,9 @@ subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
           endif
           call hconj(approx,l,h1,h2,vml,vmk,ws,name4,ierr)
           if (ierr == 0) l=l+1
+#else
+      call axhelm(approx(:,k,2),approx(:,k,1),h1,h2,1,1)
+#endif 
       enddo
       napprox(2)=min(l,n_sav)
   endif
@@ -355,6 +418,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
     ,approx,napprox,bi)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, lelv
+  use parallel, only : nid
   use input, only : ifflow, param
   use string, only : capit
   use tstep, only : ifield, nelfld, istep
@@ -373,7 +437,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   real(DP), intent(in)    :: tol                  !>!< residual tolerance
   integer,  intent(in)    :: maxit                !>!< maximum number of iterations
   integer,  intent(in)    :: isd                  !>!< something to do with axi-symmetric
-  REAL(DP), intent(inout) :: approx (:,0:)        !>!< past solutions for projection
+  REAL(DP), intent(inout) :: approx (:,0:,:)        !>!< past solutions for projection
   integer,  intent(inout) :: napprox(2)           !>!< (/ max vecs, current number of vecs /)
   REAL(DP), intent(in)    :: bi   (LX1,LY1,LZ1,*) !>!< inverse of mass matrix
 
@@ -400,6 +464,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
     endif
   endif
 
+
   if (ifstdh) then
 
     call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
@@ -421,6 +486,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
       call gensh  (u,h1,h2,vml,vmk,approx,napprox,w2,name)
 
   endif
+
 
   return
 end subroutine hsolve

@@ -30,8 +30,8 @@ subroutine plan4()
   integer :: laxt, v_proj_size
 
   integer, save :: p_napprox(2), vx_napprox(2), vy_napprox(2), vz_napprox(2)
-  real(DP), allocatable, save :: p_approx(:,:)
-  real(DP), allocatable, save :: vx_approx(:,:), vy_approx(:,:), vz_approx(:,:)
+  real(DP), allocatable, save :: p_approx(:,:,:)
+  real(DP), allocatable, save :: vx_approx(:,:,:), vy_approx(:,:,:), vz_approx(:,:,:)
 
   real(DP), allocatable :: RES1(:,:,:,:)
   real(DP), allocatable :: RES2(:,:,:,:)   
@@ -57,22 +57,22 @@ subroutine plan4()
 
   if (.not. allocated(p_approx)) then
     p_napprox = (/laxt, 0/)
-    allocate(p_approx(ktot,0:laxt))
+    allocate(p_approx(ktot,0:laxt,2))
     p_approx = 0._dp
   endif
   if (.not. allocated(vx_approx)) then
     vx_napprox = (/v_proj_size, 0/)
-    allocate(vx_approx(ktot,0:v_proj_size))
+    allocate(vx_approx(ktot,0:v_proj_size,2))
     vx_approx = 0._dp
   endif
   if (.not. allocated(vy_approx)) then
     vy_napprox = (/v_proj_size, 0/)
-    allocate(vy_approx(ktot,0:v_proj_size))
+    allocate(vy_approx(ktot,0:v_proj_size,2))
     vy_approx = 0._dp
   endif
   if (.not. allocated(vz_approx)) then
-    vx_napprox = (/v_proj_size, 0/)
-    allocate(vz_approx(ktot,0:v_proj_size))
+    vz_napprox = (/v_proj_size, 0/)
+    allocate(vz_approx(ktot,0:v_proj_size,2))
     vz_approx = 0._dp
   endif
 
@@ -122,7 +122,6 @@ subroutine plan4()
   call hsolve ('PRES', dpr, respr, h1, h2, pmask, vmult &
   ,imesh,tolspl,nmxh,1 &
   ,p_approx,p_napprox,binvm1)
-
   deallocate(respr)
   pr = pr + dpr
   deallocate(dpr)

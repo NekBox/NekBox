@@ -33,10 +33,12 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   integer, intent(inout)  :: napprox(2) !>!< (/ max vecs, current number of vecs /)
   character(4) :: name4
 
-  integer :: n_max, n_sav, nel, ntot, i, n10
+  integer :: n_max, n_sav, nel, ntot, i, j, n10
   real(DP) :: vol, alpha1, alpha2, ratio
   real(DP), external :: glsc23, vlsc3
   real(DP), external :: glsc2, glsc3
+  real(DP), allocatable :: A_red(:,:), evecs(:,:), work(:), ev(:)
+  integer :: lwork, ierr
 
   n_max = napprox(1)
   n_sav = napprox(2)
@@ -73,7 +75,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   enddo
   approx(:,0,2) = r(1:ntot) - wl(1:ntot)
   r(1:ntot) = wl(1:ntot)
-#else
+#elif 0
   wl(1:ntot) = r(1:ntot) * vml(1:ntot)
   do i=n_sav,1,-1
       !ws(i) = glsc3(wl,approx(:,i,2),vml,ntot)
@@ -84,25 +86,81 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   approx(:,0,1) = 0._dp
   do i=n_sav,1,-1
     approx(:,0,1) = approx(:,0,1) + approx(:,i,1) * ws(i)
+#if 0
     call axhelm  (approx(:,0,2),approx(:,0,1),h1,h2,1,1)
     approx(:,0,2) = approx(:,0,2) * vmk(1:ntot)
     call dssum   (approx(:,0,2))
     wl(1:ntot) = r(1:ntot) - approx(1:ntot,0,2) 
 
-  alpha2 = glsc23(wl,bi,vml,ntot)
-  if (alpha2 > 0) alpha2 = sqrt(alpha2/vol)
-  ratio  = alpha1/alpha2
-  if (nid == 0) write(*,*) "RATIO: ", i, ratio 
-
+    alpha2 = glsc23(wl,bi,vml,ntot)
+    if (alpha2 > 0) alpha2 = sqrt(alpha2/vol)
+    ratio  = alpha1/alpha2
+    if (nid == 0) write(*,*) "RATIO: ", i, ratio 
+#endif
   enddo
 
   call axhelm  (approx(:,0,2),approx(:,0,1),h1,h2,1,1)
   approx(:,0,2) = approx(:,0,2) * vmk(1:ntot)
   call dssum   (approx(:,0,2))
   r(1:ntot) = r(1:ntot) - approx(1:ntot,0,2)
-#endif
-  !r(1:ntot) = wl(1:ntot) * (1._dp / vml(1:ntot))
 
+#else
+
+  allocate(A_red(n_sav,n_sav), evecs(n_sav, n_sav))
+  do i = 1, n_sav
+  do j = i, n_sav
+    !A_red(i,j) = glsc3(approx(:,i,2), approx(:,j,1), vml, ntot) 
+    A_red(i,j) = glsc2(approx(:,i,2), approx(:,j,1), ntot) 
+  enddo
+  enddo
+  ! sym
+  do i = 1,n_sav
+  do j = 1, i - 1
+    A_red(i,j) = A_red(j,i)
+  enddo
+  enddo
+  if (nid == 0) write(*,*) "A", A_red / A_red(1,1)
+
+
+  evecs = A_red
+
+  lwork = 10 * n_sav
+  allocate(work(lwork), ev(n_sav))
+  call dsyev('V', 'U', n_sav, &
+             evecs, n_sav, &
+             ev, &
+             work, lwork, ierr) 
+  if (nid == 0) write(*,*) ev 
+
+  wl(1:ntot) = r(1:ntot) * vml(1:ntot)
+  do i = 1, n_sav
+    !ws(i) = glsc3(wl, approx(:,i,1), vml, ntot)
+    ws(i) = glsc2(wl, approx(:,i,1), ntot)
+  enddo
+  if (nid == 0) write(*,*) ws(1:n_sav)
+ 
+  do i = 1, n_sav
+    ev(i) = sum(evecs(:,i) * ws(1:n_sav)) / ev(i)
+  enddo
+  if (nid == 0) write(*,*) ev 
+!  if (nid == 0) write(*,*) ev(1:4) 
+
+  do i = 1, n_sav
+    ws(i) = sum(evecs(i,:) * ev(:))
+  enddo
+!  if (nid == 0) write(*,*) ws(1:4) 
+
+  approx(:,0,1) = 0._dp
+  do i= 1, n_sav
+    approx(:,0,1) = approx(:,0,1) + approx(:,i,1) * ws(i)
+  enddo
+
+  call axhelm  (approx(:,0,2),approx(:,0,1),h1,h2,1,1)
+  approx(:,0,2) = approx(:,0,2) * vmk(1:ntot)
+  call dssum   (approx(:,0,2))
+  r(1:ntot) = r(1:ntot) - approx(1:ntot,0,2)
+
+#endif
 
 !...............................................................
 ! Diag.

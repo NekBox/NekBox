@@ -306,7 +306,7 @@ subroutine setdtc(umax)
           DXCHAR  = SQRT( (XM1(1,1,1,1)-XM1(2,1,1,1))**2 + &
           (YM1(1,1,1,1)-YM1(2,1,1,1))**2 + &
           (ZM1(1,1,1,1)-ZM1(2,1,1,1))**2 )
-          DXCHAR  = GLMIN (dxchar,1)
+          DXCHAR  = GLMIN ((/dxchar/),1)
           IF (AMAX /= 0.) THEN
               DT = SQRT(CTARG*DXCHAR/AMAX)
           ELSE
@@ -660,7 +660,7 @@ subroutine vprops
 
       itest = 0                        ! test against all processors
       if (ifvarp(ifield)) itest = 1
-      itest = iglmax(itest,1)
+      itest = iglmax((/itest/),1)
       if (itest > 0) ifvarp(ifield) = .TRUE. 
 
   endif

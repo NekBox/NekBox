@@ -8,6 +8,8 @@ module hsmg
   use size_m
   implicit none
 
+  logical :: use_spectral_coarse 
+
 !     Allocate MHD memory only if lbx1==lx1
   integer, parameter :: lmg_mhd=1-(lx1-lbx1)/(lx1-1) !1 if MHD is true, 0 otherwise
 
@@ -61,6 +63,7 @@ module hsmg
   integer :: mg_h1_lmax
   integer, allocatable :: mg_h1_n(:,:)
   integer, allocatable, dimension(:,:) :: p_mg_h1,p_mg_h2,p_mg_b,p_mg_g,p_mg_msk
+  
 
   real(DP), allocatable, dimension(:) :: lr,ls,lt &
                           , llr,lls,llt &
@@ -73,6 +76,9 @@ module hsmg
     use kinds, only : dp
     use size_m
     implicit none
+
+    use_spectral_coarse = .true.
+
     allocate(mg_nx(lmgn), mg_ny(lmgn), mg_nz(lmgn))
     allocate(mg_nh(lmgn), mg_nhz(lmgn))
     allocate(mg_gsh_schwarz_handle(lmgn,lmgs), mg_gsh_handle(lmgn,lmgs))

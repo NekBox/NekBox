@@ -328,7 +328,7 @@ subroutine h1mg_setup_wtmask
   real(DP), allocatable :: work(:)
   integer :: i,l, itmp
 
-  allocate(work(maxval(mg_nh)*maxval(mg_nh)*maxval(mg_nhz)* nelv))
+  allocate(work(maxval(mg_nh(1:mg_lmax))*maxval(mg_nh(1:mg_lmax))*maxval(mg_nhz(1:mg_lmax))* nelv))
 
   i = mg_mask_index(mg_lmax,mg_fld-1)
   do l=1,mg_lmax
@@ -360,7 +360,9 @@ subroutine hsmg_setup_wtmask
   real(DP), allocatable :: work(:)
   integer :: i,l, itmp
 
-  allocate(work(maxval(mg_nh)*maxval(mg_nh)*maxval(mg_nhz)* nelv))
+  allocate(work(maxval(mg_nh(1:mg_lmax-1)) &
+               *maxval(mg_nh(1:mg_lmax-1)) &
+               *maxval(mg_nhz(1:mg_lmax-1))* nelv))
 
   i = mg_mask_index(mg_lmax,mg_fld-1)
   do l=1,mg_lmax-1
@@ -1686,7 +1688,7 @@ subroutine mg_set_msk(p_msk ,l0)
   p_mg_msk(l,mg_fld) = 0
   n                  = mg_h1_n(l,mg_fld)
 
-  allocate(work(maxval(mg_nh)*maxval(mg_nh)*maxval(mg_nhz)*nelfld(ifield)))
+  allocate(work(maxval(mg_nh(1:mg_h1_lmax))*maxval(mg_nh(1:mg_h1_lmax))*maxval(mg_nhz(1:mg_h1_lmax))*nelfld(ifield)))
 
   do l=mg_h1_lmax,1,-1
       nx = mg_nh  (l)

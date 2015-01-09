@@ -515,7 +515,7 @@ subroutine outhis(ifhis, pm1)
               !           On first call, write out XYZ location of history points
               
                   if (icalld == 0) then
-                      one = glmax(one,1)           ! Force synch.  pff 04/16/04
+                      one = glmax((/one/),1)           ! Force synch.  pff 04/16/04
                       IF (NID == JNID) then
                           IF (NP > 1 .AND. .NOT. IF3D) &
                           WRITE(6,22) NID,I,IX,IY,ie,IEG &
@@ -962,7 +962,7 @@ subroutine io_init ! determine which nodes will output
   nelB = igl_running_sum(nn)
   nelB = nelB - nelt
        
-  pid00 = int(glmin(pid0,1))
+  pid00 = int(glmin((/real(pid0)/),1))
 
   return
 end subroutine io_init

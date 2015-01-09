@@ -734,14 +734,12 @@ subroutine genmesh
   use input, only : iffmtin, igroup, xc, yc, zc
   use input, only : curve, ccurve
   use input, only : bc, cbc
+  use mesh, only : shape_x, start_x, end_x
   use parallel, only : nelgt, gllnid, gllel, wdsize
   implicit none
 
   integer :: nsides, ieg, iel, lcbc, ldimt1
-  integer :: shape_x(3)
   integer :: ix(3)
-  real(DP) :: start_x(3)
-  real(DP) :: end_x(3)
   real(DP) :: dx(3)
   real(DP) :: root(3)
   character(3) :: boundaries(6), tboundaries(6)

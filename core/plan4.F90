@@ -11,9 +11,9 @@
 !! NOTE: QTL denotes the so called thermal
 !!       divergence and has to be provided
 !!       by an external subroutine e.g qthermal
-subroutine plan4
+subroutine plan4()
   use kinds, only : DP
-  use size_m, only : nid, mxprev
+  use size_m, only : nid 
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : lx2, ly2, lz2, lelv
   use size_m, only : nx1, ny1, nz1, nelv
@@ -23,13 +23,15 @@ subroutine plan4
   use soln, only : qtl, vx, vy, vz, v1mask, v2mask, v3mask
   use soln, only : vtrans, pmask, vmult, pr
   use tstep, only : imesh, nmxh, tolhv
+  use input, only : param
   implicit none
 
   integer, parameter :: ktot = lx1*ly1*lz1*lelt
-  integer, parameter :: laxt = mxprev
+  integer :: laxt, v_proj_size
 
-  integer, save :: napprox(2)
-  real(DP), allocatable, save :: approx(:,:)
+  integer, save :: p_napprox(2), vx_napprox(2), vy_napprox(2), vz_napprox(2)
+  real(DP), allocatable, save :: p_approx(:,:)
+  real(DP), allocatable, save :: vx_approx(:,:), vy_approx(:,:), vz_approx(:,:)
 
   real(DP), allocatable :: RES1(:,:,:,:)
   real(DP), allocatable :: RES2(:,:,:,:)   
@@ -50,9 +52,28 @@ subroutine plan4
 
   integer :: intype, ntot1 
 
-  if (.not. allocated(approx)) then
-    allocate(approx(ktot,0:laxt))
-    approx = 0._dp
+  v_proj_size = int(param(92))
+  laxt = int(param(93))
+
+  if (.not. allocated(p_approx)) then
+    p_napprox = (/laxt, 0/)
+    allocate(p_approx(ktot,0:laxt))
+    p_approx = 0._dp
+  endif
+  if (.not. allocated(vx_approx)) then
+    vx_napprox = (/v_proj_size, 0/)
+    allocate(vx_approx(ktot,0:v_proj_size))
+    vx_approx = 0._dp
+  endif
+  if (.not. allocated(vy_approx)) then
+    vy_napprox = (/v_proj_size, 0/)
+    allocate(vy_approx(ktot,0:v_proj_size))
+    vy_approx = 0._dp
+  endif
+  if (.not. allocated(vz_approx)) then
+    vx_napprox = (/v_proj_size, 0/)
+    allocate(vz_approx(ktot,0:v_proj_size))
+    vz_approx = 0._dp
   endif
 
   INTYPE = -1
@@ -98,10 +119,9 @@ subroutine plan4
   call ctolspl  (tolspl,respr)
 
   allocate(dpr(lx2,ly2,lz2,lelv))
-  napprox(1) = laxt
   call hsolve ('PRES', dpr, respr, h1, h2, pmask, vmult &
   ,imesh,tolspl,nmxh,1 &
-  ,approx,napprox,binvm1)
+  ,p_approx,p_napprox,binvm1)
 
   deallocate(respr)
   pr = pr + dpr
@@ -121,7 +141,20 @@ subroutine plan4
   allocate(DV1 (LX1,LY1,LZ1,LELV), &
            DV2 (LX1,LY1,LZ1,LELV), &
            DV3 (LX1,LY1,LZ1,LELV)  )
-  call ophinv  (dv1,dv2,dv3,res1,res2,res3,h1,h2,tolhv,nmxh)
+
+ !>!< \note These three calls are task-parallel
+#if 0
+  CALL HMHOLTZ ('VELX', dv1, res1, h1, h2, v1mask, vmult, imesh, tolhv, nmxh, 1)
+  CALL HMHOLTZ ('VELY', dv2, res2, h1, h2, v1mask, vmult, imesh, tolhv, nmxh, 2)
+  CALL HMHOLTZ ('VELZ', dv3, res3, h1, h2, v1mask, vmult, imesh, tolhv, nmxh, 3)
+#else
+  call hsolve('VELX', dv1, res1, h1, h2, v1mask, vmult, imesh, tolhv, nmxh, 1, &
+              vx_approx, vx_napprox, binvm1)
+  call hsolve('VELY', dv2, res2, h1, h2, v2mask, vmult, imesh, tolhv, nmxh, 2, &
+              vy_approx, vy_napprox, binvm1)
+  call hsolve('VELZ', dv3, res3, h1, h2, v3mask, vmult, imesh, tolhv, nmxh, 3, &
+              vz_approx, vz_napprox, binvm1)
+#endif
   deallocate(res1, res2, res3, h1, h2)
 
   vx = vx + dv1; vy = vy + dv2; vz = vz + dv3

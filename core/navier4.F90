@@ -93,7 +93,7 @@ end subroutine projh
 subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
-  use size_m, only : lx1, ly1, lz1, mxprev
+  use size_m, only : lx1, ly1, lz1
   use mesh, only : niterhm
   use tstep, only : nelfld, ifield
   implicit none
@@ -103,7 +103,7 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,*)
-  real(DP), intent(out)   :: ws(2+2*mxprev) !>!< workspace?
+  real(DP), intent(out)   :: ws(:) !>!< workspace?
 
   real(DP) :: approx(:,0:)
   integer :: napprox(2)
@@ -354,19 +354,21 @@ end subroutine hmhzpf
 subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
     ,approx,napprox,bi)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, mxprev
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, lelv
   use input, only : ifflow, param
   use string, only : capit
   use tstep, only : ifield, nelfld, istep
+  use geom, only : binvm1
+  use poisson, only : spectral_solve
   implicit none
 
   CHARACTER(4), intent(in) :: NAME !>!< name of field we're solving for
-  REAL(DP), intent(out)   :: U    (LX1,LY1,LZ1,*) !>!< solution vector
-  REAL(DP), intent(inout) :: R    (LX1,LY1,LZ1,*) !>!< right hand side
-  REAL(DP), intent(in)    :: H1   (LX1,LY1,LZ1,*) !>!< coefficient of A (stiffness)
-  REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,*) !>!< coefficient of M (mass)
-  REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,*) !>!< mask array
-  REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,*) !>!< multiplicity array
+  REAL(DP), intent(out)   :: U    (LX1,LY1,LZ1,lelv) !>!< solution vector
+  REAL(DP), intent(inout) :: R    (LX1,LY1,LZ1,lelv) !>!< right hand side
+  REAL(DP), intent(in)    :: H1   (LX1,LY1,LZ1,lelv) !>!< coefficient of A (stiffness)
+  REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,lelv) !>!< coefficient of M (mass)
+  REAL(DP), intent(in)    :: vmk  (LX1,LY1,LZ1,lelv) !>!< mask array
+  REAL(DP), intent(in)    :: vml  (LX1,LY1,LZ1,lelv) !>!< multiplicity array
   integer,  intent(in)    :: imsh                 !>!< imesh?
   real(DP), intent(in)    :: tol                  !>!< residual tolerance
   integer,  intent(in)    :: maxit                !>!< maximum number of iterations
@@ -376,38 +378,45 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   REAL(DP), intent(in)    :: bi   (LX1,LY1,LZ1,*) !>!< inverse of mass matrix
 
   real(DP), allocatable :: w1(:)
-  real(DP) :: w2(2+2*mxprev)
+  real(DP), allocatable :: w2(:)
 
-  logical :: ifstdh
+  logical :: ifstdh, spectral_h
   character(4) ::  cname
   integer :: n, nel
+
 
   call chcopy(cname,name,4)
   call capit (cname,4)
 
+  ! figure out if we're projecting or not
   ifstdh = .TRUE. 
-
-  if ( .NOT. ifflow) ifstdh = .FALSE. 
-
-  if (param(95) /= 0 .AND. istep > param(95)) then
-      if (cname == 'PRES') ifstdh = .FALSE. 
-  elseif (param(94) /= 0 .AND. istep > param(94)) then
+  if (cname == 'PRES') then
+    if (param(95) /= 0 .AND. istep > param(95) .and. param(93) > 0) then
+      ifstdh = .FALSE.
+    endif
+  elseif (cname == 'VELX' .or. cname == 'VELY' .or. cname == 'VELZ') then
+    if (param(94) /= 0 .AND. istep > param(94) .and. param(92) > 0) then
       ifstdh = .FALSE. 
+    endif
   endif
 
-  if (param(93) == 0) ifstdh = .TRUE. 
-
   if (ifstdh) then
-      call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
+
+    call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
+
   else
+
       nel = nelfld(ifield)
       n = nx1*ny1*nz1*nel
 
       call dssum  (r)
       r(:,:,:,1:nel) = r(:,:,:,1:nel) * vmk(:,:,:,1:nel)
+
+      allocate(w2(2+2*napprox(1)))
       allocate(w1(lx1*ly1*lz1*lelt))
       call projh  (r,h1,h2,bi,vml,vmk,approx,napprox,w1,w2,name)
       deallocate(w1)
+
       call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
       call gensh  (u,h1,h2,vml,vmk,approx,napprox,w2,name)
 

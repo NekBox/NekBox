@@ -9,7 +9,7 @@
 module io
   implicit none
  
-  character(132) :: load_name !>!< name of output to load
+  character(132) :: load_name = 'NONE' !>!< name of output to load
 
   public load_ic, load_name
   private
@@ -31,6 +31,10 @@ subroutine load_ic()
 
   integer :: ierr
   real(DP), allocatable :: padding(:,:,:,:)
+
+  if (load_name == 'NONE') then
+    call get_restart_name(load_name)
+  endif
 
   if (nid == pid0) then
     call mbyte_open(load_name, fid0, ierr)
@@ -61,6 +65,72 @@ subroutine load_ic()
   endif
 
 end subroutine load_ic
+
+subroutine get_restart_name(fname)
+  use kinds, only : DP
+  use input, only : ifreguo, ifxyo_, session, param
+  use restart, only : max_rst, nfileo, ifdiro, fid0
+  use string, only : ltrunc
+  use parallel, only : nid
+  implicit none
+
+  integer :: ierr
+
+  character(132) ::  fname 
+  character(1) ::   fnam1(132)
+
+  character(6), save ::  six = "??????"
+  character(6) :: str
+
+  character(1), save :: slash = '/', dot = '.'
+
+  integer :: iprefix, nfld, k, len, ndigit
+  integer, external :: i_find_prefix, mod1
+  real(DP) :: rfileo
+
+  fname = ''
+
+#ifdef MPIIO
+  rfileo = 1
+#else
+  rfileo = nfileo
+#endif
+  ndigit = int(log10(rfileo) + 1)
+
+  k = 1
+  if (ifdiro) then                                  !  Add directory
+      call chcopy(fnam1(1),'A',1)
+      call chcopy(fnam1(2),six,ndigit)  ! put ???? in string
+      k = 2 + ndigit
+      call chcopy(fnam1(k),slash,1)
+      k = k+1
+  endif
+
+  len=ltrunc(session,132)                           !  Add SESSION
+  call chcopy(fnam1(k),session,len)
+  k = k+len
+
+  if (ifreguo) then
+      len=4
+      call chcopy(fnam1(k),'_reg',len)
+      k = k+len
+  endif
+
+  call chcopy(fnam1(k),six,ndigit)                  !  Add file-id holder
+  k = k + ndigit
+
+  call chcopy(fnam1(k  ),dot,1)                     !  Add .f appendix
+  call chcopy(fnam1(k+1),'f',1)
+  k = k + 2
+
+  write(str,4) int(param(69))                                 !  Add nfld number
+  4 format(i5.5)
+  call chcopy(fnam1(k),str,5)
+  k = k + 5
+
+  call chcopy(fname(1:132),fnam1(1),k-1)
+
+end subroutine get_restart_name
 
 !-----------------------------------------------------------------------
 !> \brief Read header and return number of elements and word size

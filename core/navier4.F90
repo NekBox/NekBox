@@ -3,17 +3,27 @@
 !-----------------------------------------------------------------------
 
 module helmholtz
+  use kinds, only : DP
   implicit none
 
   private
 
-  public :: hsolve
+  public :: hsolve, approx_space
+
+
+  type approx_space
+    real(DP), allocatable :: projectors(:,:)
+    integer :: n_max
+    integer :: n_sav
+    integer, allocatable :: ind(:)
+    real(DP), allocatable :: A_red(:,:) 
+  end type approx_space
 
 contains
 
 !> \brief Orthogonalize the rhs wrt previous rhs's for which we already
 !! know the soln.
-subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
+subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, nid
   use geom, only : voltm1, volvm1
@@ -29,20 +39,17 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   real(DP), intent(in)    :: bi(*) !>!< inverse mass matrix
   real(DP), intent(out)   :: wl(*) !>!< large work array (size lx1*ly1*lz1*nelv)
   real(DP), intent(out)   :: ws(*) !>!< small work array (size 2*max vecs)
-  real(DP), intent(inout) :: approx(:,0:,:) !>!< approximation space
-  integer, intent(inout)  :: napprox(2) !>!< (/ max vecs, current number of vecs /)
+  type(approx_space), intent(inout) :: apx
   character(4) :: name4
 
-  integer :: n_max, n_sav, nel, ntot, i, j, n10
+  integer :: nel, ntot, i, j, n10
   real(DP) :: vol, alpha1, alpha2, ratio
   real(DP), external :: glsc23, vlsc3
   real(DP), external :: glsc2, glsc3
-  real(DP), allocatable :: A_red(:,:), evecs(:,:), work(:), ev(:)
+  real(DP), allocatable :: evecs(:,:), work(:), ev(:)
   integer :: lwork, ierr
 
-  n_max = napprox(1)
-  n_sav = napprox(2)
-  if (n_sav == 0) return
+  if (apx%n_sav == 0) return
 
   nel =nelfld(ifield)
   ntot=nx1*ny1*nz1*nel
@@ -56,123 +63,54 @@ subroutine projh(r,h1,h2,bi,vml,vmk,approx,napprox,wl,ws,name4)
   if (alpha1 > 0) alpha1 = sqrt(alpha1/vol)
 
 !   Update approximation space if dt has changed
-  call updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
+!  call updrhsh(apx,h1,h2,vml,vmk,ws,name4)
 
 
-!   Perform Gram-Schmidt for previous soln's
+  allocate(evecs(apx%n_sav, apx%n_sav))
+  evecs = apx%A_red(1:apx%n_sav,1:apx%n_sav)
 
-#if 0
-  wl(1:ntot) = r(1:ntot)
-  do i=1,n_sav
-      ws(i) = vlsc3(wl,approx(:,i,2),vml,ntot)
-      call gop(ws(i),ws(n_sav+1),'+  ',1)
-      wl(1:ntot) = wl(1:ntot) - ws(i) * approx(:,i,2)
-  enddo
-
-  approx(:,0,1) = approx(:,1,1) * ws(1)
-  do i=2,n_sav
-    approx(:,0,1) = approx(:,0,1) + approx(:,i,1) * ws(i)
-  enddo
-  approx(:,0,2) = r(1:ntot) - wl(1:ntot)
-  r(1:ntot) = wl(1:ntot)
-#elif 0
-  wl(1:ntot) = r(1:ntot) * vml(1:ntot)
-  do i=n_sav,1,-1
-      !ws(i) = glsc3(wl,approx(:,i,2),vml,ntot)
-      ws(i) = glsc2(wl,approx(:,i,2),ntot)
-      wl(1:ntot) = wl(1:ntot) - ws(i) * approx(:,i,2)
-  enddo
-
-  approx(:,0,1) = 0._dp
-  do i=n_sav,1,-1
-    approx(:,0,1) = approx(:,0,1) + approx(:,i,1) * ws(i)
-#if 0
-    call axhelm  (approx(:,0,2),approx(:,0,1),h1,h2,1,1)
-    approx(:,0,2) = approx(:,0,2) * vmk(1:ntot)
-    call dssum   (approx(:,0,2))
-    wl(1:ntot) = r(1:ntot) - approx(1:ntot,0,2) 
-
-    alpha2 = glsc23(wl,bi,vml,ntot)
-    if (alpha2 > 0) alpha2 = sqrt(alpha2/vol)
-    ratio  = alpha1/alpha2
-    if (nid == 0) write(*,*) "RATIO: ", i, ratio 
-#endif
-  enddo
-
-  call axhelm  (approx(:,0,2),approx(:,0,1),h1,h2,1,1)
-  approx(:,0,2) = approx(:,0,2) * vmk(1:ntot)
-  call dssum   (approx(:,0,2))
-  r(1:ntot) = r(1:ntot) - approx(1:ntot,0,2)
-
-#else
-
-  allocate(A_red(n_sav,n_sav), evecs(n_sav, n_sav))
-  do i = 1, n_sav
-  do j = i, n_sav
-    !A_red(i,j) = glsc3(approx(:,i,2), approx(:,j,1), vml, ntot) 
-    A_red(i,j) = glsc2(approx(:,i,2), approx(:,j,1), ntot) 
-  enddo
-  enddo
-  ! sym
-  do i = 1,n_sav
-  do j = 1, i - 1
-    A_red(i,j) = A_red(j,i)
-  enddo
-  enddo
-  if (nid == 0) write(*,*) "A", A_red / A_red(1,1)
-
-
-  evecs = A_red
-
-  lwork = 10 * n_sav
-  allocate(work(lwork), ev(n_sav))
-  call dsyev('V', 'U', n_sav, &
-             evecs, n_sav, &
+  lwork = 10 * apx%n_sav + 100
+  allocate(work(lwork), ev(apx%n_sav))
+  call dsyev('V', 'U', apx%n_sav, &
+             evecs, apx%n_sav, &
              ev, &
              work, lwork, ierr) 
-  if (nid == 0) write(*,*) ev 
-
+  if (nid == 0 .and. ierr /= 0) write(*,*) "DSYEV failed", ierr
   wl(1:ntot) = r(1:ntot) * vml(1:ntot)
-  do i = 1, n_sav
+  do i = 1, apx%n_sav
     !ws(i) = glsc3(wl, approx(:,i,1), vml, ntot)
-    ws(i) = glsc2(wl, approx(:,i,1), ntot)
+    ws(i) = glsc2(wl, apx%projectors(:,apx%ind(i)), ntot)
   enddo
-  if (nid == 0) write(*,*) ws(1:n_sav)
  
-  do i = 1, n_sav
-    ev(i) = sum(evecs(:,i) * ws(1:n_sav)) / ev(i)
+  do i = 1, apx%n_sav
+    ev(i) = sum(evecs(:,i) * ws(1:apx%n_sav)) / ev(i)
   enddo
-  if (nid == 0) write(*,*) ev 
-!  if (nid == 0) write(*,*) ev(1:4) 
 
-  do i = 1, n_sav
+  do i = 1, apx%n_sav
     ws(i) = sum(evecs(i,:) * ev(:))
   enddo
-!  if (nid == 0) write(*,*) ws(1:4) 
 
-  approx(:,0,1) = 0._dp
-  do i= 1, n_sav
-    approx(:,0,1) = approx(:,0,1) + approx(:,i,1) * ws(i)
+  apx%projectors(:,0) = 0._dp
+  do i= 1, apx%n_sav
+    apx%projectors(:,0) = apx%projectors(:,0) + apx%projectors(:,apx%ind(i)) * ws(i)
   enddo
 
-  call axhelm  (approx(:,0,2),approx(:,0,1),h1,h2,1,1)
-  approx(:,0,2) = approx(:,0,2) * vmk(1:ntot)
-  call dssum   (approx(:,0,2))
-  r(1:ntot) = r(1:ntot) - approx(1:ntot,0,2)
-
-#endif
+  call axhelm  (wl,apx%projectors(:,0),h1,h2,1,1)
+  wl(1:ntot) = wl(1:ntot) * vmk(1:ntot)
+  call dssum   (wl)
+  r(1:ntot) = r(1:ntot) - wl(1:ntot)
 
 !...............................................................
 ! Diag.
   alpha2 = glsc23(r,bi,vml,ntot)
   if (alpha2 > 0) alpha2 = sqrt(alpha2/vol)
   ratio  = alpha1/alpha2
-  n10=min(10,n_sav)
+  n10=min(10,apx%n_sav)
 
-  if (nid == 0) write(6,10) istep,name4,alpha1,alpha2,ratio,n_sav
+  if (nid == 0) write(6,10) istep,name4,alpha1,alpha2,ratio,apx%n_sav
   10 format(4X,I7,4x,a4,' alph1n',1p3e12.4,i6)
 
-  if (nid == 0) write(6,11) istep,name4,n_sav,(ws(i),i=1,n10)
+  if (nid == 0) write(6,11) istep,name4,apx%n_sav,(ws(i),i=1,n10)
   11 format(4X,I7,4x,a4,' halpha',i6,10(1p10e12.4,/,17x))
 
   return
@@ -181,7 +119,7 @@ end subroutine projh
 !-----------------------------------------------------------------------
 !> \brief Reconstruct the solution to the original problem by adding back
 !!     the previous solutions
-subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
+subroutine gensh(v1,h1,h2,vml,vmk,apx,ws,name4)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1
   use size_m, only : lx1, ly1, lz1
@@ -195,78 +133,51 @@ subroutine gensh(v1,h1,h2,vml,vmk,approx,napprox,ws,name4)
   REAL(DP), intent(in)    :: H2   (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)    :: vmk  (*)
   REAL(DP), intent(in)    :: vml  (*)
+  type(approx_space), intent(inout) :: apx
   real(DP), intent(out)   :: ws(:) !>!< workspace?
 
-  real(DP), intent(inout) :: approx(:,0:,:)
-  integer, intent(inout) :: napprox(2)
   character(4), intent(in) :: name4
 
   real(DP) :: alpha, eps
   real(DP), external :: glsc2, glsc3
-  integer :: n_max, n_sav, ntot, ierr
+  integer :: ntot, ierr, i
 
-  eps = 1.e-30_dp
-
-  n_max = napprox(1)
-  n_sav = napprox(2)
   ntot=nx1*ny1*nz1*nelfld(ifield)
 
 !   Reconstruct solution and save current du
 
-  if (n_sav < n_max) then
+  if (apx%n_sav < apx%n_max) then
   
       if (niterhm > 0) then      ! new vector not in space
-          n_sav = n_sav+1
+          apx%n_sav = apx%n_sav+1
+          apx%ind(apx%n_sav) = apx%n_sav
           v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
-                                     + reshape(approx(:,0,1), (/lx1,ly1,lz1,nelfld(ifield)/))
-          call copy(approx(:,n_sav,1),v1,ntot)
-
-          call axhelm        (approx(:,n_sav,2),approx(:,n_sav,1),h1,h2,1,1)
-          approx(:,n_sav,2) = approx(:,n_sav,2) * vmk(1:ntot)
-          call dssum         (approx(:,n_sav,2))
-          approx(:,n_sav,2) = approx(:,n_sav,2) * vml(1:ntot)
-          !alpha = glsc3(approx(:,n_sav,2),approx(:,n_sav,2),vml,ntot)
-          alpha = glsc2(approx(:,n_sav,2),approx(:,n_sav,2),ntot)
-          if (alpha > eps) approx(:,n_sav,:) = approx(:,n_sav,:) *( 1._dp/ sqrt(alpha))
-
+                                     + reshape(apx%projectors(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
+          call copy(apx%projectors(:,apx%n_sav),v1,ntot)
+          call hconj(apx,apx%n_sav,h1,h2,vml,vmk,ws,name4,ierr)
       else
-          n_sav = n_sav+1
-          v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
-                                     + reshape(approx(:,0,1), (/lx1,ly1,lz1,nelfld(ifield)/))
-          call copy(approx(:,n_sav,1),v1,ntot)
-          call axhelm        (approx(:,n_sav,2),approx(:,n_sav,1),h1,h2,1,1)
-          approx(:,n_sav,2) = approx(:,n_sav,2) * vmk(1:ntot)
-          call dssum         (approx(:,n_sav,2))
-          approx(:,n_sav,2) = approx(:,n_sav,2) * vml(1:ntot)
-          !alpha = glsc3(approx(:,n_sav,2),approx(:,n_sav,2),vml,ntot)
-          alpha = glsc2(approx(:,n_sav,2),approx(:,n_sav,2),ntot)
-          approx(:,n_sav,:) = approx(:,n_sav,:) *( 1._dp/ sqrt(alpha))
-
+        if (nid == 0) write(*,*) "Freak out!" 
       endif
   else
-      n_sav = 1
+      ierr = apx%ind(1)
+      do i = 1, apx%n_sav - 1
+        apx%ind(i) = apx%ind(i+1)
+        apx%A_red(i,1:apx%n_max-1) = apx%A_red(i+1,2:apx%n_max)
+      enddo
+      apx%ind(apx%n_sav) = ierr 
+
       v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
-                                 + reshape(approx(:,0,1), (/lx1,ly1,lz1,nelfld(ifield)/))
-      call copy(approx(:,n_sav,1),v1,ntot)
-          call axhelm        (approx(:,n_sav,2),approx(:,n_sav,1),h1,h2,1,1)
-          approx(:,n_sav,2) = approx(:,n_sav,2) * vmk(1:ntot)
-          call dssum         (approx(:,n_sav,2))
-          approx(:,n_sav,2) = approx(:,n_sav,2) * vml(1:ntot)
-          !alpha = glsc3(approx(:,n_sav,2),approx(:,n_sav,2),vml,ntot)
-          alpha = glsc2(approx(:,n_sav,2),approx(:,n_sav,2),ntot)
-          if (alpha > eps) approx(:,n_sav,:) = approx(:,n_sav,:) *( 1._dp/ sqrt(alpha))
-
+                                 + reshape(apx%projectors(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
+      call copy(apx%projectors(:,apx%ind(apx%n_sav)),v1,ntot)
+      call hconj(apx,apx%n_sav,h1,h2,vml,vmk,ws,name4,ierr)
   endif
-
-  napprox(2)=n_sav
 
   return
 end subroutine gensh
 
-#if 0
 !-----------------------------------------------------------------------
 !> \brief Orthonormalize the kth vector against vector set
-subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
+subroutine hconj(apx,k,h1,h2,vml,vmk,ws,name4,ierr)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nid
   use parallel, only : wdsize
@@ -274,7 +185,7 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   implicit none
 
   integer, intent(in) :: k
-  real(DP), intent(inout) :: approx(:,0:,:)
+  type(approx_space), intent(inout) :: apx
   real(DP), intent(in) :: h1(*),h2(*),vml(*),vmk(*)
   real(DP), intent(out) :: ws(*)
   character(4) :: name4
@@ -288,76 +199,21 @@ subroutine hconj(approx,k,h1,h2,vml,vmk,ws,name4,ierr)
   nel = nelfld(ifield)
   ntot=nx1*ny1*nz1*nel
 
-  call axhelm  (approx(:,0),approx(:,k),h1,h2,1,1)
-  approx(:,0) = approx(:,0) * vmk(1:ntot)
-  call dssum   (approx(:,0))
-  approx(:,0) = approx(:,0) * vml(1:ntot)
+  call axhelm  (apx%projectors(:,0),apx%projectors(:,apx%ind(k)),h1,h2,1,1)
+  apx%projectors(:,0) = apx%projectors(:,0) * vmk(1:ntot)
+  call dssum   (apx%projectors(:,0))
+  apx%projectors(:,0) = apx%projectors(:,0) * vml(1:ntot)
 
-!   Compute part of the norm   (Note:  a(0) already scaled by vml)
-
-  alpha = glsc2(approx(:,0),approx(:,k),ntot)
-  alph1 = alpha
-
-!   Gram-Schmidt
-
-  km1=k-1
-  do i=1,km1
-      ws(i) = ddot(ntot, approx(:,0), 1, approx(:,i), 1)
+  do i = 1, apx%n_sav
+    apx%A_red(i,k) = glsc2(apx%projectors(:,0), apx%projectors(:,apx%ind(i)), ntot) 
   enddo
-  if (km1 > 0) call gop(ws,ws(k),'+  ',km1)
-
-  do i=1,km1
-      alpham = -ws(i)
-      approx(:,k) = approx(:,k) + alpham * approx(:,i)
-      alpha = alpha - ws(i)**2
-  enddo
-
-!  .Normalize new element in approximation space
-
-  eps = 1.e-7
-  if (wdsize == 8) eps = 1.e-15
-  ratio = alpha/alph1
-
-  if (ratio <= 0) then
-      ierr=1
-      if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
-      12 format(I6,1x,a4,' alpha b4 sqrt:',i4,1p2e12.4)
-  elseif (ratio <= eps) then
-      ierr=2
-      if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
-  else
-      ierr=0
-      alpha = 1.0/sqrt(alpha)
-      approx(:,k) = alpha * approx(:,k)
-  endif
-
-  if (ierr /= 0) then
-      call axhelm  (approx(:,0),approx(:,k),h1,h2,1,1)
-      approx(:,0) = approx(:,0) * vmk(1:ntot)
-      call dssum   (approx(:,0))
-      approx(:,0) = approx(:,0) * vml(1:ntot)
-  
-  !        Compute part of the norm   (Note:  a(0) already scaled by vml)
-  
-      alpha = glsc2(approx(:,0),approx(:,k),ntot)
-      if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
-      if (alpha <= 0) then
-          ierr=3
-          if (nid == 0) write(6,12) istep,name4,k,alpha,alph1
-          return
-      endif
-      alpha = 1.0/sqrt(alpha)
-      approx(:,k) = alpha * approx(:,k)
-      ierr = 0
-  endif
 
   return
 end subroutine hconj
-#endif
 
 !-----------------------------------------------------------------------
 !> \brief Reorthogonalize approx if dt has changed
-subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
+subroutine updrhsh(apx,h1,h2,vml,vmk,ws,name4)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1
   use input, only : ifvarp, iflomach
@@ -365,10 +221,9 @@ subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
   implicit none
 
   integer, parameter :: lt=lx1*ly1*lz1*lelt
-  real(DP), intent(inout) :: approx(:,0:,:)
+  type(approx_space), intent(inout) :: apx
   real(DP), intent(in)    :: h1(1),h2(1),vml(1),vmk(1)
   real(DP), intent(out) :: ws(1)
-  integer, intent(inout) :: napprox(2)
   character(4) :: name4
 
   logical :: ifupdate
@@ -398,7 +253,7 @@ subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
   if (iflomach)       ifupdate = .TRUE. 
 
   if (ifupdate) then    ! reorthogonalize
-      n_sav = napprox(2)
+      n_sav = apx%n_sav 
       l     = 1
       do k=1,n_sav
 #if 0
@@ -410,10 +265,10 @@ subroutine updrhsh(approx,napprox,h1,h2,vml,vmk,ws,name4)
           call hconj(approx,l,h1,h2,vml,vmk,ws,name4,ierr)
           if (ierr == 0) l=l+1
 #else
-      call axhelm(approx(:,k,2),approx(:,k,1),h1,h2,1,1)
+      apx%n_sav = k 
+      call hconj(apx,apx%n_sav,h1,h2,vml,vmk,ws,name4,ierr)
 #endif 
       enddo
-      napprox(2)=min(l,n_sav)
   endif
 
   return
@@ -473,7 +328,7 @@ end subroutine hmhzpf
 !-----------------------------------------------------------------------
 !> \brief Either std. Helmholtz solve, or a projection + Helmholtz solve
 subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
-    ,approx,napprox,bi)
+    ,apx,bi)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, lelv
   use parallel, only : nid
@@ -495,8 +350,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   real(DP), intent(in)    :: tol                  !>!< residual tolerance
   integer,  intent(in)    :: maxit                !>!< maximum number of iterations
   integer,  intent(in)    :: isd                  !>!< something to do with axi-symmetric
-  REAL(DP), intent(inout) :: approx (:,0:,:)        !>!< past solutions for projection
-  integer,  intent(inout) :: napprox(2)           !>!< (/ max vecs, current number of vecs /)
+  type(approx_space), intent(inout) :: apx
   REAL(DP), intent(in)    :: bi   (LX1,LY1,LZ1,*) !>!< inverse of mass matrix
 
   real(DP), allocatable :: w1(:)
@@ -535,13 +389,17 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
       call dssum  (r)
       r(:,:,:,1:nel) = r(:,:,:,1:nel) * vmk(:,:,:,1:nel)
 
-      allocate(w2(2+2*napprox(1)))
+      allocate(w2(2+2*apx%n_max))
       allocate(w1(lx1*ly1*lz1*lelt))
-      call projh  (r,h1,h2,bi,vml,vmk,approx,napprox,w1,w2,name)
+      if (nid == 0) write(*,*) "Calling projh", apx%n_max, apx%n_sav
+      call projh  (r,h1,h2,bi,vml,vmk,apx,w1,w2,name)
+      if (nid == 0) write(*,*) "Leaving projh", apx%n_max, apx%n_sav
       deallocate(w1)
 
       call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
-      call gensh  (u,h1,h2,vml,vmk,approx,napprox,w2,name)
+      if (nid == 0) write(*,*) "Calling gensh", apx%n_max, apx%n_sav
+      call gensh  (u,h1,h2,vml,vmk,apx,w2,name)
+      if (nid == 0) write(*,*) "Leaving gensh", apx%n_max, apx%n_sav
 
   endif
 

@@ -3,7 +3,7 @@
 subroutine cdscal (igeom)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid, mxprev
-  use helmholtz, only : hsolve
+  use helmholtz, only : hsolve, approx_space
   use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh, ifprint
   use geom, only : bintm1, binvm1
   use soln, only : t, bq, tmask, tmult
@@ -19,19 +19,10 @@ subroutine cdscal (igeom)
 
   integer, parameter :: laxt = mxprev
 
-  integer, save :: napprox(2) = 0
-  real(DP), allocatable, save :: approx(:,:,:)
+  type(approx_space), save :: apx
   character(4) ::     name4
 
   integer :: nel, ntot, nfldt, if1, isd, iter, intype
-!max    include 'ORTHOT'
-
-!max  if (.not. allocated(approx)) allocate(approx(ktot,0:laxt))
-  if (.not. allocated(approx)) allocate(approx(1,0:1,2))
-
-
-
-  napprox(1) = laxt
 
   nel    = nelfld(ifield)
   ntot   = nx1*ny1*nz1*nel
@@ -90,13 +81,13 @@ subroutine cdscal (igeom)
               ,tmask(1,1,1,1,ifield-1) &
               ,tmult(1,1,1,1,ifield-1) &
               ,imesh,tolht(ifield),nmxh,1 &
-              ,approx,napprox,bintm1)
+              ,apx,bintm1)
           else
               call hsolve  (name4,TA,TB,H1,H2 &
               ,tmask(1,1,1,1,ifield-1) &
               ,tmult(1,1,1,1,ifield-1) &
               ,imesh,tolht(ifield),nmxh,1 &
-              ,approx,napprox,binvm1)
+              ,apx,binvm1)
           endif
 
           t(:,:,:,:,ifield-1) = t(:,:,:,:,ifield-1) + ta

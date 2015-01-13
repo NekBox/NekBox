@@ -3,8 +3,9 @@ module fft
   use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00, FFTW_REDFT10, FFTW_REDFT01
   implicit none
 
-  public :: fft_r2r, transpose_grid
+  public :: fft_r2r, transpose_grid, wavenumber
   public :: W_FORWARD, W_BACKWARD, P_FORWARD, P_BACKWARD 
+
   private
 
   integer, parameter :: nplans = 10
@@ -75,10 +76,33 @@ subroutine fft_r2r(u, length, num, kind, rescale)
   else if (kind == FFTW_R2HC .or. kind == FFTW_HC2R) then
     rescale = rescale * sqrt(real(length, kind=DP))
   else
-    write(*,*) "Don't know how to deal with FFTW kind", kind
+    write(*,*) "Don't know how to deal with FFT kind", kind
   endif
 
 end subroutine fft_r2r
+
+real(DP) function wavenumber(i, N, L, kind)
+  use kinds, only : DP
+  implicit none
+  integer,  intent(in) :: i, N
+  real(DP), intent(in) :: L
+  integer,  intent(in) :: kind
+
+  real(DP), parameter :: pi = 4.*atan(1.)
+
+  if (kind == P_FORWARD) then
+    if (i <= N / 2) then
+      wavenumber = 2*pi*i/(L)
+    else
+      wavenumber = 2*pi*(N - i)/(L)
+    endif
+  else if (kind == W_FORWARD) then
+    wavenumber = pi*i/(L)
+  else
+    write(*,*) "Don't know how to deal with FFT kind", kind
+  endif
+
+end function wavenumber
 
 subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   use kinds, only : DP

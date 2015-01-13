@@ -185,7 +185,7 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
 
-  call fftw_mpi_init()
+  !call fftw_mpi_init()
 
   comm_size = min(comm_size, 4096)
   !comm_size = min(comm_size, 1024)
@@ -221,6 +221,12 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 
   if (nid < comm_size) then
     shape_c = shape_x
+#if 1
+    idx_in_local_yz = ixy; idx_out_local_yz = ixy
+    idx_in_local_xy = iyz; idx_out_local_xy = iyz
+    nin_local_yz = shape_x(3) / nxy; nout_local_yz = nin_local_yz
+    nin_local_xy = shape_x(2) / nyz; nout_local_xy = nin_local_xy
+#else
     alloc_local_xy = fftw_mpi_local_size_many_transposed( 2, &
                   (/shape_c(2), shape_c(1)/), &
                   one, shape_c(2)/nxy, shape_c(1)/nxy, &
@@ -231,6 +237,7 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
                   one, shape_c(3)/nyz, shape_c(2)/nyz, &
                   comm_yz, &
                   nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz)
+#endif
 
     if (ixy /= idx_in_local_yz .or. ixy /= idx_out_local_yz) write(*,*) "fail 1", nid, ixy, idx_in_local_yz, idx_out_local_yz
     if (iyz /= idx_in_local_xy .or. iyz /= idx_out_local_xy) write(*,*) "fail 2", nid, iyz, idx_in_local_xy, idx_out_local_xy

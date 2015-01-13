@@ -57,25 +57,25 @@ subroutine plan4()
     p_apx%n_max = laxt
     p_apx%n_sav = 0
     allocate(p_apx%projectors(ktot,0:laxt))
-    allocate(p_apx%A_red(laxt,laxt))
+    allocate(p_apx%H_red(laxt,laxt))
   endif
   if (.not. allocated(vx_apx%projectors)) then
     vx_apx%n_max = v_proj_size
     vx_apx%n_sav = 0
     allocate(vx_apx%projectors(ktot,0:v_proj_size))
-    allocate(vx_apx%A_red(v_proj_size,v_proj_size))
+    allocate(vx_apx%H_red(v_proj_size,v_proj_size))
   endif
   if (.not. allocated(vy_apx%projectors)) then
     vy_apx%n_max = v_proj_size
     vy_apx%n_sav = 0
     allocate(vy_apx%projectors(ktot,0:v_proj_size))
-    allocate(vy_apx%A_red(v_proj_size,v_proj_size))
+    allocate(vy_apx%H_red(v_proj_size,v_proj_size))
   endif
   if (.not. allocated(vz_apx%projectors)) then
     vz_apx%n_max = v_proj_size
     vz_apx%n_sav = 0
     allocate(vz_apx%projectors(ktot,0:v_proj_size))
-    allocate(vz_apx%A_red(v_proj_size,v_proj_size))
+    allocate(vz_apx%H_red(v_proj_size,v_proj_size))
   endif
 
   INTYPE = -1

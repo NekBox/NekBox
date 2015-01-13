@@ -15,7 +15,7 @@ module helmholtz
     real(DP), allocatable :: projectors(:,:)
     integer :: n_max
     integer :: n_sav
-    integer, allocatable :: ind(:)
+    integer :: next
     real(DP), allocatable :: A_red(:,:) 
   end type approx_space
 
@@ -48,8 +48,12 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   real(DP), external :: glsc2, glsc3
   real(DP), allocatable :: evecs(:,:), work(:), ev(:)
   integer :: lwork, ierr
+  real(DP), parameter :: one = 1._dp, zero = 0._dp
 
-  if (apx%n_sav == 0) return
+  if (apx%n_sav == 0) then
+    apx%projectors(:,0) = 0._dp
+    return
+  endif
 
   nel =nelfld(ifield)
   ntot=nx1*ny1*nz1*nel
@@ -77,10 +81,19 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
              work, lwork, ierr) 
   if (nid == 0 .and. ierr /= 0) write(*,*) "DSYEV failed", ierr
   wl(1:ntot) = r(1:ntot) * vml(1:ntot)
+
+#if 0
   do i = 1, apx%n_sav
     !ws(i) = glsc3(wl, approx(:,i,1), vml, ntot)
-    ws(i) = glsc2(wl, apx%projectors(:,apx%ind(i)), ntot)
+    ws(i) = glsc2(wl, apx%projectors(:,i), ntot)
   enddo
+#else
+  call dgemv('T', ntot, apx%n_sav, &
+             one,  apx%projectors(:,1:apx%n_sav), ntot, &
+                   wl, 1, &
+             zero, ws, 1)
+  call gop(ws, ws(1+apx%n_sav), '+  ', apx%n_sav)
+#endif
  
   do i = 1, apx%n_sav
     ev(i) = sum(evecs(:,i) * ws(1:apx%n_sav)) / ev(i)
@@ -90,10 +103,10 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
     ws(i) = sum(evecs(i,:) * ev(:))
   enddo
 
-  apx%projectors(:,0) = 0._dp
-  do i= 1, apx%n_sav
-    apx%projectors(:,0) = apx%projectors(:,0) + apx%projectors(:,apx%ind(i)) * ws(i)
-  enddo
+  call dgemv('N', ntot, apx%n_sav, &
+             one,  apx%projectors(:,1:apx%n_sav), ntot, &
+                   ws, 1, &
+             zero, apx%projectors(:,0), 1)
 
   call axhelm  (wl,apx%projectors(:,0),h1,h2,1,1)
   wl(1:ntot) = wl(1:ntot) * vmk(1:ntot)
@@ -150,26 +163,20 @@ subroutine gensh(v1,h1,h2,vml,vmk,apx,ws,name4)
   
       if (niterhm > 0) then      ! new vector not in space
           apx%n_sav = apx%n_sav+1
-          apx%ind(apx%n_sav) = apx%n_sav
           v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
                                      + reshape(apx%projectors(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
           call copy(apx%projectors(:,apx%n_sav),v1,ntot)
           call hconj(apx,apx%n_sav,h1,h2,vml,vmk,ws,name4,ierr)
+          apx%next = mod(apx%n_sav, apx%n_max) + 1
       else
         if (nid == 0) write(*,*) "Freak out!" 
       endif
   else
-      ierr = apx%ind(1)
-      do i = 1, apx%n_sav - 1
-        apx%ind(i) = apx%ind(i+1)
-        apx%A_red(i,1:apx%n_max-1) = apx%A_red(i+1,2:apx%n_max)
-      enddo
-      apx%ind(apx%n_sav) = ierr 
-
       v1(:,:,:,1:nelfld(ifield)) = v1(:,:,:,1:nelfld(ifield))  &
                                  + reshape(apx%projectors(:,0), (/lx1,ly1,lz1,nelfld(ifield)/))
-      call copy(apx%projectors(:,apx%ind(apx%n_sav)),v1,ntot)
-      call hconj(apx,apx%n_sav,h1,h2,vml,vmk,ws,name4,ierr)
+      call copy(apx%projectors(:,apx%next),v1,ntot)
+      call hconj(apx,apx%next,h1,h2,vml,vmk,ws,name4,ierr)
+      apx%next = mod(apx%next, apx%n_max) + 1
   endif
 
   return
@@ -194,18 +201,25 @@ subroutine hconj(apx,k,h1,h2,vml,vmk,ws,name4,ierr)
   integer :: i, ntot, km1 , nel
   real(DP) :: alpha, ratio, eps, alpham, alph1
   real(DP), external :: glsc2, ddot
+  real(DP), parameter :: one = 1._dp, zero = 0._dp
 
   ierr=0
   nel = nelfld(ifield)
   ntot=nx1*ny1*nz1*nel
 
-  call axhelm  (apx%projectors(:,0),apx%projectors(:,apx%ind(k)),h1,h2,1,1)
+  call axhelm  (apx%projectors(:,0),apx%projectors(:,k),h1,h2,1,1)
   apx%projectors(:,0) = apx%projectors(:,0) * vmk(1:ntot)
   call dssum   (apx%projectors(:,0))
   apx%projectors(:,0) = apx%projectors(:,0) * vml(1:ntot)
 
+  call dgemv('T', ntot, apx%n_sav, &
+             one,  apx%projectors(:,1:apx%n_sav), ntot, &
+                   apx%projectors(:,0), 1, &
+             zero, apx%A_red(:,k), 1)
+  call gop(apx%A_red(:,k), ws, '+  ', apx%n_sav)
+
   do i = 1, apx%n_sav
-    apx%A_red(i,k) = glsc2(apx%projectors(:,0), apx%projectors(:,apx%ind(i)), ntot) 
+    apx%A_red(k,i) = apx%A_red(i,k)
   enddo
 
   return
@@ -391,15 +405,11 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
       allocate(w2(2+2*apx%n_max))
       allocate(w1(lx1*ly1*lz1*lelt))
-      if (nid == 0) write(*,*) "Calling projh", apx%n_max, apx%n_sav
       call projh  (r,h1,h2,bi,vml,vmk,apx,w1,w2,name)
-      if (nid == 0) write(*,*) "Leaving projh", apx%n_max, apx%n_sav
       deallocate(w1)
 
       call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
-      if (nid == 0) write(*,*) "Calling gensh", apx%n_max, apx%n_sav
       call gensh  (u,h1,h2,vml,vmk,apx,w2,name)
-      if (nid == 0) write(*,*) "Leaving gensh", apx%n_max, apx%n_sav
 
   endif
 

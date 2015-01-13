@@ -42,7 +42,6 @@ module poisson
 
   integer :: comm_size
 
-
 contains
 
 !> \brief 
@@ -53,6 +52,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use parallel, only : nekcomm, nid, lglel
   use soln, only : vmult
   use size_m, only : nx1, ny1, nz1, nelv
+  use ctimer, only : dnekclock
 
   use fft, only : P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r, transpose_grid
@@ -68,6 +68,9 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   real(DP) :: rescale
   real(DP) :: h2(1,1,1,1)
   integer :: ix(3)
+  real(DP), save :: thistime, tottime = 0._dp
+
+  thistime = - dnekclock()
 
   nelm = size(rhs) / 8
 
@@ -163,6 +166,10 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
     u(7+(i-1)*8) = tmp_fine(1,  ny1,nz1, i) 
     u(8+(i-1)*8) = tmp_fine(nx1,ny1,nz1, i) 
   end forall
+
+  thistime = thistime + dnekclock()
+  tottime = tottime + thistime
+  if (nid == 0) write(*,*) "SCPS timers:", thistime, tottime
 
   return
  
@@ -502,7 +509,6 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
   integer :: nelm
   nelm = size(mesh)
 
-
   do idx = 0, shape_x(1)-1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
       do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
@@ -542,6 +548,7 @@ end subroutine grid_to_mesh
 subroutine poisson_kernel(grid, shape_x, start_x, end_x)
   use kinds, only : DP
   use tstep, only : pi 
+  use fft, only : wavenumber, P_FORWARD, W_FORWARD
 
   real(DP), intent(inout) :: grid(0:,0:,0:)
   integer,  intent(in) :: shape_x(3)
@@ -557,19 +564,14 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x)
     do idz = 0, shape_x(3) - 1
       do idy = 0, nout_local_yz - 1
         do idx = 0, nout_local_xy - 1
-          if (idx + idx_out_local_xy <= shape_x(1) / 2) then
-            kx = 2*pi*(idx +idx_out_local_xy)/(end_x(1)-start_x(1)) 
-          else
-            kx = 2*pi*(shape_x(1) - idx - idx_out_local_xy)/(end_x(1)-start_x(1)) 
-          endif
+          kx = wavenumber(idx + idx_out_local_xy, shape_x(1), &
+                          end_x(1)-start_x(1), P_FORWARD)
+
+          ky = wavenumber(idy + idx_out_local_yz, shape_x(2), &
+                          end_x(2)-start_x(2), P_FORWARD)
  
-          if (idy + idx_out_local_yz <= shape_x(2) / 2) then
-            ky = 2*pi*(idy +idx_out_local_yz)/(end_x(2)-start_x(2)) 
-          else
-            ky = 2*pi*(shape_x(2) - idy - idx_out_local_yz)/(end_x(2)-start_x(2)) 
-          endif
- 
-          kz = pi*(idz)/(end_x(3)-start_x(3)) 
+          kz = wavenumber(idz, shape_x(3), &
+                          end_x(3)-start_x(3), W_FORWARD)
  
           if (kx**2. + ky**2. + kz**2. < 1.e-9_dp) then
             ks(idz,idx,idy) = 0._dp

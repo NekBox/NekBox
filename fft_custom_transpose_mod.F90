@@ -69,23 +69,14 @@ subroutine fft_r2r(u, length, num, kind, rescale)
                             (/length/), num, &
                             proxy, (/length/), 1, length, &
                             proxy, (/length/), 1, length, &
-                            (/kind/), FFTW_ESTIMATE) 
-!                            (/kind/), FFTW_EXHAUSTIVE) 
+                            (/kind/), FFTW_EXHAUSTIVE) 
     deallocate(proxy)
     r2r_plan_lengths(plan_idx) = length
     r2r_plan_nums(plan_idx)    = num
     r2r_plan_kinds(plan_idx)   = kind
   endif
-  r2r_plans(plan_idx) = fftw_plan_many_r2r(1, &
-                          (/length/), num, &
-                          u, (/length/), 1, length, &
-                          u, (/length/), 1, length, &
-                          (/kind/), FFTW_ESTIMATE) 
 
-  write(*,*) plan_idx, nid
-  allocate(proxy(100000))
-  call fftw_execute_r2r(r2r_plans(plan_idx), u, proxy)
-  deallocate(proxy)
+  call fftw_execute_r2r(r2r_plans(plan_idx), u, u)
 
   if (kind == FFTW_REDFT00) then
     rescale = rescale * sqrt(2.*real(length-1, kind=DP))
@@ -115,8 +106,8 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
 
   real(DP), allocatable :: tmp(:,:)
   real(DP), allocatable :: tmp_t(:,:)
-  integer(C_INTPTR_T) :: shape_c(3), block0, block1, n0, n1, num
-  integer(C_INTPTR_T), parameter :: one = 1
+  integer :: shape_c(3), block0, block1, n0, n1, num
+  integer, parameter :: one = 1
   type(C_PTR) :: transpose_plan
   integer :: i, j, k, plan_idx, ierr
 
@@ -125,6 +116,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   n0 = shape_c(idx_t)
   n1 = shape_c(idx)
 
+  if (size(grid) < 1) return
 !  if (nid == 0) write(*,*) shape_x, idx, idx_t
  
   if (idx == 1 .or. idx_t == 1) then
@@ -149,7 +141,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
       if (ierr /= 0) write(*,*) "alltoall errored", ierr, nid
       do j = 0, size(grid_t,1) - 1
         do k = 0, size(grid_t,2) - 1
-          grid_t(j,k,i) = tmp_t( mod(j,block1), (j / block1) * block1 + k )
+          grid_t(j,k,i) = tmp_t( mod(j,int(block1)), (j / block1) * block1 + k )
         enddo
       enddo
     enddo
@@ -161,7 +153,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
       if (ierr /= 0) write(*,*) "alltoall errored", ierr, nid
       do j = 0, size(grid_t,1) - 1
         do k = 0, size(grid_t,2) - 1
-          grid_t(j,i,k) = tmp_t( mod(j,block1), (j / block1) * block1 + k )
+          grid_t(j,i,k) = tmp_t( mod(j,int(block1)), (j / block1) * block1 + k )
         enddo
       enddo
     enddo

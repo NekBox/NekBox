@@ -19,16 +19,6 @@ module fft
   integer, parameter :: P_FORWARD = FFTW_R2HC
   integer, parameter :: P_BACKWARD = FFTW_HC2R
 
-  integer, parameter :: max_transpose_plans = 100
-  integer :: n_transpose_plans = 0
-  type(C_PTR) :: transpose_plans(max_transpose_plans)
-  integer :: transpose_comm(max_transpose_plans)
-  integer :: transpose_num(max_transpose_plans)
-  integer :: transpose_n0(max_transpose_plans)
-  integer :: transpose_n1(max_transpose_plans)
-  integer :: transpose_b0(max_transpose_plans)
-  integer :: transpose_b1(max_transpose_plans)
-
 contains
 
 subroutine fft_r2r(u, length, num, kind, rescale)
@@ -106,32 +96,22 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
 
   real(DP), allocatable :: tmp(:,:)
   real(DP), allocatable :: tmp_t(:,:)
-  integer :: shape_c(3), block0, block1, n0, n1, num
-  integer, parameter :: one = 1
-  type(C_PTR) :: transpose_plan
-  integer :: i, j, k, plan_idx, ierr
-
-  shape_c = shape_x
-
-  n0 = shape_c(idx_t)
-  n1 = shape_c(idx)
+  integer :: block0, block1, num
+  integer :: i, j, k, ierr
 
   if (size(grid) < 1) return
-!  if (nid == 0) write(*,*) shape_x, idx, idx_t
  
   if (idx == 1 .or. idx_t == 1) then
     block0 = size(grid,2)
     block1 = size(grid_t,2)
     num    = size(grid,3) 
-    allocate(tmp(0:block0-1,   0:size(grid,1)-1))
-    allocate(tmp_t(0:block1-1, 0:size(grid_t,1)-1))
   else if (idx == 3 .or. idx_t == 3) then
     block0 = size(grid,3)
     block1 = size(grid_t,3)
     num    = size(grid,2) 
-    allocate(tmp(0:block0-1,   0:size(grid,1)-1))
-    allocate(tmp_t(0:block1-1, 0:size(grid_t,1)-1))
   endif
+  allocate(tmp(0:block0-1,   0:size(grid,1)-1))
+  allocate(tmp_t(0:block1-1, 0:size(grid_t,1)-1))
 
   if (idx == 1 .or. idx_t == 1) then
     do i = 0, num - 1
@@ -160,9 +140,6 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   else
     write(*,*) "Something went wrong in transpose", nid
   endif
-
-  !call nekgsync()
-  !if (nid == 0) write(*,*) "executed"
 
 end subroutine transpose_grid
 

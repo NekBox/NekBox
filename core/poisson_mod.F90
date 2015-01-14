@@ -180,7 +180,8 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
   use fftw3, only : fftw_mpi_local_size_many_transposed
   use fftw3, only : fftw_mpi_init
-  use mpif, only : MPI_UNDEFINED
+  use mpif,  only : MPI_UNDEFINED
+  use input, only : param
   integer, intent(in) :: comm_world !>!< Communicator in which to setup solver
   integer, intent(in) :: shape_x(3) !>!< Shape of mesh
 
@@ -193,11 +194,9 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   call MPI_Comm_size(comm_world, comm_size, ierr) 
 
   !call fftw_mpi_init()
-
-  comm_size = min(comm_size, 4096)
-  !comm_size = min(comm_size, 1024)
-  !comm_size = min(comm_size, 256)
-  !comm_size = min(comm_size, 64)
+  if (param(49) >= 1) then
+    comm_size = min(comm_size, int(param(49)))
+  endif
 
   nxy =  int(2**int(log(real(comm_size))/log(2.) / 2))
   comm_size = nxy*nxy

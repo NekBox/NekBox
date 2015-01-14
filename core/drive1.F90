@@ -15,7 +15,7 @@ subroutine nek_init(intracomm)
   use esolv, only : init_esolv
   use fdmh1, only : init_fdmh1
   use geom, only : init_geom
-  use hsmg, only : init_hsmg
+  use hsmg, only : init_hsmg, use_spectral_coarse
   use input, only : init_input
   use ixyz, only : init_ixyz
 !  use geom, only : init_mass
@@ -30,7 +30,7 @@ subroutine nek_init(intracomm)
   use zper, only : init_zper
 
   use ctimer, only : etimes, dnekclock, etime1, ifsync, etims0, dnekclock_sync
-  use input, only : ifflow, iftran, solver_type
+  use input, only : ifflow, iftran, solver_type, param
   use soln, only : nid, jp
   use tstep, only : istep, instep, nsteps, fintim, time
 
@@ -83,6 +83,11 @@ subroutine nek_init(intracomm)
 !   Read .rea +map file
   etime1 = dnekclock()
   call readat
+
+  use_spectral_coarse = .false.
+  if (param(48) == 1.) then
+    use_spectral_coarse = .true.
+  endif
 
   ifsync_ = ifsync
   ifsync = .TRUE. 

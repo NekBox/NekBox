@@ -25,7 +25,9 @@ USR_LFLAGS=
 IFVISIT=
 VISIT_IFLAGS=
 VISIT_LFLAGS=
-FFT_MOD = fftpack5.o fft_pack_mod.o 
+FFT_MOD = fft_fftw_mod.o 
+#FFT_MOD = fft_fftw-mpi_mod.o 
+#FFT_MOD = fftpack5.o fft_pack_mod.o 
 
 ################################################################################
 

@@ -13,22 +13,39 @@ subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
 
   real(DP) :: t0, t1
   integer :: nx, nel, ntot, ny, nz, melg
+  integer(i8) :: mem_size
+  integer, parameter :: num_ds_handles = 64
+  integer, save :: handles(num_ds_handles) = -1
+
+  ! If we've already set up it, return an existing handle
+  if (nx <= num_ds_handles .and. handles(nx) >= 0) then
+    gs_handle = handles(nx)
+    return
+
+  ! Make a new handle
+  else
 
   t0 = dnekclock()
 
-!   Global-to-local mapping for gs
+  ! Global-to-local mapping for gs
   call set_vert(glo_num,ngv,nx,nel,vertex, .FALSE. )
+  if (nid == 0) call bgq_memory(mem_size)
 
-!   Initialize gather-scatter code
+  ! Initialize gather-scatter code
   ntot      = nx*ny*nz*nel
   call gs_setup(gs_handle,glo_num,ntot,nekcomm,mp)
 
-!   call gs_chkr(glo_num)
+  !   call gs_chkr(glo_num)
 
   t1 = dnekclock() - t0
   if (nid == 0) then
       write(6,1) t1,gs_handle,nx,ngv,melg
       1 format('   setupds time',1pe11.4,' seconds ',2i3,2i12)
+  endif
+
+  ! save the handle
+  if (nx <= num_ds_handles) handles(nx) = gs_handle
+
   endif
 
   return

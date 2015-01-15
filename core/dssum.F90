@@ -13,7 +13,6 @@ subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
 
   real(DP) :: t0, t1
   integer :: nx, nel, ntot, ny, nz, melg
-  integer(i8) :: mem_size
   integer, parameter :: num_ds_handles = 64
   integer, save :: handles(num_ds_handles) = -1
 
@@ -29,7 +28,6 @@ subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
 
   ! Global-to-local mapping for gs
   call set_vert(glo_num,ngv,nx,nel,vertex, .FALSE. )
-  if (nid == 0) call bgq_memory(mem_size)
 
   ! Initialize gather-scatter code
   ntot      = nx*ny*nz*nel

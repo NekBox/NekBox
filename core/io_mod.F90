@@ -29,7 +29,8 @@ subroutine load_ic()
   integer :: nelo !>!< number of i/o elements per io-node
   integer :: word_size_load !>!< number of bytes per word
 
-  integer :: ierr
+  integer :: ierr, i
+  integer, parameter :: pad_size = 1
   real(DP), allocatable :: padding(:,:,:,:)
 
   if (load_name == 'NONE') then
@@ -45,10 +46,12 @@ subroutine load_ic()
 
   ! seek past positions
   if (nid == pid0) then
-    allocate(padding(nx1, ny1, nz1, nelo))
-    call byte_read(padding, word_size_load * size(padding) / 4, ierr)
-    call byte_read(padding, word_size_load * size(padding) / 4, ierr)
-    call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+    allocate(padding(nx1, ny1, nz1, pad_size))
+    do i = 1, nelo, pad_size
+      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+    enddo
   endif
 
   ! read velocities
@@ -56,7 +59,9 @@ subroutine load_ic()
 
   ! seek past pressure
   if (nid == pid0) then
-    call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+    do i = 1, nelo, pad_size
+      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+    enddo
   endif
   call mfo_read_scalar(t(:,:,:,:,1), size(t, 4), size(t,1), size(t,2), size(t,3), word_size_load)
 

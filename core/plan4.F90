@@ -19,7 +19,7 @@ subroutine plan4()
   use size_m, only : nx1, ny1, nz1, nelv
   use ctimer, only : icalld, tpres, npres, etime1, dnekclock
   use geom, only : binvm1, bm1, volvm1
-  use helmholtz, only : hsolve, approx_space
+  use helmholtz, only : hsolve, approx_space, init_approx_space
   use soln, only : qtl, vx, vy, vz, v1mask, v2mask, v3mask
   use soln, only : vtrans, pmask, vmult, pr
   use tstep, only : imesh, nmxh, tolhv
@@ -54,28 +54,16 @@ subroutine plan4()
   laxt = int(param(93))
 
   if (.not. allocated(p_apx%projectors)) then
-    p_apx%n_max = laxt
-    p_apx%n_sav = 0
-    allocate(p_apx%projectors(ktot,0:laxt))
-    allocate(p_apx%H_red(laxt,laxt))
+    call init_approx_space(p_apx, laxt, ktot)
   endif
   if (.not. allocated(vx_apx%projectors)) then
-    vx_apx%n_max = v_proj_size
-    vx_apx%n_sav = 0
-    allocate(vx_apx%projectors(ktot,0:v_proj_size))
-    allocate(vx_apx%H_red(v_proj_size,v_proj_size))
+    call init_approx_space(vx_apx, v_proj_size, ktot)
   endif
   if (.not. allocated(vy_apx%projectors)) then
-    vy_apx%n_max = v_proj_size
-    vy_apx%n_sav = 0
-    allocate(vy_apx%projectors(ktot,0:v_proj_size))
-    allocate(vy_apx%H_red(v_proj_size,v_proj_size))
+    call init_approx_space(vy_apx, v_proj_size, ktot)
   endif
   if (.not. allocated(vz_apx%projectors)) then
-    vz_apx%n_max = v_proj_size
-    vz_apx%n_sav = 0
-    allocate(vz_apx%projectors(ktot,0:v_proj_size))
-    allocate(vz_apx%H_red(v_proj_size,v_proj_size))
+    call init_approx_space(vz_apx, v_proj_size, ktot)
   endif
 
   INTYPE = -1

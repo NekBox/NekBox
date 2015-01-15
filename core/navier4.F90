@@ -16,7 +16,7 @@ module helmholtz
   implicit none
 
 
-  public :: hsolve, approx_space
+  public :: hsolve, approx_space, init_approx_space
   private :: projh, gensh, hconj, updrhsh, hmhzpf
 
   !> Type to hold the approximation space.
@@ -32,6 +32,18 @@ module helmholtz
   end type approx_space
 
 contains
+
+!> \brief Initialize approximation space object
+!!
+!! Simple assigns and allocations
+subroutine init_approx_space(apx, n_max, ntot)
+  type(approx_space), intent(out) :: apx
+  integer, intent(in) :: n_max, ntot
+  apx%n_max = n_max
+  apx%n_sav = 0
+  apx%next  = 0
+  allocate(apx%projectors(ntot, 0:n_max), apx%H_red(n_max, n_max))
+end subroutine init_approx_space
 
 !> \brief Project out the part of the residual in the approx space.
 !!

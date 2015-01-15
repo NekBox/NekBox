@@ -69,6 +69,7 @@ subroutine setics
 
   call slogic (iffort,ifrest,ifprsl,nfiles)
 
+
 !   Set up proper initial values for turbulence model arrays
 #if 0
   IF (IFMODEL) CALL PRETMIC
@@ -97,6 +98,7 @@ subroutine setics
   do ifield=1,maxfld
       call nekuic
   enddo
+
 
 !   If any pre-solv, do pre-solv for all temperatur/passive scalar fields
 !max    if (ifanyp) call prsolvt
@@ -174,6 +176,7 @@ subroutine setics
 
 !   Initial mesh velocities
   if (ifmvbd) call opcopy (wx,wy,wz,vx,vy,vz)
+
 !max    if (ifmvbd .AND. .NOT. ifrest(0,jp)) call meshv (2)
 
 !   Compute additional initial values for turbulence model arrays
@@ -266,6 +269,7 @@ subroutine setics
       if (ifsplit) call dsavg(pr)  ! continuous pressure
       if (ifvcor)  call ortho(pr)  ! remove any mean
   endif
+
 
   if (ifmhd) then
       ifield = ifldmhd
@@ -380,8 +384,10 @@ subroutine setics
       call geom_reset(1)  !  recompute geometric factors
   endif
 
+
 !   ! save velocity on fine mesh for dealiasing
   call setup_convect(2)
+
 
 !   call outpost(vx,vy,vz,pr,t,'   ')
 !   call exitti('setic exit$',nelv)
@@ -599,13 +605,14 @@ subroutine restart_driver(nfiles)
   integer :: jxyz, ntotv, ntott
   integer :: nxyz1, lname, is, nps0, nps1, i1, iposv, iposy, nps
 
-  allocate(TDUMP(LXYZR,LPSC9))
 
   ifok= .FALSE. 
   ifbytsw = .FALSE. 
 
   if(nfiles < 1) return
+
   if(nid == 0) write(6,*) 'Reading checkpoint data'
+  allocate(TDUMP(LXYZR,LPSC9))
 
 ! use new reader (only binary support)
   p67 = abs(param(67))

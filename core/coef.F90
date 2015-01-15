@@ -486,11 +486,17 @@ subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 #endif
   ELSE
 
-    rxm1 = ysm1*ztm1 - ytm1*zsm1
-    sym1 = xrm1*ztm1 - xtm1*zrm1
-    tzm1 = xrm1*ysm1 - xsm1*yrm1
+    if (if_ortho) then
+      rxm1 = ysm1*ztm1
+      sym1 = xrm1*ztm1
+      tzm1 = xrm1*ysm1
 
-    if (.not. if_ortho) then
+      jacm1 = xrm1*ysm1*ztm1
+    else
+      rxm1 = ysm1*ztm1 - ytm1*zsm1
+      sym1 = xrm1*ztm1 - xtm1*zrm1
+      tzm1 = xrm1*ysm1 - xsm1*yrm1
+
       rym1 = xtm1*zsm1 - xsm1*ztm1
       rzm1 = xsm1*ytm1 - xtm1*ysm1 
       sxm1 = ytm1*zrm1 - yrm1*ztm1
@@ -500,10 +506,7 @@ subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
       jacm1 = xrm1*ysm1*ztm1 + xtm1*yrm1*zsm1 + xsm1*ytm1*zrm1 &
             - xrm1*ytm1*zsm1 - xsm1*yrm1*ztm1 - xtm1*ysm1*zrm1
-    else
-      jacm1 = xrm1*ysm1*ztm1
     endif
-
 
   ENDIF
 
@@ -543,6 +546,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use input, only : ifaxis
   use tstep, only : istep
   use wz_m, only : zam1, w3m1
+  use mesh, only : if_ortho
   implicit none
 
 !   Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
@@ -609,13 +613,23 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       CALL RZERO (G6M1,NTOT1)
 #endif
   ELSE
+    if (if_ortho) then
+      g1m1 = wj * (rxm1 * rxm1)
+      g2m1 = wj * (sym1 * sym1)
+      g3m1 = wj * (tzm1 * tzm1)
+
+      g4m1 = 0._dp 
+      g5m1 = 0._dp 
+      g6m1 = 0._dp 
+    else
       g1m1 = wj * (rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1)
       g2m1 = wj * (sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1)
       g3m1 = wj * (txm1 * txm1 + tym1 * tym1 + tzm1 * tzm1)
 
-      g4m1 = 0._dp !wj * (rxm1 * sxm1 + rym1 * sym1 + rzm1 * szm1)
-      g5m1 = 0._dp !wj * (rxm1 * txm1 + rym1 * tym1 + rzm1 * tzm1)
-      g6m1 = 0._dp !wj * (txm1 * sxm1 + tym1 * sym1 + tzm1 * szm1)
+      g4m1 = wj * (rxm1 * sxm1 + rym1 * sym1 + rzm1 * szm1)
+      g5m1 = wj * (rxm1 * txm1 + rym1 * tym1 + rzm1 * tzm1)
+      g6m1 = wj * (txm1 * sxm1 + tym1 * sym1 + tzm1 * szm1)
+    endif
   ENDIF
   deallocate(wj)
 

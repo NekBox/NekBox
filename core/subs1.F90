@@ -400,6 +400,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   use geom, only : rxm1, rym1, sxm1, sym1, rzm1, szm1, txm1, tym1, tzm1
   use input, only : ifaxis
   use wz_m, only : zgm1
+  use mesh, only : if_ortho
   implicit none
 
   real(DP), intent(in)  :: V1(LX1,LY1,LZ1,lelv)
@@ -430,9 +431,16 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   NTOTD = NTOTL*NDIM
 
 !   Compute isoparametric partials.
-  allocate(xrm1(nx1,ny1,nz1,nelv), xsm1(nx1,ny1,nz1,nelv), xtm1(nx1,ny1,nz1,nelv))
-  allocate(yrm1(nx1,ny1,nz1,nelv), ysm1(nx1,ny1,nz1,nelv), ytm1(nx1,ny1,nz1,nelv))
-  allocate(zrm1(nx1,ny1,nz1,nelv), zsm1(nx1,ny1,nz1,nelv), ztm1(nx1,ny1,nz1,nelv))
+  allocate(xrm1(nx1,ny1,nz1,nelv), ysm1(nx1,ny1,nz1,nelv), ztm1(nx1,ny1,nz1,nelv))
+  if (.not. if_ortho) then
+    allocate(xsm1(nx1,ny1,nz1,nelv), xtm1(nx1,ny1,nz1,nelv))
+    allocate(yrm1(nx1,ny1,nz1,nelv), ytm1(nx1,ny1,nz1,nelv))
+    allocate(zrm1(nx1,ny1,nz1,nelv), zsm1(nx1,ny1,nz1,nelv))
+  else
+    allocate(xsm1(nx1,ny1,nz1,0), xtm1(nx1,ny1,nz1,0))
+    allocate(yrm1(nx1,ny1,nz1,0), ytm1(nx1,ny1,nz1,0))
+    allocate(zrm1(nx1,ny1,nz1,0), zsm1(nx1,ny1,nz1,0))
+  endif
   CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, IFAXIS)
 
 !   Compute maximum U/DX
@@ -472,34 +480,55 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
       v = v / r
 #endif 
   ELSE
- 
-      u = v1 * rxm1 + v2 * rym1 + v3 * rzm1 
-      r = rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1
-      x = xrm1 * xrm1 + yrm1 * yrm1 + zrm1 * zrm1
+
+      if (if_ortho) then 
+        u = v1 * rxm1 
+        r = rxm1 * rxm1 
+        x = xrm1 * xrm1 
+      else
+        u = v1 * rxm1 + v2 * rym1 + v3 * rzm1 
+        r = rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1
+        x = xrm1 * xrm1 + yrm1 * yrm1 + zrm1 * zrm1
+      endif
 
       r = r * x
       r = sqrt(r) 
       u = u / r
- 
-      v = v1*sxm1     + v2*sym1     + v3*szm1
-      r = sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1
-      x = xsm1 * xsm1 + ysm1 * ysm1 + zsm1 * zsm1 
+
+      if (if_ortho) then 
+        v = v2*sym1
+        r = sym1 * sym1
+        x = ysm1 * ysm1
+      else
+        v = v1*sxm1     + v2*sym1     + v3*szm1
+        r = sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1
+        x = xsm1 * xsm1 + ysm1 * ysm1 + zsm1 * zsm1 
+      endif
 
       r = r * x
       r = sqrt(r) 
       v = v / r
 
-      w = v1*txm1     + v2*tym1     + v3*tzm1
-      r = txm1 * txm1 + tym1 * tym1 + tzm1 * tzm1
-      x = xtm1 * xtm1 + ytm1 * ytm1 + ztm1 * ztm1
-  
+      if (if_ortho) then
+        w = v3*tzm1
+        r = tzm1 * tzm1
+        x = ztm1 * ztm1
+      else
+        w = v3*tzm1
+        r = tzm1 * tzm1
+        x = ztm1 * ztm1
+      endif
+ 
       r = r * x
       r = sqrt(r) 
       w = w / r
   
   endif
 
-  deallocate(xrm1, xsm1, xtm1, yrm1, ysm1, ytm1, zrm1, zsm1, ztm1)
+  deallocate(xrm1, ysm1, ztm1)
+  if (.not. if_ortho) then
+    deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
+  endif
   deallocate(x,r)
 
   DO IE=1,NELV

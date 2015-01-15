@@ -48,6 +48,7 @@ module geom
 
   subroutine init_geom()
     use size_m
+    use mesh, only : if_ortho
     implicit none
 
     allocate( XM1(LX1,LY1,LZ1,LELT), YM1(LX1,LY1,LZ1,LELT), ZM1(LX1,LY1,LZ1,LELT) )
@@ -57,8 +58,11 @@ module geom
             , RZM1(LX1,LY1,LZ1,LELT), SZM1(LX1,LY1,LZ1,LELT), TZM1(LX1,LY1,LZ1,LELT) )
     allocate( JACM1(LX1,LY1,LZ1,LELT), jacmi(lx1,ly1,lz1,lelt) )
 
-
-    allocate(rx(lxd*lyd*lzd,ldim*ldim,lelv)) !verified
+    if (if_ortho) then
+      allocate(rx(lxd*lyd*lzd,ldim,lelv)) !verified
+    else
+      allocate(rx(lxd*lyd*lzd,ldim*ldim,lelv)) !verified
+    endif
 
     allocate( G1M1(LX1,LY1,LZ1,LELT), G2M1(LX1,LY1,LZ1,LELT), G3M1(LX1,LY1,LZ1,LELT) &
             , G4M1(LX1,LY1,LZ1,LELT), G5M1(LX1,LY1,LZ1,LELT), G6M1(LX1,LY1,LZ1,LELT) )

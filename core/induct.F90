@@ -11,6 +11,7 @@ subroutine compute_cfl(cfl,u,v,w,dt)
   use input, only : if3d
 !  use soln, only : cflf
   use wz_m, only : zgm1
+  use mesh, only : if_ortho
   implicit none
 
   real(DP) :: cfl, dt
@@ -42,16 +43,21 @@ subroutine compute_cfl(cfl,u,v,w,dt)
               do j=1,ny1
                   do i=1,nx1
                       l = l+1
-                      ur = ( u(i,j,k,e)*rxm1(i,j,k,e) &
-                      +   v(i,j,k,e)*rym1(i,j,k,e) &
-                      +   w(i,j,k,e)*rzm1(i,j,k,e) ) * jacmi(i,j,k,e)
-                      us = ( u(i,j,k,e)*sxm1(i,j,k,e) &
-                      +   v(i,j,k,e)*sym1(i,j,k,e) &
-                      +   w(i,j,k,e)*szm1(i,j,k,e) ) * jacmi(i,j,k,e)
-                      ut = ( u(i,j,k,e)*txm1(i,j,k,e) &
-                      +   v(i,j,k,e)*tym1(i,j,k,e) &
-                      +   w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(i,j,k,e)
-                       
+                      if (if_ortho) then
+                        ur = ( u(i,j,k,e)*rxm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                        us = ( v(i,j,k,e)*sym1(i,j,k,e) ) * jacmi(i,j,k,e)
+                        ut = ( w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                      else
+                        ur = ( u(i,j,k,e)*rxm1(i,j,k,e) &
+                           +   v(i,j,k,e)*rym1(i,j,k,e) &
+                           +   w(i,j,k,e)*rzm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                        us = ( u(i,j,k,e)*sxm1(i,j,k,e) &
+                           +   v(i,j,k,e)*sym1(i,j,k,e) &
+                           +   w(i,j,k,e)*szm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                        ut = ( u(i,j,k,e)*txm1(i,j,k,e) &
+                           +   v(i,j,k,e)*tym1(i,j,k,e) &
+                           +   w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                      endif                      
                       cflr = abs(dt*ur*dri(i))
                       cfls = abs(dt*us*dsi(j))
                       cflt = abs(dt*ut*dti(k))
@@ -127,6 +133,7 @@ subroutine set_dealias_rx
   use input, only : if3d
   use tstep , only : istep 
   use speclib, only : zwgl
+  use mesh, only : if_ortho
   implicit none
 
   real(DP) ::  zd(lxd),wd(lxd)
@@ -150,16 +157,21 @@ subroutine set_dealias_rx
       do e=1,nelv
 
       !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
-
-          call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,2,e),rym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,3,e),rzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,4,e),sxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,5,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,6,e),szm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,7,e),txm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,8,e),tym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,9,e),tzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          if (if_ortho) then
+            call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,2,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,3,e),tzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          else
+            call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,2,e),rym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,3,e),rzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,4,e),sxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,5,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,6,e),szm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,7,e),txm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,8,e),tym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+            call intp_rstd(rx(1,9,e),tzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+          endif
 
           l = 0
           do k=1,nzd
@@ -167,9 +179,7 @@ subroutine set_dealias_rx
                   do i=1,nxd
                       l = l+1
                       w = wd(i)*wd(j)*wd(k)
-                      do ii=1,9
-                          rx(l,ii,e) = w*rx(l,ii,e)
-                      enddo
+                      rx(l,:,e) = w*rx(l,:,e)
                   enddo
               enddo
           enddo

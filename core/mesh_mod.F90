@@ -8,6 +8,7 @@ module mesh
   logical, allocatable :: iffast(:) !>!< can we use a fast method on the element?
   logical :: ifsolv !>!< are ifdfrm and iffast up to date?
   integer :: niterhm
+  logical :: if_ortho = .true.
 
   real(DP) :: start_x(3)
   real(DP) :: end_x(3)

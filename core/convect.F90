@@ -52,9 +52,10 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   use size_m, only : lxd, ldim
   implicit none
 
-  real(DP) :: ju(*),u(*)
-  integer :: mx, md, idir
-  logical :: if3d
+  real(DP), intent(out) :: ju(*)
+  real(DP), intent(in)  :: u(*)
+  integer,  intent(in)  :: mx, md, idir
+  logical,  intent(in)  :: if3d
 
   integer, parameter :: ldg=lxd**3
   real(DP), save :: jgl(ldg), jgt(ldg)
@@ -379,6 +380,7 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, nelv
   use geom, only : rx
   use input, only : if3d
+  use mesh, only : if_ortho
   implicit none
 
   integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
@@ -409,19 +411,26 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
       if (if3d) then
 
-          do i=1,nxyzd
-              cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
-              cs(i,e)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
-              ct(i,e)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
-          enddo
-
+          if (if_ortho) then
+            do i=1,nxyzd
+                cr(i,e)=rx(i,1,e)*fx(i)
+                cs(i,e)=rx(i,2,e)*fy(i)
+                ct(i,e)=rx(i,3,e)*fz(i)
+            enddo
+          else
+            do i=1,nxyzd
+                cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
+                cs(i,e)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
+                ct(i,e)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
+            enddo
+          endif
       else
-
+#if 0
           do i=1,nxyzd
               cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)
               cs(i,e)=rx(i,3,e)*fx(i)+rx(i,4,e)*fy(i)
           enddo
-
+#endif
       endif
   enddo
 

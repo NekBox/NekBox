@@ -1810,42 +1810,6 @@ subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
   return
 end subroutine h1mg_setup_mask
 
-!----------------------------------------------------------------------
-subroutine gxfer_e (g,ng,e)
-  use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1
-  use geom, only : g1m1, g2m1, g3m1, g4m1, g5m1, g6m1
-  use input, only : if3d
-  implicit none
-
-  integer :: ng, e
-  real(DP) :: g(ng,1)
-  integer :: nxyz, i
-
-  nxyz = nx1*ny1*nz1
-
-!   ifdfrm(e) = .true.  ! TOO LATE
-
-  if (if3d) then
-      do i=1,nxyz
-          g(1,i) = g1m1(i,1,1,e)
-          g(2,i) = g2m1(i,1,1,e)
-          g(3,i) = g3m1(i,1,1,e)
-          g(4,i) = g4m1(i,1,1,e)
-          g(5,i) = g5m1(i,1,1,e)
-          g(6,i) = g6m1(i,1,1,e)
-      enddo
-  else
-      do i=1,nxyz
-          g(1,i) = g1m1(i,1,1,e)
-          g(2,i) = g2m1(i,1,1,e)
-          g(3,i) = g4m1(i,1,1,e)
-      enddo
-  endif
-
-  return
-end subroutine gxfer_e
-
 !-----------------------------------------------------------------------
 subroutine h1mg_setup_schwarz_wt_2(wt,ie,n,work,ifsqrt)
   use kinds, only : DP

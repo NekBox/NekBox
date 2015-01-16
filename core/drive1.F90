@@ -298,7 +298,7 @@ subroutine nek_advance
       igeom = 1
       if (ifheat)          call heat     (igeom)
       call setprop
-      call qthermal
+      !call qthermal
       igeom = 1
       if (ifflow)          call fluid    (igeom)
       if (param(103) > 0) call q_filter(param(103))

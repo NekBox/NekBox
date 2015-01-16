@@ -83,9 +83,13 @@ end subroutine ortho
 subroutine opgrad (out1,out2,out3,inp)
   use kinds, only : DP
   use size_m, only : nx2, ny2, nz2, ndim, nelv
-  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2
+  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, nx1, ny1, nz1
   use geom, only : rxm2, rym2, rzm2, sxm2, sym2, szm2, txm2, tym2, tzm2
+  use geom, only : bm1, jacmi
   use input, only : ifsplit, ifaxis
+  use mesh, only : if_ortho
+  use dxyz, only : dxm12, dytm12, dztm12
+  use ixyz, only : ixm12, iytm12, iztm12
   implicit none
 
   REAL(DP) :: OUT1 (LX2,LY2,LZ2,nelv)
@@ -93,7 +97,11 @@ subroutine opgrad (out1,out2,out3,inp)
   REAL(DP) :: OUT3 (LX2,LY2,LZ2,nelv)
   REAL(DP) :: INP  (LX1,LY1,LZ1,nelv)
 
-  integer :: iflg, ntot2
+  real(DP) ::  ta1 (lx1*ly1*lz1) &
+  ,             ta2 (lx1*ly1*lz1) &
+  ,             ta3 (lx1*ly1*lz1)
+
+  integer :: iflg, ntot2, i1, i2, e, iz, n1, n2, nxy2, nyz1
   iflg = 0
 
   if (ifsplit .AND. .NOT. ifaxis) then
@@ -102,10 +110,54 @@ subroutine opgrad (out1,out2,out3,inp)
   endif
 
   NTOT2 = NX2*NY2*NZ2*NELV
-  CALL MULTD (OUT1,INP,RXM2,SXM2,TXM2,1,iflg)
-  CALL MULTD (OUT2,INP,RYM2,SYM2,TYM2,2,iflg)
-  IF (NDIM == 3) &
-  CALL MULTD (OUT3,INP,RZM2,SZM2,TZM2,3,iflg)
+  if (if_ortho) then
+    nxy2  = nx2*ny2
+    n1    = nx2*ny1
+    n2    = nx2*ny2
+    nyz1  = ny1*nz1
+
+    do e=1,nelv
+      call mxm (dxm12,nx2,inp(:,:,:,e),nx1,ta1,nyz1)
+      i1=1
+      i2=1
+      do iz=1,nz1
+          call mxm (ta1(i1),nx2,iytm12,ny1,ta2(i2),ny2)
+          i1=i1+n1
+          i2=i2+n2
+      enddo
+      call mxm  (ta2,nxy2,iztm12,nz1,out1(:,:,:,e),nz2)    
+ 
+      call mxm  (ixm12,nx2,inp(:,:,:,e),nx1,ta3,nyz1) ! reuse ta3 below
+      i1=1
+      i2=1
+      do iz=1,nz1
+          call mxm (ta3(i1),nx2,dytm12,ny1,ta2(i2),ny2)
+          i1=i1+n1
+          i2=i2+n2
+      enddo
+      call mxm     (ta2,nxy2,iztm12,nz1,out2(:,:,:,e),nz2)
+
+      ! re-use ta3 from above
+      i1=1
+      i2=1
+      do iz=1,nz1
+          call mxm (ta3(i1),nx2,iytm12,ny1,ta2(i2),ny2)
+          i1=i1+n1
+          i2=i2+n2
+      enddo
+      call mxm (ta2,nxy2,dztm12,nz1,out3(:,:,:,e),nz2)
+    enddo
+
+    out1 = out1 * rxm2 * bm1 * jacmi
+    out2 = out2 * sym2 * bm1 * jacmi 
+    out3 = out3 * tzm2 * bm1 * jacmi
+
+  else
+    CALL MULTD (OUT1,INP,RXM2,SXM2,TXM2,1,iflg)
+    CALL MULTD (OUT2,INP,RYM2,SYM2,TYM2,2,iflg)
+    IF (NDIM == 3) &
+    CALL MULTD (OUT3,INP,RZM2,SZM2,TZM2,3,iflg)
+  endif
 
   return
 end subroutine opgrad
@@ -1367,8 +1419,13 @@ end subroutine convop
 subroutine opdiv(outfld,inpx,inpy,inpz)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
-  use size_m, only : nx2, ny2, nz2, nelv, ndim
+  use size_m, only : nx2, ny2, nz2, nelv, ndim, nx1, ny1, nz1
   use geom, only : rxm2, rym2, rzm2, sxm2, sym2, szm2, txm2, tym2, tzm2
+  use mesh, only : if_ortho
+  use geom, only : bm1, jacmi
+  use dxyz, only : dxm12, dytm12, dztm12
+  use ixyz, only : ixm12, iytm12, iztm12
+
   implicit none
 
   real(DP) :: outfld (lx2,ly2,lz2,nelv)
@@ -1378,20 +1435,66 @@ subroutine opdiv(outfld,inpx,inpy,inpz)
   
   real(DP), allocatable :: work (:,:,:,:)
 
-  integer :: iflg, ntot2
+  real(DP) ::  ta1 (lx1*ly1*lz1) &
+  ,             ta2 (lx1*ly1*lz1) &
+  ,             ta3 (lx1*ly1*lz1)
+  integer :: iflg, ntot2, i1, i2, e, iz, n1, n2, nxy2, nyz1
 
   allocate(work(lx2,ly2,lz2,lelv))
 
   iflg = 1
 
   ntot2 = nx2*ny2*nz2*nelv
-  call multd (work,inpx,rxm2,sxm2,txm2,1,iflg)
-  call copy  (outfld,work,ntot2)
-  call multd (work,inpy,rym2,sym2,tym2,2,iflg)
-  outfld = outfld + work
-  if (ndim == 3) then
-      call multd (work,inpz,rzm2,szm2,tzm2,3,iflg)
-      outfld = outfld + work
+  if (if_ortho) then
+    nxy2  = nx2*ny2
+    n1    = nx2*ny1
+    n2    = nx2*ny2
+    nyz1  = ny1*nz1
+    do e=1,nelv
+      call mxm (dxm12,nx2,inpx(:,:,:,e),nx1,ta1,nyz1)
+      i1=1
+      i2=1
+      do iz=1,nz1
+          call mxm (ta1(i1),nx2,iytm12,ny1,ta2(i2),ny2)
+          i1=i1+n1
+          i2=i2+n2
+      enddo
+      call mxm  (ta2,nxy2,iztm12,nz1,outfld(:,:,:,e),nz2)
+      outfld(:,:,:,e) = outfld(:,:,:,e) * rxm2(:,:,:,e)
+ 
+      call mxm  (ixm12,nx2,inpy(:,:,:,e),nx1,ta3,nyz1) ! reuse ta3 below
+      i1=1
+      i2=1
+      do iz=1,nz1
+          call mxm (ta3(i1),nx2,dytm12,ny1,ta2(i2),ny2)
+          i1=i1+n1
+          i2=i2+n2
+      enddo
+      call mxm     (ta2,nxy2,iztm12,nz1,ta1,nz2)
+      outfld(:,:,:,e) = outfld(:,:,:,e) + reshape(ta1,(/lx2,ly2,lz2/)) * sym2(:,:,:,e)
+ 
+      call mxm (ixm12,nx2,inpz(:,:,:,e),nx1,ta1,nyz1) 
+      i1=1
+      i2=1
+      do iz=1,nz1
+          call mxm (ta3(i1),nx2,iytm12,ny1,ta2(i2),ny2)
+          i1=i1+n1
+          i2=i2+n2
+      enddo
+      call mxm (ta2,nxy2,dztm12,nz1,ta3,nz2)
+      outfld(:,:,:,e) = outfld(:,:,:,e) + reshape(ta3,(/lx2,ly2,lz2/)) * tzm2(:,:,:,e)
+    enddo
+    outfld = outfld * bm1 * jacmi
+
+  else
+    call multd (work,inpx,rxm2,sxm2,txm2,1,iflg)
+    call copy  (outfld,work,ntot2)
+    call multd (work,inpy,rym2,sym2,tym2,2,iflg)
+    outfld = outfld + work
+    if (ndim == 3) then
+        call multd (work,inpz,rzm2,szm2,tzm2,3,iflg)
+        outfld = outfld + work
+    endif
   endif
 
   return
@@ -1406,6 +1509,7 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
   use geom, only : rxm1, sxm1, txm1, rym1, sym1, tym1, rzm1, szm1, tzm1
   use input, only : if3d
   use wz_m, only : w3m1
+  use mesh, only : if_ortho
   implicit none
 
   integer, parameter :: lxyz=lx1*ly1*lz1
@@ -1419,9 +1523,15 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
   do e=1,nel
     if (if3d) then
       call local_grad3(ur,us,ut,u,N,e,dxm1,dxtm1)
-      ux(:,:,:,e) = w3m1*(ur*rxm1(:,:,:,e) + us*sxm1(:,:,:,e) + ut*txm1(:,:,:,e))
-      uy(:,:,:,e) = w3m1*(ur*rym1(:,:,:,e) + us*sym1(:,:,:,e) + ut*tym1(:,:,:,e))
-      uz(:,:,:,e) = w3m1*(ur*rzm1(:,:,:,e) + us*szm1(:,:,:,e) + ut*tzm1(:,:,:,e))
+      if (if_ortho) then
+        ux(:,:,:,e) = w3m1*(ur*rxm1(:,:,:,e))
+        uy(:,:,:,e) = w3m1*(us*sym1(:,:,:,e))
+        uz(:,:,:,e) = w3m1*(ut*tzm1(:,:,:,e))
+      else
+        ux(:,:,:,e) = w3m1*(ur*rxm1(:,:,:,e) + us*sxm1(:,:,:,e) + ut*txm1(:,:,:,e))
+        uy(:,:,:,e) = w3m1*(ur*rym1(:,:,:,e) + us*sym1(:,:,:,e) + ut*tym1(:,:,:,e))
+        uz(:,:,:,e) = w3m1*(ur*rzm1(:,:,:,e) + us*szm1(:,:,:,e) + ut*tzm1(:,:,:,e))
+      endif
     else
 #if 0
       if (ifaxis) then

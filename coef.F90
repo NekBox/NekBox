@@ -626,9 +626,6 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       g2m1 = wj * (sym1 * sym1)
       g3m1 = wj * (tzm1 * tzm1)
 
-      g4m1 = 0._dp 
-      g5m1 = 0._dp 
-      g6m1 = 0._dp 
     else
       g1m1 = wj * (rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1)
       g2m1 = wj * (sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1)
@@ -964,15 +961,15 @@ subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use geom, only : area, unx, uny, unz
   implicit none
 
-  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
-  ,           YRM1(LX1,LY1,LZ1,LELT) &
-  ,           XSM1(LX1,LY1,LZ1,LELT) &
-  ,           YSM1(LX1,LY1,LZ1,LELT) &
-  ,           XTM1(LX1,LY1,LZ1,LELT) &
-  ,           YTM1(LX1,LY1,LZ1,LELT) &
-  ,           ZRM1(LX1,LY1,LZ1,LELT) &
-  ,           ZSM1(LX1,LY1,LZ1,LELT) &
-  ,           ZTM1(LX1,LY1,LZ1,LELT)
+  real(DP) :: XRM1(LX1,LY1,LZ1,*) &
+  ,           YRM1(LX1,LY1,LZ1,*) &
+  ,           XSM1(LX1,LY1,LZ1,*) &
+  ,           YSM1(LX1,LY1,LZ1,*) &
+  ,           XTM1(LX1,LY1,LZ1,*) &
+  ,           YTM1(LX1,LY1,LZ1,*) &
+  ,           ZRM1(LX1,LY1,LZ1,*) &
+  ,           ZSM1(LX1,LY1,LZ1,*) &
+  ,           ZTM1(LX1,LY1,LZ1,*)
 
   integer :: nsrf
 
@@ -1007,15 +1004,15 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 !   Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !         share the same array structure in Scratch Common /SCRNS/.
 
-  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
-  ,             YRM1(LX1,LY1,LZ1,LELT) &
-  ,             XSM1(LX1,LY1,LZ1,LELT) &
-  ,             YSM1(LX1,LY1,LZ1,LELT) &
-  ,             XTM1(LX1,LY1,LZ1,LELT) &
-  ,             YTM1(LX1,LY1,LZ1,LELT) &
-  ,             ZRM1(LX1,LY1,LZ1,LELT)
-  real(DP) ::  ZSM1(LX1,LY1,LZ1,LELT) &
-  ,             ZTM1(LX1,LY1,LZ1,LELT)
+  real(DP) :: XRM1(LX1,LY1,LZ1,*) &
+  ,           YRM1(LX1,LY1,LZ1,*) &
+  ,           XSM1(LX1,LY1,LZ1,*) &
+  ,           YSM1(LX1,LY1,LZ1,*) &
+  ,           XTM1(LX1,LY1,LZ1,*) &
+  ,           YTM1(LX1,LY1,LZ1,*) &
+  ,           ZRM1(LX1,LY1,LZ1,*)
+  real(DP) :: ZSM1(LX1,LY1,LZ1,*) &
+  ,           ZTM1(LX1,LY1,LZ1,*)
 
   real(DP), allocatable :: A(:,:,:,:), B(:,:,:,:), C(:,:,:,:), dot(:,:,:,:)
   integer :: nxy1, nface, ntot, nsrf, iel, iz, iy, ix
@@ -1027,11 +1024,10 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   NSRF  = 6*NX1*NY1*NELT
 
 !      "R"
-
   allocate(A(lx1,ly1,lz1,lelt), B(lx1,ly1,lz1,lelt), C(lx1,ly1,lz1,lelt))
   allocate(dot(lx1,ly1,lz1,lelt))
   if (if_ortho) then
-    a = ysm1 * ztm1
+    a = ysm1(:,:,:,1:nelt) * ztm1(:,:,:,1:nelt)
     b = 0._dp; c = 0._dp
   else
     CALL VCROSS(A,B,C,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1,NTOT)
@@ -1056,7 +1052,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
 !      "S"
   if (if_ortho) then
-    b = -xrm1 * ztm1
+    b = -xrm1(:,:,:,1:nelt) * ztm1(:,:,:,1:nelt)
     a = 0._dp; c = 0._dp
   else
     CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XTM1,YTM1,ZTM1,NTOT)
@@ -1080,7 +1076,7 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
 
 !      "T"
   if (if_ortho) then
-    c = xrm1 * ysm1
+    c = xrm1(:,:,:,1:nelt) * ysm1(:,:,:,1:nelt)
     a = 0._dp; b = 0._dp
   else
     CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,NTOT)

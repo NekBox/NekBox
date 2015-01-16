@@ -437,9 +437,9 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
     allocate(yrm1(nx1,ny1,nz1,nelv), ytm1(nx1,ny1,nz1,nelv))
     allocate(zrm1(nx1,ny1,nz1,nelv), zsm1(nx1,ny1,nz1,nelv))
   else
-    allocate(xsm1(nx1,ny1,nz1,0), xtm1(nx1,ny1,nz1,0))
-    allocate(yrm1(nx1,ny1,nz1,0), ytm1(nx1,ny1,nz1,0))
-    allocate(zrm1(nx1,ny1,nz1,0), zsm1(nx1,ny1,nz1,0))
+    allocate(xsm1(nx1,ny1,nz1,1), xtm1(nx1,ny1,nz1,1))
+    allocate(yrm1(nx1,ny1,nz1,1), ytm1(nx1,ny1,nz1,1))
+    allocate(zrm1(nx1,ny1,nz1,1), zsm1(nx1,ny1,nz1,1))
   endif
   CALL XYZRST (XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1, IFAXIS)
 
@@ -526,9 +526,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   endif
 
   deallocate(xrm1, ysm1, ztm1)
-  if (.not. if_ortho) then
-    deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
-  endif
+  deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
   deallocate(x,r)
 
   DO IE=1,NELV

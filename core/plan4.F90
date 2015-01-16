@@ -217,7 +217,6 @@ subroutine crespsp (respr, vext)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nx2, ny2, nz2
-  use parallel, only : nid
   use geom, only : rxm2, sxm2, txm2, rym2, sym2, tym2, rzm2, szm2, tzm2
   use geom, only : area
   use input, only : ifaxis, if3d, cbc
@@ -443,7 +442,6 @@ end subroutine cresvsp
 subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
-  use parallel, only : nid
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
   use dxyz, only : dztm1, dytm1, dxm1
   use geom, only : jacm1, bm1, binvm1, jacmi

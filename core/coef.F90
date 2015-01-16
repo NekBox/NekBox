@@ -819,10 +819,9 @@ end subroutine geom2
 !-----------------------------------------------------------------------
 subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nelt, ndim, lelt
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nelt, ndim
   use dxyz, only : dxm1, dytm1, dztm1
   use geom, only : xm1, ym1, zm1
-  use parallel, only : nid
   use mesh, only : if_ortho
   implicit none
 
@@ -956,7 +955,7 @@ end subroutine volume
 !> \brief Compute surface data: areas, normals and tangents
 subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, nz1, nelt, ndim
   use geom, only : area, unx, uny, unz
   implicit none

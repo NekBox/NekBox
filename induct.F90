@@ -11,6 +11,7 @@ subroutine compute_cfl(cfl,u,v,w,dt)
   use input, only : if3d
 !  use soln, only : cflf
   use wz_m, only : zgm1
+  use mesh, only : if_ortho
   implicit none
 
   real(DP) :: cfl, dt
@@ -42,16 +43,21 @@ subroutine compute_cfl(cfl,u,v,w,dt)
               do j=1,ny1
                   do i=1,nx1
                       l = l+1
-                      ur = ( u(i,j,k,e)*rxm1(i,j,k,e) &
-                      +   v(i,j,k,e)*rym1(i,j,k,e) &
-                      +   w(i,j,k,e)*rzm1(i,j,k,e) ) * jacmi(i,j,k,e)
-                      us = ( u(i,j,k,e)*sxm1(i,j,k,e) &
-                      +   v(i,j,k,e)*sym1(i,j,k,e) &
-                      +   w(i,j,k,e)*szm1(i,j,k,e) ) * jacmi(i,j,k,e)
-                      ut = ( u(i,j,k,e)*txm1(i,j,k,e) &
-                      +   v(i,j,k,e)*tym1(i,j,k,e) &
-                      +   w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(i,j,k,e)
-                       
+                      if (if_ortho) then
+                        ur = ( u(i,j,k,e)*rxm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                        us = ( v(i,j,k,e)*sym1(i,j,k,e) ) * jacmi(i,j,k,e)
+                        ut = ( w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                      else
+                        ur = ( u(i,j,k,e)*rxm1(i,j,k,e) &
+                           +   v(i,j,k,e)*rym1(i,j,k,e) &
+                           +   w(i,j,k,e)*rzm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                        us = ( u(i,j,k,e)*sxm1(i,j,k,e) &
+                           +   v(i,j,k,e)*sym1(i,j,k,e) &
+                           +   w(i,j,k,e)*szm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                        ut = ( u(i,j,k,e)*txm1(i,j,k,e) &
+                           +   v(i,j,k,e)*tym1(i,j,k,e) &
+                           +   w(i,j,k,e)*tzm1(i,j,k,e) ) * jacmi(i,j,k,e)
+                      endif                      
                       cflr = abs(dt*ur*dri(i))
                       cfls = abs(dt*us*dsi(j))
                       cflt = abs(dt*ut*dti(k))

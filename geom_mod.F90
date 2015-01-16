@@ -53,16 +53,20 @@ module geom
 
     allocate( XM1(LX1,LY1,LZ1,LELT), YM1(LX1,LY1,LZ1,LELT), ZM1(LX1,LY1,LZ1,LELT) )
 
-    allocate( RXM1(LX1,LY1,LZ1,LELT), SXM1(LX1,LY1,LZ1,LELT), TXM1(LX1,LY1,LZ1,LELT) &
-            , RYM1(LX1,LY1,LZ1,LELT), SYM1(LX1,LY1,LZ1,LELT), TYM1(LX1,LY1,LZ1,LELT) &
-            , RZM1(LX1,LY1,LZ1,LELT), SZM1(LX1,LY1,LZ1,LELT), TZM1(LX1,LY1,LZ1,LELT) )
-    allocate( JACM1(LX1,LY1,LZ1,LELT), jacmi(lx1,ly1,lz1,lelt) )
 
     if (if_ortho) then
       allocate(rx(lxd*lyd*lzd,ldim,lelv)) !verified
+      allocate(SXM1(LX1,LY1,LZ1,1), TXM1(LX1,LY1,LZ1,1) &
+             , RYM1(LX1,LY1,LZ1,1), TYM1(LX1,LY1,LZ1,1) &
+             , RZM1(LX1,LY1,LZ1,1), SZM1(LX1,LY1,LZ1,1) )
     else
       allocate(rx(lxd*lyd*lzd,ldim*ldim,lelv)) !verified
+      allocate(SXM1(LX1,LY1,LZ1,LELT), TXM1(LX1,LY1,LZ1,LELT) &
+             , RYM1(LX1,LY1,LZ1,LELT), TYM1(LX1,LY1,LZ1,LELT) &
+             , RZM1(LX1,LY1,LZ1,LELT), SZM1(LX1,LY1,LZ1,LELT) )
     endif
+    allocate( RXM1(LX1,LY1,LZ1,LELT), SYM1(LX1,LY1,LZ1,LELT), TZM1(LX1,LY1,LZ1,LELT) ) 
+    allocate( JACM1(LX1,LY1,LZ1,LELT), jacmi(lx1,ly1,lz1,lelt) )
 
     allocate( G1M1(LX1,LY1,LZ1,LELT), G2M1(LX1,LY1,LZ1,LELT), G3M1(LX1,LY1,LZ1,LELT) &
             , G4M1(LX1,LY1,LZ1,LELT), G5M1(LX1,LY1,LZ1,LELT), G6M1(LX1,LY1,LZ1,LELT) )

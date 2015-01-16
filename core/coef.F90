@@ -385,20 +385,32 @@ subroutine geom1 ()!xm3,ym3,zm3)
   use size_m, only : lx1, ly1, lz1, lelt
   use geom, only : ifgmsh3
   use tstep, only : istep
+  use mesh, only : if_ortho
   implicit none
 
   real(DP), allocatable, dimension(:,:,:,:) :: &
     XRM1, YRM1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1 
 
   allocate(XRM1(LX1,LY1,LZ1,LELT) &
-  ,           YRM1(LX1,LY1,LZ1,LELT) &
-  ,           XSM1(LX1,LY1,LZ1,LELT) &
   ,           YSM1(LX1,LY1,LZ1,LELT) &
-  ,           XTM1(LX1,LY1,LZ1,LELT) &
-  ,           YTM1(LX1,LY1,LZ1,LELT) &
-  ,           ZRM1(LX1,LY1,LZ1,LELT) &
-  ,           ZSM1(LX1,LY1,LZ1,LELT) &
   ,           ZTM1(LX1,LY1,LZ1,LELT) )
+  if (if_ortho) then
+   allocate(                       &
+            YRM1(LX1,LY1,LZ1,1) &
+          , XSM1(LX1,LY1,LZ1,1) &
+          , XTM1(LX1,LY1,LZ1,1) &
+          , YTM1(LX1,LY1,LZ1,1) &
+          , ZRM1(LX1,LY1,LZ1,1) &
+          , ZSM1(LX1,LY1,LZ1,1) )
+  else
+   allocate(                       &
+            YRM1(LX1,LY1,LZ1,LELT) &
+          , XSM1(LX1,LY1,LZ1,LELT) &
+          , XTM1(LX1,LY1,LZ1,LELT) &
+          , YTM1(LX1,LY1,LZ1,LELT) &
+          , ZRM1(LX1,LY1,LZ1,LELT) &
+          , ZSM1(LX1,LY1,LZ1,LELT) )
+  endif
 
 
   IF (IFGMSH3 .AND. ISTEP == 0) THEN
@@ -435,6 +447,7 @@ subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use geom, only : xm1, ym1, zm1
   use input, only : ifaxis, ifxyo, ifvo, ifpo, ifto, param
   use soln, only : vx, vy, vz, pr, t
+  use mesh, only : if_ortho
   implicit none
 
 !     Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
@@ -480,20 +493,29 @@ subroutine glmapm1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       CALL RONE    (TZM1,NTOT1)
 #endif
   ELSE
-    jacm1 = xrm1*ysm1*ztm1 + xtm1*yrm1*zsm1 + xsm1*ytm1*zrm1 &
-          - xrm1*ytm1*zsm1 - xsm1*yrm1*ztm1 - xtm1*ysm1*zrm1
 
-    rxm1 = ysm1*ztm1 - ytm1*zsm1
-    rym1 = xtm1*zsm1 - xsm1*ztm1
-    rzm1 = xsm1*ytm1 - xtm1*ysm1 
+    if (if_ortho) then
+      rxm1 = ysm1*ztm1
+      sym1 = xrm1*ztm1
+      tzm1 = xrm1*ysm1
 
-    sxm1 = ytm1*zrm1 - yrm1*ztm1
-    sym1 = xrm1*ztm1 - xtm1*zrm1
-    szm1 = xtm1*yrm1 - xrm1*ytm1
+      jacm1 = xrm1*ysm1*ztm1
+    else
+      rxm1 = ysm1*ztm1 - ytm1*zsm1
+      sym1 = xrm1*ztm1 - xtm1*zrm1
+      tzm1 = xrm1*ysm1 - xsm1*yrm1
 
-    txm1 = yrm1*zsm1 - ysm1*zrm1
-    tym1 = xsm1*zrm1 - xrm1*zsm1
-    tzm1 = xrm1*ysm1 - xsm1*yrm1
+      rym1 = xtm1*zsm1 - xsm1*ztm1
+      rzm1 = xsm1*ytm1 - xtm1*ysm1 
+      sxm1 = ytm1*zrm1 - yrm1*ztm1
+      szm1 = xtm1*yrm1 - xrm1*ytm1
+      txm1 = yrm1*zsm1 - ysm1*zrm1
+      tym1 = xsm1*zrm1 - xrm1*zsm1
+
+      jacm1 = xrm1*ysm1*ztm1 + xtm1*yrm1*zsm1 + xsm1*ytm1*zrm1 &
+            - xrm1*ytm1*zsm1 - xsm1*yrm1*ztm1 - xtm1*ysm1*zrm1
+    endif
+
   ENDIF
 
   kerr = 0
@@ -532,6 +554,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use input, only : ifaxis
   use tstep, only : istep
   use wz_m, only : zam1, w3m1
+  use mesh, only : if_ortho
   implicit none
 
 !   Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
@@ -598,6 +621,12 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       CALL RZERO (G6M1,NTOT1)
 #endif
   ELSE
+    if (if_ortho) then
+      g1m1 = wj * (rxm1 * rxm1)
+      g2m1 = wj * (sym1 * sym1)
+      g3m1 = wj * (tzm1 * tzm1)
+
+    else
       g1m1 = wj * (rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1)
       g2m1 = wj * (sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1)
       g3m1 = wj * (txm1 * txm1 + tym1 * tym1 + tzm1 * tzm1)
@@ -605,6 +634,7 @@ subroutine geodat1(XRM1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
       g4m1 = wj * (rxm1 * sxm1 + rym1 * sym1 + rzm1 * szm1)
       g5m1 = wj * (rxm1 * txm1 + rym1 * tym1 + rzm1 * tzm1)
       g6m1 = wj * (txm1 * sxm1 + tym1 * sym1 + tzm1 * szm1)
+    endif
   ENDIF
   deallocate(wj)
 
@@ -792,14 +822,12 @@ subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
   use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nelt, ndim
   use dxyz, only : dxm1, dytm1, dztm1
   use geom, only : xm1, ym1, zm1
+  use mesh, only : if_ortho
   implicit none
 
-  real(DP) :: &
-    XRM1(LX1,LY1,LZ1,*),YRM1(LX1,LY1,LZ1,*) &
-  , ZRM1(LX1,LY1,LZ1,*),XSM1(LX1,LY1,LZ1,*) &
-  , YSM1(LX1,LY1,LZ1,*),ZSM1(LX1,LY1,LZ1,*) &
-  , XTM1(LX1,LY1,LZ1,*),YTM1(LX1,LY1,LZ1,*) &
-  , ZTM1(LX1,LY1,LZ1,*)
+  real(DP) :: XRM1(LX1,LY1,LZ1,*), YRM1(LX1,LY1,LZ1,*), ZRM1(LX1,LY1,LZ1,*)
+  real(DP) :: XSM1(LX1,LY1,LZ1,*), YSM1(LX1,LY1,LZ1,*), ZSM1(LX1,LY1,LZ1,*)
+  real(DP) :: XTM1(LX1,LY1,LZ1,*), YTM1(LX1,LY1,LZ1,*), ZTM1(LX1,LY1,LZ1,*)
   LOGICAL :: IFAXIS
 
   integer :: nxy1, nyz1, iel, iz
@@ -808,7 +836,7 @@ subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
   NYZ1=NY1*NZ1
 
   !> \todo why this loop?
-  DO 100 IEL=1,NELT
+  DO IEL=1,NELT
     
       IF (IFAXIS) then
         write(*,*) "Oops: ifaxis"
@@ -816,26 +844,26 @@ subroutine xyzrst (xrm1,yrm1,zrm1,xsm1,ysm1,zsm1, XTM1,YTM1,ZTM1,IFAXIS)
       endif
     
       CALL MXM (DXM1,NX1,XM1(1,1,1,IEL),NX1,XRM1(1,1,1,IEL),NYZ1)
-      CALL MXM (DXM1,NX1,YM1(1,1,1,IEL),NX1,YRM1(1,1,1,IEL),NYZ1)
-      CALL MXM (DXM1,NX1,ZM1(1,1,1,IEL),NX1,ZRM1(1,1,1,IEL),NYZ1)
+      if (.not. if_ortho) CALL MXM (DXM1,NX1,YM1(1,1,1,IEL),NX1,YRM1(1,1,1,IEL),NYZ1)
+      if (.not. if_ortho) CALL MXM (DXM1,NX1,ZM1(1,1,1,IEL),NX1,ZRM1(1,1,1,IEL),NYZ1)
   
-      DO 10 IZ=1,NZ1
-          CALL MXM (XM1(1,1,IZ,IEL),NX1,DYTM1,NY1,XSM1(1,1,IZ,IEL),NY1)
+      DO IZ=1,NZ1
+          if (.not. if_ortho) CALL MXM (XM1(1,1,IZ,IEL),NX1,DYTM1,NY1,XSM1(1,1,IZ,IEL),NY1)
           CALL MXM (YM1(1,1,IZ,IEL),NX1,DYTM1,NY1,YSM1(1,1,IZ,IEL),NY1)
-          CALL MXM (ZM1(1,1,IZ,IEL),NX1,DYTM1,NY1,ZSM1(1,1,IZ,IEL),NY1)
-      10 END DO
+          if (.not. if_ortho) CALL MXM (ZM1(1,1,IZ,IEL),NX1,DYTM1,NY1,ZSM1(1,1,IZ,IEL),NY1)
+      END DO
   
       IF (NDIM == 3) THEN
-          CALL MXM (XM1(1,1,1,IEL),NXY1,DZTM1,NZ1,XTM1(1,1,1,IEL),NZ1)
-          CALL MXM (YM1(1,1,1,IEL),NXY1,DZTM1,NZ1,YTM1(1,1,1,IEL),NZ1)
+          if (.not. if_ortho) CALL MXM (XM1(1,1,1,IEL),NXY1,DZTM1,NZ1,XTM1(1,1,1,IEL),NZ1)
+          if (.not. if_ortho) CALL MXM (YM1(1,1,1,IEL),NXY1,DZTM1,NZ1,YTM1(1,1,1,IEL),NZ1)
           CALL MXM (ZM1(1,1,1,IEL),NXY1,DZTM1,NZ1,ZTM1(1,1,1,IEL),NZ1)
       ELSE
-          xtm1 (:,:,:,iel) = 0._dp
-          ytm1 (:,:,:,iel) = 0._dp
+          if (.not. if_ortho) xtm1 (:,:,:,iel) = 0._dp
+          if (.not. if_ortho) ytm1 (:,:,:,iel) = 0._dp
           ztm1 (:,:,:,iel) = 1._dp
       ENDIF
   
-  100 END DO
+  END DO
 
   RETURN
 end subroutine xyzrst
@@ -927,20 +955,20 @@ end subroutine volume
 !> \brief Compute surface data: areas, normals and tangents
 subroutine setarea(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, nz1, nelt, ndim
   use geom, only : area, unx, uny, unz
   implicit none
 
-  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
-  ,           YRM1(LX1,LY1,LZ1,LELT) &
-  ,           XSM1(LX1,LY1,LZ1,LELT) &
-  ,           YSM1(LX1,LY1,LZ1,LELT) &
-  ,           XTM1(LX1,LY1,LZ1,LELT) &
-  ,           YTM1(LX1,LY1,LZ1,LELT) &
-  ,           ZRM1(LX1,LY1,LZ1,LELT) &
-  ,           ZSM1(LX1,LY1,LZ1,LELT) &
-  ,           ZTM1(LX1,LY1,LZ1,LELT)
+  real(DP) :: XRM1(LX1,LY1,LZ1,*) &
+  ,           YRM1(LX1,LY1,LZ1,*) &
+  ,           XSM1(LX1,LY1,LZ1,*) &
+  ,           YSM1(LX1,LY1,LZ1,*) &
+  ,           XTM1(LX1,LY1,LZ1,*) &
+  ,           YTM1(LX1,LY1,LZ1,*) &
+  ,           ZRM1(LX1,LY1,LZ1,*) &
+  ,           ZSM1(LX1,LY1,LZ1,*) &
+  ,           ZTM1(LX1,LY1,LZ1,*)
 
   integer :: nsrf
 
@@ -969,20 +997,21 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   use size_m, only : nx1, ny1, nz1, nelt, ndim
   use geom, only : area, unx, uny, unz
   use wz_m, only : wxm1, wym1, wzm1
+  use mesh, only : if_ortho
   implicit none
 
 !   Note: Subroutines GLMAPM1, GEODAT1, AREA2, SETWGTR and AREA3
 !         share the same array structure in Scratch Common /SCRNS/.
 
-  real(DP) :: XRM1(LX1,LY1,LZ1,LELT) &
-  ,             YRM1(LX1,LY1,LZ1,LELT) &
-  ,             XSM1(LX1,LY1,LZ1,LELT) &
-  ,             YSM1(LX1,LY1,LZ1,LELT) &
-  ,             XTM1(LX1,LY1,LZ1,LELT) &
-  ,             YTM1(LX1,LY1,LZ1,LELT) &
-  ,             ZRM1(LX1,LY1,LZ1,LELT)
-  real(DP) ::  ZSM1(LX1,LY1,LZ1,LELT) &
-  ,             ZTM1(LX1,LY1,LZ1,LELT)
+  real(DP) :: XRM1(LX1,LY1,LZ1,*) &
+  ,           YRM1(LX1,LY1,LZ1,*) &
+  ,           XSM1(LX1,LY1,LZ1,*) &
+  ,           YSM1(LX1,LY1,LZ1,*) &
+  ,           XTM1(LX1,LY1,LZ1,*) &
+  ,           YTM1(LX1,LY1,LZ1,*) &
+  ,           ZRM1(LX1,LY1,LZ1,*)
+  real(DP) :: ZSM1(LX1,LY1,LZ1,*) &
+  ,           ZTM1(LX1,LY1,LZ1,*)
 
   real(DP), allocatable :: A(:,:,:,:), B(:,:,:,:), C(:,:,:,:), dot(:,:,:,:)
   integer :: nxy1, nface, ntot, nsrf, iel, iz, iy, ix
@@ -994,10 +1023,14 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   NSRF  = 6*NX1*NY1*NELT
 
 !      "R"
-
   allocate(A(lx1,ly1,lz1,lelt), B(lx1,ly1,lz1,lelt), C(lx1,ly1,lz1,lelt))
   allocate(dot(lx1,ly1,lz1,lelt))
-  CALL VCROSS(A,B,C,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1,NTOT)
+  if (if_ortho) then
+    a = ysm1(:,:,:,1:nelt) * ztm1(:,:,:,1:nelt)
+    b = 0._dp; c = 0._dp
+  else
+    CALL VCROSS(A,B,C,XSM1,YSM1,ZSM1,XTM1,YTM1,ZTM1,NTOT)
+  endif
   dot = a*a + b*b + c*c
 
   DO IEL=1,NELT
@@ -1017,8 +1050,12 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   END DO
 
 !      "S"
-
-  CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XTM1,YTM1,ZTM1,NTOT)
+  if (if_ortho) then
+    b = -xrm1(:,:,:,1:nelt) * ztm1(:,:,:,1:nelt)
+    a = 0._dp; c = 0._dp
+  else
+    CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XTM1,YTM1,ZTM1,NTOT)
+  endif
   dot = a*a + b*b + c*c
   DO IEL=1,NELT
       DO IZ=1,NZ1
@@ -1037,8 +1074,12 @@ subroutine area3(xrm1, yrm1, zrm1, xsm1, ysm1, zsm1, xtm1, ytm1, ztm1)
   END DO
 
 !      "T"
-
-  CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,NTOT)
+  if (if_ortho) then
+    c = xrm1(:,:,:,1:nelt) * ysm1(:,:,:,1:nelt)
+    a = 0._dp; b = 0._dp
+  else
+    CALL VCROSS(A,B,C,XRM1,YRM1,ZRM1,XSM1,YSM1,ZSM1,NTOT)
+  endif
   dot = a*a + b*b + c*c
   DO IEL=1,NELT
       DO IX=1,NX1

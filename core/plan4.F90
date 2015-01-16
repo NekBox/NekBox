@@ -204,14 +204,16 @@ end subroutine plan4
 subroutine crespsp (respr, vext)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
-  use size_m, only : nx1, ny1, nz1, nelv, ndim
+  use size_m, only : nx1, ny1, nz1, nelv, ndim, nx2, ny2, nz2
   use geom, only : rxm2, sxm2, txm2, rym2, sym2, tym2, rzm2, szm2, tzm2
   use geom, only : area
   use input, only : ifaxis, if3d, cbc
-  use geom, only : bm1, binvm1
+  use geom, only : bm1, binvm1, jacmi
   use soln, only : bfx, bfy, bfz, pr
   use soln, only : vtrans, vdiff, qtl
   use tstep, only : imesh, bd, dt, ifield
+  use mesh, only : if_ortho
+  use dxyz, only : dxtm12, dym12, dzm12
   implicit none
 
   REAL(DP), intent(out) :: RESPR (LX2,LY2,LZ2,LELV)
@@ -224,7 +226,8 @@ subroutine crespsp (respr, vext)
   CHARACTER(3) :: CB
  
   integer :: nxyz1, ntot1, nfaces       
-  integer :: n, ifc, iel
+  integer :: n, ifc, iel, e, iz
+  integer :: nyz2, nxy1
   real(DP) :: scale, dtbd
 
   allocate(TA1 (LX1,LY1,LZ1,LELV) &
@@ -282,16 +285,48 @@ subroutine crespsp (respr, vext)
   ta3 = bfz/vtrans(:,:,:,:,1)-wa3
 
   call opdssum (ta1,ta2,ta3)
+
   ta1 = ta1*binvm1
   ta2 = ta2*binvm1
   ta3 = ta3*binvm1
 
   if (if3d) then
+    if (if_ortho) then
+      nyz2  = ny2*nz2
+      nxy1  = nx1*ny1
+
+      ! X 
+      wa1 = ta1 * rxm2 * jacmi * bm1
+      do e = 1, nelv
+        call mxm  (dxtm12,nx1,wa1(:,:,:,e),nx2,wa2(:,:,:,e),nyz2)
+      enddo
+      respr = - respr + wa2
+      ! Y 
+      wa1 = ta2 * sym2 * jacmi * bm1
+      do e = 1, nelv
+        do iz=1,nz2
+            call mxm  (wa1(:,:,iz,e),nx1,dym12,ny2,wa2(:,:,iz,e),ny1)
+        enddo
+      enddo
+      respr =   respr + wa2
+      ! Z
+      wa1 = ta3 * tzm2 * jacmi * bm1
+      do e = 1, nelv
+        call mxm  (wa1(:,:,:,e),nxy1,dzm12,nz2,wa2(:,:,:,e),nz1)
+      enddo
+      respr =   respr + wa2
+
+    else
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
       respr = -respr + wa1 + wa2 + wa3
+    endif
   else
+      ta1 = ta1*binvm1
+      ta2 = ta2*binvm1
+      ta3 = ta3*binvm1
+
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       respr = -respr + wa1 + wa2 
@@ -396,32 +431,49 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
-  use geom, only : jacm1, bm1, binvm1
+  use dxyz, only : dztm1, dytm1, dxm1
+  use geom, only : jacm1, bm1, binvm1, jacmi
   use input, only : if3d, ifaxis, ifcyclic
   use tstep, only : ifield
+  use mesh, only : if_ortho
   implicit none
-
 
   real(DP), intent(out) :: w1(lx1,ly1,lz1,lelv) !>!< 1st component of curl U
   real(DP), intent(out) :: w2(lx1,ly1,lz1,lelv) !>!< 2nd component of curl U
   real(DP), intent(out) :: w3(lx1,ly1,lz1,lelv) !>!< 3rd component of curl U
-  real(DP), intent(in)  :: u1(*) !>!< 1st component of U
-  real(DP), intent(in)  :: u2(*) !>!< 2nd component of U
-  real(DP), intent(in)  :: u3(*) !>!< 3rd component of U
-  real(DP), intent(out) :: work1(lx1,ly1,lz1,*) !>!< work array
-  real(DP), intent(out) :: work2(lx1,ly1,lz1,*) !>!< work array
+  real(DP), intent(in)  :: u1(lx1,ly1,lz1,lelv) !>!< 1st component of U
+  real(DP), intent(in)  :: u2(lx1,ly1,lz1,lelv) !>!< 2nd component of U
+  real(DP), intent(in)  :: u3(lx1,ly1,lz1,lelv) !>!< 3rd component of U
+  real(DP), intent(out) :: work1(lx1,ly1,lz1,lelv) !>!< work array
+  real(DP), intent(out) :: work2(lx1,ly1,lz1,lelv) !>!< work array
   logical, intent(in)   :: ifavg !>!< Average at boundary? 
 
-  integer :: ntot, nxyz, ifielt
+  integer :: ntot, nxyz, ifielt, nxy1, nyz1, iel, iz
 
   ntot  = nx1*ny1*nz1*nelv
   nxyz  = nx1*ny1*nz1
+  NXY1  = NX1*NY1
+  NYZ1  = NY1*NZ1
+
 !   work1=dw/dy ; work2=dv/dz
-  call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
   if (if3d) then
+    if (if_ortho) then
+      do iel = 1, nelv
+        do iz = 1, nz1
+          CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,work1(1,1,iz,iel),NY1)
+        enddo
+      enddo
+      do iel = 1, nelv
+         CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,work2(1,1,1,iel),NZ1) 
+      enddo
+      w1 = (work1(:,:,:,1:nelv)*sym1 - work2(:,:,:,1:nelv)*tzm1) * jacmi
+    else
+      call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
       call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
-      w1 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+      w1 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv) 
+    endif
   else
+      call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
       call copy(w1,work1,ntot)
 
       if(ifaxis) then
@@ -442,19 +494,36 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   endif
 !   work1=du/dz ; work2=dw/dx
   if (if3d) then
-      call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
-      call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
-      w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+      if (if_ortho) then
+        CALL MXM   (DXM1,NX1,U3,NX1,work2,NYZ1*nelv)
+        do iel = 1, nelv
+          CALL MXM  (U1(1,1,1,iel),NXY1,DZTM1,NZ1,work1(1,1,1,iel),NZ1) 
+        enddo
+        w2 = (work1(:,:,:,1:nelv)*tzm1 - work2(:,:,:,1:nelv)*rxm1) * jacmi
+      else
+        call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
+        call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
+        w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+      endif
   else
       work1(:,:,:,1:nelv) = 0._dp
       call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
       w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
   endif
 !   work1=dv/dx ; work2=du/dy
-  call dudxyz(work1,u2,rxm1,sxm1,txm1,jacm1,1,1)
-  call dudxyz(work2,u1,rym1,sym1,tym1,jacm1,1,2)
-  w3 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
-
+  if (if_ortho) then
+    CALL MXM   (DXM1,NX1,U2,NX1,work1,NYZ1*nelv)
+    do iel = 1, nelv
+      do iz = 1, nz1
+        CALL MXM  (U1(1,1,iz,iel),NX1,DYTM1,NY1,work2(1,1,iz,iel),NY1)
+      enddo
+    enddo
+    w3 = (work1(:,:,:,1:nelv)*rxm1 - work2(:,:,:,1:nelv)*sym1) * jacmi
+  else
+    call dudxyz(work1,u2,rxm1,sxm1,txm1,jacm1,1,1)
+    call dudxyz(work2,u1,rym1,sym1,tym1,jacm1,1,2)
+    w3 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+  endif
 !  Avg at bndry
 
 !   if (ifavg) then

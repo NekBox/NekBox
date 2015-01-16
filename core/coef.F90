@@ -396,6 +396,14 @@ subroutine geom1 ()!xm3,ym3,zm3)
   ,           ZTM1(LX1,LY1,LZ1,LELT) )
   if (if_ortho) then
    allocate(                       &
+            YRM1(LX1,LY1,LZ1,1) &
+          , XSM1(LX1,LY1,LZ1,1) &
+          , XTM1(LX1,LY1,LZ1,1) &
+          , YTM1(LX1,LY1,LZ1,1) &
+          , ZRM1(LX1,LY1,LZ1,1) &
+          , ZSM1(LX1,LY1,LZ1,1) )
+  else
+   allocate(                       &
             YRM1(LX1,LY1,LZ1,LELT) &
           , XSM1(LX1,LY1,LZ1,LELT) &
           , XTM1(LX1,LY1,LZ1,LELT) &

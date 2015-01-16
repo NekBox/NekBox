@@ -514,7 +514,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
         r = tzm1 * tzm1
         x = ztm1 * ztm1
       else
-        w = v3*tzm1
+        w = v1*txm1     + v2*tym1     + v3*tzm1
         r = tzm1 * tzm1
         x = ztm1 * ztm1
       endif

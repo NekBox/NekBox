@@ -46,8 +46,9 @@ module soln
 
   real(DP), allocatable :: QTL(:,:,:,:), USRDIV(:,:,:,:)
 
-  real(DP), allocatable, dimension(:,:,:,:) :: V1MASK, V2MASK, V3MASK, PMASK
-  real(DP), allocatable, dimension(:,:,:,:,:) :: TMASK
+  real(DP), allocatable, target, dimension(:,:,:,:) :: V1MASK
+  real(DP), pointer, dimension(:,:,:,:) :: V2MASK, V3MASK, PMASK
+  real(DP), allocatable, target, dimension(:,:,:,:,:) :: TMASK
   real(DP), pointer, dimension(:,:,:,:) :: OMASK, VMULT
   real(DP), allocatable, target, dimension(:,:,:,:,:) :: TMULT
   real(DP), allocatable, dimension(:,:,:,:) :: B1MASK, B2MASK, B3MASK! masks for mag. field
@@ -129,13 +130,13 @@ module soln
 !    allocate(PRLAG(LX2,LY2,LZ2,LELV,LORDER2)) 
 
     !> \todo Is qtl ever non-zero for .not. iflomach?
-    allocate(QTL(LX2,LY2,LZ2,LELT))
+    !allocate(QTL(LX2,LY2,LZ2,LELT))
 !    allocate(USRDIV(LX2,LY2,LZ2,LELT))
 
     allocate(V1MASK (LX1,LY1,LZ1,LELV) &
-    , V2MASK (LX1,LY1,LZ1,LELV) &
-    , V3MASK (LX1,LY1,LZ1,LELV) &
-    , PMASK  (LX1,LY1,LZ1,LELV) &
+!    , V2MASK (LX1,LY1,LZ1,LELV) &
+!    , V3MASK (LX1,LY1,LZ1,LELV) &
+!    , PMASK  (LX1,LY1,LZ1,LELV) &
     , TMASK  (LX1,LY1,LZ1,LELT,LDIMT) &
 !    , OMASK  (LX1,LY1,LZ1,LELT) &
 !    , VMULT  (LX1,LY1,LZ1,LELV) &

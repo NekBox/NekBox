@@ -159,7 +159,7 @@ subroutine plan4()
   DIV2 = GLSUM (DV2,NTOT1)/VOLVM1
   DIV2 = SQRT  (DIV2)
 !     Calculate Divergence difference norms
-  dfc = dvc - qtl
+  dfc = dvc! - qtl
   dv1 = dfc * bm1
   DIF1 = GLSUM (DV1,NTOT1)/VOLVM1
     
@@ -167,10 +167,10 @@ subroutine plan4()
   DIF2 = GLSUM (DV2,NTOT1)/VOLVM1
   DIF2 = SQRT  (DIF2)
 
-  dv1 = qtl * bm1
+  dv1 = 0._dp !qtl * bm1
   QTL1 = GLSUM (DV1,NTOT1)/VOLVM1
     
-  dv2 = qtl * qtl * bm1
+  dv2 = 0._dp !qtl * qtl * bm1
   QTL2 = GLSUM (DV2,NTOT1)/VOLVM1
   QTL2 = SQRT  (QTL2)
 
@@ -210,7 +210,7 @@ subroutine crespsp (respr, vext)
   use input, only : ifaxis, if3d, cbc
   use geom, only : bm1, binvm1, jacmi
   use soln, only : bfx, bfy, bfz, pr
-  use soln, only : vtrans, vdiff, qtl
+  use soln, only : vtrans, vdiff!, qtl
   use tstep, only : imesh, bd, dt, ifield
   use mesh, only : if_ortho
   use dxyz, only : dxtm12, dym12, dzm12
@@ -260,7 +260,8 @@ subroutine crespsp (respr, vext)
   endif
   wa1 = wa1 * bm1; wa2 = wa2 * bm1; wa3 = wa3 * bm1
 
-  call opgrad   (ta1,ta2,ta3,QTL)
+  !call opgrad   (ta1,ta2,ta3,QTL)
+  ta1 = 0._dp; ta2 = 0._dp; ta3 = 0._dp
   if(IFAXIS) then
 !max      CALL COL2  (ta2, OMASK,ntot1)
 !max      CALL COL2  (ta3, OMASK,ntot1)
@@ -335,7 +336,7 @@ subroutine crespsp (respr, vext)
 
 !   add thermal divergence
   dtbd = BD(1)/DT
-  respr = respr + qtl * bm1 * dtbd
+  respr = respr !+ qtl * bm1 * dtbd
    
 !   surface terms
   DO IFC=1,NFACES
@@ -380,7 +381,7 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   use size_m, only : nx1, ny1, nz1, nelv
   use size_m, only : lx1, ly1, lz1, lelv
   use input, only : ifaxis
-  use soln, only : vx, vy, vz, vdiff, qtl, pr, bfx, bfy, bfz
+  use soln, only : vx, vy, vz, vdiff, pr, bfx, bfy, bfz !, qtl
   implicit none
 
   real(DP), intent(out) :: resv1(lx1,ly1,lz1,lelv) 
@@ -406,7 +407,7 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   ,             TA2   (LX1,LY1,LZ1,LELV) &
   ,             TA3   (LX1,LY1,LZ1,LELV) &
   ,             TA4   (LX1,LY1,LZ1,LELV) )
-  ta4 = scale*(vdiff(:,:,:,:,1) * qtl) + pr 
+  ta4 = pr !+ scale*(vdiff(:,:,:,:,1) * qtl)
 
   call opgrad  (ta1,ta2,ta3,TA4)
   deallocate(ta4)

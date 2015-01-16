@@ -349,7 +349,7 @@ SUBROUTINE BCMASK
   
   !        Pressure mask
   
-      pmask = 1._dp
+      pmask => tmask(:,:,:,:,1)
 #if 0
       DO IEL=1,NELV
           DO IFACE=1,NFACES
@@ -373,8 +373,8 @@ SUBROUTINE BCMASK
       ELSE
       
           v1mask = 1._dp
-          v2mask = 1._dp
-          v3mask = 1._dp
+          v2mask => v1mask
+          v3mask => v1mask
 !max          if (ifaxis) CALL RONE( OMASK,NTOT)
       
           DO IEL=1,NELV
@@ -387,14 +387,16 @@ SUBROUTINE BCMASK
                   IF (CB == 'v  ' .OR. CB == 'V  ' .OR. CB == 'vl ' .OR. &
                   CB == 'VL ' .OR. CB == 'W  ') THEN
                       CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                      CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
-                      CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+!                      CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+!                      CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       cycle
                   ENDIF
               
               !        Mixed-Dirichlet-Neumann boundary conditions
               
                   IF (CB == 'SYM') THEN
+                      write(*,*) "Oops! vmasks aren't the same"
+#if 0
                       IF ( .NOT. IFALGN .OR. IFNORX ) &
                       CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       IF ( IFNORY ) &
@@ -402,8 +404,11 @@ SUBROUTINE BCMASK
                       IF ( IFNORZ ) &
                       CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       cycle
+#endif
                   ENDIF
                   IF (CB == 'ON ') THEN
+                      write(*,*) "Oops! vmasks aren't the same"
+#if 0
                       IF ( IFNORY .OR. IFNORZ ) &
                       CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       IF ( .NOT. IFALGN .OR. IFNORX .OR. IFNORZ ) &
@@ -411,10 +416,14 @@ SUBROUTINE BCMASK
                       IF ( .NOT. IFALGN .OR. IFNORX .OR. IFNORY ) &
                       CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       cycle
+#endif
                   ENDIF
                   IF (CB == 'A  ') THEN
+                      write(*,*) "Oops! vmasks aren't the same"
+#if 0
                       CALL FACEV (V2MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
                       CALL FACEV ( OMASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
+#endif
                   ENDIF
               enddo
           END DO
@@ -439,6 +448,7 @@ SUBROUTINE BCMASK
           NEL    = NELFLD(IFIELD)
           NTOT   = NXYZ*NEL
           tmask(:,:,:,:,ipscal) = 1._dp
+#if 0
           DO IEL=1,NEL
               DO IFACE=1,NFACES
                   CB =CBC(IFACE,IEL,IFIELD)
@@ -456,6 +466,7 @@ SUBROUTINE BCMASK
               enddo
           END DO
           CALL DSOP (TMASK(1,1,1,1,IPSCAL),'MUL')
+#endif
       END DO
   
   ENDIF

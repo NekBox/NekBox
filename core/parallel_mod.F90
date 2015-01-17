@@ -10,7 +10,7 @@ module parallel
 !     Maximum number of elements (limited to 2**31/12, at least for now)
   integer, parameter :: NELGT_MAX = 178956970
 
-  integer, allocatable :: nelg(:), lglel(:), gllel(:)
+  integer, allocatable :: nelg(:), lglel(:)
   integer :: nvtot, nelgv, nelgt
 
   LOGICAL :: IFGPRNT
@@ -29,6 +29,7 @@ module parallel
   integer :: queue_fac(30)
   integer :: queue_div(30)
   integer :: num_queue
+  integer :: proc_shape(3)
 
 
   contains
@@ -37,7 +38,7 @@ module parallel
     use size_m
     implicit none
 
-    allocate(NELG(0:LDIMT1), LGLEL(LELT), GLLEL(LELG))
+    allocate(NELG(0:LDIMT1), LGLEL(LELT))
     allocate(gsh_fld(0:ldimt3), xxth(ldimt3))
 
   end subroutine init_parallel
@@ -84,13 +85,14 @@ module parallel
       queue_div(num_queue) = my_shape(largest_idx)
       num_fac = num_fac - 1
     enddo
+    proc_shape = my_shape
 
   end subroutine init_gllnid
 
   integer function gllnid(ieg)
-    use mesh, only : ieg_to_xyz, shape_x
+    use mesh, only : ieg_to_xyz
     implicit none
-    integer :: ieg
+    integer, intent(in) :: ieg
 
     integer :: queue_pos
     integer :: ix(3) 
@@ -104,6 +106,20 @@ module parallel
 
     return
   end function gllnid
+
+  integer function gllel(ieg)
+    use mesh, only : ieg_to_xyz
+    implicit none
+    integer, intent(in) :: ieg
+
+    integer :: ix(3) 
+    ix = ieg_to_xyz(ieg)
+    ix(1) = mod(ix(1), proc_shape(1))
+    ix(2) = mod(ix(2), proc_shape(2))
+    ix(3) = mod(ix(3), proc_shape(3))
+    gllel = 1 + ix(1) + ix(2)*proc_shape(1) + ix(3)*proc_shape(1)*proc_shape(2)
+    return
+  end function gllel
 
 end module parallel
 

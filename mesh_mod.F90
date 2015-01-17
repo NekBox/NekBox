@@ -28,4 +28,14 @@ module mesh
     
   end subroutine init_mesh
 
+  function ieg_to_xyz(ieg) result(xyz)
+    integer, intent(in) :: ieg
+    integer :: xyz(3)
+ 
+    xyz(1) = mod(ieg - 1, shape_x(1))
+    xyz(2) = mod((ieg-1)/shape_x(1), shape_x(2))
+    xyz(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
+
+  end function ieg_to_xyz
+
 end module mesh

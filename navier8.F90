@@ -637,6 +637,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   use input, only : reafle
   use parallel, only : np, gllnid, isize, gllel, nelgt, nelgv, cr_h
   use string, only : ltrunc
+  use parallel, only : gllnid_internal
   implicit none
 
   logical :: ifgfdm
@@ -691,6 +692,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   if (nid > 0 .AND. nid < npass) msg_id=irecv(nid,wk,len)
   call nekgsync
 
+#if 1
   if (nid == 0) then
       eg0 = 0
       do ipass=1,npass
@@ -699,7 +701,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
           do eg=eg0+1,eg1
               m = m+1
               read(80,*,end=998) (wk(k,m),k=2,mdw)
-              if( .NOT. ifgfdm)  gllnid(eg) = wk(2,m)  !proc map,  must still be divided
+              if( .NOT. ifgfdm)  gllnid_internal(eg) = wk(2,m)  !proc map,  must still be divided
               wk(1,m)    = eg
           enddo
           if (ipass < npass) call csend(ipass,wk,len,ipass,0) !send to ipass
@@ -713,12 +715,15 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   else
       ntuple = 0
   endif
+#else
+
+#endif
 
 !   Distribute and assign partitions
   if ( .NOT. ifgfdm) then             ! gllnid is already assigned for gfdm
       lng = isize*neli
-      call bcast(gllnid,lng)
-      call assign_gllnid(gllnid,gllel,nelgt,nelgv,np) ! gllel is used as scratch
+      call bcast(gllnid_internal,lng)
+      call assign_gllnid(gllnid_internal,gllel,nelgt,nelgv,np) ! gllel is used as scratch
 
   !       if(nid.eq.0) then
   !         write(99,*) (gllnid(i),i=1,nelgt)

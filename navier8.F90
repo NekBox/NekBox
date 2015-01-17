@@ -637,7 +637,8 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   use input, only : reafle
   use parallel, only : np, gllnid, isize, gllel, nelgt, nelgv, cr_h
   use string, only : ltrunc
-  use parallel, only : gllnid_internal
+  use parallel, only : init_gllnid, wdsize
+  use mesh, only : shape_x
   implicit none
 
   logical :: ifgfdm
@@ -668,12 +669,14 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
       call chcopy(mapfle,reafle,lfname)
       call chcopy(mapfle1(lfname+1),suffix,4)
       open(unit=80,file=mapfle,status='old',err=99)
-      read(80,*,err=99) neli,nnzi
+      read(80,*,err=99) neli,nnzi,shape_x
       iok = 1
   endif
   99 continue
   iok = iglmax(iok,1)
   if (iok == 0) goto 999     ! Mapfile not found
+
+  call bcast(shape_x,3*wdsize)  
 
   if (nid == 0) then
       neli = iglmax(neli,1)   ! communicate to all procs
@@ -701,6 +704,31 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
           do eg=eg0+1,eg1
               m = m+1
               read(80,*,end=998) (wk(k,m),k=2,mdw)
+              wk(1,m)    = eg
+          enddo
+          if (ipass < npass) call csend(ipass,wk,len,ipass,0) !send to ipass
+          eg0 = eg1
+      enddo
+      close(80)
+      ntuple = m
+  elseif (nid < npass) then
+      call msgwait(msg_id)
+      ntuple = ndw
+  else
+      ntuple = 0
+  endif
+
+  call init_gllnid()
+
+#else
+  if (nid == 0) then
+      eg0 = 0
+      do ipass=1,npass
+          eg1 = min(eg0+ndw,neli)
+          m   = 0
+          do eg=eg0+1,eg1
+              m = m+1
+              read(80,*,end=998) (wk(k,m),k=2,mdw)
               if( .NOT. ifgfdm)  gllnid_internal(eg) = wk(2,m)  !proc map,  must still be divided
               wk(1,m)    = eg
           enddo
@@ -715,9 +743,6 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   else
       ntuple = 0
   endif
-#else
-
-#endif
 
 !   Distribute and assign partitions
   if ( .NOT. ifgfdm) then             ! gllnid is already assigned for gfdm
@@ -730,6 +755,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   !       endif
   !       call exitt
   endif
+#endif
 
   nelt=0 !     Count number of elements on this processor
   nelv=0

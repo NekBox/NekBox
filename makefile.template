@@ -37,7 +37,7 @@ PPS_F = $(patsubst %,$(PPPO)-D%,$(PPS))
 PPS_C = $(patsubst %,-D%,$(PPS))
 
 # CORE##########################################################################
-CORE = kinds_mod.o mpif.o fftw3.o size_mod.o speclib.o parallel_mod.o mesh_mod.o \
+CORE = kinds_mod.o mpif.o fftw3.o size_mod.o speclib.o mesh_mod.o parallel_mod.o \
 ${FFT_MOD} \
 ctimer_mod.o dealias_mod.o domain_mod.o dxyz_mod.o \
 eigen_mod.o esolv_mod.o fdmh1_mod.o geom_mod.o hsmg_mod.o input_mod.o \

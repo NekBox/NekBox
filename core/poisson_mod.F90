@@ -283,17 +283,6 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 
 end subroutine init_comm_infrastructure
 
-function ieg_to_xyz(ieg, shape_x) result(xyz)
-  integer, intent(in) :: ieg
-  integer, intent(in) :: shape_x(3)
-  integer :: xyz(3)
-
-  xyz(1) = mod(ieg - 1, shape_x(1))
-  xyz(2) = mod((ieg-1)/shape_x(1), shape_x(2))
-  xyz(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
-
-end function ieg_to_xyz
-
 integer function xyz_to_pid(ix, iy, iz, shape_x, shape_p)
   integer, intent(in) :: ix, iy, iz
   integer, intent(in) :: shape_x(3)
@@ -305,6 +294,7 @@ end function
 
 subroutine init_mesh_to_grid(nelm, shape_x)
   use parallel, only : lglel, gllnid, nid
+  use mesh, only : ieg_to_xyz
   integer, intent(in) :: nelm
   integer, intent(in) :: shape_x(3)
 
@@ -320,7 +310,7 @@ subroutine init_mesh_to_grid(nelm, shape_x)
   npids = 0
   do i = 1, nelm
     ieg = lglel(i)
-    ix = ieg_to_xyz(ieg, shape_x)
+    ix = ieg_to_xyz(ieg)
     dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x, shape_p)
     slot =  -1
     do j = 1, npids
@@ -344,7 +334,7 @@ subroutine init_mesh_to_grid(nelm, shape_x)
   dest_lengths = 0
   do i = 1, nelm
     ieg = lglel(i)
-    ix = ieg_to_xyz(ieg, shape_x)
+    ix = ieg_to_xyz(ieg)
     dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x, shape_p)
     slot =  -1
     do j = 1, npids
@@ -761,6 +751,7 @@ subroutine cos_test()
   use parallel, only : nid, lglel
   use tstep, only : PI, imesh
   use soln, only : pmask
+  use mesh, only : ieg_to_xyz
 
   use fft, only : P_FORWARD, P_BACKWARD
   use fft, only : W_FORWARD, W_BACKWARD
@@ -786,7 +777,7 @@ subroutine cos_test()
   allocate(rhs_fine(lx1,ly1,lz1,nelm))
   allocate(rhs_coarse(nelm))
   do i = 1, nelm
-    ix = ieg_to_xyz(lglel(i), shape_x)
+    ix = ieg_to_xyz(lglel(i))
     rhs_coarse(i) =  cos(8.*pi * (ix(3) / shape_x(3))) & 
                    + cos(2.*pi * (ix(3) / shape_x(3)))
   enddo

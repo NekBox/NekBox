@@ -127,7 +127,7 @@ subroutine set_proc_map()
 !max    if(ifzper .OR. ifgtp) call gfdm_elm_to_proc(gllnid,np) ! special processor map
 
 !   compute global to local map (no processor info)
-
+#if 0
   if ( .NOT. ifmoab) then
       IEL=0
       gllel = 0
@@ -152,6 +152,7 @@ subroutine set_proc_map()
           k = k+m
       enddo
   endif
+#endif
 
 !   compute local to global map
 !   (i.e. returns global element number given local index and proc id)

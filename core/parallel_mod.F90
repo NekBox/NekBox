@@ -10,7 +10,7 @@ module parallel
 !     Maximum number of elements (limited to 2**31/12, at least for now)
   integer, parameter :: NELGT_MAX = 178956970
 
-  integer, allocatable :: nelg(:), lglel(:), gllel(:), gllnid(:)
+  integer, allocatable :: nelg(:), lglel(:), gllel(:), gllnid_internal(:)
   integer :: nvtot, nelgv, nelgt
 
   LOGICAL :: IFGPRNT
@@ -31,10 +31,18 @@ module parallel
     use size_m
     implicit none
 
-    allocate(NELG(0:LDIMT1), LGLEL(LELT), GLLEL(LELG), GLLNID(LELG))
+    allocate(NELG(0:LDIMT1), LGLEL(LELT), GLLEL(LELG), GLLNID_internal(LELG))
     allocate(gsh_fld(0:ldimt3), xxth(ldimt3))
 
   end subroutine init_parallel
+
+  integer function gllnid(ieg)
+    implicit none
+    integer :: ieg
+
+    gllnid = gllnid_internal(ieg)
+    return
+  end function gllnid
 
 end module parallel
 

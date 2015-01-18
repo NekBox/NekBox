@@ -4,7 +4,7 @@ module restart
   use size_m
   implicit none
 !     parameter (lelr=max(lelt,lelg/16)) ! THIS IS THE MEMORY conservative VERSION
-  integer, parameter :: lelr=lelg              ! THIS IS THE MEMORY INTENSIVE VERSION
+!  integer, parameter :: lelr=lelg              ! THIS IS THE MEMORY INTENSIVE VERSION
 
   real(DP) :: max_rst           ! for full restart
 
@@ -12,7 +12,7 @@ module restart
     , nxo,nyo,nzo,nrg &
     , wdsizr,wdsizo &
     , nfileo,nproc_o,nfldr &
-    , er(lelr),nelB,nelBr
+    ,nelB,nelBr
 
   integer, parameter :: iHeaderSize=132
 

@@ -70,9 +70,9 @@ module parallel
     my_shape = shape_x
     num_queue = 0
     do while (num_fac > 0) 
-      largest_idx = 1
+      largest_idx = 3
       if (my_shape(2) > my_shape(largest_idx)) largest_idx = 2
-      if (my_shape(3) > my_shape(largest_idx)) largest_idx = 3
+      if (my_shape(1) > my_shape(largest_idx)) largest_idx = 1
 
       if ((my_shape(largest_idx) / factors(num_fac)) * factors(num_fac) /= my_shape(largest_idx)) then
           if (nid == 0) write(*,*) "Largest dimension isn't divisible by largest factor"

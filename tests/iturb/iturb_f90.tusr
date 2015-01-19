@@ -1,0 +1,176 @@
+!-----------------------------------------------------------------------
+    subroutine uservp(ix,iy,iz,eg) ! set variable properties
+    use size_m
+    use nekuse
+    implicit none
+
+    integer :: ix, iy, iz
+    integer :: e,f,eg
+
+    return
+    end subroutine uservp
+!-----------------------------------------------------------------------
+    subroutine userf(ix,iy,iz,eg) ! set acceleration term
+    use size_m
+    use nekuse
+    implicit none
+
+!     Note: this is an acceleration term, NOT a force!
+!     Thus, ffx will subsequently be multiplied by rho(x,t).
+
+    integer :: ix, iy, iz, eg
+
+
+    ffx = 0.0
+    ffy = 0.0
+    ffz = 0.0 !rayleigh*temp
+
+    return
+    end subroutine userf
+!-----------------------------------------------------------------------
+    subroutine userq(ix,iy,iz,eg) ! set source term
+    use size_m
+    use nekuse
+    implicit none
+
+    integer :: ix, iy, iz, eg
+
+    qvol   = 0.0
+
+    return
+    end subroutine userq
+!-----------------------------------------------------------------------
+    subroutine userq2(q) ! set source term
+    use size_m
+    use nekuse
+    implicit none
+
+    real :: q(lx1, ly1, lz1, lelt)
+
+    return
+    end subroutine userq2
+!-----------------------------------------------------------------------
+    subroutine userbc(ix,iy,iz,iside,ieg) ! set up boundary conditions
+    use size_m
+    use nekuse
+    implicit none
+
+    integer :: ix, iy, iz, iside, ieg
+!      if (cbc(iside,gllel(ieg),ifield).eq.'v01')
+
+    ux   = 0.0
+    uy   = 0.0
+    uz   = 0.0
+    temp = 0.0
+
+    return
+    end subroutine userbc
+!-----------------------------------------------------------------------
+    subroutine useric(ix,iy,iz,eg) ! set up initial conditions
+    use ifport, only : rand
+    use nekuse
+    use mesh, only : ieg_to_xyz, shape_x
+    implicit none
+
+    integer :: ix, iy, iz, eg
+
+    real :: scale, scale_tot, power
+    integer :: ind(3), my_shape(3), i, j
+    logical, save :: init = .false.
+    real, save :: rands(3,100)
+
+    if (.not. init) then
+      do i = 1, 100
+        rands(1,i) = 2. * (rand() - 0.5)
+        rands(2,i) = 2. * (rand() - 0.5)
+        rands(3,i) = 2. * (rand() - 0.5)
+      enddo
+      init = .true.
+    endif
+
+    my_shape = shape_x * {order}
+    ind = ieg_to_xyz(eg)
+    ind = ind * {order} + (/ix, iy, iz/) - 1
+
+    ux = 0.; uy = 0.; uz = 0.
+    scale = 1.
+    scale_tot = 0.
+    power = {power}
+    j = 1
+    do while (my_shape(1) > 1) 
+      ux = ux + scale * (1. - 2.*mod(ind(1),2)) * rands(1,j)
+      uy = uy + scale * (1. - 2.*mod(ind(1),2)) * rands(2,j)
+      uz = uz + scale * (1. - 2.*mod(ind(1),2)) * rands(3,j)
+      my_shape(1) = my_shape(1) / 2
+      ind(1) = ind(1) / 2
+      scale_tot = scale_tot + scale * sqrt(rands(1,j)**2 + rands(2,j)**2 + rands(3,j)**2)
+      scale = scale * (2. ** power)
+      j = j + 1
+    enddo
+    scale = 1.
+    do while (my_shape(2) > 1) 
+      ux = ux + scale * (1. - 2.*mod(ind(2),2)) * rands(1,j)
+      uy = uy + scale * (1. - 2.*mod(ind(2),2)) * rands(2,j)
+      uz = uz + scale * (1. - 2.*mod(ind(2),2)) * rands(3,j)
+      my_shape(2) = my_shape(2) / 2
+      ind(2) = ind(2) / 2
+      scale_tot = scale_tot + scale * sqrt(rands(1,j)**2 + rands(2,j)**2 + rands(3,j)**2)
+      scale = scale * (2. ** power)
+      j = j + 1
+    enddo
+    scale = 1.
+    do while (my_shape(3) > 1) 
+      ux = ux + scale * (1. - 2.*mod(ind(3),2)) * rands(1,j)
+      uy = uy + scale * (1. - 2.*mod(ind(3),2)) * rands(2,j)
+      uz = uz + scale * (1. - 2.*mod(ind(3),2)) * rands(3,j)
+      my_shape(3) = my_shape(3) / 2
+      ind(3) = ind(3) / 2
+      scale_tot = scale_tot + scale * sqrt(rands(1,j)**2 + rands(2,j)**2 + rands(3,j)**2)
+      scale = scale * (2. ** power)
+      j = j + 1
+    enddo
+    ux = {amp0} * ux / scale_tot
+    uy = {amp0} * uy / scale_tot
+    uz = {amp0} * uz / scale_tot
+
+    if (z > 0) then
+      temp = 1.0
+    else
+      temp = -1.0
+    endif
+
+    return
+    end subroutine useric
+!-----------------------------------------------------------------------
+    subroutine userchk()
+    use size_m
+    use tstep
+    use soln
+    implicit none
+
+    if (istep == 0) call outpost(vx,vy,vz,pr,t,'   ')
+
+    return
+    end subroutine userchk
+!-----------------------------------------------------------------------
+    subroutine usrdat()   ! This routine to modify element vertices
+    use size_m
+    implicit none
+
+    return
+    end subroutine usrdat
+!-----------------------------------------------------------------------
+    subroutine usrdat2()  ! This routine to modify mesh coordinates
+    implicit none
+
+
+    return
+    end subroutine usrdat2
+!-----------------------------------------------------------------------
+    subroutine usrdat3()
+    use size_m
+    implicit none
+
+    return
+    end subroutine usrdat3
+!-----------------------------------------------------------------------

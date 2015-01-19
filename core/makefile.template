@@ -62,10 +62,10 @@ byte_mpi.o \
 prepost.o \
 nek_comm.o \
 setprop.o \
-qthermal.o  \
 papi.o \
 gauss.o \
 makeq.o makeq_aux.o \
+#qthermal.o  \
 #fft_custom_transpose_mod.o \
 ################################################################################
 # MXM 

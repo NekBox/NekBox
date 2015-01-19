@@ -211,7 +211,7 @@ $(OBJDIR)/mpif.o	:$S/mpif.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/fftw3.o	:$S/fftw3.F90;			$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/fft_fftw_mod.o	:$S/fft_fftw_mod.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/fft_fftw-mpi_mod.o	:$S/fft_fftw-mpi_mod.F90;		$(F77) -c $(FL2) $< -o $@
-$(OBJDIR)/fftpack5.o	:$S/fftpack5.F90;		$(F77) -c $(FL2) $< -o $@
+$(OBJDIR)/fftpack5.o	:$S/3rd_party/fftpack5.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/fft_pack_mod.o	:$S/fft_pack_mod.F90;		$(F77) -c $(FL2) $< -o $@
 $(OBJDIR)/ctimer_mod.o	:$S/ctimer_mod.F90;		$(F90) -c $(FL2) $< -o $@
 $(OBJDIR)/size_mod.o	:size_mod.F90;			$(F90) -c $(FL2) $< -o $@

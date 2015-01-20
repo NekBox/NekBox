@@ -58,6 +58,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   use geom, only : voltm1, volvm1
   use tstep, only : istep, ifield, nelfld
   use parallel, only : nid
+  use ctimer, only : nproj, tproj, dnekclock
   implicit none
 
   real(DP), intent(inout) :: r(*)   !>!< residual
@@ -77,6 +78,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   real(DP), allocatable :: evecs(:,:), work(:), ev(:)
   integer :: lwork, ierr
   real(DP), parameter :: one = 1._dp, zero = 0._dp
+  real(DP) :: etime
 
   if (apx%n_sav == 0) then
     apx%projectors(:,0) = 0._dp
@@ -97,6 +99,9 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   call updrhsh(apx,h1,h2,vml,vmk,ws)
 
   !> \note This dsyev call and the following dgemv are task-parallel!
+
+  nproj = nproj + 1
+  etime = dnekclock() 
 
   ! Orthogonalize the approximation space
   if (10 * apx%n_sav + 100 > ntot) write(*,*) "wl isn't big enough to be dsyev's work"
@@ -146,6 +151,8 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   wl(1:ntot) = wl(1:ntot) * vmk(1:ntot)
   call dssum   (wl)
   r(1:ntot) = r(1:ntot) - wl(1:ntot)
+
+  tproj = tproj + (dnekclock() - etime)
 
   !...............................................................
   ! Recompute the norm of the residual to show how much its shrunk
@@ -201,6 +208,7 @@ end subroutine gensh
 !> \brief Update the k-th row/column of H_red 
 subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
   use kinds,  only : DP
+  use ctimer, only : nhconj, thconj, dnekclock
   implicit none
 
   type(approx_space), intent(inout) :: apx !>!< Current approximation space
@@ -213,15 +221,17 @@ subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
 
   integer :: i, ntot
   real(DP), parameter :: one = 1._dp, zero = 0._dp
+  real(DP) :: etime
 
   ntot= size(apx%projectors, 1)
-
   ! Compute H| projectors(:,k) >
   call axhelm  (apx%projectors(:,0),apx%projectors(:,k),h1,h2,1,1)
   apx%projectors(:,0) = apx%projectors(:,0) * vmk(1:ntot)
   call dssum   (apx%projectors(:,0))
   apx%projectors(:,0) = apx%projectors(:,0) * vml(1:ntot)
 
+  nhconj = nhconj + 1
+  etime = dnekclock()
   ! Compute < projectors(:,i) | H | projectors(:,k) > for i \in [1,n_sav]
   call dgemv('T', ntot, apx%n_sav, &
              one,  apx%projectors(:,1:apx%n_sav), ntot, &
@@ -233,6 +243,7 @@ subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
   do i = 1, apx%n_sav
     apx%H_red(k,i) = apx%H_red(i,k)
   enddo
+  thconj = thconj + (dnekclock() - etime)
 
   return
 end subroutine hconj

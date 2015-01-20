@@ -954,6 +954,7 @@ subroutine runstat
   use ctimer, only : nwal, nvdss, nusbc, nsyc, nspro, nsolv, npres, nprep
   use ctimer, only : ninvc, ninv3, nhmhz, ngop, neslv, nmltd, ndsum
   use ctimer, only : dnekclock
+  use ctimer, only : nproj, tproj, nhconj, thconj
   use size_m, only : nid
   use parallel, only : np
   implicit none
@@ -1121,6 +1122,11 @@ subroutine runstat
   !        Helmholz solver timings
       phmhz=thmhz/tttstp
       write(6,*) 'hmhz time',nhmhz,thmhz,phmhz
+
+  !        Projection timings
+      write(6,*) 'proj time',nproj,tproj,tproj/tttstp
+  !        HCONJ timings
+      write(6,*) 'hcoj time',nhconj,thconj,thconj/tttstp
 
       pspro=tspro/tttstp
       write(6,*) 'spro time',nspro,tspro,pspro

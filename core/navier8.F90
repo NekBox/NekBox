@@ -638,7 +638,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   use parallel, only : np, gllnid, isize, gllel, nelgt, nelgv, cr_h
   use string, only : ltrunc
   use parallel, only : init_gllnid, wdsize
-  use mesh, only : shape_x
+  use mesh, only : shape_x, ieg_to_xyz
   implicit none
 
   logical :: ifgfdm
@@ -647,14 +647,15 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   integer :: vertex(nlv,*)
   character(4) :: suffix
 
-  integer, parameter :: mdw=2+2**ldim
-  integer, parameter :: ndw=7*lx1*ly1*lz1*lelv/mdw
+  integer, parameter :: mdw=2
+  integer, parameter :: ndw=lx1*ly1*lz1*lelv/mdw
 
   integer, allocatable :: wk(:,:)   ! room for long ints, if desired
 
-  integer :: e,eg,eg0,eg1, iok, lfname, neli, nnzi, npass, len, msg_id
+  integer :: e,eg,eg0,eg1, ieg, iok, lfname, neli, nnzi, npass, len, msg_id
   integer :: ipass, m, k, ntuple, lng, i, key, nkey, iflag, nv, mid
   integer, external :: iglmax, irecv
+  integer :: ix(3)
 
   character(132) :: mapfle
   character(1) ::   mapfle1(132)
@@ -670,6 +671,9 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
       call chcopy(mapfle1(lfname+1),suffix,4)
       open(unit=80,file=mapfle,status='old',err=99)
       read(80,*,err=99) neli,nnzi,shape_x
+#if 1
+      close(80)
+#endif
       iok = 1
   endif
   99 continue
@@ -703,13 +707,12 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
           m   = 0
           do eg=eg0+1,eg1
               m = m+1
-              read(80,*,end=998) (wk(k,m),k=2,mdw)
+              !read(80,*,end=998) (wk(k,m),k=2,mdw)
               wk(1,m)    = eg
           enddo
           if (ipass < npass) call csend(ipass,wk,len,ipass,0) !send to ipass
           eg0 = eg1
       enddo
-      close(80)
       ntuple = m
   elseif (nid < npass) then
       call msgwait(msg_id)
@@ -789,11 +792,42 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
       write(6,*) 'Check that .map file and .rea file agree'
       iflag=1
   else
+#if 0
       nv = 2**ndim
       do e=1,nelt
           vertex(:,e) = wk(3:2+nv,e)
       enddo
-  endif
+#else
+      do e = 1, nelt
+          ieg = wk(1,e)
+          ix = ieg_to_xyz(ieg)
+          vertex(1,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
+                      + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
+
+          vertex(2,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
+                      + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
+
+          vertex(3,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
+                      + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
+
+          vertex(4,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
+                      + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
+                                                                                                 
+          vertex(5,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
+                      + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
+                                                                                                 
+          vertex(6,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
+                      + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)
+
+          vertex(7,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
+                      + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
+                                                                                                 
+          vertex(8,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
+                      + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
+    enddo
+#endif                                                                                           
+  endif  
+
 
   iflag = iglmax(iflag,1)
   if (iflag > 0) then

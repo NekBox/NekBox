@@ -186,7 +186,8 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
               au(:,:,:,e) = h1 * (            &
                             tm1*g4m1(:,:,:,e) &
                           + tm2*g5m1(:,:,:,e) &
-                          + tm3*g6m1(:,:,:,e) )
+                          + tm3*g6m1(:,:,:,e) ) &
+                        + helm2(1,1,1,1)*bm1(:,:,:,e)*u(:,:,:,e)
             
           else
               write(*,*) "Woops! axhelm"
@@ -229,7 +230,7 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   
   100 END DO
 
-  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(1,1,1,1)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
+  !au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(1,1,1,1)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
 !  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(:,:,:,1:nel)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
 
 !   If axisymmetric, add a diagonal term in the radial direction (ISD=2)

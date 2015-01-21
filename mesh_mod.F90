@@ -38,4 +38,11 @@ module mesh
 
   end function ieg_to_xyz
 
+  integer function xyz_to_ieg(xyz)
+    implicit none
+    integer, intent(in) :: xyz(3)
+    xyz_to_ieg = 1 + xyz(1) + xyz(2)*shape_x(1) + xyz(3)*shape_x(1)*shape_x(2)
+    return
+  end function xyz_to_ieg
+
 end module mesh

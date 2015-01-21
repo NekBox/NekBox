@@ -635,7 +635,7 @@ end subroutine get_vert
 subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   use size_m, only : lx1, ly1, lz1, lelv, ldim, nid, nelt, nelv, ndim
   use input, only : reafle
-  use parallel, only : np, gllnid, isize, gllel, nelgt, nelgv, cr_h
+  use parallel, only : np, gllnid, isize, gllel, lglel, nelgt, nelgv, cr_h
   use string, only : ltrunc
   use parallel, only : init_gllnid, wdsize
   use mesh, only : shape_x, ieg_to_xyz
@@ -650,8 +650,6 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   integer, parameter :: mdw=2
   integer, parameter :: ndw=lx1*ly1*lz1*lelv/mdw
 
-  integer, allocatable :: wk(:,:)   ! room for long ints, if desired
-
   integer :: e,eg,eg0,eg1, ieg, iok, lfname, neli, nnzi, npass, len, msg_id
   integer :: ipass, m, k, ntuple, lng, i, key, nkey, iflag, nv, mid
   integer, external :: iglmax, irecv
@@ -660,8 +658,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   character(132) :: mapfle
   character(1) ::   mapfle1(132)
   equivalence  (mapfle,mapfle1)
-
-  allocate(wk(mdw,ndw))
+  iflag = 0
 
   iok = 0
   if (nid == 0) then
@@ -671,9 +668,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
       call chcopy(mapfle1(lfname+1),suffix,4)
       open(unit=80,file=mapfle,status='old',err=99)
       read(80,*,err=99) neli,nnzi,shape_x
-#if 1
       close(80)
-#endif
       iok = 1
   endif
   99 continue
@@ -695,139 +690,42 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
       call exitt
   endif
 
-  len = 4*mdw*ndw
-  if (nid > 0 .AND. nid < npass) msg_id=irecv(nid,wk,len)
-  call nekgsync
-
-#if 1
-  if (nid == 0) then
-      eg0 = 0
-      do ipass=1,npass
-          eg1 = min(eg0+ndw,neli)
-          m   = 0
-          do eg=eg0+1,eg1
-              m = m+1
-              !read(80,*,end=998) (wk(k,m),k=2,mdw)
-              wk(1,m)    = eg
-          enddo
-          if (ipass < npass) call csend(ipass,wk,len,ipass,0) !send to ipass
-          eg0 = eg1
-      enddo
-      ntuple = m
-  elseif (nid < npass) then
-      call msgwait(msg_id)
-      ntuple = ndw
-  else
-      ntuple = 0
-  endif
-
   call init_gllnid()
 
-#else
-  if (nid == 0) then
-      eg0 = 0
-      do ipass=1,npass
-          eg1 = min(eg0+ndw,neli)
-          m   = 0
-          do eg=eg0+1,eg1
-              m = m+1
-              read(80,*,end=998) (wk(k,m),k=2,mdw)
-              if( .NOT. ifgfdm)  gllnid_internal(eg) = wk(2,m)  !proc map,  must still be divided
-              wk(1,m)    = eg
-          enddo
-          if (ipass < npass) call csend(ipass,wk,len,ipass,0) !send to ipass
-          eg0 = eg1
-      enddo
-      close(80)
-      ntuple = m
-  elseif (nid < npass) then
-      call msgwait(msg_id)
-      ntuple = ndw
-  else
-      ntuple = 0
-  endif
+  nelt = neli / np
+  nelv = neli / np
 
-!   Distribute and assign partitions
-  if ( .NOT. ifgfdm) then             ! gllnid is already assigned for gfdm
-      lng = isize*neli
-      call bcast(gllnid_internal,lng)
-      call assign_gllnid(gllnid_internal,gllel,nelgt,nelgv,np) ! gllel is used as scratch
-
-  !       if(nid.eq.0) then
-  !         write(99,*) (gllnid(i),i=1,nelgt)
-  !       endif
-  !       call exitt
-  endif
-#endif
-
-  nelt=0 !     Count number of elements on this processor
-  nelv=0
-  do eg=1,neli
-      if (gllnid(eg) == nid) then
-          if (eg <= nelgv) nelv=nelv+1
-          if (eg <= nelgt) nelt=nelt+1
-      endif
-  enddo
   if (np <= 64) write(6,*) nid,nelv,nelt,nelgv,nelgt,' NELV'
 
 !   NOW: crystal route vertex by processor id
 
-  do i=1,ntuple
-      eg=wk(1,i)
-      wk(2,i)=gllnid(eg)        ! processor id for element eg
+  do e = 1, nelt
+    ieg = lglel(e)
+    ix = ieg_to_xyz(ieg)
+    vertex(1,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
+                + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
+
+    vertex(2,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
+                + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
+
+    vertex(3,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
+                + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
+
+    vertex(4,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
+                + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
+                                                                                           
+    vertex(5,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
+                + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
+                                                                                           
+    vertex(6,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
+                + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)
+
+    vertex(7,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
+                + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
+                                                                                           
+    vertex(8,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
+                + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
   enddo
-
-  key = 2  ! processor id is in wk(2,:)
-  call crystal_ituple_transfer(cr_h,wk,mdw,ntuple,ndw,key)
-
-  if ( .NOT. ifgfdm) then            ! no sorting for gfdm?
-      key = 1  ! Sort tuple list by eg := wk(1,:)
-      nkey = 1
-      call crystal_ituple_sort(cr_h,wk,mdw,nelt,key,nkey)
-  endif
-
-  iflag = 0
-  if (ntuple /= nelt) then
-      write(6,*) nid,ntuple,nelv,nelt,nelgt,' NELT FAIL'
-      write(6,*) 'Check that .map file and .rea file agree'
-      iflag=1
-  else
-#if 0
-      nv = 2**ndim
-      do e=1,nelt
-          vertex(:,e) = wk(3:2+nv,e)
-      enddo
-#else
-      do e = 1, nelt
-          ieg = wk(1,e)
-          ix = ieg_to_xyz(ieg)
-          vertex(1,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
-                      + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
-
-          vertex(2,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
-                      + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
-
-          vertex(3,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
-                      + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
-
-          vertex(4,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
-                      + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
-                                                                                                 
-          vertex(5,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
-                      + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
-                                                                                                 
-          vertex(6,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
-                      + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)
-
-          vertex(7,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
-                      + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
-                                                                                                 
-          vertex(8,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
-                      + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
-    enddo
-#endif                                                                                           
-  endif  
-
 
   iflag = iglmax(iflag,1)
   if (iflag > 0) then

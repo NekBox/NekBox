@@ -202,7 +202,7 @@ subroutine mfo_read_header(nelo, word_size_file, time)
   call err_chk(ierr,'Error writing header in mfo_write_hdr. $')
 
   if(nid == pid0) then
-      call byte_read(lglel,nelt,ierr)
+      call byte_read(lglist,nelt,ierr)
       pad_size = -nelt
       do j = pid0+1,pid1
           mtype = j
@@ -228,7 +228,9 @@ subroutine mfo_read_header(nelo, word_size_file, time)
       call crecv(mtype,idum,4)          ! hand-shake
               
       lglist(0) = nelt
-      lglist(1:nelt) = lglel(1:nelt)
+      do j = 1, nelt
+        lglist(j) = lglel(j)
+      enddo
 
       len = 4*(nelt+1)
       call csend(mtype,lglist,len,pid0,0)

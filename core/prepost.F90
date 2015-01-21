@@ -1743,12 +1743,15 @@ subroutine mfo_write_hdr
 
 ! write global element numbering for this group
   if(nid == pid0) then
+    do j = 1, nelt
+      lglist(j) = lglel(j)
+    enddo
 #ifdef MPIIO
       ioff = iHeaderSize + 4 + 4*pad_size + nelB*isize
       call byte_set_view (ioff,ifh_mbyte)
-      call byte_write_mpi(lglel,nelt,-1,ifh_mbyte,ierr)
+      call byte_write_mpi(lglist,nelt,-1,ifh_mbyte,ierr)
 #else
-      call byte_write(lglel,nelt,ierr)
+      call byte_write(lglist,nelt,ierr)
 #endif
       pad_size = -nelt
       do j = pid0+1,pid1
@@ -1783,7 +1786,9 @@ subroutine mfo_write_hdr
       call crecv(mtype,idum,4)          ! hand-shake
               
       lglist(0) = nelt
-      lglist(1:nelt) = lglel(1:nelt)
+      do j = 1, nelt
+        lglist(j) = lglel(j)
+      enddo
 
       len = 4*(nelt+1)
       call csend(mtype,lglist,len,pid0,0)

@@ -10,7 +10,7 @@ module parallel
 !     Maximum number of elements (limited to 2**31/12, at least for now)
   integer, parameter :: NELGT_MAX = 178956970
 
-  integer, allocatable :: nelg(:), lglel(:)
+  integer, allocatable :: nelg(:) 
   integer :: nvtot, nelgv, nelgt
 
   LOGICAL :: IFGPRNT
@@ -25,10 +25,11 @@ module parallel
   integer :: nekcomm, nekgroup, nekreal
 
   ! map information
-  integer :: queue_dim(30)
-  integer :: queue_fac(30)
-  integer :: queue_div(30)
-  integer :: num_queue
+  integer, private :: queue_dim(30)
+  integer, private :: queue_fac(30)
+  integer, private :: queue_div(30)
+  integer, private :: num_queue
+  integer :: proc_pos(3) 
   integer :: proc_shape(3)
 
 
@@ -38,20 +39,22 @@ module parallel
     use size_m
     implicit none
 
-    allocate(NELG(0:LDIMT1), LGLEL(LELT))
+    allocate(NELG(0:LDIMT1))
     allocate(gsh_fld(0:ldimt3), xxth(ldimt3))
 
   end subroutine init_parallel
 
   subroutine init_gllnid()
     use mesh, only : shape_x
+    use size_m, only : lelt
     implicit none
 
-    integer :: i
+    integer :: i, l, iel, ieg
     integer :: np_targ
-    integer :: my_shape(3)
+    integer :: my_shape(3), my_nid
     integer :: factors(30), num_fac
     integer :: largest_idx
+    integer :: queue_pos
 
     factors = -1
     np_targ = np
@@ -87,6 +90,23 @@ module parallel
     enddo
     proc_shape = my_shape
 
+    proc_pos = 0
+    my_nid = nid
+    do queue_pos = num_queue, 1, -1
+      l = queue_dim(queue_pos) 
+      proc_pos(l) = proc_pos(l) + mod(my_nid, queue_fac(queue_pos)) * my_shape(l)
+      my_shape(l) = my_shape(l) * queue_fac(queue_pos)
+      my_nid = my_nid / queue_fac(queue_pos)
+    enddo
+
+    do iel = 1, lelt
+      ieg = lglel(iel)
+      if (gllnid(ieg) /= nid .or. gllel(ieg) /= iel) then
+        write(*,*) "LGL/GLL mismatch", nid, gllnid(ieg), iel, gllel(ieg) 
+      endif
+    enddo
+    if (nid == 0) write(*,*) "LGL/GLL checks out"
+
   end subroutine init_gllnid
 
   integer function gllnid(ieg)
@@ -120,6 +140,22 @@ module parallel
     gllel = 1 + ix(1) + ix(2)*proc_shape(1) + ix(3)*proc_shape(1)*proc_shape(2)
     return
   end function gllel
+
+  integer function lglel(iel)
+    use mesh, only : xyz_to_ieg
+    implicit none
+    integer, intent(in) :: iel
+
+    integer :: my_pos(3)
+
+    my_pos(1) = proc_pos(1) + mod((iel - 1),                               proc_shape(1))
+    my_pos(2) = proc_pos(2) + mod((iel - 1)/(proc_shape(1)),               proc_shape(2))
+    my_pos(3) = proc_pos(3) + mod((iel - 1)/(proc_shape(1)*proc_shape(2)), proc_shape(3))
+
+    lglel = xyz_to_ieg(my_pos)
+    return
+
+  end function lglel
 
 end module parallel
 

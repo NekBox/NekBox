@@ -103,8 +103,6 @@ subroutine set_proc_map()
 
   call get_vert
 
-  endif
-
   return
 end subroutine set_proc_map
 

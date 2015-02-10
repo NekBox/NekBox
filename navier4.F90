@@ -357,7 +357,6 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   use string, only : capit
   use tstep, only : ifield, nelfld, istep
   use geom, only : binvm1
-  use poisson, only : spectral_solve
   implicit none
 
   CHARACTER(4), intent(in) :: NAME !>!< name of field we're solving for
@@ -377,7 +376,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   real(DP), allocatable :: w1(:)
   real(DP), allocatable :: w2(:)
 
-  logical :: ifstdh, spectral_h
+  logical :: ifstdh
   character(4) ::  cname
   integer :: n, nel
 

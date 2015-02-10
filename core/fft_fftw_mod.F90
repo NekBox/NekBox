@@ -1,3 +1,14 @@
+!> \file fft_fftw_mod.F90
+!! \brief Parallel FFT
+!! \date December 2015
+!! \author Max Hutchinson
+!!
+!! This module provides a 3D parallel FFT through 1D FFTs and parallel
+!! transposes.  It also provides access to the wave-number of each mode,
+!! given its index and the type of transform used for that axis.
+!!
+!! This implementation uses FFTW for the 1D FFT and DCTs and 
+!! MPI_AllToAll for the transposes.
 module fft
   use, intrinsic :: iso_c_binding
   use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00, FFTW_REDFT10, FFTW_REDFT01
@@ -22,6 +33,11 @@ module fft
 
 contains
 
+!> \brief Compute a number of 1D FFTs or DCTs 
+!!
+!! The transforms are performed inplace.  Rescale
+!! is rescaled by the normalization factor of the
+!! transform.
 subroutine fft_r2r(u, length, num, kind, rescale)
   use kinds, only : DP
   use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
@@ -29,13 +45,16 @@ subroutine fft_r2r(u, length, num, kind, rescale)
   use fftw3, only : fftw_execute_r2r
   use parallel, only : nid
 
-  real(DP), intent(inout) :: u(:,:,:)
-  integer, intent(in) :: length, num
-  real(DP), intent(inout) :: rescale
-  integer(C_INT) :: kind
+  real(DP), intent(inout) :: u(:,:,:) !>!< data, leading dim is transformed
+  integer,  intent(in)    :: length  !>!< length of leading dimension
+  integer,  intent(in)    :: num     !>!< number of transforms
+  integer(C_INT)          :: kind    !>!< Type of transform.  See pulic parameters
+  real(DP), intent(inout) :: rescale !>!< Normalization factor
+
   integer :: i, plan_idx
   real(DP), allocatable :: proxy(:)
 
+  ! Look for an existing plan
   plan_idx = -1
   do i = 1, n_r2r_plans
     if ( &
@@ -48,6 +67,7 @@ subroutine fft_r2r(u, length, num, kind, rescale)
     endif
   enddo
 
+  ! If there's no plan, make a new one
   if (plan_idx < 0) then
     if (n_r2r_plans == nplans) then
       write(*,*) "Ran out of plans!"
@@ -67,8 +87,10 @@ subroutine fft_r2r(u, length, num, kind, rescale)
     r2r_plan_kinds(plan_idx)   = kind
   endif
 
+  ! execute the plan
   call fftw_execute_r2r(r2r_plans(plan_idx), u, u)
 
+  ! rescale the normalization factor
   if (kind == FFTW_REDFT00) then
     rescale = rescale * sqrt(2.*real(length-1, kind=DP))
   else if (kind == W_FORWARD .or. kind == W_BACKWARD) then
@@ -81,12 +103,14 @@ subroutine fft_r2r(u, length, num, kind, rescale)
 
 end subroutine fft_r2r
 
+!> \brief Get the wavenumber of the ith mode
 real(DP) function wavenumber(i, N, L, kind)
   use kinds, only : DP
   implicit none
-  integer,  intent(in) :: i, N
-  real(DP), intent(in) :: L
-  integer,  intent(in) :: kind
+  integer,  intent(in) :: i    !>!< index of mode
+  integer,  intent(in) :: N    !>!< number of modes in transform
+  real(DP), intent(in) :: L    !>!< Length of domain in transform
+  integer,  intent(in) :: kind !>!< Type of transform
 
   real(DP), parameter :: pi = 4.*atan(1.)
 
@@ -104,6 +128,7 @@ real(DP) function wavenumber(i, N, L, kind)
 
 end function wavenumber
 
+!> \brief Global (parallel) transform of grid data
 subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   use kinds, only : DP
   use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
@@ -112,11 +137,11 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   use parallel, only : nid, nekreal
 
   real(DP), intent(inout) :: grid(0:,0:,0:)
-  real(DP), intent(out) :: grid_t(0:,0:,0:)
-  integer,  intent(in) :: shape_x(3)
-  integer, intent(in) :: idx
-  integer, intent(in) :: idx_t
-  integer, intent(in) :: comm
+  real(DP), intent(out)   :: grid_t(0:,0:,0:)
+  integer,  intent(in)    :: shape_x(3)
+  integer, intent(in)     :: idx
+  integer, intent(in)     :: idx_t
+  integer, intent(in)     :: comm
 
   real(DP), allocatable :: tmp(:,:)
   real(DP), allocatable :: tmp_t(:,:)

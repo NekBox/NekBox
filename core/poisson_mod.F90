@@ -273,11 +273,11 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 !  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
 #endif
 
-  call nekgsync()
-
-  call transpose_test()
-  call shuffle_test()
-  call cos_test()
+  if (param(75) < 1) then
+    call transpose_test()
+    call shuffle_test()
+    call cos_test()
+  endif
 
   interface_initialized = .true.
 
@@ -453,13 +453,13 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
   do i = 1, size(dest_pids)
     n_mpi_reqs = n_mpi_reqs + 1
     call MPI_Isend(send_buffers(i)%p, dest_lengths(i), &
-                   nekreal, dest_pids(i), nid+dest_pids(i)*comm_size, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+                   nekreal, dest_pids(i), 0, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
   enddo
 
   do i = 1, size(src_pids)
     n_mpi_reqs = n_mpi_reqs + 1
     call MPI_Irecv(rec_buffers(i)%p, src_lengths(i), &
-                   nekreal, src_pids(i), src_pids(i)+nid*comm_size, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+                   nekreal, src_pids(i), 0, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
   enddo
 
   do i = 1, n_mpi_reqs
@@ -512,14 +512,14 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
   do i = 1, size(src_pids)
     n_mpi_reqs = n_mpi_reqs + 1
     call MPI_Isend(rec_buffers(i)%p, src_lengths(i), &
-                   nekreal, src_pids(i), src_pids(i)+nid*1024, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+                   nekreal, src_pids(i), 0, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
   enddo
 
 
   do i = 1, size(dest_pids)
     n_mpi_reqs = n_mpi_reqs + 1
     call MPI_Irecv(send_buffers(i)%p, dest_lengths(i), &
-                   nekreal, dest_pids(i), nid+dest_pids(i)*1024, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
+                   nekreal, dest_pids(i), 0, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
   enddo
 
   do i = 1, n_mpi_reqs

@@ -1,19 +1,5 @@
 !> \file gmres.F90 \copybrief hmh_gmres()
 
-!-----------------------------------------------------------------------
-subroutine uzawa_gmres_split(l,u,n)
-  use kinds, only : DP
-  implicit none
-
-  integer :: n
-  real(DP) :: l(n),u(n)
-  integer :: i
-  do i=1,n
-      l(i)=1.
-      u(i)=1./l(i)
-  enddo
-  return
-end subroutine uzawa_gmres_split
 
 !-----------------------------------------------------------------------
 !> \brief w = A*x for pressure iteration
@@ -95,8 +81,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   allocate(z(lx2*ly2*lz2*lelv,lgmres)) ! verified
 
 
-  if (.not. allocated(ml)) allocate(ml(lx2*ly2*lz2*lelv))
-  if (.not. allocated(mu)) allocate(mu(lx2*ly2*lz2*lelv)) 
+!  if (.not. allocated(ml)) allocate(ml(lx2*ly2*lz2*lelv))
+!  if (.not. allocated(mu)) allocate(mu(lx2*ly2*lz2*lelv)) 
 
   !> \todo check if these inits are nessesary
   x = 0._dp; w = 0._dp; h = 0._dp; gamma=0._dp; c = 0._dp; s = 0._dp
@@ -113,7 +99,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
   if( .NOT. iflag) then
       iflag= .TRUE. 
-      call uzawa_gmres_split(ml,mu,n)
+!      call uzawa_gmres_split(ml,mu,n)
       norm_fac = 1./sqrt(volvm1)
   endif
 
@@ -135,7 +121,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       outer = outer+1
 
       if(iter == 0) then               !      -1
-          r = ml * res          ! r = L  res
+          r = res          ! r = L  res
       !           call copy(r,res,n)
       else
       ! pdate residual
@@ -143,7 +129,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           call ax    (w,x,h1,h2,n)              ! w = A x
           r = r - w  
       !      -1
-          r = r * ml ! r = L   r
+      !    r = r * ml ! r = L   r
       endif
   !            ______
       gamma(1) = sqrt(glsc3(r,r,wt,n))         ! gamma  = \/ (r,r)
@@ -162,7 +148,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       do j=1,m
           iter = iter+1
       !       -1
-          w = mu * v(:,j)               ! w  = U   v
+          w =  v(:,j)               ! w  = U   v
       !           j
 
       ! . . . . . Overlapping Schwarz + coarse-grid . . . . . . .
@@ -197,7 +183,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !        j
                
       !      -1
-          w = w * ml  ! w = L   w
+      !    w = w * ml  ! w = L   w
 
       !           !modified Gram-Schmidt
 

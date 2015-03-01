@@ -47,6 +47,7 @@ module parallel
   subroutine init_gllnid()
     use mesh, only : shape_x
     use size_m, only : lelt
+    use input, only : param
     implicit none
 
     integer :: i, l, iel, ieg
@@ -99,6 +100,7 @@ module parallel
       my_nid = my_nid / queue_fac(queue_pos)
     enddo
 
+    if (param(75) < 1) then
     do iel = 1, lelt
       ieg = lglel(iel)
       if (gllnid(ieg) /= nid .or. gllel(ieg) /= iel) then
@@ -106,6 +108,7 @@ module parallel
       endif
     enddo
     if (nid == 0) write(*,*) "LGL/GLL checks out"
+    endif
 
   end subroutine init_gllnid
 
@@ -126,6 +129,35 @@ module parallel
 
     return
   end function gllnid
+
+  logical function my_ieg(ieg)
+    use mesh, only : ieg_to_xyz
+    integer, intent(in) :: ieg    
+
+    integer, save :: my_seq(30) = -1
+    integer :: ix(3)
+    integer :: queue_pos
+
+    if (my_seq(1) < 0) then
+      ix = ieg_to_xyz(lglel(1)) 
+      do queue_pos = 1, num_queue
+        my_seq(queue_pos) = ix(queue_dim(queue_pos)) / queue_div(queue_pos)
+        ix(queue_dim(queue_pos)) = mod(ix(queue_dim(queue_pos)), queue_div(queue_pos))
+      enddo
+    endif
+
+    ix = ieg_to_xyz(ieg)
+    do queue_pos = 1, num_queue
+      if (my_seq(queue_pos) /= ix(queue_dim(queue_pos)) / queue_div(queue_pos)) then
+        my_ieg = .false.
+        return
+      endif
+      ix(queue_dim(queue_pos)) = mod(ix(queue_dim(queue_pos)), queue_div(queue_pos))
+    enddo
+
+    my_ieg = .true.
+    return
+  end function my_ieg
 
   integer function gllel(ieg)
     use mesh, only : ieg_to_xyz

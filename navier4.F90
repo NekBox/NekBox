@@ -3,6 +3,7 @@
 !! \brief Module for projecting out solutions before Helmholtz solves 
 !! \date January 2015
 !! \author Max Hutchinson
+!! \author Paul Fischer
 !!
 !! This module provides hsolve, a Helmholtz (or Poisson) solver that
 !! additionally takes an approximation space and projects out the 

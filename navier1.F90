@@ -875,8 +875,10 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   use kinds, only : DP
   implicit none
 
-  integer :: nab, nbd
-  REAL(DP) :: AB(NAB),DTLAG(nbd)
+  REAL(DP), intent(out) :: AB(NAB)    !>!< Adams-Bashforth coefficients
+  real(DP), intent(in)  :: DTLAG(nbd) !>!< Time-step history
+  integer,  intent(in)  :: nab        !>!< Order of AB scheme
+  integer,  intent(in)  :: nbd        !>!< Order of accompanying BDF scheme
 
   real(DP) :: dt0, dt1, dt2, dta, dts, dtb, dtc, dtd, dte
 
@@ -940,14 +942,15 @@ subroutine setabbd (ab,dtlag,nab,nbd)
 end subroutine setabbd
 
 !-----------------------------------------------------------------------
-!> \brief Compute bacward-differentiation coefficients of order NBD
+!> \brief Compute backwards-difference (BDF) coefficients, order NBD
 !-----------------------------------------------------------------------
 subroutine setbd (bd,dtbd,nbd)
   use kinds, only : DP
   implicit none
 
-  REAL(DP) :: BD(*),DTBD(*)
-  integer :: nbd
+  REAL(dp), intent(out) :: BD(*)   !>!< BDF coefficients
+  real(dp), intent(in)  :: DTBD(*) !>!< Time-step history
+  integer , intent(in)  :: nbd     !>!< Order of BDF scheme
 
   integer, PARAMETER :: NDIM = 10
   REAL(DP) :: BDMAT(NDIM,NDIM),BDRHS(NDIM), BDF
@@ -955,9 +958,11 @@ subroutine setbd (bd,dtbd,nbd)
   integer :: nsys, i, ibd
 
   BD(1:ndim) = 0._dp; bdf = -1
+  ! BDF(1) is trivial
   IF (NBD == 1) THEN
       BD(1) = 1.
       BDF   = 1.
+  ! BDF(>1) computed using a linear system
   ELSEIF (NBD >= 2) THEN
       NSYS = NBD+1
       CALL BDSYS (BDMAT,BDRHS,DTBD,NBD,NDIM)
@@ -969,8 +974,7 @@ subroutine setbd (bd,dtbd,nbd)
       BDF = BDRHS(NBD+1)
   ENDIF
 
-!   Normalize
-
+  !   Normalize
   DO IBD=NBD,1,-1
       BD(IBD+1) = BD(IBD)
   END DO
@@ -984,7 +988,7 @@ subroutine setbd (bd,dtbd,nbd)
   return
 end subroutine setbd
 
-!> ?
+!> Setup the linear system that defines BDF coefficients
 subroutine bdsys (a,b,dt,nbd,ndim)
   use kinds, only : DP
   implicit none
@@ -996,31 +1000,31 @@ subroutine bdsys (a,b,dt,nbd,ndim)
   real(DP) :: sumdt
   a = 0._dp
   N = NBD+1
-  DO 10 J=1,NBD
+  DO J=1,NBD
       A(1,J) = 1.
-  10 END DO
+  END DO
   A(1,NBD+1) = 0.
   B(1) = 1.
-  DO 20 J=1,NBD
+  DO J=1,NBD
       SUMDT = 0.
-      DO 25 K=1,J
+      DO K=1,J
           SUMDT = SUMDT+DT(K)
-      25 END DO
+      END DO
       A(2,J) = SUMDT
-  20 END DO
+  END DO
   A(2,NBD+1) = -DT(1)
   B(2) = 0.
-  DO 40 I=3,NBD+1
-      DO 30 J=1,NBD
+  DO I=3,NBD+1
+      DO J=1,NBD
           SUMDT = 0.
-          DO 35 K=1,J
+          DO K=1,J
               SUMDT = SUMDT+DT(K)
-          35 END DO
+          END DO
           A(I,J) = SUMDT**(I-1)
-      30 END DO
+      END DO
       A(I,NBD+1) = 0.
       B(I) = 0.
-  40 END DO
+  END DO
   return
 end subroutine bdsys
 

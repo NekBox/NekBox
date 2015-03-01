@@ -131,7 +131,7 @@ subroutine plan4()
            DV2 (LX1,LY1,LZ1,LELV), &
            DV3 (LX1,LY1,LZ1,LELV)  )
 
-  !>!< \note These three calls are task-parallel
+  !> \note These three calls are task-parallel
   call hsolve('VELX', dv1, res1, h1, h2, v1mask, vmult, imesh, tolhv, nmxh, 1, &
               vx_apx, binvm1)
   call hsolve('VELY', dv2, res2, h1, h2, v2mask, vmult, imesh, tolhv, nmxh, 2, &
@@ -547,7 +547,7 @@ end subroutine op_curl
 !-----------------------------------------------------------------------
 !> \brief Extrapolate the velocity forward in time with AB(k)
 !!
-!! \details This is the first half of (6.5.8) in HOMfIFF:
+!! \details This is the first half of (6.5.8) in HOMfIFF \cite HOMfIFF :
 !! \f$ \hat{v} = \sum_{j=1}^k \beta_{k-j} v^{n+1-j} + ... \f$
 subroutine v_extrap(vext)
   use kinds, only : DP

@@ -730,12 +730,13 @@ end subroutine rdparam
 !! \note Can't handle curves (zeros out)
 subroutine genmesh
   use kinds, only : DP
-  use size_m, only : ndim, nid, lelt
+  use size_m, only : ndim, nid, lelt, nelt
   use input, only : iffmtin, igroup, xc, yc, zc
   use input, only : curve, ccurve
   use input, only : bc, cbc
   use mesh, only : shape_x, start_x, end_x
   use parallel, only : nelgt, gllnid, gllel, wdsize
+  use parallel, only : lglel
   implicit none
 
   integer :: nsides, ieg, iel, lcbc, ldimt1
@@ -771,96 +772,94 @@ subroutine genmesh
   CALL BLANK(CBC,LCBC)
 
   NSIDES=NDIM*2
-  DO IEG=1,NELGT
-      IF (GLLNID(IEG) == NID) THEN
-          IEL=GLLEL(IEG)
+  do iel = 1, nelt
+    ieg = lglel(iel)
 
-          ix(1) = mod(ieg - 1, shape_x(1))
-          ix(2) = mod((ieg-1)/shape_x(1), shape_x(2))
-          ix(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
+    ix(1) = mod(ieg - 1, shape_x(1))
+    ix(2) = mod((ieg-1)/shape_x(1), shape_x(2))
+    ix(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
 
-          root = start_x + ix * dx
+    root = start_x + ix * dx
 
-          igroup(iel) = 0
-          XC(1,iel) = root(1)
-          XC(2,iel) = root(1) + dx(1)
-          XC(3,iel) = root(1) + dx(1)
-          XC(4,iel) = root(1)
-          XC(5,iel) = root(1)
-          XC(6,iel) = root(1) + dx(1)
-          XC(7,iel) = root(1) + dx(1)
-          XC(8,iel) = root(1)
+    igroup(iel) = 0
+    XC(1,iel) = root(1)
+    XC(2,iel) = root(1) + dx(1)
+    XC(3,iel) = root(1) + dx(1)
+    XC(4,iel) = root(1)
+    XC(5,iel) = root(1)
+    XC(6,iel) = root(1) + dx(1)
+    XC(7,iel) = root(1) + dx(1)
+    XC(8,iel) = root(1)
 
-          YC(1,iel) = root(2)
-          YC(2,iel) = root(2)
-          YC(3,iel) = root(2) + dx(2)
-          YC(4,iel) = root(2) + dx(2)
-          YC(5,iel) = root(2)
-          YC(6,iel) = root(2)
-          YC(7,iel) = root(2) + dx(2)
-          YC(8,iel) = root(2) + dx(2)
+    YC(1,iel) = root(2)
+    YC(2,iel) = root(2)
+    YC(3,iel) = root(2) + dx(2)
+    YC(4,iel) = root(2) + dx(2)
+    YC(5,iel) = root(2)
+    YC(6,iel) = root(2)
+    YC(7,iel) = root(2) + dx(2)
+    YC(8,iel) = root(2) + dx(2)
 
-          ZC(1,iel) = root(3)
-          ZC(2,iel) = root(3)
-          ZC(3,iel) = root(3)
-          ZC(4,iel) = root(3)
-          ZC(5,iel) = root(3) + dx(3)
-          ZC(6,iel) = root(3) + dx(3)
-          ZC(7,iel) = root(3) + dx(3)
-          ZC(8,iel) = root(3) + dx(3)
+    ZC(1,iel) = root(3)
+    ZC(2,iel) = root(3)
+    ZC(3,iel) = root(3)
+    ZC(4,iel) = root(3)
+    ZC(5,iel) = root(3) + dx(3)
+    ZC(6,iel) = root(3) + dx(3)
+    ZC(7,iel) = root(3) + dx(3)
+    ZC(8,iel) = root(3) + dx(3)
 
-          CBC(:,IEL,:) = 'E'
-          if (ix(2) == 0) then
-            CBC(1,IEL,:) = boundaries(1)
-            bc(1,1,iel,:) = ieg + (shape_x(2)-1)*shape_x(1)
-          else
-            bc(1,1,iel,:) = ieg - shape_x(1)
-          endif
+    CBC(:,IEL,:) = 'E'
+    if (ix(2) == 0) then
+      CBC(1,IEL,:) = boundaries(1)
+      bc(1,1,iel,:) = ieg + (shape_x(2)-1)*shape_x(1)
+    else
+      bc(1,1,iel,:) = ieg - shape_x(1)
+    endif
 
-          if (ix(2) == shape_x(2) - 1) then
-            CBC(3,IEL,:) = boundaries(3)
-            bc(1,3,iel,:) = ieg - ix(2)*shape_x(1)
-          else
-            bc(1,3,iel,:) = ieg + shape_x(1)
-          endif
+    if (ix(2) == shape_x(2) - 1) then
+      CBC(3,IEL,:) = boundaries(3)
+      bc(1,3,iel,:) = ieg - ix(2)*shape_x(1)
+    else
+      bc(1,3,iel,:) = ieg + shape_x(1)
+    endif
 
-          if (ix(1) == 0)  then
-            CBC(4,IEL,:) = boundaries(4)
-            bc(1,4,iel,:) = ieg + (shape_x(1) - 1)
-          else
-            bc(1,4,iel,:) = ieg - 1
-          endif
+    if (ix(1) == 0)  then
+      CBC(4,IEL,:) = boundaries(4)
+      bc(1,4,iel,:) = ieg + (shape_x(1) - 1)
+    else
+      bc(1,4,iel,:) = ieg - 1
+    endif
 
-          if (ix(1) == shape_x(1) - 1) then
-            CBC(2,IEL,:) = boundaries(2)
-            bc(1,2,iel,:) = ieg - ix(1)
-          else
-            bc(1,2,iel,:) = ieg +1
-          endif
+    if (ix(1) == shape_x(1) - 1) then
+      CBC(2,IEL,:) = boundaries(2)
+      bc(1,2,iel,:) = ieg - ix(1)
+    else
+      bc(1,2,iel,:) = ieg +1
+    endif
 
-          if (ix(3) == 0) then
-            CBC(5,IEL,1) = boundaries(5)
-            CBC(5,IEL,2) = tboundaries(5)
-            bc(1,5,iel,:) = ieg + (shape_x(3) - 1)*shape_x(2)*shape_x(1)
-          else
-            bc(1,5,iel,:) = ieg - shape_x(2)*shape_x(1)
-          endif
-          if (ix(3) == shape_x(3) - 1) then
-            CBC(6,IEL,1) = boundaries(6)
-            CBC(6,IEL,2) = tboundaries(6)
-            bc(1,6,iel,:) = ieg - ix(3) * shape_x(2)*shape_x(1)
-          else
-            bc(1,6,iel,:) = ieg + shape_x(2)*shape_x(1)
-          endif
+    if (ix(3) == 0) then
+      CBC(5,IEL,1) = boundaries(5)
+      CBC(5,IEL,2) = tboundaries(5)
+      bc(1,5,iel,:) = ieg + (shape_x(3) - 1)*shape_x(2)*shape_x(1)
+    else
+      bc(1,5,iel,:) = ieg - shape_x(2)*shape_x(1)
+    endif
+    if (ix(3) == shape_x(3) - 1) then
+      CBC(6,IEL,1) = boundaries(6)
+      CBC(6,IEL,2) = tboundaries(6)
+      bc(1,6,iel,:) = ieg - ix(3) * shape_x(2)*shape_x(1)
+    else
+      bc(1,6,iel,:) = ieg + shape_x(2)*shape_x(1)
+    endif
 
-          bc(2, 1, iel, :) = 3
-          bc(2, 2, iel, :) = 4
-          bc(2, 3, iel, :) = 1
-          bc(2, 4, iel, :) = 2
-          bc(2, 5, iel, :) = 6
-          bc(2, 6, iel, :) = 5
+    bc(2, 1, iel, :) = 3
+    bc(2, 2, iel, :) = 4
+    bc(2, 3, iel, :) = 1
+    bc(2, 4, iel, :) = 2
+    bc(2, 5, iel, :) = 6
+    bc(2, 6, iel, :) = 5
        
-      ENDIF
   END DO
 
   return

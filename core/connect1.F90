@@ -13,7 +13,7 @@ subroutine setup_topo()
   use kinds, only : DP, i8
   use size_m, only : nid, ndim, nx1, ny1, nz1, nelv, nelt, nfield
   use size_m, only : lx1, ly1, lz1, lelv
-  use input, only : ifflow, ifmvbd, ifheat
+  use input, only : ifflow, ifmvbd, ifheat, param
   use mesh, only : vertex
   use mvgeom, only : wmult
   use parallel, only : nelgv, nelgt, gsh_fld, nelg
@@ -54,7 +54,7 @@ subroutine setup_topo()
 
   call genxyzl
   call setside
-  call verify
+  if (param(75) < 1) call verify
 
   CALL SETCDOF
 !max  IF (IFAXIS            ) CALL SETRZER
@@ -62,7 +62,7 @@ subroutine setup_topo()
 #if 0
   IF (IFMODEL .AND. IFKEPS) CALL CBCTURB
 #endif
-  CALL CHKAXCB
+  if (param(75) < 1) CALL CHKAXCB
 
 !========================================================================
 !     Set up element-processor mapping and establish global numbering

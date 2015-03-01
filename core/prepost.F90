@@ -890,8 +890,8 @@ subroutine mfo_outfld(prefix, pm1)
   if(nid == 0) write(6,7) istep,time,dnbyte,dnbyte/tio, &
   nfileo
   7 format(/,i9,1pe12.4,' done :: Write checkpoint',/, &
-  &        30X,'file size = ',3pG12.2,'MB',/, &
-  &        30X,'avg data-throughput = ',0pf7.1,'MB/s',/, &
+  &        30X,'file size = ',3pG14.2,'MB',/, &
+  &        30X,'avg data-throughput = ',0pf10.1,'MB/s',/, &
   &        30X,'io-nodes = ',i5,/)
 
   ifxyo = ifxyo_s ! restore old value

@@ -1,8 +1,5 @@
 !> Module containing data for HSMG
 !
-
-!> Module containing data for HSMG
-!
 module hsmg
   use kinds, only : DP
   use size_m

@@ -1594,6 +1594,7 @@ subroutine mbyte_open(hname,fid,ierr)
   use iso_c_binding, only : c_null_char
   use string, only : ltrunc, indx1
   use tstep, only : istep
+  use parallel, only : np
   implicit none
    
   integer :: fid
@@ -1630,8 +1631,10 @@ subroutine mbyte_open(hname,fid,ierr)
   6 format(1i8,' OPEN: ',132a1)
 #else
   call byte_open(fname,ierr)
-  write(6,6) nid,istep,(fname(k:k),k=1,len)
-  6 format(2i8,' OPEN: ',132a1)
+  if (np < 1024) then
+    write(6,6) nid,istep,(fname(k:k),k=1,len)
+    6 format(2i8,' OPEN: ',132a1)
+  endif
 #endif
 
   return

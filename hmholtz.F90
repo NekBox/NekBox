@@ -83,6 +83,7 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, ny1, nz1, nelt, nelv, ndim
   use ctimer, only : icalld, taxhm, naxhm, etime1, dnekclock
+  use ctimer, only : axhelm_flop
   use geom, only : g4m1, g5m1, g6m1
   use dxyz, only : wddx, wddyt, wddzt
   use input, only : ifaxis
@@ -115,13 +116,12 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   NXYZ=NX1*NY1*NZ1
   NTOT=NXYZ*NEL
 
-  if (icalld == 0) taxhm=0.0
-  icalld=icalld+1
-  naxhm=icalld
+  if (naxhm == 0) taxhm=0.0
+  naxhm=naxhm + 1
   etime1=dnekclock()
 
   IF ( .NOT. IFSOLV) CALL SETFAST(HELM1,HELM2,IMESH)
-  au(:,:,:,1:nel) = 0._dp
+  !au(:,:,:,1:nel) = 0._dp
 
   do 100 e=1,nel
   
@@ -171,19 +171,21 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
       
       !       3-d case ...............
       
-          if (iffast(e)) then
+!          if (iffast(e)) then
+          if (.true.) then
           
           !          Fast 3-d mode: constant properties and undeformed element
-          
-              h1 = helm1(1,1,1,e)
-
+              axhelm_flop = axhelm_flop + (2*nx1-1)*nx1*nyz
               call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
+              axhelm_flop = axhelm_flop + (2*ny1-1)*nx1*ny1*nz1
               do iz=1,nz1
                   call mxm   (u(1,1,iz,e),nx1,wddyt,ny1,tm2(1,1,iz),ny1)
               END DO
+              axhelm_flop = axhelm_flop + nxy*(2*nz1-1)*nz1
               call mxm   (u(1,1,1,e),nxy,wddzt,nz1,tm3,nz1)
            
-              au(:,:,:,e) = h1 * (            &
+              axhelm_flop = axhelm_flop + 10*nx1*ny1*nz1
+              au(:,:,:,e) = helm1(1,1,1,e) * ( &
                             tm1*g4m1(:,:,:,e) &
                           + tm2*g5m1(:,:,:,e) &
                           + tm3*g6m1(:,:,:,e) ) &
@@ -278,6 +280,7 @@ subroutine setfast (helm1,helm2,imesh)
   use size_m, only : nx1, ny1, nz1, nelt, nelv
   use input, only : ifaxis, ifmodel
   use mesh, only : iffast, ifdfrm
+  use ctimer, only : nsetfast, tsetfast, dnekclock
   implicit none
 
   integer, intent(in) :: imesh
@@ -286,8 +289,11 @@ subroutine setfast (helm1,helm2,imesh)
   integer :: nel, nxyz, ntot, ie 
   real(DP) :: delta, x, y, diff, epsm, h1min, h1max, testh1
   real(DP) :: den
+  real(DP) :: etime
   real(DP), external :: vlamax
 
+  etime =  dnekclock()
+  nsetfast = nsetfast + 1
   nel = -1
   IF (IMESH == 1) NEL=NELV
   IF (IMESH == 2) NEL=NELT
@@ -300,6 +306,7 @@ subroutine setfast (helm1,helm2,imesh)
   DIFF = ABS(X-Y)
   IF (DIFF == 0.0) EPSM = 1.E-6
   IF (DIFF > 0.0) EPSM = 1.E-13
+
 
   DO 100 ie=1,NEL
       IFFAST(ie) = .FALSE. 
@@ -318,7 +325,7 @@ subroutine setfast (helm1,helm2,imesh)
           endif
       ENDIF
   100 END DO
-
+  tsetfast = tsetfast + (dnekclock() - etime)
   return
 end subroutine setfast
 
@@ -676,6 +683,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use geom, only : volvm1, voltm1, bm1
   use mesh, only : ifsolv, niterhm
   use tstep, only : istep, imesh
+  use ctimer, only : ncggo, tcggo, cggo_flop, dnekclock
   implicit none
 
   real(DP), intent(out) :: x(*) !>!< solution vector
@@ -703,6 +711,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   real(DP) :: rho, vol, tol, h2max, skmin, smean, rmean
   real(DP) :: rtz1, rtz2, rbn2, rbn0, beta, rho0, alpha, alphm
   real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, vlsc32, glsc3
+  real(DP) :: etime
 
 
   if (ifsplit .AND. name == 'PRES' .AND. param(42) == 0) then
@@ -715,6 +724,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 !      write(6,*) ifsplit,name,param(44),' P44 C'
 
 ! **  zero out stuff for Lanczos eigenvalue estimator
+  ncggo = ncggo + 1
+  etime = dnekclock()
+
   allocate(diagt(maxcg),upper(maxcg))
   diagt = 0_dp; upper = 0_dp
   rho = 0.00
@@ -783,6 +795,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   
       if (kfldfdm < 0) then  ! Jacobi Preconditioner
       !           call copy(z,r,n)
+          cggo_flop = cggo_flop + n
           z = r * d
       else                                       ! Schwarz Preconditioner
       write (*,*) "Oops: kfldfdm"
@@ -810,7 +823,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   !        write(6,*) rmean,ifmcor,' ifmcor'
   
       rtz2=rtz1
+      cggo_flop = cggo_flop + 3*n
       scalar(1)=vlsc3 (z,r,mult,n)
+      cggo_flop = cggo_flop + 4*n
       scalar(2)=vlsc32(r,mult,binv,n)
       call gop(scalar,w,'+  ',2)
       rtz1=scalar(1)
@@ -845,16 +860,21 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
       
           beta = rtz1/rtz2
           if (iter == 1) beta=0.0
+          cggo_flop = cggo_flop + 2*n
           p = beta * p + z
           call axhelm (w,p,h1,h2,imsh,isd)
           call dssum  (w)
+          cggo_flop = cggo_flop + n
           w = w * mask(1:n)
       
           rho0 = rho
+          cggo_flop = cggo_flop + 3*n
           rho  = glsc3(w,p,mult,n)
           alpha=rtz1/rho
           alphm=-alpha
+          cggo_flop = cggo_flop + 2*n
           x(1:n) = x(1:n) + alpha * p
+          cggo_flop = cggo_flop + 2*n
           r = r + alphm * w
       
       !        Generate tridiagonal matrix for Lanczos scheme
@@ -877,6 +897,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   9999 continue
   niterhm = niter
   ifsolv = .FALSE. 
+  tcggo = tcggo + (dnekclock() - etime)
     
     
     !     Call eigenvalue routine for Lanczos scheme:

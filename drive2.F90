@@ -1128,13 +1128,13 @@ subroutine runstat
 
   !        Projection timings
       write(6,*) 'proj time',nproj,tproj,tproj/tttstp
-      write(6,*) 'proj flop/s', float(proj_flop) / tproj, proj_flop * np / tproj
+      call print_flops('proj flop/s', proj_flop, tproj)
   !        HCONJ timings
       write(6,*) 'hcoj time',nhconj,thconj,thconj/tttstp
-      write(6,*) 'hcoj flop/s', float(hconj_flop) / thconj, hconj_flop * np / thconj
+      call print_flops('hcoj flop/s', hconj_flop, thconj)
   !        CGGO timings
       write(6,*) 'cggo time',ncggo,tcggo,tcggo/tttstp
-      write(6,*) 'cggo flop/s', float(cggo_flop) / tcggo, cggo_flop * np / tcggo
+      call print_flops('cggo flop/s', cggo_flop, tcggo)
 
       pspro=tspro/tttstp
       write(6,*) 'spro time',nspro,tspro,pspro
@@ -1149,8 +1149,7 @@ subroutine runstat
   !        Axhelm timings
       paxhm=taxhm/tttstp
       write(6,*) 'axhm time',naxhm,taxhm,paxhm
-      write(6,*) 'axhm flop', float(axhelm_flop)/taxhm , &
-                             float(axhelm_flop * np)/ taxhm
+      call print_flops('axhm flop/s', axhelm_flop, taxhm)
 
       write(6,*) 'stft time',nsetfast,tsetfast
 
@@ -1250,11 +1249,13 @@ subroutine runstat
   132 format(i12,1p6e12.4,' qqq')
   call pprint_all(s132,132,6)
 
+  call nekgsync()
   if (nid == 0) then
     call sum_flops()
-    write(6,'(A,F8.1)') "Subset FLOP/s", float(total_flop) / time_flop / 1.e6, total_flop*np / time_flop / 1.e6
-    write(6,'(A,2E8.5)') "Total  FLOP/s", float(total_flop) / tttstp, total_flop*np / tttstp
+    call print_flops('Subset FLOPS/s', total_flop, time_flop)
+    call print_flops('Total  FLOPS/s', total_flop, tttstp)
   endif
+  call nekgsync()
 
 #endif
 
@@ -1412,3 +1413,13 @@ subroutine dofcnt
   return
 end subroutine dofcnt
 !-----------------------------------------------------------------------
+subroutine print_flops(label, flops, time)
+  use kinds, only : i8, DP
+  use parallel, only : np
+  character(*) :: label
+  integer(i8) :: flops
+  real(DP) :: time
+  write(6,'(A,2F8.1)') label, &
+                       float(flops) / (1.e6 * time), &
+                       float(flops * np) / (1.e6 * time )
+end subroutine print_flops

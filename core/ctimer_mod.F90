@@ -1,18 +1,26 @@
 module ctimer
-  use kinds, only : DP
+  use kinds, only : DP, i8
 
-  REAL(DP) ::          tmxmf,tmxms,tdsum,taxhm,tcopy,tinvc,tinv3
+  REAL(DP) ::          tmxmf,tmxms,tdsum,tcopy,tinvc,tinv3
   REAL(DP) ::          tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd,tprep &
   ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2 &
   ,tsett,tslvb,tusbc,tddsl,tcrsl,tdsmx,tdsmn &
   ,tgsmn,tgsmx,teslv,tbbbb,tcccc,tdddd,teeee &
   ,tvdss,tschw,tadvc,tspro,tgop_sync,tsyc &
   ,twal
-  real(DP), save :: tproj = 0._dp, thconj = 0._dp
+  real(DP) :: tproj  = 0._dp
+  real(DP) :: thconj = 0._dp
+  real(DP) :: taxhm  = 0._dp
+  real(DP) :: tcggo  = 0._dp
+  real(DP) :: tsetfast  = 0._dp
 
 
-  integer, save :: nproj = 0, nhconj = 0
-  integer :: nmxmf,nmxms,ndsum,naxhm,ncopy,ninvc,ninv3
+  integer :: nproj  = 0
+  integer :: nhconj = 0
+  integer :: naxhm  = 0
+  integer :: ncggo  = 0
+  integer :: nsetfast = 0
+  integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
   integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd,nprep &
   ,npres,nhmhz,ngop ,ngop1,ndott,nbsol,nbso2 &
   ,nsett,nslvb,nusbc,nddsl,ncrsl,ndsmx,ndsmn &
@@ -33,6 +41,10 @@ module ctimer
   integer, save :: icalld = 0
 
   logical ::         ifsync
+
+  real(DP) :: time_flop = 0._dp
+  integer(i8) :: total_flop, axhelm_flop = 0, hconj_flop = 0, proj_flop = 0
+  integer(i8) :: cggo_flop = 0
 
 contains
 
@@ -58,5 +70,10 @@ real(DP) function dnekclock_sync()
 END function
 
 !-----------------------------------------------------------------------
+subroutine sum_flops()
+  total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop
+  time_flop = taxhm + tproj + thconj + tcggo
+end subroutine sum_flops
+
 
 end module ctimer

@@ -885,7 +885,6 @@ subroutine time00
   ndsnd=0
   ndadd=0
   nhmhz=0
-  naxhm=0
   ngop =0
   nusbc=0
   ncopy=0
@@ -919,7 +918,6 @@ subroutine time00
   tdsnd=0.0
   tdadd=0.0
   thmhz=0.0
-  taxhm=0.0
   tgop =0.0
   tusbc=0.0
   tcopy=0.0
@@ -944,17 +942,22 @@ end subroutine time00
 subroutine runstat
 #ifndef NOTIMER
   use kinds, only : DP
-  use ctimer, only : ifsync, nadvc, naxhm, ncdtp, ncrsl, ndadd, nddsl
+  use ctimer, only : ifsync, nadvc, ncdtp, ncrsl, ndadd, nddsl
   use ctimer, only : pinvc, pinv3, phmhz, peslv, pdsum, pddsl, pdadd
   use ctimer, only : pvdss, pusbc, pspro, psolv, ppres, pprep, pmltd, pcrsl
-  use ctimer, only : pcdtp, paxhm
+  use ctimer, only : pcdtp
   use ctimer, only : tgop_sync, tgop, teslv, tdsum, tddsl, tdadd, tcrsl, tcdtp
   use ctimer, only : tspro, tsolv, tpres, tprep, tmltd, tinvc, tinv3, thmhz
-  use ctimer, only : taxhm, tadvc, twal, tvdss, tusbc, tttstp, ttime, tsyc
+  use ctimer, only : tadvc, twal, tvdss, tusbc, tttstp, ttime, tsyc
   use ctimer, only : nwal, nvdss, nusbc, nsyc, nspro, nsolv, npres, nprep
   use ctimer, only : ninvc, ninv3, nhmhz, ngop, neslv, nmltd, ndsum
   use ctimer, only : dnekclock
-  use ctimer, only : nproj, tproj, nhconj, thconj
+  use ctimer, only : nproj, tproj, proj_flop
+  use ctimer, only : nhconj, thconj, hconj_flop
+  use ctimer, only : ncggo, tcggo, cggo_flop
+  use ctimer, only : naxhm, taxhm, paxhm, axhelm_flop
+  use ctimer, only : nsetfast, tsetfast
+  use ctimer, only : total_flop, time_flop, sum_flops
   use size_m, only : nid
   use parallel, only : np
   implicit none
@@ -1125,8 +1128,13 @@ subroutine runstat
 
   !        Projection timings
       write(6,*) 'proj time',nproj,tproj,tproj/tttstp
+      write(6,*) 'proj flop/s', float(proj_flop) / tproj, proj_flop * np / tproj
   !        HCONJ timings
       write(6,*) 'hcoj time',nhconj,thconj,thconj/tttstp
+      write(6,*) 'hcoj flop/s', float(hconj_flop) / thconj, hconj_flop * np / thconj
+  !        CGGO timings
+      write(6,*) 'cggo time',ncggo,tcggo,tcggo/tttstp
+      write(6,*) 'cggo flop/s', float(cggo_flop) / tcggo, cggo_flop * np / tcggo
 
       pspro=tspro/tttstp
       write(6,*) 'spro time',nspro,tspro,pspro
@@ -1141,6 +1149,10 @@ subroutine runstat
   !        Axhelm timings
       paxhm=taxhm/tttstp
       write(6,*) 'axhm time',naxhm,taxhm,paxhm
+      write(6,*) 'axhm flop', float(axhelm_flop)/taxhm , &
+                             float(axhelm_flop * np)/ taxhm
+
+      write(6,*) 'stft time',nsetfast,tsetfast
 
   !        Convection timings
       padvc=tadvc/tttstp
@@ -1237,6 +1249,12 @@ subroutine runstat
   write(s132,132) nid,tusbc,tdadd,tcrsl,tvdss,tdsum,tgop
   132 format(i12,1p6e12.4,' qqq')
   call pprint_all(s132,132,6)
+
+  if (nid == 0) then
+    call sum_flops()
+    write(6,'(A,F8.1)') "Subset FLOP/s", float(total_flop) / time_flop / 1.e6, total_flop*np / time_flop / 1.e6
+    write(6,'(A,2E8.5)') "Total  FLOP/s", float(total_flop) / tttstp, total_flop*np / tttstp
+  endif
 
 #endif
 

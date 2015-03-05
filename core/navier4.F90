@@ -59,7 +59,8 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   use geom, only : voltm1, volvm1
   use tstep, only : istep, ifield, nelfld
   use parallel, only : nid
-  use ctimer, only : nproj, tproj, dnekclock
+  use ctimer, only : nproj, tproj, proj_flop
+  use ctimer, only : dnekclock
   implicit none
 
   real(DP), intent(inout) :: r(*)   !>!< residual
@@ -115,6 +116,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   if (nid == 0 .and. ierr /= 0) write(*,*) "DSYEV failed", ierr
 
   ! Compute overlap of residual and (non-orthogonal) projectors
+  proj_flop = proj_flop + ntot
   wl(1:ntot) = r(1:ntot) * vml(1:ntot)
 #if 0
   do i = 1, apx%n_sav
@@ -122,6 +124,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
     ws(i) = glsc2(wl, apx%projectors(:,i), ntot)
   enddo
 #else
+  proj_flop = proj_flop + 2*ntot*apx%n_sav
   call dgemv('T', ntot, apx%n_sav, &
              one,  apx%projectors(:,1:apx%n_sav), ntot, &
                    wl, 1, &
@@ -141,6 +144,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   enddo
 
   ! Expand the approximate solution wrt (non-orth.) projectors
+  proj_flop = proj_flop + 2*ntot*apx%n_sav
   call dgemv('N', ntot, apx%n_sav, &
              one,  apx%projectors(:,1:apx%n_sav), ntot, &
                    ws, 1, &
@@ -149,8 +153,10 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   ! Compute the new residual explicitly
   ! This fixes any numerical precision issues in the previous sections
   call axhelm  (wl,apx%projectors(:,0),h1,h2,1,1)
+  proj_flop = proj_flop + ntot
   wl(1:ntot) = wl(1:ntot) * vmk(1:ntot)
   call dssum   (wl)
+  proj_flop = proj_flop + ntot
   r(1:ntot) = r(1:ntot) - wl(1:ntot)
 
   tproj = tproj + (dnekclock() - etime)
@@ -209,7 +215,7 @@ end subroutine gensh
 !> \brief Update the k-th row/column of H_red 
 subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
   use kinds,  only : DP
-  use ctimer, only : nhconj, thconj, dnekclock
+  use ctimer, only : nhconj, thconj, hconj_flop, dnekclock
   implicit none
 
   type(approx_space), intent(inout) :: apx !>!< Current approximation space
@@ -227,13 +233,16 @@ subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
   ntot= size(apx%projectors, 1)
   ! Compute H| projectors(:,k) >
   call axhelm  (apx%projectors(:,0),apx%projectors(:,k),h1,h2,1,1)
+  hconj_flop = hconj_flop + ntot
   apx%projectors(:,0) = apx%projectors(:,0) * vmk(1:ntot)
   call dssum   (apx%projectors(:,0))
+  hconj_flop = hconj_flop + ntot
   apx%projectors(:,0) = apx%projectors(:,0) * vml(1:ntot)
 
   nhconj = nhconj + 1
   etime = dnekclock()
   ! Compute < projectors(:,i) | H | projectors(:,k) > for i \in [1,n_sav]
+  hconj_flop = hconj_flop + 2*apx%n_sav*ntot
   call dgemv('T', ntot, apx%n_sav, &
              one,  apx%projectors(:,1:apx%n_sav), ntot, &
                    apx%projectors(:,0), 1, &

@@ -146,21 +146,24 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   real(DP), allocatable :: tmp(:,:)
   real(DP), allocatable :: tmp_t(:,:)
   integer :: block0, block1, num
-  integer :: i, j, k, ierr
+  integer :: i, j, k, ierr, comm_size
+
 
   if (size(grid) < 1) return
+
+  call MPI_Comm_size(comm, comm_size, ierr)
  
   if (idx == 1 .or. idx_t == 1) then
     block0 = size(grid,2)
-    block1 = size(grid_t,2)
+    block1 = size(grid,1) / comm_size
     num    = size(grid,3) 
   else if (idx == 3 .or. idx_t == 3) then
     block0 = size(grid,3)
-    block1 = size(grid_t,3)
+    block1 = size(grid,1) / comm_size
     num    = size(grid,2) 
   endif
   allocate(tmp(0:block0-1,   0:size(grid,1)-1))
-  allocate(tmp_t(0:block1-1, 0:size(grid_t,1)-1))
+  allocate(tmp_t(0:block0-1, 0:size(grid,1)-1))
 
   if (idx == 1 .or. idx_t == 1) then
     do i = 0, num - 1
@@ -170,7 +173,7 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
       if (ierr /= 0) write(*,*) "alltoall errored", ierr, nid
       do j = 0, size(grid_t,1) - 1
         do k = 0, size(grid_t,2) - 1
-          grid_t(j,k,i) = tmp_t( mod(j,int(block1)), (j / block1) * block1 + k )
+          grid_t(j,k,i) = tmp_t( mod(j,int(block0)), (j / block0) * block1 + k )
         enddo
       enddo
     enddo
@@ -181,8 +184,8 @@ subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
                         tmp_t, block0*block1, nekreal, comm, ierr)
       if (ierr /= 0) write(*,*) "alltoall errored", ierr, nid
       do j = 0, size(grid_t,1) - 1
-        do k = 0, size(grid_t,2) - 1
-          grid_t(j,i,k) = tmp_t( mod(j,int(block1)), (j / block1) * block1 + k )
+        do k = 0, size(grid_t,3) - 1
+          grid_t(j,i,k) = tmp_t( mod(j,int(block0)), (j / block0) * block1 + k )
         enddo
       enddo
     enddo

@@ -197,6 +197,9 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   if (param(49) >= 1) then
     comm_size = min(comm_size, int(param(49)))
   endif
+  comm_size = min(comm_size, shape_x(1) * shape_x(2))
+  comm_size = min(comm_size, shape_x(2) * shape_x(3))
+  comm_size = min(comm_size, shape_x(1) * shape_x(3))
 
   nxy =  int(2**int(log(real(comm_size))/log(2.) / 2))
   comm_size = nxy*nxy
@@ -227,31 +230,13 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 
   if (nid < comm_size) then
     shape_c = shape_x
-#if 1
-    idx_in_local_yz = ixy; idx_out_local_yz = ixy
-    idx_in_local_xy = iyz; idx_out_local_xy = iyz
-    nin_local_yz = shape_x(3) / nxy; nout_local_yz = nin_local_yz
-    nin_local_xy = shape_x(2) / nyz; nout_local_xy = nin_local_xy
-#else
-    alloc_local_xy = fftw_mpi_local_size_many_transposed( 2, &
-                  (/shape_c(2), shape_c(1)/), &
-                  one, shape_c(2)/nxy, shape_c(1)/nxy, &
-                  comm_xy, &
-                  nin_local_xy, idx_in_local_xy, nout_local_xy, idx_out_local_xy)
-    alloc_local_yz = fftw_mpi_local_size_many_transposed( 2, &
-                  (/shape_c(3), shape_c(2)/), &
-                  one, shape_c(3)/nyz, shape_c(2)/nyz, &
-                  comm_yz, &
-                  nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz)
-#endif
+    idx_in_local_xy = (mod(nid,nxy) * shape_x(2)) / nxy
+    idx_out_local_xy = (mod(nid,nxy) * shape_x(1)) / nxy
+    idx_in_local_yz = ((nxy*nid/comm_size) * shape_x(3)) / nyz
+    idx_out_local_yz = ((nxy*nid/comm_size) * shape_x(2)) / nyz
+    nin_local_yz = shape_x(3) / nxy; nout_local_yz = shape_x(2)/nxy
+    nin_local_xy = shape_x(2) / nyz; nout_local_xy = shape_x(1)/nyz
 
-    if (ixy /= idx_in_local_yz .or. ixy /= idx_out_local_yz) write(*,*) "fail 1", nid, ixy, idx_in_local_yz, idx_out_local_yz
-    if (iyz /= idx_in_local_xy .or. iyz /= idx_out_local_xy) write(*,*) "fail 2", nid, iyz, idx_in_local_xy, idx_out_local_xy
-    !if (nxy /= 8 .or. nyz /= 8) write(*,*) "fail 3", nid, nxy, nyz
-    !if (nxy /= 16 .or. nyz /= 16) write(*,*) "fail 3", nid, nxy, nyz
-    !if (nxy /= 32 .or. nyz /= 32) write(*,*) "fail 3", nid, nxy, nyz
-    !if (nxy /= 64 .or. nyz /= 64) write(*,*) "fail 3", nid, nxy, nyz
-    !if (shape_c(1) /= alloc_local_xy .or. shape_c(2) /= alloc_local_yz) write(*,*) "fail 3", nid
   else
     nin_local_xy = 0; nout_local_xy = 0
     nin_local_yz = 0; nout_local_yz = 0
@@ -733,7 +718,7 @@ subroutine transpose_test()
                 + shape_x(1) * shape_x(2) * idz
         err = abs(plane_zy(idz,idx,idy) - ieg)
         if (err > 0.001) then
-          write(*,'(A,6(I6))') "WARNING: confused about k after yz", nid, idx, idy, idz, ieg, int(plane_zy(idz,idy,idx))
+          write(*,'(A,6(I6))') "WARNING: confused about k after yz", nid, idx, idy, idz, ieg, int(plane_zy(idz,idx,idy))
           return
         endif
       enddo

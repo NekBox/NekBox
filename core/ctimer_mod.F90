@@ -42,9 +42,12 @@ module ctimer
 
   logical ::         ifsync
 
-  real(DP) :: time_flop = 0._dp
-  integer(i8) :: total_flop, axhelm_flop = 0, hconj_flop = 0, proj_flop = 0
-  integer(i8) :: cggo_flop = 0
+  real(DP), save :: time_flop = 0._dp
+  integer(i8), save :: total_flop, total_mop
+  integer(i8), save :: axhelm_flop = 0, axhelm_mop = 0
+  integer(i8), save :: hconj_flop = 0, hconj_mop = 0
+  integer(i8), save :: proj_flop = 0, proj_mop = 0
+  integer(i8), save :: cggo_flop = 0, cggo_mop = 0
 
 contains
 
@@ -72,6 +75,7 @@ END function
 !-----------------------------------------------------------------------
 subroutine sum_flops()
   total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop
+  total_mop = axhelm_mop + proj_mop + hconj_mop + cggo_mop
   time_flop = taxhm + tproj + thconj + tcggo
 end subroutine sum_flops
 

@@ -952,12 +952,12 @@ subroutine runstat
   use ctimer, only : nwal, nvdss, nusbc, nsyc, nspro, nsolv, npres, nprep
   use ctimer, only : ninvc, ninv3, nhmhz, ngop, neslv, nmltd, ndsum
   use ctimer, only : dnekclock
-  use ctimer, only : nproj, tproj, proj_flop
-  use ctimer, only : nhconj, thconj, hconj_flop
-  use ctimer, only : ncggo, tcggo, cggo_flop
-  use ctimer, only : naxhm, taxhm, paxhm, axhelm_flop
+  use ctimer, only : nproj, tproj, proj_flop, proj_mop
+  use ctimer, only : nhconj, thconj, hconj_flop, hconj_mop
+  use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop
+  use ctimer, only : naxhm, taxhm, paxhm, axhelm_flop, axhelm_mop
   use ctimer, only : nsetfast, tsetfast
-  use ctimer, only : total_flop, time_flop, sum_flops
+  use ctimer, only : total_flop, total_mop, time_flop, sum_flops
   use size_m, only : nid
   use parallel, only : np
   implicit none
@@ -1128,13 +1128,13 @@ subroutine runstat
 
   !        Projection timings
       write(6,*) 'proj time',nproj,tproj,tproj/tttstp
-      call print_flops('proj flop/s', proj_flop, tproj)
+      call print_flops('proj flop/s', proj_flop, proj_mop, tproj)
   !        HCONJ timings
       write(6,*) 'hcoj time',nhconj,thconj,thconj/tttstp
-      call print_flops('hcoj flop/s', hconj_flop, thconj)
+      call print_flops('hcoj flop/s', hconj_flop, hconj_mop, thconj)
   !        CGGO timings
       write(6,*) 'cggo time',ncggo,tcggo,tcggo/tttstp
-      call print_flops('cggo flop/s', cggo_flop, tcggo)
+      call print_flops('cggo flop/s', cggo_flop, cggo_mop, tcggo)
 
       pspro=tspro/tttstp
       write(6,*) 'spro time',nspro,tspro,pspro
@@ -1149,7 +1149,7 @@ subroutine runstat
   !        Axhelm timings
       paxhm=taxhm/tttstp
       write(6,*) 'axhm time',naxhm,taxhm,paxhm
-      call print_flops('axhm flop/s', axhelm_flop, taxhm)
+      call print_flops('axhm flop/s', axhelm_flop, axhelm_mop, taxhm)
 
       write(6,*) 'stft time',nsetfast,tsetfast
 
@@ -1252,8 +1252,8 @@ subroutine runstat
   call nekgsync()
   if (nid == 0) then
     call sum_flops()
-    call print_flops('Subset FLOPS/s', total_flop, time_flop)
-    call print_flops('Total  FLOPS/s', total_flop, tttstp)
+    call print_flops('Subset FLOPS/s', total_flop, total_mop, time_flop)
+    call print_flops('Total  FLOPS/s', total_flop, total_mop, tttstp)
   endif
   call nekgsync()
 
@@ -1413,13 +1413,20 @@ subroutine dofcnt
   return
 end subroutine dofcnt
 !-----------------------------------------------------------------------
-subroutine print_flops(label, flops, time)
+subroutine print_flops(label, flops, mops, time)
   use kinds, only : i8, DP
   use parallel, only : np
+  implicit none
   character(*) :: label
-  integer(i8) :: flops
+  integer(i8) :: flops, mops
   real(DP) :: time
-  write(6,'(A,2F8.1)') label, &
+  real(DP), parameter :: bandwidth = 43.*1024 / 32
+  real(DP), parameter :: compute = 204.*1024 / 32
+  real(DP) :: peak
+
+  peak = min(compute, flops * bandwidth / (mops*8))
+
+  write(6,'(A,2F14.1)') label, &
                        float(flops) / (1.e6 * time), &
-                       float(flops * np) / (1.e6 * time )
+                       peak
 end subroutine print_flops

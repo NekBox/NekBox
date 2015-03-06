@@ -83,7 +83,7 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, ny1, nz1, nelt, nelv, ndim
   use ctimer, only : icalld, taxhm, naxhm, etime1, dnekclock
-  use ctimer, only : axhelm_flop
+  use ctimer, only : axhelm_flop, axhelm_mop
   use geom, only : g4m1, g5m1, g6m1
   use dxyz, only : wddx, wddyt, wddzt
   use input, only : ifaxis
@@ -176,15 +176,19 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
           
           !          Fast 3-d mode: constant properties and undeformed element
               axhelm_flop = axhelm_flop + (2*nx1-1)*nx1*nyz
+              axhelm_mop = axhelm_mop + nx1*ny1*nz1
               call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
               axhelm_flop = axhelm_flop + (2*ny1-1)*nx1*ny1*nz1
+              axhelm_mop = axhelm_mop + nx1*ny1*nz1
               do iz=1,nz1
                   call mxm   (u(1,1,iz,e),nx1,wddyt,ny1,tm2(1,1,iz),ny1)
               END DO
               axhelm_flop = axhelm_flop + nxy*(2*nz1-1)*nz1
+              axhelm_mop = axhelm_mop + nx1*ny1*nz1
               call mxm   (u(1,1,1,e),nxy,wddzt,nz1,tm3,nz1)
            
               axhelm_flop = axhelm_flop + 10*nx1*ny1*nz1
+              axhelm_mop = axhelm_mop + 4*nx1*ny1*nz1
               au(:,:,:,e) = helm1(1,1,1,e) * ( &
                             tm1*g4m1(:,:,:,e) &
                           + tm2*g5m1(:,:,:,e) &

@@ -1,5 +1,6 @@
 module ctimer
   use kinds, only : DP, i8
+  implicit none
 
   REAL(DP) ::          tmxmf,tmxms,tdsum,tcopy,tinvc,tinv3
   REAL(DP) ::          tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd,tprep &
@@ -8,18 +9,24 @@ module ctimer
   ,tgsmn,tgsmx,teslv,tbbbb,tcccc,tdddd,teeee &
   ,tvdss,tschw,tadvc,tspro,tgop_sync,tsyc &
   ,twal
-  real(DP) :: tproj  = 0._dp
-  real(DP) :: thconj = 0._dp
-  real(DP) :: taxhm  = 0._dp
-  real(DP) :: tcggo  = 0._dp
-  real(DP) :: tsetfast  = 0._dp
+  real(DP), save :: tproj  = 0._dp
+  real(DP), save :: thconj = 0._dp
+  real(DP), save :: taxhm  = 0._dp
+  real(DP), save :: tcggo  = 0._dp
+  real(DP), save :: tsetfast  = 0._dp
+  real(DP), save :: tintp  = 0._dp
+  real(DP), save :: tdpc  = 0._dp
+  real(DP), save :: tgmres  = 0._dp
 
 
-  integer :: nproj  = 0
-  integer :: nhconj = 0
-  integer :: naxhm  = 0
-  integer :: ncggo  = 0
-  integer :: nsetfast = 0
+  integer, save :: nproj  = 0
+  integer, save :: nhconj = 0
+  integer, save :: naxhm  = 0
+  integer, save :: ncggo  = 0
+  integer, save :: nsetfast = 0
+  integer, save :: nintp = 0
+  integer, save :: ndpc = 0
+  integer, save :: ngmres = 0
   integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
   integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd,nprep &
   ,npres,nhmhz,ngop ,ngop1,ndott,nbsol,nbso2 &
@@ -48,6 +55,7 @@ module ctimer
   integer(i8), save :: hconj_flop = 0, hconj_mop = 0
   integer(i8), save :: proj_flop = 0, proj_mop = 0
   integer(i8), save :: cggo_flop = 0, cggo_mop = 0
+  integer(i8), save :: intp_flop = 0, intp_mop = 0
 
 contains
 
@@ -74,9 +82,10 @@ END function
 
 !-----------------------------------------------------------------------
 subroutine sum_flops()
-  total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop
-  total_mop = axhelm_mop + proj_mop + hconj_mop + cggo_mop
-  time_flop = taxhm + tproj + thconj + tcggo
+  implicit none
+  total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop + intp_flop
+  total_mop = axhelm_mop + proj_mop + hconj_mop + cggo_mop + intp_mop
+  time_flop = taxhm + tproj + thconj + tcggo + tintp
 end subroutine sum_flops
 
 

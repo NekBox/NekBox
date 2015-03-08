@@ -50,6 +50,7 @@ end subroutine setup_convect
 subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   use kinds, only : DP
   use size_m, only : lxd, ldim
+  use ctimer, only : nintp, tintp, intp_flop, intp_mop, dnekclock
   implicit none
 
   real(DP), intent(out) :: ju(*)
@@ -61,10 +62,9 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   real(DP), save :: jgl(ldg), jgt(ldg)
 
   integer, parameter :: ld=2*lxd
-  real(DP) :: w(ld**ldim,2)
+  real(DP) :: w(ld**ldim,2), etime
   integer :: ldw, i
 
-  real(DP), external :: vlsc3
   call lim_chk(md,ld,'md   ','ld   ','grad_rstd ')
   call lim_chk(mx,ld,'mx   ','ld   ','grad_rstd ')
 
@@ -72,11 +72,14 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
 
   call get_int_ptr (i, jgl, jgt, mx,md)
 
+  nintp = nintp + 1
+  etime = dnekclock() 
+  intp_flop = intp_flop + 2*(mx*mx*mx*md + mx*mx*md*md + mx*md*md*md)
+  intp_mop = intp_mop + mx*mx*mx + md*md*md
   if (idir == 0) then
-      call specmpn(ju,md,u,mx,jgl(i),jgt(i),if3d,w,ldw)
-  else
       call specmpn(ju,mx,u,md,jgt(i),jgl(i),if3d,w,ldw)
   endif
+  tintp = tintp + (dnekclock() - etime)
 
   return
 end subroutine intp_rstd
@@ -376,7 +379,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
 !! For rst form, see eq. (4.8.5) in Deville, Fischer, Mund (2002).
 subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lxd, lyd, lzd
+  use size_m, only : lx1, ly1, lz1, lxd, lyd, lzd, ldim
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, nelv
   use geom, only : rx
   use input, only : if3d
@@ -384,13 +387,19 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   implicit none
 
   integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
+  integer, parameter :: ld=2*lxd
+  integer, parameter :: ldw=2*(ld**ldim)
 
   real(DP) :: cr(ltd,*),cs(ltd,*),ct(ltd,*)
   real(DP) :: ux(lxy,*),uy(lxy,*),uz(lxy,*)
 
   real(DP) :: fx(ltd), fy(ltd), fz(ltd)!, ur, us, ut, tr, uf
+  real(DP) :: w(ld**ldim,2)
+  integer, parameter :: ldg=lxd**3
+  !real(DP), save :: jgl(ldg), jgt(ldg)
 
-  integer :: e, nxyz1, nxyzd, ic, i
+
+  integer :: e, nxyz1, nxyzd, ic, i, j
 
   call set_dealias_rx()
 
@@ -398,11 +407,15 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   nxyzd = nxd*nyd*nzd
 
   ic = 1    ! pointer to vector field C
+  !call get_int_ptr (j, jgl, jgt, nx1,nxd) 
 
   do e=1,nelv
 
   !        Map coarse velocity to fine mesh (C-->F)
 
+      !call specmpn(fx,nxd,ux(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
+      !call specmpn(fy,nxd,uy(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
+      !call specmpn(fz,nxd,uz(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
       call intp_rstd(fx,ux(1,e),nx1,nxd,if3d,0) ! 0 --> forward
       call intp_rstd(fy,uy(1,e),nx1,nxd,if3d,0) ! 0 --> forward
       if (if3d) call intp_rstd(fz,uz(1,e),nx1,nxd,if3d,0) ! 0 --> forward

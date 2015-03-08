@@ -423,6 +423,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   use geom, only : bm1
   use mesh, only : ifdfrm
   use wz_m, only : wxm1, wam1
+  use ctimer, only : tdpc, ndpc, dnekclock
   implicit none
 
   REAL(DP), intent(out) ::  DPCM1 (LX1,LY1,LZ1,*)
@@ -433,6 +434,10 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
 
   integer :: nel, ntot, ie, iq, iz, iy, ix, j, i, iel
   real(DP) :: term1, term2
+  real(DP) :: etime
+
+  ndpc = ndpc + 1
+  etime = dnekclock()
 
   nel=nelt
   if (imsh == 1) nel=nelv
@@ -572,6 +577,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
 
   CALL DSSUM (DPCM1)
   dpcm1(:,:,:,1:nel) = 1._dp / dpcm1(:,:,:,1:nel)
+  tdpc = tdpc + (dnekclock() - etime)
 
   return
 end subroutine setprec
@@ -687,7 +693,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use geom, only : volvm1, voltm1, bm1
   use mesh, only : ifsolv, niterhm
   use tstep, only : istep, imesh
-  use ctimer, only : ncggo, tcggo, cggo_flop, dnekclock
+  use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop, dnekclock
   implicit none
 
   real(DP), intent(out) :: x(*) !>!< solution vector
@@ -759,7 +765,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   allocate(d(lg)); d = 0_dp
   if (kfldfdm < 0) then
+      etime = etime - dnekclock()
       call setprec(D,h1,h2,imsh,isd)
+      etime = etime + dnekclock()
   elseif(param(100) /= 2) then
 !max      call set_fdm_prec_h1b(d,h1,h2,nel)
   endif
@@ -800,6 +808,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
       if (kfldfdm < 0) then  ! Jacobi Preconditioner
       !           call copy(z,r,n)
           cggo_flop = cggo_flop + n
+          cggo_mop = cggo_mop + 3*n
           z = r * d
       else                                       ! Schwarz Preconditioner
       write (*,*) "Oops: kfldfdm"
@@ -828,9 +837,12 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   
       rtz2=rtz1
       cggo_flop = cggo_flop + 3*n
-      scalar(1)=vlsc3 (z,r,mult,n)
+      cggo_mop = cggo_mop + 3*n
+      scalar(1)=sum(z(1:n)*r(1:n)*mult(1:n))
+      !scalar(1)=vlsc3 (z,r,mult,n)
       cggo_flop = cggo_flop + 4*n
-      scalar(2)=vlsc32(r,mult,binv,n)
+      cggo_mop = cggo_mop + 3*n
+      scalar(2)=sum(r(1:n)*r(1:n)*mult(1:n)*binv(1:n))
       call gop(scalar,w,'+  ',2)
       rtz1=scalar(1)
       rbn2=sqrt(scalar(2)/vol)
@@ -865,20 +877,27 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
           beta = rtz1/rtz2
           if (iter == 1) beta=0.0
           cggo_flop = cggo_flop + 2*n
+          cggo_mop = cggo_mop + 3*n
           p = beta * p + z
+          etime = etime - dnekclock()
           call axhelm (w,p,h1,h2,imsh,isd)
+          etime = etime + dnekclock()
           call dssum  (w)
-          cggo_flop = cggo_flop + n
+            cggo_flop = cggo_flop + n
+            cggo_mop = cggo_mop + 2*n
           w = w * mask(1:n)
       
           rho0 = rho
-          cggo_flop = cggo_flop + 3*n
+            cggo_flop = cggo_flop + 3*n
+            cggo_mop  = cggo_mop + 3*n
           rho  = glsc3(w,p,mult,n)
           alpha=rtz1/rho
           alphm=-alpha
-          cggo_flop = cggo_flop + 2*n
+            cggo_flop = cggo_flop + 2*n
+            cggo_mop  = cggo_mop + 2*n
           x(1:n) = x(1:n) + alpha * p
-          cggo_flop = cggo_flop + 2*n
+            cggo_flop = cggo_flop + 2*n
+            cggo_mop  = cggo_mop + 2*n
           r = r + alphm * w
       
       !        Generate tridiagonal matrix for Lanczos scheme

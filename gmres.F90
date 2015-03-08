@@ -28,7 +28,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv, lgmres
   use size_m, only : nx1, ny1, nz1, nelv, nid
-  use ctimer, only : dnekclock
+  use ctimer, only : tgmres, ngmres, dnekclock
   use input, only : param, ifmgrid, ifprint
   use geom, only : volvm1
   use soln, only : pmask, vmult
@@ -49,7 +49,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   real(DP), allocatable :: z(:,:) ! Z = M**(-1) V
 
   real(DP), allocatable, save :: ml(:), mu(:)
-
+  real(DP) :: etime
 
   real(DP) :: divex
   real(DP), allocatable :: d(:)
@@ -68,6 +68,9 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
   integer :: m, n
   integer :: i, j, k, iconv
+
+  ngmres = ngmres + 1
+  etime = dnekclock()
 
   !> \todo move these allocations to where they are needed
   allocate(x(lx2*ly2*lz2*lelv))
@@ -126,7 +129,9 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       else
       ! pdate residual
           call copy  (r,res,n)                  ! r = res
+          etime = etime - dnekclock()
           call ax    (w,x,h1,h2,n)              ! w = A x
+          etime = etime + dnekclock()
           r = r - w  
       !      -1
       !    r = r * ml ! r = L   r
@@ -179,7 +184,9 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
                
+          etime = etime - dnekclock()
           call ax  (w,z(1,j),h1,h2,n)           ! w = A z
+          etime = etime + dnekclock()
       !        j
                
       !      -1
@@ -286,6 +293,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   9999 format(i9,' PRES gmres:',i5,1p5e12.4,1x,l4)
 
   if (outer <= 2) if_hyb = .FALSE. 
+
+  tgmres = tgmres + (dnekclock() - etime)
 
   return
 end subroutine hmh_gmres

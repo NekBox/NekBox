@@ -5,7 +5,7 @@
 subroutine prepost(ifdoin,prefin)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nid
-  use ctimer, only : icalld, nprep, etime1, dnekclock, tprep
+  use ctimer, only : nprep, dnekclock, tprep, icalld
   use input, only : schfle, ifschclob, ifpsco
   use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump
   implicit none
@@ -14,6 +14,7 @@ subroutine prepost(ifdoin,prefin)
   character(3) :: prefin
 
   real(DP) :: tdmp(4)
+  real(DP) :: etime
 
   character(3) :: prefix
 
@@ -29,11 +30,10 @@ subroutine prepost(ifdoin,prefin)
 
   if (iostep < 0 .OR. timeio < 0) return
 
-  icalld=icalld+1
-  nprep=icalld
+  nprep=nprep + 1
 
 #ifndef NOTIMER
-  etime1=dnekclock()
+  etime=dnekclock()
 #endif
 
 !   Trigger history output only if prefix = 'his'   pff 8/18/05
@@ -117,7 +117,7 @@ subroutine prepost(ifdoin,prefin)
   if (lastep == 1 .AND. nid == 0) close(unit=26)
 
 #ifndef NOTIMER
-  tprep=tprep+dnekclock()-etime1
+  tprep=tprep+dnekclock()-etime
 #endif
 
   ifdoit= .FALSE. 
@@ -1181,9 +1181,9 @@ subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
   real(DP) :: v1(1),v2(1),v3(1),vp(1),vt(ltot1,1)
   character(3) :: name3
   logical :: if_save(ldimt)
+  real(DP) :: etime
 
   integer :: ntot1, ntot1t, ntot2, nfldt, i
-
   allocate(w1(ltot1),w2(ltot1),w3(ltot1),wp(ltot2),wt(ltot1,ldimt))
 
   ntot1  = nx1*ny1*nz1*nelv
@@ -1238,6 +1238,7 @@ subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
   do i = 1,nfldt
       call copy(t(1,1,1,1,i),wt(1,i),ntot1t)
   enddo
+
 
   return
 end subroutine outpost2
@@ -1647,6 +1648,7 @@ subroutine mfo_write_hdr
   integer :: lglist(0:lelt)
 
   character(132) :: hdr
+  character(4) :: tag
 
   integer :: idum, nfileoo, nelo, j, mtype, inelp, ierr, i, npscalo, k
   integer :: ibsw_out, len
@@ -1654,6 +1656,12 @@ subroutine mfo_write_hdr
 
   call nekgsync()
   idum = 1
+
+  if (param(61) < 1) then
+    tag = '#std'
+  else
+    tag = '#max'
+  endif
 
 #ifdef MPIIO
   nfileoo = 1   ! all data into one file
@@ -1709,9 +1717,9 @@ subroutine mfo_write_hdr
           ENDIF
       ENDIF
        
-      write(hdr,1) wdsizo,nxo,nyo,nzo,nelo,nelgt,time,istep,fid0,nfileoo &
+      write(hdr,1) tag, wdsizo,nxo,nyo,nzo,nelo,nelgt,time,istep,fid0,nfileoo &
       ,   (rdcode1(i),i=1,10)        ! 74+20=94
-      1 format('#max',1x,i1,1x,i2,1x,i2,1x,i2,1x,i10,1x,i10,1x,e20.13, &
+      1 format(A4,1x,i1,1x,i2,1x,i2,1x,i2,1x,i10,1x,i10,1x,e20.13, &
       &        1x,i9,1x,i6,1x,i6,1x,10a)
 
   ! if we want to switch the bytes for output
@@ -1722,7 +1730,7 @@ subroutine mfo_write_hdr
 
       test_pattern = 6.54321_r4           ! write test pattern for byte swap
 
-      pad_size = (2**param(61) - (iHeaderSize + 4) ) / 4
+      pad_size = modulo(-(iHeaderSize + 4),int(2**param(61))) / 4
       allocate(padding(pad_size)); padding = 0.
 #ifdef MPIIO
   ! only rank0 (pid00) will write hdr + test_pattern
@@ -1770,9 +1778,7 @@ subroutine mfo_write_hdr
       enddo
 
     ! pad up to 8MB
-    do while (pad_size < 0) 
-      pad_size = pad_size + (2**param(61)) / 4
-    enddo
+    pad_size = modulo(pad_size*4,int(2**param(61))) / 4
     allocate(padding(pad_size)); padding = 0.
 #ifdef MPIIO
     call byte_write_mpi(padding, pad_size, pid00, ifh_mbyte, ierr)

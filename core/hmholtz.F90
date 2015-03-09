@@ -714,10 +714,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   real(DP), allocatable :: d (:)
   real(DP), allocatable :: r (:) , w (:) , p (:) , z (:)
 
-  integer, parameter :: maxcg=900
-  real(DP), allocatable :: diagt(:), upper(:)
-
-  integer :: n, iter, nxyz, nel, niter, krylov
+  integer :: i, n, iter, nxyz, nel, niter
   real(DP) :: rho, vol, tol, h2max, skmin, smean, rmean
   real(DP) :: rtz1, rtz2, rbn2, rbn0, beta, rho0, alpha, alphm
   real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, vlsc32, glsc3
@@ -736,8 +733,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 ! **  zero out stuff for Lanczos eigenvalue estimator
   ncggo = ncggo + 1
 
-  allocate(diagt(maxcg),upper(maxcg))
-  diagt = 0_dp; upper = 0_dp
   rho = 0.00
 
 !     Initialization
@@ -752,7 +747,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   if (param(22) /= 0) tol=abs(param(22))
   if (name == 'PRES' .AND. param(21) /= 0) tol=abs(param(21))
   if (tin < 0)       tol=abs(tin)
-  niter = min(maxit,maxcg)
+  niter = maxit
 
 !     Speed-up for undeformed elements and constant properties.
   if ( .NOT. ifsolv) then
@@ -779,134 +774,125 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   ifmcor = .FALSE. 
   h2max = glmax(h2  ,n)
   skmin = glmin(mask,n)
-  if (skmin > 0 .AND. h2max == 0) ifmcor = .TRUE. 
-
-  smean = 0.
+  if (skmin > 0 .AND. h2max == 0) then
+    ifmcor = .TRUE. 
+    write(*,*) "Oops! ifmcor"
+  endif
   if (name == 'PRES') then
-  !        call ortho (r)           ! Commented out March 15, 2011,pff
-  elseif (ifmcor) then
-      if (nid == 0) write(*,*) "ifmcor", ifmcor
-      smean = -1./glsum(bm1,n) ! Modified 5/4/12 pff
-      rmean = smean*glsc2(r,mult,n)
-      call copy(x,bm1,n)
-      call dssum(x)
-      r = r + rmean * x(1:n)
-      x (1:n) = 0._dp
+    write(*,*) "Oops! name == PRES"
+  endif
+  if (kfldfdm >= 0) then
+    write(*,*) "Oops! kfldfdm"
   endif
 
-  krylov = 0
-  rtz1=1.0
+  ifprint_hmh = .FALSE. 
+  if (nid == 0 .AND. ifprint .AND. param(74) /= 0) ifprint_hmh= .TRUE. 
+  if (nid == 0 .AND. istep == 1)                 ifprint_hmh= .TRUE. 
+
   niterhm = 0
 
-  allocate(z(lg)); z = 0_dp
+  allocate(z(lg))
   allocate(w(lg)); w = 0_dp
-  allocate(p(lg)); p = 0_dp
-  do iter=1,niter
+  allocate(p(lg))
+  iter = 1
+
+  rtz1=1._dp; rtz2 = 1._dp
+
+  cggo_flop = cggo_flop + 8*n
+  cggo_mop  = cggo_mop  + 5*n
+  scalar(1) = 0._dp; scalar(2) = 0._dp
+  do i = 1, n
+    p(i) = r(i) * d(i) 
+    scalar(1) = scalar(1) + p(i) * r(i) * mult(i)
+    scalar(2) = scalar(2) + r(i) * r(i) * mult(i) * binv(i)
+  enddo
+  call gop(scalar,w,'+  ',2)
+  rtz1=scalar(1)
+  rbn2=sqrt(scalar(2)/vol)
+  rbn0 = rbn2
+  if (param(22) < 0) tol=abs(param(22))*rbn0
+  if (tin < 0)       tol=abs(tin)*rbn0
+
+  if (ifprint_hmh) &
+  write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1),h2(1)
   
-      if (kfldfdm < 0) then  ! Jacobi Preconditioner
-      !           call copy(z,r,n)
-          cggo_flop = cggo_flop + n
-          cggo_mop = cggo_mop + 3*n
-          z = r * d
-      else                                       ! Schwarz Preconditioner
-      write (*,*) "Oops: kfldfdm"
-#if 0
-          if (name == 'PRES' .AND. param(100) == 2) then
-              call h1_overlap_2(z,r,mask)
-              call crs_solve_h1 (w,r)  ! Currently, crs grd only for P
-              call add2         (z,w,n)
-          else
-              call fdm_h1(z,r,d,mask,mult,nel,ktype(1,1,kfldfdm),w)
-              if (name == 'PRES') then
-                  call crs_solve_h1 (w,r)  ! Currently, crs grd only for P
-                  call add2         (z,w,n)
-              endif
-          endif
-#endif
-      endif
-  
-      if (name == 'PRES') then
-          call ortho (z)
-      elseif (ifmcor) then
-          rmean = smean*glsc2(z,bm1,n)
-          z = z + rmean
-      endif
-  !        write(6,*) rmean,ifmcor,' ifmcor'
-  
-      rtz2=rtz1
-      cggo_flop = cggo_flop + 3*n
-      cggo_mop = cggo_mop + 3*n
-      scalar(1)=sum(z(1:n)*r(1:n)*mult(1:n))
-      !scalar(1)=vlsc3 (z,r,mult,n)
-      cggo_flop = cggo_flop + 4*n
-      cggo_mop = cggo_mop + 3*n
-      scalar(2)=sum(r(1:n)*r(1:n)*mult(1:n)*binv(1:n))
-      call gop(scalar,w,'+  ',2)
-      rtz1=scalar(1)
-      rbn2=sqrt(scalar(2)/vol)
-      if (iter == 1) rbn0 = rbn2
-      if (param(22) < 0) tol=abs(param(22))*rbn0
-      if (tin < 0)       tol=abs(tin)*rbn0
+  beta = 0._dp
 
-      ifprint_hmh = .FALSE. 
-      if (nid == 0 .AND. ifprint .AND. param(74) /= 0) ifprint_hmh= .TRUE. 
-      if (nid == 0 .AND. istep == 1)                 ifprint_hmh= .TRUE. 
+  etime = etime - dnekclock()
+  call axhelm (w,p,h1,h2,imsh,isd)
+  etime = etime + dnekclock()
+  call dssum  (w)
 
-      if (ifprint_hmh) &
-      write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1),h2(1)
+  cggo_flop = cggo_flop + 4*n
+  cggo_mop  = cggo_mop  + 4*n
+  rho0 = rho; rho = 0._dp
+  do i = 1, n 
+    w(i)   = w(i) * mask(i)
+    rho = rho + w(i) * p(i) * mult(i)
+  enddo
+  call gop(rho,z,'+  ',1)
+  alpha=rtz1/rho
+  alphm=-alpha
+
+  do iter=2,niter
+    scalar(1) = 0._dp; scalar(2) = 0._dp
+    rtz2=rtz1
+    cggo_flop = cggo_flop + 10*n
+    cggo_mop  = cggo_mop  + 6*n
+    do i = 1, n
+      r(i) = r(i) + alphm * w(i)
+      z(i) = r(i) * d(i) 
+      scalar(1) = scalar(1) + z(i) * r(i) * mult(i)
+      scalar(2) = scalar(2) + r(i) * r(i) * mult(i) * binv(i)
+    enddo
+    call gop(scalar,w,'+  ',2)
+    rtz1=scalar(1)
+    rbn2=sqrt(scalar(2)/vol)
 
 
-  !        Always take at least one iteration   (for projection) pff 11/23/98
+    if (ifprint_hmh) &
+    write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1),h2(1)
+
+
+    !   Always take at least one iteration   (for projection) pff 11/23/98
 #ifndef TST_WSCAL
-      IF (rbn2 <= TOL .AND. (iter > 1 .OR. istep <= 5)) THEN
+    IF (rbn2 <= TOL .AND. (iter > 1 .OR. istep <= 5)) THEN
 #else
-          iter_max = param(150)
-          if (name == 'PRES') iter_max = param(151)
-          if (iter > iter_max) then
+    iter_max = param(150)
+    if (name == 'PRES') iter_max = param(151)
+    if (iter > iter_max) then
 #endif
-          !        IF (rbn2.LE.TOL) THEN
-              NITER = ITER-1
-          !           IF(NID.EQ.0.AND.((.NOT.IFHZPC).OR.IFPRINT))
-              if (nid == 0) &
-              write(6,3000) istep,name,niter,rbn2,rbn0,tol
-              goto 9999
-          ENDIF
-      
-          beta = rtz1/rtz2
-          if (iter == 1) beta=0.0
-          cggo_flop = cggo_flop + 2*n
-          cggo_mop = cggo_mop + 3*n
-          p = beta * p + z
-          etime = etime - dnekclock()
-          call axhelm (w,p,h1,h2,imsh,isd)
-          etime = etime + dnekclock()
-          call dssum  (w)
-            cggo_flop = cggo_flop + n
-            cggo_mop = cggo_mop + 2*n
-          w = w * mask(1:n)
-      
-          rho0 = rho
-            cggo_flop = cggo_flop + 3*n
-            cggo_mop  = cggo_mop + 3*n
-          rho  = glsc3(w,p,mult,n)
-          alpha=rtz1/rho
-          alphm=-alpha
-            cggo_flop = cggo_flop + 2*n
-            cggo_mop  = cggo_mop + 2*n
-          x(1:n) = x(1:n) + alpha * p
-            cggo_flop = cggo_flop + 2*n
-            cggo_mop  = cggo_mop + 2*n
-          r = r + alphm * w
-      
-      !        Generate tridiagonal matrix for Lanczos scheme
-          if (iter == 1) then
-              krylov = krylov+1
-              diagt(iter) = rho/rtz1
-          elseif (iter <= maxcg) then
-              krylov = krylov+1
-              diagt(iter)    = (beta**2 * rho0 + rho ) / rtz1
-              upper(iter-1)  = -beta * rho0 / sqrt(rtz2 * rtz1)
-          endif
+    !        IF (rbn2.LE.TOL) THEN
+        x(1:n) = x(1:n) + alpha * p
+        NITER = ITER-1
+    !           IF(NID.EQ.0.AND.((.NOT.IFHZPC).OR.IFPRINT))
+        if (nid == 0) &
+        write(6,3000) istep,name,niter,rbn2,rbn0,tol
+        goto 9999
+    ENDIF
+    
+    cggo_flop = cggo_flop + 4*n 
+    cggo_mop  = cggo_mop  + 3*n 
+    beta = rtz1/rtz2
+    do i = 1, n
+      x(i) = x(i) + alpha * p(i)
+      p(i) = z(i) + beta  * p(i)
+    enddo
+    etime = etime - dnekclock()
+    call axhelm (w,p,h1,h2,imsh,isd)
+    etime = etime + dnekclock()
+    call dssum  (w)    
+
+    cggo_flop = cggo_flop + 4*n
+    cggo_mop  = cggo_mop  + 4*n
+    rho0 = rho; rho = 0._dp
+    do i = 1, n 
+      w(i)   = w(i) * mask(i)
+      rho = rho + w(i) * p(i) * mult(i)
+    enddo
+    call gop(rho,z,'+  ',1)
+    alpha=rtz1/rho
+    alphm=-alpha
   enddo
 
   niter = iter-1
@@ -920,21 +906,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   ifsolv = .FALSE. 
   tcggo = tcggo + (dnekclock() - etime)
     
-    
-    !     Call eigenvalue routine for Lanczos scheme:
-    !          two work arrays are req'd if you want to save "diag & upper"
-    
-    !     if (iter.ge.3) then
-    !        niter = iter-1
-    !        call calc (diagt,upper,w,z,krylov,dmax,dmin)
-    !        cond = dmax/dmin
-    !        if (nid.eq.0) write(6,6) istep,cond,dmin,dmax,' lambda'
-    !     endif
-    !   6 format(i9,1p3e12.4,4x,a7)
-    
-    !     if (n.gt.0) write(6,*) 'quit in cggo'
-    !     if (n.gt.0) call exitt
-    !     call exitt
   return
 end subroutine cggo
 

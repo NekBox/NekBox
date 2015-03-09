@@ -28,7 +28,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv, lgmres
   use size_m, only : nx1, ny1, nz1, nelv, nid
-  use ctimer, only : tgmres, ngmres, dnekclock
+  use ctimer, only : tgmres, ngmres, gmres_flop, gmres_mop, dnekclock
   use input, only : param, ifmgrid, ifprint
   use geom, only : volvm1
   use soln, only : pmask, vmult
@@ -128,6 +128,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !           call copy(r,res,n)
       else
       ! pdate residual
+          gmres_mop = gmres_mop + n
           call copy  (r,res,n)                  ! r = res
           etime = etime - dnekclock()
           call ax    (w,x,h1,h2,n)              ! w = A x
@@ -137,6 +138,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !    r = r * ml ! r = L   r
       endif
   !            ______
+      gmres_mop  = gmres_mop  + 2*n
+      gmres_flop = gmres_flop + 3*n
       gamma(1) = sqrt(glsc3(r,r,wt,n))         ! gamma  = \/ (r,r)
   !      1
       if(iter == 0) then
@@ -204,13 +207,16 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !           enddo                                 !          i,j  i
 
       !           2-PASS GS, 1st pass:
-
+          gmres_mop  = gmres_mop  + 2*n + j*n
+          gmres_flop = gmres_flop + 3*j*n
           do i=1,j
               h(i,j)=vlsc3(w,v(1,i),wt,n)        ! h    = (w,v )
           enddo                                 !  i,j       i
 
           call gop(h(1,j),wk1,'+  ',j)          ! sum over P procs
 
+          gmres_mop  = gmres_mop  + (j+1)*n 
+          gmres_flop = gmres_flop + j*2*n
           do i=1,j
               w = w - v(:,i) * h(i,j) ! w = w - h    v
           enddo                                 !          i,j  i
@@ -236,6 +242,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
               h(i+1,j)= -s(i)*temp + c(i)*h(i+1,j)
           enddo
       !            ______
+          gmres_mop  = gmres_mop  + 2*n
+          gmres_flop = gmres_flop + 3*n
           alpha = sqrt(glsc3(w,w,wt,n))        ! alpha =  \/ (w,w)
           rnorm = 0.
           if(alpha == 0.) goto 900  !converged
@@ -260,6 +268,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           if (j == m) goto 1000 !not converged, restart
 
           temp = 1./alpha
+          gmres_mop  = gmres_mop  + 2*n
+          gmres_flop = gmres_flop + n
           v(:,j+1) = w * temp  ! v    = w / alpha
       !  j+1
       enddo
@@ -284,6 +294,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   9000 continue
 
   divex = rnorm
+  gmres_mop = gmres_mop + n
   call copy(res,x,n)
 
   call ortho   (res) ! Orthogonalize wrt null space, if present

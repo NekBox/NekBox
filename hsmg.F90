@@ -426,6 +426,7 @@ end subroutine hsmg_tnsr
 !> \brief computes:  v = [C (x) B (x) A] u .
 subroutine hsmg_tnsr3d(v,nv,u,nu,A,Bt,Ct)
   use kinds, only : DP
+  use ctimer, only : h1mg_flop, h1mg_mop
   use size_m
   implicit none
 
@@ -435,6 +436,12 @@ subroutine hsmg_tnsr3d(v,nv,u,nu,A,Bt,Ct)
   integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
   real(DP) :: work(0:lwk-1),work2(0:lwk-1)
   integer :: ie, i
+
+  h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
+  h1mg_mop = h1mg_mop + nv**3 + nu**3
+
 
   do ie=1,nelv
       call mxm(A,nv,u(1,ie),nu,work,nu*nu)
@@ -450,6 +457,7 @@ end subroutine hsmg_tnsr3d
 !> \brief computes  v = [C (x) B (x) A] u
 subroutine hsmg_tnsr3d_el(v,nv,u,nu,A,Bt,Ct)
   use kinds, only : DP
+  use ctimer, only : h1mg_flop, h1mg_mop
   use size_m, only : lx1, ly1, lz1
   implicit none
 
@@ -459,6 +467,9 @@ subroutine hsmg_tnsr3d_el(v,nv,u,nu,A,Bt,Ct)
   integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
   real(DP) :: work(0:lwk-1),work2(0:lwk-1)
   integer :: i
+
+  h1mg_flop = h1mg_flop + nv*nu*nu*(2*nu-1)+ nv*nv*nu*(2*nu-1)+ nv*nv*nv*(2*nu-1)
+  h1mg_mop = h1mg_mop + nu**3 + nv**3
 
   call mxm(A,nv,u,nu,work,nu*nu)
   do i=0,nu-1
@@ -529,6 +540,7 @@ end subroutine hsmg_schwarz_dssum
 subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
   use kinds, only : DP
   use size_m, only : nelv
+  use ctimer, only : h1mg_flop, h1mg_mop
   use input, only : if3d
   implicit none
 
@@ -556,6 +568,8 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
           enddo
       enddo
   else
+      h1mg_flop = h1mg_flop + nelv * 3 * (nx-2)**2 * 6
+      h1mg_mop  = h1mg_mop  + nelv * 3 * (nx-2)**2 * 4
       do ie=1,nelv
           do k=i0,i1
               do j=i0,i1
@@ -1505,9 +1519,10 @@ subroutine hsmg_tnsr1(v,nv,nu,A,At)
 end subroutine hsmg_tnsr1
 
 !-------------------------------------------------------T--------------
-!> \brief compute v = [C (x) B (x) A] u
+!> \brief compute v = [C (x) B (x) A] v (in-place)
 subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
   use kinds, only : DP
+  use ctimer, only : h1mg_flop, h1mg_mop
   use size_m, only : lx1, ly1, lz1, nelv
   implicit none
 
@@ -1531,6 +1546,11 @@ subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
 
   nu3 = nu**3
   nv3 = nv**3
+
+  h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
+  h1mg_mop = h1mg_mop + max(nv3,nu3)
 
   do e=e0,ee,es
       iu = 1 + (e-1)*nu3

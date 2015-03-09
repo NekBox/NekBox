@@ -944,12 +944,12 @@ subroutine runstat
   use kinds, only : DP
   use ctimer, only : ifsync, nadvc, ncdtp, ncrsl, ndadd, nddsl
   use ctimer, only : pinvc, pinv3, phmhz, peslv, pdsum, pddsl, pdadd
-  use ctimer, only : pvdss, pusbc, pspro, psolv, ppres, pprep, pmltd, pcrsl
+  use ctimer, only : pvdss, pusbc, pspro, psolv, ppres, pmltd, pcrsl
   use ctimer, only : pcdtp
   use ctimer, only : tgop_sync, tgop, teslv, tdsum, tddsl, tdadd, tcrsl, tcdtp
   use ctimer, only : tspro, tsolv, tpres, tprep, tmltd, tinvc, tinv3, thmhz
   use ctimer, only : tadvc, twal, tvdss, tusbc, tttstp, ttime, tsyc
-  use ctimer, only : nwal, nvdss, nusbc, nsyc, nspro, nsolv, npres, nprep
+  use ctimer, only : nwal, nvdss, nusbc, nsyc, nspro, nsolv, npres
   use ctimer, only : ninvc, ninv3, nhmhz, ngop, neslv, nmltd, ndsum
   use ctimer, only : dnekclock
   use ctimer, only : nproj, tproj, proj_flop, proj_mop
@@ -957,13 +957,21 @@ subroutine runstat
   use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop
   use ctimer, only : naxhm, taxhm, paxhm, axhelm_flop, axhelm_mop
   use ctimer, only : nintp, tintp, intp_flop, intp_mop
+  use ctimer, only : nscn, tscn
+  use ctimer, only : ngrst, tgrst
+  use ctimer, only : nmakef, tmakef
+  use ctimer, only : nmakeq, tmakeq
   use ctimer, only : nsetfast, tsetfast
   use ctimer, only : ndpc, tdpc
+  use ctimer, only : np4misc, tp4misc 
   use ctimer, only : total_flop, total_mop, time_flop, sum_flops
   use ctimer, only : ngmres, tgmres
   use ctimer, only : nh1mg, th1mg
+  use ctimer, only : nscps, tscps
   use ctimer, only : ncrespsp, tcrespsp
   use ctimer, only : ncresvsp, tcresvsp
+  use ctimer, only : nheat2, theat2
+  use ctimer, only : nprep, tprep
   use size_m, only : nid
   use parallel, only : np
   implicit none
@@ -980,6 +988,7 @@ subroutine runstat
   real(DP) :: min_isd, max_isd, avg_isd
   real(DP) :: min_comm, max_comm, avg_comm
   real(DP) :: tstop, tirc, tisd, trc, tsd, tcomm, wwork, padvc
+  real(DP) :: total_share
   integer :: nirc, nisd
 
   real(DP) :: comm_timers(8)
@@ -1102,31 +1111,62 @@ subroutine runstat
       write(6,*) 'total time',tttstp
 
   !        Projection timings
+      total_share = 0._dp
+      total_share = total_share + tproj
       write(6,42) 'proj time',nproj,tproj,tproj/tttstp
-      call print_flops('proj flop/s', proj_flop, proj_mop, tproj)
   !        HCONJ timings
+      total_share = total_share + thconj
       write(6,42) 'hcoj time',nhconj,thconj,thconj/tttstp
-      call print_flops('hcoj flop/s', hconj_flop, hconj_mop, thconj)
   !        CGGO timings
+      total_share = total_share + tcggo
       write(6,42) 'cggo time',ncggo,tcggo,tcggo/tttstp
-      call print_flops('cggo flop/s', cggo_flop, cggo_mop, tcggo)
   !        Preconditioner timings
+      total_share = total_share + tdpc
       write(6,42) 'dpc  time',ndpc,tdpc,tdpc/tttstp
+      total_share = total_share + tgmres
       write(6,42) 'gmrs time',ngmres,tgmres,tgmres/tttstp
+      total_share = total_share + th1mg
       write(6,42) 'h1mg time',nh1mg,th1mg,th1mg/tttstp
+      total_share = total_share + tscps
+      write(6,42) 'scps time',nscps,tscps,tscps/tttstp
+      total_share = total_share + tcrespsp
       write(6,42) 'prhs time',ncrespsp,tcrespsp,tcrespsp/tttstp
+      total_share = total_share + tcresvsp
       write(6,42) 'vrhs time',ncresvsp,tcresvsp,tcresvsp/tttstp
 
   !        Axhelm timings
-      paxhm=taxhm/tttstp
-      write(6,42) 'axhm time',naxhm,taxhm,paxhm
-      call print_flops('axhm flop/s', axhelm_flop, axhelm_mop, taxhm)
+      total_share = total_share + taxhm
+      write(6,42) 'axhm time',naxhm,taxhm,taxhm/tttstp
 
+      total_share = total_share + tintp
       write(6,42) 'intp time',nintp,tintp,tintp/tttstp
-      call print_flops('intp flop/s', intp_flop, intp_mop, tintp)
+      total_share = total_share + tgrst
+      write(6,42) 'grst time',ngrst,tgrst,tgrst/tttstp
+      total_share = total_share + tscn
+      write(6,42) 'scn  time',nscn,tscn,tscn/tttstp
 
+
+      total_share = total_share + tsetfast
       write(6,42) 'stft time',nsetfast,tsetfast, tsetfast/tttstp
+      total_share = total_share + theat2
+      write(6,42) 'het2 time',nheat2,theat2,theat2/tttstp
+      total_share = total_share + tp4misc
+      write(6,42) 'p4mc time',np4misc,tp4misc,tp4misc/tttstp
+      total_share = total_share + tmakef
+      write(6,42) 'makf time',nmakef,tmakef,tmakef/tttstp
+      total_share = total_share + tmakeq
+      write(6,42) 'makq time',nmakeq,tmakeq,tmakeq/tttstp
+      total_share = total_share + tprep
+      write(6,42) 'prep time',nprep,tprep,tprep/tttstp
 
+
+      write(*,*) "Still missing ", (tttstp - total_share) / tttstp
+
+      call print_flops('proj flop/s', proj_flop, proj_mop, tproj)
+      call print_flops('intp flop/s', intp_flop, intp_mop, tintp)
+      call print_flops('axhm flop/s', axhelm_flop, axhelm_mop, taxhm)
+      call print_flops('cggo flop/s', cggo_flop, cggo_mop, tcggo)
+      call print_flops('hcoj flop/s', hconj_flop, hconj_mop, thconj)
 
 
   !         pcopy=tcopy/tttstp
@@ -1214,8 +1254,6 @@ subroutine runstat
   !         psett=tsett/tttstp
   !         write(6,*) 'sett time',nsett,tsett,psett
 
-      pprep=tprep/tttstp
-      write(6,*) 'prep time',nprep,tprep,pprep
   !         pbsol=tbsol/tttstp
   !         write(6,*) 'bsol time',nbsol,tbsol,pbsol
   !         pbso2=tbso2/tttstp
@@ -1440,8 +1478,10 @@ subroutine print_flops(label, flops, mops, time)
   character(*) :: label
   integer(i8) :: flops, mops
   real(DP) :: time
-  real(DP), parameter :: bandwidth = 43.*1024 / 32
-  real(DP), parameter :: compute = 204.*1024 / 32
+  !real(DP), parameter :: bandwidth = 43.*1024 / 32
+  real(DP), parameter :: bandwidth = 59.7*1024 / 4
+  !real(DP), parameter :: compute = 204.*1024 / 32
+  real(DP), parameter :: compute = 3400*8
   real(DP) :: peak
 
   peak = min(compute, flops * bandwidth / (mops*8))

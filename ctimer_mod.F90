@@ -3,7 +3,7 @@ module ctimer
   implicit none
 
   REAL(DP) ::          tmxmf,tmxms,tdsum,tcopy,tinvc,tinv3
-  REAL(DP) ::          tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd,tprep &
+  REAL(DP) ::          tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd &
   ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2 &
   ,tsett,tslvb,tusbc,tddsl,tcrsl,tdsmx,tdsmn &
   ,tgsmn,tgsmx,teslv,tbbbb,tcccc,tdddd,teeee &
@@ -15,12 +15,19 @@ module ctimer
   real(DP), save :: tcggo  = 0._dp
   real(DP), save :: tsetfast  = 0._dp
   real(DP), save :: tintp  = 0._dp
+  real(DP), save :: tgrst  = 0._dp
   real(DP), save :: tdpc  = 0._dp
   real(DP), save :: tgmres  = 0._dp
   real(DP), save :: th1mg  = 0._dp
+  real(DP), save :: tscps  = 0._dp
   real(DP), save :: tcrespsp  = 0._dp
   real(DP), save :: tcresvsp  = 0._dp
-
+  real(DP), save :: theat2  = 0._dp
+  real(DP), save :: tp4misc  = 0._dp
+  real(DP), save :: tmakef  = 0._dp
+  real(DP), save :: tmakeq  = 0._dp
+  real(DP), save :: tprep  = 0._dp
+  real(DP), save :: tscn  = 0._dp
 
   integer, save :: nproj  = 0
   integer, save :: nhconj = 0
@@ -28,21 +35,29 @@ module ctimer
   integer, save :: ncggo  = 0
   integer, save :: nsetfast = 0
   integer, save :: nintp = 0
+  integer, save :: ngrst = 0
   integer, save :: ndpc = 0
   integer, save :: ngmres = 0
   integer, save :: nh1mg = 0
+  integer, save :: nscps = 0
   integer, save :: ncrespsp = 0
   integer, save :: ncresvsp = 0
+  integer, save :: nheat2 = 0
+  integer, save :: np4misc = 0
+  integer, save :: nmakef = 0
+  integer, save :: nmakeq = 0
+  integer, save :: nprep = 0
+  integer, save :: nscn = 0
 
   integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
-  integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd,nprep &
+  integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd &
   ,npres,nhmhz,ngop ,ngop1,ndott,nbsol,nbso2 &
   ,nsett,nslvb,nusbc,nddsl,ncrsl,ndsmx,ndsmn &
   ,ngsmn,ngsmx,neslv,nbbbb,ncccc,ndddd,neeee &
   ,nvdss,nadvc,nspro,ngop_sync,nsyc,nwal
 
   REAL(DP) ::          pmxmf,pmxms,pdsum,paxhm,pcopy,pinvc,pinv3
-  REAL(DP) ::          psolv,pgsum,pdsnd,pdadd,pcdtp,pmltd,pprep &
+  REAL(DP) ::          psolv,pgsum,pdsnd,pdadd,pcdtp,pmltd &
   ,ppres,phmhz,pgop ,pgop1,pdott,pbsol,pbso2 &
   ,psett,pslvb,pusbc,pddsl,pcrsl,pdsmx,pdsmn &
   ,pgsmn,pgsmx,peslv,pbbbb,pcccc,pdddd,peeee &

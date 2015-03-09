@@ -1448,7 +1448,7 @@ subroutine print_times(label, num_calls, time, total_time, cum_time)
   use parallel, only : np
   implicit none
   character(*), intent(in)  :: label
-  integer(i8), intent(in) :: num_calls
+  integer, intent(in) :: num_calls
   real(DP), intent(in) :: time, total_time
   real(DP), intent(inout) :: cum_time
 

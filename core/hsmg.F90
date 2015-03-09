@@ -170,7 +170,9 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
 !  l         l+1
   p_msk = p_mg_msk(l,mg_fld)
   call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
+  etime = etime - dnekclock()
   call hsmg_coarse_solve ( e(is:is+mg_h1_n(1,mg_fld)-1) , r(1:mg_h1_n(1,mg_fld)) )            ! e  := A   r
+  etime = etime + dnekclock()
   call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
   deallocate(r)
 

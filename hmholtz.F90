@@ -735,7 +735,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
 ! **  zero out stuff for Lanczos eigenvalue estimator
   ncggo = ncggo + 1
-  etime = dnekclock()
 
   allocate(diagt(maxcg),upper(maxcg))
   diagt = 0_dp; upper = 0_dp
@@ -765,12 +764,11 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   allocate(d(lg)); d = 0_dp
   if (kfldfdm < 0) then
-      etime = etime - dnekclock()
       call setprec(D,h1,h2,imsh,isd)
-      etime = etime + dnekclock()
   elseif(param(100) /= 2) then
 !max      call set_fdm_prec_h1b(d,h1,h2,nel)
   endif
+  etime = dnekclock()
 
   allocate(r(lg))
   r(1:n) = f(1:n)
@@ -787,7 +785,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   if (name == 'PRES') then
   !        call ortho (r)           ! Commented out March 15, 2011,pff
   elseif (ifmcor) then
-
+      if (nid == 0) write(*,*) "ifmcor", ifmcor
       smean = -1./glsum(bm1,n) ! Modified 5/4/12 pff
       rmean = smean*glsc2(r,mult,n)
       call copy(x,bm1,n)

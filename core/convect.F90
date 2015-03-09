@@ -258,6 +258,7 @@ end subroutine get_dgl_ptr
 !-----------------------------------------------------------------------
 subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   use kinds, only : DP
+  use ctimer, only : ngrst, tgrst, dnekclock
   use size_m
   implicit none
 
@@ -269,6 +270,10 @@ subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   real(DP), save :: dg(ldg), dgt(ldg)
   real(DP) ::  wkd(lwkd)
   integer :: m0, ip
+  real(DP) :: etime
+
+  ngrst = ngrst + 1
+  etime = dnekclock()
 
   m0 = md-1
   call get_dgl_ptr (ip, dg, dgt, wkd, md,md)
@@ -277,7 +282,7 @@ subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   else
 !max        call local_grad2(ur,us   ,u,m0,1,dg(ip),dgt(ip))
   endif
-
+  tgrst = tgrst + (dnekclock() - etime)
   return
 end subroutine grad_rst
 !-----------------------------------------------------------------------
@@ -384,6 +389,7 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   use geom, only : rx
   use input, only : if3d
   use mesh, only : if_ortho
+  use ctimer, only : tscn, nscn, dnekclock
   implicit none
 
   integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
@@ -395,12 +401,14 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   real(DP) :: fx(ltd), fy(ltd), fz(ltd)!, ur, us, ut, tr, uf
   real(DP) :: w(ld**ldim,2)
+  real(DP) :: etime
   integer, parameter :: ldg=lxd**3
   !real(DP), save :: jgl(ldg), jgt(ldg)
 
 
   integer :: e, nxyz1, nxyzd, ic, i, j
-
+  etime = dnekclock()
+  nscn = nscn + 1
   call set_dealias_rx()
 
   nxyz1 = nx1*ny1*nz1
@@ -416,9 +424,11 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
       !call specmpn(fx,nxd,ux(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
       !call specmpn(fy,nxd,uy(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
       !call specmpn(fz,nxd,uz(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
+      etime = etime - dnekclock()
       call intp_rstd(fx,ux(1,e),nx1,nxd,if3d,0) ! 0 --> forward
       call intp_rstd(fy,uy(1,e),nx1,nxd,if3d,0) ! 0 --> forward
       if (if3d) call intp_rstd(fz,uz(1,e),nx1,nxd,if3d,0) ! 0 --> forward
+      etime = etime + dnekclock()
 
   !        Convert convector F to r-s-t coordinates
 
@@ -446,6 +456,7 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 #endif
       endif
   enddo
+  tscn = tscn + (dnekclock() - etime)
 
   return
 end subroutine set_convect_new

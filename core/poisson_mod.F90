@@ -52,7 +52,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use parallel, only : nekcomm, nid, lglel
   use soln, only : vmult
   use size_m, only : nx1, ny1, nz1, nelv
-  use ctimer, only : dnekclock
+  use ctimer, only : nscps, tscps, dnekclock
 
   use fft, only : P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r, transpose_grid
@@ -68,15 +68,17 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   real(DP) :: rescale
   real(DP) :: h2(1,1,1,1)
   integer :: ix(3)
-  real(DP), save :: thistime, tottime = 0._dp
+  real(DP) :: etime
 
-  thistime = - dnekclock()
 
   nelm = size(rhs) / 8
 
   if (.not. interface_initialized) then
     call init_comm_infrastructure(nekcomm, shape_x)
   endif
+
+  nscps = nscps + 1
+  etime = dnekclock()
 
   ! map onto fine mesh to use dssum
   !> \todo replace this with coarse grid dssum  
@@ -167,9 +169,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
     u(8+(i-1)*8) = tmp_fine(nx1,ny1,nz1, i) 
   end forall
 
-  thistime = thistime + dnekclock()
-  tottime = tottime + thistime
-  if (nid == 0) write(*,*) "SCPS timers:", thistime, tottime
+  tscps = tscps + (dnekclock() - etime) 
 
   return
  

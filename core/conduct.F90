@@ -8,6 +8,7 @@ subroutine cdscal (igeom)
   use geom, only : bintm1, binvm1
   use soln, only : t, bq, tmask, tmult
   use tstep, only : nelfld, ifield, nmxnl, imesh, tolht, nmxh
+  use ctimer, only : nheat2, theat2, dnekclock
   implicit none
 
   integer, intent(in) :: igeom
@@ -18,6 +19,7 @@ subroutine cdscal (igeom)
   real(DP), allocatable :: H1(:,:,:,:), H2(:,:,:,:)
 
   integer, parameter :: laxt = mxprev
+  real(DP) :: etime
 
   type(approx_space), save :: apx
   character(4) ::     name4
@@ -55,7 +57,8 @@ subroutine cdscal (igeom)
       isd = 1
       if (ifaxis .AND. ifaziv .AND. ifield == 2) isd = 2
   !        if (ifaxis.and.ifmhd) isd = 2 !This is a problem if T is to be T!
-
+      etime = dnekclock()
+      nheat2 = nheat2 + 1
       allocate(TA(LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT))
       allocate(H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT))
       do iter=1,nmxnl ! iterate for nonlin. prob. (e.g. radiation b.c.)
@@ -66,7 +69,9 @@ subroutine cdscal (igeom)
           CALL BCNEUSC (TA,-1)
           h2 = h2 + ta
           CALL BCDIRSC (T(1,1,1,1,IFIELD-1))
+          etime = etime - dnekclock()
           CALL AXHELM  (TA,T(1,1,1,1,IFIELD-1),H1,H2,IMESH,isd)
+          etime = etime + dnekclock()
           tb = bq(:,:,:,:,ifield-1) - ta
           CALL BCNEUSC (TA,1)
           tb = tb + ta
@@ -76,6 +81,7 @@ subroutine cdscal (igeom)
       !    $                 ,TMULT(1,1,1,1,IFIELD-1)
       !    $                 ,IMESH,TOLHT(IFIELD),NMXH,isd)
 
+          etime = etime - dnekclock()
           if(iftmsh(ifield)) then
               call hsolve  (name4,TA,TB,H1,H2 &
               ,tmask(1,1,1,1,ifield-1) &
@@ -89,6 +95,7 @@ subroutine cdscal (igeom)
               ,imesh,tolht(ifield),nmxh,1 &
               ,apx,binvm1)
           endif
+          etime = etime + dnekclock()
 
           t(:,:,:,:,ifield-1) = t(:,:,:,:,ifield-1) + ta
 
@@ -104,7 +111,7 @@ subroutine cdscal (igeom)
       CALL BCNEUSC (TA,1)
       bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) + ta ! no idea why... pf
       deallocate(ta)
-
+      theat2 = theat2 + (dnekclock() - etime)
   endif
 
   return

@@ -684,13 +684,20 @@ end subroutine dudxyz
 !!          current time step is completed.
 !----------------------------------------------------------------------
 subroutine makef
+  use kinds, only : DP
   use input, only : ifnav, ifchar, iftran
+  use ctimer, only : tmakef, nmakef, dnekclock
   implicit none
+  real(DP) :: etime
 
+  nmakef = nmakef + 1
+  etime = dnekclock()
   call makeuf
 !  if (ifnatc)                               call natconv
 !  if (ifexplvis .AND. ifsplit)                call explstrs
+  etime = etime - dnekclock()
   if (ifnav .AND. ( .NOT. ifchar))              call advab
+  etime = etime + dnekclock()
 !  if (ifmvbd)                               call admeshv
   if (iftran) then
     call makeabf
@@ -701,7 +708,7 @@ subroutine makef
 #if 0
   if (ifmodel)                              call twallsh
 #endif
-
+  tmakef = tmakef + (dnekclock() - etime)
   return
 end subroutine makef
 

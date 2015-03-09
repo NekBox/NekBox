@@ -18,6 +18,7 @@ subroutine plan4()
   use size_m, only : lx2, ly2, lz2, lelv
   use size_m, only : nx1, ny1, nz1, nelv
   use ctimer, only : icalld, tpres, npres, etime1, dnekclock
+  use ctimer, only : np4misc, tp4misc
   use geom, only : binvm1, bm1, volvm1
   use helmholtz, only : hsolve, approx_space, init_approx_space
   use soln, only : qtl, vx, vy, vz, v1mask, v2mask, v3mask
@@ -46,10 +47,13 @@ subroutine plan4()
   REAL(DP), allocatable :: DVC (:,:,:,:), DFC(:,:,:,:)
   REAL(DP) :: DIV1, DIV2, DIF1, DIF2, QTL1, QTL2
   real(DP) :: tolspl
+  real(DP) :: etime
   real(DP), external :: glsum
 
   integer :: intype, ntot1 
 
+  etime = dnekclock()
+  np4misc = np4misc + 1
   v_proj_size = int(param(92))
   laxt = int(param(93))
 
@@ -78,7 +82,9 @@ subroutine plan4()
   CALL V_EXTRAP(vext)
 
   ! compute explicit contributions (bf{x,y,z}) with BDF(k)
+  etime = etime - dnekclock()
   CALL MAKEF()
+  etime = etime + dnekclock()
 
   ! store the velocity field for later
   CALL LAGVEL()
@@ -100,7 +106,9 @@ subroutine plan4()
 #endif
 
   allocate(RESPR(LX2,LY2,LZ2,LELV))
+  etime = etime - dnekclock()
   call crespsp  (respr, vext)
+  etime = etime + dnekclock()
   deallocate(vext)
 
   allocate(h1(lx1,ly1,lz1,lelv), h2(lx1,ly1,lz1,lelv))
@@ -109,9 +117,11 @@ subroutine plan4()
   call ctolspl  (tolspl,respr)
 
   allocate(dpr(lx2,ly2,lz2,lelv))
+  etime = etime - dnekclock()
   call hsolve ('PRES', dpr, respr, h1, h2, pmask, vmult &
   ,imesh,tolspl,nmxh,1 &
   ,p_apx,binvm1)
+  etime = etime + dnekclock()
   deallocate(respr)
   pr = pr + dpr
   deallocate(dpr)
@@ -125,19 +135,23 @@ subroutine plan4()
            RES2(LX1,LY1,LZ1,LELV), &
            RES3(LX1,LY1,LZ1,LELV)  )
 
+  etime = etime - dnekclock()
   call cresvsp (res1,res2,res3,h1,h2)
+  etime = etime + dnekclock()
 
   allocate(DV1 (LX1,LY1,LZ1,LELV), &
            DV2 (LX1,LY1,LZ1,LELV), &
            DV3 (LX1,LY1,LZ1,LELV)  )
 
   !> \note These three calls are task-parallel
+  etime = etime - dnekclock()
   call hsolve('VELX', dv1, res1, h1, h2, v1mask, vmult, imesh, tolhv, nmxh, 1, &
               vx_apx, binvm1)
   call hsolve('VELY', dv2, res2, h1, h2, v2mask, vmult, imesh, tolhv, nmxh, 2, &
               vy_apx, binvm1)
   call hsolve('VELZ', dv3, res3, h1, h2, v3mask, vmult, imesh, tolhv, nmxh, 3, &
               vz_apx, binvm1)
+  etime = etime + dnekclock()
   deallocate(res1, res2, res3, h1, h2)
 
   vx = vx + dv1; vy = vy + dv2; vz = vz + dv3
@@ -184,6 +198,7 @@ subroutine plan4()
       IF (DIF2 > 0.1) WRITE(6,'(15X,A)') &
       'WARNING: DIV(V)-QTL too large!'
   ENDIF 
+  tp4misc = tp4misc + (dnekclock() - etime)
    
   return
 end subroutine plan4

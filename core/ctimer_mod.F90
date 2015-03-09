@@ -17,6 +17,9 @@ module ctimer
   real(DP), save :: tintp  = 0._dp
   real(DP), save :: tdpc  = 0._dp
   real(DP), save :: tgmres  = 0._dp
+  real(DP), save :: th1mg  = 0._dp
+  real(DP), save :: tcrespsp  = 0._dp
+  real(DP), save :: tcresvsp  = 0._dp
 
 
   integer, save :: nproj  = 0
@@ -27,6 +30,10 @@ module ctimer
   integer, save :: nintp = 0
   integer, save :: ndpc = 0
   integer, save :: ngmres = 0
+  integer, save :: nh1mg = 0
+  integer, save :: ncrespsp = 0
+  integer, save :: ncresvsp = 0
+
   integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
   integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd,nprep &
   ,npres,nhmhz,ngop ,ngop1,ndott,nbsol,nbso2 &

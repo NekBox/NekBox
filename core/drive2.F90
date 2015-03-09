@@ -957,16 +957,16 @@ subroutine runstat
   use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop
   use ctimer, only : naxhm, taxhm, paxhm, axhelm_flop, axhelm_mop
   use ctimer, only : nintp, tintp, intp_flop, intp_mop
+  use ctimer, only : ngrst, tgrst, grst_flop, grst_mop
   use ctimer, only : nscn, tscn
-  use ctimer, only : ngrst, tgrst
   use ctimer, only : nmakef, tmakef
   use ctimer, only : nmakeq, tmakeq
   use ctimer, only : nsetfast, tsetfast
   use ctimer, only : ndpc, tdpc
   use ctimer, only : np4misc, tp4misc 
   use ctimer, only : total_flop, total_mop, time_flop, sum_flops
-  use ctimer, only : ngmres, tgmres
-  use ctimer, only : nh1mg, th1mg
+  use ctimer, only : ngmres, tgmres, gmres_flop, gmres_mop
+  use ctimer, only : nh1mg, th1mg, h1mg_flop, h1mg_mop
   use ctimer, only : nscps, tscps
   use ctimer, only : ncrespsp, tcrespsp
   use ctimer, only : ncresvsp, tcresvsp
@@ -1112,61 +1112,42 @@ subroutine runstat
 
   !        Projection timings
       total_share = 0._dp
-      total_share = total_share + tproj
-      write(6,42) 'proj time',nproj,tproj,tproj/tttstp
-  !        HCONJ timings
-      total_share = total_share + thconj
-      write(6,42) 'hcoj time',nhconj,thconj,thconj/tttstp
-  !        CGGO timings
-      total_share = total_share + tcggo
-      write(6,42) 'cggo time',ncggo,tcggo,tcggo/tttstp
-  !        Preconditioner timings
-      total_share = total_share + tdpc
-      write(6,42) 'dpc  time',ndpc,tdpc,tdpc/tttstp
-      total_share = total_share + tgmres
-      write(6,42) 'gmrs time',ngmres,tgmres,tgmres/tttstp
-      total_share = total_share + th1mg
-      write(6,42) 'h1mg time',nh1mg,th1mg,th1mg/tttstp
-      total_share = total_share + tscps
-      write(6,42) 'scps time',nscps,tscps,tscps/tttstp
-      total_share = total_share + tcrespsp
-      write(6,42) 'prhs time',ncrespsp,tcrespsp,tcrespsp/tttstp
-      total_share = total_share + tcresvsp
-      write(6,42) 'vrhs time',ncresvsp,tcresvsp,tcresvsp/tttstp
 
-  !        Axhelm timings
-      total_share = total_share + taxhm
-      write(6,42) 'axhm time',naxhm,taxhm,taxhm/tttstp
+      call print_times('cggo time', ncggo   , tcggo   , tttstp, total_share)
+      call print_times('axhm time', naxhm   , taxhm   , tttstp, total_share)
+      call print_times('h1mg time', nh1mg   , th1mg   , tttstp, total_share)
+      call print_times('gmrs time', ngmres  , tgmres  , tttstp, total_share)
+      call print_times('prhs time', ncrespsp, tcrespsp, tttstp, total_share)
+      call print_times('vrhs time', ncresvsp, tcresvsp, tttstp, total_share)
+      call print_times('grst time', ngrst   , tgrst   , tttstp, total_share)
+      call print_times('intp time', nintp   , tintp   , tttstp, total_share)
+      call print_times('proj time', nproj   , tproj   , tttstp, total_share)
+      call print_times('hcoj time', nhconj  , thconj  , tttstp, total_share)
+      call print_times('dpc  time', ndpc    , tdpc    , tttstp, total_share)
+      call print_times('scps time', nscps   , tscps   , tttstp, total_share)
+      call print_times('stft time', nsetfast, tsetfast, tttstp, total_share)
+      call print_times('scn  time', nscn    , tscn    , tttstp, total_share)
+      call print_times('het2 time', nheat2  , theat2  , tttstp, total_share)
+      call print_times('p4mc time', np4misc , tp4misc , tttstp, total_share)
+      call print_times('makf time', nmakef  , tmakef  , tttstp, total_share)
+      call print_times('makq time', nmakeq  , tmakef  , tttstp, total_share)
+      call print_times('prep time', nprep   , tprep   , tttstp, total_share)
 
-      total_share = total_share + tintp
-      write(6,42) 'intp time',nintp,tintp,tintp/tttstp
-      total_share = total_share + tgrst
-      write(6,42) 'grst time',ngrst,tgrst,tgrst/tttstp
-      total_share = total_share + tscn
-      write(6,42) 'scn  time',nscn,tscn,tscn/tttstp
+      write(6,'(A,F8.4)') "Still missing ", (tttstp - total_share) / tttstp
 
-
-      total_share = total_share + tsetfast
-      write(6,42) 'stft time',nsetfast,tsetfast, tsetfast/tttstp
-      total_share = total_share + theat2
-      write(6,42) 'het2 time',nheat2,theat2,theat2/tttstp
-      total_share = total_share + tp4misc
-      write(6,42) 'p4mc time',np4misc,tp4misc,tp4misc/tttstp
-      total_share = total_share + tmakef
-      write(6,42) 'makf time',nmakef,tmakef,tmakef/tttstp
-      total_share = total_share + tmakeq
-      write(6,42) 'makq time',nmakeq,tmakeq,tmakeq/tttstp
-      total_share = total_share + tprep
-      write(6,42) 'prep time',nprep,tprep,tprep/tttstp
-
-
-      write(*,*) "Still missing ", (tttstp - total_share) / tttstp
-
-      call print_flops('proj flop/s', proj_flop, proj_mop, tproj)
-      call print_flops('intp flop/s', intp_flop, intp_mop, tintp)
-      call print_flops('axhm flop/s', axhelm_flop, axhelm_mop, taxhm)
-      call print_flops('cggo flop/s', cggo_flop, cggo_mop, tcggo)
-      call print_flops('hcoj flop/s', hconj_flop, hconj_mop, thconj)
+      call print_flops('cggo  flop/s', cggo_flop, cggo_mop, tcggo)
+      call print_flops('gmres flop/s', gmres_flop, gmres_mop, tgmres)
+      call print_flops('h1mg  flop/s', h1mg_flop, h1mg_mop, th1mg)
+      call print_flops('axhm  flop/s', axhelm_flop, axhelm_mop, taxhm)
+      call print_flops('grst  flop/s', grst_flop, grst_mop, tgrst)
+      call print_flops('intp  flop/s', intp_flop, intp_mop, tintp)
+      call print_flops('proj  flop/s', proj_flop, proj_mop, tproj)
+      call print_flops('hcoj  flop/s', hconj_flop, hconj_mop, thconj)
+      write(6,*) ""
+      call sum_flops()
+      call print_flops('Subset FLOPS/s', total_flop, total_mop, time_flop)
+      call print_flops('Total  FLOPS/s', total_flop, total_mop, tttstp)
+      write(6,*) ""
 
 
   !         pcopy=tcopy/tttstp
@@ -1300,20 +1281,11 @@ subroutine runstat
   if (nid == 0)   & ! header for timing
   write(6,1) 'tusbc','tdadd','tcrsl','tvdss','tdsum',' tgop',ifsync
   1 format(/,'#',2x,'nid',6(7x,a5),4x,'qqq',1x,l4)
-  42 format(A,I12,F10.2,F8.4)
 
   call blank(s132,132)
   write(s132,132) nid,tusbc,tdadd,tcrsl,tvdss,tdsum,tgop
   132 format(i12,1p6e12.4,' qqq')
   call pprint_all(s132,132,6)
-
-  call nekgsync()
-  if (nid == 0) then
-    call sum_flops()
-    call print_flops('Subset FLOPS/s', total_flop, total_mop, time_flop)
-    call print_flops('Total  FLOPS/s', total_flop, total_mop, tttstp)
-  endif
-  call nekgsync()
 
 #endif
 
@@ -1471,6 +1443,21 @@ subroutine dofcnt
   return
 end subroutine dofcnt
 !-----------------------------------------------------------------------
+subroutine print_times(label, num_calls, time, total_time, cum_time)
+  use kinds, only : i8, DP
+  use parallel, only : np
+  implicit none
+  character(*), intent(in)  :: label
+  integer(i8), intent(in) :: num_calls
+  real(DP), intent(in) :: time, total_time
+  real(DP), intent(inout) :: cum_time
+
+  cum_time = cum_time + time
+  write(6,42) label,num_calls, time, time/total_time 
+
+  42 format(A,I12,F10.2,F8.4)
+end subroutine print_times
+!-----------------------------------------------------------------------
 subroutine print_flops(label, flops, mops, time)
   use kinds, only : i8, DP
   use parallel, only : np
@@ -1486,7 +1473,7 @@ subroutine print_flops(label, flops, mops, time)
 
   peak = min(compute, flops * bandwidth / (mops*8))
 
-  write(6,'(A,2F14.1)') label, &
+  write(6,'(A,2F14.1,F8.4)') label, &
                        float(flops) / (1.e6 * time), &
-                       peak
+                       peak, float(flops) / (1.e6 * time * peak)
 end subroutine print_flops

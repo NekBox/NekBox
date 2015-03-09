@@ -74,10 +74,13 @@ module ctimer
   real(DP), save :: time_flop = 0._dp
   integer(i8), save :: total_flop, total_mop
   integer(i8), save :: axhelm_flop = 0, axhelm_mop = 0
+  integer(i8), save :: h1mg_flop = 0, h1mg_mop = 0
   integer(i8), save :: hconj_flop = 0, hconj_mop = 0
   integer(i8), save :: proj_flop = 0, proj_mop = 0
   integer(i8), save :: cggo_flop = 0, cggo_mop = 0
+  integer(i8), save :: gmres_flop = 0, gmres_mop = 0
   integer(i8), save :: intp_flop = 0, intp_mop = 0
+  integer(i8), save :: grst_flop = 0, grst_mop = 0
 
 contains
 
@@ -105,9 +108,11 @@ END function
 !-----------------------------------------------------------------------
 subroutine sum_flops()
   implicit none
-  total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop + intp_flop
-  total_mop = axhelm_mop + proj_mop + hconj_mop + cggo_mop + intp_mop
-  time_flop = taxhm + tproj + thconj + tcggo + tintp
+  total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop + gmres_flop &
+             + intp_flop + grst_flop + h1mg_flop
+  total_mop = axhelm_mop + proj_mop + hconj_mop + cggo_mop + gmres_mop &
+            + intp_mop + grst_mop + h1mg_mop
+  time_flop = taxhm + tproj + thconj + tcggo + tgmres + tintp + tgrst + th1mg
 end subroutine sum_flops
 
 

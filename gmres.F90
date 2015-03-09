@@ -39,7 +39,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   real(DP) ::             res  (lx1*ly1*lz1*lelv)
   real(DP) ::             h1   (lx1,ly1,lz1,lelv)
   real(DP) ::             h2   (lx1,ly1,lz1,lelv)
-  real(DP) ::             wt   (lx1,ly1,lz1,lelv)
+  real(DP) ::             wt   (lx1*ly1*lz1*lelv)
   integer :: iter
 
   real(DP), allocatable :: x(:),r(:),w(:)
@@ -65,6 +65,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   real(DP) :: etime1, etime2, etime_p
   real(DP) :: rnorm, tolpss, div0, ratio
   real(DP), external :: glsc3, vlsc3
+  real(DP), parameter :: one = 1._dp, zero = 0._dp, mone = -1._dp
 
   integer :: m, n
   integer :: i, j, k, iconv
@@ -73,9 +74,6 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   etime = dnekclock()
 
   !> \todo move these allocations to where they are needed
-  allocate(x(lx2*ly2*lz2*lelv))
-  allocate(r(lx2*ly2*lz2*lelv))
-  allocate(w(lx2*ly2*lz2*lelv)) 
   allocate(h(lgmres,lgmres))
   allocate(gamma(lgmres+1))
   allocate(c(lgmres), s(lgmres))
@@ -88,8 +86,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 !  if (.not. allocated(mu)) allocate(mu(lx2*ly2*lz2*lelv)) 
 
   !> \todo check if these inits are nessesary
-  x = 0._dp; w = 0._dp; h = 0._dp; gamma=0._dp; c = 0._dp; s = 0._dp
-  v = 0._dp; z = 0._dp;
+  h = 0._dp; gamma=0._dp; c = 0._dp; s = 0._dp
 
 
   n = nx1*ny1*nz1*nelv
@@ -107,9 +104,9 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   endif
 
   !> \todo Do we need this?
-  allocate(d(lx1*ly1*lz1*lelv))
-  if (param(100) /= 2) call set_fdm_prec_h1b(d,h1,h2,nelv)
-  deallocate(d)
+  !allocate(d(lx1*ly1*lz1*lelv))
+  !if (param(100) /= 2) call set_fdm_prec_h1b(d,h1,h2,nelv)
+  !deallocate(d)
 
   call chktcg1(tolps,res,h1,h2,pmask,vmult,1,1)
   if (param(21) > 0 .AND. tolps > abs(param(21))) &
@@ -120,16 +117,19 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   iconv = 0
 
   outer = 0
+  allocate(x(lx2*ly2*lz2*lelv)); x = 0._dp
+  allocate(w(lx2*ly2*lz2*lelv)) 
   do while (iconv == 0 .AND. iter < 500)
       outer = outer+1
 
       if(iter == 0) then               !      -1
+          allocate(r(lx2*ly2*lz2*lelv))
           r = res          ! r = L  res
       !           call copy(r,res,n)
       else
-      ! pdate residual
+      ! update residual
           gmres_mop = gmres_mop + n
-          call copy  (r,res,n)                  ! r = res
+          r = res
           etime = etime - dnekclock()
           call ax    (w,x,h1,h2,n)              ! w = A x
           etime = etime + dnekclock()
@@ -147,16 +147,22 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           if (param(21) < 0) tolpss=abs(param(21))*div0
       endif
 
-  ! heck for lucky convergence
+  ! check for lucky convergence
       rnorm = 0.
       if(gamma(1) == 0.) goto 9000
       temp = 1./gamma(1)
-      v(:,1) = r * temp  ! v  = r / gamma
+      gmres_flop = gmres_flop + n
+      gmres_mop  = gmres_mop + 3*n
+      do i = 1, n
+        v(i,1) = r(i) * temp  ! v  = r / gamma
+        !w(i) = v(i,1)
+      enddo
   !  1            1
       do j=1,m
           iter = iter+1
       !       -1
-          w =  v(:,j)               ! w  = U   v
+      !    gmres_mop = gmres_mop + n
+      !    w =  v(:,j)               ! w  = U   v
       !           j
 
       ! . . . . . Overlapping Schwarz + coarse-grid . . . . . . .
@@ -166,7 +172,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !           if (outer.gt.2) if_hyb = .true.       ! Slow outer convergence
           if (ifmgrid) then
               etime = etime - dnekclock()
-              call h1mg_solve(z(1,j),w,if_hyb)   ! z  = M   w
+              call h1mg_solve(z(1,j),v(1,j),if_hyb)   ! z  = M   w
               etime = etime + dnekclock()
           else                                  !  j
               write(*,*) "Oops: ifmgrid"
@@ -183,7 +189,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 #endif
           endif
 
-
+          gmres_flop = gmres_flop + n
+          gmres_mop  = gmres_mop  + n
           call ortho        (z(1,j)) ! Orthogonalize wrt null space, if present
           etime_p = etime_p + dnekclock()-etime2
       ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -192,50 +199,25 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           etime = etime - dnekclock()
           call ax  (w,z(1,j),h1,h2,n)           ! w = A z
           etime = etime + dnekclock()
-      !        j
-               
-      !      -1
-      !    w = w * ml  ! w = L   w
 
-      !           !modified Gram-Schmidt
-
-      !           do i=1,j
-      !              h(i,j)=glsc3(w,v(1,i),wt,n)        ! h    = (w,v )
-      !                                                 !  i,j       i
-
-      !              call add2s2(w,v(1,i),-h(i,j),n)    ! w = w - h    v
-      !           enddo                                 !          i,j  i
-
-      !           2-PASS GS, 1st pass:
-          gmres_mop  = gmres_mop  + 2*n + j*n
-          gmres_flop = gmres_flop + 3*j*n
-          do i=1,j
-              h(i,j)=vlsc3(w,v(1,i),wt,n)        ! h    = (w,v )
-          enddo                                 !  i,j       i
+          gmres_mop  = gmres_mop  + 4*n
+          gmres_flop = gmres_flop + (2*n-1)*j + n
+          r = w * wt
+          call dgemv('T',  n, j, &
+                     one,  v, n, &
+                           r, 1, &
+                     zero, h(1,j), 1)
 
           call gop(h(1,j),wk1,'+  ',j)          ! sum over P procs
 
           gmres_mop  = gmres_mop  + (j+1)*n 
-          gmres_flop = gmres_flop + j*2*n
-          do i=1,j
-              w = w - v(:,i) * h(i,j) ! w = w - h    v
-          enddo                                 !          i,j  i
+          gmres_flop = gmres_flop + j*2*n+n
+          call dgemv('N', n, j, &
+                     mone, v,      n, &
+                           h(1,j), 1, &
+                     one,  w, 1)
 
-
-      !           2-PASS GS, 2nd pass:
-      
-      !           do i=1,j
-      !              wk1(i)=vlsc3(w,v(1,i),wt,n)        ! h    = (w,v )
-      !           enddo                                 !  i,j       i
-      !                                                 !
-      !           call gop(wk1,wk2,'+  ',j)             ! sum over P procs
-      
-      !           do i=1,j
-      !              call add2s2(w,v(1,i),-wk1(i),n)    ! w = w - h    v
-      !              h(i,j) = h(i,j) + wk1(i)           !          i,j  i
-      !           enddo
-
-      ! pply Givens rotations to new column
+      ! apply Givens rotations to new column
           do i=1,j-1
               temp = h(i,j)
               h(i  ,j)=  c(i)*temp + s(i)*h(i+1,j)
@@ -270,12 +252,15 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           temp = 1./alpha
           gmres_mop  = gmres_mop  + 2*n
           gmres_flop = gmres_flop + n
-          v(:,j+1) = w * temp  ! v    = w / alpha
+          do i = 1, n
+            v(i,j+1) = w(i) * temp  ! v    = w / alpha
+            !w(i) = v(i,j+1)
+          enddo
       !  j+1
       enddo
       900 iconv = 1
       1000 continue
-  ! ack substitution
+  ! back substitution
   !     -1
   !c = H   gamma
       do k=j,1,-1
@@ -285,18 +270,26 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           enddo
           c(k) = temp/h(k,k)
       enddo
-  ! um up Arnoldi vectors
-      do i=1,j
-          x = x + z(:,i) * c(i)  ! x = x + c  z
-      enddo                               !          i  i
+  ! sum up Arnoldi vectors
+      gmres_flop = gmres_flop + 2*n * j
+      gmres_mop  = gmres_mop  + (j+1)*n
+      call dgemv('N', n, j, &
+                 one, z, n, &
+                      c, 1, &
+                 one, x, 1)
+      !do i=1,j
+      !    x = x + z(:,i) * c(i)  ! x = x + c  z
+      !enddo                               !          i  i
   !        if(iconv.eq.1) call dbg_write(x,nx1,ny1,nz1,nelv,'esol',3)
   enddo
   9000 continue
 
   divex = rnorm
   gmres_mop = gmres_mop + n
-  call copy(res,x,n)
+  res = x
 
+  gmres_flop = gmres_flop + n
+  gmres_mop  = gmres_mop  + n
   call ortho   (res) ! Orthogonalize wrt null space, if present
 
   etime1 = dnekclock()-etime1

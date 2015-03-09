@@ -214,6 +214,7 @@ subroutine crespsp (respr, vext)
   use tstep, only : imesh, bd, dt, ifield
   use mesh, only : if_ortho
   use dxyz, only : dxtm12, dym12, dzm12
+  use ctimer, only : ncrespsp, tcrespsp, dnekclock
   implicit none
 
   REAL(DP), intent(out) :: RESPR (LX2,LY2,LZ2,LELV)
@@ -229,6 +230,10 @@ subroutine crespsp (respr, vext)
   integer :: n, ifc, iel, e, iz
   integer :: nyz2, nxy1
   real(DP) :: scale, dtbd
+  real(DP) :: etime
+
+  ncrespsp = ncrespsp + 1
+  etime = dnekclock()
 
   allocate(TA1 (LX1,LY1,LZ1,LELV) &
   , TA2 (LX1,LY1,LZ1,LELV) &
@@ -277,7 +282,9 @@ subroutine crespsp (respr, vext)
 !   add old pressure term because we solve for delta p
   ta1 = 1._dp / vtrans(:,:,:,:,1)
   ta2 = 0._dp
+  etime = etime - dnekclock()
   CALL AXHELM  (RESPR,PR,TA1,TA2,IMESH,1)
+  etime = etime + dnekclock()
 
 !   add explicit (NONLINEAR) terms
   n = nx1*ny1*nz1*nelv
@@ -370,6 +377,7 @@ subroutine crespsp (respr, vext)
 !   Assure that the residual is orthogonal to (1,1,...,1)T
 !   (only if all Dirichlet b.c.)
   CALL ORTHO (RESPR)
+  tcrespsp = tcrespsp + (dnekclock() - etime)
 
   return
 end subroutine crespsp
@@ -382,6 +390,7 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   use size_m, only : lx1, ly1, lz1, lelv
   use input, only : ifaxis
   use soln, only : vx, vy, vz, vdiff, pr, bfx, bfy, bfz !, qtl
+  use ctimer, only : ncresvsp, tcresvsp, dnekclock
   implicit none
 
   real(DP), intent(out) :: resv1(lx1,ly1,lz1,lelv) 
@@ -394,13 +403,20 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
 
   integer :: ntot, intype
   real(DP) :: scale
+  real(DP) :: etime
+
+  etime = dnekclock()
+  ncresvsp = ncresvsp + 1
 
   NTOT = NX1*NY1*NZ1*NELV
   INTYPE = -1
 
   CALL SETHLM  (H1,H2,INTYPE)
 
+  etime = etime - dnekclock()
+  ! just three axhelm calls
   CALL OPHX    (RESV1,RESV2,RESV3,VX,VY,VZ,H1,H2)
+  etime = etime + dnekclock()
 
   scale = -1./3.
   allocate(TA1(LX1,LY1,LZ1,LELV) &
@@ -420,6 +436,8 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   resv1 = -resv1 + bfx - ta1
   resv2 = -resv2 + bfy - ta2
   resv3 = -resv3 + bfz - ta3
+
+  tcresvsp = tcresvsp + (dnekclock() - etime)
 
   return
 end subroutine cresvsp

@@ -258,7 +258,7 @@ end subroutine get_dgl_ptr
 !-----------------------------------------------------------------------
 subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   use kinds, only : DP
-  use ctimer, only : ngrst, tgrst, dnekclock
+  use ctimer, only : ngrst, tgrst, grst_flop, grst_mop, dnekclock
   use size_m
   implicit none
 
@@ -278,6 +278,8 @@ subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   m0 = md-1
   call get_dgl_ptr (ip, dg, dgt, wkd, md,md)
   if (if3d) then
+      grst_flop = grst_flop + 3*((2*md-1)*md**3)
+      grst_mop  = grst_mop  + 4*md**3
       call local_grad3(ur,us,ut,u,m0,1,dg(ip),dgt(ip))
   else
 !max        call local_grad2(ur,us   ,u,m0,1,dg(ip),dgt(ip))

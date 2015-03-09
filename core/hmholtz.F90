@@ -455,38 +455,38 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
 
 !      IF (IFAXIS) CALL SETAXDY ( IFRZER(IE) )
 
-      DO IQ=1,NX1
           DO IZ=1,NZ1
               DO IY=1,NY1
                   DO IX=1,NX1
+      DO IQ=1,NX1
                       DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
                       G1M1(IQ,IY,IZ,IE) * DXTM1(IX,IQ)**2
+      END DO
                   enddo
               enddo
           enddo
-      END DO
-      DO IQ=1,NY1
           DO IZ=1,NZ1
               DO IY=1,NY1
                   DO IX=1,NX1
+      DO IQ=1,NY1
                       DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
                       G2M1(IX,IQ,IZ,IE) * DYTM1(IY,IQ)**2
+      END DO
                   enddo
               enddo
           enddo
-      END DO
 
       IF (NDIM == 3) THEN
-          DO IQ=1,NZ1
               DO IZ=1,NZ1
                   DO IY=1,NY1
                       DO IX=1,NX1
+          DO IQ=1,NZ1
                           DPCM1(IX,IY,IZ,IE) = DPCM1(IX,IY,IZ,IE) + &
                           G3M1(IX,IY,IQ,IE) * DZTM1(IZ,IQ)**2
+          END DO
                       enddo
                   enddo
               enddo
-          END DO
       
       !       Add cross terms if element is deformed.
       
@@ -696,23 +696,23 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop, dnekclock
   implicit none
 
-  real(DP), intent(out) :: x(*) !>!< solution vector
-  real(DP), intent(in)  :: f(*) !>!< residual vector
-  real(DP), intent(in)  :: h1(*) !>!< coefficient of A (stiffness)
-  real(DP), intent(in)  :: h2(*) !>!< coefficient of M (mass)
-  real(DP), intent(in)  :: mask(*) !>!< mask array
-  real(DP), intent(in)  :: mult(*) !>!< multiplicity array
-  real(DP), intent(in)  :: binv(*) !>!< inverse of mass matrix
+  real(DP), intent(out) :: x(lx1*ly1*lz1,*) !>!< solution vector
+  real(DP), intent(in)  :: f(lx1*ly1*lz1,*) !>!< residual vector
+  real(DP), intent(in)  :: h1(lx1*ly1*lz1,*) !>!< coefficient of A (stiffness)
+  real(DP), intent(in)  :: h2(lx1*ly1*lz1,*) !>!< coefficient of M (mass)
+  real(DP), intent(in)  :: mask(lx1*ly1*lz1,*) !>!< mask array
+  real(DP), intent(in)  :: mult(lx1*ly1*lz1,*) !>!< multiplicity array
+  real(DP), intent(in)  :: binv(lx1*ly1*lz1,*) !>!< inverse of mass matrix
   integer,  intent(in)  :: imsh, isd, maxit
   real(DP), intent(in)  :: tin !>!< input tolerance
   character(4) :: name
 
   logical :: ifmcor,ifprint_hmh
 
-  integer, parameter :: lg=lx1*ly1*lz1*lelt
+  integer, parameter :: lxyz = lx1*ly1*lz1,lg=lx1*ly1*lz1*lelt
   real(DP) :: scalar(2)
-  real(DP), allocatable :: d (:)
-  real(DP), allocatable :: r (:) , w (:) , p (:) , z (:)
+  real(DP), allocatable :: d (:,:)
+  real(DP), allocatable :: r (:,:) , w (:,:) , p (:,:) , z (:,:)
 
   integer :: i, n, iter, nxyz, nel, niter
   real(DP) :: rho, vol, tol, h2max, skmin, smean, rmean
@@ -757,7 +757,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
 !     Set up diag preconditioner.
 
-  allocate(d(lg)); d = 0_dp
+  allocate(d(lxyz,lelt)); d = 0_dp
   if (kfldfdm < 0) then
       call setprec(D,h1,h2,imsh,isd)
   elseif(param(100) /= 2) then
@@ -765,13 +765,15 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   endif
   etime = dnekclock()
 
-  allocate(r(lg))
-  r(1:n) = f(1:n)
-  x(1:n) = 0._dp
+  allocate(r(nxyz,nel))
+  cggo_mop = cggo_mop + 3*n
+  r = f(:,1:nel)
+  x(:,1:nel) = 0._dp
 
 !     Check for non-trivial null-space
 
   ifmcor = .FALSE. 
+  cggo_mop = cggo_mop + 2*n
   h2max = glmax(h2  ,n)
   skmin = glmin(mask,n)
   if (skmin > 0 .AND. h2max == 0) then
@@ -791,9 +793,10 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   niterhm = 0
 
-  allocate(z(lg))
-  allocate(w(lg)); w = 0_dp
-  allocate(p(lg))
+  allocate(z(nxyz,nel))
+  cggo_mop = cggo_mop + n
+  allocate(w(nxyz,nel)); w = 0_dp
+  allocate(p(nxyz,nel))
   iter = 1
 
   rtz1=1._dp; rtz2 = 1._dp
@@ -801,10 +804,10 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   cggo_flop = cggo_flop + 8*n
   cggo_mop  = cggo_mop  + 5*n
   scalar(1) = 0._dp; scalar(2) = 0._dp
-  do i = 1, n
-    p(i) = r(i) * d(i) 
-    scalar(1) = scalar(1) + p(i) * r(i) * mult(i)
-    scalar(2) = scalar(2) + r(i) * r(i) * mult(i) * binv(i)
+  do i = 1, nel
+    p(:,i) = r(:,i) * d(:,i) 
+    scalar(1) = scalar(1) + sum(p(:,i) * r(:,i) * mult(:,i))
+    scalar(2) = scalar(2) + sum(r(:,i) * r(:,i) * mult(:,i) * binv(:,i))
   enddo
   call gop(scalar,w,'+  ',2)
   rtz1=scalar(1)
@@ -814,7 +817,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   if (tin < 0)       tol=abs(tin)*rbn0
 
   if (ifprint_hmh) &
-  write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1),h2(1)
+  write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1,1),h2(1,1)
   
   beta = 0._dp
 
@@ -826,9 +829,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   cggo_flop = cggo_flop + 4*n
   cggo_mop  = cggo_mop  + 4*n
   rho0 = rho; rho = 0._dp
-  do i = 1, n 
-    w(i)   = w(i) * mask(i)
-    rho = rho + w(i) * p(i) * mult(i)
+  do i = 1, nel
+    w(:,i)   = w(:,i) * mask(:,i)
+    rho = rho + sum(w(:,i) * p(:,i) * mult(:,i))
   enddo
   call gop(rho,z,'+  ',1)
   alpha=rtz1/rho
@@ -839,11 +842,11 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     rtz2=rtz1
     cggo_flop = cggo_flop + 10*n
     cggo_mop  = cggo_mop  + 6*n
-    do i = 1, n
-      r(i) = r(i) + alphm * w(i)
-      z(i) = r(i) * d(i) 
-      scalar(1) = scalar(1) + z(i) * r(i) * mult(i)
-      scalar(2) = scalar(2) + r(i) * r(i) * mult(i) * binv(i)
+    do i = 1, nel
+      r(:,i) = r(:,i) + alphm * w(:,i)
+      z(:,i) = r(:,i) * d(:,i) 
+      scalar(1) = scalar(1) + sum(z(:,i) * r(:,i) * mult(:,i))
+      scalar(2) = scalar(2) + sum(r(:,i) * r(:,i) * mult(:,i) * binv(:,i))
     enddo
     call gop(scalar,w,'+  ',2)
     rtz1=scalar(1)
@@ -851,7 +854,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
 
     if (ifprint_hmh) &
-    write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1),h2(1)
+    write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1,1),h2(1,1)
 
 
     !   Always take at least one iteration   (for projection) pff 11/23/98
@@ -863,7 +866,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     if (iter > iter_max) then
 #endif
     !        IF (rbn2.LE.TOL) THEN
-        x(1:n) = x(1:n) + alpha * p
+        cggo_flop = cggo_flop + 2*n
+        cggo_mop  = cggo_mop  + 2*n
+        x(:,1:nel) = x(:,1:nel) + alpha * p
         NITER = ITER-1
     !           IF(NID.EQ.0.AND.((.NOT.IFHZPC).OR.IFPRINT))
         if (nid == 0) &
@@ -874,9 +879,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     cggo_flop = cggo_flop + 4*n 
     cggo_mop  = cggo_mop  + 3*n 
     beta = rtz1/rtz2
-    do i = 1, n
-      x(i) = x(i) + alpha * p(i)
-      p(i) = z(i) + beta  * p(i)
+    do i = 1, nel
+      x(:,i) = x(:,i) + alpha * p(:,i)
+      p(:,i) = z(:,i) + beta  * p(:,i)
     enddo
     etime = etime - dnekclock()
     call axhelm (w,p,h1,h2,imsh,isd)
@@ -886,9 +891,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     cggo_flop = cggo_flop + 4*n
     cggo_mop  = cggo_mop  + 4*n
     rho0 = rho; rho = 0._dp
-    do i = 1, n 
-      w(i)   = w(i) * mask(i)
-      rho = rho + w(i) * p(i) * mult(i)
+    do i = 1, nel
+      w(:,i)   = w(:,i) * mask(:,i)
+      rho = rho + sum(w(:,i) * p(:,i) * mult(:,i))
     enddo
     call gop(rho,z,'+  ',1)
     alpha=rtz1/rho

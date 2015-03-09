@@ -114,6 +114,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
   use parallel, only : nid
+  use ctimer, only : th1mg, nh1mg, dnekclock
   implicit none
 
   real(DP), intent(out) :: z(*)      !>!< approximate solution to A z = rhs
@@ -126,6 +127,11 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
 
   real(DP) :: op, om, sigma
   integer :: nel, l, n, is, im, i1, i
+
+  real(DP) :: etime
+
+  nh1mg = nh1mg + 1
+  etime = dnekclock()
 
   nel   = nelfld(ifield)
 
@@ -190,6 +196,8 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   deallocate(w,e)
 
   call dsavg(z) ! Emergency hack --- to ensure continuous z!
+
+  th1mg = th1mg + (dnekclock() - etime)
 
   return
 end subroutine h1mg_solve

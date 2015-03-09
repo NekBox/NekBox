@@ -959,8 +959,11 @@ subroutine runstat
   use ctimer, only : nintp, tintp, intp_flop, intp_mop
   use ctimer, only : nsetfast, tsetfast
   use ctimer, only : ndpc, tdpc
-  use ctimer, only : ngmres, tgmres
   use ctimer, only : total_flop, total_mop, time_flop, sum_flops
+  use ctimer, only : ngmres, tgmres
+  use ctimer, only : nh1mg, th1mg
+  use ctimer, only : ncrespsp, tcrespsp
+  use ctimer, only : ncresvsp, tcresvsp
   use size_m, only : nid
   use parallel, only : np
   implicit none
@@ -1098,6 +1101,34 @@ subroutine runstat
       write(6,'(A)') 'runtime statistics:'
       write(6,*) 'total time',tttstp
 
+  !        Projection timings
+      write(6,42) 'proj time',nproj,tproj,tproj/tttstp
+      call print_flops('proj flop/s', proj_flop, proj_mop, tproj)
+  !        HCONJ timings
+      write(6,42) 'hcoj time',nhconj,thconj,thconj/tttstp
+      call print_flops('hcoj flop/s', hconj_flop, hconj_mop, thconj)
+  !        CGGO timings
+      write(6,42) 'cggo time',ncggo,tcggo,tcggo/tttstp
+      call print_flops('cggo flop/s', cggo_flop, cggo_mop, tcggo)
+  !        Preconditioner timings
+      write(6,42) 'dpc  time',ndpc,tdpc,tdpc/tttstp
+      write(6,42) 'gmrs time',ngmres,tgmres,tgmres/tttstp
+      write(6,42) 'h1mg time',nh1mg,th1mg,th1mg/tttstp
+      write(6,42) 'prhs time',ncrespsp,tcrespsp,tcrespsp/tttstp
+      write(6,42) 'vrhs time',ncresvsp,tcresvsp,tcresvsp/tttstp
+
+  !        Axhelm timings
+      paxhm=taxhm/tttstp
+      write(6,42) 'axhm time',naxhm,taxhm,paxhm
+      call print_flops('axhm flop/s', axhelm_flop, axhelm_mop, taxhm)
+
+      write(6,42) 'intp time',nintp,tintp,tintp/tttstp
+      call print_flops('intp flop/s', intp_flop, intp_mop, tintp)
+
+      write(6,42) 'stft time',nsetfast,tsetfast, tsetfast/tttstp
+
+
+
   !         pcopy=tcopy/tttstp
   !         write(6,*) 'copy time',ncopy,tcopy,pcopy
   !         pmxmf=tmxmf/tttstp
@@ -1129,18 +1160,6 @@ subroutine runstat
       phmhz=thmhz/tttstp
       write(6,*) 'hmhz time',nhmhz,thmhz,phmhz
 
-  !        Projection timings
-      write(6,*) 'proj time',nproj,tproj,tproj/tttstp
-      call print_flops('proj flop/s', proj_flop, proj_mop, tproj)
-  !        HCONJ timings
-      write(6,*) 'hcoj time',nhconj,thconj,thconj/tttstp
-      call print_flops('hcoj flop/s', hconj_flop, hconj_mop, thconj)
-  !        CGGO timings
-      write(6,*) 'cggo time',ncggo,tcggo,tcggo/tttstp
-      call print_flops('cggo flop/s', cggo_flop, cggo_mop, tcggo)
-  !        Preconditioner timings
-      write(6,*) 'dpc  time',ndpc,tdpc,tdpc/tttstp
-      write(6,*) 'gmrs time',ngmres,tgmres,tgmres/tttstp
 
       pspro=tspro/tttstp
       write(6,*) 'spro time',nspro,tspro,pspro
@@ -1152,15 +1171,6 @@ subroutine runstat
       write(6,*) 'usbc max ',max_usbc
       write(6,*) 'usb  avg ',avg_usbc
 
-  !        Axhelm timings
-      paxhm=taxhm/tttstp
-      write(6,*) 'axhm time',naxhm,taxhm,paxhm
-      call print_flops('axhm flop/s', axhelm_flop, axhelm_mop, taxhm)
-
-      write(6,*) 'intp time',nintp,tintp,tintp/tttstp
-      call print_flops('intp flop/s', intp_flop, intp_mop, tintp)
-
-      write(6,*) 'stft time',nsetfast,tsetfast, tsetfast/tttstp
 
   !        Convection timings
       padvc=tadvc/tttstp
@@ -1252,6 +1262,7 @@ subroutine runstat
   if (nid == 0)   & ! header for timing
   write(6,1) 'tusbc','tdadd','tcrsl','tvdss','tdsum',' tgop',ifsync
   1 format(/,'#',2x,'nid',6(7x,a5),4x,'qqq',1x,l4)
+  42 format(A,I12,F10.2,F8.4)
 
   call blank(s132,132)
   write(s132,132) nid,tusbc,tdadd,tcrsl,tvdss,tdsum,tgop

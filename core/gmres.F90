@@ -162,7 +162,9 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
       !           if (outer.gt.2) if_hyb = .true.       ! Slow outer convergence
           if (ifmgrid) then
+              etime = etime - dnekclock()
               call h1mg_solve(z(1,j),w,if_hyb)   ! z  = M   w
+              etime = etime + dnekclock()
           else                                  !  j
               write(*,*) "Oops: ifmgrid"
 #if 0

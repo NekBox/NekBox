@@ -7,7 +7,7 @@ module ctimer
   ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2 &
   ,tsett,tslvb,tusbc,tddsl,tcrsl,tdsmx,tdsmn &
   ,tgsmn,tgsmx,teslv,tbbbb,tcccc,tdddd,teeee &
-  ,tvdss,tschw,tadvc,tspro,tgop_sync,tsyc &
+  ,tvdss,tadvc,tspro,tgop_sync,tsyc &
   ,twal
   real(DP), save :: tproj  = 0._dp
   real(DP), save :: thconj = 0._dp
@@ -29,6 +29,7 @@ module ctimer
   real(DP), save :: tprep  = 0._dp
   real(DP), save :: tscn  = 0._dp
   real(DP), save :: tmg_mask  = 0._dp
+  real(DP), save :: tschw  = 0._dp
 
   integer, save :: nproj  = 0
   integer, save :: nhconj = 0
@@ -50,6 +51,7 @@ module ctimer
   integer, save :: nprep = 0
   integer, save :: nscn = 0
   integer, save :: nmg_mask = 0
+  integer, save :: nschw = 0
 
   integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
   integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd &
@@ -77,6 +79,7 @@ module ctimer
   integer(i8), save :: total_flop, total_mop
   integer(i8), save :: axhelm_flop = 0, axhelm_mop = 0
   integer(i8), save :: h1mg_flop = 0, h1mg_mop = 0
+  integer(i8), save :: schw_flop = 0, schw_mop = 0
   integer(i8), save :: hconj_flop = 0, hconj_mop = 0
   integer(i8), save :: proj_flop = 0, proj_mop = 0
   integer(i8), save :: cggo_flop = 0, cggo_mop = 0
@@ -111,10 +114,10 @@ END function
 subroutine sum_flops()
   implicit none
   total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop + gmres_flop &
-             + intp_flop + grst_flop + h1mg_flop
+             + intp_flop + grst_flop + h1mg_flop + schw_flop
   total_mop = axhelm_mop + proj_mop + hconj_mop + cggo_mop + gmres_mop &
-            + intp_mop + grst_mop + h1mg_mop
-  time_flop = taxhm + tproj + thconj + tcggo + tgmres + tintp + tgrst + th1mg
+            + intp_mop + grst_mop + h1mg_mop + schw_mop
+  time_flop = taxhm + tproj + thconj + tcggo + tgmres + tintp + tgrst + th1mg + tschw
 end subroutine sum_flops
 
 

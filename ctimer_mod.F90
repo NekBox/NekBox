@@ -28,6 +28,7 @@ module ctimer
   real(DP), save :: tmakeq  = 0._dp
   real(DP), save :: tprep  = 0._dp
   real(DP), save :: tscn  = 0._dp
+  real(DP), save :: tmg_mask  = 0._dp
 
   integer, save :: nproj  = 0
   integer, save :: nhconj = 0
@@ -48,6 +49,7 @@ module ctimer
   integer, save :: nmakeq = 0
   integer, save :: nprep = 0
   integer, save :: nscn = 0
+  integer, save :: nmg_mask = 0
 
   integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
   integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd &

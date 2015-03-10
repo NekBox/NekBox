@@ -963,6 +963,7 @@ subroutine runstat
   use ctimer, only : nmakeq, tmakeq
   use ctimer, only : nsetfast, tsetfast
   use ctimer, only : ndpc, tdpc
+  use ctimer, only : nmg_mask, tmg_mask
   use ctimer, only : np4misc, tp4misc 
   use ctimer, only : total_flop, total_mop, time_flop, sum_flops
   use ctimer, only : ngmres, tgmres, gmres_flop, gmres_mop
@@ -1132,6 +1133,7 @@ subroutine runstat
       call print_times('makf time', nmakef  , tmakef  , tttstp, total_share)
       call print_times('makq time', nmakeq  , tmakef  , tttstp, total_share)
       call print_times('prep time', nprep   , tprep   , tttstp, total_share)
+      call print_times('mmsk time', nmg_mask, tmg_mask, tttstp, total_share)
 
       write(6,'(A,F8.4)') "Still missing ", (tttstp - total_share) / tttstp
 

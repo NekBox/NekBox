@@ -114,7 +114,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
   use parallel, only : nid
-  use ctimer, only : th1mg, nh1mg, dnekclock
+  use ctimer, only : th1mg, nh1mg, h1mg_flop, h1mg_mop, dnekclock
   implicit none
 
   real(DP), intent(out) :: z(*)      !>!< approximate solution to A z = rhs
@@ -146,10 +146,12 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M  rhs
 !               Schwarz
   allocate(r(lt))
+  h1mg_mop = h1mg_mop + n
   call copy(r,rhs,n)                              ! r  := rhs
 !max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
 !  l
 
+  h1mg_mop = h1mg_mop + 2*lt
   allocate(e(2*lt)); e = 0_dp
   do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
       is = is + n
@@ -169,13 +171,14 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   call h1mg_rstr(r,1, .FALSE. )                     ! r  :=  J  r
 !  l         l+1
   p_msk = p_mg_msk(l,mg_fld)
-  call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
   etime = etime - dnekclock()
+  call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
   call hsmg_coarse_solve ( e(is:is+mg_h1_n(1,mg_fld)-1) , r(1:mg_h1_n(1,mg_fld)) )            ! e  := A   r
-  etime = etime + dnekclock()
   call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
+  etime = etime + dnekclock()
   deallocate(r)
 
+  h1mg_mop = h1mg_mop + lt
   allocate(w(lt)); w = 0_dp
   do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
       im = is
@@ -183,6 +186,8 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
       n  = mg_h1_n(l,mg_fld)
       call hsmg_intp (w,e(im),l-1)                 ! w   :=  J e
       i1=is-1                                      !            l-1
+      h1mg_flop = h1mg_flop +   n
+      h1mg_mop  = h1mg_mop  + 2*n
       do i=1,n
           e(i1+i) = e(i1+i) + w(i)                  ! e   :=  e  + w
       enddo                                        !  l       l
@@ -192,6 +197,8 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   n  = mg_h1_n(l,mg_fld)
   im = is  ! solve index
   call hsmg_intp(w,e(im),l-1)                     ! w   :=  J e
+  h1mg_flop = h1mg_flop +   n
+  h1mg_mop  = h1mg_mop  + 2*n
   do i = 1,n                                      !            l-1
       z(i) = z(i) + w(i)                           ! z := z + w
   enddo
@@ -442,7 +449,6 @@ subroutine hsmg_tnsr3d(v,nv,u,nu,A,Bt,Ct)
   h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
   h1mg_mop = h1mg_mop + nv**3 + nu**3
 
-
   do ie=1,nelv
       call mxm(A,nv,u(1,ie),nu,work,nu*nu)
       do i=0,nu-1
@@ -604,6 +610,7 @@ end subroutine hsmg_extrude
 subroutine h1mg_schwarz(e,r,sigma,l)
   use kinds, only : DP
   use hsmg, only : mg_h1_n, mg_fld
+  use ctimer, only : h1mg_flop, h1mg_mop
   implicit none
 
   real(DP) :: e(*),r(*)
@@ -614,6 +621,8 @@ subroutine h1mg_schwarz(e,r,sigma,l)
 
   call h1mg_schwarz_part1 (e,r,l)
   call hsmg_schwarz_wt    (e,l)          ! e  := W e
+  h1mg_flop = h1mg_flop + n
+  h1mg_mop  = h1mg_mop  + n
   e(1:n) = e(1:n) * sigma
 
   return
@@ -686,12 +695,14 @@ end subroutine h1mg_schwarz_part1
 !----------------------------------------------------------------------
 subroutine hsmg_schwarz_toext3d(a,b,n)
   use kinds, only : DP
+  use ctimer, only : h1mg_mop
   use size_m, only : nelv
   implicit none
   integer :: n
   real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
         
   integer :: i,j,k,ie
+  h1mg_mop = h1mg_mop + nelv*n**3
   a = 0._dp
   do ie=1,nelv
       do k=1,n
@@ -708,6 +719,7 @@ end subroutine hsmg_schwarz_toext3d
 !----------------------------------------------------------------------
 subroutine hsmg_schwarz_toreg3d(b,a,n)
   use kinds, only : DP
+  use ctimer, only : h1mg_mop
   use size_m, only : nelv
   implicit none
 
@@ -715,6 +727,7 @@ subroutine hsmg_schwarz_toreg3d(b,a,n)
   real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
         
   integer :: i,j,k,ie
+  h1mg_mop = h1mg_mop + nelv*n**3
   do ie=1,nelv
       do k=1,n
           do j=1,n
@@ -1018,6 +1031,7 @@ end subroutine hsmg_fdm
 subroutine hsmg_do_fast(e,r,s,d,nl)
   use kinds, only : DP
   use size_m, only : ndim, nelv
+  use ctimer, only : h1mg_flop, h1mg_mop
   use input, only : if3d
   implicit none
 
@@ -1042,6 +1056,8 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
       enddo
 #endif
   else
+      h1mg_flop = h1mg_flop + nelv*nn
+      h1mg_mop  = h1mg_mop  + nelv*nn ! r and e should be in cache
       do ie=1,nelv
           call hsmg_tnsr3d_el(e(1,ie),nl,r(1,ie),nl &
           ,s(1,2,1,ie),s(1,1,2,ie),s(1,1,3,ie))
@@ -1060,6 +1076,7 @@ end subroutine hsmg_do_fast
 subroutine hsmg_do_wt(u,wt,nx,ny,nz)
   use kinds, only : DP
   use size_m, only : nelv, ndim
+  use ctimer, only : h1mg_flop, h1mg_mop
   use input, only : if3d
   implicit none
 
@@ -1091,6 +1108,9 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
           enddo
       enddo
   else
+     h1mg_flop = h1mg_flop + 2*nelv*nz*ny + 2*nelv*nz*(nx-2) + 2*nelv*(ny-2)*(nx-2)
+     h1mg_mop  = h1mg_mop  + 4*nelv*nz*ny + 4*nelv*nz*(nx-2) + 4*nelv*(ny-2)*(nx-2)
+
       do ie=1,nelv
           do k=1,nz
               do j=1,ny
@@ -1292,12 +1312,17 @@ end subroutine hsmg_schwarz_wt
 subroutine hsmg_schwarz_wt3d(e,wt,n)
   use kinds, only : DP
   use size_m, only : nelv
+  use ctimer, only : h1mg_flop, h1mg_mop
   implicit none
 
   integer :: n
   real(DP) :: e(n,n,n,nelv)
   real(DP) :: wt(n,n,4,3,nelv)
   integer :: ie,i,j,k
+
+  h1mg_flop = h1mg_flop + 4*nelv*n*n + 4*nelv*n*(n-4) + 4*nelv*(n-4)*(n-4)
+  h1mg_mop  = h1mg_mop  + 8*nelv*n*n + 8*nelv*n*(n-4) + 8*nelv*(n-4)*(n-4)
+
   do ie=1,nelv
       do k=1,n
           do j=1,n
@@ -1467,18 +1492,23 @@ end subroutine hsmg_index_0
 !-----------------------------------------------------------------------
 subroutine h1mg_mask(w,mask,nel)
   use kinds, only : DP
+  use ctimer, only : nmg_mask, tmg_mask, dnekclock
   implicit none
 
   real(DP) ::  w(*)
   integer :: mask(*)        ! Pointer to Dirichlet BCs
   integer :: nel
+  real(DP) :: etime
 
   integer :: e, im
-        
+
+  nmg_mask = nmg_mask + 1  
+  etime = dnekclock() 
   do e=1,nel
       im = mask(e)
       call mg_mask_e(w,mask(im)) ! Zero out Dirichlet conditions
   enddo
+  tmg_mask = tmg_mask + (dnekclock() - etime)
 
   return
 end subroutine h1mg_mask

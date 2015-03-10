@@ -65,6 +65,11 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   real(DP) :: w(ld**ldim,2), etime
   integer :: ldw, i
 
+  nintp = nintp + 1
+  intp_flop = intp_flop + 2*(mx*mx*mx*md + mx*mx*md*md + mx*md*md*md)
+  intp_mop = intp_mop + mx*mx*mx + md*md*md
+  etime = dnekclock() 
+
   call lim_chk(md,ld,'md   ','ld   ','grad_rstd ')
   call lim_chk(mx,ld,'mx   ','ld   ','grad_rstd ')
 
@@ -72,10 +77,6 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
 
   call get_int_ptr (i, jgl, jgt, mx,md)
 
-  nintp = nintp + 1
-  etime = dnekclock() 
-  intp_flop = intp_flop + 2*(mx*mx*mx*md + mx*mx*md*md + mx*md*md*md)
-  intp_mop = intp_mop + mx*mx*mx + md*md*md
   if (idir == 0) then
       call specmpn(ju,mx,u,md,jgt(i),jgl(i),if3d,w,ldw)
   endif
@@ -273,13 +274,14 @@ subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   real(DP) :: etime
 
   ngrst = ngrst + 1
+  grst_flop = grst_flop + 3*((2*md-1)*md**3)
+  grst_mop  = grst_mop  + 4*md**3
+
   etime = dnekclock()
 
   m0 = md-1
   call get_dgl_ptr (ip, dg, dgt, wkd, md,md)
   if (if3d) then
-      grst_flop = grst_flop + 3*((2*md-1)*md**3)
-      grst_mop  = grst_mop  + 4*md**3
       call local_grad3(ur,us,ut,u,m0,1,dg(ip),dgt(ip))
   else
 !max        call local_grad2(ur,us   ,u,m0,1,dg(ip),dgt(ip))

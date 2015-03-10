@@ -968,6 +968,7 @@ subroutine runstat
   use ctimer, only : total_flop, total_mop, time_flop, sum_flops
   use ctimer, only : ngmres, tgmres, gmres_flop, gmres_mop
   use ctimer, only : nh1mg, th1mg, h1mg_flop, h1mg_mop
+  use ctimer, only : nschw, tschw, schw_flop, schw_mop
   use ctimer, only : nscps, tscps
   use ctimer, only : ncrespsp, tcrespsp
   use ctimer, only : ncresvsp, tcresvsp
@@ -1117,6 +1118,7 @@ subroutine runstat
       call print_times('cggo time', ncggo   , tcggo   , tttstp, total_share)
       call print_times('axhm time', naxhm   , taxhm   , tttstp, total_share)
       call print_times('h1mg time', nh1mg   , th1mg   , tttstp, total_share)
+      call print_times('schw time', nschw   , tschw   , tttstp, total_share)
       call print_times('gmrs time', ngmres  , tgmres  , tttstp, total_share)
       call print_times('prhs time', ncrespsp, tcrespsp, tttstp, total_share)
       call print_times('vrhs time', ncresvsp, tcresvsp, tttstp, total_share)
@@ -1140,6 +1142,7 @@ subroutine runstat
       call print_flops('cggo  flop/s', cggo_flop, cggo_mop, tcggo)
       call print_flops('gmres flop/s', gmres_flop, gmres_mop, tgmres)
       call print_flops('h1mg  flop/s', h1mg_flop, h1mg_mop, th1mg)
+      call print_flops('schw  flop/s', schw_flop, schw_mop, tschw)
       call print_flops('axhm  flop/s', axhelm_flop, axhelm_mop, taxhm)
       call print_flops('grst  flop/s', grst_flop, grst_mop, tgrst)
       call print_flops('intp  flop/s', intp_flop, intp_mop, tintp)
@@ -1467,10 +1470,10 @@ subroutine print_flops(label, flops, mops, time)
   character(*) :: label
   integer(i8) :: flops, mops
   real(DP) :: time
-  !real(DP), parameter :: bandwidth = 43.*1024 / 32
-  real(DP), parameter :: bandwidth = 59.7*1024 / 4
-  !real(DP), parameter :: compute = 204.*1024 / 32
-  real(DP), parameter :: compute = 3400*8
+  real(DP), parameter :: bandwidth = 43.*1024 / 32
+  !real(DP), parameter :: bandwidth = 59.7*1024 / 4
+  real(DP), parameter :: compute = 204.*1024 / 32
+  !real(DP), parameter :: compute = 3400*8
   real(DP) :: peak
 
   peak = min(compute, flops * bandwidth / (mops*8))

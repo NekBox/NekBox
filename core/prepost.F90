@@ -117,7 +117,7 @@ subroutine prepost(ifdoin,prefin)
   if (lastep == 1 .AND. nid == 0) close(unit=26)
 
 #ifndef NOTIMER
-  tprep=tprep+dnekclock()-etime
+  tprep=tprep+(dnekclock()-etime)
 #endif
 
   ifdoit= .FALSE. 
@@ -1171,6 +1171,7 @@ subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
   use size_m, only : lx1, ly1, lz1, lelt, lelv, ldimt
   use size_m, only : lx2, ly2, lz2
   use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, nelt
+  use ctimer, only : tprep, dnekclock
   use input, only : ifto, ifpsco
   use soln, only : vx, vy, vz, pr, t
   implicit none
@@ -1185,6 +1186,8 @@ subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
 
   integer :: ntot1, ntot1t, ntot2, nfldt, i
   allocate(w1(ltot1),w2(ltot1),w3(ltot1),wp(ltot2),wt(ltot1,ldimt))
+
+  etime = dnekclock()
 
   ntot1  = nx1*ny1*nz1*nelv
   ntot1t = nx1*ny1*nz1*nelt
@@ -1223,7 +1226,9 @@ subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
       if(i+1 <= nfldt) ifpsco(i) = .TRUE. 
   enddo
 
+  etime =  etime - dnekclock()
   call prepost( .TRUE. ,name3)
+  etime =  etime + dnekclock()
 
   ifto = if_save(1)
   do i = 1,ldimt-1
@@ -1239,6 +1244,7 @@ subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
       call copy(t(1,1,1,1,i),wt(1,i),ntot1t)
   enddo
 
+  tprep = tprep + (dnekclock() - etime)
 
   return
 end subroutine outpost2

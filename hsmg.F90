@@ -148,7 +148,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   etime = etime + dnekclock()
 
   allocate(r(lt))
-  h1mg_mop = h1mg_mop + n
+  h1mg_mop = h1mg_mop + 2*n
   call copy(r,rhs,n)                              ! r  := rhs
 !max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
 !  l
@@ -191,7 +191,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
       call hsmg_intp (w,e(im),l-1)                 ! w   :=  J e
       i1=is-1                                      !            l-1
       h1mg_flop = h1mg_flop +   n
-      h1mg_mop  = h1mg_mop  + 2*n
+      h1mg_mop  = h1mg_mop  + 3*n
       do i=1,n
           e(i1+i) = e(i1+i) + w(i)                  ! e   :=  e  + w
       enddo                                        !  l       l
@@ -202,7 +202,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   im = is  ! solve index
   call hsmg_intp(w,e(im),l-1)                     ! w   :=  J e
   h1mg_flop = h1mg_flop +   n
-  h1mg_mop  = h1mg_mop  + 2*n
+  h1mg_mop  = h1mg_mop  + 3*n
   do i = 1,n                                      !            l-1
       z(i) = z(i) + w(i)                           ! z := z + w
   enddo
@@ -579,28 +579,32 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
       enddo
   else
       schw_flop = schw_flop + nelv * 3 * (nx-2)**2 * 6
-      schw_mop  = schw_mop  + nelv * 3 * (nx-2)**2 * 4
+      schw_mop  = schw_mop  + nelv * 3 * (nx-2)**2 * 6
       do ie=1,nelv
-          do k=i0,i1
-              do j=i0,i1
-                  arr1(l1+1 ,j,k,ie) = f1*arr1(l1+1 ,j,k,ie) &
-                  +f2*arr2(l2+1 ,j,k,ie)
-                  arr1(nx-l1,j,k,ie) = f1*arr1(nx-l1,j,k,ie) &
-                  +f2*arr2(nx-l2,j,k,ie)
+          do j=i0,i1
+              do i=i0,i1
+                  arr1(i,j,l1+1 ,ie) = f1*arr1(i,j,l1+1 ,ie) &
+                  +f2*arr2(i,j,l2+1 ,ie)
               enddo
           enddo
           do k=i0,i1
               do i=i0,i1
                   arr1(i,l1+1 ,k,ie) = f1*arr1(i,l1+1 ,k,ie) &
                   +f2*arr2(i,l2+1 ,k,ie)
+              enddo
+              do j=i0,i1
+                  arr1(l1+1 ,j,k,ie) = f1*arr1(l1+1 ,j,k,ie) &
+                  +f2*arr2(l2+1 ,j,k,ie)
+                  arr1(nx-l1,j,k,ie) = f1*arr1(nx-l1,j,k,ie) &
+                  +f2*arr2(nx-l2,j,k,ie)
+              enddo
+              do i=i0,i1
                   arr1(i,nx-l1,k,ie) = f1*arr1(i,nx-l1,k,ie) &
                   +f2*arr2(i,nx-l2,k,ie)
               enddo
           enddo
           do j=i0,i1
               do i=i0,i1
-                  arr1(i,j,l1+1 ,ie) = f1*arr1(i,j,l1+1 ,ie) &
-                  +f2*arr2(i,j,l2+1 ,ie)
                   arr1(i,j,nx-l1,ie) = f1*arr1(i,j,nx-l1,ie) &
                   +f2*arr2(i,j,nx-l2,ie)
               enddo
@@ -623,11 +627,11 @@ subroutine h1mg_schwarz(e,r,sigma,l)
   real(DP) :: etime
 
   nschw = nschw + 1
-  schw_flop = schw_flop + n
-  schw_mop  = schw_mop  + n
+  n = mg_h1_n(l,mg_fld)
+  schw_flop = schw_flop + 2*n
+  schw_mop  = schw_mop  + 2*n
   etime = dnekclock()
 
-  n = mg_h1_n(l,mg_fld)
 
   call h1mg_schwarz_part1 (e,r,l)
   call hsmg_schwarz_wt    (e,l)          ! e  := W e
@@ -711,16 +715,21 @@ subroutine hsmg_schwarz_toext3d(a,b,n)
   real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
         
   integer :: i,j,k,ie
-  schw_mop = schw_mop + nelv*n**3
-  a = 0._dp
+  schw_mop = schw_mop + nelv*((n+2)**3 +  n**3)
   do ie=1,nelv
+      a(:,:,0,ie) = 0._dp
       do k=1,n
+          a(:,0,k,ie) = 0._dp
           do j=1,n
+              a(0,j,k,ie) = 0._dp
               do i=1,n
                   a(i,j,k,ie)=b(i,j,k,ie)
               enddo
+              a(n+1,j,k,ie) = 0._dp
           enddo
+          a(:,n+1,k,ie) = 0._dp
       enddo
+      a(:,:,n+1,ie) = 0._dp
   enddo
   return
 end subroutine hsmg_schwarz_toext3d
@@ -736,7 +745,7 @@ subroutine hsmg_schwarz_toreg3d(b,a,n)
   real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
         
   integer :: i,j,k,ie
-  schw_mop = schw_mop + nelv*n**3
+  schw_mop = schw_mop + 2*nelv*n**3
   do ie=1,nelv
       do k=1,n
           do j=1,n
@@ -1040,8 +1049,10 @@ end subroutine hsmg_fdm
 subroutine hsmg_do_fast(e,r,s,d,nl)
   use kinds, only : DP
   use size_m, only : ndim, nelv
+  use size_m, only : lx1, ly1, lz1
   use ctimer, only : schw_flop, schw_mop
   use input, only : if3d
+  use parallel, only : nid
   implicit none
 
   integer :: nl
@@ -1051,6 +1062,11 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   real(DP) :: d(nl**ndim,nelv)
         
   integer :: ie,nn,i
+
+  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
+  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
+
+
   nn=nl**ndim
   if( .NOT. if3d) then
 #if 0
@@ -1068,13 +1084,35 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
       schw_flop = schw_flop + nelv*nn
       schw_mop  = schw_mop  + nelv*nn ! r and e should be in cache
       do ie=1,nelv
-          call hsmg_tnsr3d_el(e(1,ie),nl,r(1,ie),nl &
-          ,s(1,2,1,ie),s(1,1,2,ie),s(1,1,3,ie))
-          do i=1,nn
-              r(i,ie)=d(i,ie)*e(i,ie)
-          enddo
-          call hsmg_tnsr3d_el(e(1,ie),nl,r(1,ie),nl &
-          ,s(1,1,1,ie),s(1,2,2,ie),s(1,2,3,ie))
+#if 1
+        schw_flop = schw_flop + 3*nn*(2*nl-1)
+        schw_mop  = schw_mop + 2*nn
+   
+        call mxm(s(1,2,1,ie),nl,r(1,ie),nl,work,nl*nl)
+        do i=0,nl-1
+            call mxm(work(nl*nl*i),nl,s(1,1,2,ie),nl,work2(nl*nl*i),nl)
+        enddo
+        call mxm(work2,nl*nl,s(1,1,3,ie),nl,e(1,ie),nl)
+#else
+        call hsmg_tnsr3d_el(e(1,ie),nl,r(1,ie),nl, &
+                            s(1,2,1,ie),s(1,1,2,ie),s(1,1,3,ie))
+#endif
+        do i=1,nn
+            r(i,ie)=d(i,ie)*e(i,ie)
+        enddo
+#if 1
+        schw_flop = schw_flop + 3*nn*(2*nl-1)
+        schw_mop  = schw_mop + 2*nn
+   
+        call mxm(s(1,1,1,ie),nl,r(1,ie),nl,work,nl*nl)
+        do i=0,nl-1
+            call mxm(work(nl*nl*i),nl,s(1,2,2,ie),nl,work2(nl*nl*i),nl)
+        enddo
+        call mxm(work2,nl*nl,s(1,2,3,ie),nl,e(1,ie),nl)
+#else
+          call hsmg_tnsr3d_el(e(1,ie),nl,r(1,ie),nl, &
+                              s(1,1,1,ie),s(1,2,2,ie),s(1,2,3,ie))
+#endif
       enddo
   endif
   return
@@ -1330,33 +1368,25 @@ subroutine hsmg_schwarz_wt3d(e,wt,n)
   integer :: ie,i,j,k
 
   schw_flop = schw_flop + 4*nelv*n*n + 4*nelv*n*(n-4) + 4*nelv*(n-4)*(n-4)
-  schw_mop  = schw_mop  + 8*nelv*n*n + 8*nelv*n*(n-4) + 8*nelv*(n-4)*(n-4)
+  schw_mop  = schw_mop  + 12*nelv*n*n + 12*nelv*n*(n-4) + 12*nelv*(n-4)*(n-4)
 
   do ie=1,nelv
-      do k=1,n
-          do j=1,n
+      e(:,:,1  ,ie)=e(:,:,1  ,ie)*wt(:,:,1,3,ie)
+      e(:,:,2  ,ie)=e(:,:,2  ,ie)*wt(:,:,2,3,ie)
+      do k=3,n-2
+          e(:,1  ,k,ie)=e(:,1  ,k,ie)*wt(:,k,1,2,ie)
+          e(:,2  ,k,ie)=e(:,2  ,k,ie)*wt(:,k,2,2,ie)
+          do j=3,n-2
               e(1  ,j,k,ie)=e(1  ,j,k,ie)*wt(j,k,1,1,ie)
               e(2  ,j,k,ie)=e(2  ,j,k,ie)*wt(j,k,2,1,ie)
               e(n-1,j,k,ie)=e(n-1,j,k,ie)*wt(j,k,3,1,ie)
               e(n  ,j,k,ie)=e(n  ,j,k,ie)*wt(j,k,4,1,ie)
           enddo
+          e(:,n-1,k,ie)=e(:,n-1,k,ie)*wt(:,k,3,2,ie)
+          e(:,n  ,k,ie)=e(:,n  ,k,ie)*wt(:,k,4,2,ie)
       enddo
-      do k=1,n
-          do i=3,n-2
-              e(i,1  ,k,ie)=e(i,1  ,k,ie)*wt(i,k,1,2,ie)
-              e(i,2  ,k,ie)=e(i,2  ,k,ie)*wt(i,k,2,2,ie)
-              e(i,n-1,k,ie)=e(i,n-1,k,ie)*wt(i,k,3,2,ie)
-              e(i,n  ,k,ie)=e(i,n  ,k,ie)*wt(i,k,4,2,ie)
-          enddo
-      enddo
-      do j=3,n-2
-          do i=3,n-2
-              e(i,j,1  ,ie)=e(i,j,1  ,ie)*wt(i,j,1,3,ie)
-              e(i,j,2  ,ie)=e(i,j,2  ,ie)*wt(i,j,2,3,ie)
-              e(i,j,n-1,ie)=e(i,j,n-1,ie)*wt(i,j,3,3,ie)
-              e(i,j,n  ,ie)=e(i,j,n  ,ie)*wt(i,j,4,3,ie)
-          enddo
-      enddo
+      e(:,:,n-1,ie)=e(:,:,n-1,ie)*wt(:,:,3,3,ie)
+      e(:,:,n  ,ie)=e(:,:,n  ,ie)*wt(:,:,4,3,ie)
   enddo
   return
 end subroutine hsmg_schwarz_wt3d
@@ -1589,7 +1619,7 @@ subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
   h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
   h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
   h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
-  h1mg_mop = h1mg_mop + max(nv3,nu3)
+  h1mg_mop = h1mg_mop + nv3 + nu3
 
   do e=e0,ee,es
       iu = 1 + (e-1)*nu3

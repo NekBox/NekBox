@@ -716,14 +716,20 @@ end subroutine makef
 !> \brief Compute and add: (1) user specified forcing function (FX,FY,FZ)
 !----------------------------------------------------------------------
 subroutine makeuf
+  use size_m, only : nelv
   use geom, only : bm1
   use soln, only : bfx, bfy, bfz
   use tstep, only : time, dt
   implicit none
 
+  integer :: i
   TIME = TIME-DT
   CALL NEKUF   (BFX,BFY,BFZ)
-  bfx = bfx * bm1; bfy = bfy * bm1; bfz = bfz * bm1
+  do i = 1, nelv
+    bfx(:,:,:,i) = bfx(:,:,:,i) * bm1(:,:,:,i)
+    bfy(:,:,:,i) = bfy(:,:,:,i) * bm1(:,:,:,i)
+    bfz(:,:,:,i) = bfz(:,:,:,i) * bm1(:,:,:,i)
+  enddo
   TIME = TIME+DT
 
   return
@@ -801,26 +807,29 @@ subroutine makebdf()
   use tstep, only : dt, ifield, bd, nbd
   implicit none
 
-  real(DP), allocatable :: H2 (:,:,:,:)
+  real(DP), allocatable :: H2 (:,:,:)
 
-  integer :: ilag
+  integer :: ilag, i
 
-  allocate(H2(nx1,ny1,nz1,nelv))
-  h2 = (1./DT) * vtrans(:,:,:,:,ifield) 
-  DO ILAG=2,NBD
-    IF (IFGEOM) THEN
-      bfx = bfx + h2 * (vxlag(:,:,:,:,ilag-1) * bm1lag(:,:,:,:,ilag-1) * bd(ilag+1))
-      bfy = bfy + h2 * (vylag(:,:,:,:,ilag-1) * bm1lag(:,:,:,:,ilag-1) * bd(ilag+1))
-      bfz = bfz + h2 * (vzlag(:,:,:,:,ilag-1) * bm1lag(:,:,:,:,ilag-1) * bd(ilag+1))
-    ELSE
-      bfx = bfx + h2 * (vxlag(:,:,:,:,ilag-1) * bm1    * bd(ilag+1))
-      bfy = bfy + h2 * (vylag(:,:,:,:,ilag-1) * bm1    * bd(ilag+1))
-      bfz = bfz + h2 * (vzlag(:,:,:,:,ilag-1) * bm1    * bd(ilag+1))
-    ENDIF
-  END DO
-  bfx = bfx + h2*vx*bm1*bd(2)
-  bfy = bfy + h2*vy*bm1*bd(2)
-  bfz = bfz + h2*vz*bm1*bd(2)
+  allocate(H2(nx1,ny1,nz1))
+ 
+  do i = 1, nelv 
+    h2 = (1./DT) * vtrans(:,:,:,i,ifield) 
+    DO ILAG=2,NBD
+      IF (IFGEOM) THEN
+        bfx(:,:,:,i) = bfx(:,:,:,i) + h2 * (vxlag(:,:,:,i,ilag-1) * bm1lag(:,:,:,i,ilag-1) * bd(ilag+1))
+        bfy(:,:,:,i) = bfy(:,:,:,i) + h2 * (vylag(:,:,:,i,ilag-1) * bm1lag(:,:,:,i,ilag-1) * bd(ilag+1))
+        bfz(:,:,:,i) = bfz(:,:,:,i) + h2 * (vzlag(:,:,:,i,ilag-1) * bm1lag(:,:,:,i,ilag-1) * bd(ilag+1))
+      ELSE
+        bfx(:,:,:,i) = bfx(:,:,:,i) + h2 * (vxlag(:,:,:,i,ilag-1) * bm1(:,:,:,i)    * bd(ilag+1))
+        bfy(:,:,:,i) = bfy(:,:,:,i) + h2 * (vylag(:,:,:,i,ilag-1) * bm1(:,:,:,i)    * bd(ilag+1))
+        bfz(:,:,:,i) = bfz(:,:,:,i) + h2 * (vzlag(:,:,:,i,ilag-1) * bm1(:,:,:,i)    * bd(ilag+1))
+      ENDIF
+    END DO
+    bfx(:,:,:,i) = bfx(:,:,:,i) + h2*vx(:,:,:,i)*bm1(:,:,:,i)*bd(2)
+    bfy(:,:,:,i) = bfy(:,:,:,i) + h2*vy(:,:,:,i)*bm1(:,:,:,i)*bd(2)
+    bfz(:,:,:,i) = bfz(:,:,:,i) + h2*vz(:,:,:,i)*bm1(:,:,:,i)*bd(2)
+  enddo
 
   return
 end subroutine makebdf
@@ -1102,6 +1111,9 @@ end subroutine setordbd
 !! defined on mesh 1 or mesh 2.
 !! The error norms are normalized with respect to the volume
 !! (except for Linf).
+!!
+!! \f$ l2 = |x|_2 \f$
+!! \f$ semi = \sqrt{|<x|A|x>|/V} \f$ where A is the stiffness matrix
 !---------------------------------------------------------------
 subroutine normsc (h1,semi,l2,linf,x,imesh)
   use kinds, only : DP

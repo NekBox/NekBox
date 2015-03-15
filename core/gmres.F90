@@ -128,7 +128,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !           call copy(r,res,n)
       else
       ! update residual
-          gmres_mop = gmres_mop + n
+          gmres_mop  = gmres_mop  + 4*n
+          gmres_flop = gmres_flop + n
           r = res
           etime = etime - dnekclock()
           call ax    (w,x,h1,h2,n)              ! w = A x
@@ -152,7 +153,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       if(gamma(1) == 0.) goto 9000
       temp = 1./gamma(1)
       gmres_flop = gmres_flop + n
-      gmres_mop  = gmres_mop + 3*n
+      gmres_mop  = gmres_mop + 2*n
       do i = 1, n
         v(i,1) = r(i) * temp  ! v  = r / gamma
         !w(i) = v(i,1)
@@ -189,8 +190,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 #endif
           endif
 
-          gmres_flop = gmres_flop + n
-          gmres_mop  = gmres_mop  + n
+          gmres_flop = gmres_flop + 2*n
+          gmres_mop  = gmres_mop  + 3*n
           call ortho        (z(1,j)) ! Orthogonalize wrt null space, if present
           etime_p = etime_p + dnekclock()-etime2
       ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -285,11 +286,11 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   9000 continue
 
   divex = rnorm
-  gmres_mop = gmres_mop + n
+  gmres_mop = gmres_mop + 2*n
   res = x
 
-  gmres_flop = gmres_flop + n
-  gmres_mop  = gmres_mop  + n
+  gmres_flop = gmres_flop + 2*n
+  gmres_mop  = gmres_mop  + 3*n
   call ortho   (res) ! Orthogonalize wrt null space, if present
 
   etime1 = dnekclock()-etime1

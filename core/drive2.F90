@@ -1283,6 +1283,7 @@ subroutine runstat
 #endif
   endif
 
+  if (np > 1024) return
   if (nid == 0)   & ! header for timing
   write(6,1) 'tusbc','tdadd','tcrsl','tvdss','tdsum',' tgop',ifsync
   1 format(/,'#',2x,'nid',6(7x,a5),4x,'qqq',1x,l4)
@@ -1470,9 +1471,9 @@ subroutine print_flops(label, flops, mops, time)
   character(*) :: label
   integer(i8) :: flops, mops
   real(DP) :: time
-  real(DP), parameter :: bandwidth = 43.*1024 / 32
+  real(DP), parameter :: bandwidth = 43.*1024 / 64
   !real(DP), parameter :: bandwidth = 59.7*1024 / 4
-  real(DP), parameter :: compute = 204.*1024 / 32
+  real(DP), parameter :: compute = 204.*1024 / 64
   !real(DP), parameter :: compute = 3400*8
   real(DP) :: peak
 

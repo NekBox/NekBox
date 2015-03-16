@@ -1,3 +1,4 @@
+#define BGQ
 !=======================================================================
 subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   use kinds, only : DP
@@ -105,7 +106,11 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
 
   integer :: nel, nxy, nyz, nxz, nxyz, ntot
   real(DP) :: h1 
-  integer :: e, iz
+  integer :: e, iz, iy, ix
+
+#ifdef BGQ
+  vector(real(DP)) :: tm1v, tm2v, tm3v, g4mv, g5mv, g6mv, uv, auv, bm1v, h1v, h2v
+#endif
 
   nel=nelt
   if (imesh == 1) nel=nelv
@@ -118,9 +123,9 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
 
   if (naxhm == 0) taxhm=0.0
   naxhm=naxhm + 1
-  etime1=dnekclock()
 
   IF ( .NOT. IFSOLV) CALL SETFAST(HELM1,HELM2,IMESH)
+  etime1=dnekclock()
   !au(:,:,:,1:nel) = 0._dp
 
   do 100 e=1,nel
@@ -177,24 +182,69 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
           !          Fast 3-d mode: constant properties and undeformed element
               axhelm_flop = axhelm_flop + (2*nx1-1)*nx1*nyz
               axhelm_mop = axhelm_mop + nx1*ny1*nz1
-              call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
+              axhelm_flop = axhelm_flop + 9*nx1*ny1*nz1
+              axhelm_mop = axhelm_mop + 5*nx1*ny1*nz1
               axhelm_flop = axhelm_flop + (2*ny1-1)*nx1*ny1*nz1
-              axhelm_mop = axhelm_mop + nx1*ny1*nz1
+              axhelm_flop = axhelm_flop + nxy*(2*nz1-1)*nz1
+
+
+
+              call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
               do iz=1,nz1
                   call mxm   (u(1,1,iz,e),nx1,wddyt,ny1,tm2(1,1,iz),ny1)
               END DO
-              axhelm_flop = axhelm_flop + nxy*(2*nz1-1)*nz1
-              axhelm_mop = axhelm_mop + nx1*ny1*nz1
               call mxm   (u(1,1,1,e),nxy,wddzt,nz1,tm3,nz1)
-           
-              axhelm_flop = axhelm_flop + 10*nx1*ny1*nz1
-              axhelm_mop = axhelm_mop + 4*nx1*ny1*nz1
+#ifdef BGQ
+              h1v = vec_splats(helm1(1,1,1,e))
+              h2v = vec_splats(helm2(1,1,1,e))
+              do iz = 1, nz1
+                do iy = 1, ny1
+                    g4mv = vec_ld(0, g4m1(1,iy,iz,e))
+                    tm1v = vec_ld(0, tm1(1,iy,iz))
+                    tm1v = vec_mul(g4mv,tm1v)
+
+                    g5mv = vec_ld(0, g5m1(1,iy,iz,e))
+                    tm2v = vec_ld(0, tm2(1,iy,iz))
+                    tm1v = vec_madd(g5mv,tm2v,tm1v)
+
+                    g6mv = vec_ld(0, g6m1(1,iy,iz,e))
+                    tm3v = vec_ld(0, tm3(1,iy,iz))
+                    tm1v = vec_madd(g6mv,tm3v,tm1v)
+
+                    uv = vec_ld(0, u(1,iy,iz,e))
+                    bm1v = vec_ld(0, bm1(1,iy,iz,e))
+                    uv = vec_mul(uv,bm1v)
+                    uv = vec_mul(uv,h2v)
+                    auv = vec_madd(h1v, tm1v, uv)
+                    call vec_st(auv,0,au(1,iy,iz,e))
+
+                    g4mv = vec_ld(0, g4m1(5,iy,iz,e))
+                    tm1v = vec_ld(0, tm1(5,iy,iz))
+                    tm1v = vec_mul(g4mv,tm1v)
+
+                    g5mv = vec_ld(0, g5m1(5,iy,iz,e))
+                    tm2v = vec_ld(0, tm2(5,iy,iz))
+                    tm1v = vec_madd(g5mv,tm2v,tm1v)
+
+                    g6mv = vec_ld(0, g6m1(5,iy,iz,e))
+                    tm3v = vec_ld(0, tm3(5,iy,iz))
+                    tm1v = vec_madd(g6mv,tm3v,tm1v)
+
+                    uv = vec_ld(0, u(5,iy,iz,e))
+                    bm1v = vec_ld(0, bm1(5,iy,iz,e))
+                    uv = vec_mul(uv,bm1v)
+                    uv = vec_mul(uv,h2v)
+                    auv = vec_madd(h1v, tm1v, uv)
+                    call vec_st(auv,0,au(5,iy,iz,e))
+                enddo
+              enddo
+#else 
               au(:,:,:,e) = helm1(1,1,1,e) * ( &
                             tm1*g4m1(:,:,:,e) &
                           + tm2*g5m1(:,:,:,e) &
                           + tm3*g6m1(:,:,:,e) ) &
                         + helm2(1,1,1,1)*bm1(:,:,:,e)*u(:,:,:,e)
-            
+#endif        
           else
               write(*,*) "Woops! axhelm"
 #if 0
@@ -720,7 +770,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, vlsc32, glsc3
   real(DP) :: etime
 
-
   if (ifsplit .AND. name == 'PRES' .AND. param(42) == 0) then
       n = nx1*ny1*nz1*nelv
       call copy      (x,f,n)
@@ -827,7 +876,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   call dssum  (w)
 
   cggo_flop = cggo_flop + 4*n
-  cggo_mop  = cggo_mop  + 4*n
+  cggo_mop  = cggo_mop  + 5*n
   rho0 = rho; rho = 0._dp
   do i = 1, nel
     w(:,i)   = w(:,i) * mask(:,i)
@@ -841,7 +890,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     scalar(1) = 0._dp; scalar(2) = 0._dp
     rtz2=rtz1
     cggo_flop = cggo_flop + 10*n
-    cggo_mop  = cggo_mop  + 6*n
+    cggo_mop  = cggo_mop  + 7*n
     do i = 1, nel
       r(:,i) = r(:,i) + alphm * w(:,i)
       z(:,i) = r(:,i) * d(:,i) 
@@ -851,7 +900,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     call gop(scalar,w,'+  ',2)
     rtz1=scalar(1)
     rbn2=sqrt(scalar(2)/vol)
-
 
     if (ifprint_hmh) &
     write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1,1),h2(1,1)
@@ -867,7 +915,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 #endif
     !        IF (rbn2.LE.TOL) THEN
         cggo_flop = cggo_flop + 2*n
-        cggo_mop  = cggo_mop  + 2*n
+        cggo_mop  = cggo_mop  + 3*n
         x(:,1:nel) = x(:,1:nel) + alpha * p
         NITER = ITER-1
     !           IF(NID.EQ.0.AND.((.NOT.IFHZPC).OR.IFPRINT))
@@ -877,7 +925,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     ENDIF
     
     cggo_flop = cggo_flop + 4*n 
-    cggo_mop  = cggo_mop  + 3*n 
+    cggo_mop  = cggo_mop  + 5*n 
     beta = rtz1/rtz2
     do i = 1, nel
       x(:,i) = x(:,i) + alpha * p(:,i)
@@ -889,7 +937,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     call dssum  (w)    
 
     cggo_flop = cggo_flop + 4*n
-    cggo_mop  = cggo_mop  + 4*n
+    cggo_mop  = cggo_mop  + 5*n
     rho0 = rho; rho = 0._dp
     do i = 1, nel
       w(:,i)   = w(:,i) * mask(:,i)

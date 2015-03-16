@@ -1,4 +1,3 @@
-#define BGQ
 !=======================================================================
 subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   use kinds, only : DP

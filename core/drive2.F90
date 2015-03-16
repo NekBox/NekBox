@@ -1133,7 +1133,7 @@ subroutine runstat
       call print_times('het2 time', nheat2  , theat2  , tttstp, total_share)
       call print_times('p4mc time', np4misc , tp4misc , tttstp, total_share)
       call print_times('makf time', nmakef  , tmakef  , tttstp, total_share)
-      call print_times('makq time', nmakeq  , tmakef  , tttstp, total_share)
+      call print_times('makq time', nmakeq  , tmakeq  , tttstp, total_share)
       call print_times('prep time', nprep   , tprep   , tttstp, total_share)
       call print_times('mmsk time', nmg_mask, tmg_mask, tttstp, total_share)
 

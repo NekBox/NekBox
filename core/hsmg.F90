@@ -1066,7 +1066,6 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
   real(DP) :: work(0:lwk-1),work2(0:lwk-1)
 
-
   nn=nl**ndim
   if( .NOT. if3d) then
 #if 0
@@ -1156,7 +1155,7 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
       enddo
   else
      h1mg_flop = h1mg_flop + 2*nelv*nz*ny + 2*nelv*nz*(nx-2) + 2*nelv*(ny-2)*(nx-2)
-     h1mg_mop  = h1mg_mop  + 4*nelv*nz*ny + 4*nelv*nz*(nx-2) + 4*nelv*(ny-2)*(nx-2)
+     h1mg_mop  = h1mg_mop  + 6*nelv*nz*ny + 6*nelv*nz*(nx-2) + 6*nelv*(ny-2)*(nx-2)
 
       do ie=1,nelv
           do k=1,nz
@@ -1367,7 +1366,7 @@ subroutine hsmg_schwarz_wt3d(e,wt,n)
   real(DP) :: wt(n,n,4,3,nelv)
   integer :: ie,i,j,k
 
-  schw_flop = schw_flop + 4*nelv*n*n + 4*nelv*n*(n-4) + 4*nelv*(n-4)*(n-4)
+  schw_flop = schw_flop +  4*nelv*n*n +  4*nelv*n*(n-4) +  4*nelv*(n-4)*(n-4)
   schw_mop  = schw_mop  + 12*nelv*n*n + 12*nelv*n*(n-4) + 12*nelv*(n-4)*(n-4)
 
   do ie=1,nelv

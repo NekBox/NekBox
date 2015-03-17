@@ -54,10 +54,13 @@ subroutine copy(a,b,n)
   implicit none
   integer :: n, i
   real(DP) :: a(n),b(n)
-
+#if 1
+  a = b
+#else
   do i=1,n
       a(i)=b(i)
   enddo
+#endif
 
   return
 end subroutine copy

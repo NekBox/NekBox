@@ -113,7 +113,6 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   use size_m, only : lx1, ly1, lz1, lelt
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
-  use parallel, only : nid
   use ctimer, only : th1mg, nh1mg, h1mg_flop, h1mg_mop, dnekclock
   implicit none
 
@@ -1052,7 +1051,6 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   use size_m, only : lx1, ly1, lz1
   use ctimer, only : schw_flop, schw_mop
   use input, only : if3d
-  use parallel, only : nid
   implicit none
 
   integer :: nl
@@ -1364,7 +1362,7 @@ subroutine hsmg_schwarz_wt3d(e,wt,n)
   integer :: n
   real(DP) :: e(n,n,n,nelv)
   real(DP) :: wt(n,n,4,3,nelv)
-  integer :: ie,i,j,k
+  integer :: ie,j,k
 
   schw_flop = schw_flop +  4*nelv*n*n +  4*nelv*n*(n-4) +  4*nelv*(n-4)*(n-4)
   schw_mop  = schw_mop  + 12*nelv*n*n + 12*nelv*n*(n-4) + 12*nelv*(n-4)*(n-4)
@@ -1394,8 +1392,8 @@ end subroutine hsmg_schwarz_wt3d
 subroutine hsmg_coarse_solve(e,r)
   use kinds, only : DP
   use ctimer, only : icalld, ncrsl, tcrsl, ifsync, etime1, dnekclock
-  use parallel, only : xxth, nid
-  use tstep, only : nelfld, ifield
+  use parallel, only : xxth
+  use tstep, only : ifield
   use poisson, only : spectral_solve
   use hsmg, only : use_spectral_coarse
  

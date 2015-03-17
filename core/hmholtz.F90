@@ -2,7 +2,7 @@
 subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nelv, nelt, ndim, nid
-  use ctimer, only : icalld, thmhz, nhmhz, etime1, dnekclock
+  use ctimer, only : icalld, thmhz, nhmhz, dnekclock
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param
   use geom, only : binvm1, bintm1
@@ -23,6 +23,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   character(3) :: nam3
   integer :: ntot
   real(DP) :: tol
+  real(DP) :: etime
 
   tol = abs(tli)
 
@@ -36,7 +37,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
 
   icalld=icalld+1
   nhmhz=icalld
-  etime1=dnekclock()
+  etime=dnekclock()
   ntot = nx1*ny1*nz1*nelfld(ifield)
   if (imsh == 1) ntot = nx1*ny1*nz1*nelv
   if (imsh == 2) ntot = nx1*ny1*nz1*nelt
@@ -69,7 +70,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   (u,rhs,h1,h2,mask,mult,imsh,tol,maxit,isd,bintm1,name)
 
 
-  thmhz=thmhz+(dnekclock()-etime1)
+  thmhz=thmhz+(dnekclock()-etime)
   return
 end subroutine hmholtz
 
@@ -82,13 +83,13 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1
   use size_m, only : nx1, ny1, nz1, nelt, nelv, ndim
-  use ctimer, only : icalld, taxhm, naxhm, etime1, dnekclock
+  use ctimer, only : taxhm, naxhm, etime1, dnekclock
   use ctimer, only : axhelm_flop, axhelm_mop
   use geom, only : g4m1, g5m1, g6m1
   use dxyz, only : wddx, wddyt, wddzt
   use input, only : ifaxis
   use geom, only : bm1
-  use mesh, only : iffast, ifsolv
+  use mesh, only : ifsolv
   implicit none
 
   real(DP), intent(out) :: AU    (LX1,LY1,LZ1,*) !>!< H u
@@ -104,10 +105,10 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   REAL(DP) ::           TM3   (LX1,LY1,LZ1)
 
   integer :: nel, nxy, nyz, nxz, nxyz, ntot
-  real(DP) :: h1 
-  integer :: e, iz, iy, ix
+  integer :: e, iz
 
 #ifdef BGQ
+  integer :: iy, ix
   vector(real(DP)) :: tm1v, tm2v, tm3v, g4mv, g5mv, g6mv, uv, auv, bm1v, h1v, h2v
 #endif
 
@@ -739,7 +740,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use size_m, only : lx1, ly1, lz1, lelt
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param, ifprint
-  use geom, only : volvm1, voltm1, bm1
+  use geom, only : volvm1, voltm1
   use mesh, only : ifsolv, niterhm
   use tstep, only : istep, imesh
   use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop, dnekclock
@@ -758,13 +759,13 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   logical :: ifmcor,ifprint_hmh
 
-  integer, parameter :: lxyz = lx1*ly1*lz1,lg=lx1*ly1*lz1*lelt
+  integer, parameter :: lxyz = lx1*ly1*lz1
   real(DP) :: scalar(2)
   real(DP), allocatable :: d (:,:)
   real(DP), allocatable :: r (:,:) , w (:,:) , p (:,:) , z (:,:)
 
   integer :: i, n, iter, nxyz, nel, niter
-  real(DP) :: rho, vol, tol, h2max, skmin, smean, rmean
+  real(DP) :: rho, vol, tol, h2max, skmin
   real(DP) :: rtz1, rtz2, rbn2, rbn0, beta, rho0, alpha, alphm
   real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, vlsc32, glsc3
   real(DP) :: etime

@@ -77,8 +77,8 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   integer :: nel, ntot, i, n10
   real(DP) :: vol, alpha1, alpha2, ratio
   real(DP), external :: glsc23
-  real(DP), allocatable :: evecs(:,:), work(:), ev(:)
-  integer :: lwork, ierr
+  real(DP), allocatable :: evecs(:,:), ev(:)
+  integer :: ierr
   real(DP), parameter :: one = 1._dp, zero = 0._dp
   real(DP) :: etime
 
@@ -268,9 +268,8 @@ end subroutine hconj
 !> \brief Recompute H_red if dt has changed
 subroutine updrhsh(apx,h1,h2,vml,vmk,ws)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1
   use input, only : ifvarp, iflomach
-  use tstep, only : dt, ifield, nelfld
+  use tstep, only : dt, ifield
   implicit none
 
   type(approx_space), intent(inout) :: apx !>!< current approximation space
@@ -367,12 +366,10 @@ end subroutine hmhzpf
 subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
     ,apx,bi)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, lelv
-  use parallel, only : nid
-  use input, only : ifflow, param
+  use size_m, only : lx1, ly1, lz1, lelv
+  use input, only : param
   use string, only : capit
   use tstep, only : ifield, nelfld, istep
-  use geom, only : binvm1
   implicit none
 
   CHARACTER(4), intent(in) :: NAME !>!< name of field we're solving for
@@ -394,7 +391,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
   logical :: ifstdh
   character(4) ::  cname
-  integer :: n, nel
+  integer :: nel
 
 
   call chcopy(cname,name,4)

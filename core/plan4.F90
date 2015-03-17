@@ -21,7 +21,7 @@ subroutine plan4()
   use ctimer, only : np4misc, tp4misc
   use geom, only : binvm1, bm1, volvm1
   use helmholtz, only : hsolve, approx_space, init_approx_space
-  use soln, only : qtl, vx, vy, vz, v1mask, v2mask, v3mask
+  use soln, only : vx, vy, vz, v1mask, v2mask, v3mask
   use soln, only : vtrans, pmask, vmult, pr
   use tstep, only : imesh, nmxh, tolhv
   use input, only : param
@@ -404,7 +404,7 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   use size_m, only : nx1, ny1, nz1, nelv
   use size_m, only : lx1, ly1, lz1, lelv
   use input, only : ifaxis
-  use soln, only : vx, vy, vz, vdiff, pr, bfx, bfy, bfz !, qtl
+  use soln, only : vx, vy, vz, pr, bfx, bfy, bfz !, qtl
   use ctimer, only : ncresvsp, tcresvsp, dnekclock
   implicit none
 

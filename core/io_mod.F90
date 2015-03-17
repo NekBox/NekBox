@@ -73,13 +73,10 @@ end subroutine load_ic
 
 subroutine get_restart_name(fname)
   use kinds, only : DP
-  use input, only : ifreguo, ifxyo_, session, param
-  use restart, only : max_rst, nfileo, ifdiro, fid0
+  use input, only : ifreguo, session, param
+  use restart, only : nfileo, ifdiro
   use string, only : ltrunc
-  use parallel, only : nid
   implicit none
-
-  integer :: ierr
 
   character(132) ::  fname 
   character(1) ::   fnam1(132)
@@ -89,7 +86,7 @@ subroutine get_restart_name(fname)
 
   character(1), save :: slash = '/', dot = '.'
 
-  integer :: iprefix, nfld, k, len, ndigit
+  integer :: k, len, ndigit
   integer, external :: i_find_prefix, mod1
   real(DP) :: rfileo
 

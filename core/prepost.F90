@@ -988,14 +988,14 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   character(1), save :: slash = '/', dot = '.'
 
   logical, save :: init = .false.
-  integer, save :: nopen(99,2) = 0.
+  integer, save :: nopen(99,2) = 0
 
   integer :: iprefix, nfld, k, len, ndigit
   integer, external :: i_find_prefix, mod1
   real(DP) :: rfileo
 
   if (.not. init) then
-    nopen = param(69)
+    nopen = int(param(69))
     init = .true.
   endif
 

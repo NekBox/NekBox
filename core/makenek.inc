@@ -191,6 +191,7 @@ if [ $F77ok -eq 0 ]; then
   F77comp="unknown"
 fi
 
+#F77comp=$F77
 # assign F77 compiler specific flags
 case $F77comp in
   *pgf*)        P="-r8 -Mpreprocess"

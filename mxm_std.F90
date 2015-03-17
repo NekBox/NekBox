@@ -377,6 +377,12 @@ use kinds, only : DP
 
     do j=1,n3
         do i=1,n1
+#if 1
+          c(i,j) = 0
+          do k=1,16
+            c(i,j) = c(i,j) + a(i,k)*b(k,j)
+          enddo
+#else
             c(i,j) = a(i,1)*b(1,j) &
             + a(i,2)*b(2,j) &
             + a(i,3)*b(3,j) &
@@ -393,6 +399,7 @@ use kinds, only : DP
             + a(i,14)*b(14,j) &
             + a(i,15)*b(15,j) &
             + a(i,16)*b(16,j)
+#endif
         enddo
     enddo
     return

@@ -1,18 +1,15 @@
-#!/bin/bash
+
 # Nek5000 build config file
 # (c) 2008,2009,2010 UCHICAGO ARGONNE, LLC
 
 # source path 
-SOURCE_ROOT="/home/maxhutch/src/nek" 
+#SOURCE_ROOT="$HOME/nek" 
 
 # Fortran compiler
-#F77="gfortran -I/opt/openmpi/include -I/opt/openmpi/lib -L/opt/openmpi/lib -lmpi_f90 -lmpi_f77 -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil -O0 "
-#CHECKS="-Wall -Wextra -pedantic -fbacktrace -fcheck=all " #-ffpe-trap=invalid,zero,overflow "
-#F77="mpif90  -g -check all -debug all -traceback "
-F77="mpif90  -DMKL_DIRECT_CALL_SEQ"
+F77="mpif90 "
+CHECKS="-Wall -Wextra -pedantic -fbacktrace -fcheck=all " #-ffpe-trap=invalid,zero,overflow "
 
 # C compiler
-#CC="gcc -I/opt/openmpi/include -pthread -L/opt/openmpi/lib -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil -O0"
 CC="mpicc "
 
 # pre-processor symbol list 
@@ -36,15 +33,14 @@ CC="mpicc "
 
 # linking flags
 #USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core"
-USR_LFLAGS="-L/opt/fftw3/lib  -lfftw3 -lmkl_intel_lp64  -lmkl_sequential -lmkl_core "
-#USR_LFLAGS="-lblas -llapack -L/opt/fftw3-debug/lib  -lfftw3"
+USR_LFLAGS="-lblas -llapack -L${2}/fftw3/lib -lfftw3_mpi -lfftw3"
 
 
 # generic compiler flags
-G="-I/opt/fftw3/include "
+G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans -I${2}/fftw3/include "
 
 # optimization flags
-OPT_FLAGS_STD=" -O3 -xHost -ftz -ip -ipo -fast"
+#OPT_FLAGS_STD=" "
 #OPT_FLAGS_MAG=" "
 
 # enable AMG coarse grid solver (default XXT)

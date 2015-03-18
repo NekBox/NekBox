@@ -47,11 +47,11 @@ contains
 !> \brief 
 subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use kinds, only : DP
-  use geom, only : bm1, binvm1, volvm1
+  use geom, only : bm1
   use mesh, only : shape_x, start_x, end_x
-  use parallel, only : nekcomm, nid, lglel
+  use parallel, only : nekcomm, lglel
   use soln, only : vmult
-  use size_m, only : nx1, ny1, nz1, nelv
+  use size_m, only : nx1, ny1, nz1
   use ctimer, only : nscps, tscps, dnekclock
 
   use fft, only : P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
@@ -63,11 +63,9 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
   real(DP), allocatable :: tmp_fine(:,:,:,:)
   integer :: nelm
-  integer :: i, j
+  integer :: i
   real(DP), allocatable :: plane_xy(:,:,:), plane_yx(:,:,:), plane_zy(:,:,:)
   real(DP) :: rescale
-  real(DP) :: h2(1,1,1,1)
-  integer :: ix(3)
   real(DP) :: etime
 
 
@@ -177,23 +175,17 @@ end subroutine spectral_solve
 
 !> \brief one-time setup of communication infrastructure for poisson_mod
 subroutine init_comm_infrastructure(comm_world, shape_x)
-  use fftw3, only : FFTW_MPI_DEFAULT_BLOCK
-  use fftw3, only : fftw_mpi_local_size_many_transposed
-  use fftw3, only : fftw_mpi_init
-  use mpif,  only : MPI_UNDEFINED
   use input, only : param
   integer, intent(in) :: comm_world !>!< Communicator in which to setup solver
   integer, intent(in) :: shape_x(3) !>!< Shape of mesh
 
   integer(C_INTPTR_T) :: shape_c(3)
-  integer(C_INTPTR_T), parameter :: one = 1
   integer :: nxy, nyz, ixy, iyz
   integer :: nid, ierr, i
 
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
 
-  !call fftw_mpi_init()
   if (param(49) >= 1) then
     comm_size = min(comm_size, int(param(49)))
   endif
@@ -408,7 +400,7 @@ end subroutine init_mesh_to_grid
 
 subroutine mesh_to_grid(mesh, grid, shape_x)
   use kinds, only : DP
-  use parallel, only : nekcomm, nid, nekreal
+  use parallel, only : nekcomm, nekreal
   use parallel, only : lglel, gllnid
   use mpif, only : MPI_STATUS_IGNORE
 
@@ -418,8 +410,7 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
 
   integer, allocatable :: mpi_reqs(:)
   integer :: n_mpi_reqs
-  integer :: dest_pid, src_pid, i, idx, idy, idz, ieg, ierr
-  integer :: ix(3)
+  integer :: i, idx, idy, idz, ierr
   integer :: nelm
   integer :: slot, index_in_slot
   nelm = size(mesh)
@@ -467,7 +458,7 @@ end subroutine mesh_to_grid
 
 subroutine grid_to_mesh(grid, mesh, shape_x)
   use kinds, only : DP
-  use parallel, only : nekcomm, nid, nekreal
+  use parallel, only : nekcomm, nekreal
   use parallel, only : lglel, gllel, gllnid
   use mpif, only : MPI_STATUS_IGNORE
 
@@ -477,8 +468,7 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
 
   integer, allocatable :: mpi_reqs(:)
   integer :: n_mpi_reqs
-  integer :: dest_pid, src_pid, i, idx, idy, idz, ieg, ierr
-  integer :: ix(3)
+  integer :: i, idx, idy, idz, ierr
   integer :: slot, index_in_slot
   integer :: nelm
   nelm = size(mesh)
@@ -521,7 +511,6 @@ end subroutine grid_to_mesh
 
 subroutine poisson_kernel(grid, shape_x, start_x, end_x)
   use kinds, only : DP
-  use tstep, only : pi 
   use fft, only : wavenumber, P_FORWARD, W_FORWARD
 
   real(DP), intent(inout) :: grid(0:,0:,0:)
@@ -731,31 +720,22 @@ end subroutine transpose_test
 subroutine cos_test()
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, nelv
-  use geom, only : bm1
   use mesh, only : shape_x, start_x, end_x
   use parallel, only : nid, lglel
-  use tstep, only : PI, imesh
-  use soln, only : pmask
+  use tstep, only : PI
   use mesh, only : ieg_to_xyz
 
   use fft, only : P_FORWARD, P_BACKWARD
   use fft, only : W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r, transpose_grid
-  use semhat, only : zh
 
-  real(DP), allocatable :: rhs_fine(:,:,:,:), soln_fine(:,:,:,:)
+  real(DP), allocatable :: rhs_fine(:,:,:,:) 
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
-  real(DP), allocatable :: tmp_fine(:,:,:,:)
   integer :: nelm
-  integer :: i, j
+  integer :: i
   integer :: ix(3)
   real(DP), allocatable :: plane_xy(:,:,:), plane_yx(:,:,:), plane_zy(:,:,:)
   real(DP) :: rescale
-  real(DP) :: c
-  real(DP) :: ax, bx, x
-  real(DP) :: ay, by, y
-  real(DP) :: az, bz, z
-  real(DP), allocatable :: h1(:,:,:,:), h2(:,:,:,:)
 
   ! convert RHS to coarse mesh
   nelm = nelv

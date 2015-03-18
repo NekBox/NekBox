@@ -6,7 +6,7 @@ subroutine setics
   use kinds, only : DP, i8
   use size_m, only : lx1, ly1, lz1, lelv, ldimt, ldimt1
   use size_m, only : nx1, ny1, nz1, nelt, nx2, ny2, nz2, nelv
-  use size_m, only : nid, lpert, npert, nfield
+  use size_m, only : nid, lpert, nfield
   use geom, only : ifvcor, xm1, ym1, zm1
   use input, only : ifheat, ifsplit, ifflow, ifmhd, ifpert, ifmodel, ifkeps
   use input, only : param, ifmvbd, npscal
@@ -1392,10 +1392,10 @@ end subroutine mapab4R
 !------------------------------------------------------------------
 subroutine nekuic
   use size_m, only : nx1, ny1, nz1
-  use input, only : ifmodel, ifkeps, ifldmhd
+  use input, only : ifmodel, ifkeps
   use nekuse, only : turbk, turbe, ux, uy, uz, temp
   use parallel, only : lglel
-  use soln, only : vx, vy, vz, bx, by, bz, t, vxp, vyp, vzp, tp, jp
+  use soln, only : vx, vy, vz, t, vxp, vyp, vzp, tp, jp
   use tstep, only : ifield, nelfld
   use turbo, only : ifldk, iflde
   implicit none

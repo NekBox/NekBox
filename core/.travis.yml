@@ -17,5 +17,9 @@ before_install:
  - git clone https://github.com/maxhutch/nek-tests.git
  - cd nek-tests/RTI-LST/
 
-script: 
+before_script: 
  - ../../makenek RTI_LST $ROOT_DIR
+
+script: 
+ - sh ../../nekmpi RTI_LST 1 
+

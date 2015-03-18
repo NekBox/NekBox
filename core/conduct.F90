@@ -2,7 +2,7 @@
 !> \brief Solve the convection-diffusion equation for passive scalar IPSCAL
 subroutine cdscal (igeom)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid, mxprev
+  use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid
   use helmholtz, only : hsolve, approx_space
   use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh, ifprint
   use geom, only : bintm1, binvm1
@@ -18,7 +18,6 @@ subroutine cdscal (igeom)
   real(DP), allocatable :: TA(:,:,:,:), TB(:,:,:,:)
   real(DP), allocatable :: H1(:,:,:,:), H2(:,:,:,:)
 
-  integer, parameter :: laxt = mxprev
   real(DP) :: etime
 
   type(approx_space), save :: apx

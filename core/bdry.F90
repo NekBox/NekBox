@@ -304,7 +304,7 @@ END SUBROUTINE CHKCBC
 SUBROUTINE BCMASK
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nfield
-  use input, only : ifmvbd, ifflow, cbc, ifstrs, ifheat, ipscal, ifmhd, ifaziv
+  use input, only : ifmvbd, ifflow, cbc, ifstrs, ifheat, ipscal, ifmhd
   use input, only : ifaxis
   use soln, only : v1mask, v2mask, v3mask, pmask, omask, tmask
   use tstep, only : ifield, nelfld

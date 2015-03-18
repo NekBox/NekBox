@@ -7,7 +7,7 @@ subroutine readat()
   use input, only : reafle, ifmoab, h5mfle, numflu, numoth, ifheat
   use input, only : matids, matindx, imatie, ifchar, numsts
   use input, only : numbcs, ibcsts, bcf, bctyps
-  use parallel, only : nelgv, nelgt, isize, np
+  use parallel, only : nelgv, nelgt, isize
   use string, only : cscan
   use zper, only : ifgtp
   implicit none
@@ -17,8 +17,8 @@ subroutine readat()
   real(DP) :: etime_tmp
   integer :: idum(3*numsts+3)
 
-  real(DP) :: edif, e1, e2, x
-  integer :: i, iset, nelgs, maxrd, mread, iread
+  real(DP) :: edif, e1, e2
+  integer :: i, iset, nelgs
 
 !   Test timer accuracy
   edif = 0.0
@@ -735,7 +735,7 @@ subroutine genmesh
   use input, only : curve, ccurve
   use input, only : bc, cbc
   use mesh, only : shape_x, start_x, end_x
-  use parallel, only : nelgt, gllnid, gllel, wdsize
+  use parallel, only : gllnid, gllel, wdsize
   use parallel, only : lglel
   implicit none
 

@@ -32,9 +32,6 @@ contains
 
 subroutine fft_r2r(u, length, num, kind, rescale)
   use kinds, only : DP
-  use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
-  use fftw3, only : fftw_plan_many_r2r
-  use fftw3, only : fftw_execute_r2r
   use parallel, only : nid
 
   real(DP), intent(inout) :: u(length,*)

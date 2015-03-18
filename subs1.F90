@@ -5,7 +5,7 @@ subroutine setdt
   use size_m, only : nid
   use input, only : param, ifflow, ifprint
   use soln, only : vx, vy, vz
-  use tstep, only : dt, dtinit, time, fintim, lastep, courno, ctarg
+  use tstep, only : dt, dtinit, time, fintim, lastep, courno, ctarg, istep
   implicit none
 
   real(DP), save :: umax = 0._dp
@@ -24,7 +24,7 @@ subroutine setdt
       call compute_cfl(umax,vx,vy,vz,1.0)
       goto 200
   else IF (PARAM(84) /= 0.0) THEN
-      if (dtold == 0.0) then
+      if (istep < 6) then
           dt   =param(84)
           dtold=param(84)
           dtopf=param(84)
@@ -93,8 +93,10 @@ subroutine setdt
   WRITE (6,100) DT,DTCFL,DTFS,DTINIT
   100 FORMAT(5X,'DT/DTCFL/DTFS/DTINIT',4E12.3)
 
-!   Put limits on how much DT can change.
+  ! only change dt if its off by more than 10%
+  if (abs(dt - dtold)/dt < 0.1) dt = dtold
 
+  ! Put limits on how much DT can change.
   IF (DTOLD /= 0.0) THEN
       DTMIN=0.8*DTOLD
       DTMAX=1.2*DTOLD

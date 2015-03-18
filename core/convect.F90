@@ -78,6 +78,8 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   call get_int_ptr (i, jgl, jgt, mx,md)
 
   if (idir == 0) then
+      call specmpn(ju,md,u,mx,jgl(i),jgt(i),if3d,w,ldw)
+  else
       call specmpn(ju,mx,u,md,jgt(i),jgl(i),if3d,w,ldw)
   endif
   tintp = tintp + (dnekclock() - etime)

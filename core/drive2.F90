@@ -955,7 +955,7 @@ subroutine runstat
   use ctimer, only : nproj, tproj, proj_flop, proj_mop
   use ctimer, only : nhconj, thconj, hconj_flop, hconj_mop
   use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop
-  use ctimer, only : naxhm, taxhm, paxhm, axhelm_flop, axhelm_mop
+  use ctimer, only : naxhm, taxhm, axhelm_flop, axhelm_mop
   use ctimer, only : nintp, tintp, intp_flop, intp_mop
   use ctimer, only : ngrst, tgrst, grst_flop, grst_mop
   use ctimer, only : nscn, tscn
@@ -1450,8 +1450,7 @@ subroutine dofcnt
 end subroutine dofcnt
 !-----------------------------------------------------------------------
 subroutine print_times(label, num_calls, time, total_time, cum_time)
-  use kinds, only : i8, DP
-  use parallel, only : np
+  use kinds, only : DP
   implicit none
   character(*), intent(in)  :: label
   integer, intent(in) :: num_calls
@@ -1466,7 +1465,6 @@ end subroutine print_times
 !-----------------------------------------------------------------------
 subroutine print_flops(label, flops, mops, time)
   use kinds, only : i8, DP
-  use parallel, only : np
   implicit none
   character(*) :: label
   integer(i8) :: flops, mops
@@ -1480,6 +1478,6 @@ subroutine print_flops(label, flops, mops, time)
   peak = min(compute, flops * bandwidth / (mops*8))
 
   write(6,'(A,2F14.1,F8.4)') label, &
-                       float(flops) / (1.e6 * time), &
-                       peak, float(flops) / (1.e6 * time * peak)
+                       real(flops, kind=DP) / (1.e6 * time), &
+                       peak, real(flops, kind=DP) / (1.e6 * time * peak)
 end subroutine print_flops

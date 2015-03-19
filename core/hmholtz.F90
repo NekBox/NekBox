@@ -676,6 +676,8 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   DIFF  = ABS(X-Y)
   IF (DIFF == 0.) EPS = 1.E-6
   IF (DIFF > 0.) EPS = 1.E-13
+  ! max
+  IF (DIFF > 0.) EPS = 1.E-16
 
   IF (IMESH == 1) THEN
       NL  = NELV
@@ -842,7 +844,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   niterhm = 0
 
-  allocate(z(nxyz,nel))
   cggo_mop = cggo_mop + n
   allocate(w(nxyz,nel)); w = 0_dp
   allocate(p(nxyz,nel))
@@ -882,6 +883,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     w(:,i)   = w(:,i) * mask(:,i)
     rho = rho + sum(w(:,i) * p(:,i) * mult(:,i))
   enddo
+  allocate(z(nxyz,nel))
   call gop(rho,z,'+  ',1)
   alpha=rtz1/rho
   alphm=-alpha

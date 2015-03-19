@@ -15,8 +15,8 @@ module poisson
   private
 
   integer :: comm_xy, comm_yz
-  logical :: interface_initialized = .false.
-  logical :: mesh_to_grid_initialized = .false.
+  logical, save :: interface_initialized = .false.
+  logical, save :: mesh_to_grid_initialized = .false.
 
   integer :: alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
   integer :: alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
@@ -185,6 +185,7 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
+  !nid = nid/2 + mod(nid, 2) * comm_size / 2
 
   if (param(49) >= 1) then
     comm_size = min(comm_size, int(param(49)))
@@ -266,6 +267,7 @@ integer function xyz_to_pid(ix, iy, iz, shape_x, shape_p)
   integer, intent(in) :: shape_p(2)
 
   xyz_to_pid = (iz * shape_p(2) / shape_x(3)) * shape_p(1) + (iy * shape_p(1) / shape_x(2))
+  !xyz_to_pid = xyz_to_pid * 2
 
 end function
 

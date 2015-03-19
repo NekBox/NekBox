@@ -147,7 +147,7 @@
     kmin = 128
     amp0 = 0.001
     rayleigh = 9.8
-    delta = 0.25 * (0.00390625 - (-0.00390625)) / (8)
+    delta = 0.25 * (0.00390625 - (-0.00390625)) / (4)
 
     return
     end subroutine usrdat2

@@ -8,7 +8,7 @@
   "amp0": 0.001,
   "bottom_bound": "W", 
   "front_bound": "P", 
-  "top_bound": "SYM", 
+  "top_bound": "W", 
   "conductivity": 1.27142857142e-7, 
   "courant": 0.1, 
   "num_steps": 451, 
@@ -37,11 +37,11 @@
   "dim": 3, 
   "io_time": 0.1, 
   "shape_mesh": [
-    16, 
-    16, 
-    8
+    8, 
+    8, 
+    4
   ], 
   "order": 8,
   "dealiasing_order" : 12,
-  "procs" : 4
+  "procs" : 1
 }

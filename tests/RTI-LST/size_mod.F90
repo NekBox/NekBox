@@ -20,7 +20,7 @@ module size_m
     parameter (lz3=lz2)
 
     integer :: lelg, lp, lelt, lelv
-    parameter (lelg = 2048)
+    parameter (lelg = 256)
     parameter (lp = 1)
     parameter (lelt= (lelg + 1 - 1)/lp, lelv=lelt)
 

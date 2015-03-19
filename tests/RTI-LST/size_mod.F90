@@ -1,5 +1,4 @@
 !     Dimension file to be included
-
 !     HCUBE array dimensions
 module size_m
 
@@ -22,22 +21,13 @@ module size_m
 
     integer :: lelg, lp, lelt, lelv
     parameter (lelg = 2048)
-    parameter (lp = 4)
-    parameter (lelt= (lelg + 4 - 1)/lp, lelv=lelt)
-
-
-!     parameter (lpelv=lelv,lpelt=lelt,lpert=3)  ! perturbation
-!     parameter (lpx1=lx1,lpy1=ly1,lpz1=lz1)     ! array sizes
-!     parameter (lpx2=lx2,lpy2=ly2,lpz2=lz2)
+    parameter (lp = 1)
+    parameter (lelt= (lelg + 1 - 1)/lp, lelv=lelt)
 
     integer :: lpelv, lpelt, lpert, lpx1, lpy1, lpz1, lpx2, lpy2, lpz2
     parameter (lpelv=1,lpelt=1,lpert=1)        ! perturbation
     parameter (lpx1=1,lpy1=1,lpz1=1)           ! array sizes
     parameter (lpx2=1,lpy2=1,lpz2=1)
-
-!     parameter (lbelv=lelv,lbelt=lelt)          ! MHD
-!     parameter (lbx1=lx1,lby1=ly1,lbz1=lz1)     ! array sizes
-!     parameter (lbx2=lx2,lby2=ly2,lbz2=lz2)
 
     integer :: lbelv, lbelt, lbx1, lby1, lbz1, lbx2, lby2, lbz2
     parameter (lbelv=1,lbelt=1)                ! MHD
@@ -47,13 +37,11 @@ module size_m
 !     LX1M=LX1 when there are moving meshes; =1 otherwise
     integer :: lx1m, ly1m, lz1m, ldimt, ldimt1, ldimt3
     parameter (lx1m=1,ly1m=1,lz1m=1)
-!    parameter (lx1m=lx1,ly1m=ly1,lz1m=lz1)
-    parameter (ldimt= 4)                       ! 3 passive scalars + T
+    parameter (ldimt= 1)                       ! 3 passive scalars + T
     parameter (ldimt1=ldimt+1)
     parameter (ldimt3=ldimt+3)
 
 !     Note:  In the new code, LELGEC should be about sqrt(LELG)
-
     integer :: lelgec, lxyz2, lxz21
     PARAMETER (LELGEC = 1)
     PARAMETER (LXYZ2  = 1)
@@ -86,7 +74,7 @@ module size_m
 
     integer :: mxprev, lgmres
     parameter (mxprev = 40)
-    parameter (lgmres = 10)
+    parameter (lgmres = 20)
 
 !     Split projection array dimensions
 

@@ -21,7 +21,7 @@ contains
 subroutine load_ic()
   use kinds, only : DP
   use parallel, only : nid
-  use soln, only : vx, vy, vz, t
+  use soln, only : vx, vy, vz, pr, t
   use restart, only : pid0, fid0
   use size_m, only : nx1, ny1, nz1
   use tstep, only : time
@@ -57,12 +57,8 @@ subroutine load_ic()
   ! read velocities
   call mfo_read_vector(vx, vy, vz, size(vx,4), size(vx,1), size(vx,2), size(vx,3), word_size_load) 
 
-  ! seek past pressure
-  if (nid == pid0) then
-    do i = 1, nelo, pad_size
-      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
-    enddo
-  endif
+  ! read pressure
+  call mfo_read_scalar(pr(:,:,:,:), size(pr, 4), size(pr,1), size(pr,2), size(pr,3), word_size_load)
   call mfo_read_scalar(t(:,:,:,:,1), size(t, 4), size(t,1), size(t,2), size(t,3), word_size_load)
 
   if (nid == pid0) then

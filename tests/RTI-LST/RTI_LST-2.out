@@ -1,0 +1,2605 @@
+mv: cannot stat `RTI_LST.log.2': No such file or directory
+mv: cannot stat `RTI_LST.sch': No such file or directory
+/----------------------------------------------------------\\
+|      _   __ ______ __ __  ______  ____    ____    ____   |
+|     / | / // ____// //_/ / ____/ / __ \\ / __ \\ / __ \\ |
+|    /  |/ // __/  / ,<   /___ \\  / / / // / / // / / /   |
+|   / /|  // /___ / /| | ____/ / / /_/ // /_/ // /_/ /     |
+|  /_/ |_//_____//_/ |_|/_____/  \\____/ \\____/ \\____/   |
+|                                                          |
+|----------------------------------------------------------|
+|                                                          |
+| NEK5000:  Open Source Spectral Element Solver            |
+| COPYRIGHT (c) 2008-2010 UCHICAGO ARGONNE, LLC            |
+| Version:  1.0rc1 / SVN  r1025                            |
+| Web:      http://nek5000.mcs.anl.gov                     |
+|                                                          |
+\\----------------------------------------------------------/
+                                                              
+
+ Number of processors:           2
+ REAL    wdsize      :           8
+ INTEGER wdsize      :           4
+
+
+  Beginning session:
+  /home/maxhutch/src/nek-tests/RTI-LST/RTI_LST.rea                              
+
+ 
+ timer accuracy:   0.0000000E+00 sec
+
+ read .rea file
+ nelgt/nelgv/lelt:         256         256         128
+ lx1  /lx2  /lx3 :           8           8           8
+
+ mapping elements to processors
+ LGL/GLL checks out
+           0         128         128         256         256  NELV
+           1         128         128         256         256  NELV
+ RANK     0 IEG       1       2       3       4       5       6       7       8
+                      9      10      11      12      13      14      15      16
+                     17      18      19      20      21      22      23      24
+                     25      26      27      28      29      30      31      32
+                     65      66      67      68      69      70      71      72
+                     73      74      75      76      77      78      79      80
+                     81      82      83      84      85      86      87      88
+                     89      90      91      92      93      94      95      96
+                    129     130     131     132     133     134     135     136
+                    137     138     139     140     141     142     143     144
+                    145     146     147     148     149     150     151     152
+                    153     154     155     156     157     158     159     160
+                    193     194     195     196     197     198     199     200
+                    201     202     203     204     205     206     207     208
+                    209     210     211     212     213     214     215     216
+                    217     218     219     220     221     222     223     224
+ element load imbalance:            0         128         128
+ done :: mapping elements to processors
+  
+           0  objects found
+ done :: read .rea file   0.82517E-03 sec
+
+ setup mesh topology
+   Right-handed check complete for     256 elements. OK.
+   setvert3d:   8       35648       90944       35648       35648
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 3248 unique labels shared
+   pairwise times (avg, min, max): 5.48363e-06 5.48363e-06 5.48363e-06
+   crystal router                : 5.65052e-06 5.60284e-06 5.6982e-06
+   all reduce                    : 1.15871e-05 1.15871e-05 1.15871e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 460068 460068 460068
+   buffer bytes (avg, min, max): 51968 51968 51968
+   setupds time 9.6278E-03 seconds   0  8       35648         256
+ done :: setup mesh topology
+  
+ call usrdat
+ done :: usrdat
+
+ generate geometry data
+ vol_t,vol_v:   1.9073486328117123E-006   1.9073486328117123E-006
+ done :: generate geometry data
+  
+ call usrdat2
+ done :: usrdat2
+
+ regenerate geometry data           1
+ vol_t,vol_v:   1.9073486328117123E-006   1.9073486328117123E-006
+ done :: regenerate geometry data           1
+  
+ verify mesh topology
+   0.0000000000000000        1.5625000000000000E-002  Xrange
+   0.0000000000000000        1.5625000000000000E-002  Yrange
+  -3.9062500000000000E-003   3.9062500000000000E-003  Zrange
+ done :: verify mesh topology
+  
+ 103   Parameters from file:/home/maxhutch/src/nek-tests/RTI-LST/RTI_LST.rea
+   1      1.0       p1  DENSITY
+   2      8.9e-07     p2  VISCOS
+   7      1.0        p7  RHOCP
+   8      1.27142857142e-07  p8  CONDUCT
+  11      100.     p11 NSTEPS
+  12      1.0            p12 DT
+  15      50.0       p15 IOSTEP
+  18      0.500000E-01    p18 GRID
+  19     -1.00000         p19 INTYPE
+  20      7.0000          p20 NORDER
+  24      0.0001        p24 TOLREL
+  25      0.0001        p25 TOLABS
+  26      0.2       p26 COURANT/NTAU
+  27      3.00000         p27 TORDER
+  28      0.              p28 TORDER: mesh velocity (0: p28=p27)
+  48      1.000000         p48 0=XXT, 1=SCPS
+  61      23.000000   p61 log_2(pad size): number of bytes to pad output fields to
+  65      1.000000    p65 #iofiles (eg, 0 or 64); <0 --> sep. dirs
+  66      6.              p66 output : <0=ascii, else binary
+  67      6.              p67 restart: <0=ascii, else binary
+  68      1000.           p68 iastep: freq for avg_all
+  84      1.e-5            p84 !=0 --> sets initial timestep if p12>0
+  92      8.000000         p92 Number of previous velocity solns saved
+  93      8.000000        p93 Number of previous pressure solns saved
+  94      10.00000          p94 start projecting velocity after p94 step
+  95      10.00000          p95 start projecting pressure after p95 step
+  99      4.00000          p99   dealiasing: <0--> off/3--> old/4--> new
+ 101      1.0000           p101   No. of additional filter modes
+ 102      1.00000          p102   Dump out divergence at each time step
+ 103      -.050             p103   weight of stabilizing filter (.01)
+  
+ IFTRAN   = T
+ IFFLOW   = T
+ IFHEAT   = T
+ IFSPLIT  = T
+ IFLOMACH = F
+ IFUSERVP = F
+ IFUSERMV = F
+ IFSTRS   = F
+ IFCHAR   = F
+ IFCYCLIC = F
+ IFAXIS   = F
+ IFMVBD   = F
+ IFMELT   = F
+ IFMODEL  = F
+ IFKEPS   = F
+ IFMOAB   = F
+ IFNEKNEK = F
+ IFSYNC   = T
+   
+ IFVCOR   = T
+ IFINTQ   = F
+ IFCWUZ   = F
+ IFSWALL  = F
+ IFGEOM   = F
+ IFSURT   = F
+ IFWCNO   = F
+   
+ IFTMSH for field           1    =  F
+ IFADVC for field           1    =  T
+ IFNONL for field           1    =  F
+   
+ IFTMSH for field           2    =  F
+ IFADVC for field           2    =  T
+ IFNONL for field           2    =  F
+   
+ Dealiasing enabled, lxd=          12
+  
+ Estimated eigenvalues
+ EIGAA =    80851.799253724021     
+ EIGGA =    1026309165.4345901     
+ EIGAE =    40425.899626862010     
+ EIGAS =    4.1666666666666664E-002
+ EIGGE =    1026309165.4345901     
+ EIGGS =    2.0000000000000000     
+  
+ verify mesh topology
+   0.0000000000000000        1.5625000000000000E-002  Xrange
+   0.0000000000000000        1.5625000000000000E-002  Yrange
+  -3.9062500000000000E-003   3.9062500000000000E-003  Zrange
+ done :: verify mesh topology
+  
+  E-solver strategy:  0 itr
+ mg_nx:           1           3           7
+ mg_ny:           1           3           7
+ mg_nz:           1           3           7
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 80 unique labels shared
+   pairwise times (avg, min, max): 5.00679e-07 5.00679e-07 5.00679e-07
+   crystal router                : 5.00679e-07 5.00679e-07 5.00679e-07
+   all reduce                    : 9.05991e-07 9.05991e-07 9.05991e-07
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 11940 11940 11940
+   buffer bytes (avg, min, max): 1280 1280 1280
+   setupds time 2.8086E-04 seconds   1  2         320         256
+   setvert3d:   4        5440        7488        5440        5440
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 624 unique labels shared
+   pairwise times (avg, min, max): 2.28882e-06 2.28882e-06 2.28882e-06
+   crystal router                : 1.69277e-06 1.69277e-06 1.69277e-06
+   all reduce                    : 3.09944e-06 3.09944e-06 3.09944e-06
+   used all_to_all method: crystal router
+   handle bytes (avg, min, max): 117692 117692 117692
+   buffer bytes (avg, min, max): 19968 19968 19968
+   setupds time 2.2750E-03 seconds   2  4        5440         256
+   setvert3d:   6       17216       33600       17216       17216
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 1680 unique labels shared
+   pairwise times (avg, min, max): 3.09944e-06 3.09944e-06 3.09944e-06
+   crystal router                : 3.79086e-06 3.79086e-06 3.79086e-06
+   all reduce                    : 6.19888e-06 6.19888e-06 6.19888e-06
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 236964 236964 236964
+   buffer bytes (avg, min, max): 26880 26880 26880
+   setupds time 4.1139E-03 seconds   3  6       17216         256
+ regenerate geometry data           1
+ vol_t,vol_v:   1.9073486328117123E-006   1.9073486328117123E-006
+ NOTE: All elements deformed , param(59) ^=0
+ done :: regenerate geometry data           1
+  
+ h1_mg_nx:           1           3           7
+ h1_mg_ny:           1           3           7
+ h1_mg_nz:           1           3           7
+   setvert3d:  10       60736      191808       60736       60736
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 5328 unique labels shared
+   pairwise times (avg, min, max): 8.29697e-06 8.29697e-06 8.29697e-06
+   crystal router                : 1.0252e-05 1.02043e-05 1.02997e-05
+   all reduce                    : 1.82152e-05 1.82152e-05 1.82152e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 756900 756900 756900
+   buffer bytes (avg, min, max): 85248 85248 85248
+   setupds time 1.2882E-02 seconds   4 10       60736         256
+ call usrdat3
+ done :: usrdat3
+
+ set initial conditions
+ call nekuic for all fields
+ xyz min     0.0000       0.0000     -0.39063E-02
+ uvwpt min   0.0000       0.0000       0.0000       0.0000     -0.50000E-03
+ xyz max    0.15625E-01  0.15625E-01  0.39063E-02
+ uvwpt max   0.0000       0.0000       0.0000       0.0000      0.50000E-03
+ done :: set initial conditions
+  
+ call userchk
+ call outfld: ifpsco: F
+
+        0  0.0000E+00 Write checkpoint:
+       0       0 OPEN: RTI_LST0.f00001
+
+        0  0.0000E+00 done :: Write checkpoint
+                              file size =        4.0    MB
+                              avg data-throughput =      176.7MB/s
+                              io-nodes =     1
+
+ done :: userchk
+
+gridpoints unique/tot:         90944       131072
+  dofs:                    0                    0
+  
+ Initialization successfully completed   0.19133     sec
+
+Starting time loop ...
+
+Step      1, t= 1.0000000E-05, DT= 1.0000000E-05, C=  0.000 0.0000E+00 0.0000E+00
+             Solving for heat
+  Temperature/Passive scalar solution
+   0.0000000000000000       p22            1           1
+  1     1 Helmholtz TEMP    F:   8.4274E-05   1.8076E-12   1.2714E-07   1.0000E+05
+  1     2 Helmholtz TEMP    F:   7.8046E-09   1.8076E-12   1.2714E-07   1.0000E+05
+  1     3 Helmholtz TEMP    F:   1.0362E-12   1.8076E-12   1.2714E-07   1.0000E+05
+          1    Hmholtz TEMP:      2   1.0362E-12   8.4274E-05   1.8076E-12
+          1   1.0000E-05  3.5642E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    2.3216183733513183E-004   3.6720938395524477E-011
+   0.0000000000000000       p22            1           1
+ New CG1-tolerance (RINIT*epsm) =    1.3648516959438622E-015   3.6720938395524481E-016
+ New CG1-tolerance (Neumann) =    1.3648516959438622E-014
+MAX:    0    0    8    8    0    4    8    0    0    0    0    1    1    0    0
+MAX:    1    0    0    0    0    0    0   -1   -1   -1   -1    1    1    2    2
+ Finished init         128
+ Passed init
+ Passed xy transpose
+ Passed yz transpose
+ Passed shuffle test
+ COS TEST: rhs    22.627416997969522     
+ COS TEST: u_c    0.0000000000000000     
+    1 1.36485E-14 2.05511E-05 2.99226E-05 6.86808E-01       1 Divergence
+    2 1.36485E-14 2.02702E-05 2.99226E-05 6.77422E-01       1 Divergence
+    3 1.36485E-14 7.58690E-06 2.99226E-05 2.53551E-01       1 Divergence
+    4 1.36485E-14 1.58939E-06 2.99226E-05 5.31167E-02       1 Divergence
+    5 1.36485E-14 4.37125E-07 2.99226E-05 1.46085E-02       1 Divergence
+    6 1.36485E-14 9.66892E-08 2.99226E-05 3.23131E-03       1 Divergence
+    7 1.36485E-14 2.75369E-08 2.99226E-05 9.20271E-04       1 Divergence
+    8 1.36485E-14 6.11057E-09 2.99226E-05 2.04213E-04       1 Divergence
+    9 1.36485E-14 2.18233E-09 2.99226E-05 7.29324E-05       1 Divergence
+   10 1.36485E-14 9.18598E-10 2.99226E-05 3.06992E-05       1 Divergence
+   11 1.36485E-14 1.94483E-10 2.99226E-05 6.49954E-06       1 Divergence
+   12 1.36485E-14 4.36552E-11 2.99226E-05 1.45894E-06       1 Divergence
+   13 1.36485E-14 9.13913E-12 2.99226E-05 3.05426E-07       1 Divergence
+   14 1.36485E-14 1.94231E-12 2.99226E-05 6.49112E-08       1 Divergence
+   15 1.36485E-14 4.20408E-13 2.99226E-05 1.40498E-08       1 Divergence
+   16 1.36485E-14 7.94188E-14 2.99226E-05 2.65414E-09       1 Divergence
+   17 1.36485E-14 3.28301E-14 2.99226E-05 1.09717E-09       1 Divergence
+   18 1.36485E-14 1.56070E-14 2.99226E-05 5.21578E-10       1 Divergence
+   19 1.36485E-14 3.84856E-15 2.99226E-05 1.28617E-10       1 Divergence
+        1 PRES gmres:   19  3.8486E-15  1.3649E-14  2.9923E-05  1.4620E-01  1.9110E-01    F
+   0.0000000000000000       p22            1           1
+  1     1 Helmholtz VELX    F:   6.5730E-06   4.2178E-13   8.9000E-07   1.0000E+05
+  1     2 Helmholtz VELX    F:   4.5266E-09   4.2178E-13   8.9000E-07   1.0000E+05
+  1     3 Helmholtz VELX    F:   4.5446E-12   4.2178E-13   8.9000E-07   1.0000E+05
+  1     4 Helmholtz VELX    F:   6.8643E-15   4.2178E-13   8.9000E-07   1.0000E+05
+          1    Hmholtz VELX:      3   6.8643E-15   6.5730E-06   4.2178E-13
+   0.0000000000000000       p22            1           1
+  1     1 Helmholtz VELY    F:   5.3728E-14   4.2178E-13   8.9000E-07   1.0000E+05
+  1     2 Helmholtz VELY    F:   4.1869E-17   4.2178E-13   8.9000E-07   1.0000E+05
+          1    Hmholtz VELY:      1   4.1869E-17   5.3728E-14   4.2178E-13
+   0.0000000000000000       p22            1           1
+  1     1 Helmholtz VELZ    F:   1.1939E-05   4.2178E-13   8.9000E-07   1.0000E+05
+  1     2 Helmholtz VELZ    F:   1.0839E-08   4.2178E-13   8.9000E-07   1.0000E+05
+  1     3 Helmholtz VELZ    F:   1.3783E-11   4.2178E-13   8.9000E-07   1.0000E+05
+  1     4 Helmholtz VELZ    F:   2.1426E-14   4.2178E-13   8.9000E-07   1.0000E+05
+          1    Hmholtz VELZ:      3   2.1426E-14   1.1939E-05   4.2178E-13
+               L1/L2 DIV(V)    :  -5.4704E-25   5.2863E-08
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -5.4704E-25   5.2863E-08
+          1   1.0000E-05  2.9654E-01 Fluid done
+Step      2, t= 2.0000000E-05, DT= 1.0000000E-05, C=  0.000 3.5477E-01 3.5477E-01
+             Solving for heat
+   0.0000000000000000       p22            2           1
+          2    Hmholtz TEMP:      2   6.9089E-13   1.2641E-04   1.1694E-09
+          2   2.0000E-05  3.5109E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    2.2812292241162523E-006   3.4884771203782042E-013
+   0.0000000000000000       p22            2           1
+        2 PRES gmres:   16  3.0548E-17  1.3231E-16  4.4360E-07  1.0841E-01  1.4437E-01    F
+   0.0000000000000000       p22            2           1
+          2    Hmholtz VELX:      3   3.0628E-15   9.8749E-06   4.0069E-15
+   0.0000000000000000       p22            2           1
+          2    Hmholtz VELY:      1   3.8139E-17   7.5095E-14   4.0069E-15
+   0.0000000000000000       p22            2           1
+          2    Hmholtz VELZ:      4   9.8218E-18   1.5838E-05   4.0069E-15
+               L1/L2 DIV(V)    :   7.6572E-24   1.0581E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   7.6572E-24   1.0581E-07
+          2   2.0000E-05  2.4966E-01 Fluid done
+Step      3, t= 3.0000000E-05, DT= 1.0000000E-05, C=  0.000 6.6185E-01 3.0708E-01
+             Solving for heat
+   0.0000000000000000       p22            3           1
+          3    Hmholtz TEMP:      2   5.6530E-13   1.5450E-04   1.1694E-09
+          3   3.0000E-05  3.5194E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    3.5864206320310026E-006   6.2338321897935648E-013
+   0.0000000000000000       p22            3           1
+        3 PRES gmres:   16  3.4697E-17  1.1206E-16  3.7650E-07  1.1105E-01  1.4738E-01    F
+   0.0000000000000000       p22            3           1
+          3    Hmholtz VELX:      3   2.0509E-15   1.2067E-05   7.1602E-15
+   0.0000000000000000       p22            3           1
+          3    Hmholtz VELY:      1   7.0098E-18   1.5384E-14   7.1602E-15
+   0.0000000000000000       p22            3           1
+          3    Hmholtz VELZ:      3   4.9665E-15   1.7157E-05   7.1602E-15
+               L1/L2 DIV(V)    :   1.7057E-24   1.5874E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.7057E-24   1.5874E-07
+          3   3.0000E-05  2.5227E-01 Fluid done
+Step      4, t= 4.0000000E-05, DT= 1.0000000E-05, C=  0.000 9.6301E-01 3.0116E-01
+             Solving for heat
+   0.0000000000000000       p22            4           1
+          4    Hmholtz TEMP:      2   5.6529E-13   1.5450E-04   1.1694E-09
+          4   4.0000E-05  3.5513E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    4.5595905565062110E-006   8.1286877525641503E-013
+   0.0000000000000000       p22            4           1
+        4 PRES gmres:   16  1.1940E-17  3.9867E-17  1.3196E-07  1.1113E-01  1.4742E-01    F
+   0.0000000000000000       p22            4           1
+          4    Hmholtz VELX:      3   2.0499E-15   1.2064E-05   9.3366E-15
+   0.0000000000000000       p22            4           1
+          4    Hmholtz VELY:      1   5.6329E-18   1.2385E-14   9.3366E-15
+   0.0000000000000000       p22            4           1
+          4    Hmholtz VELZ:      3   4.4406E-15   1.6150E-05   9.3366E-15
+               L1/L2 DIV(V)    :   2.6311E-23   2.1167E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.6311E-23   2.1167E-07
+          4   4.0000E-05  2.5271E-01 Fluid done
+Step      5, t= 5.0000000E-05, DT= 1.0000000E-05, C=  0.000 1.2649E+00 3.0191E-01
+             Solving for heat
+   0.0000000000000000       p22            5           1
+          5    Hmholtz TEMP:      2   5.6528E-13   1.5449E-04   1.1694E-09
+          5   5.0000E-05  3.5592E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    5.6844425749942157E-006   9.4465179380735096E-013
+   0.0000000000000000       p22            5           1
+        5 PRES gmres:   16  8.5633E-18  2.7946E-17  9.1015E-08  1.1145E-01  1.4779E-01    F
+   0.0000000000000000       p22            5           1
+          5    Hmholtz VELX:      3   2.0495E-15   1.2064E-05   1.0850E-14
+   0.0000000000000000       p22            5           1
+          5    Hmholtz VELY:      1   3.0125E-18   6.3305E-15   1.0850E-14
+   0.0000000000000000       p22            5           1
+          5    Hmholtz VELZ:      3   4.1068E-15   1.5732E-05   1.0850E-14
+               L1/L2 DIV(V)    :   2.5368E-23   2.6459E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.5368E-23   2.6459E-07
+          5   5.0000E-05  2.5335E-01 Fluid done
+Step      6, t= 6.2000000E-05, DT= 1.2000000E-05, C=  0.000 1.5721E+00 3.0719E-01
+             Solving for heat
+   0.0000000000000000       p22            6           1
+          6    Hmholtz TEMP:      2   7.7704E-13   1.6183E-04   1.1693E-09
+          6   6.2000E-05  3.5232E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.1507517020853233E-006   1.0433284299710567E-012
+   0.0000000000000000       p22            6           1
+        6 PRES gmres:   16  6.8575E-18  2.5474E-17  8.4117E-08  1.1102E-01  1.4727E-01    F
+   0.0000000000000000       p22            6           1
+          6    Hmholtz VELX:      3   3.2254E-15   1.2636E-05   1.1984E-14
+   0.0000000000000000       p22            6           1
+          6    Hmholtz VELY:      1   1.8248E-18   2.9748E-15   1.1984E-14
+   0.0000000000000000       p22            6           1
+          6    Hmholtz VELZ:      3   6.3248E-15   1.6406E-05   1.1984E-14
+               L1/L2 DIV(V)    :  -3.5161E-23   3.2809E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -3.5161E-23   3.2809E-07
+          6   6.2000E-05  2.5209E-01 Fluid done
+Step      7, t= 7.6400000E-05, DT= 1.4400000E-05, C=  0.000 1.8773E+00 3.0523E-01
+             Solving for heat
+   0.0000000000000000       p22            7           1
+          7    Hmholtz TEMP:      2   1.1070E-12   1.6357E-04   1.1693E-09
+          7   7.6400E-05  3.5589E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.3816906467683558E-006   1.1577954199031222E-012
+   0.0000000000000000       p22            7           1
+        7 PRES gmres:   16  4.9084E-18  2.0893E-17  7.0157E-08  1.1169E-01  1.4810E-01    F
+   0.0000000000000000       p22            7           1
+          7    Hmholtz VELX:      3   5.4514E-15   1.2771E-05   1.3298E-14
+   0.0000000000000000       p22            7           1
+          7    Hmholtz VELY:      1   2.0274E-18   2.9783E-15   1.3298E-14
+   0.0000000000000000       p22            7           1
+          7    Hmholtz VELZ:      3   1.0895E-14   1.6724E-05   1.3298E-14
+               L1/L2 DIV(V)    :  -9.3337E-24   4.0429E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -9.3337E-24   4.0429E-07
+          7   7.6400E-05  2.5353E-01 Fluid done
+Step      8, t= 9.3680000E-05, DT= 1.7280000E-05, C=  0.000 2.1844E+00 3.0705E-01
+             Solving for heat
+   0.0000000000000000       p22            8           1
+          8    Hmholtz TEMP:      2   1.5939E-12   1.6356E-04   1.1693E-09
+          8   9.3680E-05  3.5610E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.5183073566025868E-006   1.3134284924792770E-012
+   0.0000000000000000       p22            8           1
+        8 PRES gmres:   15  2.2179E-17  2.2696E-17  3.8892E-08  1.0594E-01  1.4125E-01    F
+   0.0000000000000000       p22            8           1
+          8    Hmholtz VELX:      3   9.4110E-15   1.2770E-05   1.5086E-14
+   0.0000000000000000       p22            8           1
+          8    Hmholtz VELY:      1   3.4594E-18   4.7710E-15   1.5086E-14
+   0.0000000000000000       p22            8           1
+          8    Hmholtz VELZ:      4   2.7169E-17   1.6946E-05   1.5086E-14
+               L1/L2 DIV(V)    :  -5.0078E-23   4.9572E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -5.0078E-23   4.9572E-07
+          8   9.3680E-05  2.5522E-01 Fluid done
+Step      9, t= 1.1441600E-04, DT= 2.0736000E-05, C=  0.000 2.4932E+00 3.0883E-01
+             Solving for heat
+   0.0000000000000000       p22            9           1
+          9    Hmholtz TEMP:      2   2.2950E-12   1.6356E-04   1.1693E-09
+          9   1.1442E-04  3.5781E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.6332762627486748E-006   1.5261412453991838E-012
+   0.0000000000000000       p22            9           1
+        9 PRES gmres:   15  9.4839E-18  3.1646E-17  1.7681E-08  1.0505E-01  1.3920E-01    F
+   0.0000000000000000       p22            9           1
+          9    Hmholtz VELX:      3   1.6243E-14   1.2769E-05   1.7529E-14
+   0.0000000000000000       p22            9           1
+          9    Hmholtz VELY:      1   3.6537E-18   4.2755E-15   1.7529E-14
+   0.0000000000000000       p22            9           1
+          9    Hmholtz VELZ:      4   5.8089E-17   1.7106E-05   1.7529E-14
+               L1/L2 DIV(V)    :  -2.5284E-23   6.0543E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.5284E-23   6.0543E-07
+          9   1.1442E-04  2.4650E-01 Fluid done
+Step     10, t= 1.3929920E-04, DT= 2.4883200E-05, C=  0.000 2.7935E+00 3.0032E-01
+             Solving for heat
+   0.0000000000000000       p22           10           1
+         10    Hmholtz TEMP:      2   3.3044E-12   1.6355E-04   1.1693E-09
+         10   1.3930E-04  3.5616E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.7295307925456463E-006   1.8023401011150490E-012
+   0.0000000000000000       p22           10           1
+       10 PRES gmres:   14  1.8560E-17  4.4848E-17  9.3480E-09  9.7959E-02  1.2975E-01    F
+   0.0000000000000000       p22           10           1
+         10    Hmholtz VELX:      4   4.6465E-17   1.2769E-05   2.0702E-14
+   0.0000000000000000       p22           10           1
+         10    Hmholtz VELY:      1   6.1227E-18   6.9120E-15   2.0702E-14
+   0.0000000000000000       p22           10           1
+         10    Hmholtz VELZ:      4   1.2215E-16   1.7177E-05   2.0702E-14
+               L1/L2 DIV(V)    :  -3.2973E-23   7.3707E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -3.2973E-23   7.3707E-07
+         10   1.3930E-04  2.3855E-01 Fluid done
+Step     11, t= 1.6915904E-04, DT= 2.9859840E-05, C=  0.000 3.0857E+00 2.9219E-01
+             Solving for heat
+         11    Hmholtz TEMP:      2   4.7576E-12   1.6355E-04   1.1693E-09
+         11   1.6916E-04  3.5626E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.8097508343924987E-006   2.1454079405572016E-012
+       11 PRES gmres:   13  5.5689E-17  6.4062E-17  6.1507E-09  9.0713E-02  1.2009E-01    F
+         11    Hmholtz VELX:      4   9.6059E-17   1.2768E-05   2.4642E-14
+         11    Hmholtz VELY:      1   5.7296E-18   3.0163E-15   2.4642E-14
+         11    Hmholtz VELZ:      4   2.5406E-16   1.7195E-05   2.4642E-14
+               L1/L2 DIV(V)    :  -4.6533E-23   8.9503E-07
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -4.6533E-23   8.9503E-07
+         11   1.6916E-04  2.3529E-01 Fluid done
+Step     12, t= 2.0499085E-04, DT= 3.5831808E-05, C=  0.000 3.3746E+00 2.8887E-01
+             Solving for heat
+         12    Hmholtz TEMP:      2   6.8496E-12   1.6354E-04   1.1693E-09
+         12   2.0499E-04  3.5555E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.8765205537377331E-006   2.5614441459862882E-012
+         12    PRES alph1n  1.4554E-03  3.3500E-04  4.3446E+00     1
+         12    PRES halpha     1  8.1172E-01
+       12 PRES gmres:   12  6.0365E-17  9.1781E-17  1.0531E-09  8.4295E-02  1.1151E-01    F
+         12    VELX alph1n  1.2767E-05  2.1277E-06  6.0003E+00     1
+         12    VELX halpha     1  9.9991E-01
+         12    Hmholtz VELX:      3   1.3900E-14   2.1277E-06   2.9421E-14
+         12    VELY alph1n  2.4983E-15  2.0115E-15  1.2420E+00     1
+         12    VELY halpha     1  4.9814E-01
+         12    Hmholtz VELY:      1   3.7922E-18   2.0115E-15   2.9421E-14
+         12    VELZ alph1n  1.7197E-05  2.8657E-06  6.0010E+00     1
+         12    VELZ halpha     1  1.0001E+00
+         12    Hmholtz VELZ:      4   8.8059E-17   2.8657E-06   2.9421E-14
+               L1/L2 DIV(V)    :   5.8119E-23   1.0846E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.8119E-23   1.0846E-06
+         12   2.0499E-04  2.3770E-01 Fluid done
+Step     13, t= 2.4798902E-04, DT= 4.2998170E-05, C=  0.000 3.6658E+00 2.9123E-01
+             Solving for heat
+         13    Hmholtz TEMP:      2   9.8613E-12   1.6353E-04   1.1692E-09
+         13   2.4799E-04  3.5538E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.9320427484999387E-006   3.0614851600529511E-012
+         13    PRES alph1n  1.1924E-03  1.2191E-04  9.7805E+00     2
+         13    PRES halpha     2 -2.7422E-01  1.1994E+00
+       13 PRES gmres:   11  1.3129E-16  1.3164E-16  3.9046E-10  7.7233E-02  1.0237E-01    F
+         13    VELX alph1n  1.2765E-05  2.1274E-06  6.0003E+00     2
+         13    VELX halpha     2 -1.4812E-07  9.9990E-01
+         13    Hmholtz VELX:      3   2.3961E-14   2.1274E-06   3.5164E-14
+         13    VELY alph1n  7.2453E-15  5.1345E-15  1.4111E+00     2
+         13    VELY halpha     2  1.3836E+00  7.1558E-01
+         13    Hmholtz VELY:      1   8.9113E-18   5.1345E-15   3.5164E-14
+         13    VELZ alph1n  1.7197E-05  2.8653E-06  6.0016E+00     2
+         13    VELZ halpha     2 -1.4200E-06  9.9997E-01
+         13    Hmholtz VELZ:      4   1.8066E-16   2.8653E-06   3.5164E-14
+               L1/L2 DIV(V)    :   6.5084E-23   1.3120E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   6.5084E-23   1.3120E-06
+         13   2.4799E-04  2.2536E-01 Fluid done
+Step     14, t= 2.9958682E-04, DT= 5.1597804E-05, C=  0.000 3.9447E+00 2.7885E-01
+             Solving for heat
+         14    Hmholtz TEMP:      2   1.4197E-11   1.6352E-04   1.1692E-09
+         14   2.9959E-04  3.7544E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.9781661530910864E-006   3.6611637717947316E-012
+         14    PRES alph1n  9.7027E-04  3.6348E-07  2.6694E+03     3
+         14    PRES halpha     3  3.1484E-01 -1.6575E+00  2.3625E+00
+       14 PRES gmres:    7  7.6531E-17  1.8891E-16  1.2070E-12  4.9562E-02  6.5580E-02    F
+         14    VELX alph1n  1.2764E-05  2.1272E-06  6.0004E+00     3
+         14    VELX halpha     3 -1.7724E-07 -6.3986E-08  9.9988E-01
+         14    Hmholtz VELX:      3   4.1286E-14   2.1272E-06   4.2052E-14
+         14    VELY alph1n  1.1915E-14  4.6403E-15  2.5677E+00     3
+         14    VELY halpha     3  7.0877E-01 -7.4647E-02  1.3837E+00
+         14    Hmholtz VELY:      1   9.0042E-18   4.6403E-15   4.2052E-14
+         14    VELZ alph1n  1.7195E-05  2.8650E-06  6.0019E+00     3
+         14    VELZ halpha     3  5.9398E-06 -4.9004E-06  9.9993E-01
+         14    Hmholtz VELZ:      4   3.7173E-16   2.8650E-06   4.2052E-14
+               L1/L2 DIV(V)    :  -8.4783E-23   1.5848E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -8.4783E-23   1.5848E-06
+         14   2.9959E-04  1.9025E-01 Fluid done
+Step     15, t= 3.6150419E-04, DT= 6.1917364E-05, C=  0.000 4.1929E+00 2.4825E-01
+             Solving for heat
+         15    Hmholtz TEMP:      2   2.0437E-11   1.6350E-04   1.1692E-09
+         15   3.6150E-04  3.5696E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.0164285910000893E-006   4.3797731904274809E-012
+         15    PRES alph1n  8.4894E-04  3.2905E-07  2.5800E+03     4
+         15    PRES halpha     4 -4.5388E-01  2.1254E+00 -3.7232E+00  3.0892E+00
+       15 PRES gmres:    6  2.4996E-16  2.7118E-16  1.3696E-12  4.2627E-02  5.6282E-02    F
+         15    VELX alph1n  1.2762E-05  2.1268E-06  6.0004E+00     4
+         15    VELX halpha     4 -2.1230E-07 -7.6645E-08 -9.2172E-08  9.9985E-01
+         15    Hmholtz VELX:      4   2.9051E-16   2.1268E-06   5.0306E-14
+         15    VELY alph1n  2.1839E-14  5.0793E-15  4.2996E+00     4
+         15    VELY halpha     4  9.2750E-02  1.3679E-01  1.6000E-01  1.7102E+00
+         15    Hmholtz VELY:      1   1.4203E-17   5.0793E-15   5.0306E-14
+         15    VELZ alph1n  1.7192E-05  2.8642E-06  6.0023E+00     4
+         15    VELZ halpha     4  6.0491E-06 -5.2490E-06 -2.2461E-06  9.9979E-01
+         15    Hmholtz VELZ:      4   7.6410E-16   2.8642E-06   5.0306E-14
+               L1/L2 DIV(V)    :   3.1179E-23   1.9122E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   3.1179E-23   1.9122E-06
+         15   3.6150E-04  1.8438E-01 Fluid done
+Step     16, t= 4.3580502E-04, DT= 7.4300837E-05, C=  0.000 4.4319E+00 2.3900E-01
+             Solving for heat
+         16    Hmholtz TEMP:      2   2.9418E-11   1.6349E-04   1.1692E-09
+         16   4.3581E-04  3.5593E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.0481050954899025E-006   5.2398858388957229E-012
+         16    PRES alph1n  8.2655E-04  4.4797E-08  1.8451E+04     5
+         16    PRES halpha     5  3.8617E-01 -1.9330E+00  4.5895E+00 -6.0972E+00  4.0262E+00
+       16 PRES gmres:    5  3.7422E-16  3.8933E-16  1.3950E-13  3.5296E-02  4.6687E-02    F
+         16    VELX alph1n  1.2760E-05  2.1264E-06  6.0005E+00     5
+         16    VELX halpha     5 -2.5425E-07 -9.1791E-08 -1.1039E-07 -1.3248E-07  9.9982E-01
+         16    Hmholtz VELX:      4   5.9803E-16   2.1264E-06   6.0186E-14
+         16    VELY alph1n  2.2325E-14  1.3317E-14  1.6764E+00     5
+         16    VELY halpha     5  3.9098E-01  4.0971E+00  4.9093E-01 -2.4272E-01  5.4922E-01
+         16    Hmholtz VELY:      1   5.0745E-17   1.3317E-14   6.0186E-14
+         16    VELZ alph1n  1.7185E-05  2.8628E-06  6.0027E+00     5
+         16    VELZ halpha     5  5.2438E-06 -4.9923E-06 -2.0550E-06 -2.5907E-06  9.9958E-01
+         16    Hmholtz VELZ:      4   1.5668E-15   2.8628E-06   6.0186E-14
+               L1/L2 DIV(V)    :  -8.7991E-23   2.3050E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -8.7991E-23   2.3050E-06
+         16   4.3581E-04  1.7651E-01 Fluid done
+Step     17, t= 5.2496603E-04, DT= 8.9161004E-05, C=  0.000 4.6619E+00 2.3000E-01
+             Solving for heat
+         17    Hmholtz TEMP:      2   4.2343E-11   1.6347E-04   1.1691E-09
+         17   5.2497E-04  3.5483E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.0742514844351276E-006   6.2676837249584733E-012
+         17    PRES alph1n  8.8264E-04  2.2949E-08  3.8461E+04     6
+         17    PRES halpha     6 -7.3814E-02  7.7953E-01 -2.9101E+00  5.9257E+00 -6.9719E+00  4.2327E+00
+       17 PRES gmres:    5  1.3467E-16  5.5883E-16  8.2241E-14  3.5317E-02  4.6703E-02    F
+         17    VELX alph1n  1.2757E-05  2.1259E-06  6.0006E+00     6
+         17    VELX halpha     6 -3.0430E-07 -1.0987E-07 -1.3212E-07 -1.5857E-07 -1.8984E-07  9.9979E-01
+         17    Hmholtz VELX:      4   1.2293E-15   2.1259E-06   7.1991E-14
+         17    VELY alph1n  3.8742E-14  1.4916E-14  2.5973E+00     6
+         17    VELY halpha     6 -2.3901E+00  3.0953E+00  7.0227E-01 -2.9789E-01 -7.3907E-02  1.5848E+00
+         17    Hmholtz VELY:      1   6.3581E-17   1.4916E-14   7.1991E-14
+         17    VELZ alph1n  1.7174E-05  2.8608E-06  6.0031E+00     6
+         17    VELZ halpha     6  6.0635E-06 -6.0338E-06 -2.4246E-06 -3.9907E-06 -5.9946E-06  9.9938E-01
+         17    Hmholtz VELZ:      4   3.2045E-15   2.8608E-06   7.1991E-14
+               L1/L2 DIV(V)    :  -7.5716E-23   2.7762E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -7.5716E-23   2.7762E-06
+         17   5.2497E-04  1.7887E-01 Fluid done
+Step     18, t= 6.3195923E-04, DT= 1.0699321E-04, C=  0.000 4.8942E+00 2.3230E-01
+             Solving for heat
+         18    Hmholtz TEMP:      2   6.0940E-11   1.6345E-04   1.1690E-09
+         18   6.3196E-04  3.5514E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.0957395992858565E-006   7.4936800299501853E-012
+         18    PRES alph1n  9.9696E-04  6.7939E-09  1.4674E+05     7
+         18    PRES halpha     7 -3.4334E-02 -7.2690E-02  1.2624E+00 -4.5000E+00  8.3119E+00 -8.6098E+00  4.6387E+00
+       18 PRES gmres:    4  2.2767E-16  8.0177E-16  2.7778E-14  2.8341E-02  3.7624E-02    F
+         18    VELX alph1n  1.2754E-05  2.1253E-06  6.0007E+00     7
+         18    VELX halpha     7 -3.6397E-07 -1.3142E-07 -1.5804E-07 -1.8967E-07 -2.2707E-07 -2.7146E-07  9.9974E-01
+         18    Hmholtz VELX:      4   2.5226E-15   2.1253E-06   8.6073E-14
+         18    VELY alph1n  6.5235E-14  1.2869E-14  5.0692E+00     7
+         18    VELY halpha     7 -6.6744E-01 -2.5712E-01 -5.5334E-02  2.3118E-01 -2.7634E-01  3.8456E-01  1.5597E+00
+         18    Hmholtz VELY:      1   7.8542E-17   1.2869E-14   8.6073E-14
+         18    VELZ alph1n  1.7160E-05  2.8582E-06  6.0035E+00     7
+         18    VELZ halpha     7  8.3140E-06 -8.1858E-06 -3.2832E-06 -5.3114E-06 -7.9701E-06 -9.5991E-06  9.9919E-01
+         18    Hmholtz VELZ:      4   6.5368E-15   2.8582E-06   8.6073E-14
+               L1/L2 DIV(V)    :   4.5703E-22   3.3415E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   4.5703E-22   3.3415E-06
+         18   6.3196E-04  1.7178E-01 Fluid done
+Step     19, t= 7.6035108E-04, DT= 1.2839185E-04, C=  0.000 5.1194E+00 2.2518E-01
+             Solving for heat
+         19    Hmholtz TEMP:      2   8.7697E-11   1.6342E-04   1.1690E-09
+         19   7.6035E-04  3.5532E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1132862926785581E-006   8.9534992541041610E-012
+         19    PRES alph1n  1.1556E-03  2.5567E-09  4.5198E+05     8
+         19    PRES halpha     8 -4.0758E-02 -7.8065E-02  1.1104E+00 -3.1110E+00  3.6350E+00 -6.2755E-02 -4.1437E+00  3.6846E+00
+       19 PRES gmres:    3  4.1164E-16  1.1496E-15  9.9573E-15  2.1380E-02  2.8663E-02    F
+         19    VELX alph1n  1.2750E-05  2.1246E-06  6.0009E+00     8
+         19    VELX halpha     8 -4.3504E-07 -1.5709E-07 -1.8891E-07 -2.2672E-07 -2.7143E-07 -3.2450E-07 -3.8765E-07  9.9969E-01
+         19    Hmholtz VELX:      4   5.1663E-15   2.1246E-06   1.0284E-13
+         19    VELY alph1n  1.1229E-13  1.9906E-14  5.6409E+00     8
+         19    VELY halpha     8 -8.5820E-01  2.4863E-01  2.8401E-01 -7.2466E-02  9.4532E-02 -1.9186E-02  3.0121E-03  1.7094E+00
+         19    Hmholtz VELY:      1   1.4021E-16   1.9906E-14   1.0284E-13
+         19    VELZ alph1n  1.7142E-05  2.8551E-06  6.0040E+00     8
+         19    VELZ halpha     8  1.1102E-05 -1.0762E-05 -4.3300E-06 -6.6054E-06 -9.8551E-06 -1.1925E-05 -1.3306E-05  9.9902E-01
+         19    Hmholtz VELZ:      4   1.3295E-14   2.8551E-06   1.0284E-13
+               L1/L2 DIV(V)    :   5.0756E-22   4.0196E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.0756E-22   4.0196E-06
+         19   7.6035E-04  1.6395E-01 Fluid done
+Step     20, t= 9.1442129E-04, DT= 1.5407022E-04, C=  0.000 5.3368E+00 2.1740E-01
+             Solving for heat
+         20    Hmholtz TEMP:      2   1.2619E-10   1.6338E-04   1.1689E-09
+         20   9.1442E-04  3.5505E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1274774022157629E-006   1.0688554463809979E-011
+         20    PRES alph1n  1.3546E-03  3.9023E-09  3.4712E+05     8
+         20    PRES halpha     8  3.8807E+00 -3.0779E-02 -4.8801E-02  6.9195E-01 -1.7561E+00  1.3714E+00  2.0405E+00 -5.1571E+00
+       20 PRES gmres:    3  6.5890E-16  1.6468E-15  1.5145E-14  2.1702E-02  2.9079E-02    F
+         20    VELX alph1n  1.2745E-05  2.1238E-06  6.0011E+00     8
+         20    VELX halpha     8  9.9963E-01 -6.2069E-07 -2.2564E-07 -2.7081E-07 -3.2422E-07 -3.8762E-07 -4.6306E-07 -5.5280E-07
+         20    Hmholtz VELX:      4   1.0555E-14   2.1238E-06   1.2277E-13
+         20    VELY alph1n  1.9238E-13  3.4470E-14  5.5810E+00     8
+         20    VELY halpha     8  1.6852E+00 -9.2200E-01 -2.1682E-01  1.0683E-01  6.6345E-02  5.7653E-02 -3.4101E-02  5.6798E-02
+         20    Hmholtz VELY:      1   2.7805E-16   3.4470E-14   1.2277E-13
+         20    VELZ alph1n  1.7121E-05  2.8514E-06  6.0045E+00     8
+         20    VELZ halpha     8  9.9883E-01 -1.7921E-06 -5.3966E-06 -7.9831E-06 -1.1873E-05 -1.4403E-05 -1.6106E-05 -1.7984E-05
+         20    Hmholtz VELZ:      4   2.6948E-14   2.8514E-06   1.2277E-13
+               L1/L2 DIV(V)    :  -5.7009E-22   4.8331E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -5.7009E-22   4.8331E-06
+         20   9.1442E-04  1.6576E-01 Fluid done
+Step     21, t= 1.0993056E-03, DT= 1.8488426E-04, C=  0.000 5.5560E+00 2.1923E-01
+             Solving for heat
+         21    Hmholtz TEMP:      2   1.8154E-10   1.6334E-04   1.1688E-09
+         21   1.0993E-03  3.5511E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1387873793127951E-006   1.2746594825422414E-011
+         21    PRES alph1n  1.5965E-03  3.5484E-09  4.4991E+05     8
+         21    PRES halpha     8 -8.5528E+00  4.7578E+00  1.8709E-01 -1.2163E+00  3.3065E+00 -4.1667E+00  3.0427E-01  6.3780E+00
+       21 PRES gmres:    2  1.3256E-15  2.3566E-15  1.2653E-14  1.4441E-02  1.9774E-02    F
+         21    VELX alph1n  1.2739E-05  2.1228E-06  6.0013E+00     8
+         21    VELX halpha     8 -7.8702E-07  9.9956E-01 -8.8663E-07 -3.2319E-07 -3.8694E-07 -4.6261E-07 -5.5266E-07 -6.5979E-07
+         21    Hmholtz VELX:      4   2.1505E-14   2.1228E-06   1.4641E-13
+         21    VELY alph1n  3.3075E-13  5.7895E-14  5.7130E+00     8
+         21    VELY halpha     8  4.5951E-02  1.7020E+00  2.7442E-01 -2.7598E-01  1.0310E-01  6.1100E-03 -1.1578E-02 -3.3892E-02
+         21    Hmholtz VELY:      1   5.6841E-16   5.7895E-14   1.4641E-13
+         21    VELZ alph1n  1.7097E-05  2.8470E-06  6.0050E+00     8
+         21    VELZ halpha     8 -2.4544E-05  9.9863E-01 -8.2517E-06 -9.5332E-06 -1.4171E-05 -1.7198E-05 -1.9239E-05 -2.1485E-05
+         21    Hmholtz VELZ:      4   5.4394E-14   2.8470E-06   1.4641E-13
+               L1/L2 DIV(V)    :   6.3124E-22   5.8087E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   6.3124E-22   5.8087E-06
+         21   1.0993E-03  1.5550E-01 Fluid done
+Step     22, t= 1.3211667E-03, DT= 2.2186111E-04, C=  0.000 5.7650E+00 2.0894E-01
+             Solving for heat
+         22    Hmholtz TEMP:      2   2.6112E-10   1.6330E-04   1.1687E-09
+         22   1.3212E-03  3.5522E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1475952384143853E-006   1.5182126563731147E-011
+         22    PRES alph1n  1.8861E-03  4.0292E-09  4.6811E+05     8
+         22    PRES halpha     8  3.0826E+00 -5.9687E+00  4.0969E+00 -3.1058E-02 -7.0391E-02  8.0264E-01 -1.8319E+00  9.1481E-01
+       22 PRES gmres:    2  1.9433E-15  3.3683E-15  1.5064E-14  1.4427E-02  1.9769E-02    F
+         22    VELX alph1n  1.2733E-05  2.1216E-06  6.0015E+00     8
+         22    VELX halpha     8 -9.3840E-07 -1.1182E-06  9.9947E-01 -1.2662E-06 -4.6131E-07 -5.5154E-07 -6.5892E-07 -7.8667E-07
+         22    Hmholtz VELX:      4   4.3666E-14   2.1216E-06   1.7438E-13
+         22    VELY alph1n  5.7415E-13  1.0382E-13  5.5302E+00     8
+         22    VELY halpha     8 -3.1511E-02  4.6357E-02  1.7094E+00  2.7417E-02  1.2392E-01 -7.3445E-01  5.2505E-01 -4.9711E-02
+         22    Hmholtz VELY:      1   1.1612E-15   1.0382E-13   1.7438E-13
+         22    VELZ alph1n  1.7068E-05  2.8420E-06  6.0055E+00     8
+         22    VELZ halpha     8 -2.9108E-05 -3.3810E-05  9.9841E-01 -1.9430E-05 -1.6825E-05 -2.0409E-05 -2.2820E-05 -2.5480E-05
+         22    Hmholtz VELZ:      4   1.0925E-13   2.8420E-06   1.7438E-13
+               L1/L2 DIV(V)    :   9.5032E-23   6.9788E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   9.5032E-23   6.9788E-06
+         22   1.3212E-03  1.5501E-01 Fluid done
+Step     23, t= 1.5874000E-03, DT= 2.6623333E-04, C=  0.000 5.9734E+00 2.0843E-01
+             Solving for heat
+         23    Hmholtz TEMP:      2   3.7551E-10   1.6324E-04   1.1686E-09
+         23   1.5874E-03  3.5576E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1541973893904345E-006   1.8056670125607431E-011
+         23    PRES alph1n  2.2291E-03  7.8316E-09  2.8462E+05     8
+         23    PRES halpha     8  2.8060E+00  2.0911E+00 -5.8946E+00  4.1642E+00  2.1648E-03 -2.9846E-01  1.5839E+00 -3.4530E+00
+       23 PRES gmres:    2  3.6361E-15  4.8073E-15  2.8899E-14  1.4407E-02  1.9738E-02    F
+         23    VELX alph1n  1.2724E-05  2.1201E-06  6.0018E+00     8
+         23    VELX halpha     8 -1.1175E-06 -1.3317E-06 -1.5847E-06  9.9937E-01 -1.8059E-06 -6.5675E-07 -7.8464E-07 -9.3681E-07
+         23    Hmholtz VELX:      4   8.8321E-14   2.1201E-06   2.0740E-13
+         23    VELY alph1n  9.8155E-13  1.7128E-13  5.7305E+00     8
+         23    VELY halpha     8  7.7047E-02 -5.0843E-02  6.4348E-02  1.6842E+00 -2.2197E-01  7.3294E-01 -4.5294E-01 -2.6111E-03
+         23    Hmholtz VELY:      1   2.3591E-15   1.7128E-13   2.0740E-13
+         23    VELZ alph1n  1.7034E-05  2.8362E-06  6.0059E+00     8
+         23    VELZ halpha     8 -3.4334E-05 -3.9885E-05 -4.6571E-05  9.9816E-01 -3.8941E-05 -2.4095E-05 -2.6923E-05 -3.0053E-05
+         23    Hmholtz VELZ:      5   5.5250E-15   2.8362E-06   2.0740E-13
+               L1/L2 DIV(V)    :  -2.9945E-22   8.3820E-06
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.9945E-22   8.3820E-06
+         23   1.5874E-03  1.5695E-01 Fluid done
+Step     24, t= 1.9068800E-03, DT= 3.1948000E-04, C=  0.000 6.1838E+00 2.1043E-01
+             Solving for heat
+         24    Hmholtz TEMP:      2   5.3987E-10   1.6317E-04   1.1684E-09
+         24   1.9069E-03  3.5618E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1588178121241274E-006   2.1438760156208500E-011
+         24    PRES alph1n  2.6315E-03  1.2651E-08  2.0801E+05     8
+         24    PRES halpha     8 -9.2943E+00  1.0818E+01 -3.6457E+00 -4.0664E+00  4.0037E+00  7.6535E-02 -9.1990E-01  4.0434E+00
+       24 PRES gmres:    2  3.9768E-15  6.8493E-15  4.4991E-14  1.4401E-02  1.9718E-02    F
+         24    VELX alph1n  1.2715E-05  2.1184E-06  6.0021E+00     8
+         24    VELX halpha     8 -1.3289E-06 -1.5837E-06 -1.8848E-06 -2.2395E-06  9.9925E-01 -2.5705E-06 -9.3298E-07 -1.1140E-06
+         24    Hmholtz VELX:      4   1.7783E-13   2.1184E-06   2.4625E-13
+         24    VELY alph1n  1.6755E-12  3.0207E-13  5.5468E+00     8
+         24    VELY halpha     8 -1.7591E-01  1.0197E-01 -4.2419E-02  5.7939E-02  1.6784E+00  7.1868E-01 -7.1931E-01  3.3635E-01
+         24    Hmholtz VELY:      1   4.9957E-15   3.0207E-13   2.4625E-13
+         24    VELZ alph1n  1.6995E-05  2.8295E-06  6.0062E+00     8
+         24    VELZ halpha     8 -4.0291E-05 -4.6810E-05 -5.4661E-05 -6.3710E-05  9.9790E-01 -6.6395E-05 -3.1602E-05 -3.5267E-05
+         24    Hmholtz VELZ:      5   1.3071E-14   2.8295E-06   2.4625E-13
+               L1/L2 DIV(V)    :  -7.0015E-22   1.0064E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -7.0015E-22   1.0064E-05
+         24   1.9069E-03  1.5635E-01 Fluid done
+Step     25, t= 2.2902560E-03, DT= 3.8337600E-04, C=  0.000 6.3937E+00 2.0988E-01
+             Solving for heat
+         25    Hmholtz TEMP:      2   7.7592E-10   1.6309E-04   1.1682E-09
+         25   2.2903E-03  3.5651E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1616159269600218E-006   2.5403554798992854E-011
+         25    PRES alph1n  3.1002E-03  1.8567E-08  1.6698E+05     8
+         25    PRES halpha     8  2.8877E+00 -7.6934E+00  1.0727E+01 -5.2788E+00 -2.7706E+00  3.7011E+00  1.8455E-02 -5.6606E-01
+       25 PRES gmres:    2  4.8988E-15  9.7391E-15  6.0786E-14  1.4512E-02  1.9843E-02    F
+         25    VELX alph1n  1.2703E-05  2.1163E-06  6.0025E+00     8
+         25    VELX halpha     8 -1.5776E-06 -1.8802E-06 -2.2378E-06 -2.6593E-06 -3.1544E-06  9.9910E-01 -3.6504E-06 -1.3223E-06
+         25    Hmholtz VELX:      5   1.4600E-14   2.1163E-06   2.9179E-13
+         25    VELY alph1n  2.8928E-12  4.9866E-13  5.8011E+00     8
+         25    VELY halpha     8  2.6307E-01 -1.2328E-01  1.2909E-02 -2.9001E-02  6.0225E-02  1.7034E+00  1.1364E+00 -7.7434E-01
+         25    Hmholtz VELY:      1   9.5654E-15   4.9866E-13   2.9179E-13
+         25    VELZ alph1n  1.6950E-05  2.8220E-06  6.0062E+00     8
+         25    VELZ halpha     8 -4.7027E-05 -5.4642E-05 -6.3813E-05 -7.4380E-05 -8.6274E-05  9.9761E-01 -1.0154E-04 -4.1161E-05
+         25    Hmholtz VELZ:      5   3.0651E-14   2.8220E-06   2.9179E-13
+               L1/L2 DIV(V)    :  -3.9806E-22   1.2081E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -3.9806E-22   1.2081E-05
+         25   2.2903E-03  1.6886E-01 Fluid done
+Step     26, t= 2.7503072E-03, DT= 4.6005120E-04, C=  0.000 6.6190E+00 2.2533E-01
+             Solving for heat
+         26    Hmholtz TEMP:      2   1.1147E-09   1.6299E-04   1.1680E-09
+         26   2.7503E-03  3.5249E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1626924896825953E-006   3.0031904916634101E-011
+         26    PRES alph1n  3.6421E-03  2.6346E-08  1.3824E+05     8
+         26    PRES halpha     8  1.9087E+00 -3.5420E+00  1.7528E+00  4.7513E+00 -5.4369E+00 -1.1480E+00  3.2551E+00 -4.7843E-01
+       26 PRES gmres:    2  8.0888E-15  1.3816E-14  9.2619E-14  1.4448E-02  1.9741E-02    F
+         26    VELX alph1n  1.2689E-05  2.1139E-06  6.0029E+00     8
+         26    VELX halpha     8 -1.8691E-06 -2.2277E-06 -2.6518E-06 -3.1516E-06 -3.7389E-06 -4.4262E-06  9.9892E-01 -5.1707E-06
+         26    Hmholtz VELX:      5   3.4589E-14   2.1139E-06   3.4496E-13
+         26    VELY alph1n  4.9399E-12  8.3668E-13  5.9042E+00     8
+         26    VELY halpha     8 -2.0763E-01  1.1000E-01 -6.4709E-02 -5.1512E-04  5.2384E-03  9.3600E-03  1.7027E+00  2.8217E-01
+         26    Hmholtz VELY:      1   1.9244E-14   8.3668E-13   3.4496E-13
+         26    VELZ alph1n  1.6898E-05  2.8136E-06  6.0058E+00     8
+         26    VELZ halpha     8 -5.4563E-05 -6.3407E-05 -7.4056E-05 -8.6325E-05 -1.0013E-04 -1.1541E-04  9.9733E-01 -1.4606E-04
+         26    Hmholtz VELZ:      5   7.1154E-14   2.8136E-06   3.4496E-13
+               L1/L2 DIV(V)    :   2.4296E-22   1.4498E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.4296E-22   1.4498E-05
+         26   2.7503E-03  1.5735E-01 Fluid done
+Step     27, t= 3.3023686E-03, DT= 5.5206144E-04, C=  0.000 6.8294E+00 2.1039E-01
+             Solving for heat
+         27    Hmholtz TEMP:      3   8.5104E-12   1.6287E-04   1.1677E-09
+         27   3.3024E-03  3.6639E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1620935820050985E-006   3.5408744514215525E-011
+         27    PRES alph1n  4.2643E-03  7.2299E-08  5.8981E+04     8
+         27    PRES halpha     8 -5.5867E-01  2.2371E+00 -3.2202E+00 -2.0011E-01  5.9703E+00 -4.2079E+00 -2.6236E+00  3.6508E+00
+       27 PRES gmres:    2  1.4403E-14  1.9548E-14  2.2461E-13  1.4420E-02  1.9724E-02    F
+         27    VELX alph1n  1.2673E-05  2.1109E-06  6.0034E+00     8
+         27    VELX halpha     8 -7.3027E-06 -2.6333E-06 -3.1349E-06 -3.7264E-06 -4.4215E-06 -5.2354E-06 -6.1840E-06  9.9872E-01
+         27    Hmholtz VELX:      5   8.1142E-14   2.1109E-06   4.0672E-13
+         27    VELY alph1n  5.4429E-12  1.0101E-12  5.3885E+00     8
+         27    VELY halpha     8 -4.9840E-02  4.5112E-02  8.2154E-02 -2.9608E-02 -2.0190E-02  3.0150E-02  1.3540E-03  1.0910E+00
+         27    Hmholtz VELY:      1   3.2286E-14   1.0101E-12   4.0672E-13
+         27    VELZ alph1n  1.6840E-05  2.8043E-06  6.0049E+00     8
+         27    VELZ halpha     8 -2.0335E-04 -7.3081E-05 -8.5366E-05 -9.9516E-05 -1.1544E-04 -1.3306E-04 -1.5218E-04  9.9704E-01
+         27    Hmholtz VELZ:      5   1.6333E-13   2.8043E-06   4.0672E-13
+               L1/L2 DIV(V)    :  -1.0485E-21   1.7395E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.0485E-21   1.7395E-05
+         27   3.3024E-03  1.5734E-01 Fluid done
+Step     28, t= 3.9648424E-03, DT= 6.6247373E-04, C=  0.000 7.0411E+00 2.1170E-01
+             Solving for heat
+         28    Hmholtz TEMP:      3   1.4621E-11   1.6273E-04   1.1673E-09
+         28   3.9648E-03  3.6657E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1598132759577719E-006   4.1620707800281069E-011
+         28    PRES alph1n  4.9733E-03  7.3769E-08  6.7418E+04     8
+         28    PRES halpha     8  1.7979E+00 -3.9475E+00  1.4040E+01 -2.1001E+01  1.6912E+01 -1.0077E+00 -9.8075E+00  4.1757E+00
+       28 PRES gmres:    2  1.9392E-14  2.7573E-14  2.5075E-13  1.4442E-02  1.9751E-02    F
+         28    VELX alph1n  1.2653E-05  2.1074E-06  6.0040E+00     8
+         28    VELX halpha     8  9.9847E-01 -1.0279E-05 -3.6961E-06 -4.3942E-06 -5.2149E-06 -6.1763E-06 -7.2974E-06 -8.5983E-06
+         28    Hmholtz VELX:      5   1.8811E-13   2.1074E-06   4.7808E-13
+         28    VELY alph1n  4.9683E-12  9.2589E-13  5.3660E+00     8
+         28    VELY halpha     8  9.1620E-01 -1.7691E-01  7.2905E-02  5.8805E-02 -5.4994E-02  1.7383E-02  2.1829E-03 -9.0700E-03
+         28    Hmholtz VELY:      1   3.1580E-14   9.2589E-13   4.7808E-13
+         28    VELZ alph1n  1.6775E-05  2.7942E-06  6.0034E+00     8
+         28    VELZ halpha     8  9.9677E-01 -2.7766E-04 -9.7639E-05 -1.1383E-04 -1.3206E-04 -1.5224E-04 -1.7413E-04 -1.9730E-04
+         28    Hmholtz VELZ:      5   3.7024E-13   2.7942E-06   4.7808E-13
+               L1/L2 DIV(V)    :  -1.1486E-21   2.0865E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.1486E-21   2.0865E-05
+         28   3.9648E-03  1.5735E-01 Fluid done
+Step     29, t= 4.7598108E-03, DT= 7.9496847E-04, C=  0.000 7.2529E+00 2.1175E-01
+             Solving for heat
+         29    Hmholtz TEMP:      3   2.5092E-11   1.6256E-04   1.1669E-09
+         29   4.7598E-03  3.6616E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1557946180656856E-006   4.8752982081689710E-011
+         29    PRES alph1n  5.7747E-03  8.8175E-08  6.5492E+04     8
+         29    PRES halpha     8 -1.9038E+00  3.1128E+00  2.6924E+00 -1.0251E+01  1.1568E+01 -1.3207E+00 -2.6629E+00 -1.6672E-01
+       29 PRES gmres:    2  1.7134E-14  3.8757E-14  2.9673E-13  1.4457E-02  1.9770E-02    F
+         29    VELX alph1n  1.2630E-05  2.1033E-06  6.0047E+00     8
+         29    VELX halpha     8 -1.1891E-05  9.9817E-01 -1.4412E-05 -5.1655E-06 -6.1317E-06 -7.2642E-06 -8.5856E-06 -1.0120E-05
+         29    Hmholtz VELX:      5   4.3002E-13   2.1033E-06   5.6001E-13
+         29    VELY alph1n  4.1693E-12  8.8970E-13  4.6862E+00     8
+         29    VELY halpha     8 -1.0784E-02  8.2873E-01 -2.0523E-01  4.1740E-02  9.1339E-02 -8.0519E-02  1.0276E-02  2.7794E-02
+         29    Hmholtz VELY:      1   3.5590E-14   8.8970E-13   5.6001E-13
+         29    VELZ alph1n  1.6703E-05  2.7833E-06  6.0011E+00     8
+         29    VELZ halpha     8 -2.5071E-04  9.9653E-01 -3.7335E-04 -1.2904E-04 -1.4972E-04 -1.7261E-04 -1.9747E-04 -2.2379E-04
+         29    Hmholtz VELZ:      6   3.1962E-14   2.7833E-06   5.6001E-13
+               L1/L2 DIV(V)    :   4.0786E-22   2.5020E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   4.0786E-22   2.5020E-05
+         29   4.7598E-03  1.5993E-01 Fluid done
+Step     30, t= 5.7137730E-03, DT= 9.5396217E-04, C=  0.000 7.4673E+00 2.1444E-01
+             Solving for heat
+         30    Hmholtz TEMP:      3   4.3000E-11   1.6236E-04   1.1664E-09
+         30   5.7138E-03  3.6935E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1499296596145606E-006   5.6885575272703484E-011
+         30    PRES alph1n  6.6732E-03  9.1231E-08  7.3145E+04     8
+         30    PRES halpha     8 -1.3877E+00 -1.2332E+00  2.9130E+00  7.9289E-01 -4.4044E+00  6.8608E+00 -1.8378E+00 -5.8560E-01
+       30 PRES gmres:    2  3.1402E-14  5.4267E-14  3.2749E-13  1.4419E-02  1.9740E-02    F
+         30    VELX alph1n  1.2602E-05  2.0984E-06  6.0054E+00     8
+         30    VELX halpha     8 -1.3956E-05 -1.6350E-05  9.9783E-01 -2.0118E-05 -7.1840E-06 -8.5136E-06 -1.0066E-05 -1.1871E-05
+         30    Hmholtz VELX:      6   3.6652E-14   2.0984E-06   6.5343E-13
+         30    VELY alph1n  3.7942E-12  9.9135E-13  3.8273E+00     8
+         30    VELY halpha     8 -3.6434E-02 -4.3533E-02  9.3203E-01 -5.3502E-02 -9.9148E-03 -4.1228E-03 -6.1786E-03  6.2293E-02
+         30    Hmholtz VELY:      1   5.4862E-14   9.9135E-13   6.5343E-13
+         30    VELZ alph1n  1.6624E-05  2.7716E-06  5.9979E+00     8
+         30    VELZ halpha     8 -2.8152E-04 -3.1116E-04  9.9634E-01 -4.9439E-04 -1.6798E-04 -1.9369E-04 -2.2162E-04 -2.5121E-04
+         30    Hmholtz VELZ:      6   8.0676E-14   2.7716E-06   6.5343E-13
+               L1/L2 DIV(V)    :  -7.1936E-22   2.9995E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -7.1936E-22   2.9995E-05
+         30   5.7138E-03  1.6098E-01 Fluid done
+Step     31, t= 6.8585276E-03, DT= 1.1447546E-03, C=  0.000 7.6832E+00 2.1583E-01
+             Solving for heat
+         31    Hmholtz TEMP:      3   7.3567E-11   1.6211E-04   1.1658E-09
+         31   6.8585E-03  3.6951E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1420581695278616E-006   6.6089450709695433E-011
+         31    PRES alph1n  7.6719E-03  1.1683E-07  6.5667E+04     8
+         31    PRES halpha     8  2.7842E+00 -2.0914E+00 -2.7486E+00  3.5050E+00  7.0821E-01 -1.8751E+00  1.5181E+00 -7.3205E-01
+       31 PRES gmres:    2  4.2412E-14  7.5656E-14  4.3134E-13  1.4423E-02  1.9765E-02    F
+         31    VELX alph1n  1.2568E-05  2.0925E-06  6.0062E+00     8
+         31    VELX halpha     8 -1.6317E-05 -1.9130E-05 -2.2344E-05  9.9742E-01 -2.7944E-05 -9.9380E-06 -1.1756E-05 -1.3870E-05
+         31    Hmholtz VELX:      6   9.6711E-14   2.0925E-06   7.5917E-13
+         31    VELY alph1n  3.9043E-12  1.1016E-12  3.5441E+00     8
+         31    VELY halpha     8 -3.5177E-02 -4.5423E-02  2.0797E-02  1.0328E+00 -7.7661E-02  4.1543E-02 -2.2475E-03  3.6953E-02
+         31    Hmholtz VELY:      1   6.3995E-14   1.1016E-12   7.5917E-13
+         31    VELZ alph1n  1.6539E-05  2.7593E-06  5.9937E+00     8
+         31    VELZ halpha     8 -3.1239E-04 -3.4543E-04 -3.7577E-04  9.9621E-01 -6.4383E-04 -2.1474E-04 -2.4577E-04 -2.7866E-04
+         31    Hmholtz VELZ:      6   1.9990E-13   2.7593E-06   7.5917E-13
+               L1/L2 DIV(V)    :   3.1651E-23   3.5946E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   3.1651E-23   3.5946E-05
+         31   6.8585E-03  1.6117E-01 Fluid done
+Step     32, t= 8.2322331E-03, DT= 1.3737055E-03, C=  0.000 7.8993E+00 2.1610E-01
+             Solving for heat
+         32    Hmholtz TEMP:      3   1.2562E-10   1.6182E-04   1.1651E-09
+         32   8.2322E-03  3.7160E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1319659833794187E-006   7.6423337249673133E-011
+         32    PRES alph1n  8.7735E-03  1.6149E-07  5.4329E+04     8
+         32    PRES halpha     8  7.7990E-01  3.3647E+00 -2.9724E+00 -3.2283E+00  3.8177E+00  2.4997E+00 -6.6321E+00  3.3264E+00
+       32 PRES gmres:    2  6.2794E-14  1.0498E-13  5.2947E-13  1.4449E-02  1.9764E-02    F
+         32    VELX alph1n  1.2529E-05  2.0856E-06  6.0071E+00     8
+         32    VELX halpha     8 -1.8995E-05 -2.2290E-05 -2.6059E-05 -3.0344E-05  9.9694E-01 -3.8601E-05 -1.3667E-05 -1.6136E-05
+         32    Hmholtz VELX:      6   2.5025E-13   2.0856E-06   8.7789E-13
+         32    VELY alph1n  4.2505E-12  1.3520E-12  3.1438E+00     8
+         32    VELY halpha     8 -5.1381E-02  2.6656E-02 -8.4986E-02  2.2596E-02  1.0854E+00 -1.0872E-02  2.3842E-02  3.2368E-02
+         32    Hmholtz VELY:      1   8.5708E-14   1.3520E-12   8.7789E-13
+         32    VELZ alph1n  1.6449E-05  2.7465E-06  5.9888E+00     8
+         32    VELZ halpha     8 -3.4199E-04 -3.7836E-04 -4.1186E-04 -4.3978E-04  9.9615E-01 -8.2295E-04 -2.6885E-04 -3.0494E-04
+         32    Hmholtz VELZ:      6   4.8660E-13   2.7465E-06   8.7789E-13
+               L1/L2 DIV(V)    :  -1.2989E-21   4.3064E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.2989E-21   4.3064E-05
+         32   8.2322E-03  1.6121E-01 Fluid done
+Step     33, t= 9.8806797E-03, DT= 1.6484466E-03, C=  0.000 8.1156E+00 2.1631E-01
+             Solving for heat
+         33    Hmholtz TEMP:      3   2.1399E-10   1.6147E-04   1.1643E-09
+         33   9.8807E-03  3.6956E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1193827869920153E-006   8.7932416751481178E-011
+         33    PRES alph1n  9.9811E-03  2.9481E-07  3.3856E+04     8
+         33    PRES halpha     8 -4.8332E+00  4.2822E+00  6.2758E+00 -4.9406E+00 -3.8954E+00  4.2763E+00  9.4321E-01 -1.2449E+00
+       33 PRES gmres:    2  6.6130E-14  1.4495E-13  9.1369E-13  1.4436E-02  1.9786E-02    F
+         33    VELX alph1n  1.2482E-05  2.0775E-06  6.0081E+00     8
+         33    VELX halpha     8 -2.2008E-05 -2.5850E-05 -3.0256E-05 -3.5276E-05 -4.0955E-05  9.9637E-01 -5.3007E-05 -1.8679E-05
+         33    Hmholtz VELX:      6   6.3367E-13   2.0775E-06   1.0101E-12
+         33    VELY alph1n  4.8123E-12  1.8665E-12  2.5782E+00     8
+         33    VELY halpha     8 -3.9763E-02  2.3837E-02 -1.0851E-01 -7.5213E-02  6.3252E-02  1.1037E+00 -9.5067E-03  4.0538E-02
+         33    Hmholtz VELY:      1   1.2388E-13   1.8665E-12   1.0101E-12
+         33    VELZ alph1n  1.6354E-05  2.7333E-06  5.9834E+00     8
+         33    VELZ halpha     8 -3.6875E-04 -4.0823E-04 -4.4472E-04 -4.7532E-04 -4.9678E-04  9.9616E-01 -1.0303E-03 -3.2864E-04
+         33    Hmholtz VELZ:      7   1.1455E-13   2.7333E-06   1.0101E-12
+               L1/L2 DIV(V)    :  -2.6158E-21   5.1570E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.6158E-21   5.1570E-05
+         33   9.8807E-03  1.6254E-01 Fluid done
+Step     34, t= 1.1858816E-02, DT= 1.9781359E-03, C=  0.000 8.3330E+00 2.1741E-01
+             Solving for heat
+         34    Hmholtz TEMP:      3   3.6352E-10   1.6106E-04   1.1633E-09
+         34   1.1859E-02  3.6944E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1039798267522232E-006   1.0065040364730839E-010
+         34    PRES alph1n  1.1300E-02  3.2213E-07  3.5079E+04     8
+         34    PRES halpha     8 -2.9855E+00 -2.9251E+00  6.6294E+00  4.4664E+00 -7.0221E+00 -1.8062E+00  3.8018E+00  6.2166E-01
+       34 PRES gmres:    2  8.5133E-14  1.9910E-13  1.0099E-12  1.6724E-02  2.2811E-02    F
+         34    VELX alph1n  1.2426E-05  2.0679E-06  6.0091E+00     8
+         34    VELX halpha     8 -2.5364E-05 -2.9824E-05 -3.4952E-05 -4.0812E-05 -4.7462E-05 -5.4960E-05  9.9571E-01 -7.2330E-05
+         34    Hmholtz VELX:      7   1.9333E-13   2.0679E-06   1.1562E-12
+         34    VELY alph1n  7.7324E-12  2.9394E-12  2.6306E+00     8
+         34    VELY halpha     8 -3.8303E-02  1.2950E-01 -1.5520E-01 -2.4219E-01 -2.5439E-01  3.2993E-01  1.5123E+00 -1.3693E-02
+         34    Hmholtz VELY:      1   2.0836E-13   2.9394E-12   1.1562E-12
+         34    VELZ alph1n  1.6257E-05  2.7195E-06  5.9779E+00     8
+         34    VELZ halpha     8 -3.9099E-04 -4.3318E-04 -4.7234E-04 -5.0542E-04 -5.2901E-04 -5.3969E-04  9.9622E-01 -1.2604E-03
+         34    Hmholtz VELZ:      7   3.1073E-13   2.7195E-06   1.1562E-12
+               L1/L2 DIV(V)    :  -2.3983E-21   6.1727E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.3983E-21   6.1727E-05
+         34   1.1859E-02  1.7061E-01 Fluid done
+Step     35, t= 1.4232579E-02, DT= 2.3737631E-03, C=  0.000 8.5629E+00 2.2994E-01
+             Solving for heat
+         35    Hmholtz TEMP:      3   6.1547E-10   1.6057E-04   1.1621E-09
+         35   1.4233E-02  3.7085E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.0853688731316018E-006   1.1460660930167177E-010
+         35    PRES alph1n  1.2741E-02  3.0962E-07  4.1151E+04     8
+         35    PRES halpha     8 -1.4102E+00 -3.7757E+00  2.5572E+00  7.1847E+00 -8.1353E-01 -6.3202E+00  1.1603E-01  3.1286E+00
+       35 PRES gmres:    2  1.1288E-13  2.7205E-13  9.8718E-13  1.4474E-02  1.9797E-02    F
+         35    VELX alph1n  1.2361E-05  2.0567E-06  6.0101E+00     8
+         35    VELX halpha     8 -9.8055E-05 -3.4218E-05 -4.0159E-05 -4.6969E-05 -5.4725E-05 -6.3505E-05 -7.3380E-05  9.9495E-01
+         35    Hmholtz VELX:      7   5.2036E-13   2.0567E-06   1.3166E-12
+         35    VELY alph1n  1.3914E-11  4.5841E-12  3.0354E+00     8
+         35    VELY halpha     8 -9.5725E-02  1.5420E-01 -6.3733E-02 -3.3792E-01 -2.0314E-01 -3.0539E-01  3.0448E-01  1.7626E+00
+         35    Hmholtz VELY:      1   3.8215E-13   4.5841E-12   1.3166E-12
+         35    VELZ alph1n  1.6158E-05  2.7053E-06  5.9727E+00     8
+         35    VELZ halpha     8 -1.5037E-03 -4.5144E-04 -4.9281E-04 -5.2806E-04 -5.5365E-04 -5.6604E-04 -5.6234E-04  9.9629E-01
+         35    Hmholtz VELZ:      7   8.2575E-13   2.7053E-06   1.3166E-12
+               L1/L2 DIV(V)    :   2.4497E-21   7.3845E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.4497E-21   7.3845E-05
+         35   1.4233E-02  1.6406E-01 Fluid done
+Step     36, t= 1.7081095E-02, DT= 2.8485158E-03, C=  0.000 8.7820E+00 2.1909E-01
+             Solving for heat
+         36    Hmholtz TEMP:      3   1.0379E-09   1.5998E-04   1.1607E-09
+         36   1.7081E-02  3.6923E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.0631029762729055E-006   1.2983922977117446E-010
+         36    PRES alph1n  1.4323E-02  5.7120E-07  2.5075E+04     8
+         36    PRES halpha     8  3.2463E+00 -4.0404E+00  1.9325E+00  2.4669E+00  6.3242E-01  2.4946E+00 -5.1647E+00 -8.6318E-01
+       36 PRES gmres:    2  2.1407E-13  3.6985E-13  1.8688E-12  1.4459E-02  1.9768E-02    F
+         36    VELX alph1n  1.2284E-05  2.0435E-06  6.0111E+00     8
+         36    VELX halpha     8  9.9406E-01 -1.3207E-04 -4.5874E-05 -5.3752E-05 -6.2756E-05 -7.2995E-05 -8.4561E-05 -9.7568E-05
+         36    Hmholtz VELX:      7   1.3503E-12   2.0435E-06   1.4916E-12
+         36    VELY alph1n  2.5557E-11  6.3494E-12  4.0250E+00     8
+         36    VELY halpha     8  1.7242E+00 -2.5641E-02  3.5245E-01 -5.1575E-01 -3.5061E-01 -1.5144E-01 -7.0522E-02  3.5548E-01
+         36    Hmholtz VELY:      1   6.5391E-13   6.3494E-12   1.4916E-12
+         36    VELZ alph1n  1.6058E-05  2.6904E-06  5.9685E+00     8
+         36    VELZ halpha     8  9.9635E-01 -1.7462E-03 -5.0461E-04 -5.4159E-04 -5.6899E-04 -5.8320E-04 -5.8120E-04 -5.6132E-04
+         36    Hmholtz VELZ:      8   1.6656E-13   2.6904E-06   1.4916E-12
+               L1/L2 DIV(V)    :   5.5686E-21   8.8286E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.5686E-21   8.8286E-05
+         36   1.7081E-02  1.6634E-01 Fluid done
+Step     37, t= 2.0499314E-02, DT= 3.4182189E-03, C=  0.000 9.0032E+00 2.2116E-01
+             Solving for heat
+         37    Hmholtz TEMP:      4   3.8890E-11   1.5928E-04   1.1589E-09
+         37   2.0499E-02  3.8339E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.0366785395943445E-006   1.4641525386694749E-010
+         37    PRES alph1n  1.6076E-02  1.0568E-06  1.5213E+04     8
+         37    PRES halpha     8 -3.3239E+00  4.0504E+00  3.5418E+00 -4.2304E+00 -4.6478E+00  4.3263E+00  6.7115E+00 -5.4067E+00
+       37 PRES gmres:    2  3.7744E-13  5.0048E-13  3.3009E-12  1.4426E-02  1.9719E-02    F
+         37    VELX alph1n  1.2194E-05  2.0283E-06  6.0120E+00     8
+         37    VELX halpha     8 -1.2928E-04  9.9305E-01 -1.7677E-04 -6.1151E-05 -7.1555E-05 -8.3436E-05 -9.6923E-05 -1.1216E-04
+         37    Hmholtz VELX:      8   4.1332E-13   2.0283E-06   1.6821E-12
+         37    VELY alph1n  2.5064E-11  9.3714E-12  2.6745E+00     8
+         37    VELY halpha     8  2.6829E-01  8.2147E-01 -3.1218E-01  4.9703E-01 -7.2800E-01  1.4477E-03  7.3466E-01 -3.2530E-01
+         37    Hmholtz VELY:      1   1.0773E-12   9.3714E-12   1.6821E-12
+         37    VELZ alph1n  1.5957E-05  2.6749E-06  5.9656E+00     8
+         37    VELZ halpha     8 -5.3734E-04  9.9635E-01 -1.9717E-03 -5.4512E-04 -5.7405E-04 -5.9011E-04 -5.9022E-04 -5.7258E-04
+         37    Hmholtz VELZ:      8   4.6268E-13   2.6749E-06   1.6821E-12
+               L1/L2 DIV(V)    :   2.7320E-22   1.0548E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.7320E-22   1.0548E-04
+         37   2.0499E-02  1.6662E-01 Fluid done
+Step     38, t= 2.4601176E-02, DT= 4.1018627E-03, C=  0.000 9.2261E+00 2.2290E-01
+             Solving for heat
+         38    Hmholtz TEMP:      4   7.7694E-11   1.5845E-04   1.1569E-09
+         38   2.4601E-02  3.8325E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.0055435714504452E-006   1.6445619667228209E-010
+         38    PRES alph1n  1.8043E-02  1.9716E-06  9.1519E+03     8
+         38    PRES halpha     8 -9.3826E+00 -9.7473E-01  3.6087E+00  7.4265E+00 -1.0509E+01 -5.2325E+00  9.1093E+00  7.0435E+00
+       38 PRES gmres:    2  6.2635E-13  6.7458E-13  6.5267E-12  1.4406E-02  1.9729E-02    F
+         38    VELX alph1n  1.2089E-05  2.0106E-06  6.0127E+00     8
+         38    VELX halpha     8 -1.4826E-04 -1.7080E-04  9.9190E-01 -2.3525E-04 -8.1095E-05 -9.4808E-05 -1.1045E-04 -1.2821E-04
+         38    Hmholtz VELX:      8   1.1362E-12   2.0106E-06   1.8895E-12
+         38    VELY alph1n  2.4747E-11  1.2426E-11  1.9916E+00     8
+         38    VELY halpha     8 -5.8357E-01  3.8646E-01  6.2150E-01 -8.7799E-01  2.1150E+00 -1.4345E+00 -2.0358E-01  1.0565E+00
+         38    Hmholtz VELY:      1   1.6415E-12   1.2426E-11   1.8895E-12
+         38    VELZ alph1n  1.5856E-05  2.6585E-06  5.9643E+00     8
+         38    VELZ halpha     8 -5.4234E-04 -4.9497E-04  9.9625E-01 -2.1641E-03 -5.6878E-04 -5.8663E-04 -5.8913E-04 -5.7440E-04
+         38    Hmholtz VELZ:      8   1.2607E-12   2.6585E-06   1.8895E-12
+               L1/L2 DIV(V)    :  -4.0254E-21   1.2591E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -4.0254E-21   1.2591E-04
+         38   2.4601E-02  1.6828E-01 Fluid done
+Step     39, t= 2.9523411E-02, DT= 4.9222352E-03, C=  0.000 9.4506E+00 2.2458E-01
+             Solving for heat
+         39    Hmholtz TEMP:      4   1.5416E-10   1.5747E-04   1.1545E-09
+         39   2.9523E-02  3.8718E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.9691076009332257E-006   1.8416776895150224E-010
+         39    PRES alph1n  2.0281E-02  2.1848E-06  9.2827E+03     8
+         39    PRES halpha     8  1.1679E+01 -1.1423E+01 -1.3959E+00  3.8760E+00  5.3146E+00 -1.4625E+00 -1.6183E+01  1.0724E+01
+       39 PRES gmres:    2  8.9331E-13  9.0652E-13  7.0894E-12  1.4517E-02  1.9847E-02    F
+         39    VELX alph1n  1.1968E-05  1.9903E-06  6.0131E+00     8
+         39    VELX halpha     8 -1.6899E-04 -1.9534E-04 -2.2486E-04  9.9062E-01 -3.1144E-04 -1.0706E-04 -1.2509E-04 -1.4566E-04
+         39    Hmholtz VELX:      9   5.2717E-13   1.9903E-06   2.1161E-12
+         39    VELY alph1n  1.9055E-11  1.5284E-11  1.2467E+00     8
+         39    VELY halpha     8  9.9460E-01  8.2612E-02  2.4132E-01 -1.1349E-01 -2.1836E-01  1.6988E+00 -1.9716E+00 -7.7727E-01
+         39    Hmholtz VELY:      2   4.7535E-13   1.5284E-11   2.1161E-12
+         39    VELZ alph1n  1.5753E-05  2.6411E-06  5.9646E+00     8
+         39    VELZ halpha     8 -5.3906E-04 -4.9585E-04 -4.4093E-04  9.9603E-01 -2.3106E-03 -5.7356E-04 -5.7859E-04 -5.6719E-04
+         39    Hmholtz VELZ:      9   5.9035E-13   2.6411E-06   2.1161E-12
+               L1/L2 DIV(V)    :  -1.7334E-21   1.5016E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.7334E-21   1.5016E-04
+         39   2.9523E-02  1.7237E-01 Fluid done
+Step     40, t= 3.5430094E-02, DT= 5.9066823E-03, C=  0.000 9.6798E+00 2.2912E-01
+             Solving for heat
+         40    Hmholtz TEMP:      4   3.0340E-10   1.5631E-04   1.1516E-09
+         40   3.5430E-02  3.8355E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.9267625392782707E-006   2.0587110223778481E-010
+         40    PRES alph1n  2.2853E-02  4.7660E-06  4.7949E+03     8
+         40    PRES halpha     8  6.8720E+00  8.6489E+00 -7.1023E+00 -3.0400E+00  4.0738E+00  3.8532E+00 -1.6527E+00 -1.0574E+01
+       40 PRES gmres:    3  4.6797E-13  1.2160E-12  1.5731E-11  2.1436E-02  2.8730E-02    F
+         40    VELX alph1n  1.1828E-05  1.9671E-06  6.0128E+00     8
+         40    VELX halpha     8 -1.9131E-04 -2.2186E-04 -2.5623E-04 -2.9462E-04  9.8920E-01 -4.1032E-04 -1.4073E-04 -1.6437E-04
+         40    Hmholtz VELX:      9   1.4481E-12   1.9671E-06   2.3656E-12
+         40    VELY alph1n  1.7597E-11  1.2880E-11  1.3662E+00     8
+         40    VELY halpha     8 -1.1541E-01  1.4978E-03  1.5407E-01  4.9414E-01 -4.1255E-02 -1.2338E+00  7.5255E-01 -6.1495E-01
+         40    Hmholtz VELY:      2   5.1729E-13   1.2880E-11   2.3656E-12
+         40    VELZ alph1n  1.5648E-05  2.6226E-06  5.9665E+00     8
+         40    VELZ halpha     8 -5.2820E-04 -4.8978E-04 -4.3962E-04 -3.8153E-04  9.9566E-01 -2.4035E-03 -5.5989E-04 -5.5198E-04
+         40    Hmholtz VELZ:      9   1.7291E-12   2.6226E-06   2.3656E-12
+               L1/L2 DIV(V)    :   8.6126E-21   1.7888E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   8.6126E-21   1.7888E-04
+         40   3.5430E-02  1.8021E-01 Fluid done
+Step     41, t= 4.2518112E-02, DT= 7.0880187E-03, C=  0.000 9.9162E+00 2.3646E-01
+             Solving for heat
+         41    Hmholtz TEMP:      4   5.9148E-10   1.5494E-04   1.1482E-09
+         41   4.2518E-02  3.8343E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.8779077120599791E-006   2.3003353074171310E-010
+         41    PRES alph1n  2.5829E-02  4.6045E-06  5.6094E+03     8
+         41    PRES halpha     8 -7.5751E+00  1.7447E+01  1.8919E+00 -9.2121E+00 -1.5921E-01  3.3979E+00  1.0235E+01 -1.4896E+01
+       41 PRES gmres:    2  1.5327E-12  1.6305E-12  1.5254E-11  1.4464E-02  1.9751E-02    F
+         41    VELX alph1n  1.1668E-05  1.9409E-06  6.0119E+00     8
+         41    VELX halpha     8 -2.1492E-04 -2.5003E-04 -2.8967E-04 -3.3412E-04 -3.8326E-04  9.8767E-01 -5.3794E-04 -1.8410E-04
+         41    Hmholtz VELX:     10   8.0045E-13   1.9409E-06   2.6435E-12
+         41    VELY alph1n  2.2397E-11  1.8920E-11  1.1838E+00     8
+         41    VELY halpha     8 -2.7786E-01 -3.8129E-01  9.9245E-02  1.7029E-01 -4.1430E-02  5.3143E-01 -1.2780E+00  1.6325E+00
+         41    Hmholtz VELY:      2   1.0188E-12   1.8920E-11   2.6435E-12
+         41    VELZ alph1n  1.5539E-05  2.6028E-06  5.9701E+00     8
+         41    VELZ halpha     8 -5.1064E-04 -4.7728E-04 -4.3236E-04 -3.7917E-04 -3.2095E-04  9.9513E-01 -2.4399E-03 -5.3003E-04
+         41    Hmholtz VELZ:     10   1.0556E-12   2.6028E-06   2.6435E-12
+               L1/L2 DIV(V)    :  -9.0937E-21   2.1283E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -9.0937E-21   2.1283E-04
+         41   4.2518E-02  1.7415E-01 Fluid done
+Step     42, t= 5.1023735E-02, DT= 8.5056225E-03, C=  0.000 1.0147E+01 2.3039E-01
+             Solving for heat
+         42    Hmholtz TEMP:      4   1.1403E-09   1.5333E-04   1.1442E-09
+         42   5.1024E-02  3.8379E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.8219879972841961E-006   2.5729773366533242E-010
+         42    PRES alph1n  2.9278E-02  5.3979E-06  5.4239E+03     8
+         42    PRES halpha     8 -9.9278E+00 -2.3336E+00  7.3335E+00  3.6560E+00 -5.1717E+00 -2.5890E+00  3.8004E+00  6.3024E+00
+       42 PRES gmres:    2  1.8325E-12  2.1885E-12  1.7271E-11  1.4442E-02  1.9770E-02    F
+         42    VELX alph1n  1.1488E-05  1.9116E-06  6.0099E+00     8
+         42    VELX halpha     8 -2.3933E-04 -2.7925E-04 -3.2450E-04 -3.7544E-04 -4.3197E-04 -4.9380E-04  9.8605E-01 -7.0125E-04
+         42    Hmholtz VELX:     10   2.1723E-12   1.9116E-06   2.9571E-12
+         42    VELY alph1n  5.6832E-11  3.3502E-11  1.6964E+00     8
+         42    VELY halpha     8  1.0366E+00 -1.2280E-01 -3.7605E-01  7.3102E-01  1.5176E+00  1.2870E+00  1.5523E-01 -2.5099E-01
+         42    Hmholtz VELY:      2   2.0974E-12   3.3502E-11   2.9571E-12
+         42    VELZ alph1n  1.5424E-05  2.5813E-06  5.9753E+00     8
+         42    VELZ halpha     8 -4.8714E-04 -4.5879E-04 -4.1927E-04 -3.7140E-04 -3.1802E-04 -2.6139E-04  9.9446E-01 -2.4193E-03
+         42    Hmholtz VELZ:     11   8.5382E-13   2.5813E-06   2.9571E-12
+               L1/L2 DIV(V)    :  -9.5607E-21   2.5288E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -9.5607E-21   2.5288E-04
+         42   5.1024E-02  1.7528E-01 Fluid done
+Step     43, t= 6.1230482E-02, DT= 1.0206747E-02, C=  0.000 1.0378E+01 2.3158E-01
+             Solving for heat
+         43    Hmholtz TEMP:      5   1.2799E-10   1.5146E-04   1.1395E-09
+         43   6.1230E-02  3.9864E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.7585504240668586E-006   2.8850731442731133E-010
+         43    PRES alph1n  3.3260E-02  8.1442E-06  4.0839E+03     8
+         43    PRES halpha     8  7.1711E+00 -1.3589E+01  2.0045E+00  7.3793E+00  2.9502E-01 -3.0270E+00 -2.9430E+00  3.7692E+00
+       43 PRES gmres:    3  1.8342E-12  2.9447E-12  3.0377E-11  2.1446E-02  2.8731E-02    F
+         43    VELX alph1n  1.1287E-05  1.8790E-06  6.0067E+00     8
+         43    VELX halpha     8 -9.0732E-04 -3.0858E-04 -3.5960E-04 -4.1730E-04 -4.8164E-04 -5.5237E-04 -6.2855E-04  9.8438E-01
+         43    Hmholtz VELX:     11   1.8979E-12   1.8790E-06   3.3162E-12
+         43    VELY alph1n  5.0043E-11  3.1741E-11  1.5766E+00     8
+         43    VELY halpha     8 -1.1652E+00  8.6636E-01 -8.9589E-02 -1.1594E-01 -2.7548E-01  2.1952E+00 -3.0309E-01  1.7270E-01
+         43    Hmholtz VELY:      2   2.6511E-12   3.1741E-11   3.3162E-12
+         43    VELZ alph1n  1.5302E-05  2.5578E-06  5.9823E+00     8
+         43    VELZ halpha     8 -2.3407E-03 -4.3439E-04 -4.0028E-04 -3.5802E-04 -3.1009E-04 -2.5855E-04 -2.0458E-04  9.9365E-01
+         43    Hmholtz VELZ:     11   2.4762E-12   2.5578E-06   3.3162E-12
+               L1/L2 DIV(V)    :   1.1153E-20   2.9999E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.1153E-20   2.9999E-04
+         43   6.1230E-02  1.8593E-01 Fluid done
+Step     44, t= 7.3478578E-02, DT= 1.2248096E-02, C=  0.000 1.0623E+01 2.4431E-01
+             Solving for heat
+         44    Hmholtz TEMP:      5   2.7569E-10   1.4927E-04   1.1340E-09
+         44   7.3479E-02  3.9770E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.6873054236809698E-006   3.2472544774659072E-010
+         44    PRES alph1n  3.7825E-02  7.6182E-06  4.9650E+03     8
+         44    PRES halpha     8  3.1762E+00  5.1717E+00 -9.1595E+00 -1.4174E+00  8.3045E+00  1.7929E+00 -6.2564E+00 -5.7634E-01
+       44 PRES gmres:    2  3.2283E-12  3.9773E-12  2.5927E-11  1.4454E-02  1.9748E-02    F
+         44    VELX alph1n  1.1064E-05  1.8434E-06  6.0023E+00     8
+         44    VELX halpha     8  9.8274E-01 -1.1626E-03 -3.9356E-04 -4.5806E-04 -5.3038E-04 -6.1039E-04 -6.9719E-04 -7.8844E-04
+         44    Hmholtz VELX:     12   1.2845E-12   1.8434E-06   3.7331E-12
+         44    VELY alph1n  4.7103E-11  4.4349E-11  1.0621E+00     8
+         44    VELY halpha     8 -3.8056E-02 -5.2746E-01  8.9042E-01 -8.5226E-01  3.2629E-01  7.6327E-01  2.8612E-01 -7.9382E-02
+         44    Hmholtz VELY:      2   3.6954E-12   4.4349E-11   3.7331E-12
+         44    VELZ alph1n  1.5171E-05  2.5321E-06  5.9913E+00     8
+         44    VELZ halpha     8  9.9274E-01 -2.2016E-03 -3.7506E-04 -3.3870E-04 -2.9684E-04 -2.5133E-04 -2.0326E-04 -1.5323E-04
+         44    Hmholtz VELZ:     12   2.1326E-12   2.5321E-06   3.7331E-12
+               L1/L2 DIV(V)    :   2.0553E-20   3.5528E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.0553E-20   3.5528E-04
+         44   7.3479E-02  1.7966E-01 Fluid done
+Step     45, t= 8.8176294E-02, DT= 1.4697716E-02, C=  0.000 1.0860E+01 2.3736E-01
+             Solving for heat
+         45    Hmholtz TEMP:      5   5.8281E-10   1.4675E-04   1.1275E-09
+         45   8.8176E-02  3.9876E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.6082215637964635E-006   3.6724028920491701E-010
+         45    PRES alph1n  4.3001E-02  1.5617E-05  2.7535E+03     8
+         45    PRES halpha     8 -1.3641E+00  3.3241E+00  3.2668E+00 -4.8896E+00 -3.6145E+00  7.3056E+00  2.1139E+00 -5.1201E+00
+       45 PRES gmres:    3  3.0310E-12  5.3976E-12  5.5944E-11  2.1364E-02  2.8671E-02    F
+         45    VELX alph1n  1.0823E-05  1.8048E-06  5.9966E+00     8
+         45    VELX halpha     8 -9.7355E-04  9.8122E-01 -1.4713E-03 -4.9548E-04 -5.7561E-04 -6.6493E-04 -7.6264E-04 -8.6643E-04
+         45    Hmholtz VELX:     12   3.6353E-12   1.8048E-06   4.2226E-12
+         45    VELY alph1n  5.1500E-11  4.6031E-11  1.1188E+00     8
+         45    VELY halpha     8 -2.1866E-02 -3.0532E-01 -8.2381E-01 -1.0073E-01  7.2794E-01 -2.7479E-01  6.4405E-01  1.8671E-01
+         45    Hmholtz VELY:      3   1.9214E-12   4.6031E-11   4.2226E-12
+         45    VELZ alph1n  1.5031E-05  2.5041E-06  6.0025E+00     8
+         45    VELZ halpha     8 -1.1174E-04  9.9178E-01 -1.9993E-03 -3.1292E-04 -2.7787E-04 -2.3941E-04 -1.9852E-04 -1.5580E-04
+         45    Hmholtz VELZ:     13   2.2377E-12   2.5041E-06   4.2226E-12
+               L1/L2 DIV(V)    :   5.3987E-21   4.2000E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.3987E-21   4.2000E-04
+         45   8.8176E-02  1.9165E-01 Fluid done
+Step     46, t= 1.0581355E-01, DT= 1.7637259E-02, C=  0.000 1.1109E+01 2.4942E-01
+             Solving for heat
+         46    Hmholtz TEMP:      6   1.0963E-10   1.4384E-04   1.1200E-09
+         46   1.0581E-01  4.1237E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.5216181797329668E-006   4.1755184333029041E-010
+         46    PRES alph1n  4.8795E-02  1.9253E-05  2.5344E+03     8
+         46    PRES halpha     8  2.6703E-01 -5.3501E+00  4.1847E+00  4.1741E-01  4.9833E-01 -2.7927E+00  6.3047E-01  3.1502E+00
+       46 PRES gmres:    3  3.6714E-12  7.3645E-12  6.6307E-11  2.1383E-02  2.8646E-02    F
+         46    VELX alph1n  1.0565E-05  1.7638E-06  5.9899E+00     8
+         46    VELX halpha     8 -1.0592E-03 -1.1799E-03  9.7994E-01 -1.8343E-03 -6.1435E-04 -7.1252E-04 -8.2093E-04 -9.3737E-04
+         46    Hmholtz VELX:     13   3.6377E-12   1.7638E-06   4.8021E-12
+         46    VELY alph1n  6.3361E-11  5.5869E-11  1.1341E+00     8
+         46    VELY halpha     8  2.9061E-01 -2.7545E-01 -4.9626E-01 -3.8669E-01 -3.7315E-01  2.9984E-01 -1.8193E-01  2.4602E-01
+         46    Hmholtz VELY:      3   2.1052E-12   5.5869E-11   4.8021E-12
+         46    VELZ alph1n  1.4882E-05  2.4740E-06  6.0157E+00     8
+         46    VELZ halpha     8 -1.2105E-04 -8.5277E-05  9.9089E-01 -1.7349E-03 -2.5260E-04 -2.2235E-04 -1.8999E-04 -1.5611E-04
+         46    Hmholtz VELZ:     14   1.8264E-12   2.4740E-06   4.8021E-12
+               L1/L2 DIV(V)    :   2.0684E-21   4.9557E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.0684E-21   4.9557E-04
+         46   1.0581E-01  1.9453E-01 Fluid done
+Step     47, t= 1.2697826E-01, DT= 2.1164711E-02, C=  0.000 1.1363E+01 2.5373E-01
+             Solving for heat
+         47    Hmholtz TEMP:      6   2.3954E-10   1.4052E-04   1.1113E-09
+         47   1.2698E-01  4.1238E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.4283096916014675E-006   4.7734104710834631E-010
+         47    PRES alph1n  5.5179E-02  2.3728E-05  2.3254E+03     8
+         47    PRES halpha     8  5.5223E+00 -2.4693E+00 -4.1155E+00  3.9861E+00  6.6452E-01  2.8784E-01 -3.2850E+00  4.1594E-01
+       47 PRES gmres:    2  9.7188E-12  1.0103E-11  8.8965E-11  1.4721E-02  2.0066E-02    F
+         47    VELX alph1n  1.0296E-05  1.7208E-06  5.9829E+00     8
+         47    VELX halpha     8 -1.1323E-03 -1.2699E-03 -1.4005E-03  9.7910E-01 -2.2481E-03 -7.4919E-04 -8.6740E-04 -9.9590E-04
+         47    Hmholtz VELX:     14   3.1993E-12   1.7208E-06   5.4911E-12
+         47    VELY alph1n  8.2231E-11  7.6977E-11  1.0683E+00     8
+         47    VELY halpha     8  4.8207E-01  4.5674E-01  9.4331E-02 -1.5632E-01 -1.3540E-01 -3.4016E-01  3.8226E-01 -1.9340E-01
+         47    Hmholtz VELY:      3   4.9943E-12   7.6977E-11   5.4911E-12
+         47    VELZ alph1n  1.4728E-05  2.4423E-06  6.0304E+00     8
+         47    VELZ halpha     8 -1.2940E-04 -1.0450E-04 -7.9094E-05  9.9023E-01 -1.4174E-03 -1.9964E-04 -1.7726E-04 -1.5378E-04
+         47    Hmholtz VELZ:     14   4.7469E-12   2.4423E-06   5.4911E-12
+               L1/L2 DIV(V)    :   5.5053E-20   5.8361E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.5053E-20   5.8361E-04
+         47   1.2698E-01  1.8862E-01 Fluid done
+Step     48, t= 1.5237592E-01, DT= 2.5397653E-02, C=  0.001 1.1611E+01 2.4778E-01
+             Solving for heat
+         48    Hmholtz TEMP:      6   5.1227E-10   1.3676E-04   1.1012E-09
+         48   1.5238E-01  4.1479E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.3297408555548576E-006   5.4843272471395130E-010
+         48    PRES alph1n  6.2092E-02  3.5411E-05  1.7535E+03     8
+         48    PRES halpha     8  2.3339E+00  3.4889E+00 -1.4454E+00 -4.5397E+00  4.0960E+00  1.4883E+00 -1.5577E+00 -2.8556E+00
+       48 PRES gmres:    2  1.1641E-11  1.3929E-11  1.1757E-10  1.4456E-02  1.9826E-02    F
+         48    VELX alph1n  1.0023E-05  1.6770E-06  5.9769E+00     8
+         48    VELX halpha     8 -1.1853E-03 -1.3391E-03 -1.4888E-03 -1.6204E-03  9.7896E-01 -2.7023E-03 -8.9672E-04 -1.0357E-03
+         48    Hmholtz VELX:     15   3.8696E-12   1.6770E-06   6.3108E-12
+         48    VELY alph1n  1.8434E-10  1.4987E-10  1.2300E+00     8
+         48    VELY halpha     8  1.4925E+00  5.8028E-01  9.8110E-01 -1.5414E-01 -1.2601E+00 -1.8521E+00 -1.6428E+00  7.5397E-02
+         48    Hmholtz VELY:      4   4.4182E-12   1.4987E-10   6.3108E-12
+         48    VELZ alph1n  1.4574E-05  2.4106E-06  6.0458E+00     8
+         48    VELZ halpha     8 -1.3642E-04 -1.2414E-04 -1.1133E-04 -9.8148E-05  9.9006E-01 -1.0665E-03 -1.5993E-04 -1.4844E-04
+         48    Hmholtz VELZ:     15   5.8535E-12   2.4106E-06   6.3108E-12
+               L1/L2 DIV(V)    :  -2.3842E-20   6.8602E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.3842E-20   6.8602E-04
+         48   1.5238E-01  1.9198E-01 Fluid done
+Step     49, t= 1.8285310E-01, DT= 3.0477183E-02, C=  0.001 1.1862E+01 2.5141E-01
+             Solving for heat
+         49    Hmholtz TEMP:      6   1.0697E-09   1.3254E-04   1.0898E-09
+         49   1.8285E-01  4.1415E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.2281666659550496E-006   6.3277862515807642E-010
+         49    PRES alph1n  6.9435E-02  4.4877E-05  1.5472E+03     8
+         49    PRES halpha     8 -2.5519E+00  4.3487E+00  3.0532E+00 -3.5410E+00 -2.8649E+00  3.7197E+00  2.2359E+00 -3.3918E+00
+       49 PRES gmres:    3  8.3185E-12  1.9285E-11  1.6284E-10  2.1425E-02  2.8745E-02    F
+         49    VELX alph1n  9.7586E-06  1.6336E-06  5.9737E+00     8
+         49    VELX halpha     8 -1.2109E-03 -1.3789E-03 -1.5463E-03 -1.6992E-03 -1.8142E-03  9.7987E-01 -3.1793E-03 -1.0506E-03
+         49    Hmholtz VELX:     16   4.0810E-12   1.6336E-06   7.2840E-12
+         49    VELY alph1n  1.5424E-10  1.0579E-10  1.4579E+00     8
+         49    VELY halpha     8  4.2552E-01  5.1354E-01  8.0672E-01  7.0065E-01 -6.0499E-01 -6.3126E-01  4.4823E-01 -6.3489E-01
+         49    Hmholtz VELY:      4   4.9377E-12   1.0579E-10   7.2840E-12
+         49    VELZ alph1n  1.4430E-05  2.3811E-06  6.0604E+00     8
+         49    VELZ halpha     8 -1.4118E-04 -1.4317E-04 -1.4469E-04 -1.4530E-04 -1.4457E-04  9.9074E-01 -7.1173E-04 -1.3932E-04
+         49    Hmholtz VELZ:     16   6.3023E-12   2.3811E-06   7.2840E-12
+               L1/L2 DIV(V)    :   8.9969E-20   8.0508E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   8.9969E-20   8.0508E-04
+         49   1.8285E-01  2.0368E-01 Fluid done
+Step     50, t= 2.1942572E-01, DT= 3.6572620E-02, C=  0.001 1.2125E+01 2.6306E-01
+             Solving for heat
+         50    Hmholtz TEMP:      7   3.9015E-10   1.2786E-04   1.0768E-09
+         50   2.1943E-01  4.2652E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.1268984503242390E-006   7.3250068642227953E-010
+         50    PRES alph1n  7.7074E-02  4.3555E-05  1.7696E+03     8
+         50    PRES halpha     8 -2.1035E+00 -3.1931E+00  4.3637E+00  3.0628E+00 -4.0215E+00 -2.2168E+00  3.5003E+00  1.6134E+00
+       50 PRES gmres:    2  2.5148E-11  2.6789E-11  1.8376E-10  1.4429E-02  1.9752E-02    F
+         50    VELX alph1n  9.5173E-06  1.5924E-06  5.9767E+00     8
+         50    VELX halpha     8 -1.2007E-03 -1.3787E-03 -1.5605E-03 -1.7324E-03 -1.8707E-03 -1.9480E-03  9.8230E-01 -3.6461E-03
+         50    Hmholtz VELX:     17   5.2922E-12   1.5924E-06   8.4357E-12
+         50    VELY alph1n  2.7671E-10  2.3313E-10  1.1869E+00     8
+         50    VELY halpha     8 -1.4713E+00  2.3862E-01 -1.7113E+00  1.9313E+00  2.6038E-01  6.8919E-01  3.5822E-01  4.4152E-01
+         50    Hmholtz VELY:      5   5.0617E-12   2.3313E-10   8.4357E-12
+         50    VELZ alph1n  1.4314E-05  2.3573E-06  6.0724E+00     8
+         50    VELZ halpha     8 -1.4337E-04 -1.6082E-04 -1.7796E-04 -1.9372E-04 -2.0668E-04 -2.1284E-04  9.9278E-01 -3.9465E-04
+         50    Hmholtz VELZ:     17   7.7893E-12   2.3573E-06   8.4357E-12
+               L1/L2 DIV(V)    :   3.3637E-20   9.4368E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   3.3637E-20   9.4368E-04
+         50   2.1943E-01  1.9854E-01 Fluid done
+ call outfld: ifpsco: F
+
+       50  2.1943E-01 Write checkpoint:
+       0      50 OPEN: RTI_LST0.f00002
+
+       50  2.1943E-01 done :: Write checkpoint
+                              file size =        4.0    MB
+                              avg data-throughput =       44.1MB/s
+                              io-nodes =     1
+
+Step     51, t= 2.6331286E-01, DT= 4.3887144E-02, C=  0.002 1.2476E+01 3.5038E-01
+             Solving for heat
+         51    Hmholtz TEMP:      7   8.1137E-10   1.2271E-04   1.0622E-09
+         51   2.6331E-01  4.3806E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.0305460043567429E-006   8.5004540498117831E-010
+         51    PRES alph1n  8.4846E-02  7.2891E-05  1.1640E+03     8
+         51    PRES halpha     8  2.1551E-01  1.5833E+00 -4.0039E+00 -1.9006E+00  1.0228E+01 -6.0516E+00 -2.9229E+00  3.8541E+00
+       51 PRES gmres:    3  1.4448E-11  3.7306E-11  2.7932E-10  2.1634E-02  2.8965E-02    F
+         51    VELX alph1n  9.3205E-06  1.5561E-06  5.9897E+00     8
+         51    VELX halpha     8 -4.0580E-03 -1.3308E-03 -1.5213E-03 -1.7075E-03 -1.8664E-03 -1.9704E-03 -1.9678E-03  9.8685E-01
+         51    Hmholtz VELX:     18   5.6729E-12   1.5561E-06   9.7945E-12
+         51    VELY alph1n  2.5953E-10  1.8203E-10  1.4257E+00     8
+         51    VELY halpha     8 -7.2582E-01 -7.4047E-01  8.8799E-01 -3.1320E-01  2.7525E-01 -3.2342E-01  6.3608E-01 -3.8176E-01
+         51    Hmholtz VELY:      5   5.4500E-12   1.8203E-10   9.7945E-12
+         51    VELZ alph1n  1.4253E-05  2.3437E-06  6.0812E+00     8
+         51    VELZ halpha     8 -1.6198E-04 -1.7434E-04 -2.0730E-04 -2.3852E-04 -2.6563E-04 -2.8328E-04 -2.8898E-04  9.9688E-01
+         51    Hmholtz VELZ:     18   7.8206E-12   2.3437E-06   9.7945E-12
+               L1/L2 DIV(V)    :   5.9996E-20   1.1056E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.9996E-20   1.1056E-03
+         51   2.6331E-01  2.1271E-01 Fluid done
+Step     52, t= 3.1597744E-01, DT= 5.2664573E-02, C=  0.002 1.2750E+01 2.7455E-01
+             Solving for heat
+         52    Hmholtz TEMP:      8   4.4158E-10   1.1714E-04   1.0459E-09
+         52   3.1598E-01  4.4398E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    5.9454955350177636E-006   9.8851366182664527E-010
+         52    PRES alph1n  9.2554E-02  6.8921E-05  1.3429E+03     8
+         52    PRES halpha     8  4.0001E+00 -2.8459E-01  1.9407E+00 -2.5045E+00 -2.9156E+00  7.8225E+00 -2.8434E+00 -4.2129E+00
+       52 PRES gmres:    2  3.2285E-11  5.2060E-11  2.9076E-10  1.4479E-02  1.9837E-02    F
+         52    VELX alph1n  9.1969E-06  1.5283E-06  6.0176E+00     8
+         52    VELX halpha     8  9.9438E-01 -4.3424E-03 -1.4180E-03 -1.6108E-03 -1.7841E-03 -1.9119E-03 -1.9429E-03 -1.8339E-03
+         52    Hmholtz VELX:     19   7.9568E-12   1.5283E-06   1.1397E-11
+         52    VELY alph1n  4.7470E-10  4.0868E-10  1.1615E+00     8
+         52    VELY halpha     8 -5.7358E-02  2.2930E-01  2.3701E+00 -2.7795E+00 -1.0312E+00  7.6857E-01  5.0048E-02 -6.9999E-02
+         52    Hmholtz VELY:      6   1.0879E-11   4.0868E-10   1.1397E-11
+         52    VELZ alph1n  1.4287E-05  2.3467E-06  6.0882E+00     8
+         52    VELZ halpha     8  1.0039E+00 -5.7361E-05 -2.2991E-04 -2.7541E-04 -3.1571E-04 -3.4427E-04 -3.5660E-04 -3.3876E-04
+         52    Hmholtz VELZ:     19   1.0819E-11   2.3467E-06   1.1397E-11
+               L1/L2 DIV(V)    :  -2.4132E-20   1.2961E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.4132E-20   1.2961E-03
+         52   3.1598E-01  2.0786E-01 Fluid done
+Step     53, t= 3.7917492E-01, DT= 6.3197487E-02, C=  0.003 1.3021E+01 2.7039E-01
+             Solving for heat
+         53    Hmholtz TEMP:      8   9.7673E-10   1.1117E-04   1.0278E-09
+         53   3.7917E-01  4.4613E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    5.8804217240316232E-006   1.1522509634287256E-009
+         53    PRES alph1n  1.0002E-01  1.0782E-04  9.2764E+02     8
+         53    PRES halpha     8 -3.8636E+00  4.0638E+00  3.7062E-01  1.5724E+00 -4.6169E+00 -9.8586E-01  8.9912E+00 -4.5314E+00
+       53 PRES gmres:    2  5.0479E-11  7.2819E-11  3.4929E-10  1.4619E-02  1.9917E-02    F
+         53    VELX alph1n  9.1857E-06  1.5149E-06  6.0636E+00     8
+         53    VELX halpha     8 -1.5145E-03  1.0060E+00 -4.4181E-03 -1.4375E-03 -1.6163E-03 -1.7617E-03 -1.8256E-03 -1.7655E-03
+         53    Hmholtz VELX:     20   1.1363E-11   1.5149E-06   1.3295E-11
+         53    VELY alph1n  6.1143E-10  4.2766E-10  1.4297E+00     8
+         53    VELY halpha     8 -4.7779E-01 -7.3087E-01 -8.7623E-01  3.9347E-01 -1.7254E+00 -1.9845E-01  1.1678E+00  3.2808E-01
+         53    Hmholtz VELY:      6   1.1823E-11   4.2766E-10   1.3295E-11
+         53    VELZ alph1n  1.4477E-05  2.3739E-06  6.0987E+00     8
+         53    VELZ halpha     8 -3.3393E-04  1.0150E+00 -9.3857E-05 -2.9501E-04 -3.4544E-04 -3.8282E-04 -4.0097E-04 -3.8477E-04
+         53    Hmholtz VELZ:     21   7.8544E-12   2.3739E-06   1.3295E-11
+               L1/L2 DIV(V)    :   6.6614E-20   1.5230E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   6.6614E-20   1.5230E-03
+         53   3.7917E-01  2.1631E-01 Fluid done
+Step     54, t= 4.5501191E-01, DT= 7.5836985E-02, C=  0.005 1.3300E+01 2.7897E-01
+             Solving for heat
+         54    Hmholtz TEMP:      9   8.1087E-10   1.0488E-04   1.0081E-09
+         54   4.5501E-01  4.5890E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    5.8474410958325536E-006   1.3478082581699436E-009
+         54    PRES alph1n  1.0703E-01  1.4936E-04  7.1658E+02     8
+         54    PRES halpha     8 -2.4200E+00 -5.0879E+00  4.2853E+00 -1.0983E+00  5.0875E+00 -6.6006E+00 -1.4160E+00  8.2482E+00
+       54 PRES gmres:    2  9.2577E-11  1.0221E-10  5.6016E-10  1.4628E-02  2.0258E-02    F
+         54    VELX alph1n  9.3418E-06  1.5242E-06  6.1291E+00     8
+         54    VELX halpha     8 -1.4197E-03 -1.0682E-03  1.0231E+00 -4.1624E-03 -1.3536E-03 -1.5063E-03 -1.5981E-03 -1.5906E-03
+         54    Hmholtz VELX:     21   1.4857E-11   1.5242E-06   1.5565E-11
+         54    VELY alph1n  1.0655E-09  8.7485E-10  1.2180E+00     8
+         54    VELY halpha     8 -4.9608E-01 -6.0698E-01 -1.7510E-01 -2.1698E+00  1.1257E+00 -1.7014E+00  1.6617E-01  2.0913E+00
+         54    Hmholtz VELY:      7   1.2728E-11   8.7485E-10   1.5565E-11
+         54    VELZ alph1n  1.4910E-05  2.4366E-06  6.1193E+00     8
+         54    VELZ halpha     8 -3.4890E-04 -2.4785E-04  1.0315E+00 -2.5077E-04 -3.4863E-04 -3.9104E-04 -4.1317E-04 -3.9976E-04
+         54    Hmholtz VELZ:     22   1.2290E-11   2.4366E-06   1.5565E-11
+               L1/L2 DIV(V)    :  -3.7460E-20   1.7980E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -3.7460E-20   1.7980E-03
+         54   4.5501E-01  2.1671E-01 Fluid done
+Step     55, t= 5.4601629E-01, DT= 9.1004382E-02, C=  0.006 1.3580E+01 2.8053E-01
+             Solving for heat
+         55    Hmholtz TEMP:     10   5.9092E-10   9.8351E-05   9.8674E-10
+         55   5.4602E-01  4.6938E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    5.8634538012582640E-006   1.5854717075317750E-009
+         55    PRES alph1n  1.1341E-01  1.9604E-04  5.7852E+02     8
+         55    PRES halpha     8  8.6358E+00 -5.4367E+00 -2.8456E+00  3.7487E+00 -9.4580E-02  3.0619E+00 -6.5535E+00  4.8590E-01
+       55 PRES gmres:    2  1.0014E-10  1.4428E-10  6.4504E-10  1.4513E-02  1.9905E-02    F
+         55    VELX alph1n  9.7468E-06  1.5702E-06  6.2074E+00     8
+         55    VELX halpha     8 -1.2394E-03 -1.0064E-03 -5.8775E-04  1.0479E+00 -3.5231E-03 -1.1676E-03 -1.2791E-03 -1.3220E-03
+         55    Hmholtz VELX:     23   1.0526E-11   1.5702E-06   1.8330E-11
+         55    VELY alph1n  1.6178E-09  1.0407E-09  1.5545E+00     8
+         55    VELY halpha     8  5.6061E-01  1.9286E-01 -9.7407E-01 -6.9860E-01 -6.8010E-01 -1.5250E-01 -3.8615E+00 -3.6204E-01
+         55    Hmholtz VELY:      8   1.3708E-11   1.0407E-09   1.8330E-11
+         55    VELZ alph1n  1.5712E-05  2.5527E-06  6.1553E+00     8
+         55    VELZ halpha     8 -3.2523E-04 -2.3491E-04 -1.2196E-04  1.0550E+00 -4.2421E-04 -3.5493E-04 -3.7839E-04 -3.6950E-04
+         55    Hmholtz VELZ:     24   1.2338E-11   2.5527E-06   1.8330E-11
+               L1/L2 DIV(V)    :  -8.8110E-20   2.1399E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -8.8110E-20   2.1399E-03
+         55   5.4602E-01  2.2250E-01 Fluid done
+Step     56, t= 6.5522155E-01, DT= 1.0920526E-01, C=  0.009 1.3867E+01 2.8736E-01
+             Solving for heat
+         56    Hmholtz TEMP:     11   6.1581E-10   9.1669E-05   9.6384E-10
+         56   6.5522E-01  5.2683E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    5.9537922250884181E-006   1.8817551561884099E-009
+         56    PRES alph1n  1.1902E-01  3.0655E-04  3.8825E+02     8
+         56    PRES halpha     8 -6.8589E-01  1.0795E+01 -5.9610E+00 -3.2844E+00  3.9454E+00 -1.0995E+00  5.7975E+00 -8.5105E+00
+       56 PRES gmres:    2  1.6997E-10  2.0550E-10  1.1442E-09  1.4512E-02  1.9835E-02    F
+         56    VELX alph1n  1.0521E-05  1.6717E-06  6.2939E+00     8
+         56    VELX halpha     8 -9.5730E-04 -8.5818E-04 -6.0966E-04 -2.7766E-04  1.0824E+00 -2.3817E-03 -8.6397E-04 -9.4915E-04
+         56    Hmholtz VELX:     24   1.1550E-11   1.6717E-06   2.1784E-11
+         56    VELY alph1n  1.9323E-09  1.4257E-09  1.3553E+00     8
+         56    VELY halpha     8 -1.8316E+00  2.4098E+00 -4.3475E-01 -3.0543E-01 -4.6984E-01 -6.3122E-01  2.7858E+00 -1.0859E+00
+         56    Hmholtz VELY:      9   1.4489E-11   1.4257E-09   2.1784E-11
+         56    VELZ alph1n  1.7079E-05  2.7529E-06  6.2039E+00     8
+         56    VELZ halpha     8 -2.6642E-04 -1.9604E-04 -1.0541E-04  2.4438E-07  1.0877E+00 -5.3743E-04 -3.0396E-04 -2.9953E-04
+         56    Hmholtz VELZ:     26   2.1032E-11   2.7529E-06   2.1784E-11
+               L1/L2 DIV(V)    :  -2.6903E-19   2.5794E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.6903E-19   2.5794E-03
+         56   6.5522E-01  2.2887E-01 Fluid done
+Step     57, t= 7.8626786E-01, DT= 1.3104631E-01, C=  0.013 1.4167E+01 2.9958E-01
+             Solving for heat
+         57    Hmholtz TEMP:     12   4.0082E-10   8.4939E-05   9.3953E-10
+         57   7.8627E-01  4.9863E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.1565162965970279E-006   2.2637121056606956E-009
+         57    PRES alph1n  1.2373E-01  4.6003E-04  2.6896E+02     8
+         57    PRES halpha     8 -4.5509E+00  5.2448E+00  5.2324E+00 -6.0921E+00 -1.7620E+00  3.5227E+00  2.8261E+00 -3.4065E+00
+       57 PRES gmres:    3  1.0697E-10  2.9665E-10  1.6780E-09  2.1405E-02  2.8738E-02    F
+         57    VELX alph1n  1.1864E-05  1.8596E-06  6.3798E+00     8
+         57    VELX halpha     8 -6.4481E-04 -6.6803E-04 -5.8507E-04 -4.0366E-04 -1.2076E-04  1.1291E+00 -1.0155E-03 -5.6065E-04
+         57    Hmholtz VELX:     25   2.0860E-11   1.8596E-06   2.6246E-11
+         57    VELY alph1n  1.7544E-09  1.2682E-09  1.3833E+00     8
+         57    VELY halpha     8 -4.9371E-01 -2.3038E-01 -8.5254E-02 -8.3170E-01 -3.0654E-01 -5.2259E-01 -2.1077E-01 -9.3284E-01
+         57    Hmholtz VELY:      9   1.4082E-11   1.2682E-09   2.6246E-11
+         57    VELZ alph1n  1.9316E-05  3.0862E-06  6.2590E+00     8
+         57    VELZ halpha     8 -1.7053E-04 -1.3060E-04 -7.5393E-05 -1.1353E-05  3.6395E-05  1.1313E+00 -4.2386E-04 -1.8764E-04
+         57    Hmholtz VELZ:     29   1.6718E-11   3.0862E-06   2.6246E-11
+               L1/L2 DIV(V)    :  -5.3410E-20   3.1686E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -5.3410E-20   3.1686E-03
+         57   7.8627E-01  2.5353E-01 Fluid done
+Step     58, t= 9.4352343E-01, DT= 1.5725557E-01, C=  0.020 1.4488E+01 3.2137E-01
+             Solving for heat
+         58    Hmholtz TEMP:     13   4.0429E-10   7.8271E-05   9.1400E-10
+         58   9.4352E-01  5.1733E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.5351889223261322E-006   2.7769099469533561E-009
+         58    PRES alph1n  1.2752E-01  6.5900E-04  1.9351E+02     8
+         58    PRES halpha     8 -2.8658E+00 -2.2604E-01 -3.5632E+00  1.0559E+01 -5.6341E+00 -3.3235E+00  3.9453E+00  2.1308E+00
+       58 PRES gmres:    2  3.7999E-10  4.3668E-10  1.8979E-09  1.4443E-02  1.9880E-02    F
+         58    VELX alph1n  1.4099E-05  2.1789E-06  6.4709E+00     8
+         58    VELX halpha     8 -3.0921E-04 -4.3838E-04 -5.1273E-04 -4.8332E-04 -3.3434E-04 -1.3171E-04  1.1889E+00  5.0042E-04
+         58    Hmholtz VELX:     27   2.6423E-11   2.1789E-06   3.2257E-11
+         58    VELY alph1n  4.2746E-09  3.0965E-09  1.3805E+00     8
+         58    VELY halpha     8 -5.4044E+00 -2.8315E+00 -3.0429E+00  2.1617E+00  9.9079E-01 -6.9996E-01 -1.2109E-01 -5.5174E+00
+         58    Hmholtz VELY:     10   3.0792E-11   3.0965E-09   3.2257E-11
+         58    VELZ alph1n  2.2952E-05  3.6338E-06  6.3163E+00     8
+         58    VELZ halpha     8 -6.7831E-05 -5.6313E-05 -3.7131E-05 -1.3105E-05  8.2277E-06  2.0937E-05  1.1883E+00 -1.8313E-04
+         58    Hmholtz VELZ:     31   2.3746E-11   3.6338E-06   3.2257E-11
+               L1/L2 DIV(V)    :  -2.3602E-19   3.9988E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.3602E-19   3.9988E-03
+         58   9.4352E-01  2.4264E-01 Fluid done
+Step     59, t= 1.1322301E+00, DT= 1.8870669E-01, C=  0.030 1.4801E+01 3.1261E-01
+             Solving for heat
+         59    Hmholtz TEMP:     14   3.7630E-10   7.1788E-05   8.8744E-10
+         59   1.1322E+00  5.3410E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1968557903460168E-006   3.5010824587549756E-009
+         59    PRES alph1n  1.3043E-01  9.1381E-04  1.4273E+02     8
+         59    PRES halpha     8  3.1018E-01 -4.9936E-01  4.5811E+00 -1.3383E+01  1.2834E+01  4.7900E-02 -7.8454E+00  4.9718E+00
+       59 PRES gmres:    2  5.3417E-10  6.6068E-10  3.3021E-09  1.4400E-02  1.9794E-02    F
+         59    VELX alph1n  1.7825E-05  2.7110E-06  6.5749E+00     8
+         59    VELX halpha     8  1.2110E-03 -2.9292E-04 -4.5243E-04 -5.1113E-04 -4.4614E-04 -2.5398E-04 -6.2061E-05  1.2642E+00
+         59    Hmholtz VELX:     29   3.2482E-11   2.7110E-06   4.0760E-11
+         59    VELY alph1n  7.2779E-09  5.3804E-09  1.3527E+00     8
+         59    VELY halpha     8 -8.0146E+00 -1.2295E+00 -1.9491E+00 -5.0123E-01  1.5072E+00  9.4175E-01 -7.8343E-01 -8.4582E-01
+         59    Hmholtz VELY:     12   2.6260E-11   5.3804E-09   4.0760E-11
+         59    VELZ alph1n  2.8923E-05  4.5337E-06  6.3796E+00     8
+         59    VELZ halpha     8  2.0206E-04  1.6155E-05  6.1521E-07 -1.7485E-05 -2.1981E-05 -2.3926E-05 -1.1246E-05  1.2601E+00
+         59    Hmholtz VELZ:     33   3.1631E-11   4.5337E-06   4.0760E-11
+               L1/L2 DIV(V)    :   5.7632E-19   5.2388E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.7632E-19   5.2388E-03
+         59   1.1322E+00  2.7732E-01 Fluid done
+Step     60, t= 1.3586781E+00, DT= 2.2644802E-01, C=  0.048 1.5150E+01 3.4897E-01
+             Solving for heat
+         60    Hmholtz TEMP:     14   7.5768E-10   6.5658E-05   8.6007E-10
+         60   1.3587E+00  5.2487E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    8.3402921812149032E-006   4.5826001292494575E-009
+         60    PRES alph1n  1.3284E-01  1.4600E-03  9.0987E+01     8
+         60    PRES halpha     8  4.2954E+00  3.1812E+00 -3.4141E+00 -3.4793E+00  8.0855E-01  8.7190E+00 -4.8852E+00 -4.1771E+00
+       60 PRES gmres:    2  8.3887E-10  1.0377E-09  5.0896E-09  1.4475E-02  1.9776E-02    F
+         60    VELX alph1n  2.4148E-05  3.6056E-06  6.6973E+00     8
+         60    VELX halpha     8  1.3543E+00  1.1532E-03 -4.4388E-04 -5.4278E-04 -5.1697E-04 -3.2210E-04 -1.1320E-04  6.0525E-05
+         60    Hmholtz VELX:     31   4.7736E-11   3.6056E-06   5.3494E-11
+         60    VELY alph1n  1.2090E-08  8.4593E-09  1.4292E+00     8
+         60    VELY halpha     8 -1.0054E+00  4.0948E+00  2.1436E+00 -4.1974E+00 -3.7369E+00  2.3306E+00  4.4255E-01 -7.7380E-01
+         60    Hmholtz VELY:     15   3.5491E-11   8.4593E-09   5.3494E-11
+         60    VELZ alph1n  3.9055E-05  6.0507E-06  6.4546E+00     8
+         60    VELZ halpha     8  1.3502E+00  3.5162E-04  3.2353E-05 -9.7949E-07 -2.3875E-05 -3.3978E-05 -3.0178E-05 -8.7509E-06
+         60    Hmholtz VELZ:     35   4.3873E-11   6.0507E-06   5.3494E-11
+               L1/L2 DIV(V)    :  -7.6900E-19   7.2159E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -7.6900E-19   7.2159E-03
+         60   1.3587E+00  2.6407E-01 Fluid done
+Step     61, t= 1.6304158E+00, DT= 2.7173763E-01, C=  0.079 1.5484E+01 3.3448E-01
+             Solving for heat
+         61    Hmholtz TEMP:     16   4.3914E-10   6.0180E-05   8.3214E-10
+         61   1.6304E+00  5.5754E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.0346706103116246E-005   6.3063529360744586E-009
+         61    PRES alph1n  1.3578E-01  3.1085E-03  4.3679E+01     8
+         61    PRES halpha     8 -1.3209E+00  4.2331E+00 -6.7725E+00  2.7310E+01 -3.4134E+01  2.4429E+00  2.6618E+01 -1.7351E+01
+       61 PRES gmres:    3  6.1118E-10  1.7137E-09  1.1580E-08  2.1522E-02  2.8863E-02    F
+         61    VELX alph1n  3.5438E-05  5.1809E-06  6.8401E+00     8
+         61    VELX halpha     8  7.3471E-05  1.4670E+00 -1.5137E-03 -6.1762E-04 -4.2815E-04 -1.6733E-04  5.0150E-05  1.2359E-04
+         61    Hmholtz VELX:     33   6.6299E-11   5.1809E-06   7.3851E-11
+         61    VELY alph1n  1.3389E-08  8.4114E-09  1.5918E+00     8
+         61    VELY halpha     8 -8.3319E-01 -7.1699E-01 -6.5820E+00 -1.6265E+00  4.8421E-02  5.9499E-01  3.8263E+00 -1.2033E-01
+         61    Hmholtz VELY:     13   6.0588E-11   8.4114E-09   7.3851E-11
+         61    VELZ alph1n  5.7097E-05  8.7233E-06  6.5454E+00     8
+         61    VELZ halpha     8 -1.0729E-05  1.4619E+00  3.8822E-04 -7.5275E-06 -3.1738E-05 -4.8448E-05 -3.9171E-05 -1.4501E-05
+         61    Hmholtz VELZ:     37   6.1879E-11   8.7233E-06   7.3851E-11
+               L1/L2 DIV(V)    :   4.0443E-19   1.0616E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   4.0443E-19   1.0616E-02
+         61   1.6304E+00  2.7265E-01 Fluid done
+Step     62, t= 1.9565009E+00, DT= 3.2608515E-01, C=  0.140 1.5831E+01 3.4623E-01
+             Solving for heat
+         62    Hmholtz TEMP:     17   5.4796E-10   5.6124E-05   8.0389E-10
+         62   1.9565E+00  5.7130E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.4026240670870038E-005   9.2674660248506852E-009
+         62    PRES alph1n  1.4311E-01  3.8507E-03  3.7164E+01     8
+         62    PRES halpha     8  3.6404E-01 -7.9861E+00  5.1695E+00  3.9294E+00 -9.8008E+00  1.1110E+01 -1.2195E+01  1.0441E+01
+       62 PRES gmres:    2  2.3663E-09  3.0220E-09  1.3563E-08  1.4436E-02  1.9795E-02    F
+         62    VELX alph1n  5.6980E-05  8.1373E-06  7.0023E+00     8
+         62    VELX halpha     8  8.0472E-05 -2.2906E-04  1.6073E+00 -6.0623E-03 -3.1666E-04  1.5238E-04  4.2959E-04  2.9081E-04
+         62    Hmholtz VELX:     36   8.2680E-11   8.1373E-06   1.0894E-10
+         62    VELY alph1n  2.7450E-08  1.9621E-08  1.3990E+00     8
+         62    VELY halpha     8 -9.6253E-01 -3.5107E-01 -2.4041E-03 -1.2309E+01  1.7437E+00  8.4916E-01 -1.0765E+00  3.4220E+00
+         62    Hmholtz VELY:     15   1.0024E-10   1.9621E-08   1.0894E-10
+         62    VELZ alph1n  9.1567E-05  1.3764E-05  6.6525E+00     8
+         62    VELZ halpha     8 -4.5333E-05 -1.4352E-05  1.6036E+00 -1.4589E-04 -7.5280E-07  1.5272E-05 -1.0884E-05  2.0159E-06
+         62    Hmholtz VELZ:     40   8.4405E-11   1.3764E-05   1.0894E-10
+               L1/L2 DIV(V)    :   5.2566E-20   1.6995E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.2566E-20   1.6995E-02
+         62   1.9565E+00  2.7505E-01 Fluid done
+Step     63, t= 2.2466318E+00, DT= 2.9013084E-01, C=  0.200 1.6181E+01 3.5002E-01
+             Solving for heat
+         63    Hmholtz TEMP:     16   7.6692E-10   5.1056E-05   7.7563E-10
+         63   2.2466E+00  5.5559E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    2.0077712691952706E-005   1.4923277907421234E-008
+         63    PRES alph1n  4.4865E-02  2.1513E-02  2.0855E+00     8
+         63    PRES halpha     8  3.9041E+00  1.3188E+01 -1.1875E+01  3.7561E+00  7.2202E+00 -2.6316E+01  4.0638E+01 -3.0352E+01
+       63 PRES gmres:    4  1.9122E-09  4.3297E-09  5.1340E-08  2.8442E-02  3.7773E-02    F
+         63    VELX alph1n  6.7203E-05  4.0566E-06  1.6566E+01     8
+         63    VELX halpha     8 -2.7595E-04 -2.9781E-03 -2.3847E-03  1.1832E+00 -4.2976E-02  7.6310E-03  7.0508E-03  2.3266E-03
+         63    Hmholtz VELX:     32   1.7312E-10   4.0566E-06   1.7499E-10
+         63    VELY alph1n  4.4314E-08  2.6025E-08  1.7028E+00     8
+         63    VELY halpha     8 -5.4461E-01  3.5353E-01 -1.4605E+00 -1.0429E+00 -1.6481E+00 -4.9788E+00 -4.6453E+00  2.7202E-01
+         63    Hmholtz VELY:     13   1.3676E-10   2.6025E-08   1.7499E-10
+         63    VELZ alph1n  1.0784E-04  4.2569E-06  2.5332E+01     8
+         63    VELZ halpha     8 -2.5212E-04 -6.6202E-05 -2.7773E-04  1.1778E+00 -3.0510E-03  7.4582E-04  3.1785E-04  3.0419E-04
+         63    Hmholtz VELZ:     35   1.5424E-10   4.2569E-06   1.7499E-10
+               L1/L2 DIV(V)    :   1.4698E-18   2.4284E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.4698E-18   2.4284E-02
+         63   2.2466E+00  2.8275E-01 Fluid done
+Step     64, t= 2.4787364E+00, DT= 2.3210468E-01, C=  0.228 1.6537E+01 3.5609E-01
+             Solving for heat
+         64    Hmholtz TEMP:     16   3.5651E-10   5.0171E-05   7.5452E-10
+         64   2.4787E+00  5.5367E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    3.1014679838575366E-005   2.1406850942678074E-008
+         64    PRES alph1n  9.4500E-02  7.7369E-03  1.2214E+01     8
+         64    PRES halpha     8  1.2812E+01 -6.4731E+00  2.4164E+00  1.1661E-01  3.1230E-01 -5.2772E+00  1.5584E+01 -1.8597E+01
+       64 PRES gmres:    3  2.0705E-09  4.9686E-09  3.0282E-08  2.1377E-02  2.8662E-02    F
+         64    VELX alph1n  7.4288E-05  1.2374E-05  6.0034E+00     8
+         64    VELX halpha     8 -5.6730E-04 -2.0329E-03 -1.4155E-03  3.8797E-02  1.0746E+00 -1.0478E-02  4.5713E-03  9.7641E-04
+         64    Hmholtz VELX:     33   1.6040E-10   1.2374E-05   2.4999E-10
+         64    VELY alph1n  2.9531E-08  2.1025E-08  1.4046E+00     8
+         64    VELY halpha     8 -2.4165E+00 -1.5617E+00 -8.2708E-01 -9.2653E-01 -4.0252E-01 -5.4301E-02 -5.1847E-01 -1.7363E+00
+         64    Hmholtz VELY:     12   1.5706E-10   2.1025E-08   2.4999E-10
+         64    VELZ alph1n  1.2241E-04  2.1304E-05  5.7459E+00     8
+         64    VELZ halpha     8 -1.5819E-04 -4.7361E-04 -5.1018E-04  2.3066E-03  1.1343E+00 -4.4191E-03  6.3573E-04  2.7211E-04
+         64    Hmholtz VELZ:     36   2.0946E-10   2.1304E-05   2.4999E-10
+               L1/L2 DIV(V)    :   6.2557E-19   3.1225E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   6.2557E-19   3.1225E-02
+         64   2.4787E+00  2.6840E-01 Fluid done
+Step     65, t= 2.6644202E+00, DT= 1.8568374E-01, C=  0.235 1.6878E+01 3.4152E-01
+             Solving for heat
+         65    Hmholtz TEMP:     14   5.5101E-10   5.2531E-05   7.3987E-10
+         65   2.6644E+00  5.2460E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    4.6637015405155654E-005   2.7660657539579497E-008
+         65    PRES alph1n  6.4642E-02  7.0860E-03  9.1226E+00     8
+         65    PRES halpha     8  5.1548E+00 -3.6949E+00  1.1152E+00 -1.2148E-01  1.6753E-01  9.4507E-01  1.0660E+00 -3.7578E+00
+       65 PRES gmres:    2  2.6331E-09  5.1361E-09  1.8298E-08  1.4445E-02  1.9741E-02    F
+         65    VELX alph1n  8.4251E-05  1.7593E-05  4.7888E+00     8
+         65    VELX halpha     8 -2.9993E-04 -1.0692E-03 -7.4626E-04  1.9918E-02 -1.4772E-02  1.1326E+00 -1.8144E-03  4.7402E-04
+         65    Hmholtz VELX:     30   2.0245E-10   1.7593E-05   3.2196E-10
+         65    VELY alph1n  4.4286E-08  2.4514E-08  1.8065E+00     8
+         65    VELY halpha     8  1.3772E-01 -1.8235E+00 -5.7110E-01 -6.2109E-01 -8.9990E-01 -1.0106E+00 -3.8646E-01 -6.8298E-01
+         65    Hmholtz VELY:     11   1.9867E-10   2.4514E-08   3.2196E-10
+         65    VELZ alph1n  1.4163E-04  3.1084E-05  4.5565E+00     8
+         65    VELZ halpha     8 -8.8329E-05 -4.3489E-04 -4.1704E-04  8.9735E-04  7.7103E-04  1.1563E+00 -2.2900E-03  1.5386E-04
+         65    Hmholtz VELZ:     34   2.3102E-10   3.1084E-05   3.2196E-10
+               L1/L2 DIV(V)    :   2.6542E-18   3.7746E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.6542E-18   3.7746E-02
+         65   2.6644E+00  2.5067E-01 Fluid done
+Step     66, t= 2.8129672E+00, DT= 1.4854699E-01, C=  0.227 1.7199E+01 3.2086E-01
+             Solving for heat
+         66    Hmholtz TEMP:     13   5.9964E-10   5.5988E-05   7.2946E-10
+         66   2.8130E+00  5.1070E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.7568188754131832E-005   3.3591143016989815E-008
+         66    PRES alph1n  5.2108E-02  2.0834E-03  2.5010E+01     8
+         66    PRES halpha     8 -1.7470E+00  1.1830E+00  5.1560E-01 -6.8741E-01  3.7232E-01 -1.4771E-01  1.1302E+00  6.1359E-01
+       66 PRES gmres:    1  3.6216E-09  4.9899E-09  7.9047E-09  7.4511E-03  1.0851E-02    F
+         66    VELX alph1n  9.4694E-05  2.1015E-05  4.5060E+00     8
+         66    VELX halpha     8 -3.5022E-05 -1.2033E-03 -1.0101E-03  3.0552E-02 -2.3437E-02 -1.5065E-03  1.1232E+00 -3.2672E-03
+         66    Hmholtz VELX:     27   3.6039E-10   2.1015E-05   3.8995E-10
+         66    VELY alph1n  5.0024E-08  2.9221E-08  1.7119E+00     8
+         66    VELY halpha     8 -1.8330E+00 -6.4037E-01 -1.0387E+00 -9.1863E-01 -5.3987E-01 -7.8677E-01 -1.1072E+00 -1.4993E+00
+         66    Hmholtz VELY:     10   2.7535E-10   2.9221E-08   3.8995E-10
+         66    VELZ alph1n  1.5952E-04  3.6817E-05  4.3329E+00     8
+         66    VELZ halpha     8 -1.1064E-04 -1.5393E-04 -2.2845E-04  2.1690E-03 -1.2390E-03 -2.5643E-04  1.1262E+00 -5.6688E-04
+         66    Hmholtz VELZ:     31   3.3122E-10   3.6817E-05   3.8995E-10
+               L1/L2 DIV(V)    :   1.3387E-18   4.3745E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.3387E-18   4.3745E-02
+         66   2.8130E+00  2.3360E-01 Fluid done
+Step     67, t= 2.9318048E+00, DT= 1.1883759E-01, C=  0.211 1.7502E+01 3.0258E-01
+             Solving for heat
+         67    Hmholtz TEMP:     12   4.8377E-10   5.9604E-05   7.2196E-10
+         67   2.9318E+00  5.0121E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    9.4808224316473739E-005   3.9047918899206491E-008
+         67    PRES alph1n  4.4578E-02  1.6115E-03  2.7662E+01     8
+         67    PRES halpha     8  1.7840E-01 -8.7204E-01  9.0815E-01 -5.5251E-01  1.5206E-01  5.8800E-01  2.8186E-01  1.8094E-01
+       67 PRES gmres:    1  3.2792E-09  4.6404E-09  6.4002E-09  7.4611E-03  1.0890E-02    F
+         67    VELX alph1n  1.0332E-04  2.3453E-05  4.4057E+00     8
+         67    VELX halpha     8 -1.2138E-03 -1.0282E-03 -7.6686E-04  2.2589E-02 -1.7012E-02 -1.4950E-03 -2.2065E-06  1.0909E+00
+         67    Hmholtz VELX:     25   3.0614E-10   2.3453E-05   4.5234E-10
+         67    VELY alph1n  5.2469E-08  5.2196E-08  1.0052E+00     8
+         67    VELY halpha     8  1.1234E+00 -2.9127E+00 -6.7204E-01 -1.9856E+00 -2.1115E+00 -2.0530E+00 -1.6270E+00 -7.1241E-01
+         67    Hmholtz VELY:     10   3.6363E-10   5.2196E-08   4.5234E-10
+         67    VELZ alph1n  1.7505E-04  4.1029E-05  4.2666E+00     8
+         67    VELZ halpha     8 -4.6209E-04 -1.6493E-04 -2.0696E-04  1.5626E-03 -7.1832E-04 -2.4726E-04 -1.7476E-04  1.0974E+00
+         67    Hmholtz VELZ:     28   3.9976E-10   4.1029E-05   4.5234E-10
+               L1/L2 DIV(V)    :   1.4455E-18   4.9083E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.4455E-18   4.9083E-02
+         67   2.9318E+00  2.2523E-01 Fluid done
+Step     68, t= 3.0324438E+00, DT= 1.0063908E-01, C=  0.200 1.7795E+01 2.9331E-01
+             Solving for heat
+         68    Hmholtz TEMP:     12   2.0180E-10   6.4083E-05   7.1650E-10
+         68   3.0324E+00  4.9845E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.2526026932590585E-004   4.3895058146802273E-008
+         68    PRES alph1n  4.2049E-02  2.1751E-03  1.9332E+01     8
+         68    PRES halpha     8  3.4313E-01  6.7062E-01 -1.4682E+00  6.1810E-01 -4.9801E-01  3.5821E-01 -3.8685E-02  6.3153E-01
+       68 PRES gmres:    1  4.1106E-09  4.4176E-09  7.8051E-09  7.5831E-03  1.1359E-02    F
+         68    VELX alph1n  1.1378E-04  2.0869E-05  5.4520E+00     8
+         68    VELX halpha     8  1.1014E+00 -2.6936E-04 -2.3501E-04  4.6692E-03 -3.0545E-03 -7.5545E-04 -2.3976E-04  1.7542E-04
+         68    Hmholtz VELX:     23   4.3317E-10   2.0869E-05   5.0783E-10
+         68    VELY alph1n  5.1945E-08  1.1244E-07  4.6196E-01     8
+         68    VELY halpha     8  1.4167E+00  6.7146E+00  1.0833E+00  4.1466E+00  3.5647E+00  3.7530E+00  2.5536E+00  1.2564E+00
+         68    Hmholtz VELY:     11   3.8372E-10   1.1244E-07   5.0783E-10
+         68    VELZ alph1n  1.9483E-04  3.6703E-05  5.3083E+00     8
+         68    VELZ halpha     8  1.1131E+00 -6.9953E-04 -2.5866E-04  2.0509E-04  8.0404E-04 -3.4133E-04 -3.9258E-04  2.6302E-05
+         68    Hmholtz VELZ:     25   4.7262E-10   3.6703E-05   5.0783E-10
+               L1/L2 DIV(V)    :  -2.9924E-18   5.4055E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.9924E-18   5.4055E-02
+         68   3.0324E+00  2.3222E-01 Fluid done
+Step     69, t= 3.1238270E+00, DT= 9.1383149E-02, C=  0.200 1.8095E+01 3.0010E-01
+             Solving for heat
+         69    Hmholtz TEMP:     11   4.2877E-10   6.9270E-05   7.1227E-10
+         69   3.1238E+00  4.8699E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.5408407902082555E-004   4.8407661754522206E-008
+         69    PRES alph1n  4.2389E-02  1.8129E-03  2.3382E+01     8
+         69    PRES halpha     8  3.4407E-01  3.4301E-01  2.8901E-01 -3.1206E-01 -1.2531E-02 -4.8161E-01  1.0738E+00 -9.1706E-02
+       69 PRES gmres:    2  2.0415E-09  4.4236E-09  7.9975E-09  1.4516E-02  1.9871E-02    F
+         69    VELX alph1n  1.2714E-04  1.4922E-05  8.5202E+00     8
+         69    VELX halpha     8 -8.9357E-05  1.1173E+00 -7.2777E-04  7.6746E-03 -5.6726E-03 -4.9141E-04 -3.4832E-05 -8.1093E-05
+         69    Hmholtz VELX:     22   3.3487E-10   1.4922E-05   5.5967E-10
+         69    VELY alph1n  3.8517E-08  2.5710E-07  1.4981E-01     8
+         69    VELY halpha     8  7.2798E+00  2.9846E+00  2.9635E+00  8.1650E+00  8.9876E+00  6.0673E+00  4.5399E+00  4.7274E+00
+         69    Hmholtz VELY:     12   4.4393E-10   2.5710E-07   5.5967E-10
+         69    VELZ alph1n  2.1860E-04  2.6252E-05  8.3270E+00     8
+         69    VELZ halpha     8  7.8863E-05  1.1219E+00 -4.5512E-04  4.5720E-04  2.4762E-04 -2.1809E-04 -2.3176E-04  3.8333E-06
+         69    Hmholtz VELZ:     23   4.1030E-10   2.6252E-05   5.5967E-10
+               L1/L2 DIV(V)    :   1.3158E-18   5.9028E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.3158E-18   5.9028E-02
+         69   3.1238E+00  2.2636E-01 Fluid done
+Step     70, t= 3.2152101E+00, DT= 9.1383149E-02, C=  0.218 1.8388E+01 2.9301E-01
+             Solving for heat
+         70    Hmholtz TEMP:     11   4.0039E-10   7.5657E-05   7.0877E-10
+         70   3.2152E+00  5.0600E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.7375114946578636E-004   5.2896720445928195E-008
+         70    PRES alph1n  5.0488E-02  1.3889E-03  3.6350E+01     8
+         70    PRES halpha     8 -1.0712E-01  2.2804E-01  3.1019E-01 -2.9145E-01 -1.2033E-01  1.5364E-01  7.1583E-01  3.0000E-01
+       70 PRES gmres:    1  2.8083E-09  4.8339E-09  5.2054E-09  7.4220E-03  1.0869E-02    F
+         70    VELX alph1n  1.4586E-04  4.1706E-06  3.4974E+01     8
+         70    VELX halpha     8 -2.3602E-04  1.8775E-04  1.1469E+00  9.3424E-03 -7.6661E-03 -2.3210E-04  1.6784E-04 -2.8758E-04
+         70    Hmholtz VELX:     19   3.5373E-10   4.1706E-06   6.1157E-10
+         70    VELY alph1n  3.3954E-08  2.8313E-08  1.1992E+00     8
+         70    VELY halpha     8 -2.7724E-01 -4.6241E-01  4.5933E-02  2.7433E-01  4.5005E-01  3.6493E-01  6.6577E-01  2.4905E-02
+         70    Hmholtz VELY:      7   6.0980E-10   2.8313E-08   6.1157E-10
+         70    VELZ alph1n  2.5070E-04  7.2100E-06  3.4771E+01     8
+         70    VELZ halpha     8 -1.5534E-05  1.8176E-05  1.1468E+00  1.2153E-03 -8.9900E-04 -7.9114E-05 -1.9028E-05 -3.2540E-05
+         70    Hmholtz VELZ:     20   4.4946E-10   7.2100E-06   6.1157E-10
+               L1/L2 DIV(V)    :   1.1257E-18   6.4578E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.1257E-18   6.4578E-02
+         70   3.2152E+00  1.9077E-01 Fluid done
+Step     71, t= 3.2917150E+00, DT= 7.6504863E-02, C=  0.200 1.8648E+01 2.5937E-01
+             Solving for heat
+         71    Hmholtz TEMP:     10   5.3476E-10   7.7031E-05   7.0562E-10
+         71   3.2917E+00  4.7194E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    2.1451588672757556E-004   5.7968046734330821E-008
+         71    PRES alph1n  2.9174E-02  3.9285E-03  7.4263E+00     8
+         71    PRES halpha     8  1.3944E+00  4.7170E-01 -3.4185E-02 -4.3147E-01 -2.7847E-01  2.8077E-01 -1.9412E+00  1.5005E+00
+       71 PRES gmres:    2  2.9862E-09  4.4348E-09  1.3707E-08  1.4517E-02  1.9813E-02    F
+         71    VELX alph1n  1.4621E-04  2.0443E-05  7.1521E+00     8
+         71    VELX halpha     8 -4.4806E-04 -1.4083E-06  4.1658E-04  1.0020E+00  2.6711E-03 -2.1481E-03  2.8445E-05 -2.5121E-04
+         71    Hmholtz VELX:     21   4.0142E-10   2.0443E-05   6.6949E-10
+         71    VELY alph1n  3.8953E-08  5.0548E-08  7.7061E-01     8
+         71    VELY halpha     8  8.0891E-01  4.4569E-01  2.1287E-01 -7.5712E-01  9.3815E-01  1.1117E+00  9.7338E-01  5.1219E-01
+         71    Hmholtz VELY:      9   4.1114E-10   5.0548E-08   6.6949E-10
+         71    VELZ alph1n  2.5167E-04  3.5756E-05  7.0386E+00     8
+         71    VELZ halpha     8 -8.0652E-06 -7.3684E-06  1.1391E-04  1.0037E+00  3.3596E-04 -2.1876E-04 -6.9087E-05 -2.4408E-05
+         71    Hmholtz VELZ:     21   6.6244E-10   3.5756E-05   6.6949E-10
+               L1/L2 DIV(V)    :  -1.3954E-18   6.9462E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.3954E-18   6.9462E-02
+         71   3.2917E+00  2.2259E-01 Fluid done
+Step     72, t= 3.3682199E+00, DT= 7.6504863E-02, C=  0.215 1.8935E+01 2.8772E-01
+             Solving for heat
+         72    Hmholtz TEMP:     10   4.8873E-10   8.4012E-05   7.0327E-10
+         72   3.3682E+00  4.7769E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    2.3948100853863751E-004   6.2376248967787342E-008
+         72    PRES alph1n  5.2501E-02  2.0643E-03  2.5433E+01     8
+         72    PRES halpha     8 -4.1059E-01  7.1512E-01  1.2290E+00  7.9745E-01 -1.9179E-01  3.8536E-02  2.3057E-01 -1.2642E+00
+       72 PRES gmres:    1  2.9391E-09  4.7721E-09  6.7875E-09  7.5099E-03  1.0978E-02    F
+         72    VELX alph1n  1.6462E-04  5.6212E-06  2.9286E+01     8
+         72    VELX halpha     8  1.9863E-04 -8.1296E-05 -3.1637E-04  1.6560E-04  1.1261E+00  2.3364E-06 -2.5353E-04  1.8973E-04
+         72    Hmholtz VELX:     18   4.0435E-10   5.6212E-06   7.2040E-10
+         72    VELY alph1n  4.5277E-08  4.7456E-08  9.5409E-01     8
+         72    VELY halpha     8  5.2501E-01 -3.2020E-02 -2.8710E-01  1.9084E-01 -7.3470E-01 -8.6089E-01 -9.9586E-01 -2.7379E-02
+         72    Hmholtz VELY:      8   6.1196E-10   4.7456E-08   7.2040E-10
+         72    VELZ alph1n  2.8561E-04  9.9840E-06  2.8607E+01     8
+         72    VELZ halpha     8  1.8466E-04 -4.1672E-05  4.8181E-05 -2.0857E-04  1.1349E+00  4.3409E-04 -4.7471E-04  3.1083E-05
+         72    Hmholtz VELZ:     19   4.9025E-10   9.9840E-06   7.2040E-10
+               L1/L2 DIV(V)    :  -3.3137E-18   7.4784E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -3.3137E-18   7.4784E-02
+         72   3.3682E+00  1.8849E-01 Fluid done
+Step     73, t= 3.4343092E+00, DT= 6.6089376E-02, C=  0.200 1.9189E+01 2.5415E-01
+             Solving for heat
+         73    Hmholtz TEMP:     10   2.7210E-10   8.6153E-05   7.0120E-10
+         73   3.4343E+00  4.7417E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    2.8741955247279567E-004   6.7247363368512046E-008
+         73    PRES alph1n  2.9937E-02  2.6903E-03  1.1128E+01     8
+         73    PRES halpha     8 -1.0371E+00 -1.6479E-02  1.0719E+00  1.1553E+00  1.1927E+00 -9.1303E-01  4.3702E-01 -7.9219E-01
+       73 PRES gmres:    1  3.8793E-09  4.4443E-09  8.9097E-09  7.5102E-03  1.0926E-02    F
+         73    VELX alph1n  1.6745E-04  2.0313E-05  8.2434E+00     8
+         73    VELX halpha     8 -5.5054E-04  1.7490E-04  9.8505E-04 -3.7001E-04 -1.3377E-03  1.0176E+00  9.3336E-04 -4.6602E-04
+         73    Hmholtz VELX:     19   5.1012E-10   2.0313E-05   7.7608E-10
+         73    VELY alph1n  5.5811E-08  5.0089E-08  1.1142E+00     8
+         73    VELY halpha     8  3.6662E-01  1.2530E-01  6.8535E-01  5.3784E-01  4.3183E-01 -5.7139E-01  5.9359E-01  2.3382E-01
+         73    Hmholtz VELY:      7   6.9485E-10   5.0089E-08   7.7608E-10
+         73    VELZ alph1n  2.9022E-04  3.5715E-05  8.1258E+00     8
+         73    VELZ halpha     8 -4.8032E-05  1.4695E-05  1.9313E-04 -1.3792E-04 -8.3237E-05  1.0161E+00  8.8908E-05 -3.8628E-05
+         73    Hmholtz VELZ:     20   5.5853E-10   3.5715E-05   7.7608E-10
+               L1/L2 DIV(V)    :   7.6081E-18   7.9612E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   7.6081E-18   7.9612E-02
+         73   3.4343E+00  2.0103E-01 Fluid done
+Step     74, t= 3.5003986E+00, DT= 6.6089376E-02, C=  0.213 1.9456E+01 2.6635E-01
+             Solving for heat
+         74    Hmholtz TEMP:     10   2.5197E-10   9.2994E-05   6.9966E-10
+         74   3.5004E+00  4.7351E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    3.1541809056574602E-004   7.1617967213200786E-008
+         74    PRES alph1n  4.9423E-02  1.9934E-03  2.4793E+01     8
+         74    PRES halpha     8 -2.0452E-01 -7.4696E-01 -8.5175E-01  4.4830E-02  9.2061E-01  1.4900E+00 -2.1172E-01  5.4380E-01
+       74 PRES gmres:    1  4.0310E-09  4.7332E-09  7.7584E-09  7.3159E-03  1.0728E-02    F
+         74    VELX alph1n  1.8534E-04  5.2179E-06  3.5520E+01     8
+         74    VELX halpha     8 -9.1091E-05  7.5754E-05  4.2322E-04 -3.5978E-04 -5.7561E-06 -5.7708E-06  1.1067E+00  1.3916E-04
+         74    Hmholtz VELX:     16   7.2041E-10   5.2179E-06   8.2652E-10
+         74    VELY alph1n  6.1893E-08  3.9775E-08  1.5561E+00     8
+         74    VELY halpha     8  4.4520E-01  7.1466E-01  6.3577E-01  2.8896E-01  1.1463E-02 -6.4455E-01 -8.4187E-01  1.5298E-01
+         74    Hmholtz VELY:      7   4.7700E-10   3.9775E-08   8.2652E-10
+         74    VELZ alph1n  3.2221E-04  9.2111E-06  3.4980E+01     8
+         74    VELZ halpha     8  7.0967E-05 -1.0483E-05  2.0976E-04 -2.7008E-04  5.1855E-04 -4.8448E-04  1.1102E+00  4.3477E-05
+         74    Hmholtz VELZ:     17   6.8951E-10   9.2111E-06   8.2652E-10
+               L1/L2 DIV(V)    :   1.7249E-17   8.4812E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.7249E-17   8.4812E-02
+         74   3.5004E+00  1.8061E-01 Fluid done
+Step     75, t= 3.5587034E+00, DT= 5.8304807E-02, C=  0.200 1.9702E+01 2.4591E-01
+             Solving for heat
+         75    Hmholtz TEMP:      9   6.1971E-10   9.5226E-05   6.9837E-10
+         75   3.5587E+00  4.6002E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    3.6916255633135699E-004   7.6374518599800818E-008
+         75    PRES alph1n  2.9177E-02  1.9432E-03  1.5015E+01     8
+         75    PRES halpha     8  3.6113E-01 -1.3539E-02 -4.5606E-01 -7.9608E-01  2.0207E-01  8.6750E-01  1.0810E+00 -1.5226E-01
+       75 PRES gmres:    1  3.2788E-09  4.4530E-09  6.8292E-09  7.5579E-03  1.0967E-02    F
+         75    VELX alph1n  1.8822E-04  1.9424E-05  9.6900E+00     8
+         75    VELX halpha     8  1.1571E-04  4.4553E-05  4.8217E-04  4.8277E-05 -9.2879E-04  6.8762E-04 -1.5261E-04  1.0152E+00
+         75    Hmholtz VELX:     18   4.5816E-10   1.9424E-05   8.8092E-10
+         75    VELY alph1n  6.5370E-08  3.9171E-08  1.6689E+00     8
+         75    VELY halpha     8 -3.3922E-02 -7.1645E-01 -3.6279E-01 -5.2313E-01 -7.2800E-01 -8.6726E-01 -1.1870E+00 -1.0523E+00
+         75    Hmholtz VELY:      7   5.0678E-10   3.9171E-08   8.8092E-10
+         75    VELZ alph1n  3.2767E-04  3.4239E-05  9.5700E+00     8
+         75    VELZ halpha     8  6.5840E-05 -4.1338E-06  1.2460E-04 -1.2283E-04  1.9512E-04 -1.9013E-04  1.4649E-04  1.0168E+00
+         75    Hmholtz VELZ:     18   7.9894E-10   3.4239E-05   8.8092E-10
+               L1/L2 DIV(V)    :   8.1389E-18   8.9600E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   8.1389E-18   8.9600E-02
+         75   3.5587E+00  2.0249E-01 Fluid done
+Step     76, t= 3.6170082E+00, DT= 5.8304807E-02, C=  0.211 1.9968E+01 2.6645E-01
+             Solving for heat
+         76    Hmholtz TEMP:      9   5.8307E-10   1.0196E-04   6.9745E-10
+         76   3.6170E+00  4.5638E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    4.0020517128856254E-004   8.0716481193129525E-008
+         76    PRES alph1n  4.5609E-02  2.2088E-03  2.0649E+01     8
+         76    PRES halpha     8  1.9725E-01  2.5739E-01 -1.4861E-01 -4.8806E-01 -8.3420E-01 -9.6802E-03  7.0938E-01  1.2888E+00
+       76 PRES gmres:    1  3.2136E-09  4.7062E-09  7.5253E-09  7.5159E-03  1.0970E-02    F
+         76    VELX alph1n  2.0507E-04  4.9692E-06  4.1269E+01     8
+         76    VELX halpha     8  1.0894E+00  1.4176E-04  3.1324E-04 -2.4183E-04  4.7091E-05 -7.4492E-05  1.8696E-04 -1.9571E-04
+         76    Hmholtz VELX:     16   3.8056E-10   4.9692E-06   9.3100E-10
+         76    VELY alph1n  5.6159E-08  4.7077E-08  1.1929E+00     8
+         76    VELY halpha     8 -1.2703E+00 -5.5363E-01 -2.3678E-01 -5.7716E-01 -9.7385E-01 -1.7553E+00 -1.4807E+00 -1.4449E+00
+         76    Hmholtz VELY:      7   5.9340E-10   4.7077E-08   9.3100E-10
+         76    VELZ alph1n  3.5840E-04  8.8226E-06  4.0623E+01     8
+         76    VELZ halpha     8  1.0938E+00  1.4039E-04  1.7947E-04 -2.6729E-04  6.7144E-04 -6.2833E-04  4.1095E-04 -3.4153E-04
+         76    Hmholtz VELZ:     16   6.3361E-10   8.8226E-06   9.3100E-10
+               L1/L2 DIV(V)    :  -2.6050E-18   9.4696E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.6050E-18   9.4696E-02
+         76   3.6170E+00  1.7977E-01 Fluid done
+Step     77, t= 3.6692540E+00, DT= 5.2245749E-02, C=  0.200 2.0211E+01 2.4334E-01
+             Solving for heat
+         77    Hmholtz TEMP:      9   3.7508E-10   1.0424E-04   6.9675E-10
+         77   3.6693E+00  4.5890E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    4.5966963717887889E-004   8.5383046470129384E-008
+         77    PRES alph1n  3.1063E-02  2.4137E-03  1.2869E+01     8
+         77    PRES halpha     8  1.2504E+00  1.0001E-01  2.6084E-01 -1.0424E-02 -1.6303E-01 -5.2832E-01 -1.8485E-01  3.4301E-01
+       77 PRES gmres:    1  2.7170E-09  4.4609E-09  7.7500E-09  7.5541E-03  1.1016E-02    F
+         77    VELX alph1n  2.0843E-04  1.8765E-05  1.1107E+01     8
+         77    VELX halpha     8 -5.9225E-06  1.0159E+00  1.0283E-03 -2.6219E-04 -1.1187E-03  9.1949E-04 -1.6080E-04  3.3584E-06
+         77    Hmholtz VELX:     16   9.1514E-10   1.8765E-05   9.8440E-10
+         77    VELY alph1n  5.1923E-08  2.9448E-08  1.7632E+00     8
+         77    VELY halpha     8 -8.9270E-01 -7.3499E-01 -1.0328E-01 -6.9972E-01 -2.8806E-01 -3.5474E-01 -1.1134E+00 -1.4074E+00
+         77    Hmholtz VELY:      6   7.2448E-10   2.9448E-08   9.8440E-10
+         77    VELZ alph1n  3.6422E-04  3.3143E-05  1.0989E+01     8
+         77    VELZ halpha     8  1.0962E-04  1.0161E+00  2.4360E-04 -1.5952E-04  6.3011E-05 -6.4227E-05  1.0071E-04 -1.0013E-04
+         77    Hmholtz VELZ:     17   9.4156E-10   3.3143E-05   9.8440E-10
+               L1/L2 DIV(V)    :   7.4904E-18   9.9448E-02
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   7.4904E-18   9.9448E-02
+         77   3.6693E+00  1.9092E-01 Fluid done
+Step     78, t= 3.7214997E+00, DT= 5.2245749E-02, C=  0.210 2.0466E+01 2.5474E-01
+             Solving for heat
+         78    Hmholtz TEMP:      9   3.5523E-10   1.1087E-04   6.9633E-10
+         78   3.7215E+00  4.6022E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    4.9371438703903496E-004   8.9699460137595661E-008
+         78    PRES alph1n  4.3866E-02  2.3454E-03  1.8703E+01     8
+         78    PRES halpha     8  7.4431E-01  1.3227E+00  2.2474E-01  3.5875E-01 -3.0388E-01 -5.6397E-01 -7.4971E-01 -8.9094E-02
+       78 PRES gmres:    1  3.2750E-09  4.6864E-09  7.3869E-09  7.5340E-03  1.0966E-02    F
+         78    VELX alph1n  2.2471E-04  4.7972E-06  4.6842E+01     8
+         78    VELX halpha     8  1.9370E-04 -1.8317E-04  1.0779E+00  2.7207E-04 -2.0564E-04  1.5031E-04  1.3139E-04 -1.7666E-04
+         78    Hmholtz VELX:     14   9.6887E-10   4.7972E-06   1.0342E-09
+         78    VELY alph1n  5.5402E-08  1.0526E-07  5.2634E-01     8
+         78    VELY halpha     8  1.7455E+00  1.4282E+00  2.7920E+00  2.0629E+00 -5.7185E-01 -6.1420E-01  2.7126E+00  3.2786E+00
+         78    Hmholtz VELY:      8   7.2193E-10   1.0526E-07   1.0342E-09
+         78    VELZ alph1n  3.9381E-04  8.4924E-06  4.6372E+01     8
+         78    VELZ halpha     8  3.9596E-04 -3.8321E-04  1.0812E+00  3.0724E-05  5.7371E-04 -5.3720E-04  3.7611E-04 -3.1872E-04
+         78    Hmholtz VELZ:     16   3.7158E-10   8.4924E-06   1.0342E-09
+               L1/L2 DIV(V)    :   7.5896E-18   1.0447E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   7.5896E-18   1.0447E-01
+               WARNING: DIV(V)-QTL too large!
+         78   3.7215E+00  1.7861E-01 Fluid done
+Step     79, t= 3.7688875E+00, DT= 4.7387724E-02, C=  0.200 2.0709E+01 2.4257E-01
+             Solving for heat
+         79    Hmholtz TEMP:      9   2.3801E-10   1.1319E-04   6.9611E-10
+         79   3.7689E+00  4.5751E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    5.5876990637111399E-004   9.4297031384807472E-008
+         79    PRES alph1n  3.0968E-02  2.2650E-03  1.3673E+01     8
+         79    PRES halpha     8 -4.7402E-01  4.4610E-01  1.3895E+00  2.0156E-01  5.8080E-01  2.4862E-01 -4.7714E-01 -8.5891E-01
+       79 PRES gmres:    1  3.4501E-09  4.4685E-09  7.8277E-09  7.5109E-03  1.0929E-02    F
+         79    VELX alph1n  2.2806E-04  1.8212E-05  1.2523E+01     8
+         79    VELX halpha     8  2.0893E-05 -2.9067E-05  2.6422E-04  1.0142E+00 -2.4134E-04  7.3819E-04 -1.1758E-04  9.6688E-07
+         79    Hmholtz VELX:     16   5.9809E-10   1.8212E-05   1.0868E-09
+         79    VELY alph1n  6.1014E-08  1.0800E-07  5.6496E-01     8
+         79    VELY halpha     8 -4.1077E+00 -3.5582E+00 -1.8587E+00 -3.2282E+00 -3.2668E+00 -5.5818E+00 -3.8491E+00 -4.3960E+00
+         79    Hmholtz VELY:      7   9.6326E-10   1.0800E-07   1.0868E-09
+         79    VELZ alph1n  4.0008E-04  3.2252E-05  1.2405E+01     8
+         79    VELZ halpha     8  1.8508E-04 -1.7791E-04  1.7769E-04  1.0157E+00  2.6999E-04 -2.0586E-04  1.6861E-04 -1.4977E-04
+         79    Hmholtz VELZ:     16   8.7137E-10   3.2252E-05   1.0868E-09
+               L1/L2 DIV(V)    :   7.5692E-18   1.0918E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   7.5692E-18   1.0918E-01
+               WARNING: DIV(V)-QTL too large!
+         79   3.7689E+00  1.9151E-01 Fluid done
+Step     80, t= 3.8162752E+00, DT= 4.7387724E-02, C=  0.209 2.0964E+01 2.5521E-01
+             Solving for heat
+         80    Hmholtz TEMP:      9   2.2653E-10   1.1972E-04   6.9610E-10
+         80   3.8163E+00  4.5728E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    5.9577019377650062E-004   9.8589504911690677E-008
+         80    PRES alph1n  4.2603E-02  2.1783E-03  1.9558E+01     8
+         80    PRES halpha     8 -1.8675E-01  7.4096E-02  6.6957E-01  1.2142E+00 -1.1675E-01  8.8346E-02 -2.5111E-01 -4.6086E-01
+       80 PRES gmres:    1  3.1130E-09  4.6719E-09  7.4426E-09  7.4751E-03  1.0897E-02    F
+         80    VELX alph1n  2.4377E-04  4.6614E-06  5.2296E+01     8
+         80    VELX halpha     8  1.9882E-04 -1.8494E-04  3.0192E-04 -3.1468E-04  1.0687E+00  2.9867E-04  1.1973E-04 -1.8229E-04
+         80    Hmholtz VELX:     14   6.0207E-10   4.6614E-06   1.1363E-09
+         80    VELY alph1n  6.4681E-08  9.0495E-08  7.1474E-01     8
+         80    VELY halpha     8  2.9677E+00  2.5089E+00  1.0170E+00  1.6716E+00  1.1181E+00  2.9370E+00  2.2737E+00  2.3107E+00
+         80    Hmholtz VELY:      7   7.2492E-10   9.0495E-08   1.1363E-09
+         80    VELZ alph1n  4.2876E-04  8.2428E-06  5.2016E+01     8
+         80    VELZ halpha     8  4.0305E-04 -3.9020E-04  3.6854E-04 -3.3582E-04  1.0716E+00  2.2431E-05  3.8055E-04 -3.2268E-04
+         80    Hmholtz VELZ:     14   8.8082E-10   8.2428E-06   1.1363E-09
+               L1/L2 DIV(V)    :  -1.4477E-17   1.1413E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.4477E-17   1.1413E-01
+               WARNING: DIV(V)-QTL too large!
+         80   3.8163E+00  1.7373E-01 Fluid done
+Step     81, t= 3.8636629E+00, DT= 4.7387724E-02, C=  0.218 2.1201E+01 2.3740E-01
+             Solving for heat
+         81    Hmholtz TEMP:      9   2.2853E-10   1.2510E-04   6.9629E-10
+         81   3.8637E+00  4.5766E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    6.2690235413881531E-004   1.0309956644759490E-007
+         81    PRES alph1n  3.9331E-02  1.9636E-03  2.0030E+01     8
+         81    PRES halpha     8 -7.8805E-01 -3.4701E-01 -2.2698E-01  3.8228E-01  1.1788E+00  4.6661E-01  4.6194E-01 -1.6783E-02
+       81 PRES gmres:    1  3.3927E-09  4.8857E-09  7.2899E-09  7.5409E-03  1.0950E-02    F
+         81    VELX alph1n  2.5671E-04  1.9969E-06  1.2856E+02     8
+         81    VELX halpha     8  1.6653E-04 -1.2889E-04  3.6372E-04 -4.1001E-04  5.2615E-04  1.0521E+00  6.3749E-04 -2.0000E-04
+         81    Hmholtz VELX:     12   1.1659E-09   1.9969E-06   1.1882E-09
+         81    VELY alph1n  5.5802E-08  4.4112E-08  1.2650E+00     8
+         81    VELY halpha     8 -1.2949E+00 -1.0531E+00 -1.8875E+00 -8.3896E-01 -1.0122E+00 -1.2401E+00 -1.4685E+00 -1.5154E+00
+         81    Hmholtz VELY:      6   8.7133E-10   4.4112E-08   1.1882E-09
+         81    VELZ alph1n  4.5157E-04  2.8760E-06  1.5702E+02     8
+         81    VELZ halpha     8  2.5320E-04 -2.3850E-04  2.4730E-04 -2.3477E-04  2.4817E-04  1.0529E+00  3.0917E-04 -2.2627E-04
+         81    Hmholtz VELZ:     13   9.0443E-10   2.8760E-06   1.1882E-09
+               L1/L2 DIV(V)    :   4.2951E-18   1.1932E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   4.2951E-18   1.1932E-01
+               WARNING: DIV(V)-QTL too large!
+         81   3.8637E+00  1.6796E-01 Fluid done
+Step     82, t= 3.9051934E+00, DT= 4.1530482E-02, C=  0.200 2.1433E+01 2.3168E-01
+             Solving for heat
+         82    Hmholtz TEMP:      8   6.9079E-10   1.2526E-04   6.9668E-10
+         82   3.9052E+00  4.4523E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.1862059602588707E-004   1.0786739075898504E-007
+         82    PRES alph1n  2.9984E-02  3.5604E-03  8.4215E+00     8
+         82    PRES halpha     8  2.6171E-01 -1.5187E+00 -1.1710E+00  8.4838E-01  2.3775E+00  5.4665E-01 -6.8314E-01  4.3452E-01
+       82 PRES gmres:    1  4.2550E-09  4.4798E-09  1.0975E-08  7.2529E-03  1.0700E-02    F
+         82    VELX alph1n  2.5383E-04  2.5346E-05  1.0015E+01     8
+         82    VELX halpha     8 -7.5734E-05  3.9209E-05  2.3174E-04 -2.6030E-04  3.7748E-04  3.2009E-03  9.8501E-01  4.8147E-04
+         82    Hmholtz VELX:     15   1.2090E-09   2.5346E-05   1.2427E-09
+         82    VELY alph1n  6.8388E-08  4.8828E-08  1.4006E+00     8
+         82    VELY halpha     8 -7.4161E-01 -1.0060E+00 -8.6272E-01 -9.1278E-01 -1.3938E+00 -1.2458E+00 -7.7479E-01 -3.2035E-01
+         82    Hmholtz VELY:      6   8.8523E-10   4.8828E-08   1.2427E-09
+         82    VELZ alph1n  4.4720E-04  4.5050E-05  9.9267E+00     8
+         82    VELZ halpha     8  1.9145E-04 -1.8721E-04  1.8226E-04 -1.6760E-04  1.8859E-04  3.7516E-04  9.8975E-01  4.8911E-05
+         82    Hmholtz VELZ:     16   7.6623E-10   4.5050E-05   1.2427E-09
+               L1/L2 DIV(V)    :  -8.2282E-18   1.2398E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -8.2282E-18   1.2398E-01
+               WARNING: DIV(V)-QTL too large!
+         82   3.9052E+00  1.9040E-01 Fluid done
+Step     83, t= 3.9467239E+00, DT= 4.1530482E-02, C=  0.208 2.1686E+01 2.5292E-01
+             Solving for heat
+         83    Hmholtz TEMP:      8   6.4067E-10   1.3280E-04   6.9720E-10
+         83   3.9467E+00  4.4067E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    7.6681198637409303E-004   1.1211622034475905E-007
+         83    PRES alph1n  4.2826E-02  2.4912E-03  1.7191E+01     8
+         83    PRES halpha     8 -6.3575E-01 -9.3697E-02 -4.3301E-01 -1.0937E-01  4.2877E-01  9.6094E-01  6.5655E-01  1.0574E-01
+       83 PRES gmres:    1  4.4373E-09  4.6562E-09  9.4187E-09  7.2479E-03  1.0651E-02    F
+         83    VELX alph1n  2.7129E-04  6.9969E-06  3.8773E+01     8
+         83    VELX halpha     8  4.6002E-04 -2.0099E-04  2.9916E-04 -3.0480E-04  3.7678E-04  1.8703E-03 -2.1923E-03  1.0686E+00
+         83    Hmholtz VELX:     14   6.2353E-10   6.9969E-06   1.2916E-09
+         83    VELY alph1n  7.4565E-08  4.1261E-08  1.8071E+00     8
+         83    VELY halpha     8 -5.7353E-01 -1.3381E+00 -1.1892E+00 -1.4764E+00 -1.4462E+00 -1.2411E+00 -9.7882E-01 -1.1853E+00
+         83    Hmholtz VELY:      5   1.0675E-09   4.1261E-08   1.2916E-09
+         83    VELZ alph1n  4.7971E-04  1.2489E-05  3.8410E+01     8
+         83    VELZ halpha     8  5.7238E-04 -4.9710E-04  4.5786E-04 -4.1220E-04  4.2731E-04  5.0841E-04 -8.9189E-04  1.0726E+00
+         83    Hmholtz VELZ:     14   8.2310E-10   1.2489E-05   1.2916E-09
+               L1/L2 DIV(V)    :   8.7977E-18   1.2883E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   8.7977E-18   1.2883E-01
+               WARNING: DIV(V)-QTL too large!
+         83   3.9467E+00  1.6943E-01 Fluid done
+Step     84, t= 3.9882543E+00, DT= 4.1530482E-02, C=  0.216 2.1917E+01 2.3140E-01
+             Solving for heat
+         84    Hmholtz TEMP:      8   6.3937E-10   1.3845E-04   6.9789E-10
+         84   3.9883E+00  4.4088E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    8.0384573357730228E-004   1.1655287403842395E-007
+         84    PRES alph1n  3.8972E-02  3.3376E-03  1.1677E+01     8
+         84    PRES halpha     8 -2.0641E-04 -1.4479E-01  1.7208E-01 -6.7454E-01 -4.6887E-01  7.2995E-01  1.1215E+00  3.0610E-01
+       84 PRES gmres:    1  4.6463E-09  4.8405E-09  1.0409E-08  7.2551E-03  1.0659E-02    F
+         84    VELX alph1n  2.8466E-04  2.7782E-06  1.0246E+02     8
+         84    VELX halpha     8  1.0487E+00  5.0655E-04  3.9725E-04 -4.6322E-04  6.1154E-04  4.1652E-03 -4.6685E-03  2.8835E-04
+         84    Hmholtz VELX:     12   9.6716E-10   2.7782E-06   1.3427E-09
+         84    VELY alph1n  7.2948E-08  4.2020E-08  1.7360E+00     8
+         84    VELY halpha     8 -1.0090E+00 -5.3669E-01 -1.4668E+00 -1.1193E+00 -9.5257E-01 -1.0115E+00 -1.5388E+00 -9.5572E-01
+         84    Hmholtz VELY:      5   9.6349E-10   4.2020E-08   1.3427E-09
+         84    VELZ alph1n  5.0313E-04  4.2284E-06  1.1899E+02     8
+         84    VELZ halpha     8  1.0486E+00  6.7863E-05  2.3263E-04 -2.2461E-04  2.4280E-04  6.5276E-04 -8.6593E-04  1.5405E-04
+         84    Hmholtz VELZ:     12   1.2411E-09   4.2284E-06   1.3427E-09
+               L1/L2 DIV(V)    :  -6.1739E-19   1.3389E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -6.1739E-19   1.3389E-01
+               WARNING: DIV(V)-QTL too large!
+         84   3.9883E+00  1.6344E-01 Fluid done
+Step     85, t= 4.0253033E+00, DT= 3.7048990E-02, C=  0.200 2.2143E+01 2.2543E-01
+             Solving for heat
+         85    Hmholtz TEMP:      8   4.1360E-10   1.3872E-04   6.9877E-10
+         85   4.0253E+00  4.3999E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    9.0541212015840988E-004   1.2120975591318939E-007
+         85    PRES alph1n  3.1003E-02  2.7822E-03  1.1143E+01     8
+         85    PRES halpha     8  5.9918E-01 -2.8339E-01 -9.1085E-02  9.3837E-02 -1.5079E-01 -8.2365E-01  3.7932E-01  1.3360E+00
+       85 PRES gmres:    1  3.5374E-09  4.4907E-09  8.5361E-09  7.2460E-03  1.0651E-02    F
+         85    VELX alph1n  2.8242E-04  2.4344E-05  1.1601E+01     8
+         85    VELX halpha     8  2.3926E-03  9.8935E-01  7.6717E-04 -2.7900E-04  4.0015E-04  3.5132E-03 -3.8129E-03  1.4930E-04
+         85    Hmholtz VELX:     14   1.1585E-09   2.4344E-05   1.3959E-09
+         85    VELY alph1n  8.0658E-08  4.3859E-08  1.8390E+00     8
+         85    VELY halpha     8 -1.0582E+00 -1.3572E+00 -6.4018E-01 -9.9877E-01 -8.5876E-01 -8.7650E-01 -9.3835E-01 -1.1571E+00
+         85    Hmholtz VELY:      5   7.5955E-10   4.3859E-08   1.3959E-09
+         85    VELZ alph1n  4.9978E-04  4.3398E-05  1.1516E+01     8
+         85    VELZ halpha     8  2.3215E-04  9.9296E-01  2.2999E-04 -1.6754E-04  1.8622E-04  4.1994E-04 -5.8307E-04  1.3089E-04
+         85    Hmholtz VELZ:     15   1.0396E-09   4.3398E-05   1.3959E-09
+               L1/L2 DIV(V)    :   9.8024E-18   1.3851E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   9.8024E-18   1.3851E-01
+               WARNING: DIV(V)-QTL too large!
+         85   4.0253E+00  1.8155E-01 Fluid done
+Step     86, t= 4.0623523E+00, DT= 3.7048990E-02, C=  0.207 2.2386E+01 2.4345E-01
+             Solving for heat
+         86    Hmholtz TEMP:      8   3.8682E-10   1.4609E-04   6.9972E-10
+         86   4.0624E+00  4.5371E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    9.5842924630898331E-004   1.2543058024076609E-007
+         86    PRES alph1n  4.1565E-02  2.4253E-03  1.7138E+01     8
+         86    PRES halpha     8  1.1648E+00  5.7712E-01 -2.9325E-01 -2.0654E-02 -1.0464E+00 -4.2585E-01  6.3051E-02  8.8335E-01
+       86 PRES gmres:    1  3.2955E-09  4.6471E-09  8.4433E-09  7.4401E-03  1.0844E-02    F
+         86    VELX alph1n  2.9909E-04  6.7146E-06  4.4544E+01     8
+         86    VELX halpha     8  1.6095E-03 -1.7727E-03  1.0588E+00  2.7237E-04  4.4481E-04  2.3243E-03 -2.6978E-03  2.3428E-04
+         86    Hmholtz VELX:     12   1.3512E-09   6.7146E-06   1.4445E-09
+         86    VELY alph1n  7.4916E-08  5.4091E-08  1.3850E+00     8
+         86    VELY halpha     8 -1.8263E+00 -1.4667E+00 -1.4319E+00 -1.0983E+00 -1.1601E+00 -1.3636E+00 -1.3846E+00 -1.5371E+00
+         86    Hmholtz VELY:      5   1.2716E-09   5.4091E-08   1.4445E-09
+         86    VELZ alph1n  5.3098E-04  1.1988E-05  4.4294E+01     8
+         86    VELZ halpha     8  2.0629E-04 -5.0765E-04  1.0624E+00  6.3700E-05  4.4630E-04  5.2377E-04 -9.2335E-04  3.3294E-04
+         86    Hmholtz VELZ:     13   1.3758E-09   1.1988E-05   1.4445E-09
+               L1/L2 DIV(V)    :   6.9356E-18   1.4329E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   6.9356E-18   1.4329E-01
+               WARNING: DIV(V)-QTL too large!
+         86   4.0624E+00  1.6562E-01 Fluid done
+Step     87, t= 4.0994013E+00, DT= 3.7048990E-02, C=  0.214 2.2615E+01 2.2890E-01
+             Solving for heat
+         87    Hmholtz TEMP:      8   3.8620E-10   1.5159E-04   7.0084E-10
+         87   4.0994E+00  4.4094E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    9.9905997659614364E-004   1.2981105879557903E-007
+         87    PRES alph1n  3.8732E-02  2.2586E-03  1.7149E+01     8
+         87    PRES halpha     8  9.0201E-01  1.1833E+00  4.3102E-01 -4.5405E-01 -5.2246E-01 -6.4414E-01  3.1006E-03  1.0311E-01
+       87 PRES gmres:    1  3.8038E-09  4.8094E-09  8.0098E-09  7.4379E-03  1.0854E-02    F
+         87    VELX alph1n  3.1174E-04  2.7166E-06  1.1475E+02     8
+         87    VELX halpha     8  3.2454E-03 -3.3962E-03  3.9786E-04  1.0415E+00  1.1093E-03  4.3550E-03 -4.8654E-03  2.9849E-04
+         87    Hmholtz VELX:     12   5.5862E-10   2.7166E-06   1.4950E-09
+         87    VELY alph1n  7.0220E-08  3.6872E-08  1.9044E+00     8
+         87    VELY halpha     8 -8.6422E-01 -1.4182E+00 -1.1879E+00 -1.0498E+00 -1.0073E+00 -9.7852E-01 -1.2104E+00 -1.0467E+00
+         87    Hmholtz VELY:      5   7.6173E-10   3.6872E-08   1.4950E-09
+         87    VELZ alph1n  5.5348E-04  4.0497E-06  1.3667E+02     8
+         87    VELZ halpha     8  4.2001E-04 -5.7154E-04  1.7836E-04  1.0421E+00  3.4655E-04  6.7974E-04 -9.2054E-04  1.8156E-04
+         87    Hmholtz VELZ:     12   8.5350E-10   4.0497E-06   1.4950E-09
+               L1/L2 DIV(V)    :   1.3530E-17   1.4825E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.3530E-17   1.4825E-01
+               WARNING: DIV(V)-QTL too large!
+         87   4.0994E+00  1.6411E-01 Fluid done
+Step     88, t= 4.1328997E+00, DT= 3.3498349E-02, C=  0.200 2.2841E+01 2.2610E-01
+             Solving for heat
+         88    Hmholtz TEMP:      8   2.6083E-10   1.5193E-04   7.0212E-10
+         88   4.1329E+00  4.4069E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.1102396794470208E-003   1.3438047735932514E-007
+         88    PRES alph1n  3.1940E-02  2.0588E-03  1.5514E+01     8
+         88    PRES halpha     8  3.3026E-01  5.3699E-01  7.6416E-01  2.8035E-01 -3.8044E-01 -5.5051E-01 -3.4737E-01  4.6188E-01
+       88 PRES gmres:    1  3.3727E-09  4.5015E-09  7.0425E-09  7.4580E-03  1.0906E-02    F
+         88    VELX alph1n  3.0993E-04  2.3526E-05  1.3174E+01     8
+         88    VELX halpha     8  2.6345E-03 -2.6930E-03  3.1953E-04  2.6202E-03  9.9104E-01  4.6447E-03 -4.0853E-03  1.6050E-04
+         88    Hmholtz VELX:     14   6.1204E-10   2.3526E-05   1.5472E-09
+         88    VELY alph1n  5.9154E-08  3.5207E-08  1.6802E+00     8
+         88    VELY halpha     8 -7.2476E-01 -7.5376E-01 -1.1261E+00 -8.1282E-01 -8.0753E-01 -6.5721E-01 -6.1182E-01 -7.1400E-01
+         88    Hmholtz VELY:      4   1.4659E-09   3.5207E-08   1.5472E-09
+         88    VELZ alph1n  5.5082E-04  4.2074E-05  1.3092E+01     8
+         88    VELZ halpha     8  2.5947E-04 -3.8100E-04  1.5029E-04  2.8500E-04  9.9474E-01  6.9514E-04 -6.2651E-04  1.4095E-04
+         88    Hmholtz VELZ:     14   1.0788E-09   4.2074E-05   1.5472E-09
+               L1/L2 DIV(V)    :  -3.5456E-18   1.5283E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -3.5456E-18   1.5283E-01
+               WARNING: DIV(V)-QTL too large!
+         88   4.1329E+00  1.7950E-01 Fluid done
+Step     89, t= 4.1663980E+00, DT= 3.3498349E-02, C=  0.206 2.3083E+01 2.4151E-01
+             Solving for heat
+         89    Hmholtz TEMP:      8   2.4554E-10   1.5915E-04   7.0343E-10
+         89   4.1664E+00  4.4103E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.1679808593270805E-003   1.3857381449850361E-007
+         89    PRES alph1n  4.1072E-02  2.1819E-03  1.8824E+01     8
+         89    PRES halpha     8 -8.0787E-02  3.9408E-02  7.9386E-01  1.0330E+00  5.5191E-01 -3.0327E-01 -5.1189E-01 -5.4300E-01
+       89 PRES gmres:    1  3.3325E-09  4.6420E-09  7.7065E-09  7.4480E-03  1.0868E-02    F
+         89    VELX alph1n  3.2597E-04  6.5006E-06  5.0145E+01     8
+         89    VELX halpha     8  2.0837E-03 -2.2417E-03  3.4903E-04  2.0545E-03 -2.3187E-03  1.0515E+00  2.3994E-04  2.5021E-04
+         89    Hmholtz VELX:     12   8.6056E-10   6.5006E-06   1.5955E-09
+         89    VELY alph1n  6.5158E-08  4.0051E-08  1.6269E+00     8
+         89    VELY halpha     8 -6.7556E-01 -2.9591E-01 -1.9855E-01 -8.0667E-01 -7.0237E-01 -8.9240E-01 -4.9944E-01 -3.2618E-01
+         89    Hmholtz VELY:      5   6.5168E-10   4.0051E-08   1.5955E-09
+         89    VELZ alph1n  5.8094E-04  1.1580E-05  5.0169E+01     8
+         89    VELZ halpha     8  2.4542E-04 -5.3568E-04  3.2713E-04  3.1341E-04 -6.0614E-04  1.0546E+00  4.6627E-05  3.2322E-04
+         89    Hmholtz VELZ:     12   1.3818E-09   1.1580E-05   1.5955E-09
+               L1/L2 DIV(V)    :  -8.1076E-18   1.5755E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -8.1076E-18   1.5755E-01
+               WARNING: DIV(V)-QTL too large!
+         89   4.1664E+00  1.6412E-01 Fluid done
+Step     90, t= 4.1998964E+00, DT= 3.3498349E-02, C=  0.212 2.3309E+01 2.2610E-01
+             Solving for heat
+         90    Hmholtz TEMP:      8   2.4522E-10   1.6453E-04   7.0490E-10
+         90   4.1999E+00  4.4060E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.2121225911120948E-003   1.4290598522608566E-007
+         90    PRES alph1n  3.8567E-02  2.0538E-03  1.8778E+01     8
+         90    PRES halpha     8 -4.1679E-01 -4.4200E-02  1.4441E-01  7.1745E-01  9.2618E-01  6.1836E-01 -3.1908E-01 -6.1749E-01
+       90 PRES gmres:    1  2.8673E-09  4.7871E-09  7.1354E-09  7.9379E-03  1.1918E-02    F
+         90    VELX alph1n  3.3802E-04  2.6965E-06  1.2536E+02     8
+         90    VELX halpha     8  3.4165E-03 -3.5648E-03  4.2112E-04  3.3366E-03 -3.6192E-03  5.7584E-04  1.0360E+00  6.7155E-04
+         90    Hmholtz VELX:     11   1.1148E-09   2.6965E-06   1.6454E-09
+         90    VELY alph1n  5.9623E-08  3.2227E-08  1.8501E+00     8
+         90    VELY halpha     8 -4.6106E-01 -5.0034E-01 -4.7353E-01 -3.6036E-01 -8.8961E-01 -7.0046E-01 -8.8369E-01 -4.7695E-01
+         90    Hmholtz VELY:      4   1.3755E-09   3.2227E-08   1.6454E-09
+         90    VELZ alph1n  6.0265E-04  3.9168E-06  1.5386E+02     8
+         90    VELZ halpha     8  4.1404E-04 -5.8423E-04  2.0272E-04  4.3517E-04 -6.0856E-04  1.9654E-04  1.0371E+00  2.5296E-04
+         90    Hmholtz VELZ:     11   1.4047E-09   3.9168E-06   1.6454E-09
+               L1/L2 DIV(V)    :   9.7488E-18   1.6242E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   9.7488E-18   1.6242E-01
+               WARNING: DIV(V)-QTL too large!
+         90   4.1999E+00  1.6152E-01 Fluid done
+Step     91, t= 4.2333947E+00, DT= 3.3498349E-02, C=  0.219 2.3532E+01 2.2352E-01
+             Solving for heat
+         91    Hmholtz TEMP:      8   2.5162E-10   1.6904E-04   7.0652E-10
+         91   4.2334E+00  4.4197E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.2500590320630720E-003   1.4737264643603289E-007
+         91    PRES alph1n  4.0377E-02  1.7572E-03  2.2978E+01     8
+         91    PRES halpha     8 -2.7761E-01 -3.7220E-01 -3.2391E-01  5.7180E-02  7.4806E-01  7.9286E-01  7.1814E-01 -2.4509E-01
+       91 PRES gmres:    1  2.4633E-09  4.9367E-09  5.3474E-09  7.4730E-03  1.0899E-02    F
+         91    VELX alph1n  3.4790E-04  1.7482E-06  1.9900E+02     8
+         91    VELX halpha     8  4.0064E-03 -3.4883E-03  4.2162E-04  3.2993E-03 -3.5888E-03  5.9226E-04  3.2629E-03  1.0251E+00
+         91    Hmholtz VELX:      9   1.0167E-09   1.7482E-06   1.6968E-09
+         91    VELY alph1n  5.6339E-08  3.7073E-08  1.5197E+00     8
+         91    VELY halpha     8 -1.1604E-01 -4.3464E-01 -4.1632E-01 -3.1319E-01 -3.8571E-01 -7.1785E-01 -6.7396E-01 -8.0536E-01
+         91    Hmholtz VELY:      4   1.2763E-09   3.7073E-08   1.6968E-09
+         91    VELZ alph1n  6.2081E-04  1.3303E-06  4.6668E+02     8
+         91    VELZ halpha     8  6.7226E-04 -5.9749E-04  2.3317E-04  4.3517E-04 -6.3677E-04  2.2590E-04  4.5472E-04  1.0294E+00
+         91    Hmholtz VELZ:     10   1.1170E-09   1.3303E-06   1.6968E-09
+               L1/L2 DIV(V)    :   1.0960E-17   1.6743E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.0960E-17   1.6743E-01
+               WARNING: DIV(V)-QTL too large!
+         91   4.2334E+00  1.5575E-01 Fluid done
+Step     92, t= 4.2631043E+00, DT= 2.9709558E-02, C=  0.200 2.3750E+01 2.1788E-01
+             Solving for heat
+         92    Hmholtz TEMP:      8   1.5486E-10   1.6806E-04   7.0831E-10
+         92   4.2631E+00  4.4085E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.4038191866332904E-003   1.5201385351631817E-007
+         92    PRES alph1n  3.0801E-02  2.1086E-03  1.4608E+01     8
+         92    PRES halpha     8  1.4749E-01 -3.4873E-01  1.8945E-02 -2.1677E-01  4.7145E-02  1.0499E+00  6.1263E-02  2.5223E-01
+       92 PRES gmres:    1  3.5018E-09  4.5163E-09  7.6123E-09  7.4470E-03  1.0863E-02    F
+         92    VELX alph1n  3.4234E-04  3.1182E-05  1.0979E+01     8
+         92    VELX halpha     8  1.8462E+00  4.4974E-05 -5.8865E-05 -4.0574E-04  4.3940E-04 -4.7462E-05 -2.7723E-04 -8.8711E-01
+         92    Hmholtz VELX:     13   1.6276E-09   3.1182E-05   1.7498E-09
+         92    VELY alph1n  4.4600E-08  3.5617E-08  1.2522E+00     8
+         92    VELY halpha     8 -8.8955E-02 -2.1650E-04 -1.6760E-01 -3.1882E-01 -1.7797E-01  5.4416E-02 -2.2754E-01 -6.0178E-02
+         92    Hmholtz VELY:      4   1.3219E-09   3.5617E-08   1.7498E-09
+         92    VELZ alph1n  6.1197E-04  5.6153E-05  1.0898E+01     8
+         92    VELZ halpha     8  1.7283E+00  1.4889E-06  2.2900E-05 -9.7274E-05  7.3174E-05  1.9039E-05 -5.3295E-05 -7.6485E-01
+         92    Hmholtz VELZ:     14   9.0424E-10   5.6153E-05   1.7498E-09
+               L1/L2 DIV(V)    :  -1.9673E-17   1.7195E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.9673E-17   1.7195E-01
+               WARNING: DIV(V)-QTL too large!
+         92   4.2631E+00  1.7807E-01 Fluid done
+Step     93, t= 4.2928138E+00, DT= 2.9709558E-02, C=  0.205 2.3990E+01 2.4007E-01
+             Solving for heat
+         93    Hmholtz TEMP:      8   1.4261E-10   1.7617E-04   7.1003E-10
+         93   4.2928E+00  4.4133E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.4768068073959442E-003   1.5616573742256157E-007
+         93    PRES alph1n  4.2044E-02  1.7018E-03  2.4706E+01     8
+         93    PRES halpha     8  4.4205E-01  2.3384E-02 -3.0224E-01 -2.8331E-01 -5.0341E-01 -2.8922E-01  1.0061E+00  8.3088E-01
+       93 PRES gmres:    1  3.2469E-09  4.6396E-09  6.4408E-09  7.4470E-03  1.0839E-02    F
+         93    VELX alph1n  3.6013E-04  8.4531E-06  4.2603E+01     8
+         93    VELX halpha     8  8.1796E-01  1.0519E+00  4.8199E-05  1.2410E-05 -6.2742E-05  4.2468E-05  2.2336E-05 -8.4191E-01
+         93    Hmholtz VELX:     12   7.1901E-10   8.4531E-06   1.7976E-09
+         93    VELY alph1n  4.8357E-08  3.0814E-08  1.5693E+00     8
+         93    VELY halpha     8 -4.9990E-01 -4.0240E-01  8.0486E-02 -3.3793E-01 -7.1509E-01 -3.6311E-01 -5.4909E-01 -7.2276E-01
+         93    Hmholtz VELY:      4   1.0486E-09   3.0814E-08   1.7976E-09
+         93    VELZ alph1n  6.4521E-04  1.5248E-05  4.2315E+01     8
+         93    VELZ halpha     8  1.1172E+00  1.0543E+00  6.4996E-05 -1.2484E-04  5.6113E-05  5.6640E-05 -8.2070E-05 -1.1508E+00
+         93    Hmholtz VELZ:     12   1.1109E-09   1.5248E-05   1.7976E-09
+               L1/L2 DIV(V)    :   5.8535E-19   1.7659E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.8535E-19   1.7659E-01
+               WARNING: DIV(V)-QTL too large!
+         93   4.2928E+00  1.6265E-01 Fluid done
+Step     94, t= 4.3225234E+00, DT= 2.9709558E-02, C=  0.211 2.4215E+01 2.2476E-01
+             Solving for heat
+         94    Hmholtz TEMP:      8   1.4116E-10   1.8176E-04   7.1189E-10
+         94   4.3225E+00  4.4113E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.5286626514020526E-003   1.6043878497838635E-007
+         94    PRES alph1n  3.8829E-02  1.7071E-03  2.2746E+01     8
+         94    PRES halpha     8  7.3772E-01  2.4075E-01  1.1800E-01 -2.0037E-01 -8.2767E-02 -4.6752E-01 -2.4212E-01  8.4544E-01
+       94 PRES gmres:    1  3.2395E-09  4.7666E-09  6.8783E-09  7.4630E-03  1.0874E-02    F
+         94    VELX alph1n  3.7248E-04  2.7795E-06  1.3401E+02     8
+         94    VELX halpha     8  1.1276E+00 -7.9057E-05  1.0343E+00  1.7204E-04 -1.7458E-04 -1.6412E-05  1.7748E-04 -1.1607E+00
+         94    Hmholtz VELX:     10   1.4564E-09   2.7795E-06   1.8467E-09
+         94    VELY alph1n  3.8102E-08  2.9095E-08  1.3096E+00     8
+         94    VELY halpha     8 -8.1573E-01 -2.5484E-01 -9.1504E-01 -1.9780E-01 -5.8091E-01 -6.9830E-01 -5.9821E-01 -8.4497E-01
+         94    Hmholtz VELY:      4   1.0566E-09   2.9095E-08   1.8467E-09
+         94    VELZ alph1n  6.6736E-04  4.9355E-06  1.3521E+02     8
+         94    VELZ halpha     8  9.7154E-01 -3.3752E-05  1.0344E+00  2.6979E-05 -2.3696E-05 -2.4194E-05  4.3733E-05 -1.0008E+00
+         94    Hmholtz VELZ:     11   1.1015E-09   4.9355E-06   1.8467E-09
+               L1/L2 DIV(V)    :  -2.2792E-17   1.8136E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.2792E-17   1.8136E-01
+               WARNING: DIV(V)-QTL too large!
+         94   4.3225E+00  1.5932E-01 Fluid done
+Step     95, t= 4.3522329E+00, DT= 2.9709558E-02, C=  0.216 2.4436E+01 2.2138E-01
+             Solving for heat
+         95    Hmholtz TEMP:      8   1.4444E-10   1.8615E-04   7.1390E-10
+         95   4.3522E+00  4.4342E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.5705069334926811E-003   1.6482709427240788E-007
+         95    PRES alph1n  3.9976E-02  1.6542E-03  2.4166E+01     8
+         95    PRES halpha     8  5.9474E-01  5.7863E-01  7.0948E-01  1.4593E-02 -2.3764E-01 -1.1449E-01 -3.8568E-01 -1.0424E-01
+       95 PRES gmres:    1  2.7488E-09  4.8969E-09  6.2473E-09  7.4871E-03  1.0894E-02    F
+         95    VELX alph1n  3.8171E-04  3.0825E-07  1.2383E+03     8
+         95    VELX halpha     8  1.0764E+00 -1.1779E-04 -3.7123E-04  1.0251E+00  7.6162E-06 -1.6539E-05 -2.1135E-05 -1.1078E+00
+         95    Hmholtz VELX:      7   1.3558E-09   3.0825E-07   1.8973E-09
+         95    VELY alph1n  4.7317E-08  2.7206E-08  1.7392E+00     8
+         95    VELY halpha     8 -2.1850E-01 -6.7715E-01 -1.8033E-01 -7.2076E-01  1.4718E-02 -2.0304E-01 -5.7635E-01 -2.9475E-01
+         95    Hmholtz VELY:      4   9.6048E-10   2.7206E-08   1.8973E-09
+         95    VELZ alph1n  6.8471E-04  3.0299E-07  2.2598E+03     8
+         95    VELZ halpha     8  1.0796E+00 -1.9369E-05 -6.4485E-05  1.0261E+00  2.6074E-07  1.0657E-05 -1.7627E-05 -1.1121E+00
+         95    Hmholtz VELZ:      8   1.3668E-09   3.0299E-07   1.8973E-09
+               L1/L2 DIV(V)    :  -1.7298E-17   1.8625E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.7298E-17   1.8625E-01
+               WARNING: DIV(V)-QTL too large!
+         95   4.3522E+00  1.4986E-01 Fluid done
+Step     96, t= 4.3789865E+00, DT= 2.6753605E-02, C=  0.200 2.4649E+01 2.1203E-01
+             Solving for heat
+         96    Hmholtz TEMP:      8   9.3740E-11   1.8528E-04   7.1605E-10
+         96   4.3790E+00  4.3888E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.7388018536279425E-003   1.6936334932278472E-007
+         96    PRES alph1n  3.1941E-02  1.8080E-03  1.7666E+01     8
+         96    PRES halpha     8  2.0605E-01  1.1617E+00  2.6684E-01  4.4356E-01 -1.3047E-01 -8.3183E-02 -2.1356E-01 -6.1074E-01
+       96 PRES gmres:    1  2.5310E-09  4.5311E-09  5.9464E-09  7.4649E-03  1.0864E-02    F
+         96    VELX alph1n  3.7663E-04  2.9855E-05  1.2616E+01     8
+         96    VELX halpha     8  2.2940E-01 -1.0242E-04 -2.3126E-04 -6.5408E-01  1.6252E+00 -1.0668E-05 -2.4194E-04 -2.3582E-01
+         96    Hmholtz VELX:     12   1.7602E-09   2.9855E-05   1.9491E-09
+         96    VELY alph1n  4.3195E-08  2.8552E-08  1.5129E+00     8
+         96    VELY halpha     8 -3.3789E-01 -4.1902E-01 -7.0644E-01 -6.8087E-01 -9.0972E-01 -2.8309E-01 -4.0904E-01 -4.0325E-01
+         96    Hmholtz VELY:      4   9.0672E-10   2.8552E-08   1.9491E-09
+         96    VELZ alph1n  6.7684E-04  5.4012E-05  1.2531E+01     8
+         96    VELZ halpha     8  5.1251E-01 -3.5131E-06 -6.3746E-05 -2.7600E-01  1.2576E+00  2.3045E-05 -6.2042E-05 -5.2791E-01
+         96    Hmholtz VELZ:     13   1.5263E-09   5.4012E-05   1.9491E-09
+               L1/L2 DIV(V)    :  -1.2062E-17   1.9071E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.2062E-17   1.9071E-01
+               WARNING: DIV(V)-QTL too large!
+         96   4.3790E+00  1.7489E-01 Fluid done
+Step     97, t= 4.4057402E+00, DT= 2.6753605E-02, C=  0.205 2.4885E+01 2.3654E-01
+             Solving for heat
+         97    Hmholtz TEMP:      8   8.7111E-11   1.9317E-04   7.1812E-10
+         97   4.4057E+00  4.3902E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.8183479784356670E-003   1.7348138792969504E-007
+         97    PRES alph1n  4.2133E-02  1.1765E-03  3.5814E+01     8
+         97    PRES halpha     8 -6.5123E-01  1.4848E-02  8.9271E-01  8.6393E-01  7.3546E-01 -3.2782E-01 -8.7112E-02 -4.7809E-01
+       97 PRES gmres:    1  2.1970E-09  4.6413E-09  4.4209E-09  7.4658E-03  1.0906E-02    F
+         97    VELX alph1n  3.9362E-04  8.0787E-06  4.8723E+01     8
+         97    VELX halpha     8 -9.7212E-02  5.6184E-05  7.4137E-05 -1.0369E+00  1.0117E+00  1.0451E+00  1.0418E-04  9.9940E-02
+         97    Hmholtz VELX:     11   1.3161E-09   8.0787E-06   1.9964E-09
+         97    VELY alph1n  4.1871E-08  2.5105E-08  1.6678E+00     8
+         97    VELY halpha     8 -7.7730E-01 -3.7707E-01 -6.9968E-01 -6.4478E-01 -4.2602E-01 -7.9593E-01 -1.2076E-01 -4.5401E-01
+         97    Hmholtz VELY:      3   1.8916E-09   2.5105E-08   1.9964E-09
+         97    VELZ alph1n  7.0862E-04  1.4615E-05  4.8487E+01     8
+         97    VELZ halpha     8  2.4213E-01  1.1928E-05 -5.5377E-05 -8.5924E-01  8.3750E-01  1.0470E+00 -2.2678E-05 -2.4940E-01
+         97    Hmholtz VELZ:     12   6.7774E-10   1.4615E-05   1.9964E-09
+               L1/L2 DIV(V)    :  -1.3713E-17   1.9529E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.3713E-17   1.9529E-01
+               WARNING: DIV(V)-QTL too large!
+         97   4.4057E+00  1.5944E-01 Fluid done
+Step     98, t= 4.4324938E+00, DT= 2.6753605E-02, C=  0.210 2.5106E+01 2.2111E-01
+             Solving for heat
+         98    Hmholtz TEMP:      8   8.6356E-11   1.9861E-04   7.2032E-10
+         98   4.4325E+00  4.3892E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.8748081242904830E-003   1.7770322516711619E-007
+         98    PRES alph1n  3.9188E-02  1.4028E-03  2.7936E+01     8
+         98    PRES halpha     8 -4.5710E-01 -6.4731E-01  1.3096E-02  1.0511E+00  6.6077E-01  5.8726E-01 -1.4810E-01 -7.2739E-02
+       98 PRES gmres:    1  2.7562E-09  4.7542E-09  5.5340E-09  7.5030E-03  1.0899E-02    F
+         98    VELX alph1n  4.0530E-04  2.6641E-06  1.5213E+02     8
+         98    VELX halpha     8 -1.1504E-01  4.6054E-05  1.9597E-04 -1.2770E+00  1.2459E+00 -6.3859E-05  1.0297E+00  1.1838E-01
+         98    Hmholtz VELX:     10   9.8275E-10   2.6641E-06   2.0450E-09
+         98    VELY alph1n  3.6500E-08  2.2167E-08  1.6466E+00     8
+         98    VELY halpha     8 -7.4031E-01 -8.5845E-01 -5.4542E-01 -1.0628E+00 -7.0759E-01 -5.1302E-01 -8.7023E-01 -3.8327E-01
+         98    Hmholtz VELY:      3   1.4606E-09   2.2167E-08   2.0450E-09
+         98    VELZ alph1n  7.2981E-04  4.7112E-06  1.5491E+02     8
+         98    VELZ halpha     8 -2.2150E-01 -1.1781E-05  5.6398E-05 -1.1961E+00  1.1657E+00 -2.9099E-05  1.0299E+00  2.2818E-01
+         98    Hmholtz VELZ:     10   1.3699E-09   4.7112E-06   2.0450E-09
+               L1/L2 DIV(V)    :   5.2580E-18   1.9997E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   5.2580E-18   1.9997E-01
+               WARNING: DIV(V)-QTL too large!
+         98   4.4325E+00  1.5504E-01 Fluid done
+Step     99, t= 4.4592474E+00, DT= 2.6753605E-02, C=  0.214 2.5323E+01 2.1670E-01
+             Solving for heat
+         99    Hmholtz TEMP:      8   8.8186E-11   2.0289E-04   7.2264E-10
+         99   4.4592E+00  4.3941E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.9204168234072255E-003   1.8202396595451094E-007
+         99    PRES alph1n  4.0159E-02  1.6648E-03  2.4123E+01     8
+         99    PRES halpha     8  2.6614E-01  4.4038E-02 -6.3926E-01 -4.9756E-01  3.7403E-02  6.3415E-01  1.1808E+00  6.1954E-02
+       99 PRES gmres:    1  2.8219E-09  4.8698E-09  5.8580E-09  7.4561E-03  1.0888E-02    F
+         99    VELX alph1n  4.1400E-04  2.7541E-07  1.5032E+03     8
+         99    VELX halpha     8  2.5538E-06 -8.9867E-06  2.0817E-05 -1.1225E+00  1.0954E+00 -1.1516E-04 -3.2590E-04  1.0218E+00
+         99    Hmholtz VELX:      7   8.7662E-10   2.7541E-07   2.0948E-09
+         99    VELY alph1n  4.5177E-08  1.8054E-08  2.5023E+00     8
+         99    VELY halpha     8 -2.6893E-01 -2.2126E-01 -1.2074E+00 -4.7391E-01 -7.2857E-01 -8.0334E-01 -3.5775E-01 -3.7117E-01
+         99    Hmholtz VELY:      3   1.4169E-09   1.8054E-08   2.0948E-09
+         99    VELZ alph1n  7.4639E-04  2.6970E-07  2.7675E+03     8
+         99    VELZ halpha     8  1.2528E-06 -1.0267E-06 -1.0037E-05 -1.0916E+00  1.0640E+00 -2.3201E-05 -5.2089E-05  1.0228E+00
+         99    Hmholtz VELZ:      7   1.9077E-09   2.6970E-07   2.0948E-09
+               L1/L2 DIV(V)    :  -2.4339E-18   2.0475E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -2.4339E-18   2.0475E-01
+               WARNING: DIV(V)-QTL too large!
+         99   4.4592E+00  1.4725E-01 Fluid done
+Step    100, t= 4.4860010E+00, DT= 2.6753605E-02, C=  0.219 2.5532E+01 2.0892E-01
+             Solving for heat
+        100    Hmholtz TEMP:      8   9.0064E-11   2.0724E-04   7.2510E-10
+        100   4.4860E+00  4.3802E-02 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance    1.9670370564003475E-003   1.8644077237029736E-007
+        100    PRES alph1n  4.1257E-02  1.3010E-03  3.1711E+01     8
+        100    PRES halpha     8  5.7086E-01  2.8414E-01  1.7216E-01 -8.2426E-01 -1.7777E-01 -3.0905E-01  1.9848E-02  1.2972E+00
+      100 PRES gmres:    1  2.4862E-09  4.9880E-09  5.0476E-09  7.4391E-03  1.0838E-02    F
+        100    VELX alph1n  4.2268E-04  1.8097E-07  2.3357E+03     8
+        100    VELX halpha     8  2.0632E+00  3.3375E-06 -2.5775E-05  1.7394E-02 -1.6950E-02  1.6334E-06 -6.9603E-06 -1.0646E+00
+        100    Hmholtz VELX:      6   1.6377E-09   1.8097E-07   2.1456E-09
+        100    VELY alph1n  4.2904E-08  1.9471E-08  2.2035E+00     8
+        100    VELY halpha     8 -5.7030E-01 -7.7006E-01 -1.8289E-01 -1.1836E+00 -9.3164E-01 -7.4435E-01 -7.5230E-01 -1.0815E+00
+        100    Hmholtz VELY:      3   1.4797E-09   1.9471E-08   2.1456E-09
+        100    VELZ alph1n  7.6320E-04  2.2430E-07  3.4025E+03     8
+        100    VELZ halpha     8  2.0369E+00  4.6954E-06 -2.3740E-05 -5.8105E-02  5.6651E-02  1.0270E-06 -1.8005E-05 -1.0374E+00
+        100    Hmholtz VELZ:      7   1.2660E-09   2.2430E-07   2.1456E-09
+               L1/L2 DIV(V)    :   7.9496E-18   2.0963E-01
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   7.9496E-18   2.0963E-01
+               WARNING: DIV(V)-QTL too large!
+        100   4.4860E+00  1.4457E-01 Fluid done
+ call outfld: ifpsco: F
+
+      100  4.4860E+00 Write checkpoint:
+       0     100 OPEN: RTI_LST0.f00003
+
+      100  4.4860E+00 done :: Write checkpoint
+                              file size =        4.0    MB
+                              avg data-throughput =      200.6MB/s
+                              io-nodes =     1
+
+
+end of time-step loop
+
+runtime statistics:
+ total time   25.753855090005494     
+cggo time         400      2.57  0.0996
+axhm time        6853      5.67  0.2203
+h1mg time         366      0.36  0.0138
+schw time         732      2.03  0.0788
+gmrs time         100      0.50  0.0193
+prhs time         100      1.11  0.0430
+vrhs time         100      0.14  0.0056
+grst time       51200      1.12  0.0434
+intp time      142336      1.59  0.0619
+proj time         356      0.72  0.0281
+hcoj time         876      0.22  0.0087
+dpc  time         400      3.43  0.1332
+scps time         366      0.17  0.0065
+stft time        3633      0.54  0.0209
+scn  time         101      0.16  0.0061
+het2 time         100      0.12  0.0047
+p4mc time         100      0.57  0.0222
+makf time         100      0.88  0.0343
+makq time         100      0.66  0.0256
+prep time         100      0.13  0.0049
+mmsk time        2196      0.00  0.0000
+Still missing   0.1192
+cggo  flop/s        1725.4          89.2 19.3446
+gmres flop/s        1159.3         111.2 10.4294
+h1mg  flop/s        1930.8         235.3  8.2063
+schw  flop/s        3195.6         628.5  5.0841
+axhm  flop/s        4275.0         774.0  5.5233
+grst  flop/s        5464.9        1483.5  3.6838
+intp  flop/s        5215.1        2240.9  2.3272
+proj  flop/s        1054.5         120.5  8.7528
+hcoj  flop/s        2945.6         172.0 17.1258
+ 
+Subset FLOPS/s        3536.3         445.2  7.9434
+Total  FLOPS/s        2029.3         445.2  4.5583
+ 
+ inv3 time           0   0.0000000000000000        0.0000000000000000     
+ invc time           0   0.0000000000000000        0.0000000000000000     
+ mltd time           0   0.0000000000000000        0.0000000000000000     
+ cdtp time           0   0.0000000000000000        0.0000000000000000     
+ eslv time           0   0.0000000000000000        0.0000000000000000     
+ pres time          53   1.1311769485473633E-002   4.3922626130887420E-004
+ crsl time         366   6.4275741577148438E-002   2.4957716564186325E-003
+ crsl min    6.4275741577148438E-002
+ crsl max    6.4602851867675781E-002
+ crsl avg    6.4439296722412109E-002
+ hmhz time          38   4.0374655723571777       0.15677130892625196     
+ spro time          49   1.1253356933593750E-004   4.3695815225585125E-006
+ usbc time         501  0.11295413970947266        4.3859119077402772E-003
+ usbc min   0.11248922348022461     
+ usbc max   0.11295413970947266     
+ usb  avg   0.11272168159484863     
+ advc time          52   3.8464636802673340       0.14935487005050604     
+ vdss time          56  0.12070703506469727        4.6869501533982390E-003
+ vdss min   0.12070703506469727     
+ vdss max   0.16313052177429199     
+ vdss avg   0.14191877841949463     
+ dsum time          35  0.98589777946472168        3.8281561188380178E-002
+ dsum min   0.89450240135192871     
+ dsum max   0.98589777946472168     
+ dsum avg   0.94020009040832520     
+ dadd time           0  0.33214426040649414        1.2896875409359278E-002
+ ddsl time           0   0.0000000000000000        0.0000000000000000     
+ solv time           0   0.0000000000000000        0.0000000000000000     
+
+#  nid       tusbc       tdadd       tcrsl       tvdss       tdsum        tgop    qqq    F
+           0  1.1295E-01  3.3214E-01  6.4276E-02  1.2071E-01  9.8590E-01  2.0027E-05 qqq
+           1  1.1249E-01  2.5504E-01  6.4603E-02  1.6313E-01  8.9450E-01  3.5048E-05 qqq
+  
+call exitt: dying ...
+  
+backtrace(): obtained 5 stack frames.
+./nek5000(print_stack_+0x1a) [0x5060fa]
+./nek5000(exitt_+0x283) [0x54e523]
+./nek5000(main+0x57) [0x41c867]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xfd) [0x2ae059bc6ead]
+./nek5000() [0x41c8b5]
+  
+total elapsed time             :   2.59458E+01 sec
+total solver time incl. I/O    :   2.57539E+01 sec
+time/timestep                  :   2.57539E-01 sec
+CPU seconds/timestep/gridpt    :   5.66367E-06 sec
+

@@ -21,7 +21,7 @@ module size_m
 
     integer :: lelg, lp, lelt, lelv
     parameter (lelg = 256)
-    parameter (lp = 1)
+    parameter (lp = 2)
     parameter (lelt= (lelg + 1 - 1)/lp, lelv=lelt)
 
     integer :: lpelv, lpelt, lpert, lpx1, lpy1, lpz1, lpx2, lpy2, lpz2
@@ -73,8 +73,8 @@ module size_m
 !     Uzawa projection array dimensions
 
     integer :: mxprev, lgmres
-    parameter (mxprev = 40)
-    parameter (lgmres = 20)
+    parameter (mxprev = 8)
+    parameter (lgmres = 8)
 
 !     Split projection array dimensions
 

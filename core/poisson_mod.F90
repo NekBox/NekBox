@@ -525,7 +525,7 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x)
 
   ! if we don't have the kernel weights, generate them 
   if (.not. allocated(ks)) then
-    allocate(ks(0:ubound(grid,1), 0:ubound(grid,2), 0:ubound(grid,3))) 
+    allocate(ks(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1)) 
     do idz = 0, shape_x(3) - 1
       do idy = 0, nout_local_yz - 1
         do idx = 0, nout_local_xy - 1

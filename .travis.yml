@@ -21,8 +21,5 @@ before_script:
  - ../../makenek RTI_LST $ROOT_DIR
 
 script: 
- - sh ../../nekmpi RTI_LST 2 > test.out
- - grep DIV RTI_LST-2.out | tail -20 > div.ref
- - grep DIV test.out | tail -20 > div.test
- - diff div.ref div.test
+ - sh ../../nekmpi RTI_LST 2 
 

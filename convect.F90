@@ -65,10 +65,10 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   real(DP) :: w(ld**ldim,2), etime
   integer :: ldw, i
 
-  nintp = nintp + 1
-  intp_flop = intp_flop + 2*(mx*mx*mx*md + mx*mx*md*md + mx*md*md*md)
-  intp_mop = intp_mop + mx*mx*mx + md*md*md
-  etime = dnekclock() 
+!  nintp = nintp + 1
+!  intp_flop = intp_flop + 2*(mx*mx*mx*md + mx*mx*md*md + mx*md*md*md)
+!  intp_mop = intp_mop + mx*mx*mx + md*md*md
+!  etime = dnekclock() 
 
   call lim_chk(md,ld,'md   ','ld   ','grad_rstd ')
   call lim_chk(mx,ld,'mx   ','ld   ','grad_rstd ')
@@ -82,7 +82,7 @@ subroutine intp_rstd(ju,u,mx,md,if3d,idir) ! GLL->GL interpolation
   else
       call specmpn(ju,mx,u,md,jgt(i),jgl(i),if3d,w,ldw)
   endif
-  tintp = tintp + (dnekclock() - etime)
+!  tintp = tintp + (dnekclock() - etime)
 
   return
 end subroutine intp_rstd
@@ -275,11 +275,11 @@ subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   integer :: m0, ip
   real(DP) :: etime
 
-  ngrst = ngrst + 1
-  grst_flop = grst_flop + 3*((2*md-1)*md**3)
-  grst_mop  = grst_mop  + 4*md**3
+!  ngrst = ngrst + 1
+!  grst_flop = grst_flop + 3*((2*md-1)*md**3)
+!  grst_mop  = grst_mop  + 4*md**3
 
-  etime = dnekclock()
+!  etime = dnekclock()
 
   m0 = md-1
   call get_dgl_ptr (ip, dg, dgt, wkd, md,md)
@@ -288,17 +288,19 @@ subroutine grad_rst(ur,us,ut,u,md,if3d) ! Gauss-->Gauss grad
   else
 !max        call local_grad2(ur,us   ,u,m0,1,dg(ip),dgt(ip))
   endif
-  tgrst = tgrst + (dnekclock() - etime)
+!  tgrst = tgrst + (dnekclock() - etime)
   return
 end subroutine grad_rst
 !-----------------------------------------------------------------------
 !> \brief Compute dealiased form:  J^T Bf *JC .grad Ju w/ correct Jacobians
+#define INLINE_INTP
 subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   use kinds, only : DP
   use size_m, only : nelv
-  use size_m, only : lxd, lyd, lzd
+  use size_m, only : lxd, lyd, lzd, ldim
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd
   use input, only : if3d
+  use ctimer, only : tscn, dnekclock
   implicit none
 
   real(DP) :: bdu(*),u(*),cx(*),cy(*),cz(*)
@@ -307,9 +309,17 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   integer, parameter :: ltd=lxd*lyd*lzd
   real(DP) :: ur(ltd), us(ltd), ut(ltd), tr(ltd,3), uf(ltd)
 
-  integer :: e, iu, ic, ib, i
+  integer :: e, iu, ic, ib, i, iptr, iptr2
   integer :: nxyz1, nxyzd, nxyzu, nxyzc
+  real(DP) :: etime
 
+  integer, parameter :: ldg = lxd**3
+  real(DP), save :: jgl(ldg), jgt(ldg)
+  real(DP), save :: dgl(ldg), dgt(ldg)
+  real(DP) :: w((2*lxd)**ldim,2), wkd(4*lxd*lxd)
+  integer, parameter :: ldw = 2*(2*lxd)**ldim
+
+  etime = dnekclock()
 !max  call set_dealias_rx()
 
   nxyz1 = nx1*ny1*nz1
@@ -325,6 +335,10 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   ic = 1    ! pointer to vector field C
   ib = 1    ! pointer to scalar field Bdu
 
+#ifdef INLINE_INTP
+  call get_int_ptr (iptr, jgl, jgt, nx1,nxd)
+  call get_dgl_ptr (iptr2, dgl, dgt, wkd, nxd,nxd)
+#endif
 
   do e=1,nelv
 
@@ -359,12 +373,23 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
 #endif
       endif
 
+!      etime = etime - dnekclock()
+#ifndef INLINE_INTP
       if (ifuf) then
           call grad_rst(ur,us,ut,u(iu),nxd,if3d)
       else
           call intp_rstd(uf,u(iu),nx1,nxd,if3d,0) ! 0 --> forward
           call grad_rst(ur,us,ut,uf,nxd,if3d)
       endif
+#else
+      if (ifuf) then
+          call local_grad3(ur,us,ut,u(iu),nxd-1,1,dgl(iptr2),dgt(iptr2))
+      else
+          call specmpn(uf,nxd,u(iu),nx1,jgl(iptr),jgt(iptr),if3d,w,ldw)
+          call local_grad3(ur,us,ut,uf,nxd-1,1,dgl(iptr2),dgt(iptr2))
+      endif
+#endif
+!      etime = etime + dnekclock()
 
       if (if3d) then
           do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
@@ -375,16 +400,24 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
               uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)
           enddo
       endif
+!      etime = etime - dnekclock()
+#ifndef INLINE_INTP
       call intp_rstd(bdu(ib),uf,nx1,nxd,if3d,1) ! Project back to coarse
+#else
+      call specmpn(bdu(ib),nx1,uf,nxd,jgt(iptr),jgl(iptr),if3d,w,ldw)
+#endif
+!      etime = etime + dnekclock()
 
       ic = ic + nxyzc
       iu = iu + nxyzu
       ib = ib + nxyz1
 
   enddo
+  tscn = tscn + (dnekclock() - etime)
 
   return
   end subroutine convect_new
+
 !-----------------------------------------------------------------------
 !> \brief Put vxd,vyd,vzd into rst form on fine mesh
 !! For rst form, see eq. (4.8.5) in Deville, Fischer, Mund (2002).
@@ -413,8 +446,8 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
 
   integer :: e, nxyz1, nxyzd, ic, i, j
-  etime = dnekclock()
   nscn = nscn + 1
+  etime = dnekclock()
   call set_dealias_rx()
 
   nxyz1 = nx1*ny1*nz1
@@ -430,11 +463,11 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
       !call specmpn(fx,nxd,ux(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
       !call specmpn(fy,nxd,uy(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
       !call specmpn(fz,nxd,uz(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
-      etime = etime - dnekclock()
+!      etime = etime - dnekclock()
       call intp_rstd(fx,ux(1,e),nx1,nxd,if3d,0) ! 0 --> forward
       call intp_rstd(fy,uy(1,e),nx1,nxd,if3d,0) ! 0 --> forward
       if (if3d) call intp_rstd(fz,uz(1,e),nx1,nxd,if3d,0) ! 0 --> forward
-      etime = etime + dnekclock()
+!      etime = etime + dnekclock()
 
   !        Convert convector F to r-s-t coordinates
 

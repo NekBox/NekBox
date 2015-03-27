@@ -127,19 +127,25 @@ end subroutine getdr
 ! at current time step.
 subroutine set_dealias_rx
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, lxd, nelv
+  use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, lxd, nelv, ldim
   use geom, only : ifgeom, rx
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
   use input, only : if3d
   use tstep , only : istep 
   use speclib, only : zwgl
   use mesh, only : if_ortho
+  use interp, only : jgl, jgt
+  use interp, only : get_int_ptr
   implicit none
 
   real(DP) ::  zd(lxd),wd(lxd)
   integer :: e, i, j, k, l, ii
   integer :: nxyz1, nxyzd
   real(DP) :: w
+
+  real(DP) :: w2((2*lxd)**ldim,2)
+  integer, parameter :: ldw = 2*(2*lxd)**2
+  integer :: iptr
 
   integer, save :: ilstep = -1
 
@@ -152,16 +158,26 @@ subroutine set_dealias_rx
 
   call zwgl (zd,wd,nxd)  ! zwgl -- NOT zwgll!
 
+  call get_int_ptr (iptr, nx1, nxd)
+
+
   if (if3d) then
   
       do e=1,nelv
 
       !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
           if (if_ortho) then
+#if 1
+            call specmpn(rx(1,1,e),nxd,rxm1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),if3d,w2,ldw)
+            call specmpn(rx(1,2,e),nxd,sym1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),if3d,w2,ldw)
+            call specmpn(rx(1,3,e),nxd,tzm1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),if3d,w2,ldw)
+#else
             call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
             call intp_rstd(rx(1,2,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
             call intp_rstd(rx(1,3,e),tzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+#endif
           else
+#if 0
             call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
             call intp_rstd(rx(1,2,e),rym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
             call intp_rstd(rx(1,3,e),rzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
@@ -171,6 +187,7 @@ subroutine set_dealias_rx
             call intp_rstd(rx(1,7,e),txm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
             call intp_rstd(rx(1,8,e),tym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
             call intp_rstd(rx(1,9,e),tzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
+#endif
           endif
 
           l = 0

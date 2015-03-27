@@ -68,7 +68,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   integer :: nxyz1, nxyzd, nxyzu, nxyzc
   real(DP) :: etime
   real(DP) :: w((2*lxd)**ldim,2)
-  integer, parameter :: ldw = 2*(2*lxd)**2
+  integer, parameter :: ldw = 2*(2*lxd)**ldim
 
   etime = dnekclock()
 !max  call set_dealias_rx()
@@ -192,7 +192,7 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   real(DP) :: fx(ltd), fy(ltd), fz(ltd)!, ur, us, ut, tr, uf
   real(DP) :: w((2*lxd)**ldim,2)
-  integer, parameter :: ldw = 2*(2*lxd)**2
+  integer, parameter :: ldw = 2*(2*lxd)**ldim
 
   real(DP) :: etime
 

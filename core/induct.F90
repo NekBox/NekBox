@@ -144,7 +144,7 @@ subroutine set_dealias_rx
   real(DP) :: w
 
   real(DP) :: w2((2*lxd)**ldim,2)
-  integer, parameter :: ldw = 2*(2*lxd)**2
+  integer, parameter :: ldw = 2*(2*lxd)**ldim
   integer :: iptr
 
   integer, save :: ilstep = -1

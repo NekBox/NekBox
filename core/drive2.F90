@@ -970,10 +970,13 @@ subroutine runstat
   use ctimer, only : nh1mg, th1mg, h1mg_flop, h1mg_mop
   use ctimer, only : nschw, tschw, schw_flop, schw_mop
   use ctimer, only : nscps, tscps
+  use ctimer, only : nnmsc, tnmsc
+  use ctimer, only : nnmvc, tnmvc
   use ctimer, only : ncrespsp, tcrespsp
   use ctimer, only : ncresvsp, tcresvsp
   use ctimer, only : nheat2, theat2
   use ctimer, only : nprep, tprep
+  use ctimer, only : nfoo, tfoo
   use size_m, only : nid
   use parallel, only : np
   implicit none
@@ -1122,8 +1125,8 @@ subroutine runstat
       call print_times('gmrs time', ngmres  , tgmres  , tttstp, total_share)
       call print_times('prhs time', ncrespsp, tcrespsp, tttstp, total_share)
       call print_times('vrhs time', ncresvsp, tcresvsp, tttstp, total_share)
-      call print_times('grst time', ngrst   , tgrst   , tttstp, total_share)
-      call print_times('intp time', nintp   , tintp   , tttstp, total_share)
+      !call print_times('grst time', ngrst   , tgrst   , tttstp, total_share)
+      !call print_times('intp time', nintp   , tintp   , tttstp, total_share)
       call print_times('proj time', nproj   , tproj   , tttstp, total_share)
       call print_times('hcoj time', nhconj  , thconj  , tttstp, total_share)
       call print_times('dpc  time', ndpc    , tdpc    , tttstp, total_share)
@@ -1136,6 +1139,10 @@ subroutine runstat
       call print_times('makq time', nmakeq  , tmakeq  , tttstp, total_share)
       call print_times('prep time', nprep   , tprep   , tttstp, total_share)
       call print_times('mmsk time', nmg_mask, tmg_mask, tttstp, total_share)
+      call print_times('nmsc time', nnmsc   , tnmsc   , tttstp, total_share)
+      call print_times('nmvc time', nnmvc   , tnmvc   , tttstp, total_share)
+      call print_times('advc time', nadvc   , tadvc   , tttstp, total_share)
+      call print_times('foo  time', nfoo    , tfoo    , tttstp, total_share)
 
       write(6,'(A,F8.4)') "Still missing ", (tttstp - total_share) / tttstp
 
@@ -1144,8 +1151,8 @@ subroutine runstat
       call print_flops('h1mg  flop/s', h1mg_flop, h1mg_mop, th1mg)
       call print_flops('schw  flop/s', schw_flop, schw_mop, tschw)
       call print_flops('axhm  flop/s', axhelm_flop, axhelm_mop, taxhm)
-      call print_flops('grst  flop/s', grst_flop, grst_mop, tgrst)
-      call print_flops('intp  flop/s', intp_flop, intp_mop, tintp)
+      !call print_flops('grst  flop/s', grst_flop, grst_mop, tgrst)
+      !call print_flops('intp  flop/s', intp_flop, intp_mop, tintp)
       call print_flops('proj  flop/s', proj_flop, proj_mop, tproj)
       call print_flops('hcoj  flop/s', hconj_flop, hconj_mop, thconj)
       write(6,*) ""

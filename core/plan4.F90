@@ -278,20 +278,20 @@ subroutine crespsp (respr, vext)
 !max      CALL COL2  (WA2, OMASK,NTOT1)
 !max      CALL COL2  (WA3, OMASK,NTOT1)
   endif
-  wa1 = wa1 * bm1; wa2 = wa2 * bm1; wa3 = wa3 * bm1
+  !wa1 = wa1 * bm1; wa2 = wa2 * bm1; wa3 = wa3 * bm1
 
   !call opgrad   (ta1,ta2,ta3,QTL)
-  ta1 = 0._dp; ta2 = 0._dp; ta3 = 0._dp
+  !ta1 = 0._dp; ta2 = 0._dp; ta3 = 0._dp
   if(IFAXIS) then
 !max      CALL COL2  (ta2, OMASK,ntot1)
 !max      CALL COL2  (ta3, OMASK,ntot1)
   endif
 
   scale = -4./3.
-  w1 = vdiff(:,:,:,:,1) / vtrans(:,:,:,:,1)
-  wa1 = w1*(wa1 + scale*ta1)
-  wa2 = w1*(wa2 + scale*ta2)
-  wa3 = w1*(wa3 + scale*ta3)
+  w1 = bm1 * vdiff(:,:,:,:,1) / vtrans(:,:,:,:,1)
+  wa1 = w1*(wa1)! + scale*ta1)
+  wa2 = w1*(wa2)! + scale*ta2)
+  wa3 = w1*(wa3)! + scale*ta3)
   deallocate(w1)
 
 !   add old pressure term because we solve for delta p
@@ -303,17 +303,17 @@ subroutine crespsp (respr, vext)
 
 !   add explicit (NONLINEAR) terms
   n = nx1*ny1*nz1*nelv
-  ta1 = bfx/vtrans(:,:,:,:,1)-wa1
-  ta2 = bfy/vtrans(:,:,:,:,1)-wa2
-  ta3 = bfz/vtrans(:,:,:,:,1)-wa3
+  ta3 = bfz*ta1-wa3
+  ta2 = bfy*ta1-wa2
+  ta1 = bfx*ta1-wa1
 
   call opdssum (ta1,ta2,ta3)
 
-  ta1 = ta1*binvm1
-  ta2 = ta2*binvm1
-  ta3 = ta3*binvm1
-
   if (if3d) then
+    ta1 = ta1*binvm1
+    ta2 = ta2*binvm1
+    ta3 = ta3*binvm1
+
     if (if_ortho) then
       nyz2  = ny2*nz2
       nxy1  = nx1*ny1
@@ -358,7 +358,7 @@ subroutine crespsp (respr, vext)
 
 !   add thermal divergence
   dtbd = BD(1)/DT
-  respr = respr !+ qtl * bm1 * dtbd
+  !respr = respr !+ qtl * bm1 * dtbd
    
 !   surface terms
   DO IFC=1,NFACES

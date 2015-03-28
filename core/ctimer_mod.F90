@@ -4,10 +4,10 @@ module ctimer
 
   REAL(DP) ::          tmxmf,tmxms,tdsum,tcopy,tinvc,tinv3
   REAL(DP) ::          tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd &
-  ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2 &
+  ,tpres,tgop ,tgop1,tdott,tbsol,tbso2 &
   ,tsett,tslvb,tusbc,tddsl,tcrsl,tdsmx,tdsmn &
   ,tgsmn,tgsmx,teslv,tbbbb,tcccc,tdddd,teeee &
-  ,tvdss,tadvc,tspro,tgop_sync,tsyc &
+  ,tvdss,tspro,tgop_sync,tsyc &
   ,twal
   real(DP), save :: tproj  = 0._dp
   real(DP), save :: thconj = 0._dp
@@ -30,6 +30,11 @@ module ctimer
   real(DP), save :: tscn  = 0._dp
   real(DP), save :: tmg_mask  = 0._dp
   real(DP), save :: tschw  = 0._dp
+  real(DP), save :: tnmsc  = 0._dp
+  real(DP), save :: tnmvc  = 0._dp
+  real(DP), save :: tadvc  = 0._dp
+  real(DP), save :: thmhz  = 0._dp
+  real(DP), save :: tfoo   = 0._dp
 
   integer, save :: nproj  = 0
   integer, save :: nhconj = 0
@@ -52,13 +57,18 @@ module ctimer
   integer, save :: nscn = 0
   integer, save :: nmg_mask = 0
   integer, save :: nschw = 0
+  integer, save :: nnmsc = 0
+  integer, save :: nnmvc = 0
+  integer, save :: nadvc = 0
+  integer, save :: nhmhz = 0
+  integer, save :: nfoo  = 0
 
   integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
   integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd &
-  ,npres,nhmhz,ngop ,ngop1,ndott,nbsol,nbso2 &
+  ,npres,ngop ,ngop1,ndott,nbsol,nbso2 &
   ,nsett,nslvb,nusbc,nddsl,ncrsl,ndsmx,ndsmn &
   ,ngsmn,ngsmx,neslv,nbbbb,ncccc,ndddd,neeee &
-  ,nvdss,nadvc,nspro,ngop_sync,nsyc,nwal
+  ,nvdss,nspro,ngop_sync,nsyc,nwal
 
   REAL(DP) ::          pmxmf,pmxms,pdsum,paxhm,pcopy,pinvc,pinv3
   REAL(DP) ::          psolv,pgsum,pdsnd,pdadd,pcdtp,pmltd &

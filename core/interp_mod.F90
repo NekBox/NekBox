@@ -1,7 +1,14 @@
+!> \file interp_mod.F90
+!! \brief Module to return interpolation and dealiasing matrices
+
+!> \brief Module containing memoized interpolation matrices
 module interp
   use kinds, only : DP
   use size_m, only : lxd, ldim
   implicit none
+
+  private :: pjgl, pdg
+  public
 
   integer, parameter :: ldg=lxd**3, lwkd=4*lxd*lxd
   integer, parameter :: ld=2*lxd
@@ -22,7 +29,7 @@ contains
 !!
 !! The interpolation matrices jgl, jgt are being memoized.
 !!  pjgl is a map from (mx,md) pair to (ip) index of jgl, jgt
-subroutine get_int_ptr (ip, mx,md) ! GLL-->GL pointer
+subroutine get_int_ptr (ip, mx, md) ! GLL-->GL pointer
   use kinds, only : DP
   use size_m
   implicit none
@@ -87,7 +94,6 @@ subroutine get_dgl_ptr (ip, mx,md)
 
   return
 end subroutine get_dgl_ptr
-
 
 end module 
 

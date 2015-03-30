@@ -22,7 +22,7 @@ before_script:
 
 script: 
  - sh ../../nekmpi RTI_LST 2 > test.out
- - grep DIV RTI_LST-2.out | tail -20 > div.ref
- - grep DIV test.out | tail -20 > div.test
- - diff div.ref div.test
+ - grep -i maximum test.out | tail -20 > max.test
+ - cat maximum.reference | tail -20 > max.ref
+ - diff max.ref max.test
 

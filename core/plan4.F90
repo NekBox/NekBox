@@ -288,33 +288,26 @@ subroutine crespsp (respr, vext)
   endif
 
 !   add old pressure term because we solve for delta p
-  ta1 = 1._dp / vtrans(:,:,:,:,1)
   ta2 = 0._dp
+  ta1 = 1._dp / vtrans(:,:,:,:,1)
+
   etime = etime - dnekclock()
   CALL AXHELM  (RESPR,PR,TA1,TA2,IMESH,1)
   etime = etime + dnekclock()
 
-
-  scale = -4./3.
-  w1 = bm1 * vdiff(:,:,:,:,1) *ta1 
-  !wa1 = w1*(wa1)! + scale*ta1)
-  !wa2 = w1*(wa2)! + scale*ta2)
-  !wa3 = w1*(wa3)! + scale*ta3)
-
-
-!   add explicit (NONLINEAR) terms
+  !   add explicit (NONLINEAR) terms
   n = nx1*ny1*nz1*nelv
-  ta3 = bfz*ta1-w1*wa3
-  ta2 = bfy*ta1-w1*wa2
-  ta1 = bfx*ta1-w1*wa1
+  do iel = 1, nelv
+    w1(:,:,:,1) = bm1(:,:,:,iel) * vdiff(:,:,:,iel,1) *ta1(:,:,:,iel)
+    ta3(:,:,:,iel) = binvm1(:,:,:,iel) * (bfz(:,:,:,iel)*ta1(:,:,:,iel)-w1(:,:,:,1)*wa3(:,:,:,iel))
+    ta2(:,:,:,iel) = binvm1(:,:,:,iel) * (bfy(:,:,:,iel)*ta1(:,:,:,iel)-w1(:,:,:,1)*wa2(:,:,:,iel))
+    ta1(:,:,:,iel) = binvm1(:,:,:,iel) * (bfx(:,:,:,iel)*ta1(:,:,:,iel)-w1(:,:,:,1)*wa1(:,:,:,iel))
+  enddo
   deallocate(w1)
 
   call opdssum (ta1,ta2,ta3)
 
   if (if3d) then
-    ta1 = ta1*binvm1
-    ta2 = ta2*binvm1
-    ta3 = ta3*binvm1
 
     if (if_ortho) then
       nyz2  = ny2*nz2
@@ -348,10 +341,6 @@ subroutine crespsp (respr, vext)
       respr = -respr + wa1 + wa2 + wa3
     endif
   else
-      ta1 = ta1*binvm1
-      ta2 = ta2*binvm1
-      ta3 = ta3*binvm1
-
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       respr = -respr + wa1 + wa2 

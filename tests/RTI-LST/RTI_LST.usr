@@ -127,12 +127,12 @@
     if (istep == 0) call outpost(vx,vy,vz,pr,t,'   ')
 
     tmax = max(glmax(t, lx1*ly1*lz1*lelt), -glmin(t, lx1*ly1*lz1*lelt))
-    if (nid == 0) write(*,'(A,E16.8)') "Maximum scalar", tmax
+    if (nid == 0) write(*,'(A,F12.8)') "Maximum scalar", tmax
 
     umax = max(glmax(vx, lx1*ly1*lz1*lelt), -glmin(vx, lx1*ly1*lz1*lelt))
     vmax = max(glmax(vy, lx1*ly1*lz1*lelt), -glmin(vy, lx1*ly1*lz1*lelt))
     wmax = max(glmax(vz, lx1*ly1*lz1*lelt), -glmin(vz, lx1*ly1*lz1*lelt))
-    if (nid == 0) write(*,'(A,3E12.4)') "Maximum velocity", umax, vmax, wmax
+    if (nid == 0) write(*,'(A,3F12.8)') "Maximum velocity", umax, vmax, wmax
 
 
     return

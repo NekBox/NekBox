@@ -132,7 +132,7 @@
     umax = max(glmax(vx, lx1*ly1*lz1*lelt), -glmin(vx, lx1*ly1*lz1*lelt))
     vmax = max(glmax(vy, lx1*ly1*lz1*lelt), -glmin(vy, lx1*ly1*lz1*lelt))
     wmax = max(glmax(vz, lx1*ly1*lz1*lelt), -glmin(vz, lx1*ly1*lz1*lelt))
-    if (nid == 0) write(*,'(A,3F12.8)') "Maximum velocity", umax, vmax, wmax
+    if (nid == 0) write(*,'(A,3F12.7)') "Maximum velocity", umax, vmax, wmax
 
 
     return

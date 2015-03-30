@@ -295,24 +295,28 @@ subroutine crespsp (respr, vext)
   etime = etime + dnekclock()
 
 
-  !scale = -4./3.
-  do e = 1, nelv
-    w1(:,:,:,1) = bm1(:,:,:,e)*vdiff(:,:,:,e,1)*binvm1(:,:,:,e)
-    ta3(:,:,:,e) = ta1(:,:,:,e) * (bfz(:,:,:,e) - wa3(:,:,:,e)*w1(:,:,:,1))
-    ta2(:,:,:,e) = ta1(:,:,:,e) * (bfy(:,:,:,e) - wa2(:,:,:,e)*w1(:,:,:,1))
-    ta1(:,:,:,e) = ta1(:,:,:,e) * (bfx(:,:,:,e) - wa1(:,:,:,e)*w1(:,:,:,1))
-  enddo
-  deallocate(w1)
+  scale = -4./3.
+  w1 = bm1 * vdiff(:,:,:,:,1) *ta1 
+  !wa1 = w1*(wa1)! + scale*ta1)
+  !wa2 = w1*(wa2)! + scale*ta2)
+  !wa3 = w1*(wa3)! + scale*ta3)
 
 
 !   add explicit (NONLINEAR) terms
   n = nx1*ny1*nz1*nelv
+  ta3 = bfz*ta1-w1*wa3
+  ta2 = bfy*ta1-w1*wa2
+  ta1 = bfx*ta1-w1*wa1
+  deallocate(w1)
 
   call opdssum (ta1,ta2,ta3)
 
   if (if3d) then
-    if (if_ortho) then
+    ta1 = ta1*binvm1
+    ta2 = ta2*binvm1
+    ta3 = ta3*binvm1
 
+    if (if_ortho) then
       nyz2  = ny2*nz2
       nxy1  = nx1*ny1
 
@@ -338,13 +342,16 @@ subroutine crespsp (respr, vext)
       respr =   respr + wa2
 
     else
-
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
       respr = -respr + wa1 + wa2 + wa3
     endif
   else
+      ta1 = ta1*binvm1
+      ta2 = ta2*binvm1
+      ta3 = ta3*binvm1
+
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       respr = -respr + wa1 + wa2 

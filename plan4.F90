@@ -479,6 +479,9 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   logical, intent(in)   :: ifavg !>!< Average at boundary? 
 
   integer :: ntot, nxyz, ifielt, nxy1, nyz1, iel, iz
+  real(DP), allocatable :: tmp1(:,:,:), tmp2(:,:,:)
+
+  allocate(tmp1(nx1,ny1,nz1), tmp2(nx1,ny1,nz1))
 
   ntot  = nx1*ny1*nz1*nelv
   nxyz  = nx1*ny1*nz1
@@ -490,12 +493,11 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
     if (if_ortho) then
       do iel = 1, nelv
         do iz = 1, nz1
-          CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,work1(1,1,iz,1),NY1)
+          CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,tmp1(1,1,iz),NY1)
         enddo
-        CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,work2(1,1,1,1),NZ1) 
-        w1(:,:,:,iel) = (work1(:,:,:,1)*sym1(:,:,:,iel) - work2(:,:,:,1)*tzm1(:,:,:,iel)) * jacmi(:,:,:,iel)
+        CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,tmp2,NZ1) 
+        w1(:,:,:,iel) = (tmp1*sym1(:,:,:,iel) - tmp2*tzm1(:,:,:,iel)) * jacmi(:,:,:,iel)
       enddo
-      !w1 = (work1(:,:,:,1:nelv)*sym1 - work2(:,:,:,1:nelv)*tzm1) * jacmi
     else
       call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
       call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
@@ -525,11 +527,11 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
 !   work1=du/dz ; work2=dw/dx
   if (if3d) then
       if (if_ortho) then
-        CALL MXM   (DXM1,NX1,U3,NX1,work2,NYZ1*nelv)
         do iel = 1, nelv
-          CALL MXM  (U1(1,1,1,iel),NXY1,DZTM1,NZ1,work1(1,1,1,iel),NZ1) 
+          CALL MXM  (U1(1,1,1,iel),NXY1,DZTM1,NZ1,tmp1,NZ1) 
+          CALL MXM  (DXM1,NX1,U3(1,1,1,iel),NX1,tmp2,NYZ1)
+          w2(:,:,:,iel) = (tmp1*tzm1(:,:,:,iel) - tmp2*rxm1(:,:,:,iel)) * jacmi(:,:,:,iel)
         enddo
-        w2 = (work1(:,:,:,1:nelv)*tzm1 - work2(:,:,:,1:nelv)*rxm1) * jacmi
       else
         call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
         call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
@@ -543,13 +545,13 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
 
 !   work1=dv/dx ; work2=du/dy
   if (if_ortho) then
-    CALL MXM   (DXM1,NX1,U2,NX1,work1,NYZ1*nelv)
     do iel = 1, nelv
+      CALL MXM   (DXM1,NX1,U2(1,1,1,iel),NX1,tmp1,NYZ1)
       do iz = 1, nz1
-        CALL MXM  (U1(1,1,iz,iel),NX1,DYTM1,NY1,work2(1,1,iz,iel),NY1)
+        CALL MXM  (U1(1,1,iz,iel),NX1,DYTM1,NY1,tmp2(1,1,iz),NY1)
       enddo
+      w3(:,:,:,iel) = (tmp1*rxm1(:,:,:,iel) - tmp2*sym1(:,:,:,iel)) * jacmi(:,:,:,iel)
     enddo
-    w3 = (work1(:,:,:,1:nelv)*rxm1 - work2(:,:,:,1:nelv)*sym1) * jacmi
   else
     call dudxyz(work1,u2,rxm1,sxm1,txm1,jacm1,1,1)
     call dudxyz(work2,u1,rym1,sym1,tym1,jacm1,1,2)

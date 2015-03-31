@@ -355,6 +355,7 @@ subroutine crespsp (respr, vext)
   !respr = respr !+ qtl * bm1 * dtbd
    
 !   surface terms
+#if 0
   DO IFC=1,NFACES
       ta1 = 0._dp; ta2 = 0._dp
       IF (NDIM == 3) ta3 = 0._dp
@@ -381,6 +382,7 @@ subroutine crespsp (respr, vext)
       END DO
       respr = respr - dtbd*ta1
   END DO
+#endif
   deallocate(ta1, ta2, ta3)
 
 !   Assure that the residual is orthogonal to (1,1,...,1)T
@@ -520,6 +522,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
 #endif
       endif
   endif
+
 !   work1=du/dz ; work2=dw/dx
   if (if3d) then
       if (if_ortho) then
@@ -538,6 +541,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
       call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
       w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
   endif
+
 !   work1=dv/dx ; work2=du/dy
   if (if_ortho) then
     CALL MXM   (DXM1,NX1,U2,NX1,work1,NYZ1*nelv)

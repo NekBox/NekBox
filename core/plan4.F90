@@ -490,13 +490,12 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
     if (if_ortho) then
       do iel = 1, nelv
         do iz = 1, nz1
-          CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,work1(1,1,iz,iel),NY1)
+          CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,work1(1,1,iz,1),NY1)
         enddo
+        CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,work2(1,1,1,1),NZ1) 
+        w1(:,:,:,iel) = (work1(:,:,:,1)*sym1(:,:,:,iel) - work2(:,:,:,1)*tzm1(:,:,:,iel)) * jacmi(:,:,:,iel)
       enddo
-      do iel = 1, nelv
-         CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,work2(1,1,1,iel),NZ1) 
-      enddo
-      w1 = (work1(:,:,:,1:nelv)*sym1 - work2(:,:,:,1:nelv)*tzm1) * jacmi
+      !w1 = (work1(:,:,:,1:nelv)*sym1 - work2(:,:,:,1:nelv)*tzm1) * jacmi
     else
       call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
       call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)

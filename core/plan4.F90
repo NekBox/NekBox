@@ -315,19 +315,19 @@ subroutine crespsp (respr, vext)
 
      do e = 1, nelv
         ! X 
-        wa1(:,:,:,e) = ta1(:,:,:,e) * rxm2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
-        call mxm  (dxtm12,nx1,wa1(:,:,:,e),nx2,wa2(:,:,:,e),nyz2)
-        respr(:,:,:,e) = - respr(:,:,:,e) + wa2(:,:,:,e)
+        wa1(:,:,:,1) = ta1(:,:,:,e) * rxm2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
+        call mxm  (dxtm12,nx1,wa1(:,:,:,1),nx2,wa2(:,:,:,1),nyz2)
+        respr(:,:,:,e) = - respr(:,:,:,e) + wa2(:,:,:,1)
         ! Y 
-        wa1(:,:,:,e) = ta2(:,:,:,e) * sym2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
+        wa1(:,:,:,1) = ta2(:,:,:,e) * sym2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
         do iz=1,nz2
-            call mxm  (wa1(:,:,iz,e),nx1,dym12,ny2,wa2(:,:,iz,e),ny1)
+            call mxm  (wa1(:,:,iz,1),nx1,dym12,ny2,wa2(:,:,iz,1),ny1)
         enddo
-        respr(:,:,:,e) =   respr(:,:,:,e) + wa2(:,:,:,e)
+        respr(:,:,:,e) =   respr(:,:,:,e) + wa2(:,:,:,1)
         ! Z
-        wa1(:,:,:,e) = ta3(:,:,:,e) * tzm2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
-        call mxm  (wa1(:,:,:,e),nxy1,dzm12,nz2,wa2(:,:,:,e),nz1)
-        respr(:,:,:,e) =   respr(:,:,:,e) + wa2(:,:,:,e)
+        wa1(:,:,:,1) = ta3(:,:,:,e) * tzm2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
+        call mxm  (wa1(:,:,:,1),nxy1,dzm12,nz2,wa2(:,:,:,1),nz1)
+        respr(:,:,:,e) =   respr(:,:,:,e) + wa2(:,:,:,1)
       enddo
 
     else

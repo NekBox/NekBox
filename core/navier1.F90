@@ -890,21 +890,21 @@ subroutine makeabf
     ta(:,:,:,1) = ab1 * abx1(:,:,:,iel) + ab2 * abx2(:,:,:,iel)
     abx2(:,:,:,iel) = abx1(:,:,:,iel)
     abx1(:,:,:,iel) = bfx(:,:,:,iel)
-    bfx = (ab0*bfx(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    bfx(:,:,:,iel) = (ab0*bfx(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
 
   do iel = 1, nelv
     ta(:,:,:,1) = ab1 * aby1(:,:,:,iel) + ab2 * aby2(:,:,:,iel)
     aby2(:,:,:,iel) = aby1(:,:,:,iel)
     aby1(:,:,:,iel) = bfy(:,:,:,iel)
-    bfy = (ab0*bfy(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    bfy(:,:,:,iel) = (ab0*bfy(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
 
   do iel = 1, nelv
     ta(:,:,:,1) = ab1 * abz1(:,:,:,iel) + ab2 * abz2(:,:,:,iel)
     abz2(:,:,:,iel) = abz1(:,:,:,iel)
     abz1(:,:,:,iel) = bfz(:,:,:,iel)
-    bfz = (ab0*bfz(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    bfz(:,:,:,iel) = (ab0*bfz(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
 #endif
 

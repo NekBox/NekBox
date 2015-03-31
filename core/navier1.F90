@@ -4,8 +4,9 @@ subroutine ctolspl (tolspl,respr)
   use kinds, only : DP
   use size_m, only : lelv, lx2, ly2, lz2
   use size_m, only : nx1, ny1, nz1, nelv, nid
-  use geom, only : bm1, volvm1
+  use geom, only : binvm1, volvm1
   use tstep, only : dt, tolpdf, tolps, prelax
+  use soln, only : pmask, vmult
   implicit none
 
   real(DP) :: tolspl
@@ -14,12 +15,15 @@ subroutine ctolspl (tolspl,respr)
   real(DP), allocatable :: WORK(:,:,:,:)
   integer :: ntot1
   real(DP) :: rinit, tolmin, tolold
-  real(DP), external :: glsum
+  real(DP), external :: glsc23
 
-  allocate(WORK(lx2,ly2,lz2,lelv)); work = 0_dp
+  allocate(WORK(lx2,ly2,lz2,lelv))
   NTOT1 = NX1*NY1*NZ1*NELV
-  work = respr*respr / bm1
-  RINIT  = SQRT (GLSUM (WORK,NTOT1)/VOLVM1)
+  work = respr
+  call dssum(work)
+  work = work * pmask
+  rinit = glsc23(work, binvm1, vmult, ntot1)
+  RINIT  = SQRT (rinit/VOLVM1)
   IF (TOLPDF > 0.) THEN
       TOLSPL = TOLPDF
       TOLMIN = TOLPDF
@@ -33,6 +37,7 @@ subroutine ctolspl (tolspl,respr)
       IF (NID == 0) &
       WRITE (6,*) 'Relax the pressure tolerance ',TOLSPL,TOLOLD
   ENDIF
+
   return
 end subroutine ctolspl
 
@@ -848,7 +853,7 @@ subroutine makeabf
 
   real(DP), allocatable :: TA (:,:,:,:) 
 
-  integer :: ntot1
+  integer :: ntot1, iel
   real(DP) :: ab0, ab1, ab2
 
   allocate(TA(nx1,ny1,nz1,nelv))
@@ -859,6 +864,9 @@ subroutine makeabf
   AB1 = AB(2)
   AB2 = AB(3)
 
+#if 0
+! 11*ntot mops
+! 6*ntot flops
   ta = ab1 * abx1 + ab2 * abx2
   CALL COPY   (ABX2,ABX1,NTOT1)
   CALL COPY   (ABX1,BFX,NTOT1)
@@ -875,6 +883,34 @@ subroutine makeabf
     CALL COPY   (ABZ1,BFZ,NTOT1)
     bfz = (ab0 * bfz + ta) * vtrans(:,:,:,:,1) ! multiply by density
   ENDIF
+
+
+
+#else
+! 7*ntot mops
+! 6*ntot flops
+  do iel = 1, nelv
+    ta(:,:,:,1) = ab1 * abx1(:,:,:,iel) + ab2 * abx2(:,:,:,iel)
+    abx2(:,:,:,iel) = abx1(:,:,:,iel)
+    abx1(:,:,:,iel) = bfx(:,:,:,iel)
+    bfx = (ab0*bfx(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+  endif
+
+  do iel = 1, nelv
+    ta(:,:,:,1) = ab1 * aby1(:,:,:,iel) + ab2 * aby2(:,:,:,iel)
+    aby2(:,:,:,iel) = aby1(:,:,:,iel)
+    aby1(:,:,:,iel) = bfy(:,:,:,iel)
+    bfy = (ab0*bfy(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+  endif
+
+  do iel = 1, nelv
+    ta(:,:,:,1) = ab1 * abz1(:,:,:,iel) + ab2 * abz2(:,:,:,iel)
+    abz2(:,:,:,iel) = abz1(:,:,:,iel)
+    abz1(:,:,:,iel) = bfz(:,:,:,iel)
+    bfz = (ab0*bfz(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+  endif
+
+#endif
 
   return
 end subroutine makeabf
@@ -1120,6 +1156,7 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelv, nelt, ndim
   use geom, only : bm1, voltm1, volvm1
+  use ctimer, only : tnmsc, nnmsc, dnekclock
   implicit none
 
   real(DP) :: h1, semi, l2, linf
@@ -1130,6 +1167,10 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   REAL(DP) :: LENGTH, vol
   integer :: nel, nxyz1, ntot1
   real(DP), external :: glamax, glsum
+  real(DP) :: etime
+
+  nnmsc = nnmsc + 1
+  etime = dnekclock()
 
   allocate(Y(LX1,LY1,LZ1,LELT), TA1(LX1,LY1,LZ1,LELT), TA2(LX1,LY1,LZ1,LELT))
 
@@ -1161,7 +1202,9 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   IF (L2 < 0.0) L2 = 0.
 
   ta1 = 1._dp; ta2 = 0._dp
+  etime = etime - dnekclock()
   CALL AXHELM (Y,X,TA1,TA2,IMESH,1)
+  etime = etime + dnekclock()
   ta1 = y * x(:,:,:,1:nel)
   SEMI = GLSUM  (TA1,NTOT1)
   IF (SEMI < 0.0) SEMI = 0.
@@ -1170,6 +1213,7 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   SEMI = SQRT(SEMI/VOL)
   L2   = SQRT(L2/VOL)
   IF (H1 < 0.) H1 = 0.
+  tnmsc = tnmsc + (dnekclock() - etime)
 
   return
 end subroutine normsc
@@ -1185,6 +1229,7 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   use size_m, only : nx1, ny1, nz1, nelv, ndim
   use size_m, only : lx1, ly1, lz1, lelt
   use geom, only : volvm1, bm1
+  use ctimer, only : tnmvc, nnmvc, dnekclock
   implicit none
 
   REAL(DP) :: H1,SEMI,L2,LINF
@@ -1197,6 +1242,10 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   integer :: imesh, nel, nxyz1, ntot1
   real(DP) :: vol
   real(DP), external :: glamax, glsum
+  real(DP) :: etime
+
+  nnmvc = nnmvc + 1
+  etime = dnekclock()
 
   IMESH  = 1
   NEL    = NELV
@@ -1230,7 +1279,9 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   IF (L2 < 0.0) L2 = 0.
 
   ta1 = 1._dp; ta2 = 0._dp
+  etime = etime - dnekclock()
   CALL OPHX  (Y1,Y2,Y3,X1,X2,X3,TA1,TA2)
+  etime = etime + dnekclock()
   IF (NDIM == 3) THEN
     ta1 = y1*x1 + y2*x2 + y3*x3
   else
@@ -1244,6 +1295,8 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   SEMI = SQRT(SEMI/VOL)
   L2   = SQRT(L2  /VOL)
   IF (H1 < 0.) H1 = 0.
+
+  tnmvc = tnmvc + (dnekclock() - etime)
 
   return
 end subroutine normvc
@@ -1377,7 +1430,7 @@ subroutine convop(conv,fi)
   use size_m, only : nx1, ny1, nz1, nelv
   use dealias, only : vxd, vyd, vzd
   use input, only : param, ifpert
-  use geom, only : bm1
+  use geom, only : bm1, binvm1
   use soln, only : vx, vy, vz
   use tstep, only : nelfld, ifield
   implicit none
@@ -1389,9 +1442,7 @@ subroutine convop(conv,fi)
   integer :: nxyz1, ntot1, ntotz
 
 #ifndef NOTIMER
-  if (icalld == 0) tadvc=0.0
-  icalld=icalld+1
-  nadvc=icalld
+  nadvc=nadvc + 1
   etime1=dnekclock()
 #endif
 
@@ -1414,14 +1465,18 @@ subroutine convop(conv,fi)
 !max        call conv1d(conv,fi)  !    use dealiased form
   elseif (param(99) == 4) then
       if (ifpert) then
+          etime1 = etime1 - dnekclock()
           call convect_new (conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
+          etime1 = etime1 + dnekclock()
       else
+          etime1 = etime1 - dnekclock()
           call convect_new (conv,fi, .FALSE. ,vxd,vyd,vzd, .TRUE. )
+          etime1 = etime1 + dnekclock()
       endif
-      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) / bm1 ! local mass inverse
+      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) * binvm1 ! local mass inverse
   elseif (param(99) == 5) then
 !max        call convect_cons(conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
-      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) / bm1 ! local mass inverse
+      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) * binvm1  ! local mass inverse
   else
 !max        call conv1 (conv,fi)  !    use the convective form
   endif

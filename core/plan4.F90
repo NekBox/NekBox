@@ -246,6 +246,8 @@ subroutine crespsp (respr, vext)
   integer :: nyz2, nxy1
   real(DP) :: scale, dtbd
   real(DP) :: etime
+  real(DP), allocatable :: tmp1(:,:,:), tmp2(:,:,:), tmp3(:,:,:)
+
 
   ncrespsp = ncrespsp + 1
   etime = dnekclock()
@@ -255,6 +257,7 @@ subroutine crespsp (respr, vext)
   , TA3 (LX1,LY1,LZ1,LELV) )
   allocate(W1 (LX1,LY1,LZ1,LELV) &
   , W2  (LX1,LY1,LZ1,LELV) )
+
  
   NXYZ1  = NX1*NY1*NZ1
   NTOT1  = NXYZ1*NELV
@@ -272,7 +275,9 @@ subroutine crespsp (respr, vext)
   , WA2 (LX1,LY1,LZ1,LELV) &
   , WA3 (LX1,LY1,LZ1,LELV) )
   call op_curl  (wa1,wa2,wa3,ta1,ta2,ta3, .TRUE. ,w1,w2)
-  deallocate(w2)
+  deallocate(w1, w2)
+
+  allocate(tmp1(lx1, ly1, lz1), tmp2(lx1,ly1,lz1), tmp3(lx1,ly1,lz1))
 
   if(IFAXIS) then
 !max      CALL COL2  (WA2, OMASK,NTOT1)
@@ -298,36 +303,37 @@ subroutine crespsp (respr, vext)
   !   add explicit (NONLINEAR) terms
   n = nx1*ny1*nz1*nelv
   do iel = 1, nelv
-    w1(:,:,:,1) = bm1(:,:,:,iel) * vdiff(:,:,:,iel,1) *ta1(:,:,:,iel)
-    ta3(:,:,:,iel) = binvm1(:,:,:,iel) * (bfz(:,:,:,iel)*ta1(:,:,:,iel)-w1(:,:,:,1)*wa3(:,:,:,iel))
-    ta2(:,:,:,iel) = binvm1(:,:,:,iel) * (bfy(:,:,:,iel)*ta1(:,:,:,iel)-w1(:,:,:,1)*wa2(:,:,:,iel))
-    ta1(:,:,:,iel) = binvm1(:,:,:,iel) * (bfx(:,:,:,iel)*ta1(:,:,:,iel)-w1(:,:,:,1)*wa1(:,:,:,iel))
+    tmp1 = bm1(:,:,:,iel) * vdiff(:,:,:,iel,1) *ta1(:,:,:,iel)
+    ta3(:,:,:,iel) = binvm1(:,:,:,iel) * (bfz(:,:,:,iel)*ta1(:,:,:,iel)-tmp1*wa3(:,:,:,iel))
+    ta2(:,:,:,iel) = binvm1(:,:,:,iel) * (bfy(:,:,:,iel)*ta1(:,:,:,iel)-tmp1*wa2(:,:,:,iel))
+    ta1(:,:,:,iel) = binvm1(:,:,:,iel) * (bfx(:,:,:,iel)*ta1(:,:,:,iel)-tmp1*wa1(:,:,:,iel))
   enddo
-  deallocate(w1)
 
   call opdssum (ta1,ta2,ta3)
 
   if (if3d) then
 
     if (if_ortho) then
+      deallocate(wa1,wa2,wa3)
       nyz2  = ny2*nz2
       nxy1  = nx1*ny1
 
      do e = 1, nelv
+        tmp1 = jacmi(:,:,:,e) * bm1(:,:,:,e)
         ! X 
-        wa1(:,:,:,1) = ta1(:,:,:,e) * rxm2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
-        call mxm  (dxtm12,nx1,wa1(:,:,:,1),nx2,wa2(:,:,:,1),nyz2)
-        respr(:,:,:,e) = - respr(:,:,:,e) + wa2(:,:,:,1)
+        tmp2 = ta1(:,:,:,e) * rxm2(:,:,:,e) * tmp1
+        call mxm  (dxtm12,nx1,tmp2,nx2,tmp3,nyz2)
+        respr(:,:,:,e) = - respr(:,:,:,e) + tmp3
         ! Y 
-        wa1(:,:,:,1) = ta2(:,:,:,e) * sym2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
+        tmp2 = ta2(:,:,:,e) * sym2(:,:,:,e) * tmp1 
         do iz=1,nz2
-            call mxm  (wa1(:,:,iz,1),nx1,dym12,ny2,wa2(:,:,iz,1),ny1)
+            call mxm  (tmp2(:,:,iz),nx1,dym12,ny2,tmp3(:,:,iz),ny1)
         enddo
-        respr(:,:,:,e) =   respr(:,:,:,e) + wa2(:,:,:,1)
+        respr(:,:,:,e) =   respr(:,:,:,e) + tmp3
         ! Z
-        wa1(:,:,:,1) = ta3(:,:,:,e) * tzm2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
-        call mxm  (wa1(:,:,:,1),nxy1,dzm12,nz2,wa2(:,:,:,1),nz1)
-        respr(:,:,:,e) =   respr(:,:,:,e) + wa2(:,:,:,1)
+        tmp2 = ta3(:,:,:,e) * tzm2(:,:,:,e) * tmp1 
+        call mxm  (tmp2,nxy1,dzm12,nz2,tmp3,nz1)
+        respr(:,:,:,e) =   respr(:,:,:,e) + tmp3
       enddo
 
     else
@@ -335,13 +341,14 @@ subroutine crespsp (respr, vext)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
       respr = -respr + wa1 + wa2 + wa3
+      deallocate(wa1,wa2,wa3)
     endif
   else
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       respr = -respr + wa1 + wa2 
+      deallocate(wa1,wa2,wa3)
   endif
-  deallocate(wa1,wa2,wa3)
 
 !   add thermal divergence
   dtbd = BD(1)/DT

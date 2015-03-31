@@ -313,26 +313,22 @@ subroutine crespsp (respr, vext)
       nyz2  = ny2*nz2
       nxy1  = nx1*ny1
 
-      ! X 
-      wa1 = ta1 * rxm2 * jacmi * bm1
-      do e = 1, nelv
+     do e = 1, nelv
+        ! X 
+        wa1(:,:,:,e) = ta1(:,:,:,e) * rxm2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
         call mxm  (dxtm12,nx1,wa1(:,:,:,e),nx2,wa2(:,:,:,e),nyz2)
-      enddo
-      respr = - respr + wa2
-      ! Y 
-      wa1 = ta2 * sym2 * jacmi * bm1
-      do e = 1, nelv
+        respr(:,:,:,e) = - respr(:,:,:,e) + wa2(:,:,:,e)
+        ! Y 
+        wa1(:,:,:,e) = ta2(:,:,:,e) * sym2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
         do iz=1,nz2
             call mxm  (wa1(:,:,iz,e),nx1,dym12,ny2,wa2(:,:,iz,e),ny1)
         enddo
-      enddo
-      respr =   respr + wa2
-      ! Z
-      wa1 = ta3 * tzm2 * jacmi * bm1
-      do e = 1, nelv
+        respr(:,:,:,e) =   respr(:,:,:,e) + wa2(:,:,:,e)
+        ! Z
+        wa1(:,:,:,e) = ta3(:,:,:,e) * tzm2(:,:,:,e) * jacmi(:,:,:,e) * bm1(:,:,:,e)
         call mxm  (wa1(:,:,:,e),nxy1,dzm12,nz2,wa2(:,:,:,e),nz1)
+        respr(:,:,:,e) =   respr(:,:,:,e) + wa2(:,:,:,e)
       enddo
-      respr =   respr + wa2
 
     else
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)

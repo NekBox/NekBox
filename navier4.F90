@@ -38,12 +38,16 @@ contains
 !!
 !! Simple assigns and allocations
 subroutine init_approx_space(apx, n_max, ntot)
+  use kinds, only : DP
+  implicit none
   type(approx_space), intent(out) :: apx
   integer, intent(in) :: n_max, ntot
   apx%n_max = n_max
   apx%n_sav = 0
   apx%next  = 0
   allocate(apx%projectors(ntot, 0:n_max), apx%H_red(n_max, n_max))
+  apx%projectors = 0._dp
+  apx%H_red      = 0._dp
 end subroutine init_approx_space
 
 !> \brief Project out the part of the residual in the approx space.
@@ -54,7 +58,7 @@ end subroutine init_approx_space
 !! Next, multiplies by 1/\lambda to take the inverse and expands
 !! back into the full space to populate the approximate solution: projectors(:,0) 
 subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
-  use kinds, only : DP
+  use kinds, only : DP, QP
   use size_m, only : nx1, ny1, nz1, nelv, nid
   use geom, only : voltm1, volvm1
   use tstep, only : istep, ifield, nelfld
@@ -74,13 +78,17 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   type(approx_space), intent(inout) :: apx !>!< Current approx space
   character(4), intent(in) :: name4 !>!< Name of field for debug printing
 
-  integer :: nel, ntot, i, n10
+  integer :: nel, ntot, i, j, n10
   real(DP) :: vol, alpha1, alpha2, ratio
   real(DP), external :: glsc23
   real(DP), allocatable :: evecs(:,:), ev(:)
   integer :: ierr
   real(DP), parameter :: one = 1._dp, zero = 0._dp
   real(DP) :: etime
+  real(QP) :: qsum 
+
+  nproj = nproj + 1
+  etime = dnekclock() 
 
   if (apx%n_sav == 0) then
     apx%projectors(:,0) = 0._dp
@@ -98,13 +106,11 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   if (alpha1 > 0) alpha1 = sqrt(alpha1/vol)
 
   ! Update approximation space if dt has changed
+  etime = etime - dnekclock()
   call updrhsh(apx,h1,h2,vml,vmk,ws)
+  etime = etime + dnekclock()
 
   !> \note This dsyev call and the following dgemv are task-parallel!
-
-  nproj = nproj + 1
-  etime = dnekclock() 
-
   ! Orthogonalize the approximation space
   if (10 * apx%n_sav + 100 > ntot) write(*,*) "wl isn't big enough to be dsyev's work"
   allocate(evecs(apx%n_sav, apx%n_sav), ev(apx%n_sav))
@@ -136,13 +142,29 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
 
   ! Mix the overlaps to get the orthogonal projection
   ! and take the inverse by dividing by \lambda 
+  ! \todo sort the sums for more precision
+
   do i = 1, apx%n_sav
-    ev(i) = sum(evecs(:,i) * ws(1:apx%n_sav)) / ev(i)
+    qsum = 0._qp
+    do j = 1, apx%n_sav
+      qsum = qsum + evecs(j,i) * ws(j)
+    enddo 
+  enddo
+  do i = 1, apx%n_sav
+    qsum = 0._qp
+    do j = 1, apx%n_sav
+      qsum = qsum + evecs(j,i) * ws(j)
+    enddo
+    ev(i) = qsum / ev(i)
   enddo
 
   ! Compute the weights for the approximate solution
   do i = 1, apx%n_sav
-    ws(i) = sum(evecs(i,:) * ev(:))
+    qsum = 0._qp
+    do j = 1, apx%n_sav
+      qsum = qsum + evecs(i,j) * ev(j)
+    enddo
+    ws(i) = qsum
   enddo
 
   ! Expand the approximate solution wrt (non-orth.) projectors
@@ -155,7 +177,9 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
 
   ! Compute the new residual explicitly
   ! This fixes any numerical precision issues in the previous sections
+  etime = etime - dnekclock()
   call axhelm  (wl,apx%projectors(:,0),h1,h2,1,1)
+  etime = etime + dnekclock()
   proj_flop = proj_flop + ntot
   proj_mop  = proj_mop + 2*ntot 
   wl(1:ntot) = wl(1:ntot) * vmk(1:ntot)
@@ -164,19 +188,20 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   proj_mop  = proj_mop + 2*ntot 
   r(1:ntot) = r(1:ntot) - wl(1:ntot)
 
-  tproj = tproj + (dnekclock() - etime)
 
   !...............................................................
   ! Recompute the norm of the residual to show how much its shrunk
   alpha2 = glsc23(r,bi,vml,ntot)
   if (alpha2 > 0) alpha2 = sqrt(alpha2/vol)
   ratio  = alpha1/alpha2
+
+  tproj = tproj + (dnekclock() - etime)
   n10=min(10,apx%n_sav)
 
   if (nid == 0) write(6,10) istep,name4,alpha1,alpha2,ratio,apx%n_sav
   10 format(4X,I7,4x,a4,' alph1n',1p3e12.4,i6)
 
-  if (nid == 0) write(6,11) istep,name4,apx%n_sav,(ws(i),i=1,n10)
+  if (nid == 0) write(6,11) istep,name4,apx%n_sav,(ev(i),i=1,n10)
   11 format(4X,I7,4x,a4,' halpha',i6,10(1p10e12.4,/,17x))
 
   return
@@ -199,6 +224,8 @@ subroutine gensh(v1,h1,h2,vml,vmk,apx,ws)
   type(approx_space), intent(inout) :: apx !>!< current approximation space
 
   integer :: ntot
+  real(DP) :: norm
+  real(DP), external :: dnrm2
   ntot = size(apx%projectors,1)
 
   ! Reconstruct solution 
@@ -235,31 +262,34 @@ subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
   real(DP), parameter :: one = 1._dp, zero = 0._dp
   real(DP) :: etime
 
-  nhconj = nhconj + 1
   ntot= size(apx%projectors, 1)
+  hconj_flop = hconj_flop + apx%n_sav*(2*ntot-1)
+  hconj_mop  = hconj_mop + apx%n_sav * (ntot +1)
+  hconj_flop = hconj_flop + ntot
+  hconj_mop  = hconj_flop + 3*ntot
+  hconj_flop = hconj_flop + ntot
+  hconj_mop  = hconj_flop + 3*ntot
+  nhconj = nhconj + 1
+
   ! Compute H| projectors(:,k) >
   call axhelm  (apx%projectors(:,0),apx%projectors(:,k),h1,h2,1,1)
-  !hconj_flop = hconj_flop + ntot
+  etime = dnekclock()
   apx%projectors(:,0) = apx%projectors(:,0) * vmk(1:ntot)
   call dssum   (apx%projectors(:,0))
-  !hconj_flop = hconj_flop + ntot
   apx%projectors(:,0) = apx%projectors(:,0) * vml(1:ntot)
 
   ! Compute < projectors(:,i) | H | projectors(:,k) > for i \in [1,n_sav]
-  hconj_flop = hconj_flop + apx%n_sav*(2*ntot-1)
-  hconj_mop  = hconj_mop + apx%n_sav * (ntot +1)
-  etime = dnekclock()
   call dgemv('T', ntot, apx%n_sav, &
              one,  apx%projectors(1,1), ntot, &
                    apx%projectors(1,0), 1, &
              zero, apx%H_red(1,k), 1)
-  thconj = thconj + (dnekclock() - etime)
   call gop(apx%H_red(:,k), ws, '+  ', apx%n_sav)
 
   ! Re-symmetrize
   do i = 1, apx%n_sav
     apx%H_red(k,i) = apx%H_red(i,k)
   enddo
+  thconj = thconj + (dnekclock() - etime)
 
   return
 end subroutine hconj
@@ -392,6 +422,8 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   logical :: ifstdh
   character(4) ::  cname
   integer :: nel
+  real(DP) :: rinit
+  real(DP), external :: glsc23
 
 
   call chcopy(cname,name,4)

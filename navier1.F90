@@ -883,9 +883,6 @@ subroutine makeabf
     CALL COPY   (ABZ1,BFZ,NTOT1)
     bfz = (ab0 * bfz + ta) * vtrans(:,:,:,:,1) ! multiply by density
   ENDIF
-
-
-
 #else
 ! 7*ntot mops
 ! 6*ntot flops
@@ -894,22 +891,21 @@ subroutine makeabf
     abx2(:,:,:,iel) = abx1(:,:,:,iel)
     abx1(:,:,:,iel) = bfx(:,:,:,iel)
     bfx = (ab0*bfx(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
-  endif
+  enddo
 
   do iel = 1, nelv
     ta(:,:,:,1) = ab1 * aby1(:,:,:,iel) + ab2 * aby2(:,:,:,iel)
     aby2(:,:,:,iel) = aby1(:,:,:,iel)
     aby1(:,:,:,iel) = bfy(:,:,:,iel)
     bfy = (ab0*bfy(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
-  endif
+  enddo
 
   do iel = 1, nelv
     ta(:,:,:,1) = ab1 * abz1(:,:,:,iel) + ab2 * abz2(:,:,:,iel)
     abz2(:,:,:,iel) = abz1(:,:,:,iel)
     abz1(:,:,:,iel) = bfz(:,:,:,iel)
     bfz = (ab0*bfz(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
-  endif
-
+  enddo
 #endif
 
   return

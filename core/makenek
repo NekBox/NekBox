@@ -40,7 +40,7 @@ USR_LFLAGS="-lblas -llapack -lfftw3"
 
 
 # generic compiler flags
-G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans "
+G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans -I/usr/include/"
 
 # optimization flags
 #OPT_FLAGS_STD=" "

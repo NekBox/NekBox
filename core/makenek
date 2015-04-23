@@ -7,7 +7,7 @@
 
 # Fortran compiler
 #F77="gfortran -I/opt/openmpi/include -I/opt/openmpi/lib -L/opt/openmpi/lib -lmpi_f90 -lmpi_f77 -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil  -pg"
-CHECKS="-Wall -Wextra -Wno-unused-dummy-argument -pedantic-errors -Wline-truncation -Wunderflow -finit-real=nan -fbacktrace -fcheck=all -fprofile-arcs -ftest-coverage -pg" #-ffpe-trap=invalid,zero,overflow "
+CHECKS="-Wall -Wextra -Wno-unused-dummy-argument -pedantic-errors -Wline-truncation -Wunderflow -finit-real=nan -fbacktrace -fcheck=all " #-ffpe-trap=invalid,zero,overflow "
 #F77="mpif90  -g -check all -debug all -traceback "
 F77="mpif90  "
 

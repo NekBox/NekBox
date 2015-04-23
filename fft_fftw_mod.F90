@@ -132,8 +132,6 @@ end function wavenumber
 subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
   use kinds, only : DP
   use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
-  use fftw3, only : fftw_mpi_plan_many_transpose
-  use fftw3, only : fftw_mpi_execute_r2r
   use parallel, only : nid, nekreal
 
   real(DP), intent(inout) :: grid(0:,0:,0:)

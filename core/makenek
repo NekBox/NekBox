@@ -6,14 +6,14 @@
 #SOURCE_ROOT="$HOME/nek" 
 
 # Fortran compiler
-F77="gfortran -I/opt/openmpi/include -I/opt/openmpi/lib -L/opt/openmpi/lib -lmpi_f90 -lmpi_f77 -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil  -pg"
+#F77="gfortran -I/opt/openmpi/include -I/opt/openmpi/lib -L/opt/openmpi/lib -lmpi_f90 -lmpi_f77 -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil  -pg"
 CHECKS="-Wall -Wextra -Wno-unused-dummy-argument -pedantic-errors -Wline-truncation -Wunderflow -finit-real=nan -fbacktrace -fcheck=all -fprofile-arcs -ftest-coverage -pg" #-ffpe-trap=invalid,zero,overflow "
 #F77="mpif90  -g -check all -debug all -traceback "
-#F77="mpif90  "
+F77="mpif90  "
 
 # C compiler
-#CC="mpicc "
-CC="gcc -I/opt/openmpi/include -pthread -L/opt/openmpi/lib -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil -fprofile-arcs -ftest-coverage -pg"
+CC="mpicc "
+#CC="gcc -I/opt/openmpi/include -pthread -L/opt/openmpi/lib -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil -fprofile-arcs -ftest-coverage -pg"
 
 # pre-processor symbol list 
 # (set PPLIST=? to get a list of available symbols)
@@ -36,11 +36,11 @@ CC="gcc -I/opt/openmpi/include -pthread -L/opt/openmpi/lib -lmpi -ldl -lm -Wl,--
 
 # linking flags
 #USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core"
-USR_LFLAGS="-lblas -llapack -L/opt/fftw3/lib -lfftw3_mpi -lfftw3 -lgcov -coverage"
+USR_LFLAGS="-lblas -llapack -lfftw3"
 
 
 # generic compiler flags
-G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans -I/opt/fftw3/include "
+G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans "
 
 # optimization flags
 #OPT_FLAGS_STD=" "

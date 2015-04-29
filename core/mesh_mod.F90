@@ -14,6 +14,7 @@ module mesh
   real(DP) :: end_x(3)
   integer  :: shape_x(3)
 
+  character(3) :: boundaries(6), tboundaries(6)
 
 
   contains

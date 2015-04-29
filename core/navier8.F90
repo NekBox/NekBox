@@ -633,12 +633,12 @@ end subroutine get_vert
 
 !-----------------------------------------------------------------------
 subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
-  use size_m, only : lx1, ly1, lz1, lelv, ldim, nid, nelt, nelv, ndim
+  use size_m, only : lx1, ly1, lz1, lelv, nelt, nelv
   use input, only : reafle
-  use parallel, only : np, gllnid, isize, gllel, lglel, nelgt, nelgv, cr_h
+  use parallel, only : np, gllnid, gllel, lglel, nelgt, nelgv
   use string, only : ltrunc
-  use parallel, only : init_gllnid, wdsize
-  use mesh, only : shape_x, ieg_to_xyz
+  use parallel, only : nid, init_gllnid, wdsize
+  use mesh, only : shape_x, ieg_to_xyz, boundaries
   implicit none
 
   logical :: ifgfdm
@@ -649,9 +649,10 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
 
   integer, parameter :: mdw=2
   integer, parameter :: ndw=lx1*ly1*lz1*lelv/mdw
+  integer :: lshape(3)
 
-  integer :: e,eg,eg0,eg1, ieg, iok, lfname, neli, nnzi, npass, len, msg_id
-  integer :: ipass, m, k, ntuple, lng, i, key, nkey, iflag, nv, mid
+  integer :: e,eg,eg0,eg1, ieg, iok, lfname, neli, nnzi, npass
+  integer :: ipass, m, ntuple, iflag, mid
   integer, external :: iglmax, irecv
   integer :: ix(3)
 
@@ -699,32 +700,30 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
 
 !   NOW: crystal route vertex by processor id
 
+  lshape = shape_x
+  if (boundaries(1) /= 'P') lshape(1) = lshape(1) + 1
+  if (boundaries(2) /= 'P') lshape(2) = lshape(1) + 1
+  if (boundaries(5) /= 'P') lshape(3) = lshape(1) + 1
+
   do e = 1, nelt
     ieg = lglel(e)
     ix = ieg_to_xyz(ieg)
-    vertex(1,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
-                + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
-
-    vertex(2,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
-                + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
-
-    vertex(3,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
-                + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)
-
-    vertex(4,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
-                + mod(ix(3) + 0, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
-                                                                                           
-    vertex(5,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
-                + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
-                                                                                           
-    vertex(6,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 0, shape_x(2))*shape_x(1) &
-                + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)
-
-    vertex(7,e) = 1 + mod(ix(1) + 0, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
-                + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
-                                                                                           
-    vertex(8,e) = 1 + mod(ix(1) + 1, shape_x(1)) + mod(ix(2) + 1, shape_x(2))*shape_x(1) &
-                + mod(ix(3) + 1, shape_x(3)+1) * shape_x(1) * shape_x(2)                   
+    vertex(1,e) = 1 + mod(ix(1) + 0, lshape(1)) + mod(ix(2) + 0, lshape(2))*lshape(1) &
+                + mod(ix(3) + 0, lshape(3)) * lshape(1) * lshape(2)
+    vertex(2,e) = 1 + mod(ix(1) + 1, lshape(1)) + mod(ix(2) + 0, lshape(2))*lshape(1) &
+                + mod(ix(3) + 0, lshape(3)) * lshape(1) * lshape(2)
+    vertex(3,e) = 1 + mod(ix(1) + 0, lshape(1)) + mod(ix(2) + 1, lshape(2))*lshape(1) &
+                + mod(ix(3) + 0, lshape(3)) * lshape(1) * lshape(2)
+    vertex(4,e) = 1 + mod(ix(1) + 1, lshape(1)) + mod(ix(2) + 1, lshape(2))*lshape(1) &
+                + mod(ix(3) + 0, lshape(3)) * lshape(1) * lshape(2)
+    vertex(5,e) = 1 + mod(ix(1) + 0, lshape(1)) + mod(ix(2) + 0, lshape(2))*lshape(1) &
+                + mod(ix(3) + 1, lshape(3)) * lshape(1) * lshape(2)
+    vertex(6,e) = 1 + mod(ix(1) + 1, lshape(1)) + mod(ix(2) + 0, lshape(2))*lshape(1) &
+                + mod(ix(3) + 1, lshape(3)) * lshape(1) * lshape(2)
+    vertex(7,e) = 1 + mod(ix(1) + 0, lshape(1)) + mod(ix(2) + 1, lshape(2))*lshape(1) &
+                + mod(ix(3) + 1, lshape(3)) * lshape(1) * lshape(2)
+    vertex(8,e) = 1 + mod(ix(1) + 1, lshape(1)) + mod(ix(2) + 1, lshape(2))*lshape(1) &
+                + mod(ix(3) + 1, lshape(3)) * lshape(1) * lshape(2)
   enddo
 
   iflag = iglmax(iflag,1)
@@ -745,7 +744,6 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   if (nid == 0) write(6,*) 'ABORT: Could not find map file ',mapfle
   call exitt
 
-  998 continue
   if (nid == 0) write(6,*)ipass,npass,eg0,eg1,mdw,m,eg,'get v fail'
   call exitt0  ! Emergency exit
 

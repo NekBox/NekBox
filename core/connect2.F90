@@ -735,6 +735,7 @@ subroutine genmesh
   use input, only : curve, ccurve
   use input, only : bc, cbc
   use mesh, only : shape_x, start_x, end_x
+  use mesh, only : boundaries, tboundaries
   use parallel, only : gllnid, gllel, wdsize
   use parallel, only : lglel
   implicit none
@@ -743,7 +744,6 @@ subroutine genmesh
   integer :: ix(3)
   real(DP) :: dx(3)
   real(DP) :: root(3)
-  character(3) :: boundaries(6), tboundaries(6)
 
 !   Read elemental mesh data, formatted
   iffmtin = .TRUE. 
@@ -811,28 +811,32 @@ subroutine genmesh
 
     CBC(:,IEL,:) = 'E'
     if (ix(2) == 0) then
-      CBC(1,IEL,:) = boundaries(1)
+      CBC(1,IEL,1) = boundaries(1)
+      CBC(1,IEL,2) = tboundaries(1)
       bc(1,1,iel,:) = ieg + (shape_x(2)-1)*shape_x(1)
     else
       bc(1,1,iel,:) = ieg - shape_x(1)
     endif
 
     if (ix(2) == shape_x(2) - 1) then
-      CBC(3,IEL,:) = boundaries(3)
+      CBC(3,IEL,1) = boundaries(3)
+      CBC(3,IEL,2) = tboundaries(3)
       bc(1,3,iel,:) = ieg - ix(2)*shape_x(1)
     else
       bc(1,3,iel,:) = ieg + shape_x(1)
     endif
 
     if (ix(1) == 0)  then
-      CBC(4,IEL,:) = boundaries(4)
+      CBC(4,IEL,1) = boundaries(4)
+      CBC(4,IEL,2) = tboundaries(4)
       bc(1,4,iel,:) = ieg + (shape_x(1) - 1)
     else
       bc(1,4,iel,:) = ieg - 1
     endif
 
     if (ix(1) == shape_x(1) - 1) then
-      CBC(2,IEL,:) = boundaries(2)
+      CBC(2,IEL,1) = boundaries(2)
+      CBC(2,IEL,2) = tboundaries(2)
       bc(1,2,iel,:) = ieg - ix(1)
     else
       bc(1,2,iel,:) = ieg +1

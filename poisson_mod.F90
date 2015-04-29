@@ -56,6 +56,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
 
   use fft, only : P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r, transpose_grid
+  use mesh, only : boundaries
 
   REAL(DP), intent(out)   :: U    (:)
   REAL(DP), intent(inout) :: RHS  (:)
@@ -105,37 +106,61 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
 
   ! forward FFT
   rescale = 1._dp
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
+  if (boundaries(1) == 'P') then
+    call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
+  else
+    call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), W_FORWARD, rescale)
+  endif
   
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   call transpose_grid(plane_xy, plane_yx, shape_x, 1, 2, comm_xy)
   deallocate(plane_xy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
+  if (boundaries(2) == 'P') then
+    call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
+  else
+    call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), W_FORWARD, rescale)
+  endif
 
   allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
   call transpose_grid(plane_yx, plane_zy, shape_x, 2, 3, comm_yz)
   deallocate(plane_yx)
 
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
+  if (boundaries(5) == 'P') then
+    call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), P_FORWARD, rescale)
+  else
+    call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
+  endif
 
   ! Poisson kernel
-  call poisson_kernel(plane_zy, shape_x, start_x, end_x)
+  call poisson_kernel(plane_zy, shape_x, start_x, end_x, boundaries)
 
   ! reverse FFT
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
+  if (boundaries(5) == 'P') then
+    call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), P_BACKWARD, rescale)
+  else
+    call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
+  endif
 
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
   call transpose_grid(plane_zy, plane_yx, shape_x, 3, 2, comm_yz)
   deallocate(plane_zy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
+  if (boundaries(2) == 'P') then
+    call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
+  else
+    call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), W_BACKWARD, rescale)
+  endif
 
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
   call transpose_grid(plane_yx, plane_xy, shape_x, 2, 1, comm_xy)
   deallocate(plane_yx)
 
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
+  if (boundaries(1) == 'P') then
+    call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
+  else
+    call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), W_BACKWARD, rescale)
+  endif
 
   ! normalize the FFTs
   rescale = 1._dp / (rescale * sum(bm1(:,:,:,1)))
@@ -511,7 +536,7 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
 
 end subroutine grid_to_mesh
 
-subroutine poisson_kernel(grid, shape_x, start_x, end_x)
+subroutine poisson_kernel(grid, shape_x, start_x, end_x, boundaries)
   use kinds, only : DP
   use fft, only : wavenumber, P_FORWARD, W_FORWARD
 
@@ -519,6 +544,7 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x)
   integer,  intent(in) :: shape_x(3)
   real(DP), intent(in) :: start_x(3)
   real(DP), intent(in) :: end_x(3)
+  character(3), intent(in) :: boundaries(6)
   real(DP) :: kx, ky, kz
   real(DP), allocatable, save :: ks(:,:,:)
   integer :: idz, idy, idx
@@ -529,16 +555,31 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x)
     do idz = 0, shape_x(3) - 1
       do idy = 0, nout_local_yz - 1
         do idx = 0, nout_local_xy - 1
-          kx = wavenumber(idx + idx_out_local_xy, shape_x(1), &
-                          end_x(1)-start_x(1), P_FORWARD)
+          if (boundaries(1) == 'P') then
+            kx = wavenumber(idx + idx_out_local_xy, shape_x(1), &
+                            end_x(1)-start_x(1), P_FORWARD)
+          else
+            kx = wavenumber(idx + idx_out_local_xy, shape_x(1), &
+                            end_x(1)-start_x(1), W_FORWARD)
+          endif
 
-          ky = wavenumber(idy + idx_out_local_yz, shape_x(2), &
-                          end_x(2)-start_x(2), P_FORWARD)
+          if (boundaries(2) == 'P') then
+            ky = wavenumber(idy + idx_out_local_yz, shape_x(2), &
+                            end_x(2)-start_x(2), P_FORWARD)
+          else
+            ky = wavenumber(idy + idx_out_local_yz, shape_x(2), &
+                            end_x(2)-start_x(2), W_FORWARD)
+          endif
+
+          if (boundaries(5) == 'P') then
+            kz = wavenumber(idz, shape_x(3), &
+                            end_x(3)-start_x(3), P_FORWARD)
+          else
+            kz = wavenumber(idz, shape_x(3), &
+                            end_x(3)-start_x(3), W_FORWARD)
+          endif
  
-          kz = wavenumber(idz, shape_x(3), &
-                          end_x(3)-start_x(3), W_FORWARD)
- 
-          if (kx**2. + ky**2. + kz**2. < 1.e-9_dp) then
+          if (kx**2. + ky**2. + kz**2. < 1.e-12_dp) then
             ks(idz,idx,idy) = 0._dp
           else
             ks(idz, idx, idy) = 1._dp / ( &
@@ -726,6 +767,7 @@ subroutine cos_test()
   use parallel, only : nid, lglel
   use tstep, only : PI
   use mesh, only : ieg_to_xyz
+  use mesh, only : boundaries
 
   use fft, only : P_FORWARD, P_BACKWARD
   use fft, only : W_FORWARD, W_BACKWARD
@@ -772,7 +814,7 @@ subroutine cos_test()
   call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
 
   ! Poisson kernel
-  call poisson_kernel(plane_zy, shape_x, start_x, end_x)
+  call poisson_kernel(plane_zy, shape_x, start_x, end_x, boundaries)
 
   ! reverse FFT
   call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)

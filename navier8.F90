@@ -678,6 +678,12 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
 
   call bcast(shape_x,3*wdsize)  
 
+  lshape = shape_x
+  if (shape_x(1) < 0) lshape(1) = -lshape(1) + 1
+  if (shape_x(2) < 0) lshape(2) = -lshape(2) + 1
+  if (shape_x(3) < 0) lshape(3) = -lshape(3) + 1
+  shape_x = abs(shape_x)
+
   if (nid == 0) then
       neli = iglmax(neli,1)   ! communicate to all procs
   else
@@ -700,10 +706,6 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
 
 !   NOW: crystal route vertex by processor id
 
-  lshape = shape_x
-  if (boundaries(1) /= 'P') lshape(1) = lshape(1) + 1
-  if (boundaries(2) /= 'P') lshape(2) = lshape(1) + 1
-  if (boundaries(5) /= 'P') lshape(3) = lshape(1) + 1
 
   do e = 1, nelt
     ieg = lglel(e)

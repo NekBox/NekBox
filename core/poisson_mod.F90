@@ -97,7 +97,18 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
 
   ! convert RHS to coarse mesh
   allocate(rhs_coarse(nelm))
-  forall(i = 1 : nelm) rhs_coarse(i) = (tmp_fine(1,1,1,i) + tmp_fine(1,1,nz1,i))/2._dp
+  !forall(i = 1 : nelm) rhs_coarse(i) = (tmp_fine(1,1,1,i) + tmp_fine(1,1,nz1,i))/2._dp
+  forall(i = 1 : nelm) rhs_coarse(i) = ( &
+                                      + tmp_fine(1,1,1,i) &
+                                      + tmp_fine(nx1,1,1,i) &
+                                      + tmp_fine(1,ny1,1,i) &
+                                      + tmp_fine(nx1,ny1,1,i) &
+                                      + tmp_fine(1,1,nz1,i) &
+                                      + tmp_fine(1,1,nz1,i) &
+                                      + tmp_fine(nx1,1,nz1,i) &
+                                      + tmp_fine(1,ny1,nz1,i) &
+                                      + tmp_fine(nx1,ny1,nz1,i) &
+                                       )/8._dp
  
   ! reorder onto sticks
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
@@ -106,7 +117,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
 
   ! forward FFT
   rescale = 1._dp
-  if (boundaries(1) == 'P') then
+  if (boundaries(1) == 'P  ') then
     call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
   else
     call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), W_FORWARD, rescale)
@@ -116,7 +127,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   call transpose_grid(plane_xy, plane_yx, shape_x, 1, 2, comm_xy)
   deallocate(plane_xy)
 
-  if (boundaries(2) == 'P') then
+  if (boundaries(2) == 'P  ') then
     call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
   else
     call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), W_FORWARD, rescale)
@@ -126,7 +137,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   call transpose_grid(plane_yx, plane_zy, shape_x, 2, 3, comm_yz)
   deallocate(plane_yx)
 
-  if (boundaries(5) == 'P') then
+  if (boundaries(5) == 'P  ') then
     call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), P_FORWARD, rescale)
   else
     call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
@@ -136,7 +147,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   call poisson_kernel(plane_zy, shape_x, start_x, end_x, boundaries)
 
   ! reverse FFT
-  if (boundaries(5) == 'P') then
+  if (boundaries(5) == 'P  ') then
     call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), P_BACKWARD, rescale)
   else
     call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
@@ -146,7 +157,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   call transpose_grid(plane_zy, plane_yx, shape_x, 3, 2, comm_yz)
   deallocate(plane_zy)
 
-  if (boundaries(2) == 'P') then
+  if (boundaries(2) == 'P  ') then
     call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
   else
     call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), W_BACKWARD, rescale)
@@ -156,7 +167,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   call transpose_grid(plane_yx, plane_xy, shape_x, 2, 1, comm_xy)
   deallocate(plane_yx)
 
-  if (boundaries(1) == 'P') then
+  if (boundaries(1) == 'P  ') then
     call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
   else
     call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), W_BACKWARD, rescale)
@@ -173,8 +184,14 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   ! populate U
   tmp_fine = 0._dp
   forall (i = 1: nelm)
-    tmp_fine(1,  1,  1,   i)   = 4.*soln_coarse(i) 
-    tmp_fine(1,  1,  nz1,   i) = 4.*soln_coarse(i) 
+    tmp_fine(1,   1,   1,   i)   = soln_coarse(i) 
+    tmp_fine(nx1, 1,   1,   i)   = soln_coarse(i) 
+    tmp_fine(1  , ny1, 1,   i)   = soln_coarse(i) 
+    tmp_fine(nx1, ny1, 1,   i)   = soln_coarse(i) 
+    tmp_fine(1,   1,   nz1, i)   = soln_coarse(i) 
+    tmp_fine(nx1, 1,   nz1, i)   = soln_coarse(i) 
+    tmp_fine(1  , ny1, nz1, i)   = soln_coarse(i) 
+    tmp_fine(nx1, ny1, nz1, i)   = soln_coarse(i) 
   end forall
   call dssum(tmp_fine)
   tmp_fine = tmp_fine * vmult
@@ -555,7 +572,7 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x, boundaries)
     do idz = 0, shape_x(3) - 1
       do idy = 0, nout_local_yz - 1
         do idx = 0, nout_local_xy - 1
-          if (boundaries(1) == 'P') then
+          if (boundaries(1) == 'P  ') then
             kx = wavenumber(idx + idx_out_local_xy, shape_x(1), &
                             end_x(1)-start_x(1), P_FORWARD)
           else
@@ -563,7 +580,7 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x, boundaries)
                             end_x(1)-start_x(1), W_FORWARD)
           endif
 
-          if (boundaries(2) == 'P') then
+          if (boundaries(2) == 'P  ') then
             ky = wavenumber(idy + idx_out_local_yz, shape_x(2), &
                             end_x(2)-start_x(2), P_FORWARD)
           else
@@ -571,7 +588,7 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x, boundaries)
                             end_x(2)-start_x(2), W_FORWARD)
           endif
 
-          if (boundaries(5) == 'P') then
+          if (boundaries(5) == 'P  ') then
             kz = wavenumber(idz, shape_x(3), &
                             end_x(3)-start_x(3), P_FORWARD)
           else
@@ -579,7 +596,7 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x, boundaries)
                             end_x(3)-start_x(3), W_FORWARD)
           endif
  
-          if (kx**2. + ky**2. + kz**2. < 1.e-12_dp) then
+          if (kx**2. + ky**2. + kz**2. < 1.e-9_dp) then
             ks(idz,idx,idy) = 0._dp
           else
             ks(idz, idx, idy) = 1._dp / ( &

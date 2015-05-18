@@ -27,6 +27,7 @@ module helmholtz
     integer :: n_max !>!< Maximum number of projectors
     integer :: n_sav !>!< Actual number of projectors
     integer :: next !>!< Next projector slot to fill in  
+    real(DP) :: dt !>!< dt used in building H
 
     !> Reduced rep of the matrix operator in the approximation space
     real(DP), allocatable :: H_red(:,:) 
@@ -48,6 +49,7 @@ subroutine init_approx_space(apx, n_max, ntot)
   allocate(apx%projectors(ntot, 0:n_max), apx%H_red(n_max, n_max))
   apx%projectors = 0._dp
   apx%H_red      = 0._dp
+  apx%dt         = 0._dp
 end subroutine init_approx_space
 
 !> \brief Project out the part of the residual in the approx space.
@@ -313,12 +315,10 @@ subroutine updrhsh(apx,h1,h2,vml,vmk,ws)
   logical, save :: ifnewdt = .false.
   integer :: n_sav, k
 
-  real(DP), save :: dtold = 0.0
-
   ! First, we have to decide if the dt has changed.
   ifupdate = .FALSE. 
-  if (dt /= dtold) then
-      dtold    = dt
+  if (dt /= apx%dt) then
+      apx%dt   = dt
       ifnewdt  = .TRUE. 
       ifupdate = .TRUE. 
   elseif (ifnewdt) then

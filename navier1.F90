@@ -1426,7 +1426,7 @@ subroutine convop(conv,fi)
   use size_m, only : nx1, ny1, nz1, nelv
   use dealias, only : vxd, vyd, vzd
   use input, only : param, ifpert
-  use geom, only : bm1, binvm1
+  use geom, only : bm1
   use soln, only : vx, vy, vz
   use tstep, only : nelfld, ifield
   implicit none
@@ -1469,10 +1469,10 @@ subroutine convop(conv,fi)
           call convect_new (conv,fi, .FALSE. ,vxd,vyd,vzd, .TRUE. )
           etime1 = etime1 + dnekclock()
       endif
-      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) * binvm1 ! local mass inverse
+      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) / bm1 ! local mass inverse
   elseif (param(99) == 5) then
 !max        call convect_cons(conv,fi, .FALSE. ,vx,vy,vz, .FALSE. )
-      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) * binvm1  ! local mass inverse
+      conv(:,:,:,1:nelv) = conv(:,:,:,1:nelv) / bm1  ! local mass inverse
   else
 !max        call conv1 (conv,fi)  !    use the convective form
   endif

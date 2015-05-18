@@ -1,8 +1,8 @@
 language: fortran
 
 env:
- - LST
- - LST_fft
+ - TEST_SUITE=LST
+ - TEST_SUITE=LST_fft
 
 before_install: 
  - export ROOT_DIR=`pwd`

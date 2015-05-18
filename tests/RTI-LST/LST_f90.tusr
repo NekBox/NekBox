@@ -108,10 +108,10 @@
     uz   = 0.0
 
     zz = 0.
-    zz = zz + amp0/kmin*sin(kmin*2*pi*x)
+    zz = zz + amp0/kmin*cos(kmin*2*pi*x)
     zz = -(z + zz)/delta
 
-    temp = atwood*erf(zz)/2
+    temp = erf(zz)
     return
     end subroutine useric
 !-----------------------------------------------------------------------
@@ -121,7 +121,17 @@
     use soln
     implicit none
 
+    real(DP), external :: glmax, glmin
+    real(DP) :: tmax, umax, vmax, wmax
+
     if (istep == 0) call outpost(vx,vy,vz,pr,t,'   ')
+    tmax = max(glmax(t, lx1*ly1*lz1*lelt), -glmin(t, lx1*ly1*lz1*lelt))
+    if (nid == 0) write(*,'(A,F12.8)') "Maximum scalar", tmax
+
+    umax = max(glmax(vx, lx1*ly1*lz1*lelt), -glmin(vx, lx1*ly1*lz1*lelt))
+    vmax = max(glmax(vy, lx1*ly1*lz1*lelt), -glmin(vy, lx1*ly1*lz1*lelt))
+    wmax = max(glmax(vz, lx1*ly1*lz1*lelt), -glmin(vz, lx1*ly1*lz1*lelt))
+    if (nid == 0) write(*,'(A,3F12.7)') "Maximum velocity", umax, vmax, wmax
 
     return
     end subroutine userchk
@@ -146,7 +156,7 @@
     kmax = {kmax}
     kmin = {kmin}
     amp0 = {amp0}
-    rayleigh = 9.8
+    rayleigh = {g} * {atwood}
     delta = 0.25 * ({extent_mesh[2]} - ({root_mesh[2]})) / ({shape_mesh[2]})
 
     return

@@ -1,5 +1,9 @@
 language: fortran
 
+env:
+ - LST
+ - LST_fft
+
 before_install: 
  - export ROOT_DIR=`pwd`
  - sudo apt-get update -qq
@@ -14,7 +18,7 @@ before_install:
  - cd nek-tests/RTI-LST/
 
 before_script: 
- - python3 ../../nek-tools/genrun/genrun.py -u LST_f90.tusr -d LST.json --makenek=../../makenek rti-lst_f90
+ - python3 ../../nek-tools/genrun/genrun.py -u LST_f90.tusr -d $TEST_SUITE.json --makenek=../../makenek rti-lst_f90
 # - ../../makenek RTI_LST $ROOT_DIR
 
 script: 

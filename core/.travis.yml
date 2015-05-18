@@ -14,14 +14,12 @@ before_install:
  - cd nek-tests/RTI-LST/
 
 before_script: 
- - python3 ../../nek-tools/genrun/genrun.py -u LST_f90.tusr -d LST.json --makenek=../../makenek RTI_LST
+ - python3 ../../nek-tools/genrun/genrun.py -u LST_f90.tusr -d LST.json --makenek=../../makenek rti-lst_f90
 # - ../../makenek RTI_LST $ROOT_DIR
 
 script: 
- - sh ../../nekmpi RTI_LST 2 > test.out
- - grep -i maximum test.out | tail -20 > max.test
- - cat maximums.reference | tail -20 > max.ref
- - cat max.test
- - cat max.ref
-# - diff max.ref max.test
+ - sh ../../nekmpi rti-lst_f90 4 > rti-lst_f90.out
+ - grep "Max" rti-lst_f90.out > f90.grp
+ - grep "Max" rti-lst_f77.out > f77.grp
+ - python3 ../ndiff.py f90.grp f77.grp
 

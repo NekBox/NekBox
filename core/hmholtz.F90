@@ -27,16 +27,13 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
 
   tol = abs(tli)
 
-  if (icalld == 0) thmhz=0.0
-
   iffdm = .FALSE. 
 !   iffdm = .true.
   if (ifsplit) iffdm = .TRUE. 
 
 !max    if (icalld == 0 .AND. iffdm) call set_fdm_prec_h1A
 
-  icalld=icalld+1
-  nhmhz=icalld
+  nhmhz=nhmhz + 1
   etime=dnekclock()
   ntot = nx1*ny1*nz1*nelfld(ifield)
   if (imsh == 1) ntot = nx1*ny1*nz1*nelv
@@ -644,6 +641,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   use eigen, only : eigaa, eigga
   use input, only : ifprint
   use geom, only : volvm1, voltm1, binvm1, bintm1, bm1
+  use ctimer, only : nfoo, tfoo, dnekclock
   implicit none
 
   real(DP), intent(out) :: tol
@@ -658,9 +656,12 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
 
   real(DP) :: acondno, delta, x, y, diff, eps
   real(DP) :: vol, rinit, rmin, bcneu1, bcneu2, bctest, bcrob, tolmin
+  real(DP) :: etime
   integer :: nl, ntot1
   real(DP), external :: glsc3, glsum
 
+  nfoo = nfoo + 1
+  etime = dnekclock()
 
   IF (EIGAA /= 0.) THEN
       ACONDNO = EIGGA/EIGAA
@@ -713,7 +714,9 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   BCNEU2 = GLSC3(W1,W1  ,MULT,NTOT1)
   BCTEST = ABS(BCNEU1-BCNEU2)
 
+  etime = etime - dnekclock()
   CALL AXHELM (W2,W1,H1,H2,IMESH,ISD)
+  etime = etime + dnekclock()
   w2 = w2 * w2 * bm1
   BCROB  = SQRT(GLSUM(W2,NTOT1)/VOL)
 
@@ -726,6 +729,8 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
           WRITE(6,*) 'New CG1-tolerance (Neumann) = ',TOLMIN
       ENDIF
   ENDIF
+
+  tfoo = tfoo + (dnekclock() - etime)
 
   return
   end subroutine chktcg1
@@ -909,6 +914,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
     !   Always take at least one iteration   (for projection) pff 11/23/98
 #ifndef TST_WSCAL
+    !IF (rbn2 <= TOL .AND. iter > 10) THEN
     IF (rbn2 <= TOL .AND. (iter > 1 .OR. istep <= 5)) THEN
 #else
     iter_max = param(150)

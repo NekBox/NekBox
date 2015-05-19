@@ -11,7 +11,7 @@ while len(vals[0]) > 0:
     vals = [np.array([float(x) for x in fp.readline().split()[2:]], dtype=float) for fp in files]
     diffs = np.maximum(*vals) - np.minimum(*vals)
     print(diffs)
-    if np.any(diffs > 0):
+    if np.any(diffs > 1.e-9):
         failed = True
 
 if failed:

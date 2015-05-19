@@ -89,6 +89,7 @@ module geom
 
   end subroutine init_geom
 
+#if 0
   subroutine compress_geom()
     use size_m, only : lx1,ly1,lz1,nelt, nid
     implicit none
@@ -113,5 +114,6 @@ module geom
     write(*,*) "MAX: bm1_compress =", bm1_compress
 
   end subroutine compress_geom
+#endif
 
 end module geom

@@ -6,9 +6,10 @@ subroutine gen_fast_spacing()
   implicit none
 
 #if 0
-  real :: x(nx1,ny1,nz1,nelv)
-  real :: y(nx1,ny1,nz1,nelv)
-  real :: z(nx1,ny1,nz1,nelv)
+  use kinds, only : DP
+  real(DP) :: x(nx1,ny1,nz1,nelv)
+  real(DP) :: y(nx1,ny1,nz1,nelv)
+  real(DP) :: z(nx1,ny1,nz1,nelv)
 
   use size_m
   use parallel
@@ -21,14 +22,14 @@ subroutine gen_fast_spacing()
   , llr(lelt),lls(lelt),llt(lelt) &
   , lmr(lelt),lms(lelt),lmt(lelt) &
   , lrr(lelt),lrs(lelt),lrt(lelt)
-  real :: lr ,ls ,lt
-  real :: llr,lls,llt
-  real :: lmr,lms,lmt
-  real :: lrr,lrs,lrt
+  real(DP) :: lr ,ls ,lt
+  real(DP) :: llr,lls,llt
+  real(DP) :: lmr,lms,lmt
+  real(DP) :: lrr,lrs,lrt
 
   integer :: lbr,rbr,lbs,rbs,lbt,rbt,e
 
-  real :: axwt(lx2)
+  real(DP) :: axwt(lx2)
 
   ierr = 0
 #endif

@@ -48,11 +48,9 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   real(DP), allocatable :: v(:,:) ! stores the orthogonal Krylov subspace basis
   real(DP), allocatable :: z(:,:) ! Z = M**(-1) V
 
-  real(DP), allocatable, save :: ml(:), mu(:)
   real(DP) :: etime
 
   real(DP) :: divex
-  real(DP), allocatable :: d(:)
 
   real(DP) :: wk1(lgmres)
 

@@ -1,9 +1,10 @@
 language: fortran
 
 env:
- - TEST_SUITE=LST
- - TEST_SUITE=LST_fft
- - TEST_SUITE=LST_all
+ - TEST_SUITE=RTI-LST/LST
+ - TEST_SUITE=RTI-LST/LST_fft
+ - TEST_SUITE=RTI-LST/LST_all
+ - TEST_SUITE=Hill/Hill
 
 before_install: 
  - export ROOT_DIR=`pwd`
@@ -16,15 +17,15 @@ before_install:
  - sudo apt-get install -y python3-numpy
  - git clone https://github.com/maxhutch/nek-tests.git
  - git clone https://github.com/maxhutch/nek-tools.git
- - cd nek-tests/RTI-LST/
+ - cd nek-tests/$(dirname "$TEST_SUITE")
 
 before_script: 
- - python3 ../../nek-tools/genrun/genrun.py -u *_f90.tusr -d $TEST_SUITE.json --makenek=../../makenek rti-lst_f90
+ - python3 ../../nek-tools/genrun/genrun.py -u *_f90.tusr -d $(basename "$TEST_SUITE").json --makenek=../../makenek test_f90
 # - ../../makenek RTI_LST $ROOT_DIR
 
 script: 
- - sh ../../nekmpi rti-lst_f90 4 > rti-lst_f90.out
- - grep "Max" rti-lst_f90.out > f90.grp
- - grep "Max" rti-lst_f77.out > f77.grp
+ - sh ../../nekmpi test_f90 4 > test_f90.out
+ - grep "Max" test_f90.out > f90.grp
+ - grep "Max" $(basename "$TEST_SUITE")_ref.out > f77.grp
  - python3 ../ndiff.py f90.grp f77.grp
 

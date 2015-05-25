@@ -19,7 +19,7 @@ before_install:
  - cd nek-tests/RTI-LST/
 
 before_script: 
- - python3 ../../nek-tools/genrun/genrun.py -u LST_f90.tusr -d $TEST_SUITE.json --makenek=../../makenek rti-lst_f90
+ - python3 ../../nek-tools/genrun/genrun.py -u *_f90.tusr -d $TEST_SUITE.json --makenek=../../makenek rti-lst_f90
 # - ../../makenek RTI_LST $ROOT_DIR
 
 script: 

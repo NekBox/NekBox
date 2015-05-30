@@ -69,6 +69,7 @@
 !-----------------------------------------------------------------------
     subroutine useric(ix,iy,iz,eg) ! set up initial conditions
 !      use ifport, only : random_number, random_seed
+    use kinds, only : DP
     use size_m
     use nekuse
     use zper
@@ -79,7 +80,7 @@
     real :: radius, velocity, delta
     common /myvalues/ radius, velocity, delta
 
-    real :: rad, a, u0, uxy, zz
+    real(DP) :: rad, a, u0, uxy, zz
 
     a = radius
     u0 = velocity
@@ -89,19 +90,20 @@
     uz   = 0.0
 
     rad = sqrt(x*x + y*y + z*z)
+    zz = sqrt(x*x + y*y)
     if (rad < a) then
-      uz = (3./2.)*u0 * (1-(2*rad*rad + z*z)/(a*a))
-      if (x*x + y*y > 0) then
-        uxy = (3./2.)*u0 * (z * rad) / (a*a)
-        ux = uxy * x / sqrt(x*x+y*y)
-        uy = uxy * y / sqrt(x*x+y*y)
+      uz = (3./2.)*u0 * (1.-(2*zz*zz + z*z)/(a*a))
+      if (zz > 0) then
+        uxy = (3./2.)*u0 * (z * zz) / (a*a)
+        ux = uxy * x / zz
+        uy = uxy * y / zz
       endif
     else
-      uz = u0 * ((a*a/(z*z+rad*rad))**(5./2.) * (2*z*z - rad*rad)/(2*a*a) - 1)
-      if (x*x + y*y > 0) then
-        uxy = (3./2.)*u0 * (z * rad) / (a*a) * (a*a/(z*z+rad*rad))**(5./2.)
-        ux = uxy * x / sqrt(x*x+y*y)
-        uy = uxy * y / sqrt(x*x+y*y)
+      uz = u0 * ((a*a/(z*z+zz*zz))**(2.5) * (2.*z*z - zz*zz)/(2.*a*a) - 1)
+      if (zz > 0) then
+        uxy = (3./2.)*u0 * (z * zz) / (a*a) * (a*a/(z*z+zz*zz))**(5./2.)
+        ux = uxy * x / zz
+        uy = uxy * y / zz
       endif
     endif
 

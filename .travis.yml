@@ -4,6 +4,7 @@ env:
  - TEST_SUITE=RTI-LST/LST
  - TEST_SUITE=RTI-LST/LST_fft
  - TEST_SUITE=RTI-LST/LST_all
+ - TEST_SUITE=RTI-LST/LST_sym
  - TEST_SUITE=Hill/Hill
 
 before_install: 

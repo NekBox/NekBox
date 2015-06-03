@@ -594,6 +594,48 @@ subroutine faccl2(a,b,iface1)
   return
 end subroutine faccl2
 
+subroutine faccl3(a,b,c,iface1)
+!
+! Collocate B with A on the surface IFACE1 of element IE.
+!
+!     A is a (NX,NY,NZ) data structure
+!     B is a (NX,NY,IFACE) data structure
+!     IFACE1 is in the preprocessor notation 
+!     IFACE  is the dssum notation.
+!     5 Jan 1989 15:12:22      PFF
+
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1
+  use topol, only : eface1, skpdat
+
+  real(DP) :: A(LX1,LY1,LZ1),B(LX1,LY1,LZ1),C(LX1,LY1)
+  integer :: iface1, iface, js1, jf1, jskip1, js2, jf2, jskip2
+  integer :: i, j2, j1
+
+!
+!     Set up counters
+!
+  CALL DSSET(NX1,NY1,NZ1)
+  IFACE  = EFACE1(IFACE1)
+  JS1    = SKPDAT(1,IFACE)
+  JF1    = SKPDAT(2,IFACE)
+  JSKIP1 = SKPDAT(3,IFACE)
+  JS2    = SKPDAT(4,IFACE)
+  JF2    = SKPDAT(5,IFACE)
+  JSKIP2 = SKPDAT(6,IFACE)
+
+  I = 0
+  DO J2=JS2,JF2,JSKIP2
+    DO J1=JS1,JF1,JSKIP1
+     I = I+1
+     A(J1,J2,1) = B(J1,J2,1)*C(I,1)
+    enddo
+  enddo
+
+  return
+end
+
+
 !-----------------------------------------------------------------------
 !> \brief Set the variable property arrays H1 and H2
 !! in the Helmholtz equation.

@@ -221,15 +221,17 @@ subroutine crespsp (respr, vext)
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nx2, ny2, nz2
   use geom, only : rxm2, sxm2, txm2, rym2, sym2, tym2, rzm2, szm2, tzm2
-  use geom, only : area
+  use geom, only : unx, uny, unz, area
   use input, only : ifaxis, if3d, cbc
   use geom, only : bm1, binvm1, jacmi
   use soln, only : bfx, bfy, bfz, pr
-  use soln, only : vtrans, vdiff!, qtl
+  use soln, only : vtrans, vdiff, vmult!, qtl
+  use soln, only : v1mask, v2mask, v3mask
   use tstep, only : imesh, bd, dt, ifield
   use mesh, only : if_ortho
   use dxyz, only : dxtm12, dym12, dzm12
   use ctimer, only : ncrespsp, tcrespsp, dnekclock
+  use parallel, only : nid
   implicit none
 
   REAL(DP), intent(out) :: RESPR (LX2,LY2,LZ2,LELV)
@@ -303,6 +305,7 @@ subroutine crespsp (respr, vext)
   !   add explicit (NONLINEAR) terms
   n = nx1*ny1*nz1*nelv
   do iel = 1, nelv
+    !tmp1 = vdiff(:,:,:,iel,1) *ta1(:,:,:,iel)
     tmp1 = bm1(:,:,:,iel) * vdiff(:,:,:,iel,1) *ta1(:,:,:,iel)
     ta3(:,:,:,iel) = binvm1(:,:,:,iel) * (bfz(:,:,:,iel)*ta1(:,:,:,iel)-tmp1*wa3(:,:,:,iel))
     ta2(:,:,:,iel) = binvm1(:,:,:,iel) * (bfy(:,:,:,iel)*ta1(:,:,:,iel)-tmp1*wa2(:,:,:,iel))
@@ -314,7 +317,7 @@ subroutine crespsp (respr, vext)
   if (if3d) then
 
     if (if_ortho) then
-      deallocate(wa1,wa2,wa3)
+      !deallocate(wa1,wa2,wa3)
       nyz2  = ny2*nz2
       nxy1  = nx1*ny1
 
@@ -341,28 +344,28 @@ subroutine crespsp (respr, vext)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
       respr = -respr + wa1 + wa2 + wa3
-      deallocate(wa1,wa2,wa3)
+      !deallocate(wa1,wa2,wa3)
     endif
   else
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       respr = -respr + wa1 + wa2 
-      deallocate(wa1,wa2,wa3)
+      !deallocate(wa1,wa2,wa3)
   endif
 
 !   add thermal divergence
-  dtbd = BD(1)/DT
+  dtbd = 1.
+  !dtbd = BD(1)/DT
   !respr = respr !+ qtl * bm1 * dtbd
    
 !   surface terms
-#if 0
   DO IFC=1,NFACES
       ta1 = 0._dp; ta2 = 0._dp
       IF (NDIM == 3) ta3 = 0._dp
       DO IEL=1,NELV
           CB = CBC(IFC,IEL,IFIELD)
           IF (CB(1:1) == 'V' .OR. CB(1:1) == 'v') THEN
-            write(*,*) "Oops: cb = v"
+              write(*,*) "Oops: cb == v"
 #if 0
               CALL FACCL3 &
               (TA1(1,IEL),VX(1,1,1,IEL),UNX(1,1,IFC,IEL),IFC)
@@ -373,6 +376,15 @@ subroutine crespsp (respr, vext)
               (TA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
 #endif
           ENDIF
+          if (cb(1:3) == 'SYM') then
+            CALL FACCL3 (TA1(1,1,1,IEL),wa1(:,:,:,iel),UNX(1,1,IFC,IEL),IFC)
+            CALL FACCL3 (TA2(1,1,1,IEL),wa2(:,:,:,iel),UNY(1,1,IFC,IEL),IFC)
+
+            IF (NDIM == 3) then
+              CALL FACCL3 (TA3(1,1,1,IEL),wa3(:,:,:,iel),UNZ(1,1,IFC,IEL),IFC)
+            endif
+          endif
+           
           IF (NDIM == 3) then 
             ta1(:,:,:,iel) = ta1(:,:,:,iel) + ta2(:,:,:,iel) + ta3(:,:,:,iel)
           else
@@ -380,9 +392,10 @@ subroutine crespsp (respr, vext)
           endif
           CALL FACCL2 (TA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
       END DO
-      respr = respr - dtbd*ta1
+      call dssum(ta1)
+      respr = respr + dtbd*ta1*vdiff(:,:,:,:,1)/vtrans(:,:,:,:,1) 
+      !respr = respr - dtbd*ta1
   END DO
-#endif
   deallocate(ta1, ta2, ta3)
 
 !   Assure that the residual is orthogonal to (1,1,...,1)T

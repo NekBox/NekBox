@@ -11,6 +11,7 @@
     end subroutine uservp
 !-----------------------------------------------------------------------
     subroutine userf(ix,iy,iz,eg) ! set acceleration term
+    use kinds, only : DP
     use size_m
     use nekuse
     implicit none
@@ -24,7 +25,6 @@
 
     integer :: ix, iy, iz, eg
     integer :: e,f
-
 
     ffx = 0.0
     ffy = 0.0
@@ -76,6 +76,7 @@
     use size_m
     use nekuse
     use zper
+    use kinds, only : DP
     implicit none
 
     real :: rayleigh, atwood, amp0, delta
@@ -85,7 +86,7 @@
     integer :: ix, iy, iz, e, eg
     integer :: i,j,ij, k
     integer :: ppm, pps
-    real, parameter :: pi = 3.14159265358
+    real(DP), parameter :: pi = 4._dp * datan(1._dp)
 
     real :: eps, kx, ky
     real :: zz

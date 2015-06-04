@@ -354,9 +354,8 @@ subroutine crespsp (respr, vext)
   endif
 
 !   add thermal divergence
-  dtbd = 1.
-  !dtbd = BD(1)/DT
-  !respr = respr !+ qtl * bm1 * dtbd
+  dtbd = BD(1)/DT
+  respr = respr !+ qtl * bm1 * dtbd
    
 !   surface terms
   DO IFC=1,NFACES
@@ -391,10 +390,12 @@ subroutine crespsp (respr, vext)
             ta1(:,:,:,iel) = ta1(:,:,:,iel) + ta2(:,:,:,iel)
           endif
           CALL FACCL2 (TA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
+          if (cb(1:3) == 'SYM') then
+            ta1(:,:,:,iel) = - ta1(:,:,:,iel) * vdiff(:,:,:,iel,1) / vtrans(:,:,:,iel,1) / dtbd 
+          endif
       END DO
-      call dssum(ta1)
-      respr = respr + dtbd*ta1*vdiff(:,:,:,:,1)/vtrans(:,:,:,:,1) 
-      !respr = respr - dtbd*ta1
+      !call dssum(ta1) ! maybe this should be here for SYM? (maxhutch)
+      respr = respr - dtbd*ta1
   END DO
   deallocate(ta1, ta2, ta3)
 

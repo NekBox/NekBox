@@ -611,6 +611,10 @@ subroutine faccl3(a,b,c,iface1)
   real(DP) :: A(LX1,LY1,LZ1),B(LX1,LY1,LZ1),C(LX1,LY1)
   integer :: iface1, iface, js1, jf1, jskip1, js2, jf2, jskip2
   integer :: i, j2, j1
+  real(DP) :: af(lx1*ly1*lz1), bf(lx1*ly1*lz1), cf(lx1*ly1)
+  af = reshape(a, (/lx1*ly1*lz1/))
+  bf = reshape(b, (/lx1*ly1*lz1/))
+  cf = reshape(c, (/lx1*ly1/))
 
 !
 !     Set up counters
@@ -628,9 +632,11 @@ subroutine faccl3(a,b,c,iface1)
   DO J2=JS2,JF2,JSKIP2
     DO J1=JS1,JF1,JSKIP1
      I = I+1
-     A(J1,J2,1) = B(J1,J2,1)*C(I,1)
+     !A(J1,J2,1) = B(J1,J2,1)*C(I,1)
+     af(J1+lx1*(J2-1)) = bf(J1+lx1*(J2-1))*cf(I)
     enddo
   enddo
+  a = reshape(af, (/lx1, ly1, lz1/))
 
   return
 end

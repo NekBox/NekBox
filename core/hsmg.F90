@@ -578,7 +578,18 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
       enddo
   else
       schw_flop = schw_flop + nelv * 3 * (nx-2)**2 * 6
-      schw_mop  = schw_mop  + nelv * 3 * (nx-2)**2 * 6
+      if (l1 == 0) then
+        schw_mop  = schw_mop  + 2 * nelv * nx*ny*nz
+      else
+        schw_mop  = schw_mop  + 2 * nelv * nx*ny*(nz-2)
+      endif
+      if (l2 == 0) then
+        schw_mop  = schw_mop  + nelv * nx*ny*nz
+      else
+        schw_mop  = schw_mop  + nelv * nx*ny*(nz-2)
+      endif
+
+      !schw_mop  = schw_mop  + nelv * 3 * (nx-2)**2 * 6
       do ie=1,nelv
           do j=i0,i1
               do i=i0,i1
@@ -627,15 +638,18 @@ subroutine h1mg_schwarz(e,r,sigma,l)
 
   nschw = nschw + 1
   n = mg_h1_n(l,mg_fld)
-  schw_flop = schw_flop + 2*n
+  schw_flop = schw_flop + n
   schw_mop  = schw_mop  + 2*n
+  !call hpm_start('schwarz')
   etime = dnekclock()
 
 
   call h1mg_schwarz_part1 (e,r,l)
   call hsmg_schwarz_wt    (e,l)          ! e  := W e
   e(1:n) = e(1:n) * sigma
+
   tschw = tschw + (dnekclock() - etime)
+  !call hpm_stop('schwarz')
 
   return
 end subroutine h1mg_schwarz
@@ -646,14 +660,18 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   use size_m, only : nelv
   use input, only : if3d
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
+  use ctimer, only : tschw, nschw, schw_flop, schw_mop, dnekclock
   use tstep, only : ifield, nelfld
   implicit none
 
   real(DP) :: e(*),r(*)
+  real(DP) :: etime
 
   integer :: enx,eny,enz,pm, n, i, l
   real(DP) :: zero, one, onem
   real(DP), allocatable :: work(:)
+
+  etime = 0._dp
 
   zero =  0
   one  =  1
@@ -681,14 +699,22 @@ subroutine h1mg_schwarz_part1 (e,r,l)
      
 !     exchange interior nodes
   call hsmg_extrude(work,0,zero,work,2,one,enx,eny,enz)
+  etime = etime - dnekclock()
+  !call hpm_stop('schwarz')
   call hsmg_schwarz_dssum(work,l)
+  !call hpm_start('schwarz')
+  etime = etime + dnekclock()
   call hsmg_extrude(work,0,one ,work,2,onem,enx,eny,enz)
 
   call hsmg_fdm(work(i),work,l) ! Do the local solves
 
 !     Sum overlap region (border excluded)
   call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
+  etime = etime - dnekclock() 
+  !call hpm_stop('schwarz')
   call hsmg_schwarz_dssum(work(i),l)
+  !call hpm_start('schwarz')
+  etime = etime + dnekclock() 
   call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
   call hsmg_extrude(work(i),2,one,work(i),0,one,enx,eny,enz)
 
@@ -698,8 +724,15 @@ subroutine h1mg_schwarz_part1 (e,r,l)
       call hsmg_schwarz_toreg3d(e,work(i),mg_nh(l))
   endif
 
+  etime = etime - dnekclock() 
+  !call hpm_stop('schwarz')
   call hsmg_dssum(e,l)                           ! sum border nodes
+  !call hpm_start('schwarz')
+  etime = etime + dnekclock() 
+
   call h1mg_mask (e,mg_imask(pm),nelfld(ifield)) ! apply mask
+
+  tschw = tschw - etime
 
   return
 end subroutine h1mg_schwarz_part1
@@ -744,7 +777,8 @@ subroutine hsmg_schwarz_toreg3d(b,a,n)
   real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
         
   integer :: i,j,k,ie
-  schw_mop = schw_mop + 2*nelv*n**3
+  schw_mop = schw_mop + nelv*n**3 + nelv * (n+2)**3
+  !schw_mop = schw_mop + 2*nelv*n**3
   do ie=1,nelv
       do k=1,n
           do j=1,n
@@ -1083,32 +1117,26 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
       do ie=1,nelv
 #if 1
         schw_flop = schw_flop + 3*nn*(2*nl-1)
-        schw_mop  = schw_mop + 2*nn
+        schw_mop  = schw_mop + nn + 3*nl*nl
    
         call mxm(s(1,2,1,ie),nl,r(1,ie),nl,work,nl*nl)
         do i=0,nl-1
             call mxm(work(nl*nl*i),nl,s(1,1,2,ie),nl,work2(nl*nl*i),nl)
         enddo
-        call mxm(work2,nl*nl,s(1,1,3,ie),nl,e(1,ie),nl)
-#else
-        call hsmg_tnsr3d_el(e(1,ie),nl,r(1,ie),nl, &
-                            s(1,2,1,ie),s(1,1,2,ie),s(1,1,3,ie))
+        call mxm(work2,nl*nl,s(1,1,3,ie),nl,work,nl)
 #endif
-        do i=1,nn
-            r(i,ie)=d(i,ie)*e(i,ie)
+        do i=0,nn-1
+            work2(i)=d(i+1,ie)*work(i)
         enddo
 #if 1
         schw_flop = schw_flop + 3*nn*(2*nl-1)
-        schw_mop  = schw_mop + 2*nn
+        schw_mop  = schw_mop + 1*nn + 3*nl*nl
    
-        call mxm(s(1,1,1,ie),nl,r(1,ie),nl,work,nl*nl)
+        call mxm(s(1,1,1,ie),nl,work2,nl,work,nl*nl)
         do i=0,nl-1
             call mxm(work(nl*nl*i),nl,s(1,2,2,ie),nl,work2(nl*nl*i),nl)
         enddo
         call mxm(work2,nl*nl,s(1,2,3,ie),nl,e(1,ie),nl)
-#else
-          call hsmg_tnsr3d_el(e(1,ie),nl,r(1,ie),nl, &
-                              s(1,1,1,ie),s(1,2,2,ie),s(1,2,3,ie))
 #endif
       enddo
   endif
@@ -1365,7 +1393,8 @@ subroutine hsmg_schwarz_wt3d(e,wt,n)
   integer :: ie,j,k
 
   schw_flop = schw_flop +  4*nelv*n*n +  4*nelv*n*(n-4) +  4*nelv*(n-4)*(n-4)
-  schw_mop  = schw_mop  + 12*nelv*n*n + 12*nelv*n*(n-4) + 12*nelv*(n-4)*(n-4)
+  schw_mop  = schw_mop  + 12*nelv*n*n + 2*nelv*n*n*n 
+  !schw_mop  = schw_mop  + 12*nelv*n*n + 12*nelv*n*(n-4) + 12*nelv*(n-4)*(n-4)
 
   do ie=1,nelv
       e(:,:,1  ,ie)=e(:,:,1  ,ie)*wt(:,:,1,3,ie)

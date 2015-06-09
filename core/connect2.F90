@@ -1826,7 +1826,7 @@ end subroutine vrdsmsh
 !-----------------------------------------------------------------------
 subroutine chk_nel
   use size_m, only : lelt, lelv, lelg, nid, nelt
-  use parallel, only : np, nelgt, nelgv, nelgt_max
+  use parallel, only : np, nelgt, nelgv!, nelgt_max
   implicit none
 
   integer :: neltmx, nelvmx, lelt_needed
@@ -1863,12 +1863,14 @@ subroutine chk_nel
       call exitt
   endif
 
+#if 0
   if(nelgt > nelgt_max) then
       if(nid == 0) write(6,*) &
       'ABORT: Total number of elements too large!', &
       '       nel_max = ', nelgt_max
       call exitt
   endif
+#endif
 
   if (nelt > lelt) then
       write(6,'(A,3I12)') 'ABORT: nelt>lelt!', nid, nelt, lelt

@@ -8,7 +8,7 @@ module parallel
   INTEGER ::        NODE,PID,NP,NULLPID,NODE0
 
 !     Maximum number of elements (limited to 2**31/12, at least for now)
-  integer, parameter :: NELGT_MAX = 178956970
+  !integer, parameter :: NELGT_MAX = 178956970
 
   integer, allocatable :: nelg(:) 
   integer :: nvtot, nelgv, nelgt

@@ -1476,7 +1476,7 @@ subroutine print_flops(label, flops, mops, time)
   character(*) :: label
   integer(i8) :: flops, mops
   real(DP) :: time
-  real(DP), parameter :: bandwidth = 43.*1024 / 64
+  real(DP), parameter :: bandwidth = 30.*1024 / 64
   !real(DP), parameter :: bandwidth = 59.7*1024 / 4
   real(DP), parameter :: compute = 204.*1024 / 64
   !real(DP), parameter :: compute = 3400*8
@@ -1489,4 +1489,5 @@ subroutine print_flops(label, flops, mops, time)
                        real(flops, kind=DP) / (1.e6 * time), &
                        peak, real(flops, kind=DP) / (1.e6 * time * peak)
   endif
+
 end subroutine print_flops

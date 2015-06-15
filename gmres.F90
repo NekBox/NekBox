@@ -69,6 +69,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   integer :: i, j, k, iconv
 
   ngmres = ngmres + 1
+  !call hpm_start('gmres')
   etime = dnekclock()
 
   !> \todo move these allocations to where they are needed
@@ -117,20 +118,22 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   outer = 0
   allocate(x(lx2*ly2*lz2*lelv)); x = 0._dp
   allocate(w(lx2*ly2*lz2*lelv)) 
-  do while (iconv == 0 .AND. iter < 500)
+  allocate(r(lx2*ly2*lz2*lelv))
+  do while (iconv == 0 .AND. iter < 50)
       outer = outer+1
 
       if(iter == 0) then               !      -1
-          allocate(r(lx2*ly2*lz2*lelv))
           r = res          ! r = L  res
       !           call copy(r,res,n)
       else
       ! update residual
-          gmres_mop  = gmres_mop  + 4*n
+          gmres_mop  = gmres_mop  + 5*n
           gmres_flop = gmres_flop + n
           r = res
           etime = etime - dnekclock()
+  !call hpm_stop('gmres')
           call ax    (w,x,h1,h2,n)              ! w = A x
+  !call hpm_start('gmres')
           etime = etime + dnekclock()
           r = r - w  
       !      -1
@@ -139,7 +142,13 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   !            ______
       gmres_mop  = gmres_mop  + 2*n
       gmres_flop = gmres_flop + 3*n
+#if 1
+      gamma(1) = sum(r*r*wt)
+      call gop(gamma,wk1,'+  ',1)          ! sum over P procs
+      gamma(1) = sqrt(gamma(1))
+#else      
       gamma(1) = sqrt(glsc3(r,r,wt,n))         ! gamma  = \/ (r,r)
+#endif
   !      1
       if(iter == 0) then
           div0 = gamma(1)*norm_fac
@@ -149,13 +158,11 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   ! check for lucky convergence
       rnorm = 0.
       if(gamma(1) == 0.) goto 9000
-      temp = 1./gamma(1)
       gmres_flop = gmres_flop + n
       gmres_mop  = gmres_mop + 2*n
-      do i = 1, n
-        v(i,1) = r(i) * temp  ! v  = r / gamma
+      temp = 1./gamma(1)
+      v(:,1) = r(:) * temp  ! v  = r / gamma
         !w(i) = v(i,1)
-      enddo
   !  1            1
       do j=1,m
           iter = iter+1
@@ -171,7 +178,9 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !           if (outer.gt.2) if_hyb = .true.       ! Slow outer convergence
           if (ifmgrid) then
               etime = etime - dnekclock()
+  !call hpm_stop('gmres')
               call h1mg_solve(z(1,j),v(1,j),if_hyb)   ! z  = M   w
+  !call hpm_start('gmres')
               etime = etime + dnekclock()
           else                                  !  j
               write(*,*) "Oops: ifmgrid"
@@ -196,10 +205,12 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
                
           etime = etime - dnekclock()
+  !call hpm_stop('gmres')
           call ax  (w,z(1,j),h1,h2,n)           ! w = A z
+  !call hpm_start('gmres')
           etime = etime + dnekclock()
 
-          gmres_mop  = gmres_mop  + 4*n
+          gmres_mop  = gmres_mop  + 3*n + (j+1)*n
           gmres_flop = gmres_flop + (2*n-1)*j + n
           r = w * wt
           call dgemv('T',  n, j, &
@@ -209,8 +220,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
           call gop(h(1,j),wk1,'+  ',j)          ! sum over P procs
 
-          gmres_mop  = gmres_mop  + (j+1)*n 
-          gmres_flop = gmres_flop + j*2*n+n
+          gmres_mop  = gmres_mop  + (j+2)*n 
+          gmres_flop = gmres_flop + (j*3)*n ! because alpha = -1
           call dgemv('N', n, j, &
                      mone, v,      n, &
                            h(1,j), 1, &
@@ -225,7 +236,13 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !            ______
           gmres_mop  = gmres_mop  + 2*n
           gmres_flop = gmres_flop + 3*n
+#if 1
+          alpha = sum(w*w*wt)
+          call gop(alpha, wk1, '+  ', 1)
+          alpha = sqrt(alpha)
+#else
           alpha = sqrt(glsc3(w,w,wt,n))        ! alpha =  \/ (w,w)
+#endif
           rnorm = 0.
           if(alpha == 0.) goto 900  !converged
           l = sqrt(h(j,j)*h(j,j)+alpha*alpha)
@@ -248,13 +265,11 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 #endif
           if (j == m) goto 1000 !not converged, restart
 
-          temp = 1./alpha
           gmres_mop  = gmres_mop  + 2*n
           gmres_flop = gmres_flop + n
-          do i = 1, n
-            v(i,j+1) = w(i) * temp  ! v    = w / alpha
+          temp = 1./alpha
+          v(:,j+1) = w(:) * temp  ! v    = w / alpha
             !w(i) = v(i,j+1)
-          enddo
       !  j+1
       enddo
       900 iconv = 1
@@ -271,7 +286,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       enddo
   ! sum up Arnoldi vectors
       gmres_flop = gmres_flop + 2*n * j
-      gmres_mop  = gmres_mop  + (j+1)*n
+      gmres_mop  = gmres_mop  + (j+2)*n
       call dgemv('N', n, j, &
                  one, z, n, &
                       c, 1, &
@@ -300,6 +315,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   if (outer <= 2) if_hyb = .FALSE. 
 
   tgmres = tgmres + (dnekclock() - etime)
+  !call hpm_stop('gmres')
 
   return
 end subroutine hmh_gmres

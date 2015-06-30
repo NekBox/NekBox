@@ -6,9 +6,11 @@ subroutine setdt
   use input, only : param, ifflow, ifprint
   use soln, only : vx, vy, vz
   use tstep, only : dt, dtinit, time, fintim, lastep, courno, ctarg, istep
+  use tstep, only : re_cell
   implicit none
 
   real(DP), save :: umax = 0._dp
+  real(DP), save :: uxmax = 0._dp
   REAL(DP), save :: DTOLD = 0._dp
   REAL(DP), save :: DTOpf = 0._dp
   logical, save :: iffxdt = .FALSE.
@@ -39,7 +41,8 @@ subroutine setdt
 
 !   Find DT=DTCFL based on CFL-condition (if applicable)
 
-  CALL SETDTC(umax)
+  CALL SETDTC(umax, uxmax)
+  re_cell = uxmax / param(2)
   DTCFL = DT
 
 !   Find DTFS based on surface tension (if applicable)
@@ -201,7 +204,7 @@ end subroutine unorm
 !--------------------------------------------------------------
 !> \brief Compute new timestep based on CFL-condition
 !--------------------------------------------------------------
-subroutine setdtc(umax)
+subroutine setdtc(umax, uxmax)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nid
@@ -213,7 +216,7 @@ subroutine setdtc(umax)
   use tstep, only : lastep, dt, ifield, courno, ctarg, avtran, dtinit
   implicit none
 
-  real(DP) :: umax
+  real(DP), intent(out) :: umax, uxmax
   real(DP), allocatable :: u(:,:,:,:), v(:,:,:,:), w(:,:,:,:)
 
   REAL(DP), save :: VCOUR
@@ -276,7 +279,7 @@ subroutine setdtc(umax)
   CMAX   = 1.2*CTARG
   CMIN   = 0.8*CTARG
   allocate(u(lx1,ly1,lz1,lelv), v(lx1,ly1,lz1,lelv), w(lx1,ly1,lz1,lelv))
-  CALL CUMAX (VX,VY,VZ,u,v,w,UMAX)
+  CALL CUMAX (VX,VY,VZ,u,v,w,UMAX, UXMAX)
 
 !   Zero DT
 
@@ -396,7 +399,10 @@ subroutine setdtc(umax)
   return
 end subroutine setdtc
 
-subroutine cumax (v1,v2,v3,u,v,w,umax)
+!> \brief compute max(U/dx) and max(U * dx)
+!!
+!! \todo This routine is sloppy, could reuse state from elsewhere
+subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv, ndim
   use geom, only : rxm1, rym1, sxm1, sym1, rzm1, szm1, txm1, tym1, tzm1
@@ -408,15 +414,17 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   real(DP), intent(in)  :: V1(LX1,LY1,LZ1,lelv)
   real(DP), intent(in)  :: V2(LX1,LY1,LZ1,lelv)
   real(DP), intent(in)  :: V3(LX1,LY1,LZ1,lelv)
-  real(DP), intent(out) :: u(lx1,ly1,lz1,lelv)
-  real(DP), intent(out) :: v(lx1,ly1,lz1,lelv)
-  real(DP), intent(out) :: w(lx1,ly1,lz1,lelv)
-  real(DP) :: umax
+  real(DP), intent(out) :: u(lx1,ly1,lz1,lelv) ! scratch
+  real(DP), intent(out) :: v(lx1,ly1,lz1,lelv) ! scratch
+  real(DP), intent(out) :: w(lx1,ly1,lz1,lelv) ! scratch
+  real(DP), intent(out) :: umax
+  real(DP), intent(out) :: uxmax
 
   real(DP), allocatable, dimension(:,:,:,:) :: &
     xrm1, xsm1, xtm1, yrm1, ysm1, ytm1, zrm1, zsm1, ztm1
 
   real(DP), allocatable :: x(:,:,:,:), r(:,:,:,:)
+  real(DP), allocatable :: tmp(:,:,:,:)
 
   real(DP), save :: drst(lx1), drsti(lx1)
 
@@ -530,6 +538,42 @@ subroutine cumax (v1,v2,v3,u,v,w,umax)
   deallocate(xrm1, ysm1, ztm1)
   deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
   deallocate(x,r)
+
+  allocate(tmp(lx1,ly1,lz1,lelv))
+
+  DO IE=1,NELV
+      DO IX=1,NX1
+          DO IY=1,NY1
+              DO IZ=1,NZ1
+                  tmp(IX,IY,IZ,IE)=ABS( V1(IX,IY,IZ,IE)*xrm1(ix,iy,iz,ie)*DRST(IX) )
+              enddo
+          enddo
+      enddo
+  END DO
+  U3(1)   = MAXVAL(tmp)
+
+  DO IE=1,NELV
+      DO IX=1,NX1
+          DO IY=1,NY1
+              DO IZ=1,NZ1
+                  tmp(IX,IY,IZ,IE)=ABS( V2(IX,IY,IZ,IE)*ysm1(ix,iy,iz,ie)*DRST(IY) )
+              enddo
+          enddo
+      enddo
+  END DO
+  U3(2)   = MAXVAL(tmp)
+
+  DO IE=1,NELV
+      DO IX=1,NX1
+          DO IY=1,NY1
+              DO IZ=1,NZ1
+                  tmp(IX,IY,IZ,IE)=ABS( V3(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) )
+              enddo
+          enddo
+      enddo
+  END DO
+  U3(3)   = MAXVAL(tmp)
+  UXMAX    = GLMAX(U3,3)
 
   DO IE=1,NELV
       DO IX=1,NX1

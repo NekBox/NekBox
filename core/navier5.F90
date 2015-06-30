@@ -22,6 +22,7 @@ subroutine q_filter(wght)
 
 !   outpost arrays
   integer, save :: icalld = 0
+  real(DP), save :: old_wght = 0._dp
 
   integer :: imax, jmax, ncut, ifldt, mmax, nfldt, ifld, k
   integer, external :: iglmax
@@ -32,8 +33,9 @@ subroutine q_filter(wght)
   imax = nid
   imax = iglmax(imax,1)
   jmax = iglmax(imax,1)
-  if (icalld == 0) then
+  if (icalld == 0 .or. abs(wght-old_wght) > 1.e-8 ) then
       icalld = 1
+      old_wght = wght
       ncut = int(param(101)+1)
       call build_new_filter(intv,zgm1,nx1,ncut,wght,nid)
   elseif (icalld < 0) then   ! old (std.) filter

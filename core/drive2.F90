@@ -97,6 +97,7 @@ subroutine comment
   use geom,   only : ifwcno
   use input,  only : ifadvc, iftran
   use tstep,  only : nid, istep, ifield, nfield, lastep, time, dt, courno
+  use tstep,  only : re_cell
   implicit none
 
   LOGICAL ::  IFCOUR
@@ -128,14 +129,14 @@ subroutine comment
           TTIME     = 0
       ENDIF
       IF (     IFCOUR) &
-      WRITE (6,100) ISTEP,TIME,DT,COURNO,TTIME,TTIME_STP
+      WRITE (6,100) ISTEP,TIME,DT,COURNO,re_cell,TTIME,TTIME_STP
       IF ( .NOT. IFCOUR) WRITE (6,101) ISTEP,TIME,DT
   ELSEIF (LASTEP == 1) THEN
       TTIME_STP = EETIME2-EETIME1   ! time per timestep
       TTIME     = EETIME2-EETIME0   ! sum of all timesteps
   ENDIF
-  100 FORMAT('Step',I7,', t=',1pE14.7,', DT=',1pE14.7 &
-  ,', C=',0pF7.3,2(1pE11.4))
+  100 FORMAT('Step',I7,', t=',1pE14.7,', DT=',1pE10.3 &
+  ,', C=',0pF7.3,', ReC=',0pF8.4,1pE11.4,1pE8.1)
   101 FORMAT('Step',I7,', time=',1pE12.5,', DT=',1pE11.3)
 
   RETURN

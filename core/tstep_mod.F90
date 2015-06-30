@@ -15,6 +15,8 @@ module tstep
     ,TNRML8(LDIMT),TMEAN(LDIMT)
 
 
+  real(DP) :: re_cell = 0._dp !>!< Cell Reynolds number
+
   integer :: IFIELD,IMESH,ISTEP,NSTEPS,IOSTEP,LASTEP,IOCOMM &
     ,INSTEP &
     ,NAB,NBD,NBDINP,NTAUBD &

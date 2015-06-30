@@ -32,6 +32,7 @@ subroutine load_ic()
   integer :: ierr, i
   integer, parameter :: pad_size = 1
   real(DP), allocatable :: padding(:,:,:,:)
+  logical :: skip_x
 
   if (load_name == 'NONE') then
     call get_restart_name(load_name)
@@ -42,10 +43,10 @@ subroutine load_ic()
   endif
 
   ! read and seek past header 
-  call mfo_read_header(nelo, word_size_load, time)
+  call mfo_read_header(nelo, word_size_load, time, skip_x)
 
   ! seek past positions
-  if (nid == pid0) then
+  if (nid == pid0 .and. skip_x) then
     allocate(padding(nx1, ny1, nz1, pad_size))
     do i = 1, nelo, pad_size
       call byte_read(padding, word_size_load * size(padding) / 4, ierr)
@@ -69,7 +70,7 @@ end subroutine load_ic
 
 subroutine get_restart_name(fname)
   use kinds, only : DP
-  use input, only : ifreguo, session, param
+  use input, only : ifreguo, series, param
   use restart, only : nfileo, ifdiro
   use string, only : ltrunc
   implicit none
@@ -104,8 +105,8 @@ subroutine get_restart_name(fname)
       k = k+1
   endif
 
-  len=ltrunc(session,132)                           !  Add SESSION
-  call chcopy(fnam1(k),session,len)
+  len=ltrunc(series,132)                           !  Add SESSION
+  call chcopy(fnam1(k),series,len)
   k = k+len
 
   if (ifreguo) then
@@ -132,7 +133,7 @@ end subroutine get_restart_name
 
 !-----------------------------------------------------------------------
 !> \brief Read header and return number of elements and word size
-subroutine mfo_read_header(nelo, word_size_file, time)
+subroutine mfo_read_header(nelo, word_size_file, time, skip_x)
   use kinds, only : r4, DP
   use size_m, only : nid, nelt, lelt
   use parallel, only : lglel, isize
@@ -143,6 +144,7 @@ subroutine mfo_read_header(nelo, word_size_file, time)
   integer, intent(out) :: nelo
   integer, intent(out) :: word_size_file ! (intent out)
   real(DP), intent(out) :: time
+  logical, intent(out) :: skip_x
 
   integer :: nelo_file !>!< number of i/o elements per io-node (from file)
   real(r4) :: test_pattern
@@ -188,6 +190,11 @@ subroutine mfo_read_header(nelo, word_size_file, time)
       ! pad up to 8MB
       call byte_read(padding, pad_size, ierr)
       deallocate(padding)
+  endif
+  if (rdcode1(1) == 'X') then
+    skip_x = .true.
+  else
+    skip_x = .false.
   endif
   call bcast(word_size_file, isize)
   call bcast(time, 8)

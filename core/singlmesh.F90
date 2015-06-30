@@ -2,7 +2,7 @@
 subroutine get_session_info(intracomm)
   use mpif, only : mpi_comm_world
   use size_m, only : nid
-  use input, only : session, path, ifneknek
+  use input, only : session, path, series, ifneknek
   use parallel, only : csize
   implicit none
 
@@ -18,12 +18,16 @@ subroutine get_session_info(intracomm)
 
   CALL BLANK(SESSION,132)
   CALL BLANK(PATH   ,132)
+  CALL BLANK(SERIES,132)
 
   ierr = 0
   IF(NID == 0) THEN
       OPEN (UNIT=8,FILE='SESSION.NAME',STATUS='OLD',ERR=24)
       READ(8,10) SESSION
       READ(8,10) PATH
+      READ(8,10, iostat=ierr) SERIES
+      if (ierr < 0) call chcopy(SERIES, SESSION, 132)
+      ierr = 0
       10 FORMAT(A132)
       CLOSE(UNIT=8)
       GOTO 23
@@ -39,6 +43,7 @@ subroutine get_session_info(intracomm)
      
   call bcast(SESSION,132*CSIZE)
   call bcast(PATH,132*CSIZE)
+  call bcast(SERIES,132*CSIZE)
 
   IFNEKNEK  = .FALSE. 
 

@@ -970,7 +970,7 @@ end subroutine io_init
 !-----------------------------------------------------------------------
 subroutine mfo_open_files(prefix,ierr) ! open files
   use kinds, only : DP
-  use input, only : ifreguo, ifxyo_, session, param
+  use input, only : ifreguo, ifxyo_, series, param
   use restart, only : max_rst, nfileo, ifdiro, fid0
   use string, only : ltrunc
   implicit none
@@ -1038,8 +1038,8 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   k = k+3
   endif
 
-  len=ltrunc(session,132)                           !  Add SESSION
-  call chcopy(fnam1(k),session,len)
+  len=ltrunc(series,132)                           !  Add SESSION
+  call chcopy(fnam1(k),series,len)
   k = k+len
        
   if (ifreguo) then

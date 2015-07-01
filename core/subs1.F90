@@ -535,7 +535,6 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
   
   endif
 
-  deallocate(xrm1, ysm1, ztm1)
   deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
   deallocate(x,r)
 
@@ -574,6 +573,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
   END DO
   U3(3)   = MAXVAL(tmp)
   UXMAX    = GLMAX(U3,3)
+  deallocate(xrm1, ysm1, ztm1)
 
   DO IE=1,NELV
       DO IX=1,NX1

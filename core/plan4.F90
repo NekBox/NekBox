@@ -359,43 +359,43 @@ subroutine crespsp (respr, vext)
    
 !   surface terms
   DO IFC=1,NFACES
-      ta1 = 0._dp; ta2 = 0._dp
-      IF (NDIM == 3) ta3 = 0._dp
+      wa1 = 0._dp; wa2 = 0._dp
+      IF (NDIM == 3) wa3 = 0._dp
       DO IEL=1,NELV
           CB = CBC(IFC,IEL,IFIELD)
           IF (CB(1:1) == 'V' .OR. CB(1:1) == 'v') THEN
               write(*,*) "Oops: cb == v"
 #if 0
               CALL FACCL3 &
-              (TA1(1,IEL),VX(1,1,1,IEL),UNX(1,1,IFC,IEL),IFC)
+              (WA1(1,IEL),VX(1,1,1,IEL),UNX(1,1,IFC,IEL),IFC)
               CALL FACCL3 &
-              (TA2(1,IEL),VY(1,1,1,IEL),UNY(1,1,IFC,IEL),IFC)
+              (WA2(1,IEL),VY(1,1,1,IEL),UNY(1,1,IFC,IEL),IFC)
               IF (NDIM == 3) &
               CALL FACCL3 &
-              (TA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
+              (WA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
 #endif
           ENDIF
           if (cb(1:3) == 'SYM') then
-            CALL FACCL3 (TA1(1,1,1,IEL),wa1(:,:,:,iel),UNX(1,1,IFC,IEL),IFC)
-            CALL FACCL3 (TA2(1,1,1,IEL),wa2(:,:,:,iel),UNY(1,1,IFC,IEL),IFC)
+            CALL FACCL3 (WA1(1,1,1,IEL),ta1(:,:,:,iel),UNX(1,1,IFC,IEL),IFC)
+            CALL FACCL3 (WA2(1,1,1,IEL),ta2(:,:,:,iel),UNY(1,1,IFC,IEL),IFC)
 
             IF (NDIM == 3) then
-              CALL FACCL3 (TA3(1,1,1,IEL),wa3(:,:,:,iel),UNZ(1,1,IFC,IEL),IFC)
+              CALL FACCL3 (WA3(1,1,1,IEL),ta3(:,:,:,iel),UNZ(1,1,IFC,IEL),IFC)
             endif
           endif
            
           IF (NDIM == 3) then 
-            ta1(:,:,:,iel) = ta1(:,:,:,iel) + ta2(:,:,:,iel) + ta3(:,:,:,iel)
+            wa1(:,:,:,iel) = wa1(:,:,:,iel) + wa2(:,:,:,iel) + wa3(:,:,:,iel)
           else
-            ta1(:,:,:,iel) = ta1(:,:,:,iel) + ta2(:,:,:,iel)
+            wa1(:,:,:,iel) = wa1(:,:,:,iel) + wa2(:,:,:,iel)
           endif
-          CALL FACCL2 (TA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
+          CALL FACCL2 (WA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
           if (cb(1:3) == 'SYM') then
-            ta1(:,:,:,iel) = - ta1(:,:,:,iel) * vdiff(:,:,:,iel,1) / vtrans(:,:,:,iel,1) / dtbd 
+            wa1(:,:,:,iel) = wa1(:,:,:,iel) / dtbd 
           endif
       END DO
       !call dssum(ta1) ! maybe this should be here for SYM? (maxhutch)
-      respr = respr - dtbd*ta1
+      respr = respr - dtbd*wa1
   END DO
   deallocate(ta1, ta2, ta3)
 

@@ -389,7 +389,7 @@ subroutine crespsp (respr, vext)
             endif
           endif
 
-          if (any_face == .true.) then
+          if (any_face) then
             IF (NDIM == 3) then 
               wa1(:,:,:,iel) = wa1(:,:,:,iel) + wa2(:,:,:,iel) + wa3(:,:,:,iel)
             else

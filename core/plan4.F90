@@ -376,7 +376,7 @@ subroutine crespsp (respr, vext)
               (WA3(1,IEL),VZ(1,1,1,IEL),UNZ(1,1,IFC,IEL),IFC)
 #endif
           ENDIF
-          if (cb(1:3) == 'SYM' .and. .false.) then
+          if (cb(1:3) == 'SYM') then
             any_face = .true.
             wa1(:,:,:,iel) = 0._dp; wa2(:,:,:,iel) = 0._dp
             IF (NDIM == 3) wa3(:,:,:,iel) = 0._dp
@@ -400,7 +400,7 @@ subroutine crespsp (respr, vext)
 
           if (CB(1:1) == 'V' .OR. CB(1:1) == 'v') then
             respr(:,:,:,iel) = respr(:,:,:,iel) - dtbd*wa1(:,:,:,iel)
-          else if (cb(1:3) == 'SYM'.and. .false.) then
+          else if (cb(1:3) == 'SYM') then
             respr(:,:,:,iel) = respr(:,:,:,iel) - wa1(:,:,:,iel)
           endif
       END DO

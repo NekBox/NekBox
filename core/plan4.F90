@@ -249,7 +249,7 @@ subroutine crespsp (respr, vext)
   real(DP) :: scale, dtbd
   real(DP) :: etime
   real(DP), allocatable :: tmp1(:,:,:), tmp2(:,:,:), tmp3(:,:,:)
-
+  logical :: any_face
 
   ncrespsp = ncrespsp + 1
   etime = dnekclock()
@@ -350,7 +350,6 @@ subroutine crespsp (respr, vext)
       call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
       call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
       respr = -respr + wa1 + wa2 
-      !deallocate(wa1,wa2,wa3)
   endif
 
 !   add thermal divergence
@@ -358,14 +357,16 @@ subroutine crespsp (respr, vext)
   respr = respr !+ qtl * bm1 * dtbd
    
 !   surface terms
-  DO IFC=1,NFACES
-      wa1 = 0._dp; wa2 = 0._dp
-      IF (NDIM == 3) wa3 = 0._dp
-      DO IEL=1,NELV
+  DO IEL=1,NELV
+      DO IFC=1,NFACES
           CB = CBC(IFC,IEL,IFIELD)
+          any_face = .false.
           IF (CB(1:1) == 'V' .OR. CB(1:1) == 'v') THEN
               write(*,*) "Oops: cb == v"
 #if 0
+              any_face = .true.
+              wa1(:,:,:,iel) = 0._dp; wa2(:,:,:,iel) = 0._dp
+              IF (NDIM == 3) wa3(:,:,:,iel) = 0._dp
               CALL FACCL3 &
               (WA1(1,IEL),VX(1,1,1,IEL),UNX(1,1,IFC,IEL),IFC)
               CALL FACCL3 &
@@ -376,6 +377,10 @@ subroutine crespsp (respr, vext)
 #endif
           ENDIF
           if (cb(1:3) == 'SYM') then
+            any_face = .true.
+            wa1(:,:,:,iel) = 0._dp; wa2(:,:,:,iel) = 0._dp
+            IF (NDIM == 3) wa3(:,:,:,iel) = 0._dp
+
             CALL FACCL3 (WA1(1,1,1,IEL),ta1(:,:,:,iel),UNX(1,1,IFC,IEL),IFC)
             CALL FACCL3 (WA2(1,1,1,IEL),ta2(:,:,:,iel),UNY(1,1,IFC,IEL),IFC)
 
@@ -383,20 +388,25 @@ subroutine crespsp (respr, vext)
               CALL FACCL3 (WA3(1,1,1,IEL),ta3(:,:,:,iel),UNZ(1,1,IFC,IEL),IFC)
             endif
           endif
-           
-          IF (NDIM == 3) then 
-            wa1(:,:,:,iel) = wa1(:,:,:,iel) + wa2(:,:,:,iel) + wa3(:,:,:,iel)
-          else
-            wa1(:,:,:,iel) = wa1(:,:,:,iel) + wa2(:,:,:,iel)
+
+          if (any_face = .true.) then
+            IF (NDIM == 3) then 
+              wa1(:,:,:,iel) = wa1(:,:,:,iel) + wa2(:,:,:,iel) + wa3(:,:,:,iel)
+            else
+              wa1(:,:,:,iel) = wa1(:,:,:,iel) + wa2(:,:,:,iel)
+            endif
+            CALL FACCL2 (WA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
           endif
-          CALL FACCL2 (WA1(:,:,:,IEL),AREA(1,1,IFC,IEL),IFC)
-          if (cb(1:3) == 'SYM') then
-            wa1(:,:,:,iel) = wa1(:,:,:,iel) / dtbd 
+
+          if (CB(1:1) == 'V' .OR. CB(1:1) == 'v') then
+            respr(:,:,:,iel) = respr(:,:,:,iel) - dtbd*wa1(:,:,:,iel)
+          else if (cb(1:3) == 'SYM') then
+            respr(:,:,:,iel) = respr(:,:,:,iel) - wa1(:,:,:,iel)
           endif
       END DO
       !call dssum(ta1) ! maybe this should be here for SYM? (maxhutch)
-      respr = respr - dtbd*wa1
   END DO
+  deallocate(wa1,wa2,wa3)
   deallocate(ta1, ta2, ta3)
 
 !   Assure that the residual is orthogonal to (1,1,...,1)T

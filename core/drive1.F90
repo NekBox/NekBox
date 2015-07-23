@@ -131,6 +131,7 @@ subroutine nek_init(intracomm)
     if(nid == 0) write(6,'(A,/)') ' done :: usrdat2'
 
     !max call geom_reset(1)    ! recompute Jacobians, etc.
+    call geom_reset(1)
     if (param(75) < 1) call vrdsmsh   ! verify mesh topology
 
     call echopar ! echo back the parameter stack

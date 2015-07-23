@@ -17,7 +17,7 @@
   "top_bound": "W", 
   "conductivity": 1.0e-3, 
   "courant": 0.1, 
-  "num_steps": 451, 
+  "num_steps": 101, 
   "scale_mesh": [
     1.0, 
     1.0, 
@@ -50,5 +50,5 @@
   "order": 8,
   "dealiasing_order" : 12,
   "nfilt" : 1.0,
-  "procs" : 1
+  "procs" : 4
 }

@@ -39,8 +39,10 @@ module poisson
   integer, allocatable :: src_lengths(:)
   integer, allocatable :: src_slots(:,:,:)
   integer, allocatable :: src_indexes(:,:,:)
+  real(DP), allocatable :: buffer(:)
 
   integer :: comm_size
+  integer :: mesh_to_grid_handle
 
 contains
 
@@ -312,129 +314,52 @@ integer function xyz_to_pid(ix, iy, iz, shape_x, shape_p)
 
 end function
 
-subroutine init_mesh_to_grid(nelm, shape_x)
+
+integer function xyz_to_glo(ix, iy, iz, shape_x)
+  integer, intent(in) :: ix, iy, iz
+  integer, intent(in) :: shape_x(3)
+  xyz_to_glo = ix + (iy + shape_x(2) * iz) * shape_x(1) + 1
+end function xyz_to_glo
+
+subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
+  use kinds, only : i8
   use parallel, only : lglel, gllnid, nid
+  use parallel, only : np
   use mesh, only : ieg_to_xyz
+  integer, intent(in) :: comm_world !>!< Communicator in which to setup solver
   integer, intent(in) :: nelm
   integer, intent(in) :: shape_x(3)
 
-  integer :: i, j, ieg, src_pid, dest_pid, npids, slot
-  integer :: idx, idy, idz
-  integer :: ix(3)
-  integer :: shape_p(2)
+  integer, external :: iglmax
 
-  shape_p(1) = int(sqrt(real(comm_size)))
-  shape_p(2) = int(sqrt(real(comm_size)))
+  integer :: ix(3), i, j
+  integer(i8), allocatable :: glo_num(:)
+  integer :: nxy_max, nyz_max
+  integer :: idx, idy, idz, ieg
 
-  allocate(dest_pids(nelm))
-  npids = 0
+  nxy_max = iglmax(nin_local_xy,1)
+  nyz_max = iglmax(nin_local_yz,1)
+
+  allocate(glo_num(nelm + shape_x(1) * nxy_max * nyz_max))
+  glo_num = 0
+
   do i = 1, nelm
     ieg = lglel(i)
     ix = ieg_to_xyz(ieg)
-    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x, shape_p)
-    slot =  -1
-    do j = 1, npids
-      if (dest_pid == dest_pids(j)) then
-        slot = j
-        exit
-      endif
-    enddo
-    if (slot == -1) then
-      npids = npids + 1
-      slot = npids
-      dest_pids(slot) = dest_pid
-    endif 
+    glo_num(i) = xyz_to_glo(ix(1), ix(2), ix(3), shape_x)
   enddo
-  deallocate(dest_pids)
-  allocate(dest_pids(npids))
-  allocate(dest_lengths(npids))
-  allocate(dest_slots(nelm))
-  allocate(dest_indexes(nelm))
-  npids = 0
-  dest_lengths = 0
-  do i = 1, nelm
-    ieg = lglel(i)
-    ix = ieg_to_xyz(ieg)
-    dest_pid = xyz_to_pid(ix(1), ix(2), ix(3), shape_x, shape_p)
-    slot =  -1
-    do j = 1, npids
-      if (dest_pid == dest_pids(j)) then
-        slot = j
-        exit
-      endif
-    enddo
-    if (slot == -1) then
-      npids = npids + 1
-      slot = npids
-      dest_pids(slot) = dest_pid
-    endif 
-    dest_slots(i) = slot
-    dest_lengths(slot) = dest_lengths(slot) + 1
-    dest_indexes(i) = dest_lengths(slot) 
-  enddo
- 
-  allocate(src_pids(shape_x(1) * nin_local_xy * nin_local_yz))
-  npids = 0
-      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
+
+  i = nelm + 1
+  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-  do idx = 0, shape_x(1)-1
-        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
-        src_pid = gllnid(IEG)
-        slot =  -1
-        do j = 1, npids
-          if (src_pid == src_pids(j)) then
-            slot = j
-            exit
-          endif
-        enddo
-        if (slot == -1) then
-          npids = npids + 1
-          slot = npids
-          src_pids(slot) = src_pid
-        endif 
+      do idx = 0, shape_x(1)-1
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
       enddo
     enddo
   enddo
-  deallocate(src_pids)
-
-  allocate(src_pids(npids))
-  allocate(src_lengths(npids))
-  allocate(src_slots(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
-  allocate(src_indexes(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
-  npids = 0
-  src_lengths = 0
-      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-  do idx = 0, shape_x(1)-1
-        ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
-        src_pid = gllnid(IEG)
-        slot =  -1
-        do j = 1, npids
-          if (src_pid == src_pids(j)) then
-            slot = j
-            exit
-          endif
-        enddo
-        if (slot == -1) then
-          npids = npids + 1
-          slot = npids
-          src_pids(slot) = src_pid
-        endif
-        src_slots(idx,idy-idx_in_local_xy, idz-idx_in_local_yz) = slot
-        src_lengths(slot) = src_lengths(slot) + 1
-        src_indexes(idx,idy-idx_in_local_xy, idz-idx_in_local_yz) = src_lengths(slot) 
-      enddo
-    enddo
-  enddo
-
-  allocate(send_buffers(size(dest_pids)))
-  do i = 1, size(dest_lengths)
-    allocate(send_buffers(i)%p(dest_lengths(i)))
-  enddo
-  allocate(rec_buffers(size(src_pids)))
-  do i = 1, size(src_lengths)
-    allocate(rec_buffers(i)%p(src_lengths(i)))
-  enddo
+  allocate(buffer(i))
+  call gs_setup(mesh_to_grid_handle,glo_num,nelm+ shape_x(1) * nxy_max * nyz_max,comm_world,np)
 
   call nekgsync()
   if (nid == 0) write(*,*) "Finished init", nelm
@@ -459,40 +384,22 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
   nelm = size(mesh)
 
   if (.not. mesh_to_grid_initialized) then
-    call init_mesh_to_grid(nelm, shape_x)
+    call init_mesh_to_grid(nelm, shape_x, nekcomm)
     mesh_to_grid_initialized = .true.
   endif
 
   ! go through our stuff 
-  do i = 1, nelm
-    send_buffers(dest_slots(i))%p(dest_indexes(i)) = mesh(i)
-  enddo
+  buffer = 0._dp
+  buffer(1:nelm) = mesh(1:nelm)
 
-  allocate(mpi_reqs(size(src_pids)+size(dest_pids))); n_mpi_reqs = 0
-  do i = 1, size(dest_pids)
-    n_mpi_reqs = n_mpi_reqs + 1
-    call MPI_Isend(send_buffers(i)%p, dest_lengths(i), &
-                   nekreal, dest_pids(i), 0, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-  enddo
+  call gs_op(mesh_to_grid_handle,buffer,1,1,0)
 
-  do i = 1, size(src_pids)
-    n_mpi_reqs = n_mpi_reqs + 1
-    call MPI_Irecv(rec_buffers(i)%p, src_lengths(i), &
-                   nekreal, src_pids(i), 0, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-  enddo
-
-  do i = 1, n_mpi_reqs
-    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
-  enddo
-
-
-  do idx = 0, shape_x(1)-1
+  i = nelm + 1
+  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-        slot = src_slots(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
-        index_in_slot = src_indexes(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
-        grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz) = &
-          rec_buffers(slot)%p(index_in_slot)
+      do idx = 0, shape_x(1)-1
+        grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz) = buffer(i)
+        i = i + 1
       enddo
     enddo
   enddo
@@ -516,40 +423,21 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
   integer :: nelm
   nelm = size(mesh)
 
-  do idx = 0, shape_x(1)-1
+  buffer = 0._dp
+  i = nelm + 1
+  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-        slot = src_slots(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
-        index_in_slot = src_indexes(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
-        rec_buffers(slot)%p(index_in_slot) = grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+      do idx = 0, shape_x(1)-1
+        buffer(i) = grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+        i = i + 1
       enddo
     enddo
   enddo
 
-  allocate(mpi_reqs(size(src_pids)+size(dest_pids))); n_mpi_reqs = 0
-  do i = 1, size(src_pids)
-    n_mpi_reqs = n_mpi_reqs + 1
-    call MPI_Isend(rec_buffers(i)%p, src_lengths(i), &
-                   nekreal, src_pids(i), 0, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-  enddo
+  call gs_op(mesh_to_grid_handle,buffer,1,1,1)
 
-
-  do i = 1, size(dest_pids)
-    n_mpi_reqs = n_mpi_reqs + 1
-    call MPI_Irecv(send_buffers(i)%p, dest_lengths(i), &
-                   nekreal, dest_pids(i), 0, nekcomm, mpi_reqs(n_mpi_reqs), ierr)
-  enddo
-
-  do i = 1, n_mpi_reqs
-    call MPI_Wait(mpi_reqs(i), MPI_STATUS_IGNORE, ierr)        
-  enddo
-
-
-  ! go through our stuff 
-  do i = 1, nelm
-    mesh(i) = send_buffers(dest_slots(i))%p(dest_indexes(i))
-  enddo
-
+  mesh(1:nelm) = buffer(1:nelm)
+ 
 end subroutine grid_to_mesh
 
 subroutine poisson_kernel(grid, shape_x, start_x, end_x, boundaries)
@@ -725,12 +613,14 @@ subroutine transpose_test()
         ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
         err = abs(plane_xy(idx, idy-idx_in_local_xy, idz-idx_in_local_yz) - ieg)
         if (err > 0.001) then
-          write(*,'(A,6(I6))') "WARNING: confused about k after init", nid, idx, idy, idz, ieg, int(plane_xy(idy,idx,idz))
-          return
+          write(*,'(A,6(I6))') "WARNING: confused about k after init", nid, idx, idy, idz, ieg, &
+          int(plane_xy(idx,idy-idx_in_local_xy,idz-idx_in_local_yz))
+          !return
         endif
       enddo
     enddo
   enddo
+  return
   if (nid == 0) write(*,*) "Passed init"
 
   ! forward FFT

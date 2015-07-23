@@ -4,8 +4,8 @@
   "radius" : 0.125,
   "rho_cp": 1.0,
   "tolrel": 0.0,
-  "tolhelm": 1.0e-10,
-  "toldiv": 1.0e-10,
+  "tolhelm": 1.0e-14,
+  "toldiv": 1.0e-11,
   "wait_pres": 2000.0,
   "wait_vel": 2000.0,
   "cps": 0.0,
@@ -42,11 +42,12 @@
   "npres" : 8.0,
   "nvel" : 2.0,
   "shape_mesh": [
-    8, 
-    8, 
-    8
+    16, 
+    16, 
+    16
   ], 
-  "order": 8,
-  "dealiasing_order" : 12,
+  "order": 10,
+  "dealiasing_order" : 16,
+  "nfilt" : 1.0,
   "procs" : 4
 }

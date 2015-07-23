@@ -49,5 +49,6 @@
   ], 
   "order": 8,
   "dealiasing_order" : 12,
+  "nfilt": 1.0,
   "procs" : 4
 }

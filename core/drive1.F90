@@ -7,7 +7,7 @@
 !!
 !! This includes reading the input files
 subroutine nek_init(intracomm)
-  use kinds, only : DP
+  use kinds, only : DP, i8
 
   use dealias, only : init_dealias
   use domain, only : init_domain
@@ -33,12 +33,13 @@ subroutine nek_init(intracomm)
   use input, only : ifflow, iftran, solver_type, param
   use soln, only : nid, jp
   use tstep, only : istep, instep, nsteps, fintim, time
+  use geom, only : unx, uny, unz
 
   implicit none
 
   integer, intent(inout) :: intracomm
   integer :: igeom
-
+  integer(i8) :: mem_size
   real(DP) :: tpp
 
   logical :: ifsync_
@@ -129,8 +130,8 @@ subroutine nek_init(intracomm)
     call usrdat2
     if(nid == 0) write(6,'(A,/)') ' done :: usrdat2'
 
-    call geom_reset(1)    ! recompute Jacobians, etc.
-    call vrdsmsh          ! verify mesh topology
+    !max call geom_reset(1)    ! recompute Jacobians, etc.
+    if (param(75) < 1) call vrdsmsh   ! verify mesh topology
 
     call echopar ! echo back the parameter stack
     call setlog  ! Initalize logical flags
@@ -142,7 +143,7 @@ subroutine nek_init(intracomm)
     if (fintim /= 0.0 .OR. nsteps /= 0) call geneig (igeom)
 
 !     Verify mesh topology
-    call vrdsmsh
+    if (param(75) < 1) call vrdsmsh
 
 !     Pressure solver initialization (uses "SOLN" space as scratch)
     if (ifflow .AND. (fintim /= 0 .OR. nsteps /= 0)) then
@@ -180,6 +181,7 @@ subroutine nek_init(intracomm)
         call userchk
         if(nid == 0) write(6,'(A,/)') ' done :: userchk'
     endif
+
 
 !     Initialize CVODE
 #if 0

@@ -1096,7 +1096,6 @@ SUBROUTINE FACEIV (CB,V1,V2,V3,IEL,IFACE,NX,NY,NZ)
 ! face IFACE of element IEL for vector (V1,V2,V3).
 !
   use kinds, only : DP
-  use size_m, only : nx, ny, nz
   use parallel, only : lglel
   use nekuse, only : ux, uy, uz
   implicit none

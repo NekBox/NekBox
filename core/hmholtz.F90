@@ -870,6 +870,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   rbn0 = rbn2
   if (param(22) < 0) tol=abs(param(22))*rbn0
   if (tin < 0)       tol=abs(tin)*rbn0
+  if (rbn0 < tol) return
 
   if (ifprint_hmh) &
   write(6,3002) istep,iter,name,ifmcor,rbn2,tol,h1(1,1),h2(1,1)

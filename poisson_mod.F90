@@ -14,31 +14,12 @@ module poisson
   public spectral_solve
   private
 
-  integer :: comm_xy, comm_yz
   logical, save :: interface_initialized = .false.
   logical, save :: mesh_to_grid_initialized = .false.
 
   integer :: alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
   integer :: alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
 
-  type real_p
-    real(DP), allocatable :: p(:)
-  end type real_p
-  type int_p
-    integer, allocatable :: p(:)
-  end type int_p
-
-  type(real_p), allocatable :: send_buffers(:)
-  type(real_p), allocatable :: rec_buffers(:)
-  integer, allocatable :: dest_pids(:)
-  integer, allocatable :: dest_slots(:)
-  integer, allocatable :: dest_indexes(:)
-  integer, allocatable :: dest_lengths(:)
-
-  integer, allocatable :: src_pids(:)
-  integer, allocatable :: src_lengths(:)
-  integer, allocatable :: src_slots(:,:,:)
-  integer, allocatable :: src_indexes(:,:,:)
   real(DP), allocatable :: buffer(:)
 
   integer :: comm_size
@@ -59,7 +40,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use ctimer, only : nscps, tscps, dnekclock
 
   use fft, only : P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
-  use fft, only : fft_r2r!, transpose_grid
+  use fft, only : fft_r2r
   use mesh, only : boundaries
 
   REAL(DP), intent(out)   :: U    (:)
@@ -127,7 +108,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   endif
   
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
-  call transpose_grid(plane_xy, plane_yx, 1)!shape_x, 1, 2, comm_xy)
+  call transpose_grid(plane_xy, plane_yx, 1)
   deallocate(plane_xy)
 
   if (boundaries(1) == 'P  ') then
@@ -137,7 +118,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   endif
 
   allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
-  call transpose_grid(plane_yx, plane_zy, 2)!shape_x, 2, 3, comm_yz)
+  call transpose_grid(plane_yx, plane_zy, 2)
   deallocate(plane_yx)
 
   if (boundaries(5) == 'P  ') then
@@ -157,7 +138,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   endif
 
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
-  call transpose_grid(plane_zy, plane_yx, -2)!shape_x, 3, 2, comm_yz)
+  call transpose_grid(plane_zy, plane_yx, -2)
   deallocate(plane_zy)
 
   if (boundaries(1) == 'P  ') then
@@ -167,7 +148,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   endif
 
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
-  call transpose_grid(plane_yx, plane_xy, -1)!shape_x, 2, 1, comm_xy)
+  call transpose_grid(plane_yx, plane_xy, -1)
   deallocate(plane_yx)
 
   if (boundaries(2) == 'P  ') then
@@ -246,24 +227,12 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   else
     ixy = comm_size + 1
   endif
-  call MPI_Comm_split(comm_world, ixy, 0, comm_xy, ierr)
-  if (ierr /= 0) write(*,*) "Comm split xy failed", nid
-  if (nid >= comm_size) then
-    call MPI_Comm_free(comm_xy, ierr)
-    if (ierr /= 0) write(*,*) "Comm free xy failed", nid
-  endif
 
   nyz =  comm_size/nxy
   if (nid < comm_size) then
     iyz = (mod(nid,nyz) * shape_x(2)) / nyz
   else
     iyz = comm_size + 1
-  endif
-  call MPI_Comm_split(comm_world, iyz, 0, comm_yz, ierr)
-  if (ierr /= 0) write(*,*) "Comm split yz failed", nid
-  if (nid >= comm_size) then
-    call MPI_Comm_free(comm_yz, ierr)
-    if (ierr /= 0) write(*,*) "Comm free yz failed", nid
   endif
 
   if (nid < comm_size) then
@@ -305,17 +274,6 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   interface_initialized = .true.
 
 end subroutine init_comm_infrastructure
-
-integer function xyz_to_pid(ix, iy, iz, shape_x, shape_p)
-  integer, intent(in) :: ix, iy, iz
-  integer, intent(in) :: shape_x(3)
-  integer, intent(in) :: shape_p(2)
-
-  xyz_to_pid = (iz * shape_p(2) / shape_x(3)) * shape_p(1) + (iy * shape_p(1) / shape_x(2))
-  !xyz_to_pid = xyz_to_pid * 2
-
-end function
-
 
 integer function xyz_to_glo(ix, iy, iz, shape_x)
   integer, intent(in) :: ix, iy, iz
@@ -370,7 +328,7 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
   do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
       do idx = 0, shape_x(1)-1
-        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
         i = i + 1
       enddo
     enddo
@@ -390,7 +348,7 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
   do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
     do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
       do idy = 0, shape_x(2)-1
-        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
         i = i + 1
       enddo
     enddo
@@ -410,7 +368,7 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
   do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
     do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
       do idy = 0, shape_x(2)-1
-        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
         i = i + 1
       enddo
     enddo
@@ -430,7 +388,7 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
   do idy = idx_out_local_yz, idx_out_local_yz + nout_local_yz - 1
     do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
       do idz = 0, shape_x(3)-1
-        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
         i = i + 1
       enddo
     enddo
@@ -542,13 +500,13 @@ subroutine transpose_grid(plane_xy, plane_yx, dir)
   buffer = 0._dp
   buffer(1:n) = plane_xy(1:n)
   if (dir == 1) then
-    call gs_op(transpose_xy_handle, buffer, 1, 1, 0)
+    call gs_op(transpose_xy_handle, buffer, 1, 1, 1)
   else  if (dir == 2) then
-    call gs_op(transpose_yz_handle, buffer, 1, 1, 0)
+    call gs_op(transpose_yz_handle, buffer, 1, 1, 1)
   else if (dir == -1) then    
-    call gs_op(transpose_yx_handle, buffer, 1, 1, 0)
+    call gs_op(transpose_yx_handle, buffer, 1, 1, 1)
   else if (dir == -2) then
-    call gs_op(transpose_zy_handle, buffer, 1, 1, 0)
+    call gs_op(transpose_zy_handle, buffer, 1, 1, 1)
   endif
   plane_yx(1:n) = buffer(n+1:2*n)
   return
@@ -625,7 +583,7 @@ subroutine shuffle_test()
   use parallel, only : lglel
 
   use fft, only :P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
-  use fft, only : fft_r2r !, transpose_grid
+  use fft, only : fft_r2r 
 
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
   integer :: nelm
@@ -651,13 +609,13 @@ subroutine shuffle_test()
   call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
   
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
-  call transpose_grid(plane_xy, plane_yx, 1) !shape_x, 1, 2, comm_xy)
+  call transpose_grid(plane_xy, plane_yx, 1) 
   deallocate(plane_xy)
 
   call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
 
   allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
-  call transpose_grid(plane_yx, plane_zy, 2) !shape_x, 2, 3, comm_yz)
+  call transpose_grid(plane_yx, plane_zy, 2) 
   deallocate(plane_yx)
 
   call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
@@ -666,13 +624,13 @@ subroutine shuffle_test()
   call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
 
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
-  call transpose_grid(plane_zy, plane_yx, -2) !shape_x, 3, 2, comm_yz)
+  call transpose_grid(plane_zy, plane_yx, -2) 
   deallocate(plane_zy)
 
   call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
 
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
-  call transpose_grid(plane_yx, plane_xy, -1) !shape_x, 2, 1, comm_xy)
+  call transpose_grid(plane_yx, plane_xy, -1) 
   deallocate(plane_yx)
 
   call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
@@ -698,8 +656,6 @@ subroutine transpose_test()
   use size_m, only : nelv
   use mesh, only : shape_x
   use parallel, only : nid, lglel
-
-  !use fft, only : transpose_grid
 
   real(DP), allocatable :: rhs_coarse(:)
   integer :: nelm
@@ -742,7 +698,7 @@ subroutine transpose_test()
   rescale = 1._dp
   
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
-  call transpose_grid(plane_xy, plane_yx, 1)!shape_x, 1, 2, comm_xy)
+  call transpose_grid(plane_xy, plane_yx, 1)
   deallocate(plane_xy)
 
   do idx = 0, nout_local_xy - 1
@@ -761,7 +717,7 @@ subroutine transpose_test()
   if (nid == 0) write(*,*) "Passed xy transpose"
 
   allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
-  call transpose_grid(plane_yx, plane_zy, 2) !shape_x, 2, 3, comm_yz)
+  call transpose_grid(plane_yx, plane_zy, 2)
   deallocate(plane_yx)
 
   do idx = 0, nout_local_xy - 1
@@ -792,7 +748,7 @@ subroutine cos_test()
 
   use fft, only : P_FORWARD, P_BACKWARD
   use fft, only : W_FORWARD, W_BACKWARD
-  use fft, only : fft_r2r!, transpose_grid
+  use fft, only : fft_r2r
 
   real(DP), allocatable :: rhs_fine(:,:,:,:) 
   real(DP), allocatable :: rhs_coarse(:), soln_coarse(:)
@@ -823,13 +779,13 @@ subroutine cos_test()
   call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
   
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
-  call transpose_grid(plane_xy, plane_yx, 1)!shape_x, 1, 2, comm_xy)
+  call transpose_grid(plane_xy, plane_yx, 1)
   deallocate(plane_xy)
 
   call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
 
   allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
-  call transpose_grid(plane_yx, plane_zy,2)! shape_x, 2, 3, comm_yz)
+  call transpose_grid(plane_yx, plane_zy,2)
   deallocate(plane_yx)
 
   call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
@@ -841,13 +797,13 @@ subroutine cos_test()
   call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
 
   allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
-  call transpose_grid(plane_zy, plane_yx,-2)! shape_x, 3, 2, comm_yz)
+  call transpose_grid(plane_zy, plane_yx,-2)
   deallocate(plane_zy)
 
   call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
 
   allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
-  call transpose_grid(plane_yx, plane_xy, -1)!shape_x, 2, 1, comm_xy)
+  call transpose_grid(plane_yx, plane_xy, -1)
   deallocate(plane_yx)
 
   call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)

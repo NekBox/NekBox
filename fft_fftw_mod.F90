@@ -14,7 +14,7 @@ module fft
   use fftw3, only : FFTW_R2HC, FFTW_HC2R, FFTW_REDFT00, FFTW_REDFT10, FFTW_REDFT01
   implicit none
 
-  public :: fft_r2r, transpose_grid, wavenumber
+  public :: fft_r2r, wavenumber
   public :: W_FORWARD, W_BACKWARD, P_FORWARD, P_BACKWARD 
 
   private
@@ -127,70 +127,5 @@ real(DP) function wavenumber(i, N, L, kind)
   endif
 
 end function wavenumber
-
-!> \brief Global (parallel) transform of grid data
-subroutine transpose_grid(grid, grid_t, shape_x, idx, idx_t, comm)
-  use kinds, only : DP
-  use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
-  use parallel, only : nid, nekreal
-
-  real(DP), intent(inout) :: grid(0:,0:,0:)
-  real(DP), intent(out)   :: grid_t(0:,0:,0:)
-  integer,  intent(in)    :: shape_x(3)
-  integer, intent(in)     :: idx
-  integer, intent(in)     :: idx_t
-  integer, intent(in)     :: comm
-
-  real(DP), allocatable :: tmp(:,:)
-  real(DP), allocatable :: tmp_t(:,:)
-  integer :: block0, block1, num
-  integer :: i, j, k, ierr, comm_size
-
-
-  if (size(grid) < 1) return
-
-  call MPI_Comm_size(comm, comm_size, ierr)
- 
-  if (idx == 1 .or. idx_t == 1) then
-    block0 = size(grid,2)
-    block1 = size(grid,1) / comm_size
-    num    = size(grid,3) 
-  else if (idx == 3 .or. idx_t == 3) then
-    block0 = size(grid,3)
-    block1 = size(grid,1) / comm_size
-    num    = size(grid,2) 
-  endif
-  allocate(tmp(0:block0-1,   0:size(grid,1)-1))
-  allocate(tmp_t(0:block0-1, 0:size(grid,1)-1))
-
-  if (idx == 1 .or. idx_t == 1) then
-    do i = 0, num - 1
-      tmp = transpose(grid(:,:,i))
-      call mpi_alltoall(tmp,   block0*block1, nekreal, &
-                        tmp_t, block0*block1, nekreal, comm, ierr)
-      if (ierr /= 0) write(*,*) "alltoall errored", ierr, nid
-      do j = 0, size(grid_t,1) - 1
-        do k = 0, size(grid_t,2) - 1
-          grid_t(j,k,i) = tmp_t( mod(j,int(block0)), (j / block0) * block1 + k )
-        enddo
-      enddo
-    enddo
-  else if (idx == 3 .or. idx_t == 3) then
-    do i = 0, num - 1
-      tmp = transpose(grid(:,i,:))
-      call mpi_alltoall(tmp,   block0*block1, nekreal, &
-                        tmp_t, block0*block1, nekreal, comm, ierr)
-      if (ierr /= 0) write(*,*) "alltoall errored", ierr, nid
-      do j = 0, size(grid_t,1) - 1
-        do k = 0, size(grid_t,3) - 1
-          grid_t(j,i,k) = tmp_t( mod(j,int(block0)), (j / block0) * block1 + k )
-        enddo
-      enddo
-    enddo
-  else
-    write(*,*) "Something went wrong in transpose", nid
-  endif
-
-end subroutine transpose_grid
 
 end module

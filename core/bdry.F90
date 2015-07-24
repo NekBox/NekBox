@@ -591,6 +591,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   use ctimer, only : icalld, tusbc, nusbc, etime1, dnekclock
   use input, only : if3d, cbc, bc, ifstrs
   use tstep, only : ifield, nelfld
+  use geom, only : ifqinp
   implicit none
 
   REAL(DP) :: V1(NX1,NY1,NZ1,LELV),V2(NX1,NY1,NZ1,LELV) &
@@ -606,6 +607,9 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
 
   integer :: nfaces, nxyz, nel, ntot, isweep, ie, iface
   real(DP) :: bc1, bc2, bc3
+  real(DP), allocatable :: tmp1(:,:,:,:), tmp2(:,:,:,:), tmp3(:,:,:,:)
+
+  !> \todo only execute most of this if a boundary is non-trivial
 
   ifonbc = .FALSE. 
 
@@ -625,14 +629,12 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
   NEL   =NELFLD(IFIELD)
   NTOT  =NXYZ*NEL
 
-#if 0
   allocate(TMP1(nx1,ny1,nz1,nelfld(ifield)) &
   , TMP2(nx1,ny1,nz1,nelfld(ifield)) &
   , TMP3(nx1,ny1,nz1,nelfld(ifield)) )
 
   tmp1 = 0._dp; tmp2 = 0._dp
   IF (IF3D) tmp3 = 0._dp
-#endif
 
 !   Velocity boundary conditions
 
@@ -658,7 +660,19 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
 #endif
               ENDIF
 
-              IF (CB == 'v  ' .OR. CB == 'vl ' .OR. &
+              IF (CB == 'v  ') then
+                  call faceiv (cb,tmp1(1,1,1,ie),tmp2(1,1,1,ie), &
+                  tmp3(1,1,1,ie),ie,iface,nx1,ny1,nz1)
+                  IF ( IFQINP(IFACE,IE) ) then
+#if 0
+                    write(*,*) "Oops: IFQINP"
+                    CALL GLOBROT (TMP1(1,1,1,IE),TMP2(1,1,1,IE), &
+                    TMP3(1,1,1,IE),IE,IFACE)
+#endif
+                  endif
+              ENDIF
+
+              IF (CB == 'vl ' .OR. &
               CB == 'ws ' .OR. CB == 'wsl' .OR. &
               CB == 'mv ' .OR. CB == 'mvn' .OR. &
               cb1(1) == 'd' .OR. cb1(2) == 'd' .OR. cb1(3) == 'd') then
@@ -683,7 +697,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
               ENDIF
           enddo
       END DO
-#if 0
+
       DO IE=1,NEL
           DO IFACE=1,NFACES
               IF (CBC(IFACE,IE,IFIELD) == 'W  ') THEN
@@ -701,7 +715,7 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
       else
           call opdsop(tmp1,tmp2,tmp3,'MNA')
       endif
-#endif
+
   END DO
 !   Copy temporary array to velocity arrays.
 
@@ -730,10 +744,8 @@ SUBROUTINE BCDIRVC(V1,V2,V3,mask1,mask2,mask3)
 #endif
   ENDIF
 
-#if 0
   v1 = v1 + tmp1; v2 = v2 + tmp2 
   IF (IF3D) v3 = v3 + tmp3
-#endif
 
 
 #ifndef NOTIMER
@@ -1076,3 +1088,48 @@ SUBROUTINE UNITVEC (X,Y,Z,N)
   RETURN
 END SUBROUTINE UNITVEC
 !-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+SUBROUTINE FACEIV (CB,V1,V2,V3,IEL,IFACE,NX,NY,NZ)
+!
+! Assign fortran function boundary conditions to 
+! face IFACE of element IEL for vector (V1,V2,V3).
+!
+  use kinds, only : DP
+  use size_m, only : nx, ny, nz
+  use parallel, only : lglel
+  use nekuse, only : ux, uy, uz
+  implicit none
+
+  integer, intent(in) :: nx, ny, nz
+  real(DP), intent(inout) :: v1(nx,ny,nz),v2(nx,ny,nz),v3(nx,ny,nz)
+  integer, intent(in) :: iel, iface
+  character(3), intent(in) :: cb
+  
+  integer :: ieg
+  integer :: kx1, kx2, ky1, ky2, kz1, kz2
+  integer :: ix, iy, iz
+  
+  ieg = lglel(iel)
+  CALL FACIND (KX1,KX2,KY1,KY2,KZ1,KZ2,NX,NY,NZ,IFACE)
+
+  IF (CB.EQ.'v  ' .OR. CB.EQ.'ws ' .OR. CB.EQ.'mv '.OR. & 
+      CB.EQ.'mvn') THEN
+
+     DO IZ=KZ1,KZ2
+       DO IY=KY1,KY2
+         DO IX=KX1,KX2
+           CALL NEKASGN (IX,IY,IZ,IEL)
+           CALL USERBC  (IX,IY,IZ,IFACE,IEG)
+           V1(IX,IY,IZ) = UX
+           V2(IX,IY,IZ) = UY
+           V3(IX,IY,IZ) = UZ
+         enddo
+       enddo
+     enddo
+     RETURN
+
+  endif
+  return
+end subroutine faceiv
+

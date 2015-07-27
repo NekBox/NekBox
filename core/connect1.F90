@@ -377,6 +377,7 @@ subroutine setedge()
 
 
 !   GENERAL FACE, GENERAL ROTATION EDGE NUMBERS.
+#if 0
 
   IF (NDIM == 3) THEN
   
@@ -478,6 +479,7 @@ subroutine setedge()
               
                   J=0
                   J1=JS1
+                  write(*,*) IFACE, JS2, JF2, JSKIP2, IMAGE
                   DO 105 J2=JS2,JF2-JSKIP2,JSKIP2
                       J=J+1
                       IEDGEF_flat(J+(IFACE-1)*8)=j1 + 3*(j2-1) !ITMP(J1,J2,1)
@@ -537,6 +539,7 @@ subroutine setedge()
       IEDGEF(1,1,4,1) = NXY - NXL + 1
       IEDGEF(1,2,4,1) = NXY
   ENDIF
+#endif
 
   RETURN
 end subroutine setedge

@@ -17,12 +17,11 @@ module poisson
   logical, save :: interface_initialized = .false.
   logical, save :: mesh_to_grid_initialized = .false.
 
-  integer :: alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
-  integer :: alloc_local_yz, nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
+  integer :: nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
+  integer :: nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
 
   real(DP), allocatable :: buffer(:)
 
-  integer :: comm_size
   integer :: mesh_to_grid_handle
   integer :: transpose_xy_handle, transpose_yx_handle
   integer :: transpose_yz_handle, transpose_zy_handle
@@ -202,38 +201,55 @@ end subroutine spectral_solve
 !> \brief one-time setup of communication infrastructure for poisson_mod
 subroutine init_comm_infrastructure(comm_world, shape_x)
   use input, only : param
+  use parallel, only : proc_pos, proc_shape
   integer, intent(in) :: comm_world !>!< Communicator in which to setup solver
   integer, intent(in) :: shape_x(3) !>!< Shape of mesh
 
   integer(C_INTPTR_T) :: shape_c(3)
-  integer :: nxy, nyz, ixy, iyz
+  integer :: nxy, nyz
   integer :: nid, ierr, i
+  integer :: comm_size
+  integer :: proc_n(3)
 
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
   !nid = nid/2 + mod(nid, 2) * comm_size / 2
 
+  proc_n = shape_x / proc_shape
+  if (proc_n(1) <= proc_shape(3)*proc_shape(2)) then
+    nin_local_xy = max(proc_shape(3)*proc_shape(2) / proc_n(1), proc_shape(2))
+    nin_local_yz = proc_n(1) / nin_local_xy
+    idx_in_local_xy = proc_pos(2) + mod(proc_pos(1)/proc_shape(1)*nin_local_xy, proc_shape(2))
+    idx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
+  else
+    if (proc_pos(1)/proc_shape(1) < proc_n(1)) then
+      nin_local_xy = 1
+      nin_local_yz = 1
+      idx_in_local_xy = proc_pos(2) + mod(proc_pos(1)/proc_shape(1)*nin_local_xy, proc_shape(2))
+      idx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
+    else
+      nin_local_xy = 0
+      nin_local_yz = 0
+      idx_in_local_xy = -1
+      idx_in_local_yz = -1
+    endif
+  endif
+
+
+#if 0
   if (param(49) >= 1) then
     comm_size = min(comm_size, int(param(49)))
   endif
+#endif
+  
   comm_size = min(comm_size, shape_x(1) * shape_x(2))
   comm_size = min(comm_size, shape_x(2) * shape_x(3))
   comm_size = min(comm_size, shape_x(1) * shape_x(3))
 
   nxy =  int(2**int(log(real(comm_size))/log(2.) / 2))
   comm_size = nxy*nxy
-  if (nid < comm_size) then
-    ixy = ((nxy*nid/comm_size) * shape_x(3)) / nxy
-  else
-    ixy = comm_size + 1
-  endif
 
   nyz =  comm_size/nxy
-  if (nid < comm_size) then
-    iyz = (mod(nid,nyz) * shape_x(2)) / nyz
-  else
-    iyz = comm_size + 1
-  endif
 
   if (nid < comm_size) then
     shape_c = shape_x
@@ -249,16 +265,15 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
     nin_local_yz = 0; nout_local_yz = 0
     idx_in_local_xy = -1; idx_out_local_xy = -1
     idx_in_local_yz = -1; idx_out_local_yz = -1
-    alloc_local_xy = 0; alloc_local_yz = 0
   endif
 
 #if 1
   do i = 0, 65
     call nekgsync()
-    if (nid == i) write(*,'(A,15(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, &
-      alloc_local_yz, nin_local_yz, nout_local_yz, &
+    if (nid == i) write(*,'(A,15(I5))') "MAX:", nid, nin_local_xy, nout_local_xy, &
+      nin_local_yz, nout_local_yz, &
       idx_in_local_xy, idx_out_local_xy, idx_in_local_yz, idx_out_local_yz, &
-      nxy, nyz, ixy, iyz
+      nxy, nyz
     !if (nid == i) write(*,'(A,6(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
   enddo
   call nekgsync()

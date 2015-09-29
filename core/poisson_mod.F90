@@ -431,14 +431,11 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
   use kinds, only : DP
   use parallel, only : nekcomm, nekreal
   use parallel, only : lglel, gllnid
-  use mpif, only : MPI_STATUS_IGNORE
 
   real(DP), intent(in) :: mesh(:)
   real(DP), intent(out) :: grid(0:,0:,0:)
   integer, intent(in) :: shape_x(3)
 
-  integer, allocatable :: mpi_reqs(:)
-  integer :: n_mpi_reqs
   integer :: i, idx, idy, idz, ierr
   integer :: nelm
   integer :: slot, index_in_slot
@@ -471,14 +468,11 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
   use kinds, only : DP
   use parallel, only : nekcomm, nekreal
   use parallel, only : lglel, gllel, gllnid
-  use mpif, only : MPI_STATUS_IGNORE
 
   real(DP), intent(in) :: grid(0:,0:,0:)
   real(DP), intent(out) :: mesh(:)
   integer, intent(in) :: shape_x(3)
 
-  integer, allocatable :: mpi_reqs(:)
-  integer :: n_mpi_reqs
   integer :: i, idx, idy, idz, ierr
   integer :: slot, index_in_slot
   integer :: nelm

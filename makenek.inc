@@ -19,6 +19,7 @@ if [ "$PPLIST" == "?" ]; then
   echo "  NO_LAPACK disable nek-supplied LAPACK routines"
   echo "  BLAS_MXM  disable nek-supplied BLAS routines"
   echo "  EXTBAR    adds underscore to exit call(for BGQ)"
+  echo "  XSMM      uses libxsmm for small matrix multiplies"
   exit 1
 fi
 
@@ -350,6 +351,11 @@ echo $PPLIST | grep 'BGQ' >/dev/null
 if [ $? -eq 0 ]; then
    MXM_USER="mxm_std.o mxm_bgq.o " 
    USR_
+fi
+echo $PPLIST | grep 'XSMM' >/dev/null 
+if [ $? -eq 0 ]; then
+   MXM_USER="mxm_std.o" 
+   OPT_FLAGS_STD="-DUSE_LIBXSMM"
 fi
 echo $PPLIST | grep 'K10_MXM' >/dev/null 
 if [ $? -eq 0 ]; then

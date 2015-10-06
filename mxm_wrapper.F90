@@ -4,8 +4,22 @@
 !> \brief Compute matrix-matrix product C = A*B
 !!
 !! A, B, and C must be contiguously packed
+!#define USE_LIBXSMM
+
+
+#ifdef USE_LIBXSMM
+#define XSMM_DIRECT
+#include "libxsmm.f90"
+#endif
+
 subroutine mxm(a,n1,b,n2,c,n3)
   use kinds, only : DP, i8
+#ifdef USE_LIBXSMM
+  use libxsmm, only : libxsmm_mm
+#ifdef XSMM_DIRECT
+  use iso_c_binding
+#endif
+#endif
   implicit none
     
   integer, intent(in) :: n1, n2, n3
@@ -13,6 +27,63 @@ subroutine mxm(a,n1,b,n2,c,n3)
   real(DP), intent(out) :: c(n1,n3)
   integer :: aligned
   integer :: K10_mxm
+
+#ifdef XSMM_DIRECT
+  interface libxsmm_dmm_8_8_8
+    subroutine libxsmm_dmm_8_8_8(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_64_8_8
+    subroutine libxsmm_dmm_64_8_8(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_8_64_8
+    subroutine libxsmm_dmm_8_64_8(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_4_4_4
+    subroutine libxsmm_dmm_4_4_4(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_4_16_4
+    subroutine libxsmm_dmm_4_16_4(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_16_4_4
+    subroutine libxsmm_dmm_16_4_4(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_12_12_12
+    subroutine libxsmm_dmm_12_12_12(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_144_12_12
+    subroutine libxsmm_dmm_144_12_12(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_12_144_12
+    subroutine libxsmm_dmm_12_144_12(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+#endif
 
 #ifdef BGQ
     integer(i8) :: tt = 32
@@ -58,6 +129,49 @@ subroutine mxm(a,n1,b,n2,c,n3)
      return
    endif
 #endif
+
+#ifdef USE_LIBXSMM
+
+#ifdef XSMM_DIRECT
+    if (n2 == 8) then
+      if (n1 == 8 .and. n3 == 8) then
+        call libxsmm_dmm_8_8_8(c_loc(a),c_loc(b),c_loc(c))
+        return
+      else if (n1 == 64 .and. n3 == 8) then
+        call libxsmm_dmm_64_8_8(c_loc(a),c_loc(b),c_loc(c))
+        return
+      else if (n1 == 8 .and. n3 == 64) then
+        call libxsmm_dmm_8_64_8(c_loc(a),c_loc(b),c_loc(c))
+        return
+      endif
+    else if (n2 == 12) then
+      if (n1 == 12 .and. n3 == 12) then
+        call libxsmm_dmm_12_12_12(c_loc(a),c_loc(b),c_loc(c))
+        return
+      else if (n1 == 144 .and. n3 == 12) then
+        call libxsmm_dmm_144_12_12(c_loc(a),c_loc(b),c_loc(c))
+        return
+      else if (n1 == 12 .and. n3 == 144) then
+        call libxsmm_dmm_12_144_12(c_loc(a),c_loc(b),c_loc(c))
+        return
+      endif
+    else if (n2 == 4) then
+      if (n1 == 4 .and. n3 == 4) then
+        call libxsmm_dmm_4_4_4(c_loc(a),c_loc(b),c_loc(c))
+        return
+      else if (n1 == 16 .and. n3 == 4) then
+        call libxsmm_dmm_16_4_4(c_loc(a),c_loc(b),c_loc(c))
+        return
+      else if (n1 == 4 .and. n3 == 16) then
+        call libxsmm_dmm_4_16_4(c_loc(a),c_loc(b),c_loc(c))
+        return
+      endif
+    endif
+#endif
+    call libxsmm_mm(n1, n3, n2, a, b, c)
+    return
+#endif
+
 
 !#define BLAS_MXM
 #ifdef BLAS_MXM

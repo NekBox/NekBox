@@ -11,7 +11,7 @@
   "front_bound": "P", 
   "top_bound": "W", 
   "courant": 0.4, 
-  "num_steps": 128, 
+  "num_steps": 64, 
   "scale_mesh": [
     1.0, 
     1.0, 
@@ -39,6 +39,7 @@
     16
   ], 
   "order": 8,
+  "tolrel" : 1.0e-6,
   "dealiasing_order" : 12,
   "pad_power" : 0,
   "procs" : 4

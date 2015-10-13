@@ -1,7 +1,5 @@
 !-----------------------------------------------------------------------
     subroutine uservp(ix,iy,iz,eg) ! set variable properties
-    use size_m
-    use nekuse
     implicit none
 
     integer :: ix, iy, iz
@@ -67,8 +65,11 @@
     end subroutine userbc
 !-----------------------------------------------------------------------
     subroutine useric(ix,iy,iz,eg) ! set up initial conditions
-    use ifport, only : rand
+#ifdef __INTEL_COMPILER
+    use ifport, only : rand, srand
+#endif
     use nekuse
+    use parallel, only : lglel
     use mesh, only : ieg_to_xyz, shape_x
     implicit none
 
@@ -80,6 +81,8 @@
     real, save :: rands(3,100)
 
     if (.not. init) then
+      call srand(1)
+      write(*,*) rand()
       do i = 1, 100
         rands(1,i) = 2. * (rand() - 0.5)
         rands(2,i) = 2. * (rand() - 0.5)
@@ -89,7 +92,11 @@
     endif
 
     my_shape = shape_x * {order}
-    ind = ieg_to_xyz(eg)
+    !ind = ieg_to_xyz(lglel(eg))
+    ind = ((/x, y, z/) - (/{root_mesh[0]:f}, {root_mesh[1]:f}, {root_mesh[2]:f}/)) &
+           * my_shape / ( &
+                    (/{extent_mesh[0]:f}, {extent_mesh[1]:f}, {extent_mesh[2]:f}/) &
+                  - (/{root_mesh[0]:f}, {root_mesh[1]:f}, {root_mesh[2]:f}/))    
     ind = ind * {order} + (/ix, iy, iz/) - 1
 
     ux = 0.; uy = 0.; uz = 0.
@@ -148,7 +155,17 @@
     use soln
     implicit none
 
+    real(DP), external :: glmax, glmin
+    real(DP) :: tmax, umax, vmax, wmax
+
     if (istep == 0) call outpost(vx,vy,vz,pr,t,'   ')
+    tmax = max(glmax(t, lx1*ly1*lz1*lelt), -glmin(t, lx1*ly1*lz1*lelt))
+    if (nid == 0) write(*,'(A,F16.12)') "Maximum scalar", tmax
+
+    umax = max(glmax(vx, lx1*ly1*lz1*lelt), -glmin(vx, lx1*ly1*lz1*lelt))
+    vmax = max(glmax(vy, lx1*ly1*lz1*lelt), -glmin(vy, lx1*ly1*lz1*lelt))
+    wmax = max(glmax(vz, lx1*ly1*lz1*lelt), -glmin(vz, lx1*ly1*lz1*lelt))
+    if (nid == 0) write(*,'(A,3F16.11)') "Maximum velocity", umax, vmax, wmax
 
     return
     end subroutine userchk

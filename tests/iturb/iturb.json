@@ -11,7 +11,7 @@
   "front_bound": "P", 
   "top_bound": "W", 
   "courant": 0.4, 
-  "num_steps": 200, 
+  "num_steps": 128, 
   "scale_mesh": [
     1.0, 
     1.0, 
@@ -24,7 +24,7 @@
     0.0, 
    -0.5
   ], 
-  "io_step": 1.0, 
+  "io_step": 32.0, 
   "extent_mesh": [
     1, 
     1, 

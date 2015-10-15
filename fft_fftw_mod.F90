@@ -41,8 +41,6 @@ contains
 subroutine fft_r2r(u, length, num, kind, rescale)
   use kinds, only : DP
   use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE
-  use fftw3, only : fftw_plan_many_r2r
-  use fftw3, only : fftw_execute_r2r
   use parallel, only : nid
 
   real(DP), intent(inout) :: u(:,:,:) !>!< data, leading dim is transformed
@@ -76,7 +74,7 @@ subroutine fft_r2r(u, length, num, kind, rescale)
     n_r2r_plans = n_r2r_plans + 1
     plan_idx = n_r2r_plans
     allocate(proxy(num*length))
-    r2r_plans(plan_idx) = fftw_plan_many_r2r(1, &
+    call dfftw_plan_many_r2r(r2r_plans(plan_idx), 1, &
                             (/length/), num, &
                             proxy, (/length/), 1, length, &
                             proxy, (/length/), 1, length, &
@@ -88,7 +86,7 @@ subroutine fft_r2r(u, length, num, kind, rescale)
   endif
 
   ! execute the plan
-  call fftw_execute_r2r(r2r_plans(plan_idx), u, u)
+  call dfftw_execute_r2r(r2r_plans(plan_idx), u, u)
 
   ! rescale the normalization factor
   if (kind == FFTW_REDFT00) then

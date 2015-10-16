@@ -15,9 +15,11 @@
 subroutine mxm(a,n1,b,n2,c,n3)
   use kinds, only : DP, i8
 #ifdef USE_LIBXSMM
-  use libxsmm, only : libxsmm_mm
 #ifdef XSMM_DIRECT
   use iso_c_binding
+  use libxsmm, only : libxsmm_mm
+#else
+  use libxsmm
 #endif
 #endif
   implicit none

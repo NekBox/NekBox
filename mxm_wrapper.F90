@@ -8,7 +8,8 @@
 
 
 #ifdef USE_LIBXSMM
-#define XSMM_DIRECT
+!#define XSMM_DIRECT
+#define XSMM_DISPATCH
 #include "libxsmm.f90"
 #endif
 
@@ -29,6 +30,12 @@ subroutine mxm(a,n1,b,n2,c,n3)
   real(DP), intent(out) :: c(n1,n3)
   integer :: aligned
   integer :: K10_mxm
+
+#ifdef XSMM_DISPATCH
+  INTEGER, PARAMETER :: T = LIBXSMM_DOUBLE_PRECISION
+  PROCEDURE(LIBXSMM_DMM_FUNCTION), POINTER :: dmm
+  TYPE(C_FUNPTR) :: f
+#endif
 
 #ifdef XSMM_DIRECT
   interface libxsmm_dmm_8_8_8
@@ -67,6 +74,34 @@ subroutine mxm(a,n1,b,n2,c,n3)
       type(c_ptr), value :: a, b, c
     end subroutine
   end interface
+  interface libxsmm_dmm_10_10_10
+    subroutine libxsmm_dmm_10_10_10(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_10_100_10
+    subroutine libxsmm_dmm_10_100_10(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+  interface libxsmm_dmm_100_10_10
+    subroutine libxsmm_dmm_100_10_10(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+
+  interface libxsmm_dmm_144_12_8
+    subroutine libxsmm_dmm_144_12_8(a,b,c) BIND(C)
+      use iso_c_binding, only : c_ptr
+      type(c_ptr), value :: a, b, c
+    end subroutine
+  end interface
+
+
+
   interface libxsmm_dmm_12_12_12
     subroutine libxsmm_dmm_12_12_12(a,b,c) BIND(C)
       use iso_c_binding, only : c_ptr
@@ -134,6 +169,16 @@ subroutine mxm(a,n1,b,n2,c,n3)
 
 #ifdef USE_LIBXSMM
 
+
+#ifdef XSMM_DISPATCH
+  f = libxsmm_mm_dispatch(n1, n3, n2, T)
+  if (C_ASSOCIATED(f)) then
+      CALL C_F_PROCPOINTER(f, dmm)
+      CALL dmm(a, b, c)
+      return
+  endif
+#endif
+
 #ifdef XSMM_DIRECT
     if (n2 == 8) then
       if (n1 == 8 .and. n3 == 8) then
@@ -146,6 +191,10 @@ subroutine mxm(a,n1,b,n2,c,n3)
         call libxsmm_dmm_8_64_8(c_loc(a),c_loc(b),c_loc(c))
         return
       endif
+      else if (n1 == 144 .and. n3 == 12) then
+        call libxsmm_dmm_144_12_8(c_loc(a),c_loc(b),c_loc(c))
+        return
+      endif
     else if (n2 == 12) then
       if (n1 == 12 .and. n3 == 12) then
         call libxsmm_dmm_12_12_12(c_loc(a),c_loc(b),c_loc(c))
@@ -155,6 +204,17 @@ subroutine mxm(a,n1,b,n2,c,n3)
         return
       else if (n1 == 12 .and. n3 == 144) then
         call libxsmm_dmm_12_144_12(c_loc(a),c_loc(b),c_loc(c))
+        return
+      endif
+    else if (n2 == 10) then
+      if (n1 == 10 .and. n3 == 10) then
+        call libxsmm_dmm_10_10_10(c_loc(a),c_loc(b),c_loc(c))
+        return
+      else if (n1 == 100 .and. n3 == 10) then
+        call libxsmm_dmm_100_10_10(c_loc(a),c_loc(b),c_loc(c))
+        return
+      else if (n1 == 10 .and. n3 == 100) then
+        call libxsmm_dmm_10_100_10(c_loc(a),c_loc(b),c_loc(c))
         return
       endif
     else if (n2 == 4) then
@@ -170,8 +230,10 @@ subroutine mxm(a,n1,b,n2,c,n3)
       endif
     endif
 #endif
+#ifndef XSMM_DISPATCH
     call libxsmm_mm(n1, n3, n2, a, b, c)
     return
+#endif
 #endif
 
 

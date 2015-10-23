@@ -355,7 +355,7 @@ fi
 echo $PPLIST | grep 'XSMM' >/dev/null 
 if [ $? -eq 0 ]; then
    MXM_USER="mxm_std.o" 
-   OPT_FLAGS_STD="-DUSE_LIBXSMM"
+   OPT_FLAGS_STD+=" -DUSE_LIBXSMM "
 fi
 echo $PPLIST | grep 'K10_MXM' >/dev/null 
 if [ $? -eq 0 ]; then

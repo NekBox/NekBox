@@ -1486,9 +1486,11 @@ subroutine print_flops(label, flops, mops, time)
 
   if (time > 1.e-6 .and. flops > 1 .and. mops > 1) then
   peak = min(compute, flops * bandwidth / (mops*8))
-  write(6,'(A,2F14.1,F8.4)') label, &
+  write(6,'(A,4F14.1,F8.4)') label, &
                        real(flops, kind=DP) / (1.e6 * time), &
-                       peak, real(flops, kind=DP) / (1.e6 * time * peak)
+                       peak, &
+                       real(mops*8, kind=DP) / (1.e6 * time), &
+                       bandwidth, real(flops, kind=DP) / (1.e6 * time * peak)
   endif
 
 end subroutine print_flops

@@ -144,13 +144,15 @@ subroutine benchmark()
   implicit none
 
   real(DP), allocatable :: a(:), b(:), c(:)
+  !DIR$ ATTRIBUTES ALIGN:64 :: a, b, c
+
   integer(8) :: i, n, k
   real(DP) :: foo, etime, etime_total
 
 
   ! jsut replicate STREAM
-  n = 2**28 / 8 
-  k = 2
+  n = 2**27 / 8 
+  k = 8
   allocate(a(n), b(n), c(n)) 
   a = 2._dp; b = 0.5_dp; c = 0._dp
 
@@ -163,6 +165,7 @@ subroutine benchmark()
   do i = 1, k
     etime = dnekclock_sync()
     a(1) = a(1) + etime
+    !DEC$ vector aligned nontemporal
     c = a
     etime = dnekclock_sync() - etime
     c(n) = c(n) + etime
@@ -170,13 +173,15 @@ subroutine benchmark()
 
     etime = dnekclock_sync()
     c(1) = c(1) + etime
+    !DEC$ vector aligned nontemporal
     b = foo * c
-    etime = etime - dnekclock_sync()
+    etime = dnekclock_sync() - etime 
     b(n) = b(n) + etime
     etime_total = etime_total + etime
 
     etime = dnekclock_sync()
     a(1) = a(1) + etime
+    !DEC$ vector aligned nontemporal
     c = a + b
     etime = dnekclock_sync() - etime
     c(n) = c(n) + etime
@@ -184,6 +189,7 @@ subroutine benchmark()
 
     etime = dnekclock_sync()
     b(1) = b(1) + etime
+    !DEC$ vector aligned nontemporal
     a = b + foo*c
     etime = dnekclock_sync() - etime
     a(n) = a(n) + etime

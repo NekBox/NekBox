@@ -1146,20 +1146,21 @@ subroutine runstat
       call print_times('foo  time', nfoo    , tfoo    , tttstp, total_share)
 
       write(6,'(A,F8.4)') "Still missing ", (tttstp - total_share) / tttstp
-
-      call print_flops('cggo  flop/s', cggo_flop, cggo_mop, tcggo)
-      call print_flops('gmres flop/s', gmres_flop, gmres_mop, tgmres)
-      call print_flops('h1mg  flop/s', h1mg_flop, h1mg_mop, th1mg)
-      call print_flops('schw  flop/s', schw_flop, schw_mop, tschw)
-      call print_flops('axhm  flop/s', axhelm_flop, axhelm_mop, taxhm)
-      !call print_flops('grst  flop/s', grst_flop, grst_mop, tgrst)
-      !call print_flops('intp  flop/s', intp_flop, intp_mop, tintp)
-      call print_flops('proj  flop/s', proj_flop, proj_mop, tproj)
-      call print_flops('hcoj  flop/s', hconj_flop, hconj_mop, thconj)
+      write(6,*) " "
+      write(6,'(A,4A14,A8)') "Section", "FLOPs", "Peak FLOPs", "BW", "Peak BW", "Eff."
+      call print_flops('cggo   ', cggo_flop, cggo_mop, tcggo)
+      call print_flops('gmres  ', gmres_flop, gmres_mop, tgmres)
+      call print_flops('h1mg   ', h1mg_flop, h1mg_mop, th1mg)
+      call print_flops('schw   ', schw_flop, schw_mop, tschw)
+      call print_flops('axhm   ', axhelm_flop, axhelm_mop, taxhm)
+      !call print_flops('grst   flop/s', grst_flop, grst_mop, tgrst)
+      !call print_flops('intp   flop/s', intp_flop, intp_mop, tintp)
+      call print_flops('proj   ', proj_flop, proj_mop, tproj)
+      call print_flops('hcoj   ', hconj_flop, hconj_mop, thconj)
       write(6,*) ""
       call sum_flops()
-      call print_flops('Subset FLOPS/s', total_flop, total_mop, time_flop)
-      call print_flops('Total  FLOPS/s', total_flop, total_mop, tttstp)
+      call print_flops('Subset ', total_flop, total_mop, time_flop)
+      call print_flops('Total  ', total_flop, total_mop, tttstp)
       write(6,*) ""
 
 

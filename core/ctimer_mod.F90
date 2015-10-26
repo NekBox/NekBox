@@ -140,6 +140,7 @@ end subroutine sum_flops
 !! This is used when computing efficiencies in drive2
 subroutine benchmark()
   use kinds, only : DP
+  use parallel, only : nid
   use size_m, only : lx1, ly1, lz1, lelt
   implicit none
 
@@ -147,7 +148,7 @@ subroutine benchmark()
   !DIR$ ATTRIBUTES ALIGN:64 :: a, b, c
 
   integer(8) :: i, n, k
-  real(DP) :: foo, etime, etime_total
+  real(DP) :: foo, etime, etime_total(4)
 
 
   ! jsut replicate STREAM
@@ -169,7 +170,7 @@ subroutine benchmark()
     c = a
     etime = dnekclock_sync() - etime
     c(n) = c(n) + etime
-    etime_total = etime_total + etime
+    etime_total(1) = etime_total(1) + etime
 
     etime = dnekclock_sync()
     c(1) = c(1) + etime
@@ -177,7 +178,7 @@ subroutine benchmark()
     b = foo * c
     etime = dnekclock_sync() - etime 
     b(n) = b(n) + etime
-    etime_total = etime_total + etime
+    etime_total(2) = etime_total(2) + etime
 
     etime = dnekclock_sync()
     a(1) = a(1) + etime
@@ -185,7 +186,7 @@ subroutine benchmark()
     c = a + b
     etime = dnekclock_sync() - etime
     c(n) = c(n) + etime
-    etime_total = etime_total + etime
+    etime_total(3) = etime_total(3) + etime
 
     etime = dnekclock_sync()
     b(1) = b(1) + etime
@@ -193,10 +194,11 @@ subroutine benchmark()
     a = b + foo*c
     etime = dnekclock_sync() - etime
     a(n) = a(n) + etime
-    etime_total = etime_total + etime
+    etime_total(4) = etime_total(4) + etime
  
   enddo
-  max_mops = real((n*k*10))/etime_total
+  max_mops = real((n*k*10))/sum(etime_total)
+  if (nid == 0) write(*,'(A,5E12.5)') "STREAM: ", real(n*k*8) * (/2, 2, 3, 3/) / etime_total, max_mops*8
 
 end subroutine benchmark
 end module ctimer

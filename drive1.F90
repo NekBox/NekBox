@@ -30,6 +30,7 @@ subroutine nek_init(intracomm)
   use zper, only : init_zper
 
   use ctimer, only : etimes, dnekclock, etime1, ifsync, etims0, dnekclock_sync
+  use ctimer, only : benchmark
   use input, only : ifflow, iftran, solver_type, param
   use soln, only : nid, jp
   use tstep, only : istep, instep, nsteps, fintim, time
@@ -56,6 +57,7 @@ subroutine nek_init(intracomm)
   call opcount(1)
 
 !   Initialize and set default values.
+  call benchmark()
   call init_dealias()
   call init_dxyz()
   call init_domain()

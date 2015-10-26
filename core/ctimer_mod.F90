@@ -9,6 +9,10 @@ module ctimer
   ,tgsmn,tgsmx,teslv,tbbbb,tcccc,tdddd,teeee &
   ,tvdss,tspro,tgop_sync,tsyc &
   ,twal
+
+  real(DP), save :: max_mops  = 0._dp
+  real(DP), save :: max_flops = 0._dp
+
   real(DP), save :: tproj  = 0._dp
   real(DP), save :: thconj = 0._dp
   real(DP), save :: taxhm  = 0._dp
@@ -130,5 +134,63 @@ subroutine sum_flops()
   time_flop = taxhm + tproj + thconj + tcggo + tgmres + tintp + tgrst + th1mg + tschw
 end subroutine sum_flops
 
+!-----------------------------------------------------------------------
+!> \brief compute the max bandwidth as in STREAM
+!!
+!! This is used when computing efficiencies in drive2
+subroutine benchmark()
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelt
+  implicit none
 
+  real(DP), allocatable :: a(:), b(:), c(:)
+  integer(8) :: i, n, k
+  real(DP) :: foo, etime, etime_total
+
+
+  ! jsut replicate STREAM
+  n = 2**28 / 8 
+  k = 2
+  allocate(a(n), b(n), c(n)) 
+  a = 2._dp; b = 0.5_dp; c = 0._dp
+
+  etime = dnekclock_sync() 
+  a = 0.5*a
+  etime = dnekclock_sync() - etime
+  foo = .5 * a(1)
+
+  etime_total = 0 
+  do i = 1, k
+    etime = dnekclock_sync()
+    a(1) = a(1) + etime
+    c = a
+    etime = dnekclock_sync() - etime
+    c(n) = c(n) + etime
+    etime_total = etime_total + etime
+
+    etime = dnekclock_sync()
+    c(1) = c(1) + etime
+    b = foo * c
+    etime = etime - dnekclock_sync()
+    b(n) = b(n) + etime
+    etime_total = etime_total + etime
+
+    etime = dnekclock_sync()
+    a(1) = a(1) + etime
+    c = a + b
+    etime = dnekclock_sync() - etime
+    c(n) = c(n) + etime
+    etime_total = etime_total + etime
+
+    etime = dnekclock_sync()
+    b(1) = b(1) + etime
+    a = b + foo*c
+    etime = dnekclock_sync() - etime
+    a(n) = a(n) + etime
+    etime_total = etime_total + etime
+ 
+  enddo
+  max_mops = real((n*k*10))/etime_total
+
+end subroutine benchmark
 end module ctimer

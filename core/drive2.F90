@@ -1473,24 +1473,26 @@ end subroutine print_times
 !-----------------------------------------------------------------------
 subroutine print_flops(label, flops, mops, time)
   use kinds, only : i8, DP
+  use ctimer, only : max_mops
   implicit none
   character(*) :: label
   integer(i8) :: flops, mops
   real(DP) :: time
-  real(DP), parameter :: bandwidth = 30.*1024 / 64
+  !real(DP), parameter :: bandwidth = 30.*1024 / 64
   !real(DP), parameter :: bandwidth = 59.7*1024 / 4
-  real(DP), parameter :: compute = 204.*1024 / 64
+  real(DP), parameter :: compute = 1000.*1024 / 16
   !real(DP), parameter :: compute = 3400*8
   real(DP) :: peak
 
 
   if (time > 1.e-6 .and. flops > 1 .and. mops > 1) then
-  peak = min(compute, flops * bandwidth / (mops*8))
+  peak = min(compute, flops * max_mops / (mops * 1.e6))
   write(6,'(A,4F14.1,F8.4)') label, &
                        real(flops, kind=DP) / (1.e6 * time), &
                        peak, &
                        real(mops*8, kind=DP) / (1.e6 * time), &
-                       bandwidth, real(flops, kind=DP) / (1.e6 * time * peak)
+                       max_mops*8 / 1.e6, &
+                       real(flops, kind=DP) / (1.e6 * time * peak)
   endif
 
 end subroutine print_flops

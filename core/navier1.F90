@@ -153,6 +153,7 @@ subroutine opgrad (out1,out2,out3,inp)
       call mxm (ta2,nxy2,dztm12,nz1,out3(:,:,:,e),nz2)
     enddo
 
+    !> \todo: merge
     out1 = out1 * rxm2 * bm1 * jacmi
     out2 = out2 * sym2 * bm1 * jacmi 
     out3 = out3 * tzm2 * bm1 * jacmi

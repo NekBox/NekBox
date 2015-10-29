@@ -578,6 +578,7 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
       enddo
   else
       schw_flop = schw_flop + nelv * 3 * (nx-2)**2 * 6
+#if 0
       if (l1 == 0) then
         schw_mop  = schw_mop  + 2 * nelv * nx*ny*nz
       else
@@ -588,8 +589,9 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
       else
         schw_mop  = schw_mop  + nelv * nx*ny*(nz-2)
       endif
-
-      !schw_mop  = schw_mop  + nelv * 3 * (nx-2)**2 * 6
+#else
+      schw_mop  = schw_mop  + nelv * 3 * (nx-2)**2 * 6
+#endif
       do ie=1,nelv
           do j=i0,i1
               do i=i0,i1
@@ -777,8 +779,8 @@ subroutine hsmg_schwarz_toreg3d(b,a,n)
   real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
         
   integer :: i,j,k,ie
-  schw_mop = schw_mop + nelv*n**3 + nelv * (n+2)**3
-  !schw_mop = schw_mop + 2*nelv*n**3
+  !schw_mop = schw_mop + nelv*n**3 + nelv * (n+2)**3
+  schw_mop = schw_mop + 2*nelv*n**3
   do ie=1,nelv
       do k=1,n
           do j=1,n

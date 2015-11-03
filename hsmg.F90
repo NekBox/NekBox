@@ -1616,51 +1616,6 @@ subroutine hsmg_tnsr1(v,nv,nu,A,At)
 end subroutine hsmg_tnsr1
 
 !-------------------------------------------------------T--------------
-!> \brief compute v = [C (x) B (x) A] v (in-place)
-subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
-  use kinds, only : DP
-  use ctimer, only : h1mg_flop, h1mg_mop
-  use size_m, only : lx1, ly1, lz1, nelv
-  implicit none
-
-  integer :: nv,nu
-  real(DP) :: v(*),A(*),Bt(*),Ct(*)
-
-  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
-  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
-  integer :: e,e0,ee,es
-  integer :: nu3, nv3, iu, iv, i
-
-  e0=1
-  es=1
-  ee=nelv
-
-  if (nv > nu) then
-      e0=nelv
-      es=-1
-      ee=1
-  endif
-
-  nu3 = nu**3
-  nv3 = nv**3
-
-  h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
-  h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
-  h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
-  h1mg_mop = h1mg_mop + nv3 + nu3
-
-  do e=e0,ee,es
-      iu = 1 + (e-1)*nu3
-      iv = 1 + (e-1)*nv3
-      call mxm(A,nv,v(iu),nu,work,nu*nu)
-      do i=0,nu-1
-          call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
-      enddo
-      call mxm(work2,nv*nv,Ct,nu,v(iv),nv)
-  enddo
-
-  return
-end subroutine hsmg_tnsr1_3d
 
 !------------------------------------------   T  -----------------------
 !> \brief r =J r,   l is coarse level

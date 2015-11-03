@@ -52,7 +52,6 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   use size_m, only : nelv
   use size_m, only : lxd, lyd, lzd, ldim
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd
-  use input, only : if3d
   use ctimer, only : tscn, dnekclock
   use interp, only : jgl, jgt, dgl, dgt
   use interp, only : get_int_ptr, get_dgl_ptr
@@ -96,7 +95,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
       if (ifcf) then
           call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
           call copy(tr(1,2),cy(ic),nxyzd)
-          if (if3d) call copy(tr(1,3),cz(ic),nxyzd)
+          call copy(tr(1,3),cz(ic),nxyzd)
 
       else  ! map coarse velocity to fine mesh (C-->F)
         write(*,*) "Oops: ifcf"
@@ -136,26 +135,20 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
       if (ifuf) then
           call local_grad3(ur,us,ut,u(iu),nxd-1,1,dgl(iptr2),dgt(iptr2))
       else
-          call specmpn(uf,nxd,u(iu),nx1,jgl(iptr),jgt(iptr),if3d,w,ldw)
+          call specmpn(uf,nxd,u(iu),nx1,jgl(iptr),jgt(iptr),w,ldw)
           call local_grad3(ur,us,ut,uf,nxd-1,1,dgl(iptr2),dgt(iptr2))
       endif
 #endif
 !      etime = etime + dnekclock()
 
-      if (if3d) then
-          do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
-              uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
-          enddo
-      else
-          do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
-              uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)
-          enddo
-      endif
+      do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
+          uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
+      enddo
 !      etime = etime - dnekclock()
 #ifndef INLINE_INTP
       call intp_rstd(bdu(ib),uf,nx1,nxd,if3d,1) ! Project back to coarse
 #else
-      call specmpn(bdu(ib),nx1,uf,nxd,jgt(iptr),jgl(iptr),if3d,w,ldw)
+      call specmpn(bdu(ib),nx1,uf,nxd,jgt(iptr),jgl(iptr),w,ldw)
 #endif
 !      etime = etime + dnekclock()
 
@@ -177,7 +170,6 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   use size_m, only : lx1, ly1, lz1, lxd, lyd, lzd, ldim
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, nelv
   use geom, only : rx
-  use input, only : if3d
   use mesh, only : if_ortho
   use ctimer, only : tscn, nscn, dnekclock
   use interp, only : jgl, jgt
@@ -211,48 +203,39 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   do e=1,nelv
 
-  !        Map coarse velocity to fine mesh (C-->F)
+  !      Map coarse velocity to fine mesh (C-->F)
 
-      !call specmpn(fx,nxd,ux(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
-      !call specmpn(fy,nxd,uy(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
-      !call specmpn(fz,nxd,uz(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
-!      etime = etime - dnekclock()
+    !call specmpn(fx,nxd,ux(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
+    !call specmpn(fy,nxd,uy(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
+    !call specmpn(fz,nxd,uz(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
+!    etime = etime - dnekclock()
 #ifdef INLINE_INTP
-      call specmpn(fx,nxd,ux(1,e),nx1,jgl(iptr),jgt(iptr),if3d,w,ldw)
-      call specmpn(fy,nxd,uy(1,e),nx1,jgl(iptr),jgt(iptr),if3d,w,ldw)
-      if (if3d) call specmpn(fz,nxd,uz(1,e),nx1,jgl(iptr),jgt(iptr),if3d,w,ldw)
+    call specmpn(fx,nxd,ux(1,e),nx1,jgl(iptr),jgt(iptr),w,ldw)
+    call specmpn(fy,nxd,uy(1,e),nx1,jgl(iptr),jgt(iptr),w,ldw)
+    call specmpn(fz,nxd,uz(1,e),nx1,jgl(iptr),jgt(iptr),w,ldw)
 #else
-      call intp_rstd(fx,ux(1,e),nx1,nxd,if3d,0) ! 0 --> forward
-      call intp_rstd(fy,uy(1,e),nx1,nxd,if3d,0) ! 0 --> forward
-      if (if3d) call intp_rstd(fz,uz(1,e),nx1,nxd,if3d,0) ! 0 --> forward
+    call intp_rstd(fx,ux(1,e),nx1,nxd,.true.,0) ! 0 --> forward
+    call intp_rstd(fy,uy(1,e),nx1,nxd,.true.,0) ! 0 --> forward
+    call intp_rstd(fz,uz(1,e),nx1,nxd,.true.,1) ! 0 --> forward
 #endif
 !      etime = etime + dnekclock()
 
   !        Convert convector F to r-s-t coordinates
 
-      if (if3d) then
 
-          if (if_ortho) then
-            do i=1,nxyzd
-                cr(i,e)=rx(i,1,e)*fx(i)
-                cs(i,e)=rx(i,2,e)*fy(i)
-                ct(i,e)=rx(i,3,e)*fz(i)
-            enddo
-          else
-            do i=1,nxyzd
-                cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
-                cs(i,e)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
-                ct(i,e)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
-            enddo
-          endif
-      else
-#if 0
-          do i=1,nxyzd
-              cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)
-              cs(i,e)=rx(i,3,e)*fx(i)+rx(i,4,e)*fy(i)
-          enddo
-#endif
-      endif
+    if (if_ortho) then
+      do i=1,nxyzd
+          cr(i,e)=rx(i,1,e)*fx(i)
+          cs(i,e)=rx(i,2,e)*fy(i)
+          ct(i,e)=rx(i,3,e)*fz(i)
+      enddo
+    else
+      do i=1,nxyzd
+          cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
+          cs(i,e)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
+          ct(i,e)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
+      enddo
+    endif
   enddo
   tscn = tscn + (dnekclock() - etime)
 

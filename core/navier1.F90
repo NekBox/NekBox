@@ -1582,7 +1582,6 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
   use size_m, only : lx1, ly1, lz1, nx1
   use dxyz, only : dxm1, dxtm1
   use geom, only : rxm1, sxm1, txm1, rym1, sym1, tym1, rzm1, szm1, tzm1
-  use input, only : if3d
   use wz_m, only : w3m1
   use mesh, only : if_ortho
   implicit none
@@ -1596,7 +1595,6 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
 
   N = nx1-1
   do e=1,nel
-    if (if3d) then
       call local_grad3(ur,us,ut,u,N,e,dxm1,dxtm1)
       if (if_ortho) then
         ux(:,:,:,e) = w3m1*(ur*rxm1(:,:,:,e))
@@ -1607,23 +1605,6 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
         uy(:,:,:,e) = w3m1*(ur*rym1(:,:,:,e) + us*sym1(:,:,:,e) + ut*tym1(:,:,:,e))
         uz(:,:,:,e) = w3m1*(ur*rzm1(:,:,:,e) + us*szm1(:,:,:,e) + ut*tzm1(:,:,:,e))
       endif
-    else
-#if 0
-      if (ifaxis) then
-        call setaxdy (ifrzer(e))  ! reset dytm1
-        call setaxw1 (ifrzer(e))  ! reset w3m1
-      endif
-
-      call local_grad2(ur,us,u,N,e,dxm1,dytm1)
-
-      do i=1,lxyz
-        ux(i,e) =w3m1(i,1,1)*(ur(i)*rxm1(i,1,1,e) &
-        + us(i)*sxm1(i,1,1,e) )
-        uy(i,e) =w3m1(i,1,1)*(ur(i)*rym1(i,1,1,e) &
-        + us(i)*sym1(i,1,1,e) )
-      enddo
-#endif
-    endif
   enddo
 
   return

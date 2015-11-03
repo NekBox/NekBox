@@ -1,3 +1,90 @@
+!> \brief compute v = [C (x) B (x) A] v (in-place)
+subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
+  use kinds, only : DP
+  use ctimer, only : h1mg_flop, h1mg_mop
+  use size_m, only : lx1, ly1, lz1, nelv
+  implicit none
+
+  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
+
+  integer :: nv,nu
+  real(DP) :: v(*),A(*),Bt(*),Ct(*)
+  real(DP) :: work1(0:lwk-1),work2(0:lwk-1)
+
+  integer :: e,e0,ee,es
+  integer :: nu3, nv3, iu, iv, i
+
+  e0=1
+  es=1
+  ee=nelv
+
+  if (nv > nu) then
+      e0=nelv
+      es=-1
+      ee=1
+  endif
+
+  nu3 = nu**3
+  nv3 = nv**3
+
+  h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
+  h1mg_mop = h1mg_mop + nv3 + nu3
+
+  do e=e0,ee,es
+      iu = 1 + (e-1)*nu3
+      iv = 1 + (e-1)*nv3
+      call mxm(A,nv,v(iu),nu,work1,nu*nu)
+      do i=0,nu-1
+          call mxm(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+      enddo
+      call mxm(work2,nv*nv,Ct,nu,v(iv),nv)
+  enddo
+
+  return
+end subroutine hsmg_tnsr1_3d
+
+!-----------------------------------------------------------------------
+!> \brief  Spectral interpolation from A to B via tensor products
+!!     -  scratch arrays: w(na*na*nb + nb*nb*na)
+!!     -  out of place
+subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)
+  use kinds, only : DP
+  implicit none
+
+  logical, intent(in) :: if3d
+  integer, intent(in) :: nb, na, ldw
+  real(DP), intent(out) :: b(nb,nb,nb)
+  real(DP), intent(in) :: a(na,na,na)
+  real(DP), intent(out) :: w(ldw) !>!< work buffer
+  real(DP), intent(in) :: ba(nb,na), ab(na,nb)
+
+  integer :: ltest, nab, nbb, k, l, iz
+
+  ltest = na*nb
+  if (if3d) ltest = na*na*nb + nb*na*na
+  if (ldw < ltest) then
+      write(6,*) 'ERROR specmp:',ldw,ltest,if3d
+      call exitt
+  endif
+
+      nab = na*nb
+      nbb = nb*nb
+      call mxm(ba,nb,a,na,w,na*na)
+      k=1
+      l=na*na*nb + 1
+      do iz=1,na
+          call mxm(w(k),nb,ab,na,w(l),nb)
+          k=k+nab
+          l=l+nbb
+      enddo
+      l=na*na*nb + 1
+      call mxm(w(l),nbb,ab,na,b,nb)
+  return
+end subroutine specmpn
+
+
 !> \brief local inner product, with weight
 real(DP) FUNCTION VLSC3(X,Y,B,N)
   use kinds, only : DP

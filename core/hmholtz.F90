@@ -129,50 +129,7 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   
 !      if (ifaxis) call setaxdy ( ifrzer(e) )
   
-      IF (NDIM == 2) THEN
-          write(*,*) "Whoops! axhelm"
-#if 0
-      
-      !       2-d case ...............
-      
-          if (iffast(e)) then
-          
-          !          Fast 2-d mode: constant properties and undeformed element
-          
-              h1 = helm1(1,1,1,e)
-              call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
-              call mxm   (u(1,1,1,e),nx1,wddyt,ny1,tm2,ny1)
-              call col2  (tm1,g4m1(1,1,1,e),nxyz)
-              call col2  (tm2,g5m1(1,1,1,e),nxyz)
-              call add3  (au(1,1,1,e),tm1,tm2,nxyz)
-              call cmult (au(1,1,1,e),h1,nxyz)
-          
-          else
-          
-          !          General case, speed-up for undeformed elements
-          
-              call mxm  (dxm1,nx1,u(1,1,1,e),nx1,dudr,nyz)
-              call mxm  (u(1,1,1,e),nx1,dytm1,ny1,duds,ny1)
-              call col3 (tmp1,dudr,g1m1(1,1,1,e),nxyz)
-              call col3 (tmp2,duds,g2m1(1,1,1,e),nxyz)
-              if (ifdfrm(e)) then
-                  call addcol3 (tmp1,duds,g4m1(1,1,1,e),nxyz)
-                  call addcol3 (tmp2,dudr,g4m1(1,1,1,e),nxyz)
-              endif
-              call col2 (tmp1,helm1(1,1,1,e),nxyz)
-              call col2 (tmp2,helm1(1,1,1,e),nxyz)
-              call mxm  (dxtm1,nx1,tmp1,nx1,tm1,nyz)
-              call mxm  (tmp2,nx1,dym1,ny1,tm2,ny1)
-              call add2 (au(1,1,1,e),tm1,nxyz)
-              call add2 (au(1,1,1,e),tm2,nxyz)
-
-          endif
-      
-#endif
-      else
-      
-      !       3-d case ...............
-      
+     
 !          if (iffast(e)) then
           if (.true.) then
           
@@ -276,15 +233,12 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
               call add2 (au(1,1,1,e),tm2,nxyz)
               call add2 (au(1,1,1,e),tm3,nxyz)
             
+           !  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(:,:,:,1:nel)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
 #endif
           endif
-      
-      endif
   
   100 END DO
 
-  !au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(1,1,1,1)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
-!  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(:,:,:,1:nel)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
 
 !   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
 
@@ -998,94 +952,6 @@ subroutine set_fdm_prec_h1b(d,h1,h2,nel)
   integer,  intent(in)  :: nel
 
   d = 0._dp
-  return 
-
-#if 0
-!  use kinds, only : DP, DP_eps
-!  use size_m, only : nx1, ny1, nz1
-!  use fdmh1, only : ktype, elsize, dd, ifbhalf, kfldfdm
-!  use geom, only : ym1
-!  use input, only : if3d, ifaxis
-
-
-  integer :: nxyz, i1, i2, ie, i3, k1, k2, k3
-  real(DP) :: h1b, h2b, vol, vl1, vl2, vl3, den
-  real(DP), external :: vlsum, vlsc2
-
-
-!   Set up diagonal for FDM for each spectral element
-  nxyz = nx1*ny1*nz1
-  if (if3d) then
-      do ie=1,nel
-          h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
-          h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
-          k1 = ktype(ie,1,kfldfdm)
-          k2 = ktype(ie,2,kfldfdm)
-          k3 = ktype(ie,3,kfldfdm)
-          vol = elsize(1,ie)*elsize(2,ie)*elsize(3,ie)
-          vl1 = elsize(2,ie)*elsize(3,ie)/(elsize(1,ie)+DP_eps)
-          vl2 = elsize(1,ie)*elsize(3,ie)/(elsize(2,ie)+DP_eps)
-          vl3 = elsize(1,ie)*elsize(2,ie)/(elsize(3,ie)+DP_eps)
-          do i3=1,nz1
-              do i2=1,ny1
-                  do i1=1,nx1
-                      den = h1b*(vl1*dd(i1,k1) + vl2*dd(i2,k2) + vl3*dd(i3,k3)) &
-                      + h2b*vol
-                      if (ifbhalf) den = den/vol
-                      if (den /= 0) then
-                          d(i1,i2,i3,ie) = 1./den
-                      else
-                          d(i1,i2,i3,ie) = 0.
-                      
-                      !                 write(6,3) 'd=0:'
-                      !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2),dd(i3,k3)
-                      !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2,k3
-                          3 format(a4,1p4e12.4,8i8)
-                      
-                      endif
-                  enddo
-              enddo
-          enddo
-      enddo
-  else
-      do ie=1,nel
-          if (ifaxis) then
-              h1b = vlsc2(h1(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
-              h2b = vlsc2(h2(1,1,1,ie),ym1(1,1,1,ie),nxyz)/nxyz
-          else
-              h1b = vlsum(h1(1,1,1,ie),nxyz)/nxyz
-              h2b = vlsum(h2(1,1,1,ie),nxyz)/nxyz
-          endif
-          k1 = ktype(ie,1,kfldfdm)
-          k2 = ktype(ie,2,kfldfdm)
-          vol = elsize(1,ie)*elsize(2,ie)
-          vl1 = elsize(2,ie)/elsize(1,ie)
-          vl2 = elsize(1,ie)/elsize(2,ie)
-          i3=1
-          do i2=1,ny1
-              do i1=1,nx1
-                  den = h1b*( vl1*dd(i1,k1) + vl2*dd(i2,k2) ) &
-                  + h2b*vol
-                  if (ifbhalf) den = den/vol
-                  if (den /= 0) then
-                      d(i1,i2,i3,ie) = 1./den
-                  !                 write(6,3) 'dn0:'
-                  !    $                 ,d(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
-                  !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
-                  else
-                      d(i1,i2,i3,ie) = 0.
-                  !                 write(6,3) 'd=0:'
-                  !    $                 ,h1(i1,i2,i3,ie),dd(i1,k1),dd(i2,k2)
-                  !    $                 ,i1,i2,i3,ie,kfldfdm,k1,k2
-                      2 format(a4,1p3e12.4,8i8)
-                  endif
-              !           write(6,1) ie,i1,i2,k1,k2,'d:',d(i1,i2,i3,ie),vol,vl1,vl2
-              !   1       format(5i3,2x,a2,1p4e12.4)
-              enddo
-          enddo
-      enddo
-  endif
-#endif
 
   return
 end subroutine set_fdm_prec_h1b

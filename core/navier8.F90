@@ -4,7 +4,6 @@
 subroutine set_vert(glo_num,ngv,nx,nel,vertex,ifcenter)
   use kinds, only : i8
   use size_m, only : nid
-  use input, only : if3d
   implicit none
 
   integer(i8) :: glo_num(1),ngv
@@ -13,15 +12,10 @@ subroutine set_vert(glo_num,ngv,nx,nel,vertex,ifcenter)
 
   integer :: nz
 
-  if (if3d) then
       call setvert3d(glo_num,ngv,nx,nel,vertex,ifcenter)
-  else
-!max        call setvert2d(glo_num,ngv,nx,nel,vertex,ifcenter)
-  endif
 
 !   Check for single-element periodicity 'p' bc
-  nz = 1
-  if (if3d) nz = nx
+  nz = nx
   call check_p_bc(glo_num,nx,nx,nz,nel)
 
   if(nid == 0) write(6,*) 'call usrsetvert'
@@ -39,7 +33,7 @@ subroutine set_up_h1_crs
   use ctimer, only : dnekclock
   use domain, only : nx_crs, nxyz_c, se_to_gcrs, lcr
   use geom, only : ifvcor, ifbcor
-  use input, only : if3d, ifldmhd, cbc
+  use input, only : ifldmhd, cbc
   use mesh, only : vertex
   use parallel, only : xxth, mp=>np, nekcomm
   use tstep, only : ifield
@@ -89,8 +83,7 @@ subroutine set_up_h1_crs
 !   Set mask
   z=0
   ntot=nelv*nxyz_c
-  nzc=1
-  if (if3d) nzc=nxc
+  nzc=nxc
   mask = 1._dp
   cmlt = 1._dp
   nfaces=2*ndim

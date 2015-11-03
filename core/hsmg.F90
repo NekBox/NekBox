@@ -220,7 +220,6 @@ end subroutine h1mg_solve
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 subroutine hsmg_setup_semhat
-  use input, only : if3d
   use hsmg, only : mg_zh, mg_lmax, mg_ah, mg_bh, mg_dh, mg_dht, mg_zh
   use hsmg, only : mg_nx, mg_nh, mg_nhz, mg_nz
   use semhat, only : ah, bh, ch, dh, zh, dph, jph, bgl, zgl, dgl, jgl, wh
@@ -234,7 +233,6 @@ subroutine hsmg_setup_semhat
   call copy(mg_zh(1,mg_lmax),zgl,n-1) !top level based on gl points
   mg_nh(mg_lmax)=n-1
   mg_nhz(mg_lmax)=n-1
-  if( .NOT. if3d) mg_nhz(mg_lmax)=1
 !   lower levels
   do l=1,mg_lmax-1
       n = mg_nx(l)
@@ -303,7 +301,6 @@ end subroutine hsmg_setup_intpm
 subroutine hsmg_setup_dssum
   use kinds, only : i8
   use size_m, only : lx1, ly1, lz1, lelv, nelv, ndim
-  use input, only : if3d
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
   use mesh, only : vertex
@@ -332,7 +329,6 @@ subroutine hsmg_setup_dssum
       nx=nx+2
       ny=ny+2
       nz=nz+2
-      if( .NOT. if3d) nz=1
       call setupds(mg_gsh_schwarz_handle(l,mg_fld),nx,ny,nz &
       ,nelv,nelgv,vertex,glo_num)
   enddo
@@ -418,17 +414,12 @@ end subroutine hsmg_intp
 !> \brief     computes v = [A (x) A] u or v = [A (x) A (x) A] u
 subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   use kinds, only : DP
-  use input, only : if3d
   implicit none
 
   integer :: nv,nu
   real(DP) :: v(*),u(*),A(*),At(*)
 
-  if ( .NOT. if3d) then
-!max        call hsmg_tnsr2d(v,nv,u,nu,A,At)
-  else
-      call hsmg_tnsr3d(v,nv,u,nu,A,At,At)
-  endif
+  call hsmg_tnsr3d(v,nv,u,nu,A,At,At)
   return
 end subroutine hsmg_tnsr
 
@@ -550,7 +541,6 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
   use kinds, only : DP
   use size_m, only : nelv
   use ctimer, only : schw_flop, schw_mop
-  use input, only : if3d
   implicit none
 
   integer :: l1,l2,nx,ny,nz
@@ -561,22 +551,6 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
   i0=2
   i1=nx-1
         
-  if( .NOT. if3d) then
-      do ie=1,nelv
-          do j=i0,i1
-              arr1(l1+1 ,j,1,ie) = f1*arr1(l1+1 ,j,1,ie) &
-              +f2*arr2(l2+1 ,j,1,ie)
-              arr1(nx-l1,j,1,ie) = f1*arr1(nx-l1,j,1,ie) &
-              +f2*arr2(nx-l2,j,1,ie)
-          enddo
-          do i=i0,i1
-              arr1(i,l1+1 ,1,ie) = f1*arr1(i,l1+1 ,1,ie) &
-              +f2*arr2(i,l2+1 ,1,ie)
-              arr1(i,ny-l1,1,ie) = f1*arr1(i,ny-l1,1,ie) &
-              +f2*arr2(i,nx-l2,1,ie)
-          enddo
-      enddo
-  else
       schw_flop = schw_flop + nelv * 3 * (nx-2)**2 * 6
 #if 0
       if (l1 == 0) then
@@ -622,7 +596,6 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
               enddo
           enddo
       enddo
-  endif
   return
 end subroutine hsmg_extrude
 
@@ -660,7 +633,6 @@ end subroutine h1mg_schwarz
 subroutine h1mg_schwarz_part1 (e,r,l)
   use kinds, only : DP
   use size_m, only : nelv
-  use input, only : if3d
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
   use ctimer, only : tschw, nschw, schw_flop, schw_mop, dnekclock
   use tstep, only : ifield, nelfld
@@ -690,13 +662,8 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 
   allocate(work(2*enx*eny*enz*nelv))
 
-  if (if3d) then ! extended array
       call hsmg_schwarz_toext3d(work,r,mg_nh(l))
-  else
-!max        call hsmg_schwarz_toext2d(mg_work,r,mg_nh(l))
-  endif
 
-  if( .NOT. if3d) enz=1
   i = enx*eny*enz*nelv+1
      
 !     exchange interior nodes
@@ -720,11 +687,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
   call hsmg_extrude(work(i),2,one,work(i),0,one,enx,eny,enz)
 
-  if( .NOT. if3d) then ! Go back to regular size array
-!max        call hsmg_schwarz_toreg2d(e,mg_work(i),mg_nh(l))
-  else
-      call hsmg_schwarz_toreg3d(e,work(i),mg_nh(l))
-  endif
+  call hsmg_schwarz_toreg3d(e,work(i),mg_nh(l))
 
   etime = etime - dnekclock() 
   !call hpm_stop('schwarz')
@@ -873,7 +836,6 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
   use kinds, only : DP
   use hsmg, only : lr, llr, lrr, lmr, ls, lls, lms, lrs, lt, llt, lmt, lrt
   use size_m, only : nid, ndim, nelv
-  use input, only : if3d
   implicit none
 
   integer :: nl
@@ -900,26 +862,9 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
       ,llr(ie),lmr(ie),lrr(ie),ah,bh,n,ie)
       call hsmg_setup_fast1d(s(1,1,2,ie),ls,ns,lbs,rbs &
       ,lls(ie),lms(ie),lrs(ie),ah,bh,n,ie)
-      if(if3d) call hsmg_setup_fast1d(s(1,1,3,ie),lt,nt,lbt,rbt &
+      call hsmg_setup_fast1d(s(1,1,3,ie),lt,nt,lbt,rbt &
       ,llt(ie),lmt(ie),lrt(ie),ah,bh,n,ie)
       il=1
-      if( .NOT. if3d) then
-          eps = 1.e-5*(maxval(lr(2:nr-1)) + maxval(ls(2:ns-1)))
-          do j=1,ns
-              do i=1,nr
-                  diag = lr(i)+ls(j)
-                  if (diag > eps) then
-                      d(il,ie) = 1.0/diag
-                  else
-                  !                 write(6,2) ie,'Reset Eig in hsmg setup fast:',i,j,l
-                  !    $                         ,eps,diag,lr(i),ls(j)
-                  !    2 format(i6,1x,a21,3i5,1p4e12.4)
-                      d(il,ie) = 0.0
-                  endif
-                  il=il+1
-              enddo
-          enddo
-      else
           eps = 1.e-5 * (maxval(lr(2:nr-1)) &
           + maxval(ls(2:ns-1)) + maxval(lt(2:nt-1)))
           do k=1,nt
@@ -938,7 +883,6 @@ subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
                   enddo
               enddo
           enddo
-      endif
   enddo
 
   ierrmx = iglmax(ierr,1)
@@ -1086,7 +1030,6 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   use size_m, only : ndim, nelv
   use size_m, only : lx1, ly1, lz1
   use ctimer, only : schw_flop, schw_mop
-  use input, only : if3d
   implicit none
 
   integer :: nl
@@ -1101,19 +1044,6 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   real(DP) :: work(0:lwk-1),work2(0:lwk-1)
 
   nn=nl**ndim
-  if( .NOT. if3d) then
-#if 0
-      do ie=1,nelv
-          call hsmg_tnsr2d_el(e(1,ie),nl,r(1,ie),nl &
-          ,s(1,2,1,ie),s(1,1,2,ie))
-          do i=1,nn
-              r(i,ie)=d(i,ie)*e(i,ie)
-          enddo
-          call hsmg_tnsr2d_el(e(1,ie),nl,r(1,ie),nl &
-          ,s(1,1,1,ie),s(1,2,2,ie))
-      enddo
-#endif
-  else
       schw_flop = schw_flop + nelv*nn
       schw_mop  = schw_mop  + nelv*nn ! r and e should be in cache
       do ie=1,nelv
@@ -1141,7 +1071,6 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
         call mxm(work2,nl*nl,s(1,2,3,ie),nl,e(1,ie),nl)
 #endif
       enddo
-  endif
   return
 end subroutine hsmg_do_fast
 
@@ -1151,7 +1080,6 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
   use kinds, only : DP
   use size_m, only : nelv, ndim
   use ctimer, only : h1mg_flop, h1mg_mop
-  use input, only : if3d
   implicit none
 
   integer :: nx,ny,nz
@@ -1170,18 +1098,6 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
 !      call exitti('hsmg_do_wt quit$',nelv)
 !   endif
 
-  if ( .NOT. if3d) then
-      do ie=1,nelv
-          do j=1,ny
-              u( 1,j,1,ie)=u( 1,j,1,ie)*wt(j,1,1,1,ie)
-              u(nx,j,1,ie)=u(nx,j,1,ie)*wt(j,1,2,1,ie)
-          enddo
-          do i=2,nx-1
-              u(i, 1,1,ie)=u(i, 1,1,ie)*wt(i,1,1,2,ie)
-              u(i,ny,1,ie)=u(i,ny,1,ie)*wt(i,1,2,2,ie)
-          enddo
-      enddo
-  else
      h1mg_flop = h1mg_flop + 2*nelv*nz*ny + 2*nelv*nz*(nx-2) + 2*nelv*(ny-2)*(nx-2)
      h1mg_mop  = h1mg_mop  + 6*nelv*nz*ny + 6*nelv*nz*(nx-2) + 6*nelv*(ny-2)*(nx-2)
 
@@ -1205,7 +1121,6 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
               enddo
           enddo
       enddo
-  endif
   return
 end subroutine hsmg_do_wt
 
@@ -1213,7 +1128,6 @@ end subroutine hsmg_do_wt
 subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
   use kinds, only : DP
   use size_m, only : nelv, ndim
-  use input, only : if3d
   implicit none
 
   integer, intent(in) :: nx,ny,nz,l
@@ -1224,18 +1138,6 @@ subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
 ! nit border nodes to 1
   w = 0._dp
 !     print *, 'Setup rstr wt: ',nx,ny,nz,nelv
-  if ( .NOT. if3d) then
-      do ie=1,nelv
-          do i=1,nx
-              w(i,1,1,ie)=1.0
-              w(i,ny,1,ie)=1.0
-          enddo
-          do j=1,ny
-              w(1,j,1,ie)=1.0
-              w(nx,j,1,ie)=1.0
-          enddo
-      enddo
-  else
       do ie=1,nelv
           do j=1,ny
               do i=1,nx
@@ -1256,21 +1158,8 @@ subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
               enddo
           enddo
       enddo
-  endif
   call hsmg_dssum(w,l)
 ! nvert the count w to get the weight wt
-  if ( .NOT. if3d) then
-      do ie=1,nelv
-          do j=1,ny
-              wt(j,1,1,1,ie)=1.0/w(1,j,1,ie)
-              wt(j,1,2,1,ie)=1.0/w(nx,j,1,ie)
-          enddo
-          do i=1,nx
-              wt(i,1,1,2,ie)=1.0/w(i,1,1,ie)
-              wt(i,1,2,2,ie)=1.0/w(i,ny,1,ie)
-          enddo
-      enddo
-  else
       do ie=1,nelv
           do k=1,nz
               do j=1,ny
@@ -1291,14 +1180,12 @@ subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
               enddo
           enddo
       enddo
-  endif
   return
 end subroutine hsmg_setup_rstr_wt
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_schwarz_wt(ifsqrt)
   use size_m, only : ndim, nelv, ldim, lelv
-  use input, only : if3d
   use hsmg, only : mg_schwarz_wt_index, mg_lmax, mg_fld
   use hsmg, only : mg_nh, lmg_swt, mg_schwarz_wt
   implicit none
@@ -1312,7 +1199,6 @@ subroutine hsmg_setup_schwarz_wt(ifsqrt)
       mg_schwarz_wt_index(l,mg_fld)=i
       nl = mg_nh(l)
       nlz = mg_nh(l)
-      if( .NOT. if3d) nlz=1
       i=i+nl*nlz*4*ndim*nelv
       if(i > lmg_swt*4*ldim*lelv) then
           itmp = i/(4*ldim*lelv)
@@ -1367,17 +1253,12 @@ end subroutine h1mg_setup_schwarz_wt
 !----------------------------------------------------------------------
 subroutine hsmg_schwarz_wt(e,l)
   use kinds, only : DP
-  use input, only : if3d
   use hsmg, only : mg_schwarz_wt, mg_schwarz_wt_index, mg_fld, mg_nh
   implicit none
   real(DP) :: e(*)
   integer :: l
           
-#if 0
-  if( .NOT. if3d) call hsmg_schwarz_wt2d( &
-  e,mg_schwarz_wt(mg_schwarz_wt_index(l,mg_fld)),mg_nh(l))
-#endif
-  if(if3d) call hsmg_schwarz_wt3d( &
+  call hsmg_schwarz_wt3d( &
   e,mg_schwarz_wt(mg_schwarz_wt_index(l,mg_fld)),mg_nh(l))
   return
 end subroutine hsmg_schwarz_wt
@@ -1484,7 +1365,6 @@ end subroutine hsmg_setup_solve
 !----------------------------------------------------------------------
 subroutine hsmg_setup_mg_nx()
   use size_m, only : lx2, nx1, ly1, lz1, lx1, nid
-  use input, only : if3d
   use hsmg, only : mg_lmax, mg_nz, mg_ny, mg_nx
   implicit none
 
@@ -1503,7 +1383,6 @@ subroutine hsmg_setup_mg_nx()
   mg_nx(1) = mgnx1
   mg_ny(1) = mgnx1
   mg_nz(1) = mgnx1
-  if ( .NOT. if3d) mg_nz(1) = 0
 
   mgnx2 = 2*(lx2/4) + 1
   if (lx1 == 5)  mgnx2 = 3
@@ -1517,12 +1396,10 @@ subroutine hsmg_setup_mg_nx()
   mg_nx(2) = mgnx2
   mg_ny(2) = mgnx2
   mg_nz(2) = mgnx2
-  if ( .NOT. if3d) mg_nz(2) = 0
 
   mg_nx(3) = mgnx2+1
   mg_ny(3) = mgnx2+1
   mg_nz(3) = mgnx2+1
-  if ( .NOT. if3d) mg_nz(3) = 0
 
   mg_nx(mg_lmax) = lx1-1
   mg_ny(mg_lmax) = ly1-1
@@ -1601,17 +1478,12 @@ end subroutine mg_mask_e
 !> \brief compute  v = [A (x) A] u  or  v = [A (x) A (x) A] u
 subroutine hsmg_tnsr1(v,nv,nu,A,At)
   use kinds, only : DP
-  use input, only : if3d
   implicit none
 
   integer :: nv,nu
   real(DP) :: v(1),A(1),At(1)
 
-  if ( .NOT. if3d) then
-!max        call hsmg_tnsr1_2d(v,nv,nu,A,At)
-  else
-      call hsmg_tnsr1_3d(v,nv,nu,A,At,At)
-  endif
+  call hsmg_tnsr1_3d(v,nv,nu,A,At,At)
   return
 end subroutine hsmg_tnsr1
 
@@ -1641,7 +1513,6 @@ end subroutine h1mg_rstr
 !-----------------------------------------------------------------------
 subroutine h1mg_setup_mg_nx()
   use size_m, only : lx2, nx1, lx1, ly1, lz1, ldimt1, nid
-  use input, only : if3d
   use hsmg, only : mg_h1_n, mg_lmax, mg_h1_lmax, mg_nz, mg_ny, mg_nx
   use tstep, only : nelfld
   implicit none
@@ -1660,7 +1531,6 @@ subroutine h1mg_setup_mg_nx()
   mg_nx(1) = mgnx1
   mg_ny(1) = mgnx1
   mg_nz(1) = mgnx1
-  if ( .NOT. if3d) mg_nz(1) = 0
 
   mgnx2 = 2*(lx2/4) + 1
   if (lx1 == 5)  mgnx2 = 3
@@ -1674,12 +1544,10 @@ subroutine h1mg_setup_mg_nx()
   mg_nx(2) = mgnx2
   mg_ny(2) = mgnx2
   mg_nz(2) = mgnx2
-  if ( .NOT. if3d) mg_nz(2) = 0
 
   mg_nx(3) = mgnx2+1
   mg_ny(3) = mgnx2+1
   mg_nz(3) = mgnx2+1
-  if ( .NOT. if3d) mg_nz(3) = 0
 
   mg_nx(mg_h1_lmax) = lx1-1
   mg_ny(mg_h1_lmax) = ly1-1
@@ -1729,7 +1597,6 @@ end subroutine h1mg_setup_semhat
 subroutine h1mg_setup_dssum
   use kinds, only : i8
   use size_m, only : lx1, ly1, lz1, lelt, nelv, ndim
-  use input, only : if3d
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
   use mesh, only : vertex
@@ -1757,7 +1624,6 @@ subroutine h1mg_setup_dssum
       nx=nx+2
       ny=ny+2
       nz=nz+2
-      if( .NOT. if3d) nz=1
       call setupds(mg_gsh_schwarz_handle(l,mg_fld),nx,ny,nz &
       ,nelv,nelgv,vertex,glo_num)
   enddo
@@ -1804,7 +1670,6 @@ end subroutine mg_set_msk
 subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
   use kinds, only : DP
   use size_m, only : nid
-  use input, only : if3d
   implicit none
 
   integer :: mask(*)        ! Pointer to Dirichlet BCs
@@ -1836,10 +1701,8 @@ subroutine h1mg_setup_mask(mask,nm,nx,ny,nz,nel,l,w)
       if (rbr == 1) call facev(w,e,2,zero,nx,ny,nz)
       if (lbs == 1) call facev(w,e,1,zero,nx,ny,nz)
       if (rbs == 1) call facev(w,e,3,zero,nx,ny,nz)
-      if (if3d) then
-          if (lbt == 1) call facev(w,e,5,zero,nx,ny,nz)
-          if (rbt == 1) call facev(w,e,6,zero,nx,ny,nz)
-      endif
+      if (lbt == 1) call facev(w,e,5,zero,nx,ny,nz)
+      if (rbt == 1) call facev(w,e,6,zero,nx,ny,nz)
       ierrmx = max(ierrmx,ierr)
   enddo
 
@@ -1963,7 +1826,6 @@ end subroutine h1mg_setup_schwarz_wt3d_2
 !----------------------------------------------------------------------
 subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   use kinds, only : DP
-  use input, only : if3d
   use hsmg, only : mg_h1_n, p_mg_msk, mg_nh, mg_fld
   use tstep, only : ifield, nelfld
   implicit none
@@ -1986,7 +1848,6 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   enx=mg_nh(l)+2
   eny=mg_nh(l)+2
   enz=mg_nh(l)+2
-  if( .NOT. if3d) enz=1
   ns = enx*eny*enz*nelfld(ifield)
   i  = ns+1
 
@@ -1999,11 +1860,7 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
   call hsmg_extrude(work(i),2,one, work(i),0,one,enx,eny,enz)
 
-  if( .NOT. if3d) then ! Go back to regular size array
-!max        call hsmg_schwarz_toreg2d(mg_work,mg_work(i),mg_nh(l))
-  else
-      call hsmg_schwarz_toreg3d(work,work(i),mg_nh(l))
-  endif
+  call hsmg_schwarz_toreg3d(work,work(i),mg_nh(l))
 
   call hsmg_dssum(work,l)                           ! sum border nodes
 
@@ -2011,7 +1868,6 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   nx = mg_nh(l)
   ny = mg_nh(l)
   nz = mg_nh(l)
-  if ( .NOT. if3d) nz=1
   nxyz = nx*ny*nz
   k    = 1
   do ie=1,nelfld(ifield)

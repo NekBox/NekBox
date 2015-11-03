@@ -445,20 +445,16 @@ subroutine gengeom (igeom)
           call col2 (xm3,tmult,ntot3)
           CALL dssum(ym3,nx3,ny3,nz3)
           call col2 (ym3,tmult,ntot3)
-          if (if3d) then
-              CALL dssum(xm3,nx3,ny3,nz3)
-              call col2 (xm3,tmult,ntot3)
-          endif
+          CALL dssum(xm3,nx3,ny3,nz3)
+          call col2 (xm3,tmult,ntot3)
       else
           ifield = 1
           CALL dssum(xm3,nx3,ny3,nz3)
           call col2 (xm3,vmult,ntot3)
           CALL dssum(ym3,nx3,ny3,nz3)
           call col2 (ym3,vmult,ntot3)
-          if (if3d) then
-              CALL dssum(xm3,nx3,ny3,nz3)
-              call col2 (xm3,vmult,ntot3)
-          endif
+          CALL dssum(xm3,nx3,ny3,nz3)
+          call col2 (xm3,vmult,ntot3)
       endif
       CALL GEOM1 (XM3,YM3,ZM3)
       CALL GEOM2

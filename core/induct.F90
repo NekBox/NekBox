@@ -8,7 +8,6 @@ subroutine compute_cfl(cfl,u,v,w,dt)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, lx1, ly1, lz1
   use geom, only : rxm1, rym1, rzm1, jacmi, sxm1, sym1, szm1, txm1, tym1, tzm1
-  use input, only : if3d
 !  use soln, only : cflf
   use wz_m, only : zgm1
   use mesh, only : if_ortho
@@ -30,13 +29,12 @@ subroutine compute_cfl(cfl,u,v,w,dt)
       icalld=1
       call getdr(dri,zgm1(1,1),nx1)
       call getdr(dsi,zgm1(1,2),ny1)
-      if (if3d) call getdr(dti,zgm1(1,3),nz1)
+      call getdr(dti,zgm1(1,3),nz1)
   endif
 
   cfl = 0.
   l   = 0
 
-  if (if3d) then
       nxyz = nx1*ny1*nz1
       do e=1,nelv
           do k=1,nz1
@@ -71,31 +69,6 @@ subroutine compute_cfl(cfl,u,v,w,dt)
               enddo
           enddo
       enddo
-  else
-#if 0
-      nxyz = nx1*ny1
-      do e=1,nelv
-          do j=1,ny1
-              do i=1,nx1
-                  l = l+1
-                  ur = ( u(i,j,1,e)*rxm1(i,j,1,e) &
-                  +   v(i,j,1,e)*rym1(i,j,1,e) ) * jacmi(l,1)
-                  us = ( u(i,j,1,e)*sxm1(i,j,1,e) &
-                  +   v(i,j,1,e)*sym1(i,j,1,e) ) * jacmi(l,1)
-
-                  cflr = abs(dt*ur*dri(i))
-                  cfls = abs(dt*us*dsi(j))
-
-                  cflm = cflr + cfls
-                  cfl  = max(cfl,cflm)
-
-!max                  cflf(i,j,1,e) = cflm
-
-              enddo
-          enddo
-      enddo
-#endif
-  endif
 
   cfl = glmax(cfl,1)
 
@@ -130,7 +103,6 @@ subroutine set_dealias_rx
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, lxd, nelv, ldim
   use geom, only : ifgeom, rx
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
-  use input, only : if3d
   use tstep , only : istep 
   use speclib, only : zwgl
   use mesh, only : if_ortho
@@ -161,16 +133,14 @@ subroutine set_dealias_rx
   call get_int_ptr (iptr, nx1, nxd)
 
 
-  if (if3d) then
-  
       do e=1,nelv
 
       !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
           if (if_ortho) then
 #if 1
-            call specmpn(rx(1,1,e),nxd,rxm1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),if3d,w2,ldw)
-            call specmpn(rx(1,2,e),nxd,sym1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),if3d,w2,ldw)
-            call specmpn(rx(1,3,e),nxd,tzm1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),if3d,w2,ldw)
+            call specmpn(rx(1,1,e),nxd,rxm1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),w2,ldw)
+            call specmpn(rx(1,2,e),nxd,sym1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),w2,ldw)
+            call specmpn(rx(1,3,e),nxd,tzm1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),w2,ldw)
 #else
             call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
             call intp_rstd(rx(1,2,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
@@ -201,31 +171,6 @@ subroutine set_dealias_rx
               enddo
           enddo
       enddo
-
-  else ! 2D
-#if 0  
-      do e=1,nelv
-
-      !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
-
-          call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,2,e),rym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,3,e),sxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-          call intp_rstd(rx(1,4,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-
-          l = 0
-          do j=1,nyd
-              do i=1,nxd
-                  l = l+1
-                  w = wd(i)*wd(j)
-                  do ii=1,4
-                      rx(l,ii,e) = w*rx(l,ii,e)
-                  enddo
-              enddo
-          enddo
-      enddo
-#endif
-  endif
 
   return
 end subroutine set_dealias_rx

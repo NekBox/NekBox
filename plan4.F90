@@ -222,7 +222,7 @@ subroutine crespsp (respr, vext)
   use size_m, only : nx1, ny1, nz1, nelv, ndim, nx2, ny2, nz2
   use geom, only : rxm2, sxm2, txm2, rym2, sym2, tym2, rzm2, szm2, tzm2
   use geom, only : unx, uny, unz, area
-  use input, only : ifaxis, if3d, cbc
+  use input, only : ifaxis, cbc
   use geom, only : bm1, binvm1, jacmi
   use soln, only : bfx, bfy, bfz, pr
   use soln, only : vx, vy, vz
@@ -315,42 +315,34 @@ subroutine crespsp (respr, vext)
 
   call opdssum (ta1,ta2,ta3)
 
-  if (if3d) then
+  if (if_ortho) then
+    !deallocate(wa1,wa2,wa3)
+    nyz2  = ny2*nz2
+    nxy1  = nx1*ny1
 
-    if (if_ortho) then
-      !deallocate(wa1,wa2,wa3)
-      nyz2  = ny2*nz2
-      nxy1  = nx1*ny1
-
-     do e = 1, nelv
-        tmp1 = jacmi(:,:,:,e) * bm1(:,:,:,e)
-        ! X 
-        tmp2 = ta1(:,:,:,e) * rxm2(:,:,:,e) * tmp1
-        call mxm  (dxtm12,nx1,tmp2,nx2,tmp3,nyz2)
-        respr(:,:,:,e) = - respr(:,:,:,e) + tmp3
-        ! Y 
-        tmp2 = ta2(:,:,:,e) * sym2(:,:,:,e) * tmp1 
-        do iz=1,nz2
-            call mxm  (tmp2(:,:,iz),nx1,dym12,ny2,tmp3(:,:,iz),ny1)
-        enddo
-        respr(:,:,:,e) =   respr(:,:,:,e) + tmp3
-        ! Z
-        tmp2 = ta3(:,:,:,e) * tzm2(:,:,:,e) * tmp1 
-        call mxm  (tmp2,nxy1,dzm12,nz2,tmp3,nz1)
-        respr(:,:,:,e) =   respr(:,:,:,e) + tmp3
+    do e = 1, nelv
+      tmp1 = jacmi(:,:,:,e) * bm1(:,:,:,e)
+      ! X 
+      tmp2 = ta1(:,:,:,e) * rxm2(:,:,:,e) * tmp1
+      call mxm  (dxtm12,nx1,tmp2,nx2,tmp3,nyz2)
+      respr(:,:,:,e) = - respr(:,:,:,e) + tmp3
+      ! Y 
+      tmp2 = ta2(:,:,:,e) * sym2(:,:,:,e) * tmp1 
+      do iz=1,nz2
+          call mxm  (tmp2(:,:,iz),nx1,dym12,ny2,tmp3(:,:,iz),ny1)
       enddo
-
-    else
-      call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
-      call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
-      call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
-      respr = -respr + wa1 + wa2 + wa3
-      !deallocate(wa1,wa2,wa3)
-    endif
+      respr(:,:,:,e) =   respr(:,:,:,e) + tmp3
+      ! Z
+      tmp2 = ta3(:,:,:,e) * tzm2(:,:,:,e) * tmp1 
+      call mxm  (tmp2,nxy1,dzm12,nz2,tmp3,nz1)
+      respr(:,:,:,e) =   respr(:,:,:,e) + tmp3
+    enddo
   else
-      call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
-      call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
-      respr = -respr + wa1 + wa2 
+    call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)
+    call cdtp    (wa2,ta2,rym2,sym2,tym2,1)
+    call cdtp    (wa3,ta3,rzm2,szm2,tzm2,1)
+    respr = -respr + wa1 + wa2 + wa3
+    !deallocate(wa1,wa2,wa3)
   endif
   deallocate(wa1,wa2,wa3)
 
@@ -483,7 +475,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
   use dxyz, only : dztm1, dytm1, dxm1
   use geom, only : jacm1, bm1, binvm1, jacmi
-  use input, only : if3d, ifaxis, ifcyclic
+  use input, only : ifaxis, ifcyclic
   use tstep, only : ifield
   use mesh, only : if_ortho
   implicit none
@@ -509,58 +501,31 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   NYZ1  = NY1*NZ1
 
 !   work1=dw/dy ; work2=dv/dz
-  if (if3d) then
-    if (if_ortho) then
-      do iel = 1, nelv
-        do iz = 1, nz1
-          CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,tmp1(1,1,iz),NY1)
-        enddo
-        CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,tmp2,NZ1) 
-        w1(:,:,:,iel) = (tmp1*sym1(:,:,:,iel) - tmp2*tzm1(:,:,:,iel)) * jacmi(:,:,:,iel)
+  if (if_ortho) then
+    do iel = 1, nelv
+      do iz = 1, nz1
+        CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,tmp1(1,1,iz),NY1)
       enddo
-    else
-      call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
-      call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
-      w1 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv) 
-    endif
+      CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,tmp2,NZ1) 
+      w1(:,:,:,iel) = (tmp1*sym1(:,:,:,iel) - tmp2*tzm1(:,:,:,iel)) * jacmi(:,:,:,iel)
+    enddo
   else
-      call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
-      call copy(w1,work1,ntot)
-
-      if(ifaxis) then
-        write(*,*) "Oops: ifaxis"
-#if 0
-          call copy (ta,u3,ntot)
-          do iel = 1,nelv
-              if(IFRZER(iel)) then
-                  call rzero (ta(1,1,1,iel),nx1)
-                  call MXM   (ta(1,1,1,iel),nx1,DATM1,ny1,duax,1)
-                  call copy  (ta(1,1,1,iel),duax,nx1)
-              endif
-              call col2    (ta(1,1,1,iel),yinvm1(1,1,1,iel),nxyz)
-          enddo
-          call add2      (w1,ta,ntot)
-#endif
-      endif
+    call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
+    call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
+    w1 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv) 
   endif
 
 !   work1=du/dz ; work2=dw/dx
-  if (if3d) then
-      if (if_ortho) then
-        do iel = 1, nelv
-          CALL MXM  (U1(1,1,1,iel),NXY1,DZTM1,NZ1,tmp1,NZ1) 
-          CALL MXM  (DXM1,NX1,U3(1,1,1,iel),NX1,tmp2,NYZ1)
-          w2(:,:,:,iel) = (tmp1*tzm1(:,:,:,iel) - tmp2*rxm1(:,:,:,iel)) * jacmi(:,:,:,iel)
-        enddo
-      else
-        call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
-        call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
-        w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
-      endif
+  if (if_ortho) then
+     do iel = 1, nelv
+       CALL MXM  (U1(1,1,1,iel),NXY1,DZTM1,NZ1,tmp1,NZ1) 
+       CALL MXM  (DXM1,NX1,U3(1,1,1,iel),NX1,tmp2,NYZ1)
+       w2(:,:,:,iel) = (tmp1*tzm1(:,:,:,iel) - tmp2*rxm1(:,:,:,iel)) * jacmi(:,:,:,iel)
+     enddo
   else
-      work1(:,:,:,1:nelv) = 0._dp
-      call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
-      w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+     call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
+     call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
+     w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
   endif
 
 !   work1=dv/dx ; work2=du/dy
@@ -604,7 +569,6 @@ end subroutine op_curl
 subroutine v_extrap(vext)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv
-  use input, only : if3d
   use soln, only : vx, vy, vz, vxlag, vylag, vzlag
   use tstep, only : ab, nab
   implicit none
@@ -620,11 +584,11 @@ subroutine v_extrap(vext)
   if(nab == 3) then
              vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1) + ab2*vxlag(:,:,:,:,2)
              vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1) + ab2*vylag(:,:,:,:,2)
-    if(if3d) vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1) + ab2*vzlag(:,:,:,:,2)
+             vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1) + ab2*vzlag(:,:,:,:,2)
   else
              vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1)
              vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1)
-    if(if3d) vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1)
+             vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1)
   endif
 
   return

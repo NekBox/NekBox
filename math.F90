@@ -49,11 +49,10 @@ end subroutine hsmg_tnsr1_3d
 !> \brief  Spectral interpolation from A to B via tensor products
 !!     -  scratch arrays: w(na*na*nb + nb*nb*na)
 !!     -  out of place
-subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)
+subroutine specmpn(b,nb,a,na,ba,ab,w,ldw)
   use kinds, only : DP
   implicit none
 
-  logical, intent(in) :: if3d
   integer, intent(in) :: nb, na, ldw
   real(DP), intent(out) :: b(nb,nb,nb)
   real(DP), intent(in) :: a(na,na,na)
@@ -62,10 +61,9 @@ subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)
 
   integer :: ltest, nab, nbb, k, l, iz
 
-  ltest = na*nb
-  if (if3d) ltest = na*na*nb + nb*na*na
+  ltest = na*na*nb + nb*na*na
   if (ldw < ltest) then
-      write(6,*) 'ERROR specmp:',ldw,ltest,if3d
+      write(6,*) 'ERROR specmp:',ldw,ltest
       call exitt
   endif
 

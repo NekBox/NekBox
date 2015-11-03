@@ -305,50 +305,6 @@ logical function iftuple_ianeb(a,b,key,nkey)
   return
 end function iftuple_ianeb
 
-!-----------------------------------------------------------------------
-!> \brief  Spectral interpolation from A to B via tensor products
-!!     -  scratch arrays: w(na*na*nb + nb*nb*na)
-!!     5/3/00  -- this routine replaces specmp in navier1.f, which
-!!                has a potential memory problem
-subroutine specmpn(b,nb,a,na,ba,ab,if3d,w,ldw)
-  use kinds, only : DP
-  implicit none
-
-  logical, intent(in) :: if3d
-  integer, intent(in) :: nb, na, ldw
-  real(DP), intent(out) :: b(nb,nb,nb)
-  real(DP), intent(in) :: a(na,na,na)
-  real(DP), intent(out) :: w(ldw) !>!< work buffer
-
-  integer :: ltest, nab, nbb, k, l, iz
-  real(DP) :: ba, ab
-
-  ltest = na*nb
-  if (if3d) ltest = na*na*nb + nb*na*na
-  if (ldw < ltest) then
-      write(6,*) 'ERROR specmp:',ldw,ltest,if3d
-      call exitt
-  endif
-
-  if (if3d) then
-      nab = na*nb
-      nbb = nb*nb
-      call mxm(ba,nb,a,na,w,na*na)
-      k=1
-      l=na*na*nb + 1
-      do iz=1,na
-          call mxm(w(k),nb,ab,na,w(l),nb)
-          k=k+nab
-          l=l+nbb
-      enddo
-      l=na*na*nb + 1
-      call mxm(w(l),nbb,ab,na,b,nb)
-  else
-      call mxm(ba,nb,a,na,w,na)
-      call mxm(w,nb,ab,na,b,nb)
-  endif
-  return
-end subroutine specmpn
 
 !-----------------------------------------------------------------------
 !> \brief Use Heap Sort (p 233 Num. Rec.), 5/26/93 pff.

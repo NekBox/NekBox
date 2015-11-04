@@ -1,3 +1,25 @@
+
+subroutine tensor_product_multiply(u, nu, v, nv, A, Bt, Ct, work1, work2)
+  use kinds, only : DP
+  implicit none
+  integer, intent(in)   :: nu, nv
+  real(DP), intent(in)  :: u(*)
+  real(DP), intent(out) :: v(*)
+  real(DP), intent(in)  :: A(*), Bt(*), Ct(*)
+  real(DP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
+
+  integer :: i
+ 
+  call mxm(A,nv,u,nu,work1,nu*nu)
+  do i=0,nu-1
+      call mxm(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+  enddo
+  call mxm(work2,nv*nv,Ct,nu,v,nv)
+  return
+
+end subroutine tensor_product_multiply
+
+
 !> \brief compute v = [C (x) B (x) A] v (in-place)
 subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
   use kinds, only : DP
@@ -5,11 +27,9 @@ subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
   use size_m, only : lx1, ly1, lz1, nelv
   implicit none
 
-  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
-
   integer :: nv,nu
   real(DP) :: v(*),A(*),Bt(*),Ct(*)
-  real(DP) :: work1(0:lwk-1),work2(0:lwk-1)
+  real(DP) :: work1(0:nu*nu*nv-1),work2(0:nu*nv*nv-1)
 
   integer :: e,e0,ee,es
   integer :: nu3, nv3, iu, iv, i
@@ -35,11 +55,7 @@ subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
   do e=e0,ee,es
       iu = 1 + (e-1)*nu3
       iv = 1 + (e-1)*nv3
-      call mxm(A,nv,v(iu),nu,work1,nu*nu)
-      do i=0,nu-1
-          call mxm(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
-      enddo
-      call mxm(work2,nv*nv,Ct,nu,v(iv),nv)
+      call tensor_product_multiply(v(iu), nu, v(iv), nv, A, Bt, Ct, work1, work2)
   enddo
 
   return
@@ -67,6 +83,11 @@ subroutine specmpn(b,nb,a,na,ba,ab,w,ldw)
       call exitt
   endif
 
+#if 1
+  call tensor_product_multiply(a, na, b, nb, ba, ab, ab, w(1:na*na*nb), w(na*na*nb+1:))
+#else
+
+
       nab = na*nb
       nbb = nb*nb
       call mxm(ba,nb,a,na,w,na*na)
@@ -79,6 +100,7 @@ subroutine specmpn(b,nb,a,na,ba,ab,w,ldw)
       enddo
       l=na*na*nb + 1
       call mxm(w(l),nbb,ab,na,b,nb)
+#endif
   return
 end subroutine specmpn
 

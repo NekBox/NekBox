@@ -100,7 +100,7 @@ end subroutine getdr
 ! at current time step.
 subroutine set_dealias_rx
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, lxd, nelv, ldim
+  use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, lxd, lx1, nelv, ldim
   use geom, only : ifgeom, rx
   use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
   use tstep , only : istep 
@@ -116,6 +116,7 @@ subroutine set_dealias_rx
   real(DP) :: w
 
   real(DP) :: w2((2*lxd)**ldim,2)
+  real(DP) :: work1(lxd*lxd*lx1), work2(lxd*lx1*lx1)
   integer, parameter :: ldw = 2*(2*lxd)**ldim
   integer :: iptr
 
@@ -137,15 +138,9 @@ subroutine set_dealias_rx
 
       !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
           if (if_ortho) then
-#if 1
-            call specmpn(rx(1,1,e),nxd,rxm1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),w2,ldw)
-            call specmpn(rx(1,2,e),nxd,sym1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),w2,ldw)
-            call specmpn(rx(1,3,e),nxd,tzm1(1,1,1,e),nx1,jgl(iptr),jgt(iptr),w2,ldw)
-#else
-            call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,2,e),sym1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-            call intp_rstd(rx(1,3,e),tzm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd
-#endif
+            call tensor_product_multiply(rxm1(1,1,1,e),nx1,rx(1,1,e),nxd,jgl(iptr),jgt(iptr),jgt(iptr),work2,work1)
+            call tensor_product_multiply(sym1(1,1,1,e),nx1,rx(1,2,e),nxd,jgl(iptr),jgt(iptr),jgt(iptr),work2,work1)
+            call tensor_product_multiply(tzm1(1,1,1,e),nx1,rx(1,3,e),nxd,jgl(iptr),jgt(iptr),jgt(iptr),work2,work1)
           else
 #if 0
             call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd

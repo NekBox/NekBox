@@ -414,71 +414,27 @@ end subroutine hsmg_intp
 !> \brief     computes v = [A (x) A] u or v = [A (x) A (x) A] u
 subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   use kinds, only : DP
-  implicit none
-
-  integer :: nv,nu
-  real(DP) :: v(*),u(*),A(*),At(*)
-
-  call hsmg_tnsr3d(v,nv,u,nu,A,At,At)
-  return
-end subroutine hsmg_tnsr
-
-!----------------------------------------------------------------------
-!> \brief computes:  v = [C (x) B (x) A] u .
-subroutine hsmg_tnsr3d(v,nv,u,nu,A,Bt,Ct)
-  use kinds, only : DP
+  use size_m, only : nelv
   use ctimer, only : h1mg_flop, h1mg_mop
-  use size_m
   implicit none
 
   integer :: nv,nu
-  real(DP) :: v(nv*nv*nv,nelv),u(nu*nu*nu,nelv),A(*),Bt(*),Ct(*)
+  real(DP) :: v(nv*nv*nv,*),u(nu*nu*nu,*),A(*),At(*)
+  real(DP) :: work(nu*nu*nv),work2(nu*nv*nv)
 
-  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
-  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
-  integer :: ie, i
+  integer :: ie
 
   h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
   h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
   h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
-  h1mg_mop = h1mg_mop + nv**3 + nu**3
+  h1mg_mop  = h1mg_mop + nv**3 + nu**3
 
   do ie=1,nelv
-      call mxm(A,nv,u(1,ie),nu,work,nu*nu)
-      do i=0,nu-1
-          call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
-      enddo
-      call mxm(work2,nv*nv,Ct,nu,v(1,ie),nv)
+    call tensor_product_multiply(u(1,ie), nu, v(1,ie), nv, A, At, At, work, work2)
   enddo
-  return
-end subroutine hsmg_tnsr3d
-
-!----------------------------------------------------------------------
-!> \brief computes  v = [C (x) B (x) A] u
-subroutine hsmg_tnsr3d_el(v,nv,u,nu,A,Bt,Ct)
-  use kinds, only : DP
-  use ctimer, only : schw_flop, schw_mop
-  use size_m, only : lx1, ly1, lz1
-  implicit none
-
-  integer :: nv,nu
-  real(DP) :: v(nv*nv*nv),u(nu*nu*nu),A(*),Bt(*),Ct(*)
-
-  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
-  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
-  integer :: i
-
-  schw_flop = schw_flop + nv*nu*nu*(2*nu-1)+ nv*nv*nu*(2*nu-1)+ nv*nv*nv*(2*nu-1)
-  schw_mop  = schw_mop + nu**3 + nv**3
-
-  call mxm(A,nv,u,nu,work,nu*nu)
-  do i=0,nu-1
-      call mxm(work(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
-  enddo
-  call mxm(work2,nv*nv,Ct,nu,v,nv)
 
   return
-end subroutine hsmg_tnsr3d_el
+end subroutine hsmg_tnsr
 
 !----------------------------------------------------------------------
 subroutine hsmg_dssum(u,l)

@@ -1,65 +1,73 @@
-
-subroutine tensor_product_multiply(u, nu, v, nv, A, Bt, Ct, work1, work2)
+subroutine tensor_product_multiply(u, nu, v, nv, A, At, work1, work2)
   use kinds, only : DP
   implicit none
   integer, intent(in)   :: nu, nv
   real(DP), intent(in)  :: u(*)
   real(DP), intent(out) :: v(*)
-  real(DP), intent(in)  :: A(*), Bt(*), Ct(*)
+  real(DP), intent(in)  :: A(*), At(*)
   real(DP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
 
   integer :: i
  
   call mxm(A,nv,u,nu,work1,nu*nu)
   do i=0,nu-1
-      call mxm(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+      call mxm(work1(nv*nu*i),nv,At,nu,work2(nv*nv*i),nv)
   enddo
-  call mxm(work2,nv*nv,Ct,nu,v,nv)
+  call mxm(work2,nv*nv,At,nu,v,nv)
   return
 
 end subroutine tensor_product_multiply
 
-
-!> \brief compute v = [C (x) B (x) A] v (in-place)
-subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
+!----------------------------------------------------------------------
+!> \brief clobbers r
+subroutine hsmg_do_fast(e,r,s,d,nl)
   use kinds, only : DP
-  use ctimer, only : h1mg_flop, h1mg_mop
-  use size_m, only : lx1, ly1, lz1, nelv
+  use size_m, only : ndim, nelv
+  use size_m, only : lx1, ly1, lz1
+  use ctimer, only : schw_flop, schw_mop
   implicit none
 
-  integer :: nv,nu
-  real(DP) :: v(*),A(*),Bt(*),Ct(*)
-  real(DP) :: work1(0:nu*nu*nv-1),work2(0:nu*nv*nv-1)
+  integer :: nl
+  real(DP) :: e(nl**ndim,nelv)
+  real(DP) :: r(nl**ndim,nelv)
+  real(DP) :: s(nl*nl,2,ndim,nelv)
+  real(DP) :: d(nl**ndim,nelv)
+        
+  integer :: ie,nn,i
 
-  integer :: e,e0,ee,es
-  integer :: nu3, nv3, iu, iv, i
+  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
+  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
 
-  e0=1
-  es=1
-  ee=nelv
-
-  if (nv > nu) then
-      e0=nelv
-      es=-1
-      ee=1
-  endif
-
-  nu3 = nu**3
-  nv3 = nv**3
-
-  h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
-  h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
-  h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
-  h1mg_mop = h1mg_mop + nv3 + nu3
-
-  do e=e0,ee,es
-      iu = 1 + (e-1)*nu3
-      iv = 1 + (e-1)*nv3
-      call tensor_product_multiply(v(iu), nu, v(iv), nv, A, Bt, Ct, work1, work2)
-  enddo
-
+  nn=nl**ndim
+      schw_flop = schw_flop + nelv*nn
+      schw_mop  = schw_mop  + nelv*nn ! r and e should be in cache
+      do ie=1,nelv
+#if 1
+        schw_flop = schw_flop + 3*nn*(2*nl-1)
+        schw_mop  = schw_mop + nn + 3*nl*nl
+   
+        call mxm(s(1,2,1,ie),nl,r(1,ie),nl,work,nl*nl)
+        do i=0,nl-1
+            call mxm(work(nl*nl*i),nl,s(1,1,2,ie),nl,work2(nl*nl*i),nl)
+        enddo
+        call mxm(work2,nl*nl,s(1,1,3,ie),nl,work,nl)
+#endif
+        do i=0,nn-1
+            work2(i)=d(i+1,ie)*work(i)
+        enddo
+#if 1
+        schw_flop = schw_flop + 3*nn*(2*nl-1)
+        schw_mop  = schw_mop + 1*nn + 3*nl*nl
+   
+        call mxm(s(1,1,1,ie),nl,work2,nl,work,nl*nl)
+        do i=0,nl-1
+            call mxm(work(nl*nl*i),nl,s(1,2,2,ie),nl,work2(nl*nl*i),nl)
+        enddo
+        call mxm(work2,nl*nl,s(1,2,3,ie),nl,e(1,ie),nl)
+#endif
+      enddo
   return
-end subroutine hsmg_tnsr1_3d
+end subroutine hsmg_do_fast
 
 !> \brief local inner product, with weight
 real(DP) FUNCTION VLSC3(X,Y,B,N)

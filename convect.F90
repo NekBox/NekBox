@@ -135,7 +135,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
       if (ifuf) then
           call local_grad3(ur,us,ut,u(iu),nxd-1,1,dgl(iptr2),dgt(iptr2))
       else
-          call tensor_product_multiply(u(iu), nx1, uf, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
+          call tensor_product_multiply(u(iu), nx1, uf, nxd, jgl(iptr), jgt(iptr), w2, w1)
           call local_grad3(ur,us,ut,uf,nxd-1,1,dgl(iptr2),dgt(iptr2))
       endif
 #endif
@@ -145,7 +145,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
 #ifndef INLINE_INTP
       call intp_rstd(bdu(ib),uf,nx1,nxd,if3d,1) ! Project back to coarse
 #else
-      call tensor_product_multiply(uf, nxd, bdu(ib), nx1, jgt(iptr), jgl(iptr), jgl(iptr), w1, w2)
+      call tensor_product_multiply(uf, nxd, bdu(ib), nx1, jgt(iptr), jgl(iptr), w1, w2)
 #endif
 
       ic = ic + nxyzc
@@ -202,9 +202,9 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   !      Map coarse velocity to fine mesh (C-->F)
 #ifdef INLINE_INTP
-    call tensor_product_multiply(ux(1,e), nx1, fx, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
-    call tensor_product_multiply(uy(1,e), nx1, fy, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
-    call tensor_product_multiply(uz(1,e), nx1, fz, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
+    call tensor_product_multiply(ux(1,e), nx1, fx, nxd, jgl(iptr), jgt(iptr), w2, w1)
+    call tensor_product_multiply(uy(1,e), nx1, fy, nxd, jgl(iptr), jgt(iptr), w2, w1)
+    call tensor_product_multiply(uz(1,e), nx1, fz, nxd, jgl(iptr), jgt(iptr), w2, w1)
 #else
     call intp_rstd(fx,ux(1,e),nx1,nxd,.true.,0) ! 0 --> forward
     call intp_rstd(fy,uy(1,e),nx1,nxd,.true.,0) ! 0 --> forward

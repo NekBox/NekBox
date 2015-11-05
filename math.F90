@@ -61,50 +61,6 @@ subroutine hsmg_tnsr1_3d(v,nv,nu,A,Bt,Ct)
   return
 end subroutine hsmg_tnsr1_3d
 
-!-----------------------------------------------------------------------
-!> \brief  Spectral interpolation from A to B via tensor products
-!!     -  scratch arrays: w(na*na*nb + nb*nb*na)
-!!     -  out of place
-subroutine specmpn(b,nb,a,na,ba,ab,w,ldw)
-  use kinds, only : DP
-  implicit none
-
-  integer, intent(in) :: nb, na, ldw
-  real(DP), intent(out) :: b(nb,nb,nb)
-  real(DP), intent(in) :: a(na,na,na)
-  real(DP), intent(out) :: w(ldw) !>!< work buffer
-  real(DP), intent(in) :: ba(nb,na), ab(na,nb)
-
-  integer :: ltest, nab, nbb, k, l, iz
-
-  ltest = na*na*nb + nb*na*na
-  if (ldw < ltest) then
-      write(6,*) 'ERROR specmp:',ldw,ltest
-      call exitt
-  endif
-
-#if 1
-  call tensor_product_multiply(a, na, b, nb, ba, ab, ab, w(1:na*na*nb), w(na*na*nb+1:))
-#else
-
-
-      nab = na*nb
-      nbb = nb*nb
-      call mxm(ba,nb,a,na,w,na*na)
-      k=1
-      l=na*na*nb + 1
-      do iz=1,na
-          call mxm(w(k),nb,ab,na,w(l),nb)
-          k=k+nab
-          l=l+nbb
-      enddo
-      l=na*na*nb + 1
-      call mxm(w(l),nbb,ab,na,b,nb)
-#endif
-  return
-end subroutine specmpn
-
-
 !> \brief local inner product, with weight
 real(DP) FUNCTION VLSC3(X,Y,B,N)
   use kinds, only : DP

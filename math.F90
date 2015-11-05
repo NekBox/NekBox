@@ -41,6 +41,73 @@ subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
   return
 end subroutine local_grad3
 
+!-------------------------------------------------------------
+!> \brief Compute DT*X (entire field)
+!-------------------------------------------------------------
+subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
+  use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, ndim
+  use ctimer, only : icalld, tcdtp, ncdtp, etime1, dnekclock
+  use dxyz, only : dym12, dam12, dcm12, dxtm12, dzm12
+  use geom, only : ifrzer, jacm2, ym2, jacm1
+  use input, only : ifaxis, ifsplit
+  use ixyz, only : iym12, iam12, icm12
+  use geom, only : bm1, bm2
+  use wz_m, only : w3m2, w2am2, w2cm2
+  implicit none
+
+  integer :: isd
+  real(DP) :: dtx  (lx1,ly1,lz1,lelv)
+  real(DP) :: x    (lx2,ly2,lz2,lelv)
+  real(DP) :: rm2  (lx2,ly2,lz2,lelv)
+  real(DP) :: sm2  (lx2,ly2,lz2,lelv)
+  real(DP) :: tm2  (lx2,ly2,lz2,lelv)
+
+  real(DP) ::  wx  (lx1,ly1,lz1) &
+  ,             ta1 (lx1,ly1,lz1) &
+  ,             ta2 (lx1,ly1,lz1)
+
+  integer :: e
+  integer :: nxyz1, nxyz2, nxy1, nyz2, n1, n2, ny12, i1, i2, iz
+
+#ifndef NOTIMER
+  if (icalld == 0) tcdtp=0.0
+  icalld=icalld+1
+  ncdtp=icalld
+  etime1=dnekclock()
+#endif
+
+  nxyz1 = nx1*ny1*nz1
+  nxyz2 = nx2*ny2*nz2
+  nyz2  = ny2*nz2
+  nxy1  = nx1*ny1
+
+  n1    = nx1*ny1
+  n2    = nx1*ny2
+
+  do e=1,nelv
+  !      Collocate with weights
+    wx = bm1(:,:,:,e) * x(:,:,:,e) / jacm1(:,:,:,e)
+
+    ta1 = wx * rm2(:,:,:,e)
+    call mxm  (dxtm12,nx1,ta1,nx2,dtx(:,:,:,e),nyz2)
+    ta1 = wx * sm2(:,:,:,e)
+    i1 = 1
+    i2 = 1
+    do iz=1,nz2
+        call mxm  (ta1(:,:,iz),nx1,dym12,ny2,ta2(:,:,iz),ny1)
+        i1 = i1 + n1
+        i2 = i2 + n2
+    enddo
+    dtx(:,:,:,e) = dtx(:,:,:,e) + ta2
+    ta1 = wx * tm2(:,:,:,e)
+    call mxm  (ta1,nxy1,dzm12,nz2,ta2,nz1)
+    dtx(:,:,:,e) = dtx(:,:,:,e) + ta2
+  enddo
+
+end subroutine cdtp 
+
 !----------------------------------------------------------------------
 !> \brief clobbers r
 subroutine hsmg_do_fast(e,r,s,d,nl)

@@ -50,7 +50,7 @@ end subroutine setup_convect
 subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   use kinds, only : DP
   use size_m, only : nelv
-  use size_m, only : lxd, lyd, lzd, ldim
+  use size_m, only : lx1, lxd, lyd, lzd, ldim
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd
   use ctimer, only : tscn, dnekclock
   use interp, only : jgl, jgt, dgl, dgt
@@ -67,6 +67,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   integer :: nxyz1, nxyzd, nxyzu, nxyzc
   real(DP) :: etime
   real(DP) :: w((2*lxd)**ldim,2)
+  real(DP) :: w1(lxd*lxd*lx1), w2(lxd*lx1*lx1)
   integer, parameter :: ldw = 2*(2*lxd)**ldim
 
   etime = dnekclock()
@@ -123,7 +124,6 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
 #endif
       endif
 
-!      etime = etime - dnekclock()
 #ifndef INLINE_INTP
       if (ifuf) then
           call grad_rst(ur,us,ut,u(iu),nxd,if3d)
@@ -135,22 +135,18 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
       if (ifuf) then
           call local_grad3(ur,us,ut,u(iu),nxd-1,1,dgl(iptr2),dgt(iptr2))
       else
-          call specmpn(uf,nxd,u(iu),nx1,jgl(iptr),jgt(iptr),w,ldw)
+          call tensor_product_multiply(u(iu), nx1, uf, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
           call local_grad3(ur,us,ut,uf,nxd-1,1,dgl(iptr2),dgt(iptr2))
       endif
 #endif
-!      etime = etime + dnekclock()
-
       do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
           uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
       enddo
-!      etime = etime - dnekclock()
 #ifndef INLINE_INTP
       call intp_rstd(bdu(ib),uf,nx1,nxd,if3d,1) ! Project back to coarse
 #else
-      call specmpn(bdu(ib),nx1,uf,nxd,jgt(iptr),jgl(iptr),w,ldw)
+      call tensor_product_multiply(uf, nxd, bdu(ib), nx1, jgt(iptr), jgl(iptr), jgl(iptr), w1, w2)
 #endif
-!      etime = etime + dnekclock()
 
       ic = ic + nxyzc
       iu = iu + nxyzu
@@ -184,6 +180,7 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   real(DP) :: fx(ltd), fy(ltd), fz(ltd)!, ur, us, ut, tr, uf
   real(DP) :: w((2*lxd)**ldim,2)
+  real(DP) :: w1(lxd*lxd*lx1), w2(lxd*lx1*lx1)
   integer, parameter :: ldw = 2*(2*lxd)**ldim
 
   real(DP) :: etime
@@ -204,15 +201,10 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   do e=1,nelv
 
   !      Map coarse velocity to fine mesh (C-->F)
-
-    !call specmpn(fx,nxd,ux(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
-    !call specmpn(fy,nxd,uy(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
-    !call specmpn(fz,nxd,uz(1,e),nx1,jgl(i),jgt(i),if3d,w,ldw)
-!    etime = etime - dnekclock()
 #ifdef INLINE_INTP
-    call specmpn(fx,nxd,ux(1,e),nx1,jgl(iptr),jgt(iptr),w,ldw)
-    call specmpn(fy,nxd,uy(1,e),nx1,jgl(iptr),jgt(iptr),w,ldw)
-    call specmpn(fz,nxd,uz(1,e),nx1,jgl(iptr),jgt(iptr),w,ldw)
+    call tensor_product_multiply(ux(1,e), nx1, fx, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
+    call tensor_product_multiply(uy(1,e), nx1, fy, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
+    call tensor_product_multiply(uz(1,e), nx1, fz, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
 #else
     call intp_rstd(fx,ux(1,e),nx1,nxd,.true.,0) ! 0 --> forward
     call intp_rstd(fy,uy(1,e),nx1,nxd,.true.,0) ! 0 --> forward

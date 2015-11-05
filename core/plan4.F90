@@ -159,45 +159,48 @@ subroutine plan4()
 !    if (ifexplvis) call redo_split_vis
 
 ! Below is just for diagnostics...
+  if (param(75) < 1) then
 
-!     Calculate Divergence norms of new VX,VY,VZ
-  allocate(dvc(lx1,ly1,lz1,lelv), dfc(lx1,ly1,lz1,lelv))
-  CALL OPDIV   (DVC,VX,VY,VZ)
-  CALL DSSUM   (DVC)
-  dvc = dvc * binvm1
+    ! Calculate Divergence norms of new VX,VY,VZ
+    allocate(dvc(lx1,ly1,lz1,lelv), dfc(lx1,ly1,lz1,lelv))
+    CALL OPDIV   (DVC,VX,VY,VZ)
+    CALL DSSUM   (DVC)
+    dvc = dvc * binvm1
+ 
+    dv1 = dvc * bm1
+    DIV1 = GLSUM (DV1,NTOT1)/VOLVM1
+ 
+    dv2 = dvc * dvc * bm1
+    DIV2 = GLSUM (DV2,NTOT1)/VOLVM1
+    DIV2 = SQRT  (DIV2)
+    !  Calculate Divergence difference norms
+    dfc = dvc! - qtl
+    dv1 = dfc * bm1
+    DIF1 = GLSUM (DV1,NTOT1)/VOLVM1
+      
+    dv2 = dfc * dfc * bm1
+    DIF2 = GLSUM (DV2,NTOT1)/VOLVM1
+    DIF2 = SQRT  (DIF2)
+ 
+    dv1 = 0._dp !qtl * bm1
+    QTL1 = GLSUM (DV1,NTOT1)/VOLVM1
+      
+    dv2 = 0._dp !qtl * qtl * bm1
+    QTL2 = GLSUM (DV2,NTOT1)/VOLVM1
+    QTL2 = SQRT  (QTL2)
+ 
+    IF (NID == 0) THEN
+        WRITE(6,'(15X,A,1p2e13.4)') &
+        'L1/L2 DIV(V)    :',DIV1,DIV2
+        WRITE(6,'(15X,A,1p2e13.4)') &
+        'L1/L2 QTL       :',QTL1,QTL2
+        WRITE(6,'(15X,A,1p2e13.4)') &
+        'L1/L2 DIV(V)-QTL:',DIF1,DIF2
+        IF (DIF2 > 0.1) WRITE(6,'(15X,A)') &
+        'WARNING: DIV(V)-QTL too large!'
+    ENDIF 
+  endif
 
-  dv1 = dvc * bm1
-  DIV1 = GLSUM (DV1,NTOT1)/VOLVM1
-
-  dv2 = dvc * dvc * bm1
-  DIV2 = GLSUM (DV2,NTOT1)/VOLVM1
-  DIV2 = SQRT  (DIV2)
-!     Calculate Divergence difference norms
-  dfc = dvc! - qtl
-  dv1 = dfc * bm1
-  DIF1 = GLSUM (DV1,NTOT1)/VOLVM1
-    
-  dv2 = dfc * dfc * bm1
-  DIF2 = GLSUM (DV2,NTOT1)/VOLVM1
-  DIF2 = SQRT  (DIF2)
-
-  dv1 = 0._dp !qtl * bm1
-  QTL1 = GLSUM (DV1,NTOT1)/VOLVM1
-    
-  dv2 = 0._dp !qtl * qtl * bm1
-  QTL2 = GLSUM (DV2,NTOT1)/VOLVM1
-  QTL2 = SQRT  (QTL2)
-
-  IF (NID == 0) THEN
-      WRITE(6,'(15X,A,1p2e13.4)') &
-      'L1/L2 DIV(V)    :',DIV1,DIV2
-      WRITE(6,'(15X,A,1p2e13.4)') &
-      'L1/L2 QTL       :',QTL1,QTL2
-      WRITE(6,'(15X,A,1p2e13.4)') &
-      'L1/L2 DIV(V)-QTL:',DIF1,DIF2
-      IF (DIF2 > 0.1) WRITE(6,'(15X,A)') &
-      'WARNING: DIV(V)-QTL too large!'
-  ENDIF 
   tp4misc = tp4misc + (dnekclock() - etime)
    
   return

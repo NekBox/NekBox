@@ -55,7 +55,7 @@ navier0.o navier1.o navier5.o navier6.o  navier8.o \
 map2.o ic.o ssolv.o math.o mxm_wrapper.o \
 hmholtz.o \
 subs1.o \
-fast3d.o fasts.o  \
+fast3d.o  \
 byte.o \
 chelpers.o \
 byte_mpi.o \

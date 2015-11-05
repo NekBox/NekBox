@@ -19,6 +19,50 @@ subroutine tensor_product_multiply(u, nu, v, nv, A, At, work1, work2)
 end subroutine tensor_product_multiply
 
 !-----------------------------------------------------------------------
+!> \brief  Tensor product application of v = (C x B x A) u .
+!!  NOTE -- the transpose of B & C must be input, rather than B & C.
+!!  -  scratch arrays: w(nu*nu*nv)
+subroutine tensr3(v,nv,u,nu,A,Bt,Ct,w)
+  use kinds, only : DP
+  use size_m, only : nid
+  use input, only : if3d
+  implicit none
+
+  integer :: nv, nu
+  real(DP) :: v(*),u(*)
+  real(DP) :: A(*),Bt(*),Ct(*)
+  real(DP) :: w(*)
+
+  integer :: nuv, nvv, k, l, iz
+
+  if (nu > nv) then
+      write(6,*) nid,nu,nv,' ERROR in tensr3. Contact P.Fischer.'
+      write(6,*) nid,nu,nv,' Memory problem.'
+      call exitt
+  endif
+
+  if (if3d) then
+      nuv = nu*nv
+      nvv = nv*nv
+      call mxm(A,nv,u,nu,v,nu*nu)
+      k=1
+      l=1
+      do iz=1,nu
+          call mxm(v(k),nv,Bt,nu,w(l),nv)
+          k=k+nuv
+          l=l+nvv
+      enddo
+      call mxm(w,nvv,Ct,nu,v,nv)
+  else
+      call mxm(A,nv,u,nu,w,nu)
+      call mxm(w,nv,Bt,nu,v,nv)
+  endif
+  return
+end subroutine tensr3
+
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
 !> \brief     Output: ur,us,ut         Input:u,N,e,D,Dt
 subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
   use kinds, only : DP
@@ -191,6 +235,106 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
       enddo
   return
 end subroutine hsmg_do_fast
+
+
+!-----------------------------------------------------------------------
+!> \brief Compute curl of U.
+!!
+!! \f$ (w_1, w_2, w_3) = \nabla \times (u_1, u_2, u_3) \f$
+subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nx1, ny1, nz1, nelv
+  use geom, only : rxm1, rym1, rzm1, sxm1, sym1, szm1, txm1, tym1, tzm1
+  use dxyz, only : dztm1, dytm1, dxm1
+  use geom, only : jacm1, bm1, binvm1, jacmi
+  use input, only : ifaxis, ifcyclic
+  use tstep, only : ifield
+  use mesh, only : if_ortho
+  implicit none
+
+  real(DP), intent(out) :: w1(lx1,ly1,lz1,lelv) !>!< 1st component of curl U
+  real(DP), intent(out) :: w2(lx1,ly1,lz1,lelv) !>!< 2nd component of curl U
+  real(DP), intent(out) :: w3(lx1,ly1,lz1,lelv) !>!< 3rd component of curl U
+  real(DP), intent(in)  :: u1(lx1,ly1,lz1,lelv) !>!< 1st component of U
+  real(DP), intent(in)  :: u2(lx1,ly1,lz1,lelv) !>!< 2nd component of U
+  real(DP), intent(in)  :: u3(lx1,ly1,lz1,lelv) !>!< 3rd component of U
+  real(DP), intent(out) :: work1(lx1,ly1,lz1,lelv) !>!< work array
+  real(DP), intent(out) :: work2(lx1,ly1,lz1,lelv) !>!< work array
+  logical, intent(in)   :: ifavg !>!< Average at boundary? 
+
+  integer :: ntot, nxyz, ifielt, nxy1, nyz1, iel, iz
+  real(DP), allocatable :: tmp1(:,:,:), tmp2(:,:,:)
+
+  allocate(tmp1(nx1,ny1,nz1), tmp2(nx1,ny1,nz1))
+
+  ntot  = nx1*ny1*nz1*nelv
+  nxyz  = nx1*ny1*nz1
+  NXY1  = NX1*NY1
+  NYZ1  = NY1*NZ1
+
+!   work1=dw/dy ; work2=dv/dz
+  if (if_ortho) then
+    do iel = 1, nelv
+      do iz = 1, nz1
+        CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,tmp1(1,1,iz),NY1)
+      enddo
+      CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,tmp2,NZ1) 
+      w1(:,:,:,iel) = (tmp1*sym1(:,:,:,iel) - tmp2*tzm1(:,:,:,iel)) * jacmi(:,:,:,iel)
+    enddo
+  else
+    call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
+    call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
+    w1 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv) 
+  endif
+
+!   work1=du/dz ; work2=dw/dx
+  if (if_ortho) then
+     do iel = 1, nelv
+       CALL MXM  (U1(1,1,1,iel),NXY1,DZTM1,NZ1,tmp1,NZ1) 
+       CALL MXM  (DXM1,NX1,U3(1,1,1,iel),NX1,tmp2,NYZ1)
+       w2(:,:,:,iel) = (tmp1*tzm1(:,:,:,iel) - tmp2*rxm1(:,:,:,iel)) * jacmi(:,:,:,iel)
+     enddo
+  else
+     call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
+     call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
+     w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+  endif
+
+!   work1=dv/dx ; work2=du/dy
+  if (if_ortho) then
+    do iel = 1, nelv
+      CALL MXM   (DXM1,NX1,U2(1,1,1,iel),NX1,tmp1,NYZ1)
+      do iz = 1, nz1
+        CALL MXM  (U1(1,1,iz,iel),NX1,DYTM1,NY1,tmp2(1,1,iz),NY1)
+      enddo
+      w3(:,:,:,iel) = (tmp1*rxm1(:,:,:,iel) - tmp2*sym1(:,:,:,iel)) * jacmi(:,:,:,iel)
+    enddo
+  else
+    call dudxyz(work1,u2,rxm1,sxm1,txm1,jacm1,1,1)
+    call dudxyz(work2,u1,rym1,sym1,tym1,jacm1,1,2)
+    w3 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+  endif
+!  Avg at bndry
+
+!   if (ifavg) then
+  if (ifavg .AND. .NOT. ifcyclic) then
+
+      ifielt = ifield
+      ifield = 1
+             
+      w1 = w1 * bm1; w2 = w2 * bm1; w3 = w3 * bm1
+      call opdssum (w1,w2,w3)
+      w1 = w1 * binvm1; w2 = w2 * binvm1; w3 = w3 * binvm1
+
+      ifield = ifielt
+
+  endif
+
+  return
+end subroutine op_curl
+
+
+
 
 !> \brief local inner product, with weight
 real(DP) FUNCTION VLSC3(X,Y,B,N)
@@ -802,3 +946,4 @@ subroutine iswapt_ip(x,p,n)
   enddo
   return
 end subroutine iswapt_ip
+

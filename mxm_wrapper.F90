@@ -171,10 +171,10 @@ subroutine mxm(a,n1,b,n2,c,n3)
 
 
 #ifdef XSMM_DISPATCH
-  f = libxsmm_mm_dispatch(n1, n3, n2, T)
+  f = libxsmm_dispatch(1.0_dp, 0.0_dp, n1, n3, n2)
   if (C_ASSOCIATED(f)) then
       CALL C_F_PROCPOINTER(f, dmm)
-      CALL dmm(a, b, c)
+      CALL dmm(1.0_dp, 0.0_dp, a, b, c)
       return
   endif
 #endif

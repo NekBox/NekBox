@@ -226,29 +226,6 @@ subroutine filterq(v,f,nx,nz,w1,w2,ft,if3d,dmax)
 end subroutine filterq
 
 !-----------------------------------------------------------------------
-!> \brief     Output: ur,us,ut         Input:u,N,e,D,Dt
-subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
-  use kinds, only : DP
-  implicit none
-  integer :: N,e
-  real(DP) :: ur(0:N,0:N,0:N),us(0:N,0:N,0:N),ut(0:N,0:N,0:N)
-  real(DP) :: u (0:N,0:N,0:N,*)
-  real(DP) :: D (0:N,0:N),Dt(0:N,0:N)
-
-  integer :: m1, m2, k
-  m1 = N+1
-  m2 = m1*m1
-
-  call mxm(D ,m1,u(0,0,0,e),m1,ur,m2)
-  do k=0,N
-      call mxm(u(0,0,k,e),m1,Dt,m1,us(0,0,k),m1)
-  enddo
-  call mxm(u(0,0,0,e),m2,Dt,m1,ut,m1)
-
-  return
-end subroutine local_grad3
-
-!-----------------------------------------------------------------------
 !> \brief Gauss-Jordan matrix inversion with full pivoting.
 !! Num. Rec. p. 30, 2nd Ed., Fortran
 !! a     is an m x n matrix

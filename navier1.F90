@@ -113,6 +113,7 @@ subroutine opgrad (out1,out2,out3,inp)
       call wgradm1(out1,out2,out3,inp,nelv) ! weak grad on FLUID mesh
       return
   endif
+  write(*,*) "Got here!"
 
   NTOT2 = NX2*NY2*NZ2*NELV
   if (if_ortho) then

@@ -85,6 +85,32 @@ subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
   return
 end subroutine local_grad3
 
+subroutine helmholtz(h1, h2, nx, ny, nz, &
+                     u, au, gx, gy, gz, b, &
+                     work1, work2, work3)
+  use kinds, only : DP
+  use dxyz, only : wddx, wddyt, wddzt
+  implicit none
+
+  real(DP), intent(in) :: h1, h2
+  integer, intent(in) :: nx, ny, nz
+  real(DP), intent(in), dimension(nx, ny, nz) :: u, gx, gy, gz, b
+  real(DP), intent(out), dimension(nx, ny, nz) :: au, work1, work2, work3
+
+  integer :: iz
+
+  call mxm   (wddx,nx,u(1,1,1),nx,work1,ny*nz)
+  do iz=1,nz
+      call mxm   (u(1,1,iz),nx,wddyt,ny,work2(1,1,iz),ny)
+  END DO
+  call mxm   (u(1,1,1),nx*ny,wddzt,nz,work3,nz)
+
+  au(:,:,:) = h1* ( work1*gx + work2*gy + work3*gz ) + h2*b*u
+
+  return
+
+end subroutine helmholtz
+
 subroutine div_diag(alpha, beta, nx, ny, nz, prefactor, &
                     u, rx, v, sy, w, tz, res, work1, work2)
   use kinds, only : DP

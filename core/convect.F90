@@ -73,11 +73,15 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   etime = dnekclock()
 !max  call set_dealias_rx()
 
+  if (ifuf .or. .not. ifcf) then
+    write(*,*) "Oops: convect_new args unsupported"
+    return
+  endif
+
   nxyz1 = nx1*ny1*nz1
   nxyzd = nxd*nyd*nzd
 
   nxyzu = nxyz1
-  if (ifuf) nxyzu = nxyzd
 
   nxyzc = nxyz1
   if (ifcf) nxyzc = nxyzd
@@ -92,65 +96,20 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
 #endif
 
   do e=1,nelv
+    call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
+    call copy(tr(1,2),cy(ic),nxyzd)
+    call copy(tr(1,3),cz(ic),nxyzd)
 
-      if (ifcf) then
-          call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
-          call copy(tr(1,2),cy(ic),nxyzd)
-          call copy(tr(1,3),cz(ic),nxyzd)
+    call tensor_product_multiply(u(iu), nx1, uf, nxd, jgl(iptr), jgt(iptr), w2, w1)
+    call local_grad3(ur,us,ut,uf,nxd-1,1,dgl(iptr2),dgt(iptr2))
+    do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
+        uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
+    enddo
+    call tensor_product_multiply(uf, nxd, bdu(ib), nx1, jgt(iptr), jgl(iptr), w1, w2)
 
-      else  ! map coarse velocity to fine mesh (C-->F)
-        write(*,*) "Oops: ifcf"
-#if 0
-          call intp_rstd(fx,cx(ic),nx1,nxd,if3d,0) ! 0 --> forward
-          call intp_rstd(fy,cy(ic),nx1,nxd,if3d,0) ! 0 --> forward
-          if (if3d) call intp_rstd(fz,cz(ic),nx1,nxd,if3d,0) ! 0 --> forward
-
-          if (if3d) then  ! Convert convector F to r-s-t coordinates
-
-              do i=1,nxyzd
-                  tr(i,1)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)
-                  tr(i,2)=rx(i,4,e)*fx(i)+rx(i,5,e)*fy(i)+rx(i,6,e)*fz(i)
-                  tr(i,3)=rx(i,7,e)*fx(i)+rx(i,8,e)*fy(i)+rx(i,9,e)*fz(i)
-              enddo
-
-          else
-
-              do i=1,nxyzd
-                  tr(i,1)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)
-                  tr(i,2)=rx(i,3,e)*fx(i)+rx(i,4,e)*fy(i)
-              enddo
-
-          endif
-#endif
-      endif
-
-#ifndef INLINE_INTP
-      if (ifuf) then
-          call grad_rst(ur,us,ut,u(iu),nxd,if3d)
-      else
-          call intp_rstd(uf,u(iu),nx1,nxd,if3d,0) ! 0 --> forward
-          call grad_rst(ur,us,ut,uf,nxd,if3d)
-      endif
-#else
-      if (ifuf) then
-          call local_grad3(ur,us,ut,u(iu),nxd-1,1,dgl(iptr2),dgt(iptr2))
-      else
-          call tensor_product_multiply(u(iu), nx1, uf, nxd, jgl(iptr), jgt(iptr), w2, w1)
-          call local_grad3(ur,us,ut,uf,nxd-1,1,dgl(iptr2),dgt(iptr2))
-      endif
-#endif
-      do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
-          uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
-      enddo
-#ifndef INLINE_INTP
-      call intp_rstd(bdu(ib),uf,nx1,nxd,if3d,1) ! Project back to coarse
-#else
-      call tensor_product_multiply(uf, nxd, bdu(ib), nx1, jgt(iptr), jgl(iptr), w1, w2)
-#endif
-
-      ic = ic + nxyzc
-      iu = iu + nxyzu
-      ib = ib + nxyz1
+    ic = ic + nxyzc
+    iu = iu + nxyzu
+    ib = ib + nxyz1
 
   enddo
   tscn = tscn + (dnekclock() - etime)

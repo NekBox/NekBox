@@ -260,9 +260,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
 !   return
 
   dpcm1(:,:,:,1:nel) = 0._dp
-  DO 1000 IE=1,NEL
-
-!      IF (IFAXIS) CALL SETAXDY ( IFRZER(IE) )
+  DO IE=1,NEL
 
           DO IZ=1,NZ1
               DO IY=1,NY1
@@ -285,7 +283,6 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
               enddo
           enddo
 
-      IF (NDIM == 3) THEN
               DO IZ=1,NZ1
                   DO IY=1,NY1
                       DO IX=1,NX1
@@ -297,92 +294,9 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
                   enddo
               enddo
       
-      !       Add cross terms if element is deformed.
-      
-          IF (IFDFRM(IE)) THEN
-              write(*,*) "Whoops!"
-#if 0
-              DO 600 IY=1,NY1
-                  DO 600 IZ=1,NZ1
-                      DPCM1(1,IY,IZ,IE) = DPCM1(1,IY,IZ,IE) &
-                      + G4M1(1,IY,IZ,IE) * DXTM1(1,1)*DYTM1(IY,IY) &
-                      + G5M1(1,IY,IZ,IE) * DXTM1(1,1)*DZTM1(IZ,IZ)
-                      DPCM1(NX1,IY,IZ,IE) = DPCM1(NX1,IY,IZ,IE) &
-                      + G4M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DYTM1(IY,IY) &
-                      + G5M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DZTM1(IZ,IZ)
-              600 END DO
-              DO 700 IX=1,NX1
-                  DO 700 IZ=1,NZ1
-                      DPCM1(IX,1,IZ,IE) = DPCM1(IX,1,IZ,IE) &
-                      + G4M1(IX,1,IZ,IE) * DYTM1(1,1)*DXTM1(IX,IX) &
-                      + G6M1(IX,1,IZ,IE) * DYTM1(1,1)*DZTM1(IZ,IZ)
-                      DPCM1(IX,NY1,IZ,IE) = DPCM1(IX,NY1,IZ,IE) &
-                      + G4M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DXTM1(IX,IX) &
-                      + G6M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DZTM1(IZ,IZ)
-              700 END DO
-              DO 800 IX=1,NX1
-                  DO 800 IY=1,NY1
-                      DPCM1(IX,IY,1,IE) = DPCM1(IX,IY,1,IE) &
-                      + G5M1(IX,IY,1,IE) * DZTM1(1,1)*DXTM1(IX,IX) &
-                      + G6M1(IX,IY,1,IE) * DZTM1(1,1)*DYTM1(IY,IY)
-                      DPCM1(IX,IY,NZ1,IE) = DPCM1(IX,IY,NZ1,IE) &
-                      + G5M1(IX,IY,NZ1,IE) * DZTM1(NZ1,NZ1)*DXTM1(IX,IX) &
-                      + G6M1(IX,IY,NZ1,IE) * DZTM1(NZ1,NZ1)*DYTM1(IY,IY)
-              800 END DO
-#endif
-          ENDIF
-      ELSE
-      
-          IF (IFDFRM(IE)) THEN
-              write(*,*) "Whoops!"
-#if 0
-              IZ=1
-              DO 602 IY=1,NY1
-                  DPCM1(1,IY,IZ,IE) = DPCM1(1,IY,IZ,IE) &
-                  + G4M1(1,IY,IZ,IE) * DXTM1(1,1)*DYTM1(IY,IY)
-                  DPCM1(NX1,IY,IZ,IE) = DPCM1(NX1,IY,IZ,IE) &
-                  + G4M1(NX1,IY,IZ,IE) * DXTM1(NX1,NX1)*DYTM1(IY,IY)
-              602 END DO
-              DO 702 IX=1,NX1
-                  DO 702 IZ=1,NZ1
-                      DPCM1(IX,1,IZ,IE) = DPCM1(IX,1,IZ,IE) &
-                      + G4M1(IX,1,IZ,IE) * DYTM1(1,1)*DXTM1(IX,IX)
-                      DPCM1(IX,NY1,IZ,IE) = DPCM1(IX,NY1,IZ,IE) &
-                      + G4M1(IX,NY1,IZ,IE) * DYTM1(NY1,NY1)*DXTM1(IX,IX)
-              702 END DO
-#endif
-          ENDIF
-      ENDIF
-  1000 END DO
+  END DO
 
   dpcm1(:,:,:,1:nel) = dpcm1(:,:,:,1:nel)*helm1(:,:,:,1:nel) + bm1*helm2(:,:,:,1:nel)
-
-!   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
-
-  IF (IFAXIS .AND. (ISD == 2)) THEN
-      DO 1200 IEL=1,NEL
-      
-          IF (IFRZER(IEL)) THEN
-              CALL MXM(YM1(1,1,1,IEL),NX1,DATM1,NY1,YSM1,1)
-          ENDIF
-      
-          DO J=1,NY1
-              DO I=1,NX1
-                  IF (YM1(I,J,1,IEL) /= 0.) THEN
-                      TERM1 = BM1(I,J,1,IEL)/YM1(I,J,1,IEL)**2
-                      IF (IFRZER(IEL)) THEN
-                          TERM2 =  WXM1(I)*WAM1(1)*DAM1(1,J) &
-                          *JACM1(I,1,1,IEL)/YSM1(I)
-                      ELSE
-                          TERM2 = 0.
-                      ENDIF
-                      DPCM1(I,J,1,IEL) = DPCM1(I,J,1,IEL) &
-                      + HELM1(I,J,1,IEL)*(TERM1+TERM2)
-                  ENDIF
-              enddo
-          END DO
-      1200 END DO
-  ENDIF
 
   CALL DSSUM (DPCM1)
   dpcm1(:,:,:,1:nel) = 1._dp / dpcm1(:,:,:,1:nel)
@@ -536,7 +450,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   integer :: i, n, iter, nxyz, nel, niter
   real(DP) :: rho, vol, tol, h2max, skmin
   real(DP) :: rtz1, rtz2, rbn2, rbn0, beta, rho0, alpha, alphm
-  real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, vlsc32, glsc3
+  real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, glsc3
   real(DP) :: etime
 
   if (ifsplit .AND. name == 'PRES' .AND. param(42) == 0) then
@@ -731,21 +645,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     
   return
 end subroutine cggo
-
-!=======================================================================
-real(DP) function vlsc32(r,b,m,n)
-  use kinds, only : DP
-  implicit none
-  integer, intent(in) :: n
-  real(DP), intent(in) :: r(n),b(n),m(n)
-
-  integer :: i
-  vlsc32 = 0.
-  do i=1,n
-      vlsc32 = vlsc32 + b(i)*m(i)*r(i)*r(i)
-  enddo
-  return
-end function vlsc32
 
 !=======================================================================
 subroutine set_fdm_prec_h1b(d,h1,h2,nel)

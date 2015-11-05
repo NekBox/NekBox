@@ -430,7 +430,7 @@ subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   h1mg_mop  = h1mg_mop + nv**3 + nu**3
 
   do ie=1,nelv
-    call tensor_product_multiply(u(1,ie), nu, v(1,ie), nv, A, At, At, work, work2)
+    call tensor_product_multiply(u(1,ie), nu, v(1,ie), nv, A, At, work, work2)
   enddo
 
   return
@@ -980,57 +980,6 @@ subroutine hsmg_fdm(e,r,l)
 end subroutine hsmg_fdm
 
 !----------------------------------------------------------------------
-!> \brief clobbers r
-subroutine hsmg_do_fast(e,r,s,d,nl)
-  use kinds, only : DP
-  use size_m, only : ndim, nelv
-  use size_m, only : lx1, ly1, lz1
-  use ctimer, only : schw_flop, schw_mop
-  implicit none
-
-  integer :: nl
-  real(DP) :: e(nl**ndim,nelv)
-  real(DP) :: r(nl**ndim,nelv)
-  real(DP) :: s(nl*nl,2,ndim,nelv)
-  real(DP) :: d(nl**ndim,nelv)
-        
-  integer :: ie,nn,i
-
-  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
-  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
-
-  nn=nl**ndim
-      schw_flop = schw_flop + nelv*nn
-      schw_mop  = schw_mop  + nelv*nn ! r and e should be in cache
-      do ie=1,nelv
-#if 1
-        schw_flop = schw_flop + 3*nn*(2*nl-1)
-        schw_mop  = schw_mop + nn + 3*nl*nl
-   
-        call mxm(s(1,2,1,ie),nl,r(1,ie),nl,work,nl*nl)
-        do i=0,nl-1
-            call mxm(work(nl*nl*i),nl,s(1,1,2,ie),nl,work2(nl*nl*i),nl)
-        enddo
-        call mxm(work2,nl*nl,s(1,1,3,ie),nl,work,nl)
-#endif
-        do i=0,nn-1
-            work2(i)=d(i+1,ie)*work(i)
-        enddo
-#if 1
-        schw_flop = schw_flop + 3*nn*(2*nl-1)
-        schw_mop  = schw_mop + 1*nn + 3*nl*nl
-   
-        call mxm(s(1,1,1,ie),nl,work2,nl,work,nl*nl)
-        do i=0,nl-1
-            call mxm(work(nl*nl*i),nl,s(1,2,2,ie),nl,work2(nl*nl*i),nl)
-        enddo
-        call mxm(work2,nl*nl,s(1,2,3,ie),nl,e(1,ie),nl)
-#endif
-      enddo
-  return
-end subroutine hsmg_do_fast
-
-!----------------------------------------------------------------------
 !> \brief u = wt .* u
 subroutine hsmg_do_wt(u,wt,nx,ny,nz)
   use kinds, only : DP
@@ -1434,16 +1383,42 @@ end subroutine mg_mask_e
 !> \brief compute  v = [A (x) A] u  or  v = [A (x) A (x) A] u
 subroutine hsmg_tnsr1(v,nv,nu,A,At)
   use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, nelv
+  use ctimer, only : h1mg_flop, h1mg_mop
   implicit none
 
   integer :: nv,nu
-  real(DP) :: v(1),A(1),At(1)
+  real(DP) :: v(*),A(*),At(*)
+  real(DP) :: work1(0:nu*nu*nv),work2(0:nu*nv*nv)
+  integer :: e,e0,ee,es
+  integer :: nu3, nv3, iu, iv, i
 
-  call hsmg_tnsr1_3d(v,nv,nu,A,At,At)
+  e0=1
+  es=1
+  ee=nelv
+
+  if (nv > nu) then
+      e0=nelv
+      es=-1
+      ee=1
+  endif
+
+  nu3 = nu**3
+  nv3 = nv**3
+
+  h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
+  h1mg_mop = h1mg_mop + nv3 + nu3
+
+  do e=e0,ee,es
+      iu = 1 + (e-1)*nu3
+      iv = 1 + (e-1)*nv3
+      call tensor_product_multiply(v(iu), nu, v(iv), nv, A, At, work1, work2)
+  enddo
+
   return
 end subroutine hsmg_tnsr1
-
-!-------------------------------------------------------T--------------
 
 !------------------------------------------   T  -----------------------
 !> \brief r =J r,   l is coarse level

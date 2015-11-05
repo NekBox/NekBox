@@ -26,6 +26,7 @@ module mesh
     ifsolv = .false.
     allocate(vertex((2**ldim)*lelt))
     allocate(ifdfrm(LELT), iffast(lelt))
+    iffast = .true.
     
   end subroutine init_mesh
 

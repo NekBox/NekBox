@@ -121,218 +121,26 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   if (naxhm == 0) taxhm=0.0
   naxhm=naxhm + 1
 
-  IF ( .NOT. IFSOLV) CALL SETFAST(HELM1,HELM2,IMESH)
   etime1=dnekclock()
-  !au(:,:,:,1:nel) = 0._dp
 
-  do 100 e=1,nel
-  
-!      if (ifaxis) call setaxdy ( ifrzer(e) )
-  
-     
-!          if (iffast(e)) then
-          if (.true.) then
-          
-          !          Fast 3-d mode: constant properties and undeformed element
-              axhelm_flop = axhelm_flop + (2*nx1-1)*nx1*nyz
-              axhelm_mop = axhelm_mop + nx1*ny1*nz1
-              axhelm_flop = axhelm_flop + 9*nx1*ny1*nz1
-              axhelm_mop = axhelm_mop + 5*nx1*ny1*nz1
-              axhelm_flop = axhelm_flop + (2*ny1-1)*nx1*ny1*nz1
-              axhelm_flop = axhelm_flop + nxy*(2*nz1-1)*nz1
+  do e=1,nel
+    ! Fast 3-d mode: constant properties and undeformed element
+    axhelm_flop = axhelm_flop + (2*nx1-1)*nx1*nyz
+    axhelm_mop = axhelm_mop + nx1*ny1*nz1
+    axhelm_flop = axhelm_flop + 9*nx1*ny1*nz1
+    axhelm_mop = axhelm_mop + 5*nx1*ny1*nz1
+    axhelm_flop = axhelm_flop + (2*ny1-1)*nx1*ny1*nz1
+    axhelm_flop = axhelm_flop + nxy*(2*nz1-1)*nz1
 
-
-
-              call mxm   (wddx,nx1,u(1,1,1,e),nx1,tm1,nyz)
-              do iz=1,nz1
-                  call mxm   (u(1,1,iz,e),nx1,wddyt,ny1,tm2(1,1,iz),ny1)
-              END DO
-              call mxm   (u(1,1,1,e),nxy,wddzt,nz1,tm3,nz1)
-#ifdef BGQ
-              h1v = vec_splats(helm1(1,1,1,e))
-              h2v = vec_splats(helm2(1,1,1,e))
-              do iz = 1, nz1
-                do iy = 1, ny1
-                    g4mv = vec_ld(0, g4m1(1,iy,iz,e))
-                    tm1v = vec_ld(0, tm1(1,iy,iz))
-                    tm1v = vec_mul(g4mv,tm1v)
-
-                    g5mv = vec_ld(0, g5m1(1,iy,iz,e))
-                    tm2v = vec_ld(0, tm2(1,iy,iz))
-                    tm1v = vec_madd(g5mv,tm2v,tm1v)
-
-                    g6mv = vec_ld(0, g6m1(1,iy,iz,e))
-                    tm3v = vec_ld(0, tm3(1,iy,iz))
-                    tm1v = vec_madd(g6mv,tm3v,tm1v)
-
-                    uv = vec_ld(0, u(1,iy,iz,e))
-                    bm1v = vec_ld(0, bm1(1,iy,iz,e))
-                    uv = vec_mul(uv,bm1v)
-                    uv = vec_mul(uv,h2v)
-                    auv = vec_madd(h1v, tm1v, uv)
-                    call vec_st(auv,0,au(1,iy,iz,e))
-
-                    g4mv = vec_ld(0, g4m1(5,iy,iz,e))
-                    tm1v = vec_ld(0, tm1(5,iy,iz))
-                    tm1v = vec_mul(g4mv,tm1v)
-
-                    g5mv = vec_ld(0, g5m1(5,iy,iz,e))
-                    tm2v = vec_ld(0, tm2(5,iy,iz))
-                    tm1v = vec_madd(g5mv,tm2v,tm1v)
-
-                    g6mv = vec_ld(0, g6m1(5,iy,iz,e))
-                    tm3v = vec_ld(0, tm3(5,iy,iz))
-                    tm1v = vec_madd(g6mv,tm3v,tm1v)
-
-                    uv = vec_ld(0, u(5,iy,iz,e))
-                    bm1v = vec_ld(0, bm1(5,iy,iz,e))
-                    uv = vec_mul(uv,bm1v)
-                    uv = vec_mul(uv,h2v)
-                    auv = vec_madd(h1v, tm1v, uv)
-                    call vec_st(auv,0,au(5,iy,iz,e))
-                enddo
-              enddo
-#else 
-              au(:,:,:,e) = helm1(1,1,1,e) * ( &
-                            tm1*g4m1(:,:,:,e) &
-                          + tm2*g5m1(:,:,:,e) &
-                          + tm3*g6m1(:,:,:,e) ) &
-                        + helm2(1,1,1,1)*bm1(:,:,:,e)*u(:,:,:,e)
-#endif        
-          else
-              write(*,*) "Woops! axhelm"
-#if 0
-          
-          !          General case, speed-up for undeformed elements
-          
-              call mxm(dxm1,nx1,u(1,1,1,e),nx1,dudr,nyz)
-              do 10 iz=1,nz1
-                  call mxm(u(1,1,iz,e),nx1,dytm1,ny1,duds(1,1,iz),ny1)
-              10 END DO
-              call mxm     (u(1,1,1,e),nxy,dztm1,nz1,dudt,nz1)
-              call col3    (tmp1,dudr,g1m1(1,1,1,e),nxyz)
-              call col3    (tmp2,duds,g2m1(1,1,1,e),nxyz)
-              call col3    (tmp3,dudt,g3m1(1,1,1,e),nxyz)
-              if (ifdfrm(e)) then
-                  call addcol3 (tmp1,duds,g4m1(1,1,1,e),nxyz)
-                  call addcol3 (tmp1,dudt,g5m1(1,1,1,e),nxyz)
-                  call addcol3 (tmp2,dudr,g4m1(1,1,1,e),nxyz)
-                  call addcol3 (tmp2,dudt,g6m1(1,1,1,e),nxyz)
-                  call addcol3 (tmp3,dudr,g5m1(1,1,1,e),nxyz)
-                  call addcol3 (tmp3,duds,g6m1(1,1,1,e),nxyz)
-              endif
-              call col2 (tmp1,helm1(1,1,1,e),nxyz)
-              call col2 (tmp2,helm1(1,1,1,e),nxyz)
-              call col2 (tmp3,helm1(1,1,1,e),nxyz)
-              call mxm  (dxtm1,nx1,tmp1,nx1,tm1,nyz)
-              do 20 iz=1,nz1
-                  call mxm(tmp2(1,1,iz),nx1,dym1,ny1,tm2(1,1,iz),ny1)
-              20 END DO
-              call mxm  (tmp3,nxy,dzm1,nz1,tm3,nz1)
-              call add2 (au(1,1,1,e),tm1,nxyz)
-              call add2 (au(1,1,1,e),tm2,nxyz)
-              call add2 (au(1,1,1,e),tm3,nxyz)
-            
-           !  au(:,:,:,1:nel) = au(:,:,:,1:nel) + helm2(:,:,:,1:nel)*bm1(:,:,:,1:nel)*u(:,:,:,1:nel)
-#endif
-          endif
-  
-  100 END DO
-
-
-!   If axisymmetric, add a diagonal term in the radial direction (ISD=2)
-
-  if (ifaxis .AND. (isd == 2)) then
-      write(*,*) "Whoops! axhelm 3"
-#if 0
-      do 200 e=1,nel
-      
-          if (ifrzer(e)) then
-              call mxm(u  (1,1,1,e),nx1,datm1,ny1,duax,1)
-              call mxm(ym1(1,1,1,e),nx1,datm1,ny1,ysm1,1)
-          endif
-      
-          do 190 j=1,ny1
-              do 190 i=1,nx1
-              !               if (ym1(i,j,1,e).ne.0.) then
-                  if (ifrzer(e)) then
-                      term1 = 0.0
-                      if(j /= 1) &
-                      term1 = bm1(i,j,1,e)*u(i,j,1,e)/ym1(i,j,1,e)**2
-                      term2 =  wxm1(i)*wam1(1)*dam1(1,j)*duax(i) &
-                      *jacm1(i,1,1,e)/ysm1(i)
-                  else
-                      term1 = bm1(i,j,1,e)*u(i,j,1,e)/ym1(i,j,1,e)**2
-                      term2 = 0.
-                  endif
-                  au(i,j,1,e) = au(i,j,1,e) &
-                  + helm1(i,j,1,e)*(term1+term2)
-              !               endif
-          190 END DO
-      200 END DO
-#endif
-  endif
+    call helmholtz(helm1(1,1,1,e), helm2(1,1,1,e), nx1, ny1, nz1, &
+                   u(1,1,1,e), au(1,1,1,e), &
+                   g4m1(1,1,1,e), g5m1(1,1,1,e), g6m1(1,1,1,e), bm1(1,1,1,e), &
+                   tm1, tm2, tm3)
+  END DO
 
   taxhm=taxhm+(dnekclock()-etime1)
   return
 end subroutine axhelm
-
-!=======================================================================
-!> \brief Set logicals for fast evaluation of A*x
-!-------------------------------------------------------------------
-subroutine setfast (helm1,helm2,imesh)
-  use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, nelt, nelv
-  use input, only : ifaxis, ifmodel
-  use mesh, only : iffast, ifdfrm
-  use ctimer, only : nsetfast, tsetfast, dnekclock
-  implicit none
-
-  integer, intent(in) :: imesh
-  REAL(DP), intent(in) :: HELM1(NX1,NY1,NZ1,*), HELM2(NX1,NY1,NZ1,*)
- 
-  integer :: nel, nxyz, ntot, ie 
-  real(DP) :: delta, x, y, diff, epsm, h1min, h1max, testh1
-  real(DP) :: den
-  real(DP) :: etime
-  real(DP), external :: vlamax
-
-  etime =  dnekclock()
-  nsetfast = nsetfast + 1
-  nel = -1
-  IF (IMESH == 1) NEL=NELV
-  IF (IMESH == 2) NEL=NELT
-  NXYZ = NX1*NY1*NZ1
-  NTOT = NXYZ*NEL
-
-  DELTA = 1.E-9
-  X    = 1.+DELTA
-  Y    = 1.
-  DIFF = ABS(X-Y)
-  IF (DIFF == 0.0) EPSM = 1.E-6
-  IF (DIFF > 0.0) EPSM = 1.E-13
-
-
-  DO 100 ie=1,NEL
-      IFFAST(ie) = .FALSE. 
-      IF (IFDFRM(ie) .OR. IFAXIS .OR. IFMODEL ) THEN
-          IFFAST(ie) = .FALSE. 
-      !            write(*,*) IFDFRM(ie), IFAXIS, IFMODEL
-      ELSE
-          H1MIN  = MINVAL(HELM1(:,:,:,ie))
-          H1MAX  = MAXVAL(HELM1(:,:,:,ie))
-          den    = abs(h1max)+abs(h1min)
-          if (den > 0) then
-              TESTH1 = ABS((H1MAX-H1MIN)/(H1MAX+H1MIN))
-              IF (TESTH1 < EPSM) IFFAST(ie) = .TRUE. 
-          else
-              iffast(ie) = .TRUE. 
-          endif
-      ENDIF
-  100 END DO
-  tsetfast = tsetfast + (dnekclock() - etime)
-  return
-end subroutine setfast
 
 !----------------------------------------------------------------------
 !> \brief For undeformed elements, set up appropriate elemental matrices
@@ -761,7 +569,6 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
 !     Speed-up for undeformed elements and constant properties.
   if ( .NOT. ifsolv) then
-      call setfast(h1,h2,imesh)
       ifsolv = .TRUE. 
   endif
 

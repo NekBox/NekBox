@@ -289,78 +289,84 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   logical, intent(in)   :: ifavg !>!< Average at boundary? 
 
   integer :: ntot, nxyz, ifielt, nxy1, nyz1, iel, iz
-  real(DP), allocatable :: tmp1(:,:,:), tmp2(:,:,:)
+  real(DP), allocatable :: tmp1(:,:,:), tmp2(:,:,:), tmp3(:,:,:)
 
-  allocate(tmp1(nx1,ny1,nz1), tmp2(nx1,ny1,nz1))
+  allocate(tmp1(nx1,ny1,nz1), tmp2(nx1,ny1,nz1), tmp3(nx1, ny1, nz1))
 
   ntot  = nx1*ny1*nz1*nelv
   nxyz  = nx1*ny1*nz1
   NXY1  = NX1*NY1
   NYZ1  = NY1*NZ1
 
-!   work1=dw/dy ; work2=dv/dz
   if (if_ortho) then
     do iel = 1, nelv
+
+      if (ifavg .and. .not. ifcyclic) then
+        tmp3 = jacmi(:,:,:,iel) * bm1(:,:,:,iel)
+      else
+        tmp3 = jacmi(:,:,:,iel)
+      endif
+
+      ! work1=dw/dy ; work2=dv/dz
       do iz = 1, nz1
         CALL MXM  (U3(1,1,iz,iel),NX1,DYTM1,NY1,tmp1(1,1,iz),NY1)
       enddo
       CALL MXM  (U2(1,1,1,iel),NXY1,DZTM1,NZ1,tmp2,NZ1) 
-      w1(:,:,:,iel) = (tmp1*sym1(:,:,:,iel) - tmp2*tzm1(:,:,:,iel)) * jacmi(:,:,:,iel)
-    enddo
-  else
-    call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
-    call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
-    w1 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv) 
-  endif
+      w1(:,:,:,iel) = (tmp1*sym1(:,:,:,iel) - tmp2*tzm1(:,:,:,iel)) * tmp3
 
-!   work1=du/dz ; work2=dw/dx
-  if (if_ortho) then
-     do iel = 1, nelv
-       CALL MXM  (U1(1,1,1,iel),NXY1,DZTM1,NZ1,tmp1,NZ1) 
-       CALL MXM  (DXM1,NX1,U3(1,1,1,iel),NX1,tmp2,NYZ1)
-       w2(:,:,:,iel) = (tmp1*tzm1(:,:,:,iel) - tmp2*rxm1(:,:,:,iel)) * jacmi(:,:,:,iel)
-     enddo
-  else
-     call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
-     call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
-     w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
-  endif
+      ! work1=du/dz ; work2=dw/dx
+      CALL MXM  (U1(1,1,1,iel),NXY1,DZTM1,NZ1,tmp1,NZ1) 
+      CALL MXM  (DXM1,NX1,U3(1,1,1,iel),NX1,tmp2,NYZ1)
+      w2(:,:,:,iel) = (tmp1*tzm1(:,:,:,iel) - tmp2*rxm1(:,:,:,iel)) * tmp3 
 
-!   work1=dv/dx ; work2=du/dy
-  if (if_ortho) then
-    do iel = 1, nelv
+      ! work1=dv/dx ; work2=du/dy
       CALL MXM   (DXM1,NX1,U2(1,1,1,iel),NX1,tmp1,NYZ1)
       do iz = 1, nz1
         CALL MXM  (U1(1,1,iz,iel),NX1,DYTM1,NY1,tmp2(1,1,iz),NY1)
       enddo
-      w3(:,:,:,iel) = (tmp1*rxm1(:,:,:,iel) - tmp2*sym1(:,:,:,iel)) * jacmi(:,:,:,iel)
+      w3(:,:,:,iel) = (tmp1*rxm1(:,:,:,iel) - tmp2*sym1(:,:,:,iel)) * tmp3 
     enddo
   else
+    ! work1=dw/dy ; work2=dv/dz
+    call dudxyz(work1,u3,rym1,sym1,tym1,jacm1,1,2)
+    call dudxyz(work2,u2,rzm1,szm1,tzm1,jacm1,1,3)
+    w1 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv) 
+
+    ! work1=du/dz ; work2=dw/dx
+    call dudxyz(work1,u1,rzm1,szm1,tzm1,jacm1,1,3)
+    call dudxyz(work2,u3,rxm1,sxm1,txm1,jacm1,1,1)
+    w2 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+
+    ! work1=dv/dx ; work2=du/dy
     call dudxyz(work1,u2,rxm1,sxm1,txm1,jacm1,1,1)
     call dudxyz(work2,u1,rym1,sym1,tym1,jacm1,1,2)
     w3 = work1(:,:,:,1:nelv) - work2(:,:,:,1:nelv)
+  
+    if (ifavg .AND. .NOT. ifcyclic) then
+      do iel = 1, nelv
+        w1(:,:,:,iel) = w1(:,:,:,iel) * bm1(:,:,:,iel)
+        w2(:,:,:,iel) = w2(:,:,:,iel) * bm1(:,:,:,iel)
+        w3(:,:,:,iel) = w3(:,:,:,iel) * bm1(:,:,:,iel)
+      enddo
+    endif
   endif
-!  Avg at bndry
 
-!   if (ifavg) then
+  !  Avg at bndry
   if (ifavg .AND. .NOT. ifcyclic) then
+    ifielt = ifield
+    ifield = 1           
+    call opdssum (w1,w2,w3)
+    ifield = ifielt
 
-      ifielt = ifield
-      ifield = 1
-             
-      w1 = w1 * bm1; w2 = w2 * bm1; w3 = w3 * bm1
-      call opdssum (w1,w2,w3)
-      w1 = w1 * binvm1; w2 = w2 * binvm1; w3 = w3 * binvm1
-
-      ifield = ifielt
-
+    do iel = 1, nelv
+      w1(:,:,:,iel) = w1(:,:,:,iel) * binvm1(:,:,:,iel)
+      w2(:,:,:,iel) = w2(:,:,:,iel) * binvm1(:,:,:,iel)
+      w3(:,:,:,iel) = w3(:,:,:,iel) * binvm1(:,:,:,iel)
+    enddo
   endif
 
   return
 end subroutine op_curl
-
-
-
 
 !> \brief local inner product, with weight
 real(DP) FUNCTION VLSC3(X,Y,B,N)

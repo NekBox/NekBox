@@ -41,6 +41,39 @@ subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
   return
 end subroutine local_grad3
 
+subroutine div_diag(alpha, beta, nx, ny, nz, prefactor, &
+                    u, rx, v, sy, w, tz, res, work1, work2)
+  use kinds, only : DP
+  use dxyz, only : dxtm12, dym12, dzm12
+  implicit none
+  real(DP), intent(in) :: alpha, beta
+  integer, intent(in) :: nx, ny, nz
+  real(DP), intent(in), dimension(nx, ny, nz) :: prefactor, u, v, w, rx, sy, tz
+  real(DP), intent(inout), dimension(nx, ny, nz) :: res
+  real(DP) , intent(out), dimension(nx, ny, nz) :: work1, work2
+
+
+  integer :: iz 
+
+  ! X 
+  work1 = u * rx * prefactor
+  call mxm  (dxtm12,nx,work1,nx,work2,ny*nz)
+  res = alpha * work2 + res * beta
+  ! Y 
+  work1 = v * sy * prefactor
+  do iz=1,nz
+      call mxm  (work1(:,:,iz),nx,dym12,ny,work2(:,:,iz),ny)
+  enddo
+  res = alpha * work2 + res
+  ! Z
+  work1 = w * tz * prefactor
+  call mxm  (work1,nx*ny,dzm12,nz,work2,nz)
+  res = alpha * work2 + res
+
+  return
+end subroutine div_diag
+
+
 !-------------------------------------------------------------
 !> \brief Compute DT*X (entire field)
 !-------------------------------------------------------------

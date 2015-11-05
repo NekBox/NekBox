@@ -317,25 +317,14 @@ subroutine crespsp (respr, vext)
 
   if (if_ortho) then
     !deallocate(wa1,wa2,wa3)
-    nyz2  = ny2*nz2
-    nxy1  = nx1*ny1
 
     do e = 1, nelv
-      tmp1 = jacmi(:,:,:,e) * bm1(:,:,:,e)
-      ! X 
-      tmp2 = ta1(:,:,:,e) * rxm2(:,:,:,e) * tmp1
-      call mxm  (dxtm12,nx1,tmp2,nx2,tmp3,nyz2)
-      respr(:,:,:,e) = - respr(:,:,:,e) + tmp3
-      ! Y 
-      tmp2 = ta2(:,:,:,e) * sym2(:,:,:,e) * tmp1 
-      do iz=1,nz2
-          call mxm  (tmp2(:,:,iz),nx1,dym12,ny2,tmp3(:,:,iz),ny1)
-      enddo
-      respr(:,:,:,e) =   respr(:,:,:,e) + tmp3
-      ! Z
-      tmp2 = ta3(:,:,:,e) * tzm2(:,:,:,e) * tmp1 
-      call mxm  (tmp2,nxy1,dzm12,nz2,tmp3,nz1)
-      respr(:,:,:,e) =   respr(:,:,:,e) + tmp3
+      call div_diag(1.0_dp, -1.0_dp, nx1, ny1, nz1, &
+        jacmi(:,:,:,e) * bm1(:,:,:,e),  &
+        ta1(:,:,:,e), rxm2(:,:,:,e), &
+        ta2(:,:,:,e), sym2(:,:,:,e), &
+        ta3(:,:,:,e), tzm2(:,:,:,e), & 
+        respr(:,:,:,e), tmp2, tmp3)
     enddo
   else
     call cdtp    (wa1,ta1,rxm2,sxm2,txm2,1)

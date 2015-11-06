@@ -423,6 +423,7 @@ subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
 
   integer, parameter :: ldw=4*lx1*ly1*lz1
   real(DP) :: xcb(2,2,2),ycb(2,2,2),zcb(2,2,2),w(ldw)
+  real(DP) :: w1(2*2*nxl), w2(2*nxl*nxl)
 
 !  real(DP) :: zgml, jx,jy,jz,jxt,jyt,jzt, zlin
   real(DP) :: zgml(lx1,3),jx (lx1*2)
@@ -454,9 +455,16 @@ subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
 
 ! NOTE:  Assumes nxl=nyl=nzl !
 
+#if 0
   call tensr3(xl,nxl,xcb,2,jx,jyt,jzt,w)
   call tensr3(yl,nxl,ycb,2,jx,jyt,jzt,w)
   call tensr3(zl,nxl,zcb,2,jx,jyt,jzt,w)
+#else
+  call tensor_product_multiply(xcb,2,xl,nxl, jx,jyt, jzt, w1, w2)
+  call tensor_product_multiply(ycb,2,yl,nxl, jx,jyt, jzt, w1, w2)
+  call tensor_product_multiply(zcb,2,zl,nxl, jx,jyt, jzt, w1, w2)
+#endif
+
 
   return
 end subroutine xyzlin

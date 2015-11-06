@@ -444,13 +444,14 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
   integer, parameter :: lxyz = lx1*ly1*lz1
   real(DP) :: scalar(2)
-  real(DP), allocatable :: d (:,:)
+  real(DP), allocatable, save :: d (:,:)
   real(DP), allocatable :: r (:,:) , w (:,:) , p (:,:) , z (:,:)
 
   integer :: i, n, iter, nxyz, nel, niter
   real(DP) :: rho, vol, tol, h2max, skmin
   real(DP) :: rtz1, rtz2, rbn2, rbn0, beta, rho0, alpha, alphm
   real(DP), external :: glmax, glmin, glsum, glsc2, vlsc3, glsc3
+  real(DP), save :: h1_prec = 0._dp, h2_prec = 0._dp
   real(DP) :: etime
 
   if (ifsplit .AND. name == 'PRES' .AND. param(42) == 0) then
@@ -488,9 +489,13 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
 
 !     Set up diag preconditioner.
 
-  allocate(d(lxyz,lelt)); d = 0_dp
+  if (.not. allocated(d)) allocate(d(lxyz,lelt))
+
   if (kfldfdm < 0) then
+    if (h1(1,1) /= h1_prec .or. h2(1,1) /= h2_prec) then
       call setprec(D,h1,h2,imsh,isd)
+      h1_prec = h1(1,1); h2_prec = h2(1,1)
+    endif
   elseif(param(100) /= 2) then
 !max      call set_fdm_prec_h1b(d,h1,h2,nel)
   endif

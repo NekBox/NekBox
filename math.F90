@@ -1,5 +1,5 @@
 !-----------------------------------------------------------------------
-subroutine tensor_product_multiply(u, nu, v, nv, A, At, work1, work2)
+subroutine tensor_product_transform(u, nu, v, nv, A, At, work1, work2)
   use kinds, only : DP
   implicit none
   integer, intent(in)   :: nu, nv
@@ -17,7 +17,33 @@ subroutine tensor_product_multiply(u, nu, v, nv, A, At, work1, work2)
   call mxm(work2,nv*nv,At,nu,v,nv)
   return
 
+end subroutine tensor_product_transform
+
+!-----------------------------------------------------------------------
+!> \brief  Tensor product application of v = (C x B x A) u .
+!!  NOTE -- the transpose of B & C must be input, rather than B & C.
+!!  -  scratch arrays: work1(nu*nu*nv), work2(nu*nv*nv)
+subroutine tensor_product_multiply(u, nu, v, nv, A, Bt, Ct, work1, work2)
+  use kinds, only : DP
+  implicit none
+  integer, intent(in)   :: nu, nv
+  real(DP), intent(in)  :: u(*)
+  real(DP), intent(out) :: v(*)
+  real(DP), intent(in)  :: A(*), Bt(*), Ct(*)
+  real(DP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
+
+  integer :: i
+ 
+  call mxm(A,nv,u,nu,work1,nu*nu)
+  do i=0,nu-1
+      call mxm(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+  enddo
+  call mxm(work2,nv*nv,Ct,nu,v,nv)
+  return
+
 end subroutine tensor_product_multiply
+
+
 
 !-----------------------------------------------------------------------
 !> \brief     Output: ur,us,ut         Input:u,N,e,D,Dt
@@ -63,7 +89,11 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
   END DO
   call mxm   (u(1,1,1),nx*ny,wddzt,nz,work3,nz)
 
-  au(:,:,:) = h1* ( work1*gx + work2*gy + work3*gz ) + h2*b*u
+  if (h2 /= 0._dp) then
+    au(:,:,:) = h1* ( work1*gx + work2*gy + work3*gz ) + h2*b*u
+  else
+    au(:,:,:) = h1* ( work1*gx + work2*gy + work3*gz ) 
+  endif
 
   return
 
@@ -87,7 +117,7 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   integer :: ie,nn,i
 
   integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
-  real(DP) :: work(0:lwk-1),work2(0:lwk-1)
+  real(DP) :: work1(nl*nl*nl),work2(nl*nl*nl)
 
   nn=nl**ndim
   schw_flop = schw_flop + nelv*nn
@@ -98,21 +128,15 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   schw_mop  = schw_mop + (nn + 3*nl*nl)*nelv
 
   do ie=1,nelv
- 
-    call mxm(s(1,2,1,ie),nl,r(1,ie),nl,work,nl*nl)
-    do i=0,nl-1
-        call mxm(work(nl*nl*i),nl,s(1,1,2,ie),nl,work2(nl*nl*i),nl)
+
+    call tensor_product_multiply(r(1,ie), nl, r(1,ie), nl, s(1,2,1,ie), s(1,1,2,ie), s(1,1,3, ie), work1, work2)
+
+    do i=1,nn
+        r(i,ie)=d(i,ie)*r(i,ie)
     enddo
-    call mxm(work2,nl*nl,s(1,1,3,ie),nl,work,nl)
-    do i=0,nn-1
-        work2(i)=d(i+1,ie)*work(i)
-    enddo
-  
-    call mxm(s(1,1,1,ie),nl,work2,nl,work,nl*nl)
-    do i=0,nl-1
-        call mxm(work(nl*nl*i),nl,s(1,2,2,ie),nl,work2(nl*nl*i),nl)
-    enddo
-    call mxm(work2,nl*nl,s(1,2,3,ie),nl,e(1,ie),nl)
+
+    call tensor_product_multiply(r(1,ie), nl, e(1,ie), nl, s(1,1,1,ie), s(1,2,2,ie), s(1,2,3, ie), work1, work2)
+
   enddo
 
   return
@@ -254,49 +278,6 @@ subroutine div_diag(alpha, beta, nx, ny, nz, prefactor, &
 
   return
 end subroutine div_diag
-
-
-!-----------------------------------------------------------------------
-!> \brief  Tensor product application of v = (C x B x A) u .
-!!  NOTE -- the transpose of B & C must be input, rather than B & C.
-!!  -  scratch arrays: w(nu*nu*nv)
-subroutine tensr3(v,nv,u,nu,A,Bt,Ct,w)
-  use kinds, only : DP
-  use size_m, only : nid
-  use input, only : if3d
-  implicit none
-
-  integer :: nv, nu
-  real(DP) :: v(*),u(*)
-  real(DP) :: A(*),Bt(*),Ct(*)
-  real(DP) :: w(*)
-
-  integer :: nuv, nvv, k, l, iz
-
-  if (nu > nv) then
-      write(6,*) nid,nu,nv,' ERROR in tensr3. Contact P.Fischer.'
-      write(6,*) nid,nu,nv,' Memory problem.'
-      call exitt
-  endif
-
-  if (if3d) then
-      nuv = nu*nv
-      nvv = nv*nv
-      call mxm(A,nv,u,nu,v,nu*nu)
-      k=1
-      l=1
-      do iz=1,nu
-          call mxm(v(k),nv,Bt,nu,w(l),nv)
-          k=k+nuv
-          l=l+nvv
-      enddo
-      call mxm(w,nvv,Ct,nu,v,nv)
-  else
-      call mxm(A,nv,u,nu,w,nu)
-      call mxm(w,nv,Bt,nu,v,nv)
-  endif
-  return
-end subroutine tensr3
 
 !-------------------------------------------------------------
 !> \brief Compute DT*X (entire field)

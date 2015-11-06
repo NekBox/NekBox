@@ -430,7 +430,7 @@ subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   h1mg_mop  = h1mg_mop + nv**3 + nu**3
 
   do ie=1,nelv
-    call tensor_product_multiply(u(1,ie), nu, v(1,ie), nv, A, At, work, work2)
+    call tensor_product_transform(u(1,ie), nu, v(1,ie), nv, A, At, work, work2)
   enddo
 
   return
@@ -1418,7 +1418,7 @@ subroutine hsmg_tnsr1(v,nv,nu,A,At)
   do e=e0,ee,es
       iu = 1 + (e-1)*nu3
       iv = 1 + (e-1)*nv3
-      call tensor_product_multiply(v(iu), nu, v(iv), nv, A, At, work1, work2)
+      call tensor_product_transform(v(iu), nu, v(iv), nv, A, At, work1, work2)
   enddo
 
   return

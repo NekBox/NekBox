@@ -1007,21 +1007,25 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
      h1mg_mop  = h1mg_mop  + 6*nelv*nz*ny + 6*nelv*nz*(nx-2) + 6*nelv*(ny-2)*(nx-2)
 
       do ie=1,nelv
-          do k=1,nz
-              do j=1,ny
+          do j=1,ny
+              do i=1,nx
+                  u(i,j, 1,ie)=u(i,j, 1,ie)*wt(i,j,1,3,ie)
+              enddo
+          enddo
+          do k=2,nz-1
+              do i=1,nx
+                  u(i, 1,k,ie)=u(i, 1,k,ie)*wt(i,k,1,2,ie)
+              enddo
+              do j=2,ny-1
                   u( 1,j,k,ie)=u( 1,j,k,ie)*wt(j,k,1,1,ie)
                   u(nx,j,k,ie)=u(nx,j,k,ie)*wt(j,k,2,1,ie)
               enddo
-          enddo
-          do k=1,nz
-              do i=2,nx-1
-                  u(i, 1,k,ie)=u(i, 1,k,ie)*wt(i,k,1,2,ie)
+              do i=1,nx
                   u(i,ny,k,ie)=u(i,ny,k,ie)*wt(i,k,2,2,ie)
               enddo
           enddo
-          do j=2,ny-1
-              do i=2,nx-1
-                  u(i,j, 1,ie)=u(i,j, 1,ie)*wt(i,j,1,3,ie)
+          do j=1,ny
+              do i=1,nx
                   u(i,j,nz,ie)=u(i,j,nz,ie)*wt(i,j,2,3,ie)
               enddo
           enddo

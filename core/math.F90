@@ -1,3 +1,4 @@
+!-----------------------------------------------------------------------
 subroutine tensor_product_multiply(u, nu, v, nv, A, At, work1, work2)
   use kinds, only : DP
   implicit none
@@ -17,50 +18,6 @@ subroutine tensor_product_multiply(u, nu, v, nv, A, At, work1, work2)
   return
 
 end subroutine tensor_product_multiply
-
-!-----------------------------------------------------------------------
-!> \brief  Tensor product application of v = (C x B x A) u .
-!!  NOTE -- the transpose of B & C must be input, rather than B & C.
-!!  -  scratch arrays: w(nu*nu*nv)
-subroutine tensr3(v,nv,u,nu,A,Bt,Ct,w)
-  use kinds, only : DP
-  use size_m, only : nid
-  use input, only : if3d
-  implicit none
-
-  integer :: nv, nu
-  real(DP) :: v(*),u(*)
-  real(DP) :: A(*),Bt(*),Ct(*)
-  real(DP) :: w(*)
-
-  integer :: nuv, nvv, k, l, iz
-
-  if (nu > nv) then
-      write(6,*) nid,nu,nv,' ERROR in tensr3. Contact P.Fischer.'
-      write(6,*) nid,nu,nv,' Memory problem.'
-      call exitt
-  endif
-
-  if (if3d) then
-      nuv = nu*nv
-      nvv = nv*nv
-      call mxm(A,nv,u,nu,v,nu*nu)
-      k=1
-      l=1
-      do iz=1,nu
-          call mxm(v(k),nv,Bt,nu,w(l),nv)
-          k=k+nuv
-          l=l+nvv
-      enddo
-      call mxm(w,nvv,Ct,nu,v,nv)
-  else
-      call mxm(A,nv,u,nu,w,nu)
-      call mxm(w,nv,Bt,nu,v,nv)
-  endif
-  return
-end subroutine tensr3
-
-!-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
 !> \brief     Output: ur,us,ut         Input:u,N,e,D,Dt
@@ -85,6 +42,7 @@ subroutine local_grad3(ur,us,ut,u,N,e,D,Dt)
   return
 end subroutine local_grad3
 
+!-----------------------------------------------------------------------
 subroutine helmholtz(h1, h2, nx, ny, nz, &
                      u, au, gx, gy, gz, b, &
                      work1, work2, work3)
@@ -111,106 +69,6 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
 
 end subroutine helmholtz
 
-subroutine div_diag(alpha, beta, nx, ny, nz, prefactor, &
-                    u, rx, v, sy, w, tz, res, work1, work2)
-  use kinds, only : DP
-  use dxyz, only : dxtm12, dym12, dzm12
-  implicit none
-  real(DP), intent(in) :: alpha, beta
-  integer, intent(in) :: nx, ny, nz
-  real(DP), intent(in), dimension(nx, ny, nz) :: prefactor, u, v, w, rx, sy, tz
-  real(DP), intent(inout), dimension(nx, ny, nz) :: res
-  real(DP) , intent(out), dimension(nx, ny, nz) :: work1, work2
-
-
-  integer :: iz 
-
-  ! X 
-  work1 = u * rx * prefactor
-  call mxm  (dxtm12,nx,work1,nx,work2,ny*nz)
-  res = alpha * work2 + res * beta
-  ! Y 
-  work1 = v * sy * prefactor
-  do iz=1,nz
-      call mxm  (work1(:,:,iz),nx,dym12,ny,work2(:,:,iz),ny)
-  enddo
-  res = alpha * work2 + res
-  ! Z
-  work1 = w * tz * prefactor
-  call mxm  (work1,nx*ny,dzm12,nz,work2,nz)
-  res = alpha * work2 + res
-
-  return
-end subroutine div_diag
-
-
-!-------------------------------------------------------------
-!> \brief Compute DT*X (entire field)
-!-------------------------------------------------------------
-subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
-  use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, ndim
-  use ctimer, only : icalld, tcdtp, ncdtp, etime1, dnekclock
-  use dxyz, only : dym12, dam12, dcm12, dxtm12, dzm12
-  use geom, only : ifrzer, jacm2, ym2, jacm1
-  use input, only : ifaxis, ifsplit
-  use ixyz, only : iym12, iam12, icm12
-  use geom, only : bm1, bm2
-  use wz_m, only : w3m2, w2am2, w2cm2
-  implicit none
-
-  integer :: isd
-  real(DP) :: dtx  (lx1,ly1,lz1,lelv)
-  real(DP) :: x    (lx2,ly2,lz2,lelv)
-  real(DP) :: rm2  (lx2,ly2,lz2,lelv)
-  real(DP) :: sm2  (lx2,ly2,lz2,lelv)
-  real(DP) :: tm2  (lx2,ly2,lz2,lelv)
-
-  real(DP) ::  wx  (lx1,ly1,lz1) &
-  ,             ta1 (lx1,ly1,lz1) &
-  ,             ta2 (lx1,ly1,lz1)
-
-  integer :: e
-  integer :: nxyz1, nxyz2, nxy1, nyz2, n1, n2, ny12, i1, i2, iz
-
-#ifndef NOTIMER
-  if (icalld == 0) tcdtp=0.0
-  icalld=icalld+1
-  ncdtp=icalld
-  etime1=dnekclock()
-#endif
-
-  nxyz1 = nx1*ny1*nz1
-  nxyz2 = nx2*ny2*nz2
-  nyz2  = ny2*nz2
-  nxy1  = nx1*ny1
-
-  n1    = nx1*ny1
-  n2    = nx1*ny2
-
-  do e=1,nelv
-  !      Collocate with weights
-    wx = bm1(:,:,:,e) * x(:,:,:,e) / jacm1(:,:,:,e)
-
-    ta1 = wx * rm2(:,:,:,e)
-    call mxm  (dxtm12,nx1,ta1,nx2,dtx(:,:,:,e),nyz2)
-    ta1 = wx * sm2(:,:,:,e)
-    i1 = 1
-    i2 = 1
-    do iz=1,nz2
-        call mxm  (ta1(:,:,iz),nx1,dym12,ny2,ta2(:,:,iz),ny1)
-        i1 = i1 + n1
-        i2 = i2 + n2
-    enddo
-    dtx(:,:,:,e) = dtx(:,:,:,e) + ta2
-    ta1 = wx * tm2(:,:,:,e)
-    call mxm  (ta1,nxy1,dzm12,nz2,ta2,nz1)
-    dtx(:,:,:,e) = dtx(:,:,:,e) + ta2
-  enddo
-
-end subroutine cdtp 
-
 !----------------------------------------------------------------------
 !> \brief clobbers r
 subroutine hsmg_do_fast(e,r,s,d,nl)
@@ -232,36 +90,33 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   real(DP) :: work(0:lwk-1),work2(0:lwk-1)
 
   nn=nl**ndim
-      schw_flop = schw_flop + nelv*nn
-      schw_mop  = schw_mop  + nelv*nn ! r and e should be in cache
-      do ie=1,nelv
-#if 1
-        schw_flop = schw_flop + 3*nn*(2*nl-1)
-        schw_mop  = schw_mop + nn + 3*nl*nl
-   
-        call mxm(s(1,2,1,ie),nl,r(1,ie),nl,work,nl*nl)
-        do i=0,nl-1
-            call mxm(work(nl*nl*i),nl,s(1,1,2,ie),nl,work2(nl*nl*i),nl)
-        enddo
-        call mxm(work2,nl*nl,s(1,1,3,ie),nl,work,nl)
-#endif
-        do i=0,nn-1
-            work2(i)=d(i+1,ie)*work(i)
-        enddo
-#if 1
-        schw_flop = schw_flop + 3*nn*(2*nl-1)
-        schw_mop  = schw_mop + 1*nn + 3*nl*nl
-   
-        call mxm(s(1,1,1,ie),nl,work2,nl,work,nl*nl)
-        do i=0,nl-1
-            call mxm(work(nl*nl*i),nl,s(1,2,2,ie),nl,work2(nl*nl*i),nl)
-        enddo
-        call mxm(work2,nl*nl,s(1,2,3,ie),nl,e(1,ie),nl)
-#endif
-      enddo
+  schw_flop = schw_flop + nelv*nn
+  schw_mop  = schw_mop  + nelv*nn ! r and e should be in cache
+  schw_flop = schw_flop + 3*nn*(2*nl-1)*nelv
+  schw_mop  = schw_mop + (nn + 3*nl*nl)*nelv
+  schw_flop = schw_flop + 3*nn*(2*nl-1)*nelv
+  schw_mop  = schw_mop + (nn + 3*nl*nl)*nelv
+
+  do ie=1,nelv
+ 
+    call mxm(s(1,2,1,ie),nl,r(1,ie),nl,work,nl*nl)
+    do i=0,nl-1
+        call mxm(work(nl*nl*i),nl,s(1,1,2,ie),nl,work2(nl*nl*i),nl)
+    enddo
+    call mxm(work2,nl*nl,s(1,1,3,ie),nl,work,nl)
+    do i=0,nn-1
+        work2(i)=d(i+1,ie)*work(i)
+    enddo
+  
+    call mxm(s(1,1,1,ie),nl,work2,nl,work,nl*nl)
+    do i=0,nl-1
+        call mxm(work(nl*nl*i),nl,s(1,2,2,ie),nl,work2(nl*nl*i),nl)
+    enddo
+    call mxm(work2,nl*nl,s(1,2,3,ie),nl,e(1,ie),nl)
+  enddo
+
   return
 end subroutine hsmg_do_fast
-
 
 !-----------------------------------------------------------------------
 !> \brief Compute curl of U.
@@ -367,6 +222,149 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
 
   return
 end subroutine op_curl
+
+!-----------------------------------------------------------------------
+subroutine div_diag(alpha, beta, nx, ny, nz, prefactor, &
+                    u, rx, v, sy, w, tz, res, work1, work2)
+  use kinds, only : DP
+  use dxyz, only : dxtm12, dym12, dzm12
+  implicit none
+  real(DP), intent(in) :: alpha, beta
+  integer, intent(in) :: nx, ny, nz
+  real(DP), intent(in), dimension(nx, ny, nz) :: prefactor, u, v, w, rx, sy, tz
+  real(DP), intent(inout), dimension(nx, ny, nz) :: res
+  real(DP) , intent(out), dimension(nx, ny, nz) :: work1, work2
+
+  integer :: iz 
+
+  ! X 
+  work1 = u * rx * prefactor
+  call mxm  (dxtm12,nx,work1,nx,work2,ny*nz)
+  res = alpha * work2 + res * beta
+  ! Y 
+  work1 = v * sy * prefactor
+  do iz=1,nz
+      call mxm  (work1(:,:,iz),nx,dym12,ny,work2(:,:,iz),ny)
+  enddo
+  res = alpha * work2 + res
+  ! Z
+  work1 = w * tz * prefactor
+  call mxm  (work1,nx*ny,dzm12,nz,work2,nz)
+  res = alpha * work2 + res
+
+  return
+end subroutine div_diag
+
+
+!-----------------------------------------------------------------------
+!> \brief  Tensor product application of v = (C x B x A) u .
+!!  NOTE -- the transpose of B & C must be input, rather than B & C.
+!!  -  scratch arrays: w(nu*nu*nv)
+subroutine tensr3(v,nv,u,nu,A,Bt,Ct,w)
+  use kinds, only : DP
+  use size_m, only : nid
+  use input, only : if3d
+  implicit none
+
+  integer :: nv, nu
+  real(DP) :: v(*),u(*)
+  real(DP) :: A(*),Bt(*),Ct(*)
+  real(DP) :: w(*)
+
+  integer :: nuv, nvv, k, l, iz
+
+  if (nu > nv) then
+      write(6,*) nid,nu,nv,' ERROR in tensr3. Contact P.Fischer.'
+      write(6,*) nid,nu,nv,' Memory problem.'
+      call exitt
+  endif
+
+  if (if3d) then
+      nuv = nu*nv
+      nvv = nv*nv
+      call mxm(A,nv,u,nu,v,nu*nu)
+      k=1
+      l=1
+      do iz=1,nu
+          call mxm(v(k),nv,Bt,nu,w(l),nv)
+          k=k+nuv
+          l=l+nvv
+      enddo
+      call mxm(w,nvv,Ct,nu,v,nv)
+  else
+      call mxm(A,nv,u,nu,w,nu)
+      call mxm(w,nv,Bt,nu,v,nv)
+  endif
+  return
+end subroutine tensr3
+
+!-------------------------------------------------------------
+!> \brief Compute DT*X (entire field)
+!-------------------------------------------------------------
+subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
+  use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, ndim
+  use ctimer, only : icalld, tcdtp, ncdtp, etime1, dnekclock
+  use dxyz, only : dym12, dam12, dcm12, dxtm12, dzm12
+  use geom, only : ifrzer, jacm2, ym2, jacm1
+  use input, only : ifaxis, ifsplit
+  use ixyz, only : iym12, iam12, icm12
+  use geom, only : bm1, bm2
+  use wz_m, only : w3m2, w2am2, w2cm2
+  implicit none
+
+  integer :: isd
+  real(DP) :: dtx  (lx1,ly1,lz1,lelv)
+  real(DP) :: x    (lx2,ly2,lz2,lelv)
+  real(DP) :: rm2  (lx2,ly2,lz2,lelv)
+  real(DP) :: sm2  (lx2,ly2,lz2,lelv)
+  real(DP) :: tm2  (lx2,ly2,lz2,lelv)
+
+  real(DP) ::  wx  (lx1,ly1,lz1) &
+  ,             ta1 (lx1,ly1,lz1) &
+  ,             ta2 (lx1,ly1,lz1)
+
+  integer :: e
+  integer :: nxyz1, nxyz2, nxy1, nyz2, n1, n2, ny12, i1, i2, iz
+
+#ifndef NOTIMER
+  if (icalld == 0) tcdtp=0.0
+  icalld=icalld+1
+  ncdtp=icalld
+  etime1=dnekclock()
+#endif
+
+  nxyz1 = nx1*ny1*nz1
+  nxyz2 = nx2*ny2*nz2
+  nyz2  = ny2*nz2
+  nxy1  = nx1*ny1
+
+  n1    = nx1*ny1
+  n2    = nx1*ny2
+
+  do e=1,nelv
+  !      Collocate with weights
+    wx = bm1(:,:,:,e) * x(:,:,:,e) / jacm1(:,:,:,e)
+
+    ta1 = wx * rm2(:,:,:,e)
+    call mxm  (dxtm12,nx1,ta1,nx2,dtx(:,:,:,e),nyz2)
+    ta1 = wx * sm2(:,:,:,e)
+    i1 = 1
+    i2 = 1
+    do iz=1,nz2
+        call mxm  (ta1(:,:,iz),nx1,dym12,ny2,ta2(:,:,iz),ny1)
+        i1 = i1 + n1
+        i2 = i2 + n2
+    enddo
+    dtx(:,:,:,e) = dtx(:,:,:,e) + ta2
+    ta1 = wx * tm2(:,:,:,e)
+    call mxm  (ta1,nxy1,dzm12,nz2,ta2,nz1)
+    dtx(:,:,:,e) = dtx(:,:,:,e) + ta2
+  enddo
+
+end subroutine cdtp 
+
 
 !> \brief local inner product, with weight
 real(DP) FUNCTION VLSC3(X,Y,B,N)

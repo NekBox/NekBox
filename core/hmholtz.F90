@@ -132,7 +132,7 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
     axhelm_flop = axhelm_flop + (2*ny1-1)*nx1*ny1*nz1
     axhelm_flop = axhelm_flop + nxy*(2*nz1-1)*nz1
 
-    call helmholtz(helm1(1,1,1,e), helm2(1,1,1,e), nx1, ny1, nz1, &
+    call helmholtz(helm1(1,1,1,1), helm2(1,1,1,1), nx1, ny1, nz1, &
                    u(1,1,1,e), au(1,1,1,e), &
                    g4m1(1,1,1,e), g5m1(1,1,1,e), g6m1(1,1,1,e), bm1(1,1,1,e), &
                    tm1, tm2, tm3)

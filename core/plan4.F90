@@ -37,7 +37,6 @@ subroutine plan4()
   real(DP), allocatable :: RES3(:,:,:,:)      
   real(DP), allocatable :: DV1 (:,:,:,:)   
   real(DP), allocatable :: DV2 (:,:,:,:)   
-  real(DP), allocatable :: DV3 (:,:,:,:)   
   real(DP), allocatable :: RESPR (:,:,:,:)
 
   real(DP), allocatable :: h1(:,:,:,:), h2(:,:,:,:)
@@ -112,8 +111,8 @@ subroutine plan4()
   deallocate(vext)
 
   allocate(h1(lx1,ly1,lz1,lelv), h2(lx1,ly1,lz1,lelv))
-  h1 = 1._dp / vtrans(:,:,:,:,1)
-  h2 = 0._dp
+  h1(1,1,1,1) = 1._dp / vtrans(1,1,1,1,1)
+  h2(1,1,1,1) = 0._dp
   call ctolspl  (tolspl,respr)
 
   allocate(dpr(lx2,ly2,lz2,lelv))
@@ -139,28 +138,28 @@ subroutine plan4()
   call cresvsp (res1,res2,res3,h1,h2)
   etime = etime + dnekclock()
 
-  allocate(DV1 (LX1,LY1,LZ1,LELV), &
-           DV2 (LX1,LY1,LZ1,LELV), &
-           DV3 (LX1,LY1,LZ1,LELV)  )
+  allocate(DV1 (LX1,LY1,LZ1,LELV)) 
 
   !> \note These three calls are task-parallel
   etime = etime - dnekclock()
   call hsolve('VELX', dv1, res1, h1, h2, v1mask, vmult, imesh, tolhv, nmxh, 1, &
               vx_apx, binvm1)
-  call hsolve('VELY', dv2, res2, h1, h2, v2mask, vmult, imesh, tolhv, nmxh, 2, &
+  vx = vx + dv1
+  call hsolve('VELY', dv1, res2, h1, h2, v2mask, vmult, imesh, tolhv, nmxh, 2, &
               vy_apx, binvm1)
-  call hsolve('VELZ', dv3, res3, h1, h2, v3mask, vmult, imesh, tolhv, nmxh, 3, &
+  vy = vy + dv1
+  call hsolve('VELZ', dv1, res3, h1, h2, v3mask, vmult, imesh, tolhv, nmxh, 3, &
               vz_apx, binvm1)
+  vz = vz + dv1
   etime = etime + dnekclock()
   deallocate(res1, res2, res3, h1, h2)
-
-  vx = vx + dv1; vy = vy + dv2; vz = vz + dv3
 
 !    if (ifexplvis) call redo_split_vis
 
 ! Below is just for diagnostics...
   if (param(75) < 1) then
 
+    allocate(DV2 (LX1,LY1,LZ1,LELV)) 
     ! Calculate Divergence norms of new VX,VY,VZ
     allocate(dvc(lx1,ly1,lz1,lelv), dfc(lx1,ly1,lz1,lelv))
     CALL OPDIV   (DVC,VX,VY,VZ)

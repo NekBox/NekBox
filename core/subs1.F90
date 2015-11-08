@@ -469,70 +469,46 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
 
 !   Zero out scratch arrays U,V,W for ALL declared elements...
 
-  u = 0_dp; v = 0_dp; w = 0_dp
-
   allocate(x(lx1,ly1,lz1,lelv), r(lx1,ly1,lz1,lelv))
 
-  IF (NDIM == 2) THEN
-#if 0
-      CALL VDOT2  (U,V1  ,V2  ,RXM1,RYM1,NTOT)
-      CALL VDOT2  (R,RXM1,RYM1,RXM1,RYM1,NTOT)
-      CALL VDOT2  (X,XRM1,YRM1,XRM1,YRM1,NTOT)
-      r = r * x
-      r = sqrt(r) 
-      u = u / r
-  
-      CALL VDOT2  (V,V1  ,V2  ,SXM1,SYM1,NTOT)
-      CALL VDOT2  (R,SXM1,SYM1,SXM1,SYM1,NTOT)
-      CALL VDOT2  (X,XSM1,YSM1,XSM1,YSM1,NTOT)
-      r = r * x
-      r = sqrt(r) 
-      v = v / r
-#endif 
-  ELSE
 
-      if (if_ortho) then 
-        u = v1 * rxm1 
-        r = rxm1 * rxm1 
-        x = xrm1 * xrm1 
-      else
-        u = v1 * rxm1 + v2 * rym1 + v3 * rzm1 
-        r = rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1
-        x = xrm1 * xrm1 + yrm1 * yrm1 + zrm1 * zrm1
-      endif
+  if (if_ortho) then 
+    u = (v1 * rxm1)/sqrt(rxm1*rxm1*xrm1*xrm1)
+    !r = rxm1 * rxm1 
+    !x = xrm1 * xrm1 
+  else
+    u = v1 * rxm1 + v2 * rym1 + v3 * rzm1 
+    r = rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1
+    x = xrm1 * xrm1 + yrm1 * yrm1 + zrm1 * zrm1
 
-      r = r * x
-      r = sqrt(r) 
-      u = u / r
+    r = r * x
+    r = sqrt(r) 
+    u = u / r
+  endif
 
-      if (if_ortho) then 
-        v = v2*sym1
-        r = sym1 * sym1
-        x = ysm1 * ysm1
-      else
-        v = v1*sxm1     + v2*sym1     + v3*szm1
-        r = sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1
-        x = xsm1 * xsm1 + ysm1 * ysm1 + zsm1 * zsm1 
-      endif
+  if (if_ortho) then 
+    v = (v2 * sym1)/sqrt(sym1*sym1*ysm1*ysm1)
+  else
+    v = v1*sxm1     + v2*sym1     + v3*szm1
+    r = sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1
+    x = xsm1 * xsm1 + ysm1 * ysm1 + zsm1 * zsm1 
 
-      r = r * x
-      r = sqrt(r) 
-      v = v / r
+    r = r * x
+    r = sqrt(r) 
+    v = v / r
+  endif
 
-      if (if_ortho) then
-        w = v3*tzm1
-        r = tzm1 * tzm1
-        x = ztm1 * ztm1
-      else
-        w = v1*txm1     + v2*tym1     + v3*tzm1
-        r = tzm1 * tzm1
-        x = ztm1 * ztm1
-      endif
- 
-      r = r * x
-      r = sqrt(r) 
-      w = w / r
-  
+
+  if (if_ortho) then
+    w = (v3 * tzm1)/sqrt(tzm1*tzm1*ztm1*ztm1)
+  else
+    w = v1*txm1     + v2*tym1     + v3*tzm1
+    r = tzm1 * tzm1
+    x = ztm1 * ztm1
+
+    r = r * x
+    r = sqrt(r) 
+    w = w / r
   endif
 
   deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)

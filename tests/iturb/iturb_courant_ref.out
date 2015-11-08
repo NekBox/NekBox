@@ -1,0 +1,1921 @@
+/----------------------------------------------------------\\
+|      _   __ ______ __ __  ______  ____    ____    ____   |
+|     / | / // ____// //_/ / ____/ / __ \\ / __ \\ / __ \\ |
+|    /  |/ // __/  / ,<   /___ \\  / / / // / / // / / /   |
+|   / /|  // /___ / /| | ____/ / / /_/ // /_/ // /_/ /     |
+|  /_/ |_//_____//_/ |_|/_____/  \\____/ \\____/ \\____/   |
+|                                                          |
+|----------------------------------------------------------|
+|                                                          |
+| NEK5000:  Open Source Spectral Element Solver            |
+| COPYRIGHT (c) 2008-2010 UCHICAGO ARGONNE, LLC            |
+| Version:  1.0rc1 / SVN  r1025                            |
+| Web:      http://nek5000.mcs.anl.gov                     |
+|                                                          |
+\\----------------------------------------------------------/
+                                                              
+
+ Number of processors:           4
+ REAL    wdsize      :           8
+ INTEGER wdsize      :           4
+STREAM:  0.84856E+10 0.69824E+10 0.82930E+10 0.81477E+10 0.79867E+10
+
+
+  Beginning session:
+  /home/mhutchin/nek-tests/iturb/test.rea                                       
+
+ 
+ timer accuracy:   1.1920929E-07 sec
+
+ read .rea file
+ nelgt/nelgv/lelt:        4096        4096        1024
+ lx1  /lx2  /lx3 :           8           8           8
+
+ mapping elements to processors
+           0        1024        1024        4096        4096  NELV
+           1        1024        1024        4096        4096  NELV
+           2        1024        1024        4096        4096  NELV
+           3        1024        1024        4096        4096  NELV
+ RANK     0 IEG       1       2       3       4       5       6       7       8
+                      9      10      11      12      13      14      15      16
+                     17      18      19      20      21      22      23      24
+                     25      26      27      28      29      30      31      32
+                     33      34      35      36      37      38      39      40
+                     41      42      43      44      45      46      47      48
+                     49      50      51      52      53      54      55      56
+                     57      58      59      60      61      62      63      64
+                     65      66      67      68      69      70      71      72
+                     73      74      75      76      77      78      79      80
+                     81      82      83      84      85      86      87      88
+                     89      90      91      92      93      94      95      96
+                     97      98      99     100     101     102     103     104
+                    105     106     107     108     109     110     111     112
+                    113     114     115     116     117     118     119     120
+                    121     122     123     124     125     126     127     128
+                    257     258     259     260     261     262     263     264
+                    265     266     267     268     269     270     271     272
+                    273     274     275     276     277     278     279     280
+                    281     282     283     284     285     286     287     288
+                    289     290     291     292     293     294     295     296
+                    297     298     299     300     301     302     303     304
+                    305     306     307     308     309     310     311     312
+                    313     314     315     316     317     318     319     320
+                    321     322     323     324     325     326     327     328
+                    329     330     331     332     333     334     335     336
+                    337     338     339     340     341     342     343     344
+                    345     346     347     348     349     350     351     352
+                    353     354     355     356     357     358     359     360
+                    361     362     363     364     365     366     367     368
+                    369     370     371     372     373     374     375     376
+                    377     378     379     380     381     382     383     384
+                    513     514     515     516     517     518     519     520
+                    521     522     523     524     525     526     527     528
+                    529     530     531     532     533     534     535     536
+                    537     538     539     540     541     542     543     544
+                    545     546     547     548     549     550     551     552
+                    553     554     555     556     557     558     559     560
+                    561     562     563     564     565     566     567     568
+                    569     570     571     572     573     574     575     576
+                    577     578     579     580     581     582     583     584
+                    585     586     587     588     589     590     591     592
+                    593     594     595     596     597     598     599     600
+                    601     602     603     604     605     606     607     608
+                    609     610     611     612     613     614     615     616
+                    617     618     619     620     621     622     623     624
+                    625     626     627     628     629     630     631     632
+                    633     634     635     636     637     638     639     640
+                    769     770     771     772     773     774     775     776
+                    777     778     779     780     781     782     783     784
+                    785     786     787     788     789     790     791     792
+                    793     794     795     796     797     798     799     800
+                    801     802     803     804     805     806     807     808
+                    809     810     811     812     813     814     815     816
+                    817     818     819     820     821     822     823     824
+                    825     826     827     828     829     830     831     832
+                    833     834     835     836     837     838     839     840
+                    841     842     843     844     845     846     847     848
+                    849     850     851     852     853     854     855     856
+                    857     858     859     860     861     862     863     864
+                    865     866     867     868     869     870     871     872
+                    873     874     875     876     877     878     879     880
+                    881     882     883     884     885     886     887     888
+                    889     890     891     892     893     894     895     896
+                   1025    1026    1027    1028    1029    1030    1031    1032
+                   1033    1034    1035    1036    1037    1038    1039    1040
+                   1041    1042    1043    1044    1045    1046    1047    1048
+                   1049    1050    1051    1052    1053    1054    1055    1056
+                   1057    1058    1059    1060    1061    1062    1063    1064
+                   1065    1066    1067    1068    1069    1070    1071    1072
+                   1073    1074    1075    1076    1077    1078    1079    1080
+                   1081    1082    1083    1084    1085    1086    1087    1088
+                   1089    1090    1091    1092    1093    1094    1095    1096
+                   1097    1098    1099    1100    1101    1102    1103    1104
+                   1105    1106    1107    1108    1109    1110    1111    1112
+                   1113    1114    1115    1116    1117    1118    1119    1120
+                   1121    1122    1123    1124    1125    1126    1127    1128
+                   1129    1130    1131    1132    1133    1134    1135    1136
+                   1137    1138    1139    1140    1141    1142    1143    1144
+                   1145    1146    1147    1148    1149    1150    1151    1152
+                   1281    1282    1283    1284    1285    1286    1287    1288
+                   1289    1290    1291    1292    1293    1294    1295    1296
+                   1297    1298    1299    1300    1301    1302    1303    1304
+                   1305    1306    1307    1308    1309    1310    1311    1312
+                   1313    1314    1315    1316    1317    1318    1319    1320
+                   1321    1322    1323    1324    1325    1326    1327    1328
+                   1329    1330    1331    1332    1333    1334    1335    1336
+                   1337    1338    1339    1340    1341    1342    1343    1344
+                   1345    1346    1347    1348    1349    1350    1351    1352
+                   1353    1354    1355    1356    1357    1358    1359    1360
+                   1361    1362    1363    1364    1365    1366    1367    1368
+                   1369    1370    1371    1372    1373    1374    1375    1376
+                   1377    1378    1379    1380    1381    1382    1383    1384
+                   1385    1386    1387    1388    1389    1390    1391    1392
+                   1393    1394    1395    1396    1397    1398    1399    1400
+                   1401    1402    1403    1404    1405    1406    1407    1408
+                   1537    1538    1539    1540    1541    1542    1543    1544
+                   1545    1546    1547    1548    1549    1550    1551    1552
+                   1553    1554    1555    1556    1557    1558    1559    1560
+                   1561    1562    1563    1564    1565    1566    1567    1568
+                   1569    1570    1571    1572    1573    1574    1575    1576
+                   1577    1578    1579    1580    1581    1582    1583    1584
+                   1585    1586    1587    1588    1589    1590    1591    1592
+                   1593    1594    1595    1596    1597    1598    1599    1600
+                   1601    1602    1603    1604    1605    1606    1607    1608
+                   1609    1610    1611    1612    1613    1614    1615    1616
+                   1617    1618    1619    1620    1621    1622    1623    1624
+                   1625    1626    1627    1628    1629    1630    1631    1632
+                   1633    1634    1635    1636    1637    1638    1639    1640
+                   1641    1642    1643    1644    1645    1646    1647    1648
+                   1649    1650    1651    1652    1653    1654    1655    1656
+                   1657    1658    1659    1660    1661    1662    1663    1664
+                   1793    1794    1795    1796    1797    1798    1799    1800
+                   1801    1802    1803    1804    1805    1806    1807    1808
+                   1809    1810    1811    1812    1813    1814    1815    1816
+                   1817    1818    1819    1820    1821    1822    1823    1824
+                   1825    1826    1827    1828    1829    1830    1831    1832
+                   1833    1834    1835    1836    1837    1838    1839    1840
+                   1841    1842    1843    1844    1845    1846    1847    1848
+                   1849    1850    1851    1852    1853    1854    1855    1856
+                   1857    1858    1859    1860    1861    1862    1863    1864
+                   1865    1866    1867    1868    1869    1870    1871    1872
+                   1873    1874    1875    1876    1877    1878    1879    1880
+                   1881    1882    1883    1884    1885    1886    1887    1888
+                   1889    1890    1891    1892    1893    1894    1895    1896
+                   1897    1898    1899    1900    1901    1902    1903    1904
+                   1905    1906    1907    1908    1909    1910    1911    1912
+                   1913    1914    1915    1916    1917    1918    1919    1920
+ element load imbalance:            0        1024        1024
+ done :: mapping elements to processors
+  
+           0  objects found
+ done :: read .rea file   0.24421E-02 sec
+
+ setup mesh topology
+   setvert3d:   8      532736     1417472      532736      532736
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 37632 unique labels shared
+   pairwise times (avg, min, max): 5.30005e-05 5.24044e-05 5.35011e-05
+   crystal router                : 9.04799e-05 9.04083e-05 9.05037e-05
+   all reduce                    : 0.000191927 0.000191903 0.000191998
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 3.72353e+06 3723532 3723532
+   buffer bytes (avg, min, max): 310016 310016 310016
+   setupds time 1.3606E-01 seconds   0  8      532736        4096
+ done :: setup mesh topology
+  
+ call usrdat
+ done :: usrdat
+
+ generate geometry data
+ vol_t,vol_v:   1.00000000000006        1.00000000000006     
+ done :: generate geometry data
+  
+ call usrdat2
+ done :: usrdat2
+
+ regenerate geometry data           1
+ vol_t,vol_v:   1.00000000000006        1.00000000000006     
+ done :: regenerate geometry data           1
+  
+ 103   Parameters from file:/home/mhutchin/nek-tests/iturb/test.rea
+   1      1.0       p1  DENSITY
+   2      0.00390625     p2  VISCOS
+   7      1.0        p7  RHOCP
+   8      0.00390625  p8  CONDUCT
+  11      64     p11 NSTEPS
+  12      1.0            p12 DT
+  15      32.0       p15 IOSTEP
+  18      0.500000E-01    p18 GRID
+  19     -1.00000         p19 INTYPE
+  20      7.0000          p20 NORDER
+  24      1e-06        p24 TOLREL
+  25      0.0001        p25 TOLABS
+  26      0.4       p26 COURANT/NTAU
+  27      3.00000         p27 TORDER
+  28      0.              p28 TORDER: mesh velocity (0: p28=p27)
+  48      1.000000         p48 0=XXT, 1=SCPS
+  61      23.000000      p61 log_2(pad size): number of bytes to pad output fields to
+  63      8.000000              p63 =8 --> force 8-byte output
+  65      1.000000    p65 #iofiles (eg, 0 or 64); <0 --> sep. dirs
+  66      6.              p66 output : <0=ascii, else binary
+  67      6.              p67 restart: <0=ascii, else binary
+  68      1000.           p68 iastep: freq for avg_all
+  75      1.000000    p75 skip checks?
+  84      0.000010   p84 !=0 --> sets initial timestep if p12>0
+  92      2.000000         p92 Number of previous velocity solns saved
+  93      4.000000        p93 Number of previous pressure solns saved
+  94      2.000000     p94 start projecting velocity after p94 step
+  95      2.000000    p95 start projecting pressure after p95 step
+  99      4.00000          p99   dealiasing: <0--> off/3--> old/4--> new
+ 102      1.00000          p102   Dump out divergence at each time step
+ 103      0.050000    p103   weight of stabilizing filter (.01)
+  
+ IFTRAN   = T
+ IFFLOW   = T
+ IFHEAT   = T
+ IFSPLIT  = T
+ IFLOMACH = F
+ IFUSERVP = F
+ IFUSERMV = F
+ IFSTRS   = F
+ IFCHAR   = F
+ IFCYCLIC = F
+ IFAXIS   = F
+ IFMVBD   = F
+ IFMELT   = F
+ IFMODEL  = F
+ IFKEPS   = F
+ IFMOAB   = F
+ IFNEKNEK = F
+ IFSYNC   = T
+   
+ IFVCOR   = T
+ IFINTQ   = F
+ IFCWUZ   = F
+ IFSWALL  = F
+ IFGEOM   = F
+ IFSURT   = F
+ IFWCNO   = F
+   
+ IFTMSH for field           1    =  F
+ IFADVC for field           1    =  T
+ IFNONL for field           1    =  F
+   
+ IFTMSH for field           2    =  F
+ IFADVC for field           2    =  T
+ IFNONL for field           2    =  F
+   
+ Dealiasing enabled, lxd=          12
+  
+ Estimated eigenvalues
+ EIGAA =    9.86960440108936     
+ EIGGA =    1001925.70165674     
+ EIGAE =    9.86960440108936     
+ EIGAS =   8.333333333333333E-002
+ EIGGE =    1001925.70165674     
+ EIGGS =    2.00000000000000     
+  
+  E-solver strategy:  0 itr
+ mg_nx:           1           3           7
+ mg_ny:           1           3           7
+ mg_nz:           1           3           7
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 768 unique labels shared
+   pairwise times (avg, min, max): 3.57628e-06 3.50475e-06 3.60012e-06
+   crystal router                : 3.09944e-06 3.09944e-06 3.09944e-06
+   all reduce                    : 7.4625e-06 7.41482e-06 7.51019e-06
+   used all_to_all method: crystal router
+   handle bytes (avg, min, max): 118268 118268 118268
+   buffer bytes (avg, min, max): 14592 14592 14592
+   setupds time 1.7381E-03 seconds   1  2        4352        4096
+   setvert3d:   4       80128      112896       80128       80128
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 6912 unique labels shared
+   pairwise times (avg, min, max): 8.53539e-06 8.41618e-06 8.60691e-06
+   crystal router                : 1.64032e-05 1.64032e-05 1.64032e-05
+   all reduce                    : 3.33071e-05 3.33071e-05 3.33071e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 684300 684300 684300
+   buffer bytes (avg, min, max): 59136 59136 59136
+   setupds time 2.9469E-02 seconds   2  4       80128        4096
+   setvert3d:   6      256256      518400      256256      256256
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 19200 unique labels shared
+   pairwise times (avg, min, max): 1.99378e-05 1.97887e-05 2.01941e-05
+   crystal router                : 4.57525e-05 4.56095e-05 4.58002e-05
+   all reduce                    : 9.78231e-05 9.77039e-05 9.78947e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 1.89672e+06 1896716 1896716
+   buffer bytes (avg, min, max): 160000 160000 160000
+   setupds time 6.7624E-02 seconds   3  6      256256        4096
+ regenerate geometry data           1
+ vol_t,vol_v:   1.00000000000006        1.00000000000006     
+ NOTE: All elements deformed , param(59) ^=0
+ done :: regenerate geometry data           1
+  
+ h1_mg_nx:           1           3           7
+ h1_mg_ny:           1           3           7
+ h1_mg_nz:           1           3           7
+   setvert3d:  10      909568     3006720      909568      909568
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 62208 unique labels shared
+   pairwise times (avg, min, max): 6.4075e-05 6.37054e-05 6.44922e-05
+   crystal router                : 0.000157499 0.000156999 0.000157905
+   all reduce                    : 0.00031743 0.000317311 0.000317597
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 6.16475e+06 6164748 6164748
+   buffer bytes (avg, min, max): 509184 509184 509184
+   setupds time 2.2766E-01 seconds   4 10      909568        4096
+ call usrdat3
+ done :: usrdat3
+
+ set initial conditions
+ call nekuic for all fields
+  2.2477936E-05
+  2.2477936E-05
+  2.2477936E-05
+  2.2477936E-05
+ xyz min     0.0000       0.0000     -0.50000    
+ uvwpt min -0.69926     -0.47696     -0.32672       0.0000      -1.0000    
+ xyz max     1.0000       1.0000      0.50000    
+ uvwpt max  0.69926      0.47942      0.32674       0.0000       1.0000    
+ done :: set initial conditions
+  
+ call userchk
+ call outfld: ifpsco: F
+
+        0  0.0000E+00 Write checkpoint:
+       0       0 OPEN: test0.f00001
+
+        0  0.0000E+00 done :: Write checkpoint
+                              file size =       129.E+00MB
+                              avg data-throughput =           95.1MB/s
+                              io-nodes =     1
+
+Maximum scalar  1.000000000000
+Maximum velocity   0.69925585387   0.47942018932   0.32674173721
+ done :: userchk
+
+gridpoints unique/tot:       1417472      2097152
+  dofs:           -1809962448           -1809962448
+  
+ Initialization successfully completed    4.3167     sec
+
+Starting time loop ...
+
+Step      1, t= 1.0000000E-05, DT= 1.000E-05, C=  0.000, ReC=  0.0000 0.0000E+00 0.0E+00
+             Solving for heat
+  Temperature/Passive scalar solution
+  0.000000000000000E+000  p22            1           1
+  1     1 Helmholtz TEMP    F:   6.0696E+01   1.2272E-08   3.9062E-03   1.0000E+05
+  1     2 Helmholtz TEMP    F:   2.6396E-01   1.2272E-08   3.9062E-03   1.0000E+05
+  1     3 Helmholtz TEMP    F:   1.4571E-03   1.2272E-08   3.9062E-03   1.0000E+05
+  1     4 Helmholtz TEMP    F:   1.0218E-05   1.2272E-08   3.9062E-03   1.0000E+05
+  1     5 Helmholtz TEMP    F:   8.1244E-08   1.2272E-08   3.9062E-03   1.0000E+05
+  1     6 Helmholtz TEMP    F:   5.3838E-10   1.2272E-08   3.9062E-03   1.0000E+05
+          1    Hmholtz TEMP:      5   5.3838E-10   6.0696E+01   1.2272E-08
+          1   1.0000E-05  2.1061E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   0.325899989351515       2.021154791454762E-009
+  0.000000000000000E+000  p22            1           1
+ New CG1-tolerance (RINIT*epsm) =   3.258999893515148E-010
+  2.021154791454763E-014
+ New CG1-tolerance (Neumann) =   3.258999893515148E-009
+MAX:    0    8    8    8    8    0    0    0    0    2    2
+MAX:    1    8    8    8    8    8    8    0    0    2    2
+MAX:    2    8    8    8    8    0    0    8    8    2    2
+MAX:    3    8    8    8    8    8    8    8    8    2    2
+gs_setup: 0 unique labels shared
+   pairwise times (avg, min, max): 9.53674e-08 9.53674e-08 9.53674e-08
+   crystal router                : 1.16825e-06 1.12057e-06 1.21593e-06
+   all reduce                    : 2.38419e-08 0 9.53674e-08
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 12484 12484 12484
+   buffer bytes (avg, min, max): 0 0 0
+gs_setup: 2048 unique labels shared
+   pairwise times (avg, min, max): 1.66893e-06 1.38283e-06 2.00272e-06
+   crystal router                : 3.29614e-06 3.29018e-06 3.31402e-06
+   all reduce                    : 1.38044e-05 1.37091e-05 1.38998e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 20700 20700 20700
+   buffer bytes (avg, min, max): 8192 8192 8192
+gs_setup: 2048 unique labels shared
+   pairwise times (avg, min, max): 1.63317e-06 1.38283e-06 1.88351e-06
+   crystal router                : 3.33786e-06 3.31402e-06 3.40939e-06
+   all reduce                    : 1.33991e-05 1.32799e-05 1.35183e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 20700 20700 20700
+   buffer bytes (avg, min, max): 8192 8192 8192
+gs_setup: 2048 unique labels shared
+   pairwise times (avg, min, max): 2.22325e-06 2.19345e-06 2.31266e-06
+   crystal router                : 4.62532e-06 4.60148e-06 4.69685e-06
+   all reduce                    : 1.35899e-05 1.35183e-05 1.36137e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 20700 20700 20700
+   buffer bytes (avg, min, max): 8192 8192 8192
+gs_setup: 2048 unique labels shared
+   pairwise times (avg, min, max): 2.16961e-06 2.09808e-06 2.19345e-06
+   crystal router                : 4.60148e-06 4.60148e-06 4.60148e-06
+   all reduce                    : 1.33634e-05 1.33038e-05 1.3423e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 20700 20700 20700
+   buffer bytes (avg, min, max): 8192 8192 8192
+ Finished init        1024
+    1 3.25900E-09 1.52644E+03 2.28503E+03 6.68017E-01       1 Divergence
+    2 3.25900E-09 5.98139E+02 2.28503E+03 2.61764E-01       1 Divergence
+    3 3.25900E-09 1.20708E+02 2.28503E+03 5.28254E-02       1 Divergence
+    4 3.25900E-09 4.00055E+01 2.28503E+03 1.75076E-02       1 Divergence
+    5 3.25900E-09 8.80205E+00 2.28503E+03 3.85205E-03       1 Divergence
+    6 3.25900E-09 2.12139E+00 2.28503E+03 9.28384E-04       1 Divergence
+    7 3.25900E-09 6.41316E-01 2.28503E+03 2.80660E-04       1 Divergence
+    8 3.25900E-09 1.49285E-01 2.28503E+03 6.53317E-05       1 Divergence
+    9 3.25900E-09 4.32829E-02 2.28503E+03 1.89419E-05       1 Divergence
+   10 3.25900E-09 1.03189E-02 2.28503E+03 4.51588E-06       1 Divergence
+   11 3.25900E-09 2.87528E-03 2.28503E+03 1.25831E-06       1 Divergence
+   12 3.25900E-09 7.12399E-04 2.28503E+03 3.11768E-07       1 Divergence
+   13 3.25900E-09 2.06139E-04 2.28503E+03 9.02130E-08       1 Divergence
+   14 3.25900E-09 7.02449E-05 2.28503E+03 3.07414E-08       1 Divergence
+   15 3.25900E-09 2.01077E-05 2.28503E+03 8.79974E-09       1 Divergence
+   16 3.25900E-09 6.06040E-06 2.28503E+03 2.65222E-09       1 Divergence
+   17 3.25900E-09 1.51617E-06 2.28503E+03 6.63522E-10       1 Divergence
+   18 3.25900E-09 5.11830E-07 2.28503E+03 2.23993E-10       1 Divergence
+   19 3.25900E-09 1.56087E-07 2.28503E+03 6.83085E-11       1 Divergence
+   20 3.25900E-09 4.53516E-08 2.28503E+03 1.98473E-11       1 Divergence
+   21 3.25900E-09 1.61427E-08 2.28503E+03 7.06454E-12       1 Divergence
+   22 3.25900E-09 4.70996E-09 2.28503E+03 2.06122E-12       1 Divergence
+   23 3.25900E-09 1.44702E-09 2.28503E+03 6.33259E-13       1 Divergence
+        1 PRES gmres:   23  1.4470E-09  3.2590E-09  2.2850E+03  1.9510E+00  2.4397E+00    F
+  0.000000000000000E+000  p22            1           1
+  1     1 Helmholtz VELX    F:   2.7024E+04   1.4858E-09   3.9062E-03   1.0000E+05
+  1     2 Helmholtz VELX    F:   7.4753E+01   1.4858E-09   3.9062E-03   1.0000E+05
+  1     3 Helmholtz VELX    F:   3.0741E-01   1.4858E-09   3.9062E-03   1.0000E+05
+  1     4 Helmholtz VELX    F:   1.8362E-03   1.4858E-09   3.9062E-03   1.0000E+05
+  1     5 Helmholtz VELX    F:   9.0467E-06   1.4858E-09   3.9062E-03   1.0000E+05
+  1     6 Helmholtz VELX    F:   8.8976E-08   1.4858E-09   3.9062E-03   1.0000E+05
+  1     7 Helmholtz VELX    F:   4.5143E-10   1.4858E-09   3.9062E-03   1.0000E+05
+          1    Hmholtz VELX:      6   4.5143E-10   2.7024E+04   1.4858E-09
+  0.000000000000000E+000  p22            1           1
+  1     1 Helmholtz VELY    F:   4.5919E+03   1.4858E-09   3.9062E-03   1.0000E+05
+  1     2 Helmholtz VELY    F:   1.2963E+01   1.4858E-09   3.9062E-03   1.0000E+05
+  1     3 Helmholtz VELY    F:   5.5972E-02   1.4858E-09   3.9062E-03   1.0000E+05
+  1     4 Helmholtz VELY    F:   3.3860E-04   1.4858E-09   3.9062E-03   1.0000E+05
+  1     5 Helmholtz VELY    F:   1.9246E-06   1.4858E-09   3.9062E-03   1.0000E+05
+  1     6 Helmholtz VELY    F:   1.8050E-08   1.4858E-09   3.9062E-03   1.0000E+05
+  1     7 Helmholtz VELY    F:   1.2614E-10   1.4858E-09   3.9062E-03   1.0000E+05
+          1    Hmholtz VELY:      6   1.2614E-10   4.5919E+03   1.4858E-09
+  0.000000000000000E+000  p22            1           1
+  1     1 Helmholtz VELZ    F:   9.3180E+03   1.4858E-09   3.9062E-03   1.0000E+05
+  1     2 Helmholtz VELZ    F:   2.5953E+01   1.4858E-09   3.9062E-03   1.0000E+05
+  1     3 Helmholtz VELZ    F:   1.0566E-01   1.4858E-09   3.9062E-03   1.0000E+05
+  1     4 Helmholtz VELZ    F:   6.2886E-04   1.4858E-09   3.9062E-03   1.0000E+05
+  1     5 Helmholtz VELZ    F:   2.9973E-06   1.4858E-09   3.9062E-03   1.0000E+05
+  1     6 Helmholtz VELZ    F:   2.9766E-08   1.4858E-09   3.9062E-03   1.0000E+05
+  1     7 Helmholtz VELZ    F:   1.3232E-10   1.4858E-09   3.9062E-03   1.0000E+05
+          1    Hmholtz VELZ:      6   1.3232E-10   9.3180E+03   1.4858E-09
+          1   1.0000E-05  2.9995E+00 Fluid done
+filt amp 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0500
+filt trn 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 0.9500
+Maximum scalar  1.007586790881
+Maximum velocity   0.47897682693   0.49494529883   0.26829030886
+Step      2, t= 2.0000000E-05, DT= 1.000E-05, C=  0.000, ReC=  0.0000 3.3056E+00 3.3E+00
+             Solving for heat
+  0.000000000000000E+000  p22            2           1
+          2    Hmholtz TEMP:      4   2.6303E-08   1.2238E+02   4.2382E-07
+          2   2.0000E-05  1.9682E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   0.481754757852993       1.283861633625255E-007
+  0.000000000000000E+000  p22            2           1
+        2 PRES gmres:   23  2.1945E-09  4.8175E-09  3.3803E+03  1.1935E+00  1.6968E+00    F
+  0.000000000000000E+000  p22            2           1
+          2    Hmholtz VELX:      5   5.3138E-10   4.8015E+02   9.4377E-08
+  0.000000000000000E+000  p22            2           1
+          2    Hmholtz VELY:      4   6.9380E-08   2.7368E+02   9.4377E-08
+  0.000000000000000E+000  p22            2           1
+          2    Hmholtz VELZ:      4   4.7712E-08   3.5949E+02   9.4377E-08
+          2   2.0000E-05  2.1794E+00 Fluid done
+Maximum scalar  1.017103432501
+Maximum velocity   0.45914113041   0.49784112255   0.26027698372
+Step      3, t= 3.0000000E-05, DT= 1.000E-05, C=  0.000, ReC=  0.0000 5.7774E+00 2.5E+00
+             Solving for heat
+  0.000000000000000E+000  p22            3           1
+          3    Hmholtz TEMP:      4   1.6659E-08   2.0932E+02   4.1964E-07
+          3   3.0000E-05  1.9743E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   0.267877330631521       1.259696839939020E-007
+        3 PRES gmres:   23  1.2417E-09  2.6788E-09  1.8891E+03  1.1919E+00  1.6912E+00    F
+          3    Hmholtz VELX:      4   4.4754E-08   5.3280E+02   9.2601E-08
+          3    Hmholtz VELY:      4   3.2213E-08   3.2989E+02   9.2601E-08
+          3    Hmholtz VELZ:      4   2.4381E-08   3.5528E+02   9.2601E-08
+          3   3.0000E-05  2.2059E+00 Fluid done
+Maximum scalar  1.028071995181
+Maximum velocity   0.45950541557   0.48804996766   0.25680868587
+Step      4, t= 4.0000000E-05, DT= 1.000E-05, C=  0.000, ReC=  0.0000 8.2439E+00 2.5E+00
+             Solving for heat
+  0.000000000000000E+000  p22            4           1
+          4    Hmholtz TEMP:      4   1.6958E-08   2.2651E+02   4.1543E-07
+          4   4.0000E-05  1.7113E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   0.108044318411556       1.235038522710848E-007
+          4    PRES alph1n  1.0804E+06  1.8667E+05  5.7879E+00     1
+          4    PRES halpha     1 -3.9954E-01
+        4 PRES gmres:   22  5.6819E-11  1.8667E-10  1.1181E+02  1.1397E+00  1.6089E+00    F
+          4    VELX alph1n  4.3510E+02  1.2634E+02  3.4439E+00     1
+          4    VELX halpha     1  7.8123E-01
+          4    Hmholtz VELX:      4   1.0363E-08   1.2634E+02   9.0788E-08
+          4    VELY alph1n  3.2632E+02  8.9610E+01  3.6416E+00     1
+          4    VELY halpha     1  9.5129E-01
+          4    Hmholtz VELY:      4   7.3536E-09   8.9610E+01   9.0788E-08
+          4    VELZ alph1n  2.9644E+02  9.9541E+01  2.9781E+00     1
+          4    VELZ halpha     1  7.8593E-01
+          4    Hmholtz VELZ:      4   4.4727E-09   9.9541E+01   9.0788E-08
+          4   4.0000E-05  2.1966E+00 Fluid done
+Maximum scalar  1.038953850533
+Maximum velocity   0.45471931683   0.48146466629   0.25317974409
+Step      5, t= 5.0000000E-05, DT= 1.000E-05, C=  0.000, ReC=  0.0000 1.0675E+01 2.4E+00
+             Solving for heat
+  0.000000000000000E+000  p22            5           1
+          5    Hmholtz TEMP:      4   1.6437E-08   2.1504E+02   4.1140E-07
+          5   5.0000E-05  1.7059E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   6.535931230671695E-003  1.212553010470004E-007
+          5    PRES alph1n  6.5359E+04  5.8300E+04  1.1211E+00     2
+          5    PRES halpha     2 -4.9658E-02  1.7499E-04
+        5 PRES gmres:   22  2.3197E-11  5.8300E-11  3.4338E+01  1.1436E+00  1.6152E+00    F
+          5    VELX alph1n  3.5504E+02  2.7348E+01  1.2982E+01     2
+          5    VELX halpha     2 -1.5242E+00 -4.7027E-01
+          5    Hmholtz VELX:      4   3.7511E-09   2.7348E+01   8.9135E-08
+          5    VELY alph1n  2.9866E+02  2.7567E+01  1.0834E+01     2
+          5    VELY halpha     2 -1.1604E+00 -6.2649E-01
+          5    Hmholtz VELY:      4   2.4513E-09   2.7567E+01   8.9135E-08
+          5    VELZ alph1n  2.4464E+02  3.3500E+01  7.3028E+00     2
+          5    VELZ halpha     2 -1.2847E+00 -4.8430E-01
+          5    Hmholtz VELZ:      4   1.3401E-09   3.3500E+01   8.9135E-08
+          5   5.0000E-05  2.1830E+00 Fluid done
+Maximum scalar  1.048900828455
+Maximum velocity   0.44796836943   0.47793442350   0.24912225662
+Step      6, t= 6.2000000E-05, DT= 1.200E-05, C=  0.001, ReC=  1.5313 1.3162E+01 2.5E+00
+             Solving for heat
+  0.000000000000000E+000  p22            6           1
+          6    Hmholtz TEMP:      4   2.8537E-08   2.1196E+02   4.0760E-07
+          6   6.2000E-05  1.9749E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   3.418112814248130E-003  1.192747548953354E-007
+          6    PRES alph1n  3.4181E+04  1.7534E+04  1.9494E+00     3
+          6    PRES halpha     3  1.5324E-01  1.2639E-01  9.1881E-05
+        6 PRES gmres:   22  9.6517E-12  1.7534E-11  1.0664E+01  1.1421E+00  1.6278E+00    F
+          6    VELX alph1n  3.2223E+02  2.0947E+01  1.5383E+01     2
+          6    VELX halpha     2 -1.7759E+00  6.1672E-01
+          6    Hmholtz VELX:      4   4.0603E-09   2.0947E+01   8.7680E-08
+          6    VELY alph1n  2.9022E+02  1.1566E+01  2.5093E+01     2
+          6    VELY halpha     2 -1.7494E+00  7.4190E-01
+          6    Hmholtz VELY:      4   2.8513E-09   1.1566E+01   8.7680E-08
+          6    VELZ alph1n  2.2438E+02  1.4827E+01  1.5134E+01     2
+          6    VELZ halpha     2 -1.8073E+00  6.3162E-01
+          6    Hmholtz VELZ:      4   2.2341E-09   1.4827E+01   8.7680E-08
+          6   6.2000E-05  2.2613E+00 Fluid done
+Maximum scalar  1.058768407341
+Maximum velocity   0.43988248099   0.47337862810   0.24461255924
+Step      7, t= 7.6400000E-05, DT= 1.440E-05, C=  0.002, ReC=  1.5167 1.5731E+01 2.6E+00
+             Solving for heat
+  0.000000000000000E+000  p22            7           1
+          7    Hmholtz TEMP:      4   5.2844E-08   1.8039E+02   4.0340E-07
+          7   7.6400E-05  1.9797E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.779247722296944E-003  1.172730276635756E-007
+          7    PRES alph1n  1.7792E+04  4.9144E+03  3.6205E+00     4
+          7    PRES halpha     4  7.7990E-01 -2.3943E-02 -5.2397E-02 -1.0141E-04
+        7 PRES gmres:   22  2.1172E-12  4.9144E-12  3.5048E+00  1.1392E+00  1.6127E+00    F
+          7    VELX alph1n  2.6061E+02  1.4495E+01  1.7979E+01     2
+          7    VELX halpha     2  1.3323E+00  6.7917E-01
+          7    Hmholtz VELX:      4   6.2774E-09   1.4495E+01   8.6208E-08
+          7    VELY alph1n  2.3834E+02  1.3882E+01  1.7169E+01     2
+          7    VELY halpha     2  1.4034E+00  7.2119E-01
+          7    Hmholtz VELY:      4   6.9856E-09   1.3882E+01   8.6208E-08
+          7    VELZ alph1n  1.7987E+02  8.2389E+00  2.1831E+01     2
+          7    VELZ halpha     2  1.3242E+00  6.7819E-01
+          7    Hmholtz VELZ:      4   3.2366E-09   8.2389E+00   8.6208E-08
+          7   7.6400E-05  2.2538E+00 Fluid done
+Maximum scalar  1.067689830010
+Maximum velocity   0.43127888479   0.46867753370   0.24411088134
+Step      8, t= 9.3680000E-05, DT= 1.728E-05, C=  0.002, ReC=  1.5016 1.8293E+01 2.6E+00
+             Solving for heat
+  0.000000000000000E+000  p22            8           1
+          8    Hmholtz TEMP:      4   9.9102E-08   1.4750E+02   3.9876E-07
+          8   9.3680E-05  1.9784E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.136508781018293E-003  1.153092307095362E-007
+          8    PRES alph1n  1.1365E+04  2.1566E+03  5.2700E+00     4
+          8    PRES halpha     4  7.9022E-01  2.9977E-01 -5.1057E-02 -2.3727E-04
+        8 PRES gmres:   22  1.2066E-12  2.1566E-12  1.3917E+00  1.1390E+00  1.6247E+00    F
+          8    VELX alph1n  1.9870E+02  1.5184E+01  1.3086E+01     2
+          8    VELX halpha     2 -1.4487E+00  6.2595E-01
+          8    Hmholtz VELX:      4   1.0689E-08   1.5184E+01   8.4764E-08
+          8    VELY alph1n  1.8198E+02  9.3906E+00  1.9380E+01     2
+          8    VELY halpha     2 -2.2475E+00  6.3254E-01
+          8    Hmholtz VELY:      4   9.4862E-09   9.3906E+00   8.4764E-08
+          8    VELZ alph1n  1.3398E+02  8.1490E+00  1.6442E+01     2
+          8    VELZ halpha     2 -1.3163E+00  6.1108E-01
+          8    Hmholtz VELZ:      4   6.6757E-09   8.1490E+00   8.4764E-08
+          8   9.3680E-05  2.2652E+00 Fluid done
+Maximum scalar  1.075258927932
+Maximum velocity   0.42231417552   0.47351152318   0.24489047018
+Step      9, t= 1.1441600E-04, DT= 2.074E-05, C=  0.002, ReC=  1.5171 2.0867E+01 2.6E+00
+             Solving for heat
+  0.000000000000000E+000  p22            9           1
+          9    Hmholtz TEMP:      4   1.8698E-07   1.2466E+02   3.9360E-07
+          9   1.1442E-04  1.9784E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   8.038915171282446E-004  1.133705299477176E-007
+          9    PRES alph1n  8.0389E+03  1.0956E+03  7.3375E+00     4
+          9    PRES halpha     4 -7.4124E-01 -3.5146E-01 -2.1918E-01  4.1432E-02
+        9 PRES gmres:   21  1.4042E-12  2.3509E-12  6.2432E-01  1.0916E+00  1.5514E+00    F
+          9    VELX alph1n  1.5262E+02  6.4976E+00  2.3489E+01     2
+          9    VELX halpha     2 -2.1729E+00 -6.1009E-01
+          9    Hmholtz VELX:      4   6.7649E-09   6.4976E+00   8.3339E-08
+          9    VELY alph1n  1.3992E+02  2.8775E+00  4.8627E+01     2
+          9    VELY halpha     2 -2.2696E+00 -6.1036E-01
+          9    Hmholtz VELY:      4   5.2285E-09   2.8775E+00   8.3339E-08
+          9    VELZ alph1n  9.9133E+01  4.5434E+00  2.1819E+01     2
+          9    VELZ halpha     2 -1.9976E+00 -5.8454E-01
+          9    Hmholtz VELZ:      4   6.6079E-09   4.5434E+00   8.3339E-08
+          9   1.1442E-04  2.1934E+00 Fluid done
+Maximum scalar  1.081470108061
+Maximum velocity   0.41288806254   0.47766087405   0.24539569035
+Step     10, t= 1.3929920E-04, DT= 2.488E-05, C=  0.003, ReC=  1.5304 2.3369E+01 2.5E+00
+             Solving for heat
+  0.000000000000000E+000  p22           10           1
+         10    Hmholtz TEMP:      4   3.5888E-07   1.1089E+02   3.8783E-07
+         10   1.3930E-04  1.9724E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   5.868657917038048E-004  1.114022824386167E-007
+         10    PRES alph1n  5.8687E+03  3.3131E+02  1.7713E+01     4
+         10    PRES halpha     4 -1.0828E+00 -2.5554E-01  1.8624E-01  1.5960E-01
+       10 PRES gmres:   20  1.1837E-12  2.7720E-12  1.9360E-01  1.0409E+00  1.4809E+00    F
+         10    VELX alph1n  1.2276E+02  1.1877E+00  1.0336E+02     2
+         10    VELX halpha     2 -2.1024E+00  6.3776E-01
+         10    Hmholtz VELX:      4   3.9868E-09   1.1877E+00   8.1892E-08
+         10    VELY alph1n  1.1310E+02  8.6843E-01  1.3023E+02     2
+         10    VELY halpha     2 -2.0985E+00  6.4030E-01
+         10    Hmholtz VELY:      4   3.5602E-09   8.6843E-01   8.1892E-08
+         10    VELZ alph1n  7.6078E+01  1.2330E+00  6.1700E+01     2
+         10    VELZ halpha     2 -2.0678E+00  6.0082E-01
+         10    Hmholtz VELZ:      4   3.8835E-09   1.2330E+00   8.1892E-08
+         10   1.3930E-04  2.1226E+00 Fluid done
+Maximum scalar  1.086493049995
+Maximum velocity   0.40290793279   0.48123353148   0.24565305725
+Step     11, t= 1.6915904E-04, DT= 2.986E-05, C=  0.003, ReC=  1.5419 2.5800E+01 2.4E+00
+             Solving for heat
+         11    Hmholtz TEMP:      5   7.1529E-09   1.0230E+02   3.8132E-07
+         11   1.6916E-04  2.0807E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   4.070626578885334E-004  1.093426817785769E-007
+         11    PRES alph1n  4.0706E+03  2.3765E+02  1.7129E+01     4
+         11    PRES halpha     4 -9.9847E-01  3.7605E-01  1.7839E-01  1.8282E-01
+       11 PRES gmres:   19  2.6486E-12  3.2650E-12  1.4086E-01  9.8760E-01  1.4116E+00    F
+         11    VELX alph1n  1.0397E+02  1.7459E+00  5.9552E+01     2
+         11    VELX halpha     2 -2.0370E+00 -6.8880E-01
+         11    Hmholtz VELX:      4   6.5492E-09   1.7459E+00   8.0378E-08
+         11    VELY alph1n  9.6590E+01  7.3976E-01  1.3057E+02     2
+         11    VELY halpha     2 -2.0282E+00 -6.9598E-01
+         11    Hmholtz VELY:      4   5.1612E-09   7.3976E-01   8.0378E-08
+         11    VELZ alph1n  6.1373E+01  1.0722E+00  5.7238E+01     2
+         11    VELZ halpha     2 -2.0178E+00 -6.4320E-01
+         11    Hmholtz VELZ:      4   5.6174E-09   1.0722E+00   8.0378E-08
+         11   1.6916E-04  2.0538E+00 Fluid done
+Maximum scalar  1.090517907218
+Maximum velocity   0.39230277219   0.48433072374   0.24568817711
+Step     12, t= 2.0499085E-04, DT= 3.583E-05, C=  0.004, ReC=  1.5518 2.8172E+01 2.4E+00
+             Solving for heat
+         12    Hmholtz TEMP:      5   1.6497E-08   9.6055E+01   3.7397E-07
+         12   2.0499E-04  2.0873E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   2.764771072841972E-004  1.071400999795201E-007
+         12    PRES alph1n  2.7648E+03  1.2070E+02  2.2906E+01     4
+         12    PRES halpha     4 -2.1080E+00  3.9950E-01  7.6403E-02  1.8753E-01
+       12 PRES gmres:   18  3.7210E-12  3.8390E-12  6.8857E-02  9.3328E-01  1.3131E+00    F
+         12    VELX alph1n  9.1512E+01  8.8929E-01  1.0290E+02     2
+         12    VELX halpha     2  2.0705E+00 -7.3731E-01
+         12    Hmholtz VELX:      4   8.7707E-09   8.8929E-01   7.8759E-08
+         12    VELY alph1n  8.5763E+01  5.1695E-01  1.6590E+02     2
+         12    VELY halpha     2  2.0463E+00 -7.4736E-01
+         12    Hmholtz VELY:      4   8.2335E-09   5.1695E-01   7.8759E-08
+         12    VELZ alph1n  5.1612E+01  5.3653E-01  9.6195E+01     2
+         12    VELZ halpha     2 -2.0601E+00  6.8865E-01
+         12    Hmholtz VELZ:      4   6.8045E-09   5.3653E-01   7.8759E-08
+         12   2.0499E-04  1.9532E+00 Fluid done
+Maximum scalar  1.093627905975
+Maximum velocity   0.38453724186   0.48701365138   0.24550765144
+Step     13, t= 2.4798902E-04, DT= 4.300E-05, C=  0.005, ReC=  1.5604 3.0445E+01 2.3E+00
+             Solving for heat
+         13    Hmholtz TEMP:      5   3.7891E-08   9.0737E+01   3.6570E-07
+         13   2.4799E-04  2.0814E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.946684399595062E-004  1.047572075631899E-007
+         13    PRES alph1n  1.9467E+03  3.9181E+01  4.9684E+01     4
+         13    PRES halpha     4 -1.6206E+00  1.0231E+00 -2.5519E-01  1.8158E-01
+       13 PRES gmres:   17  4.3099E-12  4.5044E-12  2.1628E-02  8.8175E-01  1.2322E+00    F
+         13    VELX alph1n  8.2496E+01  5.1399E-01  1.6050E+02     2
+         13    VELX halpha     2  2.1170E+00  7.7170E-01
+         13    Hmholtz VELX:      4   1.1176E-08   5.1399E-01   7.7008E-08
+         13    VELY alph1n  7.7865E+01  4.5828E-01  1.6991E+02     2
+         13    VELY halpha     2  2.1047E+00  7.8127E-01
+         13    Hmholtz VELY:      4   1.4212E-08   4.5828E-01   7.7008E-08
+         13    VELZ alph1n  4.4660E+01  2.6391E-01  1.6922E+02     2
+         13    VELZ halpha     2  2.1110E+00  7.2421E-01
+         13    Hmholtz VELZ:      4   8.2850E-09   2.6391E-01   7.7008E-08
+         13   2.4799E-04  1.8735E+00 Fluid done
+Maximum scalar  1.095885473194
+Maximum velocity   0.38376351017   0.48930711850   0.24509746856
+Step     14, t= 2.9958682E-04, DT= 5.160E-05, C=  0.006, ReC=  1.5677 3.2637E+01 2.2E+00
+             Solving for heat
+         14    Hmholtz TEMP:      5   8.6224E-08   8.5690E+01   3.5645E-07
+         14   2.9959E-04  2.0819E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.397154847213502E-004  1.021702405159420E-007
+         14    PRES alph1n  1.3972E+03  2.2172E+01  6.3013E+01     4
+         14    PRES halpha     4 -2.1104E+00 -4.4875E-01  5.9258E-01  1.7960E-01
+       14 PRES gmres:   17  3.9964E-12  5.2718E-12  1.2747E-02  8.8177E-01  1.2315E+00    F
+         14    VELX alph1n  7.5395E+01  6.3825E-01  1.1813E+02     2
+         14    VELX halpha     2  2.1501E+00 -7.9279E-01
+         14    Hmholtz VELX:      4   2.2489E-08   6.3825E-01   7.5106E-08
+         14    VELY alph1n  7.1519E+01  4.9499E-01  1.4449E+02     2
+         14    VELY halpha     2  2.1493E+00 -8.0016E-01
+         14    Hmholtz VELY:      4   2.5569E-08   4.9499E-01   7.5106E-08
+         14    VELZ alph1n  3.9389E+01  3.3239E-01  1.1850E+02     2
+         14    VELZ halpha     2  2.1424E+00 -7.4905E-01
+         14    Hmholtz VELZ:      4   1.4825E-08   3.3239E-01   7.5106E-08
+         14   2.9959E-04  1.8710E+00 Fluid done
+Maximum scalar  1.097269563802
+Maximum velocity   0.38270023796   0.49121215650   0.24443080286
+Step     15, t= 3.6150419E-04, DT= 6.192E-05, C=  0.007, ReC=  1.5738 3.4827E+01 2.2E+00
+             Solving for heat
+         15    Hmholtz TEMP:      5   1.9362E-07   8.0595E+01   3.4623E-07
+         15   3.6150E-04  2.0813E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   9.997332839308863E-005  9.936842996220897E-008
+         15    PRES alph1n  9.9973E+02  1.1410E+01  8.7623E+01     4
+         15    PRES halpha     4  2.4445E+00 -1.2027E+00  3.5314E-01  1.8486E-01
+       15 PRES gmres:   17  1.7869E-12  6.1526E-12  6.4427E-03  8.8144E-01  1.2313E+00    F
+         15    VELX alph1n  6.9380E+01  5.9807E-01  1.1601E+02     2
+         15    VELX halpha     2  2.1619E+00  8.0433E-01
+         15    Hmholtz VELX:      4   4.9810E-08   5.9807E-01   7.3046E-08
+         15    VELY alph1n  6.6008E+01  5.3579E-01  1.2320E+02     2
+         15    VELY halpha     2  2.1617E+00  8.0914E-01
+         15    Hmholtz VELY:      4   5.4350E-08   5.3579E-01   7.3046E-08
+         15    VELZ alph1n  3.5188E+01  2.9930E-01  1.1757E+02     2
+         15    VELZ halpha     2  2.1436E+00  7.6617E-01
+         15    Hmholtz VELZ:      4   2.8412E-08   2.9930E-01   7.3046E-08
+         15   3.6150E-04  1.8706E+00 Fluid done
+Maximum scalar  1.097755937421
+Maximum velocity   0.38134857394   0.49271616193   0.24347572771
+Step     16, t= 4.3580502E-04, DT= 7.430E-05, C=  0.009, ReC=  1.5787 3.7016E+01 2.2E+00
+             Solving for heat
+         16    Hmholtz TEMP:      6   1.4787E-08   7.5286E+01   3.3505E-07
+         16   4.3581E-04  2.1908E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   7.130728420722934E-005  9.635513120539496E-008
+         16    PRES alph1n  7.1307E+02  8.0203E+00  8.8908E+01     4
+         16    PRES halpha     4 -2.9606E+00  1.1627E+00  2.3316E-01  1.8625E-01
+       16 PRES gmres:   16  4.0413E-12  7.1593E-12  4.4504E-03  8.3132E-01  1.1555E+00    F
+         16    VELX alph1n  6.3941E+01  6.2348E-01  1.0256E+02     2
+         16    VELX halpha     2  2.1632E+00 -8.0864E-01
+         16    Hmholtz VELX:      5   3.0688E-09   6.2348E-01   7.0831E-08
+         16    VELY alph1n  6.0906E+01  6.0032E-01  1.0146E+02     2
+         16    VELY halpha     2  2.1655E+00 -8.1105E-01
+         16    Hmholtz VELY:      5   3.4131E-09   6.0032E-01   7.0831E-08
+         16    VELZ alph1n  3.1665E+01  3.1174E-01  1.0158E+02     2
+         16    VELZ halpha     2  2.1242E+00 -7.7698E-01
+         16    Hmholtz VELZ:      4   6.1178E-08   3.1174E-01   7.0831E-08
+         16   4.3581E-04  1.8191E+00 Fluid done
+Maximum scalar  1.097331845489
+Maximum velocity   0.37971416853   0.49379740818   0.24219802406
+Step     17, t= 5.2496603E-04, DT= 8.916E-05, C=  0.011, ReC=  1.5821 3.9166E+01 2.1E+00
+             Solving for heat
+         17    Hmholtz TEMP:      6   3.7685E-08   6.9688E+01   3.2302E-07
+         17   5.2497E-04  2.1931E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   5.060443958735442E-005  9.314996971745406E-008
+         17    PRES alph1n  5.0604E+02  4.8609E+00  1.0411E+02     4
+         17    PRES halpha     4  3.3832E+00 -6.9326E-01 -6.2857E-01  1.8089E-01
+       17 PRES gmres:   15  7.1330E-12  8.3053E-12  2.7629E-03  7.7779E-01  1.0742E+00    F
+         17    VELX alph1n  5.8757E+01  6.7672E-01  8.6827E+01     2
+         17    VELX halpha     2  2.1867E+00  8.0691E-01
+         17    Hmholtz VELX:      5   8.2681E-09   6.7672E-01   6.8475E-08
+         17    VELY alph1n  5.5951E+01  6.5523E-01  8.5392E+01     2
+         17    VELY halpha     2  2.1981E+00  8.0725E-01
+         17    Hmholtz VELY:      5   8.1036E-09   6.5523E-01   6.8475E-08
+         17    VELZ alph1n  2.8545E+01  3.5240E-01  8.1002E+01     2
+         17    VELZ halpha     2  2.1188E+00  7.8129E-01
+         17    Hmholtz VELZ:      5   3.9183E-09   3.5240E-01   6.8475E-08
+         17   5.2497E-04  1.7469E+00 Fluid done
+Maximum scalar  1.095992469886
+Maximum velocity   0.37780622871   0.49442433638   0.24244763656
+Step     18, t= 6.3195923E-04, DT= 1.070E-04, C=  0.013, ReC=  1.5841 4.1243E+01 2.1E+00
+             Solving for heat
+         18    Hmholtz TEMP:      6   9.3345E-08   6.3809E+01   3.1031E-07
+         18   6.3196E-04  2.1916E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   3.577141813914231E-005  8.979035970882875E-008
+         18    PRES alph1n  3.5771E+02  4.0447E+00  8.8441E+01     4
+         18    PRES halpha     4 -2.4373E+00 -1.6703E+00  6.7677E-01  1.7315E-01
+       18 PRES gmres:   15  6.4165E-12  9.6070E-12  2.4204E-03  7.7718E-01  1.0809E+00    F
+         18    VELX alph1n  5.3650E+01  6.8545E-01  7.8270E+01     2
+         18    VELX halpha     2  2.2543E+00 -8.0030E-01
+         18    Hmholtz VELX:      5   2.0206E-08   6.8545E-01   6.6006E-08
+         18    VELY alph1n  5.1010E+01  6.5822E-01  7.7498E+01     2
+         18    VELY halpha     2  2.2814E+00 -7.9893E-01
+         18    Hmholtz VELY:      5   1.6306E-08   6.5822E-01   6.6006E-08
+         18    VELZ alph1n  2.5649E+01  3.7817E-01  6.7824E+01     2
+         18    VELZ halpha     2  2.1595E+00 -7.7926E-01
+         18    Hmholtz VELZ:      5   8.8538E-09   3.7817E-01   6.6006E-08
+         18   6.3196E-04  1.7537E+00 Fluid done
+Maximum scalar  1.093741769198
+Maximum velocity   0.37563760051   0.49455176949   0.24251840799
+Step     19, t= 7.6035108E-04, DT= 1.284E-04, C=  0.015, ReC=  1.5845 4.3326E+01 2.1E+00
+             Solving for heat
+         19    Hmholtz TEMP:      6   2.2354E-07   5.7727E+01   2.9714E-07
+         19   7.6035E-04  2.1905E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   2.550323918255677E-005  8.633058812183293E-008
+         19    PRES alph1n  2.5503E+02  4.1418E+00  6.1576E+01     4
+         19    PRES halpha     4 -3.2921E+00 -1.3469E+00 -7.9328E-01  1.6388E-01
+       19 PRES gmres:   15  8.1084E-12  1.1084E-11  2.4213E-03  7.7749E-01  1.0808E+00    F
+         19    VELX alph1n  4.8560E+01  6.2746E-01  7.7392E+01     2
+         19    VELX halpha     2  2.3517E+00  7.9018E-01
+         19    Hmholtz VELX:      5   4.3590E-08   6.2746E-01   6.3462E-08
+         19    VELY alph1n  4.6056E+01  5.8788E-01  7.8342E+01     2
+         19    VELY halpha     2  2.3926E+00  7.8745E-01
+         19    Hmholtz VELY:      5   3.5782E-08   5.8788E-01   6.3462E-08
+         19    VELZ alph1n  2.2889E+01  3.6953E-01  6.1941E+01     2
+         19    VELZ halpha     2  2.2567E+00  7.7207E-01
+         19    Hmholtz VELZ:      5   1.6283E-08   3.6953E-01   6.3462E-08
+         19   7.6035E-04  1.7532E+00 Fluid done
+Maximum scalar  1.090594267624
+Maximum velocity   0.37379823987   0.49411620221   0.24231380884
+Step     20, t= 9.1442129E-04, DT= 1.541E-04, C=  0.018, ReC=  1.5831 4.5409E+01 2.1E+00
+             Solving for heat
+         20    Hmholtz TEMP:      7   1.8481E-08   5.1587E+01   2.8379E-07
+         20   9.1442E-04  2.2996E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.879849455358066E-005  8.283696854372884E-008
+         20    PRES alph1n  1.8798E+02  1.5641E+00  1.2019E+02     4
+         20    PRES halpha     4 -4.2351E+00  9.5932E-01  9.0029E-01  1.5343E-01
+       20 PRES gmres:   14  8.4985E-12  1.2763E-11  8.6453E-04  7.2753E-01  1.0058E+00    F
+         20    VELX alph1n  4.3519E+01  5.1668E-01  8.4229E+01     2
+         20    VELX halpha     2  2.4319E+00 -7.7813E-01
+         20    Hmholtz VELX:      6   5.5960E-09   5.1668E-01   6.0894E-08
+         20    VELY alph1n  4.1146E+01  4.6736E-01  8.8039E+01     2
+         20    VELY halpha     2  2.4736E+00 -7.7442E-01
+         20    Hmholtz VELY:      6   4.2053E-09   4.6736E-01   6.0894E-08
+         20    VELZ alph1n  2.0245E+01  3.1932E-01  6.3401E+01     2
+         20    VELZ halpha     2  2.3722E+00 -7.6167E-01
+         20    Hmholtz VELZ:      5   3.9483E-08   3.1932E-01   6.0894E-08
+         20   9.1442E-04  1.7032E+00 Fluid done
+Maximum scalar  1.086596860882
+Maximum velocity   0.37195900696   0.49303136947   0.24180168414
+Step     21, t= 1.0993056E-03, DT= 1.849E-04, C=  0.022, ReC=  1.5797 4.7453E+01 2.0E+00
+             Solving for heat
+         21    Hmholtz TEMP:      7   5.2104E-08   4.5581E+01   2.7055E-07
+         21   1.0993E-03  2.3079E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.481570973717943E-005  7.937849397132373E-008
+         21    PRES alph1n  1.4816E+02  1.1171E+00  1.3262E+02     4
+         21    PRES halpha     4 -2.5460E+00 -1.8839E+00  8.9037E-01  1.4486E-01
+       21 PRES gmres:   14  1.0886E-11  1.4676E-11  6.5542E-04  7.2874E-01  1.0056E+00    F
+         21    VELX alph1n  3.8622E+01  3.9433E-01  9.7943E+01     2
+         21    VELX halpha     2  2.4596E+00  7.6578E-01
+         21    Hmholtz VELX:      6   1.0906E-08   3.9433E-01   5.8352E-08
+         21    VELY alph1n  3.6398E+01  3.4583E-01  1.0525E+02     2
+         21    VELY halpha     2  2.4938E+00  7.6162E-01
+         21    Hmholtz VELY:      6   8.1446E-09   3.4583E-01   5.8352E-08
+         21    VELZ alph1n  1.7749E+01  2.4608E-01  7.2127E+01     2
+         21    VELZ halpha     2  2.4428E+00  7.5046E-01
+         21    Hmholtz VELZ:      6   6.0450E-09   2.4608E-01   5.8352E-08
+         21   1.0993E-03  1.7144E+00 Fluid done
+Maximum scalar  1.081809749963
+Maximum velocity   0.36992620750   0.49118440761   0.24094238328
+Step     22, t= 1.3211667E-03, DT= 2.219E-04, C=  0.026, ReC=  1.5738 4.9509E+01 2.1E+00
+             Solving for heat
+         22    Hmholtz TEMP:      7   1.4096E-07   3.9924E+01   2.5767E-07
+         22   1.3212E-03  2.2996E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.266802615594660E-005  7.601425359743682E-008
+         22    PRES alph1n  1.2668E+02  1.3679E+00  9.2612E+01     4
+         22    PRES halpha     4  5.6114E+00  1.6462E+00  8.7527E-01  1.4551E-01
+       22 PRES gmres:   14  9.4218E-12  1.6865E-11  8.1064E-04  7.2583E-01  1.0028E+00    F
+         22    VELX alph1n  3.3996E+01  2.9770E-01  1.1420E+02     2
+         22    VELX halpha     2  2.4359E+00 -7.5482E-01
+         22    Hmholtz VELX:      6   1.9479E-08   2.9770E-01   5.5879E-08
+         22    VELY alph1n  3.1958E+01  2.6016E-01  1.2284E+02     2
+         22    VELY halpha     2  2.4627E+00 -7.5109E-01
+         22    Hmholtz VELY:      6   1.5358E-08   2.6016E-01   5.5879E-08
+         22    VELZ alph1n  1.5462E+01  1.7928E-01  8.6244E+01     2
+         22    VELZ halpha     2  2.4467E+00 -7.4120E-01
+         22    Hmholtz VELZ:      6   1.1760E-08   1.7928E-01   5.5879E-08
+         22   1.3212E-03  1.7085E+00 Fluid done
+Maximum scalar  1.076295403513
+Maximum velocity   0.36769002776   0.48843258121   0.23968863994
+Step     23, t= 1.5874000E-03, DT= 2.662E-04, C=  0.031, ReC=  1.5649 5.1559E+01 2.0E+00
+             Solving for heat
+         23    Hmholtz TEMP:      8   1.6493E-08   3.4809E+01   2.4529E-07
+         23   1.5874E-03  2.4110E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.141997584611746E-005  7.278138054200340E-008
+         23    PRES alph1n  1.1420E+02  6.0793E-01  1.8785E+02     4
+         23    PRES halpha     4 -5.0344E+00 -1.6893E+00 -8.4439E-01  1.7105E-01
+       23 PRES gmres:   13  1.2844E-11  1.9377E-11  3.5004E-04  6.7378E-01  9.2524E-01    F
+         23    VELX alph1n  2.9763E+01  2.4765E-01  1.2018E+02     2
+         23    VELX halpha     2  2.3762E+00  7.4683E-01
+         23    Hmholtz VELX:      6   3.3081E-08   2.4765E-01   5.3503E-08
+         23    VELY alph1n  2.7964E+01  2.2854E-01  1.2236E+02     2
+         23    VELY halpha     2  2.3990E+00  7.4484E-01
+         23    Hmholtz VELY:      6   3.4986E-08   2.2854E-01   5.3503E-08
+         23    VELZ alph1n  1.3449E+01  1.3911E-01  9.6682E+01     2
+         23    VELZ halpha     2  2.4013E+00  7.3674E-01
+         23    Hmholtz VELZ:      6   2.2367E-08   1.3911E-01   5.3503E-08
+         23   1.5874E-03  1.6309E+00 Fluid done
+Maximum scalar  1.070159014870
+Maximum velocity   0.36522249297   0.48460074766   0.23798558116
+Step     24, t= 1.9068800E-03, DT= 3.195E-04, C=  0.037, ReC=  1.5527 5.3541E+01 2.0E+00
+             Solving for heat
+         24    Hmholtz TEMP:      8   4.8775E-08   3.0354E+01   2.3345E-07
+         24   1.9069E-03  2.4090E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.037084904100467E-005  6.968905344212448E-008
+         24    PRES alph1n  1.0371E+02  7.4266E-01  1.3964E+02     4
+         24    PRES halpha     4 -4.5112E+00  2.0243E+00  7.8945E-01  2.3907E-01
+       24 PRES gmres:   13  1.4158E-11  2.2264E-11  4.4414E-04  6.7387E-01  9.2547E-01    F
+         24    VELX alph1n  2.5998E+01  2.4976E-01  1.0409E+02     2
+         24    VELX halpha     2  2.2949E+00 -7.4267E-01
+         24    Hmholtz VELX:      7   6.4599E-09   2.4976E-01   5.1229E-08
+         24    VELY alph1n  2.4502E+01  2.4915E-01  9.8343E+01     2
+         24    VELY halpha     2  2.3162E+00 -7.4417E-01
+         24    Hmholtz VELY:      7   7.8544E-09   2.4915E-01   5.1229E-08
+         24    VELZ alph1n  1.1753E+01  1.3340E-01  8.8104E+01     2
+         24    VELZ halpha     2  2.3273E+00 -7.3928E-01
+         24    Hmholtz VELZ:      6   4.7184E-08   1.3340E-01   5.1229E-08
+         24   1.9069E-03  1.6529E+00 Fluid done
+Maximum scalar  1.063533080603
+Maximum velocity   0.36246907853   0.47948025298   0.23577070455
+Step     25, t= 2.2902560E-03, DT= 3.834E-04, C=  0.044, ReC=  1.5363 5.5546E+01 2.0E+00
+             Solving for heat
+         25    Hmholtz TEMP:      8   1.3631E-07   2.6561E+01   2.2206E-07
+         25   2.2903E-03  2.4101E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   9.183738925943000E-006  6.672287719864593E-008
+         25    PRES alph1n  9.1837E+01  4.9433E-01  1.8578E+02     4
+         25    PRES halpha     4  5.8804E+00 -2.1115E+00 -7.1981E-01  3.2192E-01
+       25 PRES gmres:   13  9.2107E-12  2.5580E-11  2.8847E-04  6.7411E-01  9.2580E-01    F
+         25    VELX alph1n  2.2709E+01  2.9208E-01  7.7750E+01     2
+         25    VELX halpha     2  2.2042E+00  7.4177E-01
+         25    Hmholtz VELX:      7   2.3343E-08   2.9208E-01   4.9049E-08
+         25    VELY alph1n  2.1572E+01  3.0325E-01  7.1135E+01     2
+         25    VELY halpha     2  2.2258E+00  7.4858E-01
+         25    Hmholtz VELY:      7   2.6773E-08   3.0325E-01   4.9049E-08
+         25    VELZ alph1n  1.0371E+01  1.5415E-01  6.7282E+01     2
+         25    VELZ halpha     2  2.2405E+00  7.4886E-01
+         25    Hmholtz VELZ:      7   1.0964E-08   1.5415E-01   4.9049E-08
+         25   2.2903E-03  1.6647E+00 Fluid done
+Maximum scalar  1.056569039417
+Maximum velocity   0.36060255168   0.47283058498   0.23297922728
+Step     26, t= 2.7503072E-03, DT= 4.601E-04, C=  0.052, ReC=  1.5149 5.7562E+01 2.0E+00
+             Solving for heat
+         26    Hmholtz TEMP:      9   3.8814E-08   2.3322E+01   2.1104E-07
+         26   2.7503E-03  2.5189E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   7.803158000393022E-006  6.385882177226802E-008
+         26    PRES alph1n  7.8032E+01  2.9191E-01  2.6731E+02     4
+         26    PRES halpha     4  5.7966E+00  2.0944E+00  6.8817E-01  3.5980E-01
+       26 PRES gmres:   12  2.2909E-11  2.9378E-11  1.7283E-04  6.2172E-01  8.4790E-01    F
+         26    VELX alph1n  1.9833E+01  3.5642E-01  5.5645E+01     2
+         26    VELX halpha     2  2.1216E+00 -7.4190E-01
+         26    Hmholtz VELX:      8   7.4508E-09   3.5642E-01   4.6944E-08
+         26    VELY alph1n  1.9095E+01  3.7286E-01  5.1214E+01     2
+         26    VELY halpha     2  2.1445E+00 -7.5526E-01
+         26    Hmholtz VELY:      8   8.5494E-09   3.7286E-01   4.6944E-08
+         26    VELZ alph1n  9.2545E+00  1.8673E-01  4.9561E+01     2
+         26    VELZ halpha     2  2.1585E+00 -7.6237E-01
+         26    Hmholtz VELZ:      7   3.4374E-08   1.8673E-01   4.6944E-08
+         26   2.7503E-03  1.6094E+00 Fluid done
+Maximum scalar  1.049434866631
+Maximum velocity   0.35803346327   0.46572612534   0.22969355713
+Step     27, t= 3.3023686E-03, DT= 5.521E-04, C=  0.061, ReC=  1.4922 5.9534E+01 2.0E+00
+             Solving for heat
+         27    Hmholtz TEMP:      9   1.0536E-07   2.0476E+01   2.0031E-07
+         27   3.3024E-03  2.5218E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   6.337787647136430E-006  6.107930638788996E-008
+         27    PRES alph1n  6.3378E+01  2.8290E-01  2.2403E+02     4
+         27    PRES halpha     4 -5.7254E+00  1.9858E+00  7.7439E-01  3.5788E-01
+       27 PRES gmres:   12  2.8693E-11  3.3720E-11  1.7389E-04  6.2252E-01  8.4854E-01    F
+         27    VELX alph1n  1.7281E+01  4.2374E-01  4.0782E+01     2
+         27    VELX halpha     2  2.0784E+00  7.4023E-01
+         27    Hmholtz VELX:      8   2.6118E-08   4.2374E-01   4.4901E-08
+         27    VELY alph1n  1.6957E+01  4.3990E-01  3.8548E+01     2
+         27    VELY halpha     2  2.1027E+00  7.6048E-01
+         27    Hmholtz VELY:      8   2.9712E-08   4.3990E-01   4.4901E-08
+         27    VELZ alph1n  8.3308E+00  2.1871E-01  3.8091E+01     2
+         27    VELZ halpha     2  2.1101E+00  7.7489E-01
+         27    Hmholtz VELZ:      8   1.4034E-08   2.1871E-01   4.4901E-08
+         27   3.3024E-03  1.6203E+00 Fluid done
+Maximum scalar  1.042305804669
+Maximum velocity   0.35450625558   0.45787732164   0.22628436505
+Step     28, t= 3.9648424E-03, DT= 6.625E-04, C=  0.072, ReC=  1.4670 6.1517E+01 2.0E+00
+             Solving for heat
+         28    Hmholtz TEMP:     10   3.4951E-08   1.7889E+01   1.8991E-07
+         28   3.9648E-03  2.6313E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   4.966582233974547E-006  5.838133357671941E-008
+         28    PRES alph1n  4.9666E+01  2.5777E-01  1.9267E+02     4
+         28    PRES halpha     4 -5.9669E+00  1.7927E+00  9.6377E-01  3.4684E-01
+       28 PRES gmres:   12  3.1450E-11  3.8676E-11  1.6147E-04  6.2265E-01  8.4459E-01    F
+         28    VELX alph1n  1.4984E+01  4.6191E-01  3.2440E+01     2
+         28    VELX halpha     2  2.1187E+00 -7.3537E-01
+         28    Hmholtz VELX:      9   8.4846E-09   4.6191E-01   4.2918E-08
+         28    VELY alph1n  1.5063E+01  4.7254E-01  3.1877E+01     2
+         28    VELY halpha     2  2.1408E+00 -7.6219E-01
+         28    Hmholtz VELY:      9   1.0365E-08   4.7254E-01   4.2918E-08
+         28    VELZ alph1n  7.5378E+00  2.3423E-01  3.2181E+01     2
+         28    VELZ halpha     2  2.1342E+00 -7.8319E-01
+         28    Hmholtz VELZ:      8   4.1757E-08   2.3423E-01   4.2918E-08
+         28   3.9648E-03  1.6386E+00 Fluid done
+Maximum scalar  1.035357916490
+Maximum velocity   0.34991678103   0.44761032620   0.22186747775
+Step     29, t= 4.7598108E-03, DT= 7.950E-04, C=  0.084, ReC=  1.4341 6.3529E+01 2.0E+00
+             Solving for heat
+         29    Hmholtz TEMP:     10   1.0304E-07   1.5500E+01   1.7996E-07
+         29   4.7598E-03  2.6295E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   3.857216392104502E-006  5.577135752984982E-008
+         29    PRES alph1n  3.8572E+01  2.6657E-01  1.4470E+02     4
+         29    PRES halpha     4 -6.1110E+00  1.6940E+00 -1.0355E+00  3.4676E-01
+       29 PRES gmres:   12  3.0569E-11  4.4336E-11  1.6506E-04  6.2225E-01  8.4579E-01    F
+         29    VELX alph1n  1.2924E+01  4.2229E-01  3.0604E+01     2
+         29    VELX halpha     2  2.2375E+00  7.2869E-01
+         29    Hmholtz VELX:      9   2.0596E-08   4.2229E-01   4.0999E-08
+         29    VELY alph1n  1.3372E+01  4.2600E-01  3.1389E+01     2
+         29    VELY halpha     2  2.2512E+00  7.6149E-01
+         29    Hmholtz VELY:      9   2.6236E-08   4.2600E-01   4.0999E-08
+         29    VELZ alph1n  6.8400E+00  2.1247E-01  3.2193E+01     2
+         29    VELZ halpha     2  2.2327E+00  7.8773E-01
+         29    Hmholtz VELZ:      9   1.3196E-08   2.1247E-01   4.0999E-08
+         29   4.7598E-03  1.6543E+00 Fluid done
+Maximum scalar  1.028764245895
+Maximum velocity   0.34454354075   0.43460022891   0.21630983532
+Step     30, t= 5.7137730E-03, DT= 9.540E-04, C=  0.098, ReC=  1.3925 6.5558E+01 2.0E+00
+             Solving for heat
+         30    Hmholtz TEMP:     11   6.0249E-08   1.3319E+01   1.7059E-07
+         30   5.7138E-03  2.7417E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   3.088250620917242E-006  5.325104461639997E-008
+         30    PRES alph1n  3.0883E+01  2.7190E-01  1.1358E+02     4
+         30    PRES halpha     4  5.9242E+00  1.9206E+00  9.9361E-01  3.6663E-01
+       30 PRES gmres:   12  2.8536E-11  5.0799E-11  1.6592E-04  6.2265E-01  8.4446E-01    F
+         30    VELX alph1n  1.1120E+01  3.0044E-01  3.7013E+01     2
+         30    VELX halpha     2  2.3224E+00 -7.2384E-01
+         30    Hmholtz VELX:     10   7.0159E-09   3.0044E-01   3.9147E-08
+         30    VELY alph1n  1.1882E+01  3.0332E-01  3.9172E+01     2
+         30    VELY halpha     2  2.3303E+00 -7.6149E-01
+         30    Hmholtz VELY:     10   1.0694E-08   3.0332E-01   3.9147E-08
+         30    VELZ alph1n  6.2243E+00  1.5320E-01  4.0628E+01     2
+         30    VELZ halpha     2  2.3151E+00 -7.9111E-01
+         30    Hmholtz VELZ:      9   2.8191E-08   1.5320E-01   3.9147E-08
+         30   5.7138E-03  1.6722E+00 Fluid done
+Maximum scalar  1.022692268261
+Maximum velocity   0.33731707014   0.41861118056   0.20950320751
+Step     31, t= 6.8585276E-03, DT= 1.145E-03, C=  0.114, ReC=  1.3412 6.7615E+01 2.1E+00
+             Solving for heat
+         31    Hmholtz TEMP:     12   3.2559E-08   1.1382E+01   1.6191E-07
+         31   6.8585E-03  2.8504E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   2.608617928949800E-006  5.080459747121718E-008
+         31    PRES alph1n  2.6086E+01  2.6462E-01  9.8579E+01     4
+         31    PRES halpha     4 -5.5857E+00 -2.2807E+00 -9.2507E-01  4.0210E-01
+       31 PRES gmres:   12  3.1234E-11  5.8159E-11  1.6314E-04  6.2201E-01  8.4410E-01    F
+         31    VELX alph1n  9.6019E+00  1.7738E-01  5.4133E+01     2
+         31    VELX halpha     2  2.3055E+00  7.2472E-01
+         31    Hmholtz VELX:     10   1.5683E-08   1.7738E-01   3.7348E-08
+         31    VELY alph1n  1.0599E+01  1.8820E-01  5.6321E+01     2
+         31    VELY halpha     2  2.3169E+00  7.6475E-01
+         31    Hmholtz VELY:     10   2.2779E-08   1.8820E-01   3.7348E-08
+         31    VELZ alph1n  5.6844E+00  9.5481E-02  5.9534E+01     2
+         31    VELZ halpha     2  2.3113E+00  7.9524E-01
+         31    Hmholtz VELZ:     10   1.2816E-08   9.5481E-02   3.7348E-08
+         31   6.8585E-03  1.6827E+00 Fluid done
+Maximum scalar  1.017298574856
+Maximum velocity   0.32811165387   0.39954951355   0.20244704800
+Step     32, t= 8.2322331E-03, DT= 1.374E-03, C=  0.132, ReC=  1.2802 6.9693E+01 2.1E+00
+             Solving for heat
+         32    Hmholtz TEMP:     12   1.0965E-07   9.7190E+00   1.5394E-07
+         32   8.2322E-03  2.8508E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   2.295558856580193E-006  4.839668508320417E-008
+         32    PRES alph1n  2.2956E+01  2.3915E-01  9.5987E+01     4
+         32    PRES halpha     4  5.9465E+00 -2.2857E+00  8.7644E-01  4.3653E-01
+       32 PRES gmres:   12  3.0443E-11  6.6483E-11  1.5448E-04  6.2288E-01  8.4415E-01    F
+         32    VELX alph1n  8.3668E+00  1.2421E-01  6.7361E+01     2
+         32    VELX halpha     2  2.2249E+00 -7.3292E-01
+         32    Hmholtz VELX:     11   9.9414E-09   1.2421E-01   3.5579E-08
+         32    VELY alph1n  9.5124E+00  1.4506E-01  6.5576E+01     2
+         32    VELY halpha     2  2.2472E+00 -7.7132E-01
+         32    Hmholtz VELY:     11   1.3086E-08   1.4506E-01   3.5579E-08
+         32    VELZ alph1n  5.2087E+00  7.2106E-02  7.2236E+01     2
+         32    VELZ halpha     2  2.2496E+00 -7.9972E-01
+         32    Hmholtz VELZ:     10   2.8145E-08   7.2106E-02   3.5579E-08
+         32   8.2322E-03  1.7049E+00 Fluid done
+Maximum scalar  1.012715229959
+Maximum velocity   0.31689636834   0.37750940953   0.19415874977
+ call outfld: ifpsco: F
+
+       32  8.2322E-03 Write checkpoint:
+       0      32 OPEN: test0.f00002
+
+       32  8.2322E-03 done :: Write checkpoint
+                              file size =       129.E+00MB
+                              avg data-throughput =           99.3MB/s
+                              io-nodes =     1
+
+Step     33, t= 9.8806797E-03, DT= 1.648E-03, C=  0.153, ReC=  1.2095 7.3089E+01 3.4E+00
+             Solving for heat
+         33    Hmholtz TEMP:     13   7.9767E-08   8.3278E+00   1.4660E-07
+         33   9.8807E-03  2.9848E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   2.057759114956629E-006  4.598243523638565E-008
+         33    PRES alph1n  2.0578E+01  2.1261E-01  9.6788E+01     4
+         33    PRES halpha     4 -6.7468E+00  2.1312E+00 -8.8238E-01  4.5739E-01
+       33 PRES gmres:   12  2.6188E-11  7.5800E-11  1.3499E-04  6.2292E-01  8.4424E-01    F
+         33    VELX alph1n  7.3699E+00  1.3207E-01  5.5803E+01     2
+         33    VELX halpha     2  2.1259E+00  7.4570E-01
+         33    Hmholtz VELX:     11   2.9534E-08   1.3207E-01   3.3804E-08
+         33    VELY alph1n  8.5811E+00  1.5185E-01  5.6509E+01     2
+         33    VELY halpha     2  2.1655E+00  7.7843E-01
+         33    Hmholtz VELY:     12   9.3434E-09   1.5185E-01   3.3804E-08
+         33    VELZ alph1n  4.7780E+00  7.3510E-02  6.4999E+01     2
+         33    VELZ halpha     2  2.1759E+00  8.0232E-01
+         33    Hmholtz VELZ:     11   2.0115E-08   7.3510E-02   3.3804E-08
+         33   9.8807E-03  1.7282E+00 Fluid done
+Maximum scalar  1.009023046051
+Maximum velocity   0.30475701700   0.35903226784   0.18438352238
+Step     34, t= 1.1858816E-02, DT= 1.978E-03, C=  0.176, ReC=  1.1461 7.5227E+01 2.1E+00
+             Solving for heat
+         34    Hmholtz TEMP:     14   4.7968E-08   7.1756E+00   1.3981E-07
+         34   1.1859E-02  3.0810E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.865498930577528E-006  4.352345503025489E-008
+         34    PRES alph1n  1.8655E+01  2.0072E-01  9.2939E+01     4
+         34    PRES halpha     4  6.7257E+00  1.9861E+00  9.4210E-01  4.6559E-01
+       34 PRES gmres:   12  2.3451E-11  8.6095E-11  1.2423E-04  6.2129E-01  8.4470E-01    F
+         34    VELX alph1n  6.5400E+00  1.5715E-01  4.1616E+01     2
+         34    VELX halpha     2  2.0432E+00 -7.5700E-01
+         34    Hmholtz VELX:     12   2.5681E-08   1.5715E-01   3.1997E-08
+         34    VELY alph1n  7.7525E+00  1.6799E-01  4.6149E+01     2
+         34    VELY halpha     2  2.1040E+00 -7.8226E-01
+         34    Hmholtz VELY:     12   3.1752E-08   1.6799E-01   3.1997E-08
+         34    VELZ alph1n  4.3710E+00  7.9532E-02  5.4959E+01     2
+         34    VELZ halpha     2  2.1240E+00 -8.0065E-01
+         34    Hmholtz VELZ:     12   1.5680E-08   7.9532E-02   3.1997E-08
+         34   1.1859E-02  1.7495E+00 Fluid done
+Maximum scalar  1.006276594216
+Maximum velocity   0.30023827368   0.34586053815   0.17374677674
+Step     35, t= 1.4232579E-02, DT= 2.374E-03, C=  0.204, ReC=  1.1066 7.7396E+01 2.2E+00
+             Solving for heat
+         35    Hmholtz TEMP:     15   4.3948E-08   6.2140E+00   1.3344E-07
+         35   1.4233E-02  3.1924E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.715722247243338E-006  4.100082346022832E-008
+         35    PRES alph1n  1.7157E+01  1.9154E-01  8.9574E+01     4
+         35    PRES halpha     4 -6.3110E+00 -1.9685E+00 -9.9549E-01  4.6650E-01
+       35 PRES gmres:   11  8.6966E-11  9.7326E-11  1.2735E-04  5.6986E-01  7.7064E-01    F
+         35    VELX alph1n  5.8116E+00  1.7915E-01  3.2439E+01     2
+         35    VELX halpha     2  2.0267E+00  7.6183E-01
+         35    Hmholtz VELX:     13   1.7788E-08   1.7915E-01   3.0143E-08
+         35    VELY alph1n  6.9805E+00  1.7651E-01  3.9546E+01     2
+         35    VELY halpha     2  2.0961E+00  7.8030E-01
+         35    Hmholtz VELY:     13   2.3494E-08   1.7651E-01   3.0143E-08
+         35    VELZ alph1n  3.9704E+00  8.1531E-02  4.8699E+01     2
+         35    VELZ halpha     2  2.1236E+00  7.9351E-01
+         35    Hmholtz VELZ:     13   1.1941E-08   8.1531E-02   3.0143E-08
+         35   1.4233E-02  1.7088E+00 Fluid done
+Maximum scalar  1.004234795946
+Maximum velocity   0.29540117465   0.33080767000   0.16563681956
+Step     36, t= 1.7081095E-02, DT= 2.849E-03, C=  0.234, ReC=  1.0581 7.9536E+01 2.1E+00
+             Solving for heat
+         36    Hmholtz TEMP:     16   4.1785E-08   5.3985E+00   1.2744E-07
+         36   1.7081E-02  3.3092E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.597228761578460E-006  3.841879878799827E-008
+         36    PRES alph1n  1.5972E+01  1.8399E-01  8.6809E+01     4
+         36    PRES halpha     4  6.0295E+00 -2.1027E+00  1.0125E+00  4.6262E-01
+       36 PRES gmres:   11  9.5398E-11  1.0944E-10  1.3215E-04  5.6984E-01  7.7052E-01    F
+         36    VELX alph1n  5.1480E+00  1.7961E-01  2.8662E+01     2
+         36    VELX halpha     2  2.1283E+00 -7.5989E-01
+         36    Hmholtz VELX:     14   2.0063E-08   1.7961E-01   2.8245E-08
+         36    VELY alph1n  6.2379E+00  1.6607E-01  3.7563E+01     2
+         36    VELY halpha     2  2.1574E+00 -7.7253E-01
+         36    Hmholtz VELY:     14   2.3030E-08   1.6607E-01   2.8245E-08
+         36    VELZ alph1n  3.5670E+00  7.4600E-02  4.7815E+01     2
+         36    VELZ halpha     2  2.1801E+00 -7.8114E-01
+         36    Hmholtz VELZ:     14   1.0696E-08   7.4600E-02   2.8245E-08
+         36   1.7081E-02  1.7470E+00 Fluid done
+Maximum scalar  1.002777960124
+Maximum velocity   0.28910569291   0.31325793972   0.15622104154
+Step     37, t= 2.0499314E-02, DT= 3.418E-03, C=  0.266, ReC=  1.0011 8.1725E+01 2.2E+00
+             Solving for heat
+         37    Hmholtz TEMP:     17   4.6253E-08   4.6974E+00   1.2175E-07
+         37   2.0499E-02  3.4179E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.485704015890876E-006  3.579943753274407E-008
+         37    PRES alph1n  1.4857E+01  1.7626E-01  8.4289E+01     4
+         37    PRES halpha     4 -6.1928E+00  2.1842E+00 -1.0158E+00  4.5387E-01
+       37 PRES gmres:   11  1.1805E-10  1.2237E-10  1.2560E-04  5.7092E-01  7.7149E-01    F
+         37    VELX alph1n  4.5413E+00  1.4253E-01  3.1862E+01     2
+         37    VELX halpha     2  2.2818E+00  7.5484E-01
+         37    Hmholtz VELX:     15   1.6786E-08   1.4253E-01   2.6320E-08
+         37    VELY alph1n  5.5164E+00  1.3552E-01  4.0706E+01     2
+         37    VELY halpha     2  2.2391E+00  7.6054E-01
+         37    Hmholtz VELY:     15   2.1051E-08   1.3552E-01   2.6320E-08
+         37    VELZ alph1n  3.1589E+00  5.9798E-02  5.2826E+01     2
+         37    VELZ halpha     2  2.2420E+00  7.6448E-01
+         37    Hmholtz VELZ:     14   2.6062E-08   5.9798E-02   2.6320E-08
+         37   2.0499E-02  1.7756E+00 Fluid done
+Maximum scalar  1.001667148901
+Maximum velocity   0.28091264400   0.29345866883   0.14558680114
+Step     38, t= 2.4601176E-02, DT= 4.102E-03, C=  0.300, ReC=  0.9364 8.3954E+01 2.2E+00
+             Solving for heat
+         38    Hmholtz TEMP:     18   5.5390E-08   4.0907E+00   1.1633E-07
+         38   2.4601E-02  3.5307E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.359457137283102E-006  3.317325457210390E-008
+         38    PRES alph1n  1.3595E+01  1.8055E-01  7.5295E+01     4
+         38    PRES halpha     4  6.4646E+00  2.1659E+00  1.0165E+00  4.4009E-01
+       38 PRES gmres:   11  1.2437E-10  1.3607E-10  1.1949E-04  5.7271E-01  7.7358E-01    F
+         38    VELX alph1n  3.9986E+00  9.1182E-02  4.3853E+01     2
+         38    VELX halpha     2  2.3368E+00 -7.5107E-01
+         38    Hmholtz VELX:     16   1.4551E-08   9.1182E-02   2.4390E-08
+         38    VELY alph1n  4.8196E+00  1.0476E-01  4.6006E+01     2
+         38    VELY halpha     2  2.2736E+00 -7.4607E-01
+         38    Hmholtz VELY:     16   1.6479E-08   1.0476E-01   2.4390E-08
+         38    VELZ alph1n  2.7496E+00  4.6646E-02  5.8946E+01     2
+         38    VELZ halpha     2  2.2581E+00 -7.4440E-01
+         38    Hmholtz VELZ:     15   2.3058E-08   4.6646E-02   2.4390E-08
+         38   2.4601E-02  1.8082E+00 Fluid done
+Maximum scalar  1.000557421256
+Maximum velocity   0.27048672476   0.27403924792   0.13390238505
+Step     39, t= 2.9523411E-02, DT= 4.922E-03, C=  0.333, ReC=  0.8774 8.6227E+01 2.3E+00
+             Solving for heat
+         39    Hmholtz TEMP:     19   5.3328E-08   3.5642E+00   1.1117E-07
+         39   2.9523E-02  3.6385E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.211690116382945E-006  3.057098364591113E-008
+         39    PRES alph1n  1.2117E+01  1.7065E-01  7.1006E+01     4
+         39    PRES halpha     4 -6.4841E+00 -2.1643E+00 -1.0057E+00  4.2218E-01
+       39 PRES gmres:   11  1.1522E-10  1.5048E-10  1.1631E-04  5.6976E-01  7.7022E-01    F
+         39    VELX alph1n  3.5264E+00  6.3966E-02  5.5130E+01     2
+         39    VELX halpha     2  2.2950E+00  7.5120E-01
+         39    Hmholtz VELX:     17   1.3377E-08   6.3966E-02   2.2477E-08
+         39    VELY alph1n  4.1567E+00  9.0446E-02  4.5958E+01     2
+         39    VELY halpha     2  2.2628E+00  7.3041E-01
+         39    Hmholtz VELY:     17   1.4793E-08   9.0446E-02   2.2477E-08
+         39    VELZ alph1n  2.3461E+00  4.1300E-02  5.6807E+01     2
+         39    VELZ halpha     2  2.2390E+00  7.2149E-01
+         39    Hmholtz VELZ:     16   2.2386E-08   4.1300E-02   2.2477E-08
+         39   2.9523E-02  1.8362E+00 Fluid done
+Maximum scalar  1.000098333137
+Maximum velocity   0.25750863617   0.25407813838   0.12142261163
+Step     40, t= 3.5430094E-02, DT= 5.907E-03, C=  0.379, ReC=  0.8156 8.8538E+01 2.3E+00
+             Solving for heat
+         40    Hmholtz TEMP:     20   6.8309E-08   3.1065E+00   1.0624E-07
+         40   3.5430E-02  3.7511E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.049209331497379E-006  2.801819427586850E-008
+         40    PRES alph1n  1.0492E+01  1.4140E-01  7.4201E+01     4
+         40    PRES halpha     4  6.4361E+00 -2.2080E+00  9.7895E-01  4.0162E-01
+       40 PRES gmres:   11  1.1051E-10  1.6549E-10  1.1023E-04  5.6958E-01  7.7012E-01    F
+         40    VELX alph1n  3.1227E+00  6.0235E-02  5.1841E+01     2
+         40    VELX halpha     2  2.2210E+00 -7.5511E-01
+         40    Hmholtz VELX:     18   1.5957E-08   6.0235E-02   2.0601E-08
+         40    VELY alph1n  3.5387E+00  8.6687E-02  4.0821E+01     2
+         40    VELY halpha     2  2.2381E+00 -7.1453E-01
+         40    Hmholtz VELY:     18   2.0378E-08   8.6687E-02   2.0601E-08
+         40    VELZ alph1n  1.9579E+00  4.0384E-02  4.8483E+01     2
+         40    VELZ halpha     2  2.2154E+00 -6.9634E-01
+         40    Hmholtz VELZ:     18   1.2271E-08   4.0384E-02   2.0601E-08
+         40   3.5430E-02  1.8806E+00 Fluid done
+Maximum scalar  1.000054134455
+Maximum velocity   0.24188804464   0.23291288461   0.10847821776
+Step     41, t= 4.2058497E-02, DT= 6.628E-03, C=  0.400, ReC=  0.7636 9.0905E+01 2.4E+00
+             Solving for heat
+         41    Hmholtz TEMP:     21   4.9885E-08   2.6658E+00   1.0152E-07
+         41   4.2058E-02  3.8612E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   8.553360953658638E-007  2.553227804241853E-008
+         41    PRES alph1n  8.5534E+00  1.5481E-01  5.5251E+01     4
+         41    PRES halpha     4 -6.1333E+00  2.0872E+00 -8.4290E-01  3.6596E-01
+       41 PRES gmres:   11  1.1199E-10  1.6924E-10  1.0242E-04  5.6963E-01  7.6978E-01    F
+         41    VELX alph1n  2.7329E+00  5.7952E-02  4.7157E+01     2
+         41    VELX halpha     2  1.9775E+00  7.1467E-01
+         41    Hmholtz VELX:     19   1.3931E-08   5.7952E-02   1.8774E-08
+         41    VELY alph1n  2.9333E+00  7.8435E-02  3.7398E+01     2
+         41    VELY halpha     2  2.0393E+00  6.5907E-01
+         41    Hmholtz VELY:     19   1.6002E-08   7.8435E-02   1.8774E-08
+         41    VELZ alph1n  1.5739E+00  3.6888E-02  4.2666E+01     2
+         41    VELZ halpha     2 -2.0285E+00 -6.3195E-01
+         41    Hmholtz VELZ:     19   1.0269E-08   3.6888E-02   1.8774E-08
+         41   4.2058E-02  1.9143E+00 Fluid done
+Maximum scalar  1.000038436384
+Maximum velocity   0.22496257568   0.21225490474   0.09635665514
+Step     42, t= 4.8686901E-02, DT= 6.628E-03, C=  0.372, ReC=  0.7076 9.3317E+01 2.4E+00
+             Solving for heat
+         42    Hmholtz TEMP:     21   4.9392E-08   2.2704E+00   9.7279E-08
+         42   4.8687E-02  3.8618E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   6.575374996356229E-007  2.326023429546498E-008
+         42    PRES alph1n  6.5754E+00  1.6135E-01  4.0753E+01     4
+         42    PRES halpha     4  5.5994E+00  1.4726E+00  6.7366E-01  3.1747E-01
+       42 PRES gmres:   11  9.4609E-11  1.5418E-10  1.0327E-04  5.6972E-01  7.7041E-01    F
+         42    VELX alph1n  2.3746E+00  8.6835E-02  2.7346E+01     2
+         42    VELX halpha     2 -1.5917E+00  6.1009E-01
+         42    Hmholtz VELX:     19   8.7431E-09   8.6835E-02   1.7103E-08
+         42    VELY alph1n  2.4028E+00  9.2344E-02  2.6020E+01     2
+         42    VELY halpha     2 -1.6633E+00  5.5589E-01
+         42    Hmholtz VELY:     20   8.6408E-09   9.2344E-02   1.7103E-08
+         42    VELZ alph1n  1.2397E+00  4.5371E-02  2.7324E+01     2
+         42    VELZ halpha     2 -1.6654E+00  5.2554E-01
+         42    Hmholtz VELZ:     19   1.0096E-08   4.5371E-02   1.7103E-08
+         42   4.8687E-02  1.8495E+00 Fluid done
+Maximum scalar  1.000026911382
+Maximum velocity   0.20901052982   0.19429353062   0.08781434944
+Step     43, t= 5.6357558E-02, DT= 7.671E-03, C=  0.400, ReC=  0.6578 9.5664E+01 2.3E+00
+             Solving for heat
+         43    Hmholtz TEMP:     22   5.0951E-08   2.0905E+00   9.3794E-08
+         43   5.6358E-02  3.9713E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   5.433881483403833E-007  2.136422963641671E-008
+         43    PRES alph1n  5.4339E+00  1.8681E-01  2.9087E+01     4
+         43    PRES halpha     4 -3.8848E+00  8.3666E-01  9.0146E-01  3.0975E-01
+       43 PRES gmres:   11  1.4963E-10  1.6388E-10  1.1977E-04  5.6979E-01  7.7040E-01    F
+         43    VELX alph1n  2.2239E+00  3.5147E-02  6.3275E+01     2
+         43    VELX halpha     2 -1.9533E+00 -6.9595E-01
+         43    Hmholtz VELX:     20   1.0341E-08   3.5147E-02   1.5710E-08
+         43    VELY alph1n  2.1327E+00  4.2853E-02  4.9767E+01     2
+         43    VELY halpha     2 -2.0185E+00 -6.3240E-01
+         43    Hmholtz VELY:     20   1.0075E-08   4.2853E-02   1.5710E-08
+         43    VELZ alph1n  1.0551E+00  2.0668E-02  5.1052E+01     2
+         43    VELZ halpha     2 -2.0213E+00 -5.9099E-01
+         43    Hmholtz VELZ:     19   1.0331E-08   2.0668E-02   1.5710E-08
+         43   5.6358E-02  1.9370E+00 Fluid done
+Maximum scalar  1.000014975813
+Maximum velocity   0.19193194698   0.17646483896   0.07920934850
+Step     44, t= 6.4028216E-02, DT= 7.671E-03, C=  0.367, ReC=  0.6049 9.8110E+01 2.4E+00
+             Solving for heat
+         44    Hmholtz TEMP:     22   5.5086E-08   1.8192E+00   9.0434E-08
+         44   6.4028E-02  3.9738E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   3.956665185222695E-007  1.949897596947723E-008
+         44    PRES alph1n  3.9567E+00  5.6119E-01  7.0505E+00     4
+         44    PRES halpha     4 -3.5079E-01  1.1642E+00  8.0277E-01  2.8435E-01
+       44 PRES gmres:   12  5.9447E-11  1.4957E-10  2.5882E-04  6.2154E-01  8.4509E-01    F
+         44    VELX alph1n  1.9616E+00  5.7342E-02  3.4209E+01     2
+         44    VELX halpha     2  1.6893E+00 -6.3650E-01
+         44    Hmholtz VELX:     20   8.3359E-09   5.7342E-02   1.4338E-08
+         44    VELY alph1n  1.7929E+00  5.4663E-02  3.2798E+01     2
+         44    VELY halpha     2 -1.7262E+00  5.8754E-01
+         44    Hmholtz VELY:     20   1.1237E-08   5.4663E-02   1.4338E-08
+         44    VELZ alph1n  8.4887E-01  2.5682E-02  3.3053E+01     2
+         44    VELZ halpha     2 -1.7293E+00  5.4914E-01
+         44    Hmholtz VELZ:     19   1.2841E-08   2.5682E-02   1.4338E-08
+         44   6.4028E-02  1.9352E+00 Fluid done
+Maximum scalar  1.000010715240
+Maximum velocity   0.17634617146   0.16183934433   0.07176286702
+Step     45, t= 7.3119698E-02, DT= 9.091E-03, C=  0.400, ReC=  0.5571 1.0055E+02 2.4E+00
+             Solving for heat
+         45    Hmholtz TEMP:     23   5.9337E-08   1.7045E+00   8.7600E-08
+         45   7.3120E-02  4.0844E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   3.396029376638087E-007  1.788366631780205E-008
+         45    PRES alph1n  3.3960E+00  2.0845E-01  1.6292E+01     4
+         45    PRES halpha     4 -1.2814E+00  3.2612E-01 -9.5698E-01  3.0898E-01
+       45 PRES gmres:   12  9.1035E-11  1.6259E-10  1.5153E-04  6.2157E-01  8.4437E-01    F
+         45    VELX alph1n  1.8521E+00  1.5215E-02  1.2173E+02     2
+         45    VELX halpha     2 -2.0534E+00 -7.1994E-01
+         45    Hmholtz VELX:     20   1.1208E-08   1.5215E-02   1.3151E-08
+         45    VELY alph1n  1.6308E+00  2.1109E-02  7.7258E+01     2
+         45    VELY halpha     2 -2.0667E+00 -6.7006E-01
+         45    Hmholtz VELY:     21   6.6895E-09   2.1109E-02   1.3151E-08
+         45    VELZ alph1n  7.4294E-01  1.0655E-02  6.9724E+01     2
+         45    VELZ halpha     2 -2.0696E+00 -6.2558E-01
+         45    Hmholtz VELZ:     20   8.0596E-09   1.0655E-02   1.3151E-08
+         45   7.3120E-02  2.0337E+00 Fluid done
+Maximum scalar  1.000007233105
+Maximum velocity   0.15969045392   0.14656219026   0.06416795263
+Step     46, t= 8.2211181E-02, DT= 9.091E-03, C=  0.362, ReC=  0.5062 1.0311E+02 2.6E+00
+             Solving for heat
+         46    Hmholtz TEMP:     23   6.6367E-08   1.4912E+00   8.4744E-08
+         46   8.2211E-02  4.0882E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   2.702855183429140E-007  1.620665997233632E-008
+         46    PRES alph1n  2.7029E+00  2.4676E-01  1.0953E+01     4
+         46    PRES halpha     4  1.3595E+00  1.2961E+00  6.8790E-01  3.0583E-01
+       46 PRES gmres:   12  4.5686E-11  1.4734E-10  1.3120E-04  6.2170E-01  8.4511E-01    F
+         46    VELX alph1n  1.6220E+00  5.1447E-02  3.1527E+01     2
+         46    VELX halpha     2  1.6855E+00 -6.4031E-01
+         46    Hmholtz VELX:     21   9.1265E-09   5.1447E-02   1.1918E-08
+         46    VELY alph1n  1.3867E+00  4.4845E-02  3.0922E+01     2
+         46    VELY halpha     2  1.6854E+00 -6.0826E-01
+         46    Hmholtz VELY:     21   1.1026E-08   4.4845E-02   1.1918E-08
+         46    VELZ alph1n  6.1128E-01  1.9753E-02  3.0946E+01     2
+         46    VELZ halpha     2 -1.6854E+00  5.7602E-01
+         46    Hmholtz VELZ:     21   5.5221E-09   1.9753E-02   1.1918E-08
+         46   8.2211E-02  1.9808E+00 Fluid done
+Maximum scalar  1.000004648491
+Maximum velocity   0.14482108879   0.13313077116   0.05765275550
+Step     47, t= 9.3120960E-02, DT= 1.091E-02, C=  0.394, ReC=  0.4609 1.0561E+02 2.5E+00
+             Solving for heat
+         47    Hmholtz TEMP:     25   5.9652E-08   1.4114E+00   8.2296E-08
+         47   9.3121E-02  4.3072E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   2.460083023421295E-007  1.472278615883296E-008
+         47    PRES alph1n  2.4601E+00  3.2695E-01  7.5244E+00     4
+         47    PRES halpha     4 -1.1491E+00  8.6143E-01  8.7383E-01  3.3112E-01
+       47 PRES gmres:   11  1.3887E-10  1.6062E-10  1.7304E-04  5.6973E-01  7.7021E-01    F
+         47    VELX alph1n  1.5242E+00  6.2076E-03  2.4553E+02     2
+         47    VELX halpha     2 -2.0264E+00 -7.2273E-01
+         47    Hmholtz VELX:     21   7.6273E-09   6.2076E-03   1.0827E-08
+         47    VELY alph1n  1.2766E+00  1.0275E-02  1.2425E+02     2
+         47    VELY halpha     2 -2.0116E+00 -6.9299E-01
+         47    Hmholtz VELY:     22   5.4983E-09   1.0275E-02   1.0827E-08
+         47    VELZ alph1n  5.5016E-01  5.0608E-03  1.0871E+02     2
+         47    VELZ halpha     2 -2.0103E+00 -6.6244E-01
+         47    Hmholtz VELZ:     21   6.0611E-09   5.0608E-03   1.0827E-08
+         47   9.3121E-02  1.9960E+00 Fluid done
+Maximum scalar  1.000002628757
+Maximum velocity   0.12941657604   0.11901712114   0.05110566492
+Step     48, t= 1.0552772E-01, DT= 1.241E-02, C=  0.400, ReC=  0.4144 1.0815E+02 2.5E+00
+             Solving for heat
+         48    Hmholtz TEMP:     27   5.3930E-08   1.2802E+00   7.9763E-08
+         48   1.0553E-01  4.5283E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   2.024000355444098E-007  1.314421696828453E-008
+         48    PRES alph1n  2.0240E+00  3.9191E-01  5.1644E+00     4
+         48    PRES halpha     4 -2.0724E+00  2.2580E-01  7.9696E-01  3.4438E-01
+       48 PRES gmres:   12  4.8213E-11  1.6308E-10  1.7666E-04  6.2179E-01  8.4338E-01    F
+         48    VELX alph1n  1.3574E+00  4.2387E-03  3.2025E+02     2
+         48    VELX halpha     2  1.9708E+00 -7.3871E-01
+         48    Hmholtz VELX:     22   5.5717E-09   4.2387E-03   9.6670E-09
+         48    VELY alph1n  1.1190E+00  7.4329E-03  1.5054E+02     2
+         48    VELY halpha     2  1.9455E+00 -7.1723E-01
+         48    Hmholtz VELY:     22   7.8218E-09   7.4329E-03   9.6670E-09
+         48    VELZ alph1n  4.7501E-01  3.6099E-03  1.3158E+02     2
+         48    VELZ halpha     2  1.9391E+00 -6.9713E-01
+         48    Hmholtz VELZ:     21   9.2972E-09   3.6099E-03   9.6670E-09
+         48   1.0553E-01  2.0789E+00 Fluid done
+Maximum scalar  1.000001363052
+Maximum velocity   0.11541912697   0.10514771901   0.04505888266
+Step     49, t= 1.1943574E-01, DT= 1.391E-02, C=  0.400, ReC=  0.3695 1.1079E+02 2.6E+00
+             Solving for heat
+         49    Hmholtz TEMP:     28   7.1594E-08   1.1574E+00   7.7288E-08
+         49   1.1944E-01  4.6383E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.710257175924410E-007  1.156758160006207E-008
+         49    PRES alph1n  1.7103E+00  1.3238E-01  1.2919E+01     4
+         49    PRES halpha     4 -1.8957E+00  9.7411E-01 -7.4176E-01  3.3482E-01
+       49 PRES gmres:   11  1.2936E-10  1.6088E-10  6.2279E-05  5.6947E-01  7.6973E-01    F
+         49    VELX alph1n  1.1887E+00  3.0604E-03  3.8843E+02     2
+         49    VELX halpha     2  1.7956E+00  6.9567E-01
+         49    Hmholtz VELX:     22   7.1034E-09   3.0604E-03   8.5079E-09
+         49    VELY alph1n  9.6787E-01  5.3839E-03  1.7977E+02     2
+         49    VELY halpha     2 -1.7668E+00 -6.7961E-01
+         49    Hmholtz VELY:     23   6.1232E-09   5.3839E-03   8.5079E-09
+         49    VELZ alph1n  4.0773E-01  2.3887E-03  1.7069E+02     2
+         49    VELZ halpha     2 -1.7596E+00 -6.6839E-01
+         49    Hmholtz VELZ:     22   6.6951E-09   2.3887E-03   8.5079E-09
+         49   1.1944E-01  2.0261E+00 Fluid done
+Maximum scalar  1.000000643581
+Maximum velocity   0.10145131350   0.09204197211   0.03920965362
+Step     50, t= 1.3525412E-01, DT= 1.582E-02, C=  0.400, ReC=  0.3246 1.1339E+02 2.6E+00
+             Solving for heat
+         50    Hmholtz TEMP:     30   6.0734E-08   1.0577E+00   7.4902E-08
+         50   1.3525E-01  4.8603E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.472031290710574E-007  1.003102818895899E-008
+         50    PRES alph1n  1.4720E+00  7.9017E-02  1.8629E+01     4
+         50    PRES halpha     4  3.3328E+00  1.7576E-01  5.5428E-01  3.3058E-01
+       50 PRES gmres:   11  1.2322E-10  1.5867E-10  4.8844E-05  5.6961E-01  7.7006E-01    F
+         50    VELX alph1n  1.0357E+00  2.7732E-03  3.7347E+02     2
+         50    VELX halpha     2 -1.7273E+00  6.8522E-01
+         50    Hmholtz VELX:     23   7.0713E-09   2.7732E-03   7.3784E-09
+         50    VELY alph1n  8.3434E-01  4.6861E-03  1.7805E+02     2
+         50    VELY halpha     2 -1.6943E+00  6.7219E-01
+         50    Hmholtz VELY:     24   6.2617E-09   4.6861E-03   7.3784E-09
+         50    VELZ alph1n  3.5065E-01  1.9098E-03  1.8361E+02     2
+         50    VELZ halpha     2 -1.6890E+00  6.6768E-01
+         50    Hmholtz VELZ:     23   5.2932E-09   1.9098E-03   7.3784E-09
+         50   1.3525E-01  2.0600E+00 Fluid done
+Maximum scalar  1.000000222722
+Maximum velocity   0.08760704807   0.07959899514   0.03355067501
+Step     51, t= 1.5356645E-01, DT= 1.831E-02, C=  0.400, ReC=  0.2802 1.1605E+02 2.7E+00
+             Solving for heat
+         51    Hmholtz TEMP:     31   7.0542E-08   9.6890E-01   7.2567E-08
+         51   1.5357E-01  4.9725E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.270783095508183E-007  8.534269008850735E-009
+         51    PRES alph1n  1.2708E+00  4.6899E-02  2.7096E+01     4
+         51    PRES halpha     4 -2.9713E+00  1.4662E+00  3.9397E-01  3.0633E-01
+       51 PRES gmres:   11  6.2085E-11  1.5628E-10  2.6559E-05  5.6946E-01  7.6992E-01    F
+         51    VELX alph1n  8.8756E-01  3.0309E-03  2.9284E+02     2
+         51    VELX halpha     2 -1.6805E+00 -6.8228E-01
+         51    Hmholtz VELX:     26   3.9129E-09   3.0309E-03   6.2780E-09
+         51    VELY alph1n  7.0752E-01  5.0305E-03  1.4065E+02     2
+         51    VELY halpha     2 -1.6423E+00 -6.7026E-01
+         51    Hmholtz VELY:     26   5.0481E-09   5.0305E-03   6.2780E-09
+         51    VELZ alph1n  2.9765E-01  2.0954E-03  1.4205E+02     2
+         51    VELZ halpha     2 -1.6410E+00 -6.7021E-01
+         51    Hmholtz VELZ:     25   4.3392E-09   2.0954E-03   6.2780E-09
+         51   1.5357E-01  2.1383E+00 Fluid done
+Maximum scalar  1.000000061470
+Maximum velocity   0.07399685045   0.06737216315   0.02808468722
+Step     52, t= 1.7524216E-01, DT= 2.168E-02, C=  0.400, ReC=  0.2365 1.1880E+02 2.7E+00
+             Solving for heat
+         52    Hmholtz TEMP:     34   5.3024E-08   8.8690E-01   7.0248E-08
+         52   1.7524E-01  5.3065E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.021565735898268E-007  7.082163004997459E-009
+         52    PRES alph1n  1.0216E+00  6.0020E-02  1.7020E+01     4
+         52    PRES halpha     4 -2.9698E+00  3.2428E-01  5.7056E-01  2.8120E-01
+       52 PRES gmres:   11  7.4473E-11  1.5351E-10  2.6801E-05  5.6977E-01  7.6948E-01    F
+         52    VELX alph1n  7.4259E-01  3.5227E-03  2.1080E+02     2
+         52    VELX halpha     2 -1.6584E+00  6.7648E-01
+         52    Hmholtz VELX:     28   4.5359E-09   3.5227E-03   5.2105E-09
+         52    VELY alph1n  5.8524E-01  5.9159E-03  9.8926E+01     2
+         52    VELY halpha     2 -1.6193E+00  6.6411E-01
+         52    Hmholtz VELY:     29   3.7522E-09   5.9159E-03   5.2105E-09
+         52    VELZ alph1n  2.4698E-01  2.1964E-03  1.1245E+02     2
+         52    VELZ halpha     2 -1.6048E+00  6.6684E-01
+         52    Hmholtz VELZ:     27   4.5566E-09   2.1964E-03   5.2105E-09
+         52   1.7524E-01  2.2163E+00 Fluid done
+Maximum scalar  1.000000005394
+Maximum velocity   0.06074494138   0.05548531447   0.02283041229
+Step     53, t= 2.0125302E-01, DT= 2.601E-02, C=  0.394, ReC=  0.1940 1.2165E+02 2.9E+00
+             Solving for heat
+         53    Hmholtz TEMP:     36   6.3382E-08   8.0695E-01   6.7909E-08
+         53   2.0125E-01  5.5276E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   7.554425457686105E-008  5.684250476321458E-009
+         53    PRES alph1n  7.5544E-01  5.1766E-02  1.4593E+01     4
+         53    PRES halpha     4 -3.8703E+00 -1.4538E+00 -3.9361E-03  2.5123E-01
+       53 PRES gmres:   11  6.5391E-11  1.4785E-10  2.5127E-05  5.7021E-01  7.7085E-01    F
+         53    VELX alph1n  5.9935E-01  3.8457E-03  1.5585E+02     2
+         53    VELX halpha     2 -1.7452E+00 -6.5784E-01
+         53    Hmholtz VELX:     31   3.5676E-09   3.8457E-03   4.1827E-09
+         53    VELY alph1n  4.6638E-01  6.4878E-03  7.1886E+01     2
+         53    VELY halpha     2 -1.7489E+00 -6.4465E-01
+         53    Hmholtz VELY:     32   2.7774E-09   6.4878E-03   4.1827E-09
+         53    VELZ alph1n  1.9770E-01  2.6442E-03  7.4766E+01     2
+         53    VELZ halpha     2 -1.6309E+00 -6.4897E-01
+         53    Hmholtz VELZ:     30   4.1539E-09   2.6442E-03   4.1827E-09
+         53   2.0125E-01  2.3188E+00 Fluid done
+Maximum scalar  1.000000000028
+Maximum velocity   0.04817786671   0.04424880658   0.01790211995
+Step     54, t= 2.3246605E-01, DT= 3.121E-02, C=  0.375, ReC=  0.1537 1.2464E+02 3.0E+00
+             Solving for heat
+         54    Hmholtz TEMP:     39   5.1237E-08   7.2742E-01   6.5539E-08
+         54   2.3247E-01  5.8614E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   7.497275130554918E-008  4.372587198716837E-009
+         54    PRES alph1n  7.4973E-01  5.5703E-02  1.3459E+01     4
+         54    PRES halpha     4  3.7736E+00  3.9018E-01 -1.1478E+00  2.1630E-01
+       54 PRES gmres:   11  5.2511E-11  1.3648E-10  2.7217E-05  5.6981E-01  7.7042E-01    F
+         54    VELX alph1n  4.6128E-01  3.0802E-03  1.4976E+02     2
+         54    VELX halpha     2 -1.9782E+00  6.1942E-01
+         54    Hmholtz VELX:     33   3.0146E-09   3.0802E-03   3.2182E-09
+         54    VELY alph1n  3.5404E-01  4.9283E-03  7.1839E+01     2
+         54    VELY halpha     2 -2.0346E+00  6.0586E-01
+         54    Hmholtz VELY:     34   2.7254E-09   4.9283E-03   3.2182E-09
+         54    VELZ alph1n  1.5084E-01  2.0484E-03  7.3635E+01     2
+         54    VELZ halpha     2 -1.8417E+00  6.1071E-01
+         54    Hmholtz VELZ:     33   2.2069E-09   2.0484E-03   3.2182E-09
+         54   2.3247E-01  2.3969E+00 Fluid done
+Maximum scalar  1.000000000013
+Maximum velocity   0.03684385919   0.03424171162   0.01348186130
+Step     55, t= 2.6992169E-01, DT= 3.746E-02, C=  0.344, ReC=  0.1177 1.2773E+02 3.1E+00
+             Solving for heat
+         55    Hmholtz TEMP:     43   5.0598E-08   6.5174E-01   6.3164E-08
+         55   2.6992E-01  6.3139E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   5.029722356277421E-008  3.199545099726662E-009
+         55    PRES alph1n  5.0297E-01  2.7032E-02  1.8607E+01     4
+         55    PRES halpha     4 -4.3268E+00 -1.0844E+00 -2.0319E-01  1.8308E-01
+       55 PRES gmres:   11  3.8240E-11  1.1984E-10  1.6410E-05  5.6961E-01  7.6771E-01    F
+         55    VELX alph1n  3.3654E-01  1.7753E-03  1.8957E+02     2
+         55    VELX halpha     2 -1.9807E+00 -5.7050E-01
+         55    Hmholtz VELX:     36   2.1248E-09   1.7753E-03   2.3554E-09
+         55    VELY alph1n  2.5475E-01  2.6185E-03  9.7287E+01     2
+         55    VELY halpha     2 -1.9890E+00 -5.5742E-01
+         55    Hmholtz VELY:     38   1.4261E-09   2.6185E-03   2.3554E-09
+         55    VELZ alph1n  1.0906E-01  1.6564E-03  6.5839E+01     2
+         55    VELZ halpha     2 -1.8633E+00 -5.6201E-01
+         55    Hmholtz VELZ:     35   2.3413E-09   1.6564E-03   2.3554E-09
+         55   2.6992E-01  2.4942E+00 Fluid done
+Maximum scalar  1.000000000023
+Maximum velocity   0.02727259679   0.02585027189   0.00972498469
+Step     56, t= 3.1486845E-01, DT= 4.495E-02, C=  0.306, ReC=  0.0874 1.3097E+02 3.2E+00
+             Solving for heat
+         56    Hmholtz TEMP:     47   4.9938E-08   5.8113E-01   6.0805E-08
+         56   3.1487E-01  6.7424E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   6.112742484323483E-008  2.208313518291194E-009
+         56    PRES alph1n  6.1127E-01  4.3281E-02  1.4123E+01     4
+         56    PRES halpha     4 -3.8620E+00  1.3015E+00 -6.3897E-01  1.4917E-01
+       56 PRES gmres:   11  3.0712E-11  9.9257E-11  2.2014E-05  5.6958E-01  7.6924E-01    F
+         56    VELX alph1n  2.3048E-01  9.7309E-04  2.3685E+02     2
+         56    VELX halpha     2 -1.7684E+00  5.1630E-01
+         56    Hmholtz VELX:     40   1.3949E-09   9.7309E-04   1.6262E-09
+         56    VELY alph1n  1.7221E-01  1.1941E-03  1.4421E+02     2
+         56    VELY halpha     2 -1.7363E+00  5.0465E-01
+         56    Hmholtz VELY:     40   1.3427E-09   1.1941E-03   1.6262E-09
+         56    VELZ alph1n  7.4033E-02  1.2698E-03  5.8303E+01     2
+         56    VELZ halpha     2 -1.7088E+00  5.0843E-01
+         56    Hmholtz VELZ:     39   1.3432E-09   1.2698E-03   1.6262E-09
+         56   3.1487E-01  2.6070E+00 Fluid done
+Maximum scalar  1.000000000030
+Maximum velocity   0.01981005586   0.01918267664   0.00672891771
+Step     57, t= 3.6880456E-01, DT= 5.394E-02, C=  0.266, ReC=  0.0635 1.3436E+02 3.4E+00
+             Solving for heat
+         57    Hmholtz TEMP:     51   3.7851E-08   5.1617E-01   5.8479E-08
+         57   3.6880E-01  7.1867E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   5.815980946714377E-008  1.425481722099989E-009
+         57    PRES alph1n  5.8160E-01  4.0978E-02  1.4193E+01     4
+         57    PRES halpha     4  4.3475E+00 -6.3680E-01 -6.5818E-01  1.2376E-01
+       57 PRES gmres:   11  3.8585E-11  7.6885E-11  2.0161E-05  5.6942E-01  7.6994E-01    F
+         57    VELX alph1n  1.4633E-01  8.9305E-04  1.6386E+02     2
+         57    VELX halpha     2 -1.5241E+00 -4.5742E-01
+         57    Hmholtz VELX:     45   8.5243E-10   8.9305E-04   1.0501E-09
+         57    VELY alph1n  1.0807E-01  9.3467E-04  1.1562E+02     2
+         57    VELY halpha     2 -1.4440E+00 -4.4782E-01
+         57    Hmholtz VELY:     45   9.2994E-10   9.3467E-04   1.0501E-09
+         57    VELZ alph1n  4.6615E-02  6.7030E-04  6.9544E+01     2
+         57    VELZ halpha     2 -1.4285E+00 -4.5052E-01
+         57    Hmholtz VELZ:     43   9.2583E-10   6.7030E-04   1.0501E-09
+         57   3.6880E-01  2.7658E+00 Fluid done
+Maximum scalar  1.000000000022
+Maximum velocity   0.01441747259   0.01428300527   0.00451017542
+Step     58, t= 4.3352790E-01, DT= 6.472E-02, C=  0.233, ReC=  0.0462 1.3796E+02 3.6E+00
+             Solving for heat
+         58    Hmholtz TEMP:     54   4.8427E-08   4.5722E-01   5.6199E-08
+         58   4.3353E-01  7.5226E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   3.927457268979507E-008  8.558571744529589E-010
+         58    PRES alph1n  3.9275E-01  3.8975E-02  1.0077E+01     4
+         58    PRES halpha     4 -3.2679E+00  1.1663E+00  3.4763E-01  1.4442E-01
+       58 PRES gmres:   11  3.7745E-11  5.5394E-11  2.0163E-05  5.6948E-01  7.7013E-01    F
+         58    VELX alph1n  8.4967E-02  1.2171E-03  6.9813E+01     2
+         58    VELX halpha     2 -1.3879E+00  3.9533E-01
+         58    Hmholtz VELX:     51   4.9281E-10   1.2171E-03   6.3071E-10
+         58    VELY alph1n  6.2091E-02  1.4845E-03  4.1826E+01     2
+         58    VELY halpha     2 -1.1765E+00  3.8777E-01
+         58    Hmholtz VELY:     52   4.8766E-10   1.4845E-03   6.3071E-10
+         58    VELZ alph1n  2.6824E-02  1.5699E-03  1.7086E+01     2
+         58    VELZ halpha     2 -1.1138E+00  3.8916E-01
+         58    Hmholtz VELZ:     50   5.3844E-10   1.5699E-03   6.3071E-10
+         58   4.3353E-01  2.9893E+00 Fluid done
+Maximum scalar  1.000000000024
+Maximum velocity   0.01083355013   0.01116565058   0.00300356715
+Step     59, t= 5.1119591E-01, DT= 7.767E-02, C=  0.216, ReC=  0.0358 1.4181E+02 3.9E+00
+             Solving for heat
+         59    Hmholtz TEMP:     59   5.0241E-08   4.0427E-01   5.3971E-08
+         59   5.1120E-01  8.1006E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   8.946712961947939E-008  4.811347586068281E-010
+         59    PRES alph1n  8.9467E-01  4.6877E-02  1.9085E+01     4
+         59    PRES halpha     4  2.0572E+00 -5.6602E-02  1.3357E+00  3.0506E-02
+       59 PRES gmres:   11  3.1548E-11  3.7369E-11  2.5531E-05  5.7075E-01  7.7144E-01    F
+         59    VELX alph1n  4.4616E-02  9.7629E-04  4.5699E+01     2
+         59    VELX halpha     2 -1.5734E+00 -3.3317E-01
+         59    Hmholtz VELX:     56   3.2370E-10   9.7629E-04   3.5474E-10
+         59    VELY alph1n  3.2331E-02  1.3025E-03  2.4822E+01     2
+         59    VELY halpha     2 -1.2076E+00 -3.2732E-01
+         59    Hmholtz VELY:     57   3.1843E-10   1.3025E-03   3.5474E-10
+         59    VELZ alph1n  1.4088E-02  9.9487E-04  1.4160E+01     2
+         59    VELZ halpha     2 -1.5951E+00 -3.2724E-01
+         59    Hmholtz VELZ:     55   3.2600E-10   9.9487E-04   3.5474E-10
+         59   5.1120E-01  3.1641E+00 Fluid done
+Maximum scalar  1.000000000024
+Maximum velocity   0.00867488342   0.00936751578   0.00206197848
+Step     60, t= 6.0439752E-01, DT= 9.320E-02, C=  0.218, ReC=  0.0300 1.4590E+02 4.1E+00
+             Solving for heat
+         60    Hmholtz TEMP:     65   3.9191E-08   3.5698E-01   5.1797E-08
+         60   6.0440E-01  8.7387E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   5.939526449634511E-008  2.643831543456383E-010
+         60    PRES alph1n  5.9395E-01  3.3372E-02  1.7798E+01     4
+         60    PRES halpha     4 -3.3558E+00 -1.2954E+00  2.7534E-01  2.1727E-01
+       60 PRES gmres:   12  8.3611E-12  2.4641E-11  1.5858E-05  6.2182E-01  8.4582E-01    F
+         60    VELX alph1n  2.1223E-02  9.0594E-04  2.3427E+01     2
+         60    VELX halpha     2 -1.6522E+00  2.7718E-01
+         60    Hmholtz VELX:     63   1.8082E-10   9.0594E-04   1.9505E-10
+         60    VELY alph1n  1.5310E-02  1.3206E-03  1.1593E+01     2
+         60    VELY halpha     2 -1.4787E+00  2.7318E-01
+         60    Hmholtz VELY:     64   1.7850E-10   1.3206E-03   1.9505E-10
+         60    VELZ alph1n  6.7036E-03  8.2553E-04  8.1204E+00     2
+         60    VELZ halpha     2 -8.9561E-01  2.7234E-01
+         60    Hmholtz VELZ:     62   1.8566E-10   8.2553E-04   1.9505E-10
+         60   6.0440E-01  3.4703E+00 Fluid done
+Maximum scalar  0.999999999967
+Maximum velocity   0.00748675543   0.00840757885   0.00153113016
+Step     61, t= 7.1623944E-01, DT= 1.118E-01, C=  0.234, ReC=  0.0269 1.5035E+02 4.5E+00
+             Solving for heat
+         61    Hmholtz TEMP:     69   4.0429E-08   3.1481E-01   4.9681E-08
+         61   7.1624E-01  9.1830E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   8.058359444031508E-008  1.588207912404077E-010
+         61    PRES alph1n  8.0584E-01  3.7940E-02  2.1240E+01     4
+         61    PRES halpha     4  8.5103E-01 -1.3195E+00  7.3605E-03 -6.4491E-01
+       61 PRES gmres:   12  9.0127E-12  1.7763E-11  2.0308E-05  6.2150E-01  8.4470E-01    F
+         61    VELX alph1n  9.5916E-03  1.0601E-03  9.0480E+00     2
+         61    VELX halpha     2 -1.5975E+00 -2.3862E-01
+         61    Hmholtz VELX:     72   9.4519E-11   1.0601E-03   1.1725E-10
+         61    VELY alph1n  7.0834E-03  1.6287E-03  4.3492E+00     2
+         61    VELY halpha     2 -1.6046E+00 -2.3756E-01
+         61    Hmholtz VELY:     73   8.4241E-11   1.6287E-03   1.1725E-10
+         61    VELZ alph1n  3.3657E-03  2.1454E-03  1.5688E+00     2
+         61    VELZ halpha     2 -9.4146E-01 -2.2996E-01
+         61    Hmholtz VELZ:     70   1.1280E-10   2.1454E-03   1.1725E-10
+         61   7.1624E-01  3.7580E+00 Fluid done
+Maximum scalar  0.999999999249
+Maximum velocity   0.00683649543   0.00792329674   0.00122536876
+Step     62, t= 8.5044976E-01, DT= 1.342E-01, C=  0.265, ReC=  0.0254 1.5514E+02 4.8E+00
+             Solving for heat
+         62    Hmholtz TEMP:     74   4.7598E-08   2.7723E-01   4.7624E-08
+         62   8.5045E-01  9.7371E-01 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.293102593051489E-007  1.156902682346694E-010
+         62    PRES alph1n  1.2931E+00  4.2975E-02  3.0089E+01     4
+         62    PRES halpha     4 -5.0908E+00 -1.0432E+00  3.8976E-01 -9.2176E-01
+       62 PRES gmres:   12  7.5601E-12  1.5527E-11  1.9883E-05  6.2133E-01  8.4436E-01    F
+         62    VELX alph1n  4.8031E-03  5.5193E-04  8.7023E+00     2
+         62    VELX halpha     2 -1.5152E+00  2.3720E-01
+         62    Hmholtz VELX:     77   8.1718E-11   5.5193E-04   8.5485E-11
+         62    VELY alph1n  4.1106E-03  6.8993E-04  5.9579E+00     2
+         62    VELY halpha     2 -1.5427E+00  2.4533E-01
+         62    Hmholtz VELY:     77   8.2858E-11   6.8993E-04   8.5485E-11
+         62    VELZ alph1n  3.2041E-03  8.5844E-04  3.7325E+00     2
+         62    VELZ halpha     2 -1.5779E+00  2.2790E-01
+         62    Hmholtz VELZ:     75   7.7428E-11   8.5844E-04   8.5485E-11
+         62   8.5045E-01  3.9141E+00 Fluid done
+Maximum scalar  0.999999988942
+Maximum velocity   0.00644195583   0.00767046890   0.00102618688
+Step     63, t= 1.0115021E+00, DT= 1.611E-01, C=  0.308, ReC=  0.0246 1.6014E+02 5.0E+00
+             Solving for heat
+         63    Hmholtz TEMP:     81   3.7962E-08   2.4380E-01   4.5629E-08
+         63   1.0115E+00  1.0512E+00 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   6.944230254087161E-008  9.940147207532040E-011
+         63    PRES alph1n  6.9442E-01  2.9248E-02  2.3742E+01     4
+         63    PRES halpha     4 -2.9557E+00  1.1048E+00  9.6935E-01  1.4223E-01
+       63 PRES gmres:   11  1.3726E-11  1.6009E-11  1.4632E-05  5.6975E-01  7.7023E-01    F
+         63    VELX alph1n  2.7494E-03  1.1899E-03  2.3107E+00     2
+         63    VELX halpha     2 -1.3310E+00 -2.9725E-01
+         63    Hmholtz VELX:     87   6.1163E-11   1.1899E-03   7.3524E-11
+         63    VELY alph1n  2.3456E-03  1.7393E-03  1.3486E+00     2
+         63    VELY halpha     2 -1.1327E+00 -3.2945E-01
+         63    Hmholtz VELY:     88   6.6811E-11   1.7393E-03   7.3524E-11
+         63    VELZ alph1n  1.4968E-03  1.1106E-03  1.3476E+00     2
+         63    VELZ halpha     2 -2.6785E-01 -2.7887E-01
+         63    Hmholtz VELZ:     86   6.7497E-11   1.1106E-03   7.3524E-11
+         63   1.0115E+00  4.1986E+00 Fluid done
+Maximum scalar  0.999999878605
+Maximum velocity   0.00615381939   0.00750982074   0.00089146939
+Step     64, t= 1.2047650E+00, DT= 1.933E-01, C=  0.362, ReC=  0.0241 1.6550E+02 5.4E+00
+             Solving for heat
+         64    Hmholtz TEMP:     87   4.2412E-08   2.1413E-01   4.3698E-08
+         64   1.2048E+00  1.1183E+00 Heat done
+ Solving for fluid T T T
+ Relax the pressure tolerance   1.456479159857000E-007  9.164533440492962E-011
+         64    PRES alph1n  1.4565E+00  3.6373E-02  4.0043E+01     4
+         64    PRES halpha     4 -2.3754E+00  6.5690E-01  7.4798E-01 -9.1767E-01
+       64 PRES gmres:   12  6.4025E-12  1.7712E-11  1.9641E-05  6.2144E-01  8.4475E-01    F
+         64    VELX alph1n  2.3509E-03  1.3188E-03  1.7826E+00     2
+         64    VELX halpha     2 -1.7198E+00  3.9518E-01
+         64    Hmholtz VELX:     94   6.2372E-11   1.3188E-03   6.7871E-11
+         64    VELY alph1n  3.0032E-03  1.6869E-03  1.7803E+00     2
+         64    VELY halpha     2 -2.0729E+00  4.2058E-01
+         64    Hmholtz VELY:     93   6.6793E-11   1.6869E-03   6.7871E-11
+         64    VELZ alph1n  3.1323E-03  1.6701E-03  1.8756E+00     2
+         64    VELZ halpha     2 -2.6917E+00 -1.9218E-01
+         64    Hmholtz VELZ:     90   6.4213E-11   1.6701E-03   6.7871E-11
+         64   1.2048E+00  4.4574E+00 Fluid done
+Maximum scalar  0.999998974728
+Maximum velocity   0.00599698324   0.00739608367   0.00078255824
+ call outfld: ifpsco: F
+
+       64  1.2048E+00 Write checkpoint:
+       0      64 OPEN: test0.f00003
+
+       64  1.2048E+00 done :: Write checkpoint
+                              file size =       129.E+00MB
+                              avg data-throughput =          114.3MB/s
+                              io-nodes =     1
+
+
+end of time-step loop
+
+runtime statistics:
+ total time   172.263527016504     
+cggo time         256     36.86  0.2140
+axhm time        8082     32.67  0.1897
+h1mg time         896      8.10  0.0470
+schw time        1792     24.72  0.1435
+gmrs time          64     12.16  0.0706
+prhs time          64      3.78  0.0219
+vrhs time          64      0.69  0.0040
+proj time         248      2.19  0.0127
+hcoj time         811      3.01  0.0174
+dpc  time          62      1.65  0.0096
+scps time         896      0.82  0.0047
+stft time           0      0.00  0.0000
+scn  time          65      7.55  0.0438
+het2 time          64      0.74  0.0043
+p4mc time          64      2.41  0.0140
+makf time          64      4.00  0.0232
+makq time          64      2.96  0.0172
+prep time          64      2.48  0.0144
+mmsk time        5376      0.01  0.0000
+nmsc time         128      0.55  0.0032
+nmvc time          64      0.43  0.0025
+advc time         256      1.25  0.0072
+foo  time         384      2.15  0.0125
+Still missing   0.1226
+  
+Section         FLOPs    Peak FLOPs            BW       Peak BW    Eff.
+cggo           1321.8        1046.9       10084.3        7986.7  1.2626
+gmres          1832.0        1581.2        9253.4        7986.7  1.1586
+h1mg           1658.7        2735.8        4842.3        7986.7  0.6063
+schw           5114.1        7692.5        5309.6        7986.7  0.6648
+axhm           7003.3        8985.0        6225.1        7986.7  0.7794
+proj           1042.6         941.7        8842.2        7986.7  1.1071
+hcoj            867.4         998.1        6940.4        7986.7  0.8690
+ 
+Subset         3713.6        3952.4        7504.2        7986.7  0.9396
+Total          2580.6        3952.4        5214.7        7986.7  0.6529
+ 
+ inv3 time           0  0.000000000000000E+000  0.000000000000000E+000
+ invc time           0  0.000000000000000E+000  0.000000000000000E+000
+ mltd time           0  0.000000000000000E+000  0.000000000000000E+000
+ cdtp time           0  0.000000000000000E+000  0.000000000000000E+000
+ eslv time           0  0.000000000000000E+000  0.000000000000000E+000
+ pres time         373  1.870226860046387E-002  1.085677794038901E-004
+ crsl time         896   1.95559906959534       1.135236868456768E-002
+ crsl min    1.90642642974854     
+ crsl max    1.95559906959534     
+ crsl avg    1.93266212940216     
+ hmhz time          72   22.5116906166077       0.130681700337245     
+ spro time         372  4.060268402099609E-004  2.357009909422446E-006
+ usbc time         321   1.87150597572327       1.086420328282240E-002
+ usbc min    1.84493422508240     
+ usbc max    1.87150597572327     
+ usb  avg    1.85750991106033     
+ advc time         256   1.24699163436890       7.238860459703853E-003
+ vdss time         376   1.30977392196655       7.603315366003556E-003
+ vdss min    1.28803563117981     
+ vdss max    1.30977392196655     
+ vdss avg    1.29532134532928     
+ dsum time         298   14.4564604759216       8.392061120713390E-002
+ dsum min    14.1394383907318     
+ dsum max    14.4564604759216     
+ dsum avg    14.2409586310387     
+ dadd time           0   8.81458449363708       5.116918622473458E-002
+ ddsl time           0  0.000000000000000E+000  0.000000000000000E+000
+ solv time           0  0.000000000000000E+000  0.000000000000000E+000
+
+#  nid       tusbc       tdadd       tcrsl       tvdss       tdsum        tgop    qqq    F
+           0  1.8715E+00  8.8146E+00  1.9556E+00  1.3098E+00  1.4456E+01  6.0797E-05 qqq
+           1  1.8535E+00  8.4797E+00  1.9411E+00  1.2886E+00  1.4217E+01  7.1526E-05 qqq
+           2  1.8601E+00  8.6015E+00  1.9276E+00  1.2880E+00  1.4139E+01  7.3910E-05 qqq
+           3  1.8449E+00  8.6864E+00  1.9064E+00  1.2949E+00  1.4151E+01  7.3910E-05 qqq
+  
+call exitt: dying ...
+  
+backtrace(): obtained 6 stack frames.
+./nek5000() [0x5c78f9]
+./nek5000() [0x63637a]
+./nek5000() [0x44d456]
+./nek5000() [0x4051be]
+/lib64/libc.so.6(__libc_start_main+0xf5) [0x2b9b94b2eaf5]
+./nek5000() [0x4050c9]
+  
+total elapsed time             :   1.76580E+02 sec
+total solver time incl. I/O    :   1.72264E+02 sec
+time/timestep                  :   2.69162E+00 sec
+CPU seconds/timestep/gridpt    :   7.59554E-06 sec
+

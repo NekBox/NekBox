@@ -25,25 +25,23 @@ subroutine setdt
       dtopf     = dt
       call compute_cfl(umax,vx,vy,vz,1.0)
       goto 200
-  else IF (PARAM(84) /= 0.0) THEN
-      if (istep < 6) then
-          dt   =param(84)
-          dtold=param(84)
-          dtopf=param(84)
-          return
-      else
-          dtold=dt
-          dtopf=dt
-          dt=dtopf*param(85)
-          dt=min(dt,param(12))
-      endif
   endif
+
 
 !   Find DT=DTCFL based on CFL-condition (if applicable)
 
   CALL SETDTC(umax, uxmax)
   re_cell = uxmax / param(2)
+
   DTCFL = DT
+
+  IF (PARAM(84) /= 0.0) THEN
+      if (istep < 6) then
+          dt   =param(84)
+          dtold=param(84)
+          dtopf=param(84)
+      endif
+  endif
 
 !   Find DTFS based on surface tension (if applicable)
 
@@ -219,7 +217,7 @@ subroutine setdtc(umax, uxmax)
   real(DP), intent(out) :: umax, uxmax
   real(DP), allocatable :: u(:,:,:,:), v(:,:,:,:), w(:,:,:,:)
 
-  REAL(DP), save :: VCOUR
+  REAL(DP), save :: VCOUR = 0._dp
 
   INTEGER, save :: IFIRST = 0
   integer :: irst, iconv, ntot, ntotl, ntotd, i

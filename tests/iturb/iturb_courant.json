@@ -1,10 +1,9 @@
 {
   "amp0": 1.0,
-  "no_check": 1.0,
   "power": 1.6666667,
   "atwood": 1.0e-03,
-  "dt": 1.0, 
-  "dt_initial" : 0.00001,
+  "dt": 1.000, 
+  "dt_initial": 0.00078125, 
   "conductivity": 0.00390625, 
   "viscosity": 0.00390625, 
   "density": 1.0,
@@ -12,7 +11,7 @@
   "bottom_bound": "W", 
   "front_bound": "P", 
   "top_bound": "W", 
-  "courant": 0.4, 
+  "courant": 0.1, 
   "num_steps": 64, 
   "scale_mesh": [
     1.0, 
@@ -34,7 +33,7 @@
   ], 
   "right_bound": "P", 
   "dim": 3, 
-  "io_time": 0.0, 
+  "io_time": 0.1, 
   "shape_mesh": [
     16, 
     16, 

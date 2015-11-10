@@ -8,6 +8,7 @@ subroutine q_filter(wght)
   use input, only : ifcvode, param, ifmhd, iflomach, npscal
   use soln, only : vx, vy, vz, pr, t
   use tstep, only : ifield, istep
+  use ctimer, only : nqflt, tqflt, dnekclock
   use wz_m, only : zgm1
   implicit none
 
@@ -28,7 +29,11 @@ subroutine q_filter(wght)
   integer, external :: iglmax
   real(DP) :: umax, vmax, wmax, pmax
   real(DP), external :: glmax
+  real(DP) :: etime
   logical :: if_fltv
+
+  nqflt = nqflt + 1
+  etime = dnekclock()
 
   imax = nid
   imax = iglmax(imax,1)
@@ -159,6 +164,7 @@ subroutine q_filter(wght)
 
   ifield = ifldt   ! RESTORE ifield
 
+  tqflt = tqflt + (dnekclock() - etime)
 
   return
 end subroutine q_filter

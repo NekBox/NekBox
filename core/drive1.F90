@@ -287,22 +287,28 @@ end subroutine nek_solve
 !!
 !! Includes the primary Pn/Pn vs Pn/Pn-2 branch
 subroutine nek_advance
+  use kinds, only : DP
   use input, only : iftran, ifsplit, ifheat, ifflow, param
+  use ctimer, only : tsetn, nsetn, dnekclock
   implicit none
 
   integer :: igeom
+  real(DP) :: etime
 
   call nekgsync
+  nsetn = nsetn + 1
+  etime = dnekclock() 
   IF (IFTRAN) CALL SETTIME
 !max  if (ifmhd ) call cfl_check
   CALL SETSOLV
   CALL COMMENT
+   tsetn = tsetn + (dnekclock() - etime)
 
   if (ifsplit) then   ! PN/PN formulation
 
       igeom = 1
       if (ifheat)          call heat     (igeom)
-      call setprop
+      !call setprop
       !call qthermal
       igeom = 1
       if (ifflow)          call fluid    (igeom)

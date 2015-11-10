@@ -39,6 +39,10 @@ module ctimer
   real(DP), save :: tadvc  = 0._dp
   real(DP), save :: thmhz  = 0._dp
   real(DP), save :: tfoo   = 0._dp
+  real(DP), save :: thslv  = 0._dp
+  real(DP), save :: tsetn  = 0._dp
+  real(DP), save :: tusrc  = 0._dp
+  real(DP), save :: tqflt  = 0._dp
 
   integer, save :: nproj  = 0
   integer, save :: nhconj = 0
@@ -66,6 +70,10 @@ module ctimer
   integer, save :: nadvc = 0
   integer, save :: nhmhz = 0
   integer, save :: nfoo  = 0
+  integer, save :: nhslv  = 0
+  integer, save :: nsetn  = 0
+  integer, save :: nusrc  = 0
+  integer, save :: nqflt  = 0
 
   integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
   integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd &

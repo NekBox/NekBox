@@ -974,6 +974,10 @@ subroutine runstat
   use ctimer, only : nheat2, theat2
   use ctimer, only : nprep, tprep
   use ctimer, only : nfoo, tfoo
+  use ctimer, only : nhslv, thslv
+  use ctimer, only : nsetn, tsetn
+  use ctimer, only : nusrc, tusrc
+  use ctimer, only : nqflt, tqflt
   use size_m, only : nid
   use parallel, only : np
   implicit none
@@ -1139,6 +1143,10 @@ subroutine runstat
       call print_times('nmsc time', nnmsc   , tnmsc   , tttstp, total_share)
       call print_times('nmvc time', nnmvc   , tnmvc   , tttstp, total_share)
       call print_times('advc time', nadvc   , tadvc   , tttstp, total_share)
+      call print_times('hslv time', nhslv   , thslv   , tttstp, total_share)
+      call print_times('setn time', nsetn   , tsetn   , tttstp, total_share)
+      call print_times('usrc time', nusrc   , tusrc   , tttstp, total_share)
+      call print_times('qflt time', nqflt   , tqflt   , tttstp, total_share)
       call print_times('foo  time', nfoo    , tfoo    , tttstp, total_share)
 
       write(6,'(A,F8.4)') "Still missing ", (tttstp - total_share) / tttstp

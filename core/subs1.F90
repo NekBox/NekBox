@@ -466,8 +466,9 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
   endif
 
 !   Zero out scratch arrays U,V,W for ALL declared elements...
-  UMAX  = 0._dp
-  UXMAX = 0._dp
+  U3 = 0._dp
+  umax = 0._dp
+  uxmax = 0._dp
   if (if_ortho) then 
     deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
 
@@ -475,8 +476,8 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
         DO IX=1,NX1
             DO IY=1,NY1
                 DO IZ=1,NZ1
-                    UXMAX = MAX(UXMAX, ABS(v1(IX,IY,IZ,IE)*xrm1(ix,iy,iz,ie)*DRST(IX) ))
-                    UMAX  = MAX(UMAX,  ABS(v1(ix,iy,iz,ie)/xrm1(ix,iy,iz,ie)*DRSTI(IX))) 
+                    U3(1) = MAX(U3(1), ABS(v1(IX,IY,IZ,IE)*xrm1(ix,iy,iz,ie)*DRST(IX) ))
+                    U3(2) = MAX(U3(2), ABS(v1(ix,iy,iz,ie)/xrm1(ix,iy,iz,ie)*DRSTI(IX))) 
                 enddo
             enddo
         enddo
@@ -486,8 +487,8 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
         DO IX=1,NX1
             DO IY=1,NY1
                 DO IZ=1,NZ1
-                    UXMAX = MAX(UXMAX, ABS(v2(IX,IY,IZ,IE)*ysm1(ix,iy,iz,ie)*DRST(IY) ))
-                    UMAX  = MAX(UMAX,  ABS(v2(ix,iy,iz,ie)/ysm1(ix,iy,iz,ie)*DRSTI(IY))) 
+                    U3(1) = MAX(U3(1), ABS(v2(IX,IY,IZ,IE)*ysm1(ix,iy,iz,ie)*DRST(IY) ))
+                    U3(2) = MAX(U3(2), ABS(v2(ix,iy,iz,ie)/ysm1(ix,iy,iz,ie)*DRSTI(IY))) 
                 enddo
             enddo
         enddo
@@ -497,15 +498,15 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
         DO IX=1,NX1
             DO IY=1,NY1
                 DO IZ=1,NZ1
-                    UXMAX = MAX(UXMAX, ABS(v1(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) ))
-                    UMAX  = MAX(UMAX,  ABS(v1(ix,iy,iz,ie)/ztm1(ix,iy,iz,ie)*DRSTI(IZ))) 
+                    U3(1) = MAX(U3(1), ABS(v1(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) ))
+                    U3(2) = MAX(U3(2), ABS(v1(ix,iy,iz,ie)/ztm1(ix,iy,iz,ie)*DRSTI(IZ))) 
                 enddo
             enddo
         enddo
     END DO
 
-    uxmax = glmax(uxmax, 1)
-    umax  = glmax(umax,  1)
+    uxmax = glmax(U3(1), 1)
+    umax  = glmax(U3(2),  1)
 
   else
     allocate(x(lx1,ly1,lz1,lelv), r(lx1,ly1,lz1,lelv))

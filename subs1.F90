@@ -498,8 +498,8 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
         DO IX=1,NX1
             DO IY=1,NY1
                 DO IZ=1,NZ1
-                    U3(1) = MAX(U3(1), ABS(v1(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) ))
-                    U3(2) = MAX(U3(2), ABS(v1(ix,iy,iz,ie)/ztm1(ix,iy,iz,ie)*DRSTI(IZ))) 
+                    U3(1) = MAX(U3(1), ABS(v3(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) ))
+                    U3(2) = MAX(U3(2), ABS(v3(ix,iy,iz,ie)/ztm1(ix,iy,iz,ie)*DRSTI(IZ))) 
                 enddo
             enddo
         enddo

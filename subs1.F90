@@ -471,9 +471,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
 
 
   if (if_ortho) then 
-    u = (v1 * rxm1)/sqrt(rxm1*rxm1*xrm1*xrm1)
-    !r = rxm1 * rxm1 
-    !x = xrm1 * xrm1 
+    u = v1/xrm1
   else
     u = v1 * rxm1 + v2 * rym1 + v3 * rzm1 
     r = rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1
@@ -485,7 +483,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
   endif
 
   if (if_ortho) then 
-    v = (v2 * sym1)/sqrt(sym1*sym1*ysm1*ysm1)
+    v = v2/ysm1
   else
     v = v1*sxm1     + v2*sym1     + v3*szm1
     r = sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1
@@ -498,7 +496,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
 
 
   if (if_ortho) then
-    w = (v3 * tzm1)/sqrt(tzm1*tzm1*ztm1*ztm1)
+    w = v3/ztm1
   else
     w = v1*txm1     + v2*tym1     + v3*tzm1
     r = tzm1 * tzm1
@@ -512,43 +510,46 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
   deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
   deallocate(x,r)
 
-  allocate(tmp(lx1,ly1,lz1,lelv))
+  allocate(tmp(lx1,ly1,lz1,1))
+
+  U3 = 0._dp
+  DO IE=1,NELV
+      DO IX=1,NX1
+          DO IY=1,NY1
+              DO IZ=1,NZ1
+                  tmp(IX,IY,IZ,1)=ABS( V1(IX,IY,IZ,IE)*xrm1(ix,iy,iz,ie)*DRST(IX) )
+              enddo
+          enddo
+      enddo
+      U3(1)   = MAX(MAXVAL(tmp(:,:,:,1)), U3(1))
+  END DO
 
   DO IE=1,NELV
       DO IX=1,NX1
           DO IY=1,NY1
               DO IZ=1,NZ1
-                  tmp(IX,IY,IZ,IE)=ABS( V1(IX,IY,IZ,IE)*xrm1(ix,iy,iz,ie)*DRST(IX) )
+                  tmp(IX,IY,IZ,1)=ABS( V2(IX,IY,IZ,IE)*ysm1(ix,iy,iz,ie)*DRST(IY) )
               enddo
           enddo
       enddo
+      U3(2)   = MAX(MAXVAL(tmp(:,:,:,1)), U3(2))
   END DO
-  U3(1)   = MAXVAL(tmp)
 
   DO IE=1,NELV
       DO IX=1,NX1
           DO IY=1,NY1
               DO IZ=1,NZ1
-                  tmp(IX,IY,IZ,IE)=ABS( V2(IX,IY,IZ,IE)*ysm1(ix,iy,iz,ie)*DRST(IY) )
+                  tmp(IX,IY,IZ,1)=ABS( V3(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) )
               enddo
           enddo
       enddo
+      U3(3)   = MAX(MAXVAL(tmp(:,:,:,1)), U3(3))
   END DO
-  U3(2)   = MAXVAL(tmp)
 
-  DO IE=1,NELV
-      DO IX=1,NX1
-          DO IY=1,NY1
-              DO IZ=1,NZ1
-                  tmp(IX,IY,IZ,IE)=ABS( V3(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) )
-              enddo
-          enddo
-      enddo
-  END DO
-  U3(3)   = MAXVAL(tmp)
   UXMAX    = GLMAX(U3,3)
   deallocate(xrm1, ysm1, ztm1)
 
+  U3 = 0._dp
   DO IE=1,NELV
       DO IX=1,NX1
           DO IY=1,NY1
@@ -559,11 +560,10 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
               enddo
           enddo
       enddo
+     U3(1)   = MAX(MAXVAL(U(:,:,:,ie)), U3(1))
+     U3(2)   = MAX(MAXVAL(V(:,:,:,ie)), U3(2))
+     U3(3)   = MAX(MAXVAL(W(:,:,:,ie)), U3(3))
   END DO
-
-  U3(1)   = MAXVAL(U)
-  U3(2)   = MAXVAL(V)
-  U3(3)   = MAXVAL(W)
   UMAX    = GLMAX(U3,3)
 
   return

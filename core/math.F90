@@ -1,3 +1,7 @@
+#ifdef XSMM
+#include "stream_update_kernels.f"
+#endif
+
 !-----------------------------------------------------------------------
 subroutine tensor_product_transform(u, nu, v, nv, A, At, work1, work2)
   use kinds, only : DP
@@ -74,6 +78,10 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
                      work1, work2, work3)
   use kinds, only : DP
   use dxyz, only : wddx, wddyt, wddzt
+#ifdef XSMM
+  use STREAM_UPDATE_KERNELS, only : stream_update_helmholtz
+  use STREAM_UPDATE_KERNELS, only : stream_update_helmholtz_no_h2
+#endif
   implicit none
 
   real(DP), intent(in) :: h1, h2
@@ -90,9 +98,19 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
   call mxm   (u(1,1,1),nx*ny,wddzt,nz,work3,nz)
 
   if (h2 /= 0._dp) then
+#ifdef XSMM
+    call stream_update_helmholtz(gx, gy, gz, work1, work2, work3, &
+                                 u, b, au, h1, h2, nx*ny*nz)
+#else
     au(:,:,:) = h1* ( work1*gx + work2*gy + work3*gz ) + h2*b*u
+#endif
   else
+#ifdef XSMM
+    call stream_update_helmholtz_no_h2(gx, gy, gz, work1, work2, work3, &
+                                       au, h1, nx*ny*nz)
+#else
     au(:,:,:) = h1* ( work1*gx + work2*gy + work3*gz ) 
+#endif
   endif
 
   return

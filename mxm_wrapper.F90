@@ -7,15 +7,15 @@
 !#define USE_LIBXSMM
 
 
-#ifdef USE_LIBXSMM
+#ifdef XSMM
 !#define XSMM_DIRECT
 #define XSMM_DISPATCH
-#include "libxsmm.f90"
+#include "libxsmm.f"
 #endif
 
 subroutine mxm(a,n1,b,n2,c,n3)
   use kinds, only : DP, i8
-#ifdef USE_LIBXSMM
+#ifdef XSMM
 #ifdef XSMM_DIRECT
   use iso_c_binding
   use libxsmm, only : libxsmm_mm
@@ -32,8 +32,9 @@ subroutine mxm(a,n1,b,n2,c,n3)
   integer :: K10_mxm
 
 #ifdef XSMM_DISPATCH
-  INTEGER, PARAMETER :: T = LIBXSMM_DOUBLE_PRECISION
-  PROCEDURE(LIBXSMM_DMM_FUNCTION), POINTER :: dmm
+  INTEGER, PARAMETER :: T = LIBXSMM_FLD_KIND
+  PROCEDURE(LIBXSMM_DMM_FUNCTION), POINTER :: xmm
+  TYPE(LIBXSMM_DGEMM_XARGS) :: xargs
   TYPE(C_FUNPTR) :: f
 #endif
 
@@ -167,14 +168,15 @@ subroutine mxm(a,n1,b,n2,c,n3)
    endif
 #endif
 
-#ifdef USE_LIBXSMM
+#ifdef XSMM
 
 
 #ifdef XSMM_DISPATCH
-  f = libxsmm_dispatch(1.0_dp, 0.0_dp, n1, n3, n2)
+  xargs = LIBXSMM_DGEMM_XARGS_CTOR(1.0_dp, 0.0_dp)
+  f = libxsmm_dispatch(n1, n3, n2, 1.0_dp, 0.0_dp)
   if (C_ASSOCIATED(f)) then
-      CALL C_F_PROCPOINTER(f, dmm)
-      CALL dmm(1.0_dp, 0.0_dp, a, b, c)
+      CALL C_F_PROCPOINTER(f, xmm)
+      CALL xmm(a, b, c, xargs)
       return
   endif
 #endif

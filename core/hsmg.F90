@@ -622,28 +622,22 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 
   i = enx*eny*enz*nelv+1
      
-!     exchange interior nodes
+  ! exchange interior nodes
   call hsmg_extrude(work,0,zero,work,2,one,enx,eny,enz)
-  etime = etime - dnekclock()
   call hsmg_schwarz_dssum(work,l)
-  etime = etime + dnekclock()
   call hsmg_extrude(work,0,one ,work,2,onem,enx,eny,enz)
 
   call hsmg_fdm(work(i),work,l) ! Do the local solves
 
-!     Sum overlap region (border excluded)
+  ! Sum overlap region (border excluded)
   call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
-  etime = etime - dnekclock() 
   call hsmg_schwarz_dssum(work(i),l)
-  etime = etime + dnekclock() 
   call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
   call hsmg_extrude(work(i),2,one,work(i),0,one,enx,eny,enz)
 
   call hsmg_schwarz_toreg3d(e,work(i),mg_nh(l))
 
-  etime = etime - dnekclock() 
   call hsmg_dssum(e,l)                           ! sum border nodes
-  etime = etime + dnekclock() 
 
   call h1mg_mask (e,mg_imask(pm),nelfld(ifield)) ! apply mask
 

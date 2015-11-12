@@ -123,12 +123,16 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
 
   etime1=dnekclock()
 
+  if (helm2(1,1,1,1) /= 0._dp) then
+    axhelm_mop = axhelm_mop + 6*nx1*ny1*nz1*nel
+  else
+    axhelm_mop = axhelm_mop + 5*nx1*ny1*nz1*nel
+  endif
+
   do e=1,nel
     ! Fast 3-d mode: constant properties and undeformed element
     axhelm_flop = axhelm_flop + (2*nx1-1)*nx1*nyz
-    axhelm_mop = axhelm_mop + nx1*ny1*nz1
     axhelm_flop = axhelm_flop + 9*nx1*ny1*nz1
-    axhelm_mop = axhelm_mop + 5*nx1*ny1*nz1
     axhelm_flop = axhelm_flop + (2*ny1-1)*nx1*ny1*nz1
     axhelm_flop = axhelm_flop + nxy*(2*nz1-1)*nz1
 

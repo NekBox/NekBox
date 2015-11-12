@@ -1,5 +1,6 @@
 #ifdef XSMM
 #include "stream_update_kernels.f"
+#include "libxsmm.f"
 #endif
 
 !-----------------------------------------------------------------------
@@ -79,8 +80,11 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
   use kinds, only : DP
   use dxyz, only : wddx, wddyt, wddzt
 #ifdef XSMM
+  use iso_c_binding
   use STREAM_UPDATE_KERNELS, only : stream_update_helmholtz
   use STREAM_UPDATE_KERNELS, only : stream_update_helmholtz_no_h2
+  use LIBXSMM, only : LIBXSMM_DMM_FUNCTION, LIBXSMM_DGEMM_XARGS
+  use LIBXSMM, only : LIBXSMM_DGEMM_XARGS_CTOR, libxsmm_dispatch
 #endif
   implicit none
 
@@ -90,12 +94,39 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
   real(DP), intent(out), dimension(nx, ny, nz) :: au, work1, work2, work3
 
   integer :: iz
+#ifdef XSMM
+  logical, save :: init = .false.
+  PROCEDURE(LIBXSMM_DMM_FUNCTION), POINTER, save :: xmm1, xmm2, xmm3
+  TYPE(LIBXSMM_DGEMM_XARGS), save :: xargs
+  TYPE(C_FUNPTR) :: f1, f2, f3
+
+  if (.not. init) then
+    xargs = LIBXSMM_DGEMM_XARGS_CTOR(1.0_dp, 0.0_dp)
+    f1 = libxsmm_dispatch(nx, ny*nz, nx, 1.0_dp, 0.0_dp)
+    f2 = libxsmm_dispatch(nx, ny, ny, 1.0_dp, 0.0_dp)
+    f3 = libxsmm_dispatch(nx*ny, nz, nz, 1.0_dp, 0.0_dp)
+    CALL C_F_PROCPOINTER(f1, xmm1)
+    CALL C_F_PROCPOINTER(f2, xmm2)
+    CALL C_F_PROCPOINTER(f3, xmm3)
+    init = .true.
+  endif
+
+  CALL xmm1(wddx, u(1,1,1), work1, xargs)
+  do iz=1,nz
+      CALL xmm2(u(1,1,iz), wddyt, work2(1,1,iz), xargs)
+  enddo
+  CALL xmm3(u(1,1,1), wddzt, work3, xargs)
+
+
+#else
 
   call mxm   (wddx,nx,u(1,1,1),nx,work1,ny*nz)
   do iz=1,nz
       call mxm   (u(1,1,iz),nx,wddyt,ny,work2(1,1,iz),ny)
   END DO
   call mxm   (u(1,1,1),nx*ny,wddzt,nz,work3,nz)
+
+#endif
 
   if (h2 /= 0._dp) then
 #ifdef XSMM

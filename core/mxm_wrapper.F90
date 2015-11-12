@@ -10,7 +10,7 @@
 #ifdef XSMM
 !#define XSMM_DIRECT
 #define XSMM_DISPATCH
-#include "libxsmm.f"
+!#include "libxsmm.f"
 #endif
 
 subroutine mxm(a,n1,b,n2,c,n3)

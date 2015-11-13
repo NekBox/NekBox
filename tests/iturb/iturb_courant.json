@@ -33,7 +33,7 @@
   ], 
   "right_bound": "P", 
   "dim": 3, 
-  "io_time": 0.1, 
+  "io_time": 0.0, 
   "shape_mesh": [
     16, 
     16, 

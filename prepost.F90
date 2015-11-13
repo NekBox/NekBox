@@ -100,7 +100,12 @@ subroutine prepost(ifdoin,prefin)
   iiidmp= int(tdmp(1))
   if (iiidmp < 0) maxstep=abs(iiidmp)
   if (istep >= maxstep .OR. iiidmp == -2) lastep=1
-  if (iiidmp == -2) return
+  if (iiidmp == -2) then
+#ifndef NOTIMER
+  tprep=tprep+(dnekclock()-etime)
+#endif
+    return
+  endif
   if (iiidmp < 0) iiidmp = 0
 
   if (ifdoin) ifdoit= .TRUE. 

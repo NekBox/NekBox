@@ -233,8 +233,6 @@ subroutine gensh(v1,h1,h2,vml,vmk,apx,ws)
   type(approx_space), intent(inout) :: apx !>!< current approximation space
 
   integer :: ntot
-  real(DP) :: norm
-  real(DP), external :: dnrm2
   ntot = size(apx%projectors,1)
 
   ! Reconstruct solution 
@@ -412,6 +410,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   use input, only : param
   use string, only : capit
   use tstep, only : ifield, nelfld, istep
+  use ctimer, only : dnekclock, nhslv, thslv
   implicit none
 
   CHARACTER(4), intent(in) :: NAME !>!< name of field we're solving for
@@ -436,6 +435,10 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   integer :: nel
   real(DP) :: rinit
   real(DP), external :: glsc23
+  real(DP) :: etime
+
+  nhslv = nhslv + 1
+  etime = dnekclock()
 
 
   call chcopy(cname,name,4)
@@ -457,8 +460,9 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
 
   if (ifstdh) then
-
+    etime = etime - dnekclock()
     call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
+    etime = etime + dnekclock()
 
   else
 
@@ -469,14 +473,17 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
       allocate(w2(2+2*apx%n_max))
       allocate(w1(lx1*ly1*lz1*lelv))
+      etime = etime - dnekclock()
       call projh  (r,h1,h2,bi,vml,vmk,apx,w1,w2,name)
       deallocate(w1)
 
       call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
       call gensh  (u,h1,h2,vml,vmk,apx,w2)
+      etime = etime + dnekclock()
 
   endif
 
+  thslv = thslv + (dnekclock() - etime)
 
   return
 end subroutine hsolve

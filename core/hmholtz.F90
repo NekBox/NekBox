@@ -421,6 +421,9 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
 !! using preconditioned conjugate gradient iteration.
 !! Preconditioner: diag(H).
 !------------------------------------------------------------------------
+
+
+
 subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use kinds, only : DP
   use size_m, only : nid, nx1, ny1, nz1, nelt, nelv
@@ -430,6 +433,9 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use geom, only : volvm1, voltm1
   use mesh, only : ifsolv, niterhm
   use tstep, only : istep, imesh
+#ifdef XSMM
+  use STREAM_UPDATE_KERNELS, only : stream_vector_compscale
+#endif
   use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop, dnekclock
   implicit none
 
@@ -544,8 +550,12 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   cggo_mop  = cggo_mop  + 5*n
   scalar(1) = 0._dp; scalar(2) = 0._dp
   do i = 1, nel
+#ifdef XSMM
+    call stream_vector_compscale(r(:,i), d(:,i), p(:,i), nx1*ny1*nz1)
+#else
     p(:,i) = r(:,i) * d(:,i) 
-    scalar(1) = scalar(1) + sum(p(:,i) * r(:,i) * mult(:,i))
+#endif
+    scalar(1) = scalar(1) + sum(r(:,i) * d(:,i) * r(:,i) * mult(:,i))
     scalar(2) = scalar(2) + sum(r(:,i) * r(:,i) * mult(:,i) * binv(:,i))
   enddo
   call gop(scalar,w,'+  ',2)
@@ -585,8 +595,12 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     cggo_mop  = cggo_mop  + 7*n
     do i = 1, nel
       r(:,i) = r(:,i) + alphm * w(:,i)
+#ifdef XSMM
+    call stream_vector_compscale(r(:,i), d(:,i), z(:,i), nx1*ny1*nz1)
+#else
       z(:,i) = r(:,i) * d(:,i) 
-      scalar(1) = scalar(1) + sum(z(:,i) * r(:,i) * mult(:,i))
+#endif
+      scalar(1) = scalar(1) + sum(r(:,i) * d(:,i) * r(:,i) * mult(:,i))
       scalar(2) = scalar(2) + sum(r(:,i) * r(:,i) * mult(:,i) * binv(:,i))
     enddo
     call gop(scalar,w,'+  ',2)

@@ -27,9 +27,11 @@ subroutine cdscal (igeom)
 
   nel    = nelfld(ifield)
   ntot   = nx1*ny1*nz1*nel
+  nheat2 = nheat2 + 1
 
   if (igeom == 1) then   ! geometry at t^{n-1}
       call makeq
+      etime = dnekclock()
       call lagscal
   else                   ! geometry at t^n
 
@@ -57,7 +59,6 @@ subroutine cdscal (igeom)
       if (ifaxis .AND. ifaziv .AND. ifield == 2) isd = 2
   !        if (ifaxis.and.ifmhd) isd = 2 !This is a problem if T is to be T!
       etime = dnekclock()
-      nheat2 = nheat2 + 1
       allocate(TA(LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT))
       allocate(H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT))
       do iter=1,nmxnl ! iterate for nonlin. prob. (e.g. radiation b.c.)
@@ -110,8 +111,8 @@ subroutine cdscal (igeom)
       CALL BCNEUSC (TA,1)
       bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) + ta ! no idea why... pf
       deallocate(ta)
-      theat2 = theat2 + (dnekclock() - etime)
   endif
+  theat2 = theat2 + (dnekclock() - etime)
 
   return
 end subroutine cdscal

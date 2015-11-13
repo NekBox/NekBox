@@ -1041,9 +1041,9 @@ SUBROUTINE NEKASGN (IX,IY,IZ,IEL)
   X     = XM1(IX,IY,IZ,IEL)
   Y     = YM1(IX,IY,IZ,IEL)
   Z     = ZM1(IX,IY,IZ,IEL)
-  R     = X**2+Y**2
-  IF (R > 0.0) R=SQRT(R)
-  IF (X /= 0.0 .OR. Y /= 0.0) THETA = ATAN2(Y,X)
+  !R     = X**2+Y**2
+  !IF (R > 0.0) R=SQRT(R)
+  !IF (X /= 0.0 .OR. Y /= 0.0) THETA = ATAN2(Y,X)
 
   UX    = VX(IX,IY,IZ,IEL)
   UY    = VY(IX,IY,IZ,IEL)

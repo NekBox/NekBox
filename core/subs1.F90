@@ -431,7 +431,7 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
     xrm1, xsm1, xtm1, yrm1, ysm1, ytm1, zrm1, zsm1, ztm1
 
   real(DP), allocatable :: x(:,:,:,:), r(:,:,:,:)
-  real(DP), allocatable :: tmp(:,:,:,:)
+  real(DP), allocatable :: tmp(:,:,:)
 
   real(DP), save :: drst(lx1), drsti(lx1)
 
@@ -475,113 +475,117 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
   endif
 
 !   Zero out scratch arrays U,V,W for ALL declared elements...
+  U3 = 0._dp
+  umax = 0._dp
+  uxmax = 0._dp
+  if (if_ortho) then 
+    deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
 
-  u = 0_dp; v = 0_dp; w = 0_dp
+    DO IE=1,NELV
+        DO IX=1,NX1
+            DO IY=1,NY1
+                DO IZ=1,NZ1
+                    U3(1) = MAX(U3(1), ABS(v1(IX,IY,IZ,IE)*xrm1(ix,iy,iz,ie)*DRST(IX) ))
+                    U3(2) = MAX(U3(2), ABS(v1(ix,iy,iz,ie)/xrm1(ix,iy,iz,ie)*DRSTI(IX))) 
+                enddo
+            enddo
+        enddo
+    END DO
 
-  allocate(x(lx1,ly1,lz1,lelv), r(lx1,ly1,lz1,lelv))
+    DO IE=1,NELV
+        DO IX=1,NX1
+            DO IY=1,NY1
+                DO IZ=1,NZ1
+                    U3(1) = MAX(U3(1), ABS(v2(IX,IY,IZ,IE)*ysm1(ix,iy,iz,ie)*DRST(IY) ))
+                    U3(2) = MAX(U3(2), ABS(v2(ix,iy,iz,ie)/ysm1(ix,iy,iz,ie)*DRSTI(IY))) 
+                enddo
+            enddo
+        enddo
+    END DO
 
-  IF (NDIM == 2) THEN
-#if 0
-      CALL VDOT2  (U,V1  ,V2  ,RXM1,RYM1,NTOT)
-      CALL VDOT2  (R,RXM1,RYM1,RXM1,RYM1,NTOT)
-      CALL VDOT2  (X,XRM1,YRM1,XRM1,YRM1,NTOT)
-      r = r * x
-      r = sqrt(r) 
-      u = u / r
-  
-      CALL VDOT2  (V,V1  ,V2  ,SXM1,SYM1,NTOT)
-      CALL VDOT2  (R,SXM1,SYM1,SXM1,SYM1,NTOT)
-      CALL VDOT2  (X,XSM1,YSM1,XSM1,YSM1,NTOT)
-      r = r * x
-      r = sqrt(r) 
-      v = v / r
-#endif 
-  ELSE
+    DO IE=1,NELV
+        DO IX=1,NX1
+            DO IY=1,NY1
+                DO IZ=1,NZ1
+                    U3(1) = MAX(U3(1), ABS(v3(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) ))
+                    U3(2) = MAX(U3(2), ABS(v3(ix,iy,iz,ie)/ztm1(ix,iy,iz,ie)*DRSTI(IZ))) 
+                enddo
+            enddo
+        enddo
+    END DO
 
-      if (if_ortho) then 
-        u = v1 * rxm1 
-        r = rxm1 * rxm1 
-        x = xrm1 * xrm1 
-      else
-        u = v1 * rxm1 + v2 * rym1 + v3 * rzm1 
-        r = rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1
-        x = xrm1 * xrm1 + yrm1 * yrm1 + zrm1 * zrm1
-      endif
+    uxmax = glmax(U3(1), 1)
+    umax  = glmax(U3(2),  1)
 
-      r = r * x
-      r = sqrt(r) 
-      u = u / r
+  else
+    allocate(x(lx1,ly1,lz1,lelv), r(lx1,ly1,lz1,lelv))
 
-      if (if_ortho) then 
-        v = v2*sym1
-        r = sym1 * sym1
-        x = ysm1 * ysm1
-      else
-        v = v1*sxm1     + v2*sym1     + v3*szm1
-        r = sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1
-        x = xsm1 * xsm1 + ysm1 * ysm1 + zsm1 * zsm1 
-      endif
+    u = v1 * rxm1 + v2 * rym1 + v3 * rzm1 
+    r = rxm1 * rxm1 + rym1 * rym1 + rzm1 * rzm1
+    x = xrm1 * xrm1 + yrm1 * yrm1 + zrm1 * zrm1
 
-      r = r * x
-      r = sqrt(r) 
-      v = v / r
+    r = r * x
+    r = sqrt(r) 
+    u = u / r
 
-      if (if_ortho) then
-        w = v3*tzm1
-        r = tzm1 * tzm1
-        x = ztm1 * ztm1
-      else
-        w = v1*txm1     + v2*tym1     + v3*tzm1
-        r = tzm1 * tzm1
-        x = ztm1 * ztm1
-      endif
+    v = v1*sxm1     + v2*sym1     + v3*szm1
+    r = sxm1 * sxm1 + sym1 * sym1 + szm1 * szm1
+    x = xsm1 * xsm1 + ysm1 * ysm1 + zsm1 * zsm1 
+
+    r = r * x
+    r = sqrt(r) 
+    v = v / r
+
+    w = v1*txm1     + v2*tym1     + v3*tzm1
+    r = tzm1 * tzm1
+    x = ztm1 * ztm1
+
+    r = r * x
+    r = sqrt(r) 
+    w = w / r
+
+    deallocate(x,r)
+    deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
+    allocate(tmp(lx1,ly1,lz1))
+
+    DO IE=1,NELV
+        DO IX=1,NX1
+            DO IY=1,NY1
+                DO IZ=1,NZ1
+                    U3(1) = MAX( U3(1), ABS( V1(IX,IY,IZ,IE)*xrm1(ix,iy,iz,ie)*DRST(IX) ))
+                enddo
+            enddo
+        enddo
+    END DO
  
-      r = r * x
-      r = sqrt(r) 
-      w = w / r
-  
-  endif
+    DO IE=1,NELV
+        DO IX=1,NX1
+            DO IY=1,NY1
+                DO IZ=1,NZ1
+                    tmp(IX,IY,IZ)=ABS( V2(IX,IY,IZ,IE)*ysm1(ix,iy,iz,ie)*DRST(IY) )
+                enddo
+            enddo
+        enddo
+        U3(2)   = MAX(MAXVAL(tmp), U3(2))
+    END DO
+ 
+    DO IE=1,NELV
+        DO IX=1,NX1
+            DO IY=1,NY1
+                DO IZ=1,NZ1
+                    tmp(IX,IY,IZ)=ABS( V3(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) )
+                enddo
+            enddo
+        enddo
+        U3(3)   = MAX(MAXVAL(tmp), U3(3))
+    END DO
 
-  deallocate(xsm1, xtm1, yrm1, ytm1, zrm1, zsm1)
-  deallocate(x,r)
 
-  allocate(tmp(lx1,ly1,lz1,lelv))
-
-  DO IE=1,NELV
-      DO IX=1,NX1
-          DO IY=1,NY1
-              DO IZ=1,NZ1
-                  tmp(IX,IY,IZ,IE)=ABS( V1(IX,IY,IZ,IE)*xrm1(ix,iy,iz,ie)*DRST(IX) )
-              enddo
-          enddo
-      enddo
-  END DO
-  U3(1)   = MAXVAL(tmp)
-
-  DO IE=1,NELV
-      DO IX=1,NX1
-          DO IY=1,NY1
-              DO IZ=1,NZ1
-                  tmp(IX,IY,IZ,IE)=ABS( V2(IX,IY,IZ,IE)*ysm1(ix,iy,iz,ie)*DRST(IY) )
-              enddo
-          enddo
-      enddo
-  END DO
-  U3(2)   = MAXVAL(tmp)
-
-  DO IE=1,NELV
-      DO IX=1,NX1
-          DO IY=1,NY1
-              DO IZ=1,NZ1
-                  tmp(IX,IY,IZ,IE)=ABS( V3(IX,IY,IZ,IE)*ztm1(ix,iy,iz,ie)*DRST(IZ) )
-              enddo
-          enddo
-      enddo
-  END DO
-  U3(3)   = MAXVAL(tmp)
   UXMAX    = GLMAX(U3,3)
+  deallocate(tmp)
   deallocate(xrm1, ysm1, ztm1)
 
+  U3 = 0._dp
   DO IE=1,NELV
       DO IX=1,NX1
           DO IY=1,NY1
@@ -592,12 +596,13 @@ subroutine cumax (v1,v2,v3,u,v,w,umax, uxmax)
               enddo
           enddo
       enddo
+     U3(1)   = MAX(MAXVAL(U(:,:,:,ie)), U3(1))
+     U3(2)   = MAX(MAXVAL(V(:,:,:,ie)), U3(2))
+     U3(3)   = MAX(MAXVAL(W(:,:,:,ie)), U3(3))
   END DO
-
-  U3(1)   = MAXVAL(U)
-  U3(2)   = MAXVAL(V)
-  U3(3)   = MAXVAL(W)
   UMAX    = GLMAX(U3,3)
+
+  endif
 
   return
 end subroutine cumax

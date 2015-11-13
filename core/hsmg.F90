@@ -590,7 +590,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   use kinds, only : DP
   use size_m, only : nelv
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
-  use ctimer, only : tschw, nschw, schw_flop, schw_mop, dnekclock
+  use ctimer, only : schw_flop, schw_mop
   use tstep, only : ifield, nelfld
   implicit none
 
@@ -618,42 +618,29 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 
   allocate(work(2*enx*eny*enz*nelv))
 
-      call hsmg_schwarz_toext3d(work,r,mg_nh(l))
+  call hsmg_schwarz_toext3d(work,r,mg_nh(l))
 
   i = enx*eny*enz*nelv+1
      
-!     exchange interior nodes
+  ! exchange interior nodes
   call hsmg_extrude(work,0,zero,work,2,one,enx,eny,enz)
-  etime = etime - dnekclock()
-  !call hpm_stop('schwarz')
   call hsmg_schwarz_dssum(work,l)
-  !call hpm_start('schwarz')
-  etime = etime + dnekclock()
   call hsmg_extrude(work,0,one ,work,2,onem,enx,eny,enz)
 
   call hsmg_fdm(work(i),work,l) ! Do the local solves
 
-!     Sum overlap region (border excluded)
+  ! Sum overlap region (border excluded)
   call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
-  etime = etime - dnekclock() 
-  !call hpm_stop('schwarz')
   call hsmg_schwarz_dssum(work(i),l)
-  !call hpm_start('schwarz')
-  etime = etime + dnekclock() 
   call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
   call hsmg_extrude(work(i),2,one,work(i),0,one,enx,eny,enz)
 
   call hsmg_schwarz_toreg3d(e,work(i),mg_nh(l))
 
-  etime = etime - dnekclock() 
-  !call hpm_stop('schwarz')
   call hsmg_dssum(e,l)                           ! sum border nodes
-  !call hpm_start('schwarz')
-  etime = etime + dnekclock() 
 
   call h1mg_mask (e,mg_imask(pm),nelfld(ifield)) ! apply mask
 
-  tschw = tschw - etime
 
   return
 end subroutine h1mg_schwarz_part1

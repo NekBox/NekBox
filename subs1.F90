@@ -100,10 +100,11 @@ subroutine setdt
     dt = ((ntdump + 1)*timeio - time) / nstep
   endif
 
-  200 IF (TIME+DT >= FINTIM .AND. FINTIM /= 0.0) THEN
+  IF (FINTIM /= 0.0 .and. fintim >= (ntdump + 1)*timeio) THEN
   !        Last step
+      nstep = int((fintim - time) / DT) + 1
       LASTEP = 1
-      DT = FINTIM-TIME
+      DT = (fintim - time) / nstep 
       IF (NID == 0) WRITE (6,*) 'Final time step = ',DT
   endif
 

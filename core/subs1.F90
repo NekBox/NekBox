@@ -95,7 +95,7 @@ subroutine setdt
 
 !   Check if final time (user specified) has been reached.
 
-  if (timeio /= 0.0) then
+  200 if (timeio /= 0.0) then
     nstep = int(((ntdump + 1)*timeio - time) / DT) + 1
     dt = ((ntdump + 1)*timeio - time) / nstep
   endif

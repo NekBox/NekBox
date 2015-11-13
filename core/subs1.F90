@@ -5,7 +5,7 @@ subroutine setdt
   use size_m, only : nid
   use input, only : param, ifflow, ifprint
   use soln, only : vx, vy, vz
-  use tstep, only : dt, dtinit, time, fintim, lastep, courno, ctarg, istep
+  use tstep, only : dt, dtinit, time, fintim, lastep, courno, ctarg, istep, timeio, ntdump
   use tstep, only : re_cell
   implicit none
 
@@ -17,6 +17,7 @@ subroutine setdt
 
   real(DP) :: dtcfl, dtfs, dtmin, dtmax
   real(DP), external :: uglmin
+  integer :: nstep
 
   if (param(12) < 0 .OR. iffxdt) then
       iffxdt    = .TRUE. 
@@ -80,20 +81,6 @@ subroutine setdt
       IF(NID == 0)WRITE (6,*) 'WARNING: Set DT=0.001 (arbitrarily)'
   endif
 
-!   Check if final time (user specified) has been reached.
-
-  200 IF (TIME+DT >= FINTIM .AND. FINTIM /= 0.0) THEN
-  !        Last step
-      LASTEP = 1
-      DT = FINTIM-TIME
-      IF (NID == 0) WRITE (6,*) 'Final time step = ',DT
-  endif
-
-  COURNO = DT*UMAX
-  IF (NID == 0 .AND. IFPRINT .AND. DT /= DTOLD) &
-  WRITE (6,100) DT,DTCFL,DTFS,DTINIT
-  100 FORMAT(5X,'DT/DTCFL/DTFS/DTINIT',4E12.3)
-
   ! only change dt if its off by more than 10%
   if (abs(dt - dtold)/dt < 0.1) dt = dtold
 
@@ -104,6 +91,28 @@ subroutine setdt
       DT = MIN(DTMAX,DT)
       DT = MAX(DTMIN,DT)
   endif
+
+
+!   Check if final time (user specified) has been reached.
+
+  200 if (timeio /= 0.0) then
+    nstep = int(((ntdump + 1)*timeio - time) / DT) + 1
+    dt = ((ntdump + 1)*timeio - time) / nstep
+  endif
+
+  IF (FINTIM /= 0.0 .and. fintim >= (ntdump + 1)*timeio) THEN
+  !        Last step
+      nstep = int((fintim - time) / DT) + 1
+      LASTEP = 1
+      DT = (fintim - time) / nstep 
+      IF (NID == 0) WRITE (6,*) 'Final time step = ',DT
+  endif
+
+  COURNO = DT*UMAX
+  IF (NID == 0 .AND. IFPRINT .AND. DT /= DTOLD) &
+  WRITE (6,100) DT,DTCFL,DTFS,DTINIT
+  100 FORMAT(5X,'DT/DTCFL/DTFS/DTINIT',4E12.3)
+
   DTOLD=DT
 
 !    IF (PARAM(84).NE.0.0) THEN

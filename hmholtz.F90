@@ -540,7 +540,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   niterhm = 0
 
   cggo_mop = cggo_mop + n
-  allocate(w(nxyz,nel)); w = 0_dp
+  allocate(w(nxyz,nel))
   allocate(p(nxyz,nel))
   iter = 1
 
@@ -596,7 +596,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     do i = 1, nel
       r(:,i) = r(:,i) + alphm * w(:,i)
 #ifdef XSMM
-    call stream_vector_compscale(r(:,i), d(:,i), z(:,i), nx1*ny1*nz1)
+      call stream_vector_compscale(r(:,i), d(:,i), z(:,i), nx1*ny1*nz1)
 #else
       z(:,i) = r(:,i) * d(:,i) 
 #endif

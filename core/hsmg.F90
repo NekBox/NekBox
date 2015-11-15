@@ -590,6 +590,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   integer :: enx,eny,enz,pm, n, l
   real(DP) :: zero, one, onem
   real(DP), allocatable :: w1(:,:,:,:), w2(:,:,:,:)
+  real(DP), allocatable :: w3(:,:,:), w4(:,:,:)
   integer :: i,j,k,ie
 
   etime = 0._dp
@@ -608,6 +609,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
 
   allocate(w1(enx,eny,enz,nelv),w2(enx,eny,enz,nelv))
+  allocate(w3(enx,eny,enz),w4(enx,eny,enz))
 
   call hsmg_schwarz_toext3d(w1,r,mg_nh(l))
 
@@ -649,16 +651,14 @@ subroutine h1mg_schwarz_part1 (e,r,l)
               -w1(i,j,enx-2,ie)
           enddo
       enddo
-  enddo
 
   ! Do the local solves
-  call hsmg_do_fast(w2,w1, &
-  mg_fast_s(mg_fast_s_index(l,mg_fld)), &
-  mg_fast_d(mg_fast_d_index(l,mg_fld)), &
-  mg_nh(l)+2)
+  call hsmg_do_fast(w2(:,:,:,ie),w1(:,:,:,ie), &
+  mg_fast_s(mg_fast_s_index(l,mg_fld) + (ie-1)*enx*enx*2*3), &
+  mg_fast_d(mg_fast_d_index(l,mg_fld) + (ie-1)*enx*enx*enx), &
+  mg_nh(l)+2, w3, w4)
 
   ! Sum overlap region (border excluded)
-  do ie=1,nelv
       do j=2,eny-1
           do i=2,enx-1
               w1(i,j,1 ,ie) = w2(i,j,1 ,ie)

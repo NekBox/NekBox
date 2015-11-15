@@ -159,8 +159,8 @@ subroutine benchmark()
   real(DP) :: foo, etime, etime_total(4)
 
 
-  ! jsut replicate STREAM
-  n = 2**27 / 8 
+  ! just replicate STREAM
+  n = 2**24 / 8 
   k = 8
   allocate(a(n), b(n), c(n)) 
   a = 2._dp; b = 0.5_dp; c = 0._dp

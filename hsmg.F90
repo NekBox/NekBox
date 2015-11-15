@@ -508,20 +508,7 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
   i1=nx-1
         
       schw_flop = schw_flop + nelv * 3 * (nx-2)**2 * 6
-#if 0
-      if (l1 == 0) then
-        schw_mop  = schw_mop  + 2 * nelv * nx*ny*nz
-      else
-        schw_mop  = schw_mop  + 2 * nelv * nx*ny*(nz-2)
-      endif
-      if (l2 == 0) then
-        schw_mop  = schw_mop  + nelv * nx*ny*nz
-      else
-        schw_mop  = schw_mop  + nelv * nx*ny*(nz-2)
-      endif
-#else
       schw_mop  = schw_mop  + nelv * 3 * (nx-2)**2 * 6
-#endif
       do ie=1,nelv
           do j=i0,i1
               do i=i0,i1
@@ -590,6 +577,9 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   use kinds, only : DP
   use size_m, only : nelv
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
+
+  use hsmg, only : mg_fast_s, mg_fast_d, mg_fast_s_index, mg_fast_d_index
+
   use ctimer, only : schw_flop, schw_mop
   use tstep, only : ifield, nelfld
   implicit none
@@ -597,9 +587,10 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   real(DP) :: e(*),r(*)
   real(DP) :: etime
 
-  integer :: enx,eny,enz,pm, n, i, l
+  integer :: enx,eny,enz,pm, n, l
   real(DP) :: zero, one, onem
-  real(DP), allocatable :: work(:)
+  real(DP), allocatable :: w1(:,:,:,:), w2(:,:,:,:)
+  integer :: i,j,k,ie
 
   etime = 0._dp
 
@@ -616,26 +607,90 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 
   call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
 
-  allocate(work(2*enx*eny*enz*nelv))
+  allocate(w1(enx,eny,enz,nelv),w2(enx,eny,enz,nelv))
 
-  call hsmg_schwarz_toext3d(work,r,mg_nh(l))
+  call hsmg_schwarz_toext3d(w1,r,mg_nh(l))
 
-  i = enx*eny*enz*nelv+1
      
   ! exchange interior nodes
-  call hsmg_extrude(work,0,zero,work,2,one,enx,eny,enz)
-  call hsmg_schwarz_dssum(work,l)
-  call hsmg_extrude(work,0,one ,work,2,onem,enx,eny,enz)
+  call hsmg_extrude(w1,0,zero,w1,2,one,enx,eny,enz)
+  call hsmg_schwarz_dssum(w1,l)
 
-  call hsmg_fdm(work(i),work,l) ! Do the local solves
+        
+  schw_flop = schw_flop + 2*nelv * 3 * (enx-2)**2 * 6
+  schw_mop  = schw_mop  + 2*nelv * 3 * (enx-2)**2 * 6
+
+  do ie=1,nelv
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,1 ,ie) = w1(i,j,1 ,ie) &
+              -w1(i,j,3 ,ie)
+          enddo
+      enddo
+      do k=2,enz-1
+          do i=2,enx-1
+              w1(i,1 ,k,ie) = w1(i,1 ,k,ie) &
+              -w1(i,3 ,k,ie)
+          enddo
+          do j=2,eny-1
+              w1(1 ,j,k,ie) = w1(1 ,j,k,ie) &
+              -w1(3 ,j,k,ie)
+              w1(enx,j,k,ie) = w1(enx,j,k,ie) &
+              -w1(enx-2,j,k,ie)
+          enddo
+          do i=2,enx-1
+              w1(i,enx,k,ie) = w1(i,enx,k,ie) &
+              -w1(i,enx-2,k,ie)
+          enddo
+      enddo
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,enx,ie) = w1(i,j,enx,ie) &
+              -w1(i,j,enx-2,ie)
+          enddo
+      enddo
+  enddo
+
+  ! Do the local solves
+  call hsmg_do_fast(w2,w1, &
+  mg_fast_s(mg_fast_s_index(l,mg_fld)), &
+  mg_fast_d(mg_fast_d_index(l,mg_fld)), &
+  mg_nh(l)+2)
 
   ! Sum overlap region (border excluded)
-  call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
-  call hsmg_schwarz_dssum(work(i),l)
-  call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
-  call hsmg_extrude(work(i),2,one,work(i),0,one,enx,eny,enz)
+  do ie=1,nelv
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,1 ,ie) = w2(i,j,1 ,ie)
+          enddo
+      enddo
+      do k=2,enz-1
+          do i=2,enx-1
+              w1(i,1 ,k,ie) = w2(i,1 ,k,ie)
+          enddo
+          do j=2,eny-1
+              w1(1 ,j,k,ie) = w2(1 ,j,k,ie)
+              w1(enx,j,k,ie) = w2(enx,j,k,ie)
+          enddo
+          do i=2,enx-1
+              w1(i,enx,k,ie) = w2(i,enx,k,ie)
+          enddo
+      enddo
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,enx,ie) = w2(i,j,enx,ie)
+          enddo
+      enddo
+  enddo
 
-  call hsmg_schwarz_toreg3d(e,work(i),mg_nh(l))
+
+  !call hsmg_extrude(w1,0,zero,w2,0,one ,enx,eny,enz)
+
+  call hsmg_schwarz_dssum(w2,l)
+  call hsmg_extrude(w2,0,one ,w1,0,onem,enx,eny,enz)
+  call hsmg_extrude(w2,2,one,w2,0,one,enx,eny,enz)
+
+  call hsmg_schwarz_toreg3d(e,w2,mg_nh(l))
 
   call hsmg_dssum(e,l)                           ! sum border nodes
 
@@ -949,22 +1004,6 @@ subroutine hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
   endif
   return
 end subroutine hsmg_setup_fast1d_b
-
-!----------------------------------------------------------------------
-!> \brief clobbers r
-subroutine hsmg_fdm(e,r,l)
-  use kinds, only : DP
-  use hsmg, only : mg_fast_s, mg_fast_d, mg_fast_s_index, mg_fast_d_index
-  use hsmg, only : mg_nh, mg_fld
-  implicit none
-  real(DP) :: e(*), r(*)
-  integer :: l
-  call hsmg_do_fast(e,r, &
-  mg_fast_s(mg_fast_s_index(l,mg_fld)), &
-  mg_fast_d(mg_fast_d_index(l,mg_fld)), &
-  mg_nh(l)+2)
-  return
-end subroutine hsmg_fdm
 
 !----------------------------------------------------------------------
 !> \brief u = wt .* u

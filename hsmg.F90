@@ -611,14 +611,48 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   allocate(w1(enx,eny,enz,nelv),w2(enx,eny,enz,nelv))
   allocate(w3(enx,eny,enz),w4(enx,eny,enz))
 
-  call hsmg_schwarz_toext3d(w1,r,mg_nh(l))
+  do ie=1,nelv
 
-     
-  ! exchange interior nodes
-  call hsmg_extrude(w1,0,zero,w1,2,one,enx,eny,enz)
+      w1(:,:,1,ie) = 0._dp
+      do k = 0, enz-3
+        w1(:,1,k+2,ie) = 0._dp
+        do j = 0, eny-3
+          w1(1,j+2,k+2,ie) = 0._dp
+          do i = 0, enx-3
+            w1(i+2,j+2,k+2,ie) = r(1+i+j*mg_nh(l)+k*mg_nh(l)**2+(ie-1)*mg_nh(l)**3)
+          enddo
+          w1(enx,j+2,k+2,ie) = 0._dp
+        enddo
+        w1(:,eny,k+2,ie) = 0._dp
+      enddo
+      w1(:,:,enz,ie) = 0._dp
+
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,1 ,ie) = w1(i,j,3 ,ie)
+          enddo
+      enddo
+      do k=2,enz-1
+          do i=2,enx-1
+              w1(i,1 ,k,ie) = w1(i,3 ,k,ie)
+          enddo
+          do j=2,eny-1
+              w1(1 ,j,k,ie) = w1(3 ,j,k,ie)
+              w1(enx,j,k,ie) = w1(enx-2,j,k,ie)
+          enddo
+          do i=2,enx-1
+              w1(i,enx,k,ie) = w1(i,enx-2,k,ie)
+          enddo
+      enddo
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,enx,ie) = w1(i,j,enx-2,ie)
+          enddo
+      enddo
+  enddo
+
   call hsmg_schwarz_dssum(w1,l)
 
-        
   schw_flop = schw_flop + 2*nelv * 3 * (enx-2)**2 * 6
   schw_mop  = schw_mop  + 2*nelv * 3 * (enx-2)**2 * 6
 
@@ -687,7 +721,6 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   !call hsmg_extrude(w1,0,zero,w2,0,one ,enx,eny,enz)
 
   call hsmg_schwarz_dssum(w2,l)
-#if 1
   do ie=1,nelv
       do j=2,eny-1
           do i=2,enx-1
@@ -722,12 +755,6 @@ subroutine h1mg_schwarz_part1 (e,r,l)
       enddo
 
   enddo
-#else
-  call hsmg_extrude(w2,0,one ,w1,0,onem,enx,eny,enz)
-  call hsmg_extrude(w2,2,one,w2,0,one,enx,eny,enz)
-  call hsmg_schwarz_toreg3d(e,w2,mg_nh(l))
-#endif
-
 
   call hsmg_dssum(e,l)                           ! sum border nodes
 

@@ -687,10 +687,47 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   !call hsmg_extrude(w1,0,zero,w2,0,one ,enx,eny,enz)
 
   call hsmg_schwarz_dssum(w2,l)
+#if 1
+  do ie=1,nelv
+      do j=2,eny-1
+          do i=2,enx-1
+              w2(i,j,3 ,ie) = w2(i,j,3 ,ie) + w2(i,j,1 ,ie) - w1(i,j,1 ,ie)
+          enddo
+      enddo
+      do k=2,enz-1
+          do i=2,enx-1
+              w2(i,3 ,k,ie) = w2(i,3 ,k,ie) + w2(i,1 ,k,ie) - w1(i,1 ,k,ie)
+          enddo
+          do j=2,eny-1
+              w2(3 ,j,k,ie) = w2(3 ,j,k,ie) + w2(1 ,j,k,ie) - w1(1 ,j,k,ie)
+              w2(enx-2,j,k,ie) = w2(enx-2,j,k,ie) + w2(enx,j,k,ie) - w1(enx,j,k,ie)
+          enddo
+          do i=2,enx-1
+              w2(i,enx-2,k,ie) = w2(i,enx-2,k,ie) + w2(i,enx,k,ie) - w1(i,enx,k,ie)
+          enddo
+      enddo
+      do j=2,eny-1
+          do i=2,enx-1
+              w2(i,j,enx-2,ie) = w2(i,j,enx-2,ie) + w2(i,j,enx,ie) - w1(i,j,enx,ie)
+          enddo
+      enddo
+
+      do k = 0, enz-3
+        do j = 0, eny-3
+          do i = 0, enx-3
+            e(1 + i + mg_nh(l)*j + mg_nh(l)*mg_nh(l)*k + mg_nh(l)**3 * (ie-1)) = &
+            w2(i+2, j+2, k+2, ie)
+          enddo
+        enddo
+      enddo
+
+  enddo
+#else
   call hsmg_extrude(w2,0,one ,w1,0,onem,enx,eny,enz)
   call hsmg_extrude(w2,2,one,w2,0,one,enx,eny,enz)
-
   call hsmg_schwarz_toreg3d(e,w2,mg_nh(l))
+#endif
+
 
   call hsmg_dssum(e,l)                           ! sum border nodes
 

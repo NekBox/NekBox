@@ -118,7 +118,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   ! Orthogonalize the approximation space
   !> \note This dsyev call and the following dgemv 
   !> are task-parallel!
-  if (10 * apx%n_sav + 100 > ntot) &
+  if (3 * apx%n_sav -1 > ntot) &
     write(*,*) "wl isn't big enough to be dsyev's work"
 
   allocate(evecs(apx%n_sav, apx%n_sav), ev(apx%n_sav))

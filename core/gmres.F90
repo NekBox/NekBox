@@ -34,6 +34,9 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use soln, only : pmask, vmult
   use tstep, only : tolps, istep
   use hsmg_routines, only : h1mg_solve
+#ifdef XSMM
+  use STREAM_UPDATE_KERNELS, only : stream_vector_compscale
+#endif
   implicit none
 
   real(DP) ::             res  (lx1*ly1*lz1*lelv)
@@ -77,7 +80,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   allocate(gamma(lgmres+1))
   allocate(c(lgmres), s(lgmres))
 
-  allocate(v(lx2*ly2*lz2*lelv,lgmres)) ! verified
+  allocate(v(lx2*ly2*lz2*lelv,lgmres+1)) ! verified
   allocate(z(lx2*ly2*lz2*lelv,lgmres)) ! verified
 
 
@@ -117,13 +120,13 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
   outer = 0
   allocate(x(lx2*ly2*lz2*lelv)); x = 0._dp
-  allocate(w(lx2*ly2*lz2*lelv)) 
+  !allocate(w(lx2*ly2*lz2*lelv)) 
   allocate(r(lx2*ly2*lz2*lelv))
   do while (iconv == 0 .AND. iter < 50)
       outer = outer+1
 
       if(iter == 0) then               !      -1
-          r = res          ! r = L  res
+          v(:,1) = res          ! r = L  res
       !           call copy(r,res,n)
       else
       ! update residual
@@ -132,23 +135,19 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           r = res
           etime = etime - dnekclock()
   !call hpm_stop('gmres')
-          call ax    (w,x,h1,h2,n)              ! w = A x
+          call ax    (v(:,1),x,h1,h2,n)              ! w = A x
   !call hpm_start('gmres')
           etime = etime + dnekclock()
-          r = r - w  
+          v(:,1) = r - v(:,1)  
       !      -1
       !    r = r * ml ! r = L   r
       endif
   !            ______
       gmres_mop  = gmres_mop  + 2*n
       gmres_flop = gmres_flop + 3*n
-#if 1
-      gamma(1) = sum(r*r*wt)
+      gamma(1) = sum(v(:,1)*v(:,1)*wt)
       call gop(gamma,wk1,'+  ',1)          ! sum over P procs
       gamma(1) = sqrt(gamma(1))
-#else      
-      gamma(1) = sqrt(glsc3(r,r,wt,n))         ! gamma  = \/ (r,r)
-#endif
   !      1
       if(iter == 0) then
           div0 = gamma(1)*norm_fac
@@ -161,7 +160,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       gmres_flop = gmres_flop + n
       gmres_mop  = gmres_mop + 2*n
       temp = 1./gamma(1)
-      v(:,1) = r(:) * temp  ! v  = r / gamma
+      v(:,1) = v(:,1) * temp  ! v  = r / gamma
         !w(i) = v(i,1)
   !  1            1
       do j=1,m
@@ -206,13 +205,17 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
                
           etime = etime - dnekclock()
   !call hpm_stop('gmres')
-          call ax  (w,z(1,j),h1,h2,n)           ! w = A z
+          call ax  (v(:,j+1),z(1,j),h1,h2,n)           ! w = A z
   !call hpm_start('gmres')
           etime = etime + dnekclock()
 
           gmres_mop  = gmres_mop  + 3*n + (j+1)*n
           gmres_flop = gmres_flop + (2*n-1)*j + n
-          r = w * wt
+#ifdef XSMM
+          call stream_vector_compscale(v(:,j+1), wt, r, n)
+#else
+          r = v(:,j+1) * wt
+#endif
           call dgemv('T',  n, j, &
                      one,  v, n, &
                            r, 1, &
@@ -225,7 +228,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           call dgemv('N', n, j, &
                      mone, v,      n, &
                            h(1,j), 1, &
-                     one,  w, 1)
+                     one,  v(:,j+1), 1)
 
       ! apply Givens rotations to new column
           do i=1,j-1
@@ -236,13 +239,10 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !            ______
           gmres_mop  = gmres_mop  + 2*n
           gmres_flop = gmres_flop + 3*n
-#if 1
-          alpha = sum(w*w*wt)
+          alpha = sum(v(:,j+1)*v(:,j+1)*wt)
           call gop(alpha, wk1, '+  ', 1)
           alpha = sqrt(alpha)
-#else
-          alpha = sqrt(glsc3(w,w,wt,n))        ! alpha =  \/ (w,w)
-#endif
+
           rnorm = 0.
           if(alpha == 0.) goto 900  !converged
           l = sqrt(h(j,j)*h(j,j)+alpha*alpha)
@@ -268,7 +268,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           gmres_mop  = gmres_mop  + 2*n
           gmres_flop = gmres_flop + n
           temp = 1./alpha
-          v(:,j+1) = w(:) * temp  ! v    = w / alpha
+          v(:,j+1) = v(:,j+1) * temp  ! v    = w / alpha
             !w(i) = v(i,j+1)
       !  j+1
       enddo

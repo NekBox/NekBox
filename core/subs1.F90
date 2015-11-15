@@ -96,14 +96,16 @@ subroutine setdt
 !   Check if final time (user specified) has been reached.
 
   200 if (timeio /= 0.0) then
-    nstep = int(((ntdump + 1)*timeio - time) / DT) + 1
+    nstep = int(((ntdump + 1)*timeio - time - 0.99*DT) / DT) + 1
     dt = ((ntdump + 1)*timeio - time) / nstep
   endif
 
-  IF (FINTIM /= 0.0 .and. fintim >= (ntdump + 1)*timeio) THEN
+  IF (FINTIM /= 0.0 .and. fintim <= (ntdump + 1)*timeio) THEN
   !        Last step
-      nstep = int((fintim - time) / DT) + 1
-      LASTEP = 1
+      nstep = int((fintim - time - .99*DT) / DT) + 1
+      if (nstep == 1) then
+        LASTEP = 1
+      endif
       DT = (fintim - time) / nstep 
       IF (NID == 0) WRITE (6,*) 'Final time step = ',DT
   endif

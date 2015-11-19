@@ -4,27 +4,6 @@
 #endif
 
 !-----------------------------------------------------------------------
-subroutine tensor_product_transform(u, nu, v, nv, A, At, work1, work2)
-  use kinds, only : DP
-  implicit none
-  integer, intent(in)   :: nu, nv
-  real(DP), intent(in)  :: u(*)
-  real(DP), intent(out) :: v(*)
-  real(DP), intent(in)  :: A(*), At(*)
-  real(DP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
-
-  integer :: i
- 
-  call mxm(A,nv,u,nu,work1,nu*nu)
-  do i=0,nu-1
-      call mxm(work1(nv*nu*i),nv,At,nu,work2(nv*nv*i),nv)
-  enddo
-  call mxm(work2,nv*nv,At,nu,v,nv)
-  return
-
-end subroutine tensor_product_transform
-
-!-----------------------------------------------------------------------
 !> \brief  Tensor product application of v = (C x B x A) u .
 !!  NOTE -- the transpose of B & C must be input, rather than B & C.
 !!  -  scratch arrays: work1(nu*nu*nv), work2(nu*nv*nv)

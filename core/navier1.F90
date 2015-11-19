@@ -1236,7 +1236,7 @@ subroutine wgradm1(ux,uy,uz,u,nel) ! weak form of grad
 
   N = nx1-1
   do e=1,nel
-      call local_grad3(ur,us,ut,u,N,e,dxm1,dxtm1)
+      call local_grad3(ur,us,ut,u(1,e),N,dxm1,dxtm1)
       if (if_ortho) then
         ux(:,:,:,e) = w3m1*(ur*rxm1(:,:,:,e))
         uy(:,:,:,e) = w3m1*(us*sym1(:,:,:,e))

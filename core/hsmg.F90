@@ -545,17 +545,19 @@ end subroutine hsmg_extrude
 !----------------------------------------------------------------------
 subroutine h1mg_schwarz(e,r,sigma,l)
   use kinds, only : DP
-  use hsmg, only : mg_h1_n, mg_fld
+  use size_m, only : nelv
+  use hsmg, only : mg_h1_n, mg_fld, mg_nh, mg_imask, p_mg_msk
   use ctimer, only : tschw, nschw, schw_flop, schw_mop, dnekclock
   implicit none
 
   real(DP) :: e(*),r(*)
   real(DP), intent(in) :: sigma
-  integer :: l, n
+  integer :: l, n, ie, nn, im, pm
   real(DP) :: etime
 
   nschw = nschw + 1
   n = mg_h1_n(l,mg_fld)
+  nn = mg_nh(l)**3
   schw_flop = schw_flop + n
   schw_mop  = schw_mop  + 2*n
   !call hpm_start('schwarz')
@@ -563,8 +565,15 @@ subroutine h1mg_schwarz(e,r,sigma,l)
 
 
   call h1mg_schwarz_part1 (e,r,l)
-  call hsmg_schwarz_wt    (e,l)          ! e  := W e
-  e(1:n) = e(1:n) * sigma
+  
+  pm = p_mg_msk(l,mg_fld)
+  do ie = 1, nelv
+    im = mg_imask(pm+ie-1)
+    call mg_mask_e(e(1+(ie-1)*nn),mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
+
+    call hsmg_schwarz_wt    (e,l, ie)          ! e  := W e
+    e(1+(ie-1)*nn:ie*nn) = e(1+(ie-1)*nn:ie*nn) * sigma
+  enddo
 
   tschw = tschw + (dnekclock() - etime)
   !call hpm_stop('schwarz')
@@ -591,7 +600,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   real(DP) :: zero, one, onem
   real(DP), allocatable :: w1(:,:,:,:), w2(:,:,:,:)
   real(DP), allocatable :: w3(:,:,:), w4(:,:,:)
-  integer :: i,j,k,ie
+  integer :: i,j,k,ie, im
 
   etime = 0._dp
 
@@ -606,12 +615,19 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   eny=mg_nh(l)+2
   enz=mg_nh(l)+2
 
-  call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
-
   allocate(w1(enx,eny,enz,nelv),w2(enx,eny,enz,nelv))
   allocate(w3(enx,eny,enz),w4(enx,eny,enz))
 
+
+  !call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
+
+
+  schw_mop  = schw_mop  + nelv * ((enx-2)**3  + enx**3)
+
   do ie=1,nelv
+
+      im = mg_imask(pm+ie-1)
+      call mg_mask_e(r(1+(ie-1)*mg_nh(l)**3),mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
 
       w1(:,:,1,ie) = 0._dp
       do k = 0, enz-3
@@ -717,10 +733,11 @@ subroutine h1mg_schwarz_part1 (e,r,l)
       enddo
   enddo
 
-
-  !call hsmg_extrude(w1,0,zero,w2,0,one ,enx,eny,enz)
-
   call hsmg_schwarz_dssum(w2,l)
+
+  schw_flop = schw_flop + nelv * (6*2*(enx-2)**2)
+  schw_mop  = schw_mop  + nelv * ((enx-2)**3 + enx**3 + 6*(enx-2)**2)
+
   do ie=1,nelv
       do j=2,eny-1
           do i=2,enx-1
@@ -758,7 +775,6 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 
   call hsmg_dssum(e,l)                           ! sum border nodes
 
-  call h1mg_mask (e,mg_imask(pm),nelfld(ifield)) ! apply mask
 
 
   return
@@ -1250,52 +1266,51 @@ subroutine h1mg_setup_schwarz_wt(ifsqrt)
 end subroutine h1mg_setup_schwarz_wt
 
 !----------------------------------------------------------------------
-subroutine hsmg_schwarz_wt(e,l)
+subroutine hsmg_schwarz_wt(e,l, ie)
   use kinds, only : DP
   use hsmg, only : mg_schwarz_wt, mg_schwarz_wt_index, mg_fld, mg_nh
   implicit none
   real(DP) :: e(*)
-  integer :: l
+  integer :: l, ie
           
   call hsmg_schwarz_wt3d( &
-  e,mg_schwarz_wt(mg_schwarz_wt_index(l,mg_fld)),mg_nh(l))
+  e,mg_schwarz_wt(mg_schwarz_wt_index(l,mg_fld)),mg_nh(l), ie)
   return
 end subroutine hsmg_schwarz_wt
 
 !----------------------------------------------------------------------
-subroutine hsmg_schwarz_wt3d(e,wt,n)
+subroutine hsmg_schwarz_wt3d(e,wt,n, ie)
   use kinds, only : DP
   use size_m, only : nelv
   use ctimer, only : schw_flop, schw_mop
   implicit none
 
-  integer :: n
+  integer :: n, ie
   real(DP) :: e(n,n,n,nelv)
   real(DP) :: wt(n,n,4,3,nelv)
-  integer :: ie,j,k
+  integer :: j,k
 
-  schw_flop = schw_flop +  4*nelv*n*n +  4*nelv*n*(n-4) +  4*nelv*(n-4)*(n-4)
-  schw_mop  = schw_mop  + 12*nelv*n*n + 2*nelv*n*n*n 
+  schw_flop = schw_flop +  4*n*n +  4*n*(n-4) +  4*(n-4)*(n-4)
+  schw_mop  = schw_mop  + 12*n*n 
   !schw_mop  = schw_mop  + 12*nelv*n*n + 12*nelv*n*(n-4) + 12*nelv*(n-4)*(n-4)
 
-  do ie=1,nelv
-      e(:,:,1  ,ie)=e(:,:,1  ,ie)*wt(:,:,1,3,ie)
-      e(:,:,2  ,ie)=e(:,:,2  ,ie)*wt(:,:,2,3,ie)
-      do k=3,n-2
-          e(:,1  ,k,ie)=e(:,1  ,k,ie)*wt(:,k,1,2,ie)
-          e(:,2  ,k,ie)=e(:,2  ,k,ie)*wt(:,k,2,2,ie)
-          do j=3,n-2
-              e(1  ,j,k,ie)=e(1  ,j,k,ie)*wt(j,k,1,1,ie)
-              e(2  ,j,k,ie)=e(2  ,j,k,ie)*wt(j,k,2,1,ie)
-              e(n-1,j,k,ie)=e(n-1,j,k,ie)*wt(j,k,3,1,ie)
-              e(n  ,j,k,ie)=e(n  ,j,k,ie)*wt(j,k,4,1,ie)
-          enddo
-          e(:,n-1,k,ie)=e(:,n-1,k,ie)*wt(:,k,3,2,ie)
-          e(:,n  ,k,ie)=e(:,n  ,k,ie)*wt(:,k,4,2,ie)
+  e(:,:,1  ,ie)=e(:,:,1  ,ie)*wt(:,:,1,3,ie)
+  e(:,:,2  ,ie)=e(:,:,2  ,ie)*wt(:,:,2,3,ie)
+  do k=3,n-2
+      e(:,1  ,k,ie)=e(:,1  ,k,ie)*wt(:,k,1,2,ie)
+      e(:,2  ,k,ie)=e(:,2  ,k,ie)*wt(:,k,2,2,ie)
+      do j=3,n-2
+          e(1  ,j,k,ie)=e(1  ,j,k,ie)*wt(j,k,1,1,ie)
+          e(2  ,j,k,ie)=e(2  ,j,k,ie)*wt(j,k,2,1,ie)
+          e(n-1,j,k,ie)=e(n-1,j,k,ie)*wt(j,k,3,1,ie)
+          e(n  ,j,k,ie)=e(n  ,j,k,ie)*wt(j,k,4,1,ie)
       enddo
-      e(:,:,n-1,ie)=e(:,:,n-1,ie)*wt(:,:,3,3,ie)
-      e(:,:,n  ,ie)=e(:,:,n  ,ie)*wt(:,:,4,3,ie)
+      e(:,n-1,k,ie)=e(:,n-1,k,ie)*wt(:,k,3,2,ie)
+      e(:,n  ,k,ie)=e(:,n  ,k,ie)*wt(:,k,4,2,ie)
   enddo
+  e(:,:,n-1,ie)=e(:,:,n-1,ie)*wt(:,:,3,3,ie)
+  e(:,:,n  ,ie)=e(:,:,n  ,ie)*wt(:,:,4,3,ie)
+
   return
 end subroutine hsmg_schwarz_wt3d
 

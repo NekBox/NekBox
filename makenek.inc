@@ -199,7 +199,7 @@ case $F77comp in
                ;;
   *gfortran*)   P="-fdefault-real-8 -fdefault-double-8 " #-x f77-cpp-input"
                ;;
-  *ifort*)      P="-r8 -fpconstant -fpp"
+  *ifort*)      P="-r8 -fpconstant -fpp -align array64byte"
                ;;
   *pathf*)      P="-r8 -cpp -fno-second-underscore"
                ;;

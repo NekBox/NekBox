@@ -1151,7 +1151,7 @@ subroutine runstat
 
       write(6,'(A,F8.4)') "Still missing ", (tttstp - total_share) / tttstp
       write(6,*) " "
-      write(6,'(A,4A14,A8)') "Section", "FLOPs", "Peak FLOPs", "BW", "Peak BW", "Eff."
+      write(6,'(A,4A14,A8)') "Section", "GFLOPs", "Peak GFLOPs", "GiB/s", "Peak GiB/s", "Eff."
       call print_flops('cggo   ', cggo_flop, cggo_mop, tcggo)
       call print_flops('gmres  ', gmres_flop, gmres_mop, tgmres)
       call print_flops('h1mg   ', h1mg_flop, h1mg_mop, th1mg)
@@ -1485,19 +1485,19 @@ subroutine print_flops(label, flops, mops, time)
   real(DP) :: time
   !real(DP), parameter :: bandwidth = 30.*1024 / 64
   !real(DP), parameter :: bandwidth = 59.7*1024 / 4
-  real(DP), parameter :: compute = 1000.*1024 / 16
+  real(DP), parameter :: compute = 1000. / 16
   !real(DP), parameter :: compute = 3400*8
   real(DP) :: peak
 
 
   if (time > 1.e-6 .and. flops > 1 .and. mops > 1) then
-  peak = min(compute, flops * max_mops / (mops * 1.e6))
-  write(6,'(A,4F14.1,F8.4)') label, &
-                       real(flops, kind=DP) / (1.e6 * time), &
+  peak = min(compute, flops * max_mops / (mops * 1.e9))
+  write(6,'(A,4F14.3,F8.4)') label, &
+                       real(flops, kind=DP) / (1.e9 * time), &
                        peak, &
-                       real(mops*8, kind=DP) / (1.e6 * time), &
-                       max_mops*8 / 1.e6, &
-                       real(flops, kind=DP) / (1.e6 * time * peak)
+                       real(mops*8, kind=DP) / (ISHFT(1_8, 30) * time), &
+                       max_mops*8 / ISHFT(1_8, 30), &
+                       real(flops, kind=DP) / (1.e9 * time * peak)
   endif
 
 end subroutine print_flops

@@ -430,7 +430,7 @@ subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   h1mg_mop  = h1mg_mop + nv**3 + nu**3
 
   do ie=1,nelv
-    call tensor_product_transform(u(1,ie), nu, v(1,ie), nv, A, At, work, work2)
+    call tensor_product_multiply(u(1,ie), nu, v(1,ie), nv, A, At, At, work, work2)
   enddo
 
   return
@@ -508,20 +508,7 @@ subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
   i1=nx-1
         
       schw_flop = schw_flop + nelv * 3 * (nx-2)**2 * 6
-#if 0
-      if (l1 == 0) then
-        schw_mop  = schw_mop  + 2 * nelv * nx*ny*nz
-      else
-        schw_mop  = schw_mop  + 2 * nelv * nx*ny*(nz-2)
-      endif
-      if (l2 == 0) then
-        schw_mop  = schw_mop  + nelv * nx*ny*nz
-      else
-        schw_mop  = schw_mop  + nelv * nx*ny*(nz-2)
-      endif
-#else
       schw_mop  = schw_mop  + nelv * 3 * (nx-2)**2 * 6
-#endif
       do ie=1,nelv
           do j=i0,i1
               do i=i0,i1
@@ -558,17 +545,19 @@ end subroutine hsmg_extrude
 !----------------------------------------------------------------------
 subroutine h1mg_schwarz(e,r,sigma,l)
   use kinds, only : DP
-  use hsmg, only : mg_h1_n, mg_fld
+  use size_m, only : nelv
+  use hsmg, only : mg_h1_n, mg_fld, mg_nh, mg_imask, p_mg_msk
   use ctimer, only : tschw, nschw, schw_flop, schw_mop, dnekclock
   implicit none
 
   real(DP) :: e(*),r(*)
   real(DP), intent(in) :: sigma
-  integer :: l, n
+  integer :: l, n, ie, nn, im, pm
   real(DP) :: etime
 
   nschw = nschw + 1
   n = mg_h1_n(l,mg_fld)
+  nn = mg_nh(l)**3
   schw_flop = schw_flop + n
   schw_mop  = schw_mop  + 2*n
   !call hpm_start('schwarz')
@@ -576,8 +565,15 @@ subroutine h1mg_schwarz(e,r,sigma,l)
 
 
   call h1mg_schwarz_part1 (e,r,l)
-  call hsmg_schwarz_wt    (e,l)          ! e  := W e
-  e(1:n) = e(1:n) * sigma
+  
+  pm = p_mg_msk(l,mg_fld)
+  do ie = 1, nelv
+    im = mg_imask(pm+ie-1)
+    call mg_mask_e(e(1+(ie-1)*nn),mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
+
+    call hsmg_schwarz_wt    (e,l, ie)          ! e  := W e
+    e(1+(ie-1)*nn:ie*nn) = e(1+(ie-1)*nn:ie*nn) * sigma
+  enddo
 
   tschw = tschw + (dnekclock() - etime)
   !call hpm_stop('schwarz')
@@ -590,6 +586,9 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   use kinds, only : DP
   use size_m, only : nelv
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
+
+  use hsmg, only : mg_fast_s, mg_fast_d, mg_fast_s_index, mg_fast_d_index
+
   use ctimer, only : schw_flop, schw_mop
   use tstep, only : ifield, nelfld
   implicit none
@@ -597,9 +596,11 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   real(DP) :: e(*),r(*)
   real(DP) :: etime
 
-  integer :: enx,eny,enz,pm, n, i, l
+  integer :: enx,eny,enz,pm, n, l
   real(DP) :: zero, one, onem
-  real(DP), allocatable :: work(:)
+  real(DP), allocatable :: w1(:,:,:,:), w2(:,:,:,:)
+  real(DP), allocatable :: w3(:,:,:), w4(:,:,:)
+  integer :: i,j,k,ie, im
 
   etime = 0._dp
 
@@ -614,32 +615,166 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   eny=mg_nh(l)+2
   enz=mg_nh(l)+2
 
-  call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
+  allocate(w1(enx,eny,enz,nelv),w2(enx,eny,enz,nelv))
+  allocate(w3(enx,eny,enz),w4(enx,eny,enz))
 
-  allocate(work(2*enx*eny*enz*nelv))
 
-  call hsmg_schwarz_toext3d(work,r,mg_nh(l))
+  !call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
 
-  i = enx*eny*enz*nelv+1
-     
-  ! exchange interior nodes
-  call hsmg_extrude(work,0,zero,work,2,one,enx,eny,enz)
-  call hsmg_schwarz_dssum(work,l)
-  call hsmg_extrude(work,0,one ,work,2,onem,enx,eny,enz)
 
-  call hsmg_fdm(work(i),work,l) ! Do the local solves
+  schw_mop  = schw_mop  + nelv * ((enx-2)**3  + enx**3)
+
+  do ie=1,nelv
+
+      im = mg_imask(pm+ie-1)
+      call mg_mask_e(r(1+(ie-1)*mg_nh(l)**3),mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
+
+      w1(:,:,1,ie) = 0._dp
+      do k = 0, enz-3
+        w1(:,1,k+2,ie) = 0._dp
+        do j = 0, eny-3
+          w1(1,j+2,k+2,ie) = 0._dp
+          do i = 0, enx-3
+            w1(i+2,j+2,k+2,ie) = r(1+i+j*mg_nh(l)+k*mg_nh(l)**2+(ie-1)*mg_nh(l)**3)
+          enddo
+          w1(enx,j+2,k+2,ie) = 0._dp
+        enddo
+        w1(:,eny,k+2,ie) = 0._dp
+      enddo
+      w1(:,:,enz,ie) = 0._dp
+
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,1 ,ie) = w1(i,j,3 ,ie)
+          enddo
+      enddo
+      do k=2,enz-1
+          do i=2,enx-1
+              w1(i,1 ,k,ie) = w1(i,3 ,k,ie)
+          enddo
+          do j=2,eny-1
+              w1(1 ,j,k,ie) = w1(3 ,j,k,ie)
+              w1(enx,j,k,ie) = w1(enx-2,j,k,ie)
+          enddo
+          do i=2,enx-1
+              w1(i,enx,k,ie) = w1(i,enx-2,k,ie)
+          enddo
+      enddo
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,enx,ie) = w1(i,j,enx-2,ie)
+          enddo
+      enddo
+  enddo
+
+  call hsmg_schwarz_dssum(w1,l)
+
+  schw_flop = schw_flop + 2*nelv * 3 * (enx-2)**2 * 6
+  schw_mop  = schw_mop  + 2*nelv * 3 * (enx-2)**2 * 6
+
+  do ie=1,nelv
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,1 ,ie) = w1(i,j,1 ,ie) &
+              -w1(i,j,3 ,ie)
+          enddo
+      enddo
+      do k=2,enz-1
+          do i=2,enx-1
+              w1(i,1 ,k,ie) = w1(i,1 ,k,ie) &
+              -w1(i,3 ,k,ie)
+          enddo
+          do j=2,eny-1
+              w1(1 ,j,k,ie) = w1(1 ,j,k,ie) &
+              -w1(3 ,j,k,ie)
+              w1(enx,j,k,ie) = w1(enx,j,k,ie) &
+              -w1(enx-2,j,k,ie)
+          enddo
+          do i=2,enx-1
+              w1(i,enx,k,ie) = w1(i,enx,k,ie) &
+              -w1(i,enx-2,k,ie)
+          enddo
+      enddo
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,enx,ie) = w1(i,j,enx,ie) &
+              -w1(i,j,enx-2,ie)
+          enddo
+      enddo
+
+  ! Do the local solves
+  call hsmg_do_fast(w2(:,:,:,ie),w1(:,:,:,ie), &
+  mg_fast_s(mg_fast_s_index(l,mg_fld) + (ie-1)*enx*enx*2*3), &
+  mg_fast_d(mg_fast_d_index(l,mg_fld) + (ie-1)*enx*enx*enx), &
+  mg_nh(l)+2, w3, w4)
 
   ! Sum overlap region (border excluded)
-  call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
-  call hsmg_schwarz_dssum(work(i),l)
-  call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
-  call hsmg_extrude(work(i),2,one,work(i),0,one,enx,eny,enz)
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,1 ,ie) = w2(i,j,1 ,ie)
+          enddo
+      enddo
+      do k=2,enz-1
+          do i=2,enx-1
+              w1(i,1 ,k,ie) = w2(i,1 ,k,ie)
+          enddo
+          do j=2,eny-1
+              w1(1 ,j,k,ie) = w2(1 ,j,k,ie)
+              w1(enx,j,k,ie) = w2(enx,j,k,ie)
+          enddo
+          do i=2,enx-1
+              w1(i,enx,k,ie) = w2(i,enx,k,ie)
+          enddo
+      enddo
+      do j=2,eny-1
+          do i=2,enx-1
+              w1(i,j,enx,ie) = w2(i,j,enx,ie)
+          enddo
+      enddo
+  enddo
 
-  call hsmg_schwarz_toreg3d(e,work(i),mg_nh(l))
+  call hsmg_schwarz_dssum(w2,l)
+
+  schw_flop = schw_flop + nelv * (6*2*(enx-2)**2)
+  schw_mop  = schw_mop  + nelv * ((enx-2)**3 + enx**3 + 6*(enx-2)**2)
+
+  do ie=1,nelv
+      do j=2,eny-1
+          do i=2,enx-1
+              w2(i,j,3 ,ie) = w2(i,j,3 ,ie) + w2(i,j,1 ,ie) - w1(i,j,1 ,ie)
+          enddo
+      enddo
+      do k=2,enz-1
+          do i=2,enx-1
+              w2(i,3 ,k,ie) = w2(i,3 ,k,ie) + w2(i,1 ,k,ie) - w1(i,1 ,k,ie)
+          enddo
+          do j=2,eny-1
+              w2(3 ,j,k,ie) = w2(3 ,j,k,ie) + w2(1 ,j,k,ie) - w1(1 ,j,k,ie)
+              w2(enx-2,j,k,ie) = w2(enx-2,j,k,ie) + w2(enx,j,k,ie) - w1(enx,j,k,ie)
+          enddo
+          do i=2,enx-1
+              w2(i,enx-2,k,ie) = w2(i,enx-2,k,ie) + w2(i,enx,k,ie) - w1(i,enx,k,ie)
+          enddo
+      enddo
+      do j=2,eny-1
+          do i=2,enx-1
+              w2(i,j,enx-2,ie) = w2(i,j,enx-2,ie) + w2(i,j,enx,ie) - w1(i,j,enx,ie)
+          enddo
+      enddo
+
+      do k = 0, enz-3
+        do j = 0, eny-3
+          do i = 0, enx-3
+            e(1 + i + mg_nh(l)*j + mg_nh(l)*mg_nh(l)*k + mg_nh(l)**3 * (ie-1)) = &
+            w2(i+2, j+2, k+2, ie)
+          enddo
+        enddo
+      enddo
+
+  enddo
 
   call hsmg_dssum(e,l)                           ! sum border nodes
 
-  call h1mg_mask (e,mg_imask(pm),nelfld(ifield)) ! apply mask
 
 
   return
@@ -951,22 +1086,6 @@ subroutine hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
 end subroutine hsmg_setup_fast1d_b
 
 !----------------------------------------------------------------------
-!> \brief clobbers r
-subroutine hsmg_fdm(e,r,l)
-  use kinds, only : DP
-  use hsmg, only : mg_fast_s, mg_fast_d, mg_fast_s_index, mg_fast_d_index
-  use hsmg, only : mg_nh, mg_fld
-  implicit none
-  real(DP) :: e(*), r(*)
-  integer :: l
-  call hsmg_do_fast(e,r, &
-  mg_fast_s(mg_fast_s_index(l,mg_fld)), &
-  mg_fast_d(mg_fast_d_index(l,mg_fld)), &
-  mg_nh(l)+2)
-  return
-end subroutine hsmg_fdm
-
-!----------------------------------------------------------------------
 !> \brief u = wt .* u
 subroutine hsmg_do_wt(u,wt,nx,ny,nz)
   use kinds, only : DP
@@ -1147,52 +1266,51 @@ subroutine h1mg_setup_schwarz_wt(ifsqrt)
 end subroutine h1mg_setup_schwarz_wt
 
 !----------------------------------------------------------------------
-subroutine hsmg_schwarz_wt(e,l)
+subroutine hsmg_schwarz_wt(e,l, ie)
   use kinds, only : DP
   use hsmg, only : mg_schwarz_wt, mg_schwarz_wt_index, mg_fld, mg_nh
   implicit none
   real(DP) :: e(*)
-  integer :: l
+  integer :: l, ie
           
   call hsmg_schwarz_wt3d( &
-  e,mg_schwarz_wt(mg_schwarz_wt_index(l,mg_fld)),mg_nh(l))
+  e,mg_schwarz_wt(mg_schwarz_wt_index(l,mg_fld)),mg_nh(l), ie)
   return
 end subroutine hsmg_schwarz_wt
 
 !----------------------------------------------------------------------
-subroutine hsmg_schwarz_wt3d(e,wt,n)
+subroutine hsmg_schwarz_wt3d(e,wt,n, ie)
   use kinds, only : DP
   use size_m, only : nelv
   use ctimer, only : schw_flop, schw_mop
   implicit none
 
-  integer :: n
+  integer :: n, ie
   real(DP) :: e(n,n,n,nelv)
   real(DP) :: wt(n,n,4,3,nelv)
-  integer :: ie,j,k
+  integer :: j,k
 
-  schw_flop = schw_flop +  4*nelv*n*n +  4*nelv*n*(n-4) +  4*nelv*(n-4)*(n-4)
-  schw_mop  = schw_mop  + 12*nelv*n*n + 2*nelv*n*n*n 
+  schw_flop = schw_flop +  4*n*n +  4*n*(n-4) +  4*(n-4)*(n-4)
+  schw_mop  = schw_mop  + 12*n*n 
   !schw_mop  = schw_mop  + 12*nelv*n*n + 12*nelv*n*(n-4) + 12*nelv*(n-4)*(n-4)
 
-  do ie=1,nelv
-      e(:,:,1  ,ie)=e(:,:,1  ,ie)*wt(:,:,1,3,ie)
-      e(:,:,2  ,ie)=e(:,:,2  ,ie)*wt(:,:,2,3,ie)
-      do k=3,n-2
-          e(:,1  ,k,ie)=e(:,1  ,k,ie)*wt(:,k,1,2,ie)
-          e(:,2  ,k,ie)=e(:,2  ,k,ie)*wt(:,k,2,2,ie)
-          do j=3,n-2
-              e(1  ,j,k,ie)=e(1  ,j,k,ie)*wt(j,k,1,1,ie)
-              e(2  ,j,k,ie)=e(2  ,j,k,ie)*wt(j,k,2,1,ie)
-              e(n-1,j,k,ie)=e(n-1,j,k,ie)*wt(j,k,3,1,ie)
-              e(n  ,j,k,ie)=e(n  ,j,k,ie)*wt(j,k,4,1,ie)
-          enddo
-          e(:,n-1,k,ie)=e(:,n-1,k,ie)*wt(:,k,3,2,ie)
-          e(:,n  ,k,ie)=e(:,n  ,k,ie)*wt(:,k,4,2,ie)
+  e(:,:,1  ,ie)=e(:,:,1  ,ie)*wt(:,:,1,3,ie)
+  e(:,:,2  ,ie)=e(:,:,2  ,ie)*wt(:,:,2,3,ie)
+  do k=3,n-2
+      e(:,1  ,k,ie)=e(:,1  ,k,ie)*wt(:,k,1,2,ie)
+      e(:,2  ,k,ie)=e(:,2  ,k,ie)*wt(:,k,2,2,ie)
+      do j=3,n-2
+          e(1  ,j,k,ie)=e(1  ,j,k,ie)*wt(j,k,1,1,ie)
+          e(2  ,j,k,ie)=e(2  ,j,k,ie)*wt(j,k,2,1,ie)
+          e(n-1,j,k,ie)=e(n-1,j,k,ie)*wt(j,k,3,1,ie)
+          e(n  ,j,k,ie)=e(n  ,j,k,ie)*wt(j,k,4,1,ie)
       enddo
-      e(:,:,n-1,ie)=e(:,:,n-1,ie)*wt(:,:,3,3,ie)
-      e(:,:,n  ,ie)=e(:,:,n  ,ie)*wt(:,:,4,3,ie)
+      e(:,n-1,k,ie)=e(:,n-1,k,ie)*wt(:,k,3,2,ie)
+      e(:,n  ,k,ie)=e(:,n  ,k,ie)*wt(:,k,4,2,ie)
   enddo
+  e(:,:,n-1,ie)=e(:,:,n-1,ie)*wt(:,:,3,3,ie)
+  e(:,:,n  ,ie)=e(:,:,n  ,ie)*wt(:,:,4,3,ie)
+
   return
 end subroutine hsmg_schwarz_wt3d
 
@@ -1405,7 +1523,7 @@ subroutine hsmg_tnsr1(v,nv,nu,A,At)
   do e=e0,ee,es
       iu = 1 + (e-1)*nu3
       iv = 1 + (e-1)*nv3
-      call tensor_product_transform(v(iu), nu, v(iv), nv, A, At, work1, work2)
+      call tensor_product_multiply(v(iu), nu, v(iv), nv, A, At, At, work1, work2)
   enddo
 
   return

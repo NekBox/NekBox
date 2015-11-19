@@ -83,8 +83,8 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
   use iso_c_binding
   use STREAM_UPDATE_KERNELS, only : stream_update_helmholtz
   use STREAM_UPDATE_KERNELS, only : stream_update_helmholtz_no_h2
-  use LIBXSMM, only : LIBXSMM_DMM_FUNCTION, LIBXSMM_DGEMM_XARGS
-  use LIBXSMM, only : LIBXSMM_DGEMM_XARGS_CTOR, libxsmm_dispatch
+  use LIBXSMM, only : LIBXSMM_DMM_FUNCTION
+  use LIBXSMM, only : libxsmm_dispatch, libxsmm_call
 #endif
   implicit none
 
@@ -96,27 +96,20 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
   integer :: iz
 #ifdef XSMM
   logical, save :: init = .false.
-  PROCEDURE(LIBXSMM_DMM_FUNCTION), POINTER, save :: xmm1, xmm2, xmm3
-  TYPE(LIBXSMM_DGEMM_XARGS), save :: xargs
-  TYPE(C_FUNPTR) :: f1, f2, f3
+  TYPE(LIBXSMM_DMM_FUNCTION), save :: xmm1, xmm2, xmm3
 
   if (.not. init) then
-    xargs = LIBXSMM_DGEMM_XARGS_CTOR(1.0_dp, 0.0_dp)
-    f1 = libxsmm_dispatch(nx, ny*nz, nx, 1.0_dp, 0.0_dp)
-    f2 = libxsmm_dispatch(nx, ny, ny, 1.0_dp, 0.0_dp)
-    f3 = libxsmm_dispatch(nx*ny, nz, nz, 1.0_dp, 0.0_dp)
-    CALL C_F_PROCPOINTER(f1, xmm1)
-    CALL C_F_PROCPOINTER(f2, xmm2)
-    CALL C_F_PROCPOINTER(f3, xmm3)
+    call libxsmm_dispatch(xmm1, nx, ny*nz, nx, 1.0_dp, 0.0_dp)
+    call libxsmm_dispatch(xmm2, nx, ny, ny, 1.0_dp, 0.0_dp)
+    call libxsmm_dispatch(xmm3, nx*ny, nz, nz, 1.0_dp, 0.0_dp)
     init = .true.
   endif
 
-  CALL xmm1(wddx, u(1,1,1), work1, xargs)
+  CALL libxsmm_call(xmm1, C_LOC(wddx), C_LOC(u(1,1,1)), C_LOC(work1))
   do iz=1,nz
-      CALL xmm2(u(1,1,iz), wddyt, work2(1,1,iz), xargs)
+      CALL libxsmm_call(xmm2, C_LOC(u(1,1,iz)), C_LOC(wddyt), C_LOC(work2(1,1,iz)))
   enddo
-  CALL xmm3(u(1,1,1), wddzt, work3, xargs)
-
+  CALL libxsmm_call(xmm3, C_LOC(u(1,1,1)), C_LOC(wddzt), C_LOC(work3))
 
 #else
 
@@ -150,7 +143,7 @@ end subroutine helmholtz
 
 !----------------------------------------------------------------------
 !> \brief clobbers r
-subroutine hsmg_do_fast(e,r,s,d,nl)
+subroutine hsmg_do_fast(e,r,s,d,nl, work1, work2)
   use kinds, only : DP
   use size_m, only : ndim, nelv
   use size_m, only : lx1, ly1, lz1
@@ -158,35 +151,34 @@ subroutine hsmg_do_fast(e,r,s,d,nl)
   implicit none
 
   integer :: nl
-  real(DP) :: e(nl**ndim,nelv)
-  real(DP) :: r(nl**ndim,nelv)
-  real(DP) :: s(nl*nl,2,ndim,nelv)
-  real(DP) :: d(nl**ndim,nelv)
+  real(DP) :: e(nl**ndim)
+  real(DP) :: r(nl**ndim)
+  real(DP) :: s(nl*nl,2,ndim)
+  real(DP) :: d(nl**ndim)
+  real(DP) :: work1(nl*nl*nl),work2(nl*nl*nl)
         
   integer :: ie,nn,i
 
-  integer, parameter :: lwk=(lx1+2)*(ly1+2)*(lz1+2)
-  real(DP) :: work1(nl*nl*nl),work2(nl*nl*nl)
 
   nn=nl**ndim
-  schw_flop = schw_flop + nelv*nn
-  schw_mop  = schw_mop  + nelv*nn ! r and e should be in cache
-  schw_flop = schw_flop + 3*nn*(2*nl-1)*nelv
-  schw_mop  = schw_mop + (nn + 3*nl*nl)*nelv
-  schw_flop = schw_flop + 3*nn*(2*nl-1)*nelv
-  schw_mop  = schw_mop + (nn + 3*nl*nl)*nelv
+  schw_flop = schw_flop + nn
+  schw_mop  = schw_mop  + nn ! r and e should be in cache
+  schw_flop = schw_flop + 3*nn*(2*nl-1)
+  schw_mop  = schw_mop + (nn + 3*nl*nl)
+  schw_flop = schw_flop + 3*nn*(2*nl-1)
+  schw_mop  = schw_mop + (nn + 3*nl*nl)
 
-  do ie=1,nelv
+  !do ie=1,nelv
 
-    call tensor_product_multiply(r(1,ie), nl, r(1,ie), nl, s(1,2,1,ie), s(1,1,2,ie), s(1,1,3, ie), work1, work2)
+    call tensor_product_multiply(r, nl, r, nl, s(1,2,1), s(1,1,2), s(1,1,3), work1, work2)
 
     do i=1,nn
-        r(i,ie)=d(i,ie)*r(i,ie)
+        r(i)=d(i)*r(i)
     enddo
 
-    call tensor_product_multiply(r(1,ie), nl, e(1,ie), nl, s(1,1,1,ie), s(1,2,2,ie), s(1,2,3, ie), work1, work2)
+    call tensor_product_multiply(r, nl, e, nl, s(1,1,1), s(1,2,2), s(1,2,3), work1, work2)
 
-  enddo
+  !enddo
 
   return
 end subroutine hsmg_do_fast

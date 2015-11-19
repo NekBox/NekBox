@@ -101,7 +101,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
     call copy(tr(1,3),cz(ic),nxyzd)
 
     call tensor_product_multiply(u(iu), nx1, uf, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
-    call local_grad3(ur,us,ut,uf,nxd-1,1,dgl(iptr2),dgt(iptr2))
+    call local_grad3(ur,us,ut,uf,nxd-1,dgl(iptr2),dgt(iptr2))
     do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
         uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
     enddo

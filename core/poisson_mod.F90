@@ -17,8 +17,12 @@ module poisson
   logical, save :: interface_initialized = .false.
   logical, save :: mesh_to_grid_initialized = .false.
 
-  integer :: nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
-  integer :: nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
+!  integer :: nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
+!  integer :: nin_local_yz, nout_local_yz, idx_in_local_yz, idx_out_local_yz
+
+  integer :: n_x(2), idx_x(2)
+  integer :: n_y(2), idx_y(2)
+  integer :: n_z(2), idx_z(2)
 
   real(DP), allocatable :: buffer(:)
 
@@ -93,7 +97,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
                                        )/8._dp
  
   ! reorder onto sticks
-  allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
+  allocate(plane_xy(0:shape_x(1)-1, 0:n_x(1)-1, 0:n_x(2)-1) )
 
   call mesh_to_grid(rhs_coarse, plane_xy, shape_x)
   etime = dnekclock()
@@ -101,29 +105,29 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   ! forward FFT
   rescale = 1._dp
   if (boundaries(2) == 'P  ') then
-    call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
+    call fft_r2r(plane_xy, shape_x(1), int(n_x(1)*n_x(2)), P_FORWARD, rescale)
   else
-    call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), W_FORWARD, rescale)
+    call fft_r2r(plane_xy, shape_x(1), int(n_x(1)*n_x(2)), W_FORWARD, rescale)
   endif
   
-  allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
+  allocate(plane_yx(0:shape_x(2)-1, 0:n_y(1)-1, 0:n_y(2)-1) )
   call transpose_grid(plane_xy, plane_yx, 1)
   deallocate(plane_xy)
 
   if (boundaries(1) == 'P  ') then
-    call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
+    call fft_r2r(plane_yx, shape_x(2), int(n_y(1)*n_y(2)), P_FORWARD, rescale)
   else
-    call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), W_FORWARD, rescale)
+    call fft_r2r(plane_yx, shape_x(2), int(n_y(1)*n_y(2)), W_FORWARD, rescale)
   endif
 
-  allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
+  allocate(plane_zy(0:shape_x(3)-1, 0:n_z(1)-1, 0:n_z(2)-1) )
   call transpose_grid(plane_yx, plane_zy, 2)
   deallocate(plane_yx)
 
   if (boundaries(5) == 'P  ') then
-    call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), P_FORWARD, rescale)
+    call fft_r2r(plane_zy, shape_x(3), int(n_z(1)*n_z(2)), P_FORWARD, rescale)
   else
-    call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
+    call fft_r2r(plane_zy, shape_x(3), int(n_z(1)*n_z(2)), W_FORWARD, rescale)
   endif
 
   ! Poisson kernel
@@ -131,29 +135,29 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
 
   ! reverse FFT
   if (boundaries(5) == 'P  ') then
-    call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), P_BACKWARD, rescale)
+    call fft_r2r(plane_zy, shape_x(3), int(n_z(1)*n_z(2)), P_BACKWARD, rescale)
   else
-    call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
+    call fft_r2r(plane_zy, shape_x(3), int(n_z(1)*n_z(2)), W_BACKWARD, rescale)
   endif
 
-  allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
+  allocate(plane_yx(0:shape_x(2)-1, 0:n_y(2)-1, 0:n_y(2)-1) )
   call transpose_grid(plane_zy, plane_yx, -2)
   deallocate(plane_zy)
 
   if (boundaries(1) == 'P  ') then
-    call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
+    call fft_r2r(plane_yx, shape_x(2), int(n_y(1)*n_y(2)), P_BACKWARD, rescale)
   else
-    call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), W_BACKWARD, rescale)
+    call fft_r2r(plane_yx, shape_x(2), int(n_y(1)*n_y(2)), W_BACKWARD, rescale)
   endif
 
-  allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
+  allocate(plane_xy(0:shape_x(1)-1, 0:n_x(1)-1, 0:n_x(2)-1))
   call transpose_grid(plane_yx, plane_xy, -1)
   deallocate(plane_yx)
 
   if (boundaries(2) == 'P  ') then
-    call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
+    call fft_r2r(plane_xy, shape_x(1), int(n_x(1)*n_x(2)), P_BACKWARD, rescale)
   else
-    call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), W_BACKWARD, rescale)
+    call fft_r2r(plane_xy, shape_x(1), int(n_x(1)*n_x(2)), W_BACKWARD, rescale)
   endif
 
   ! normalize the FFTs
@@ -211,10 +215,56 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   integer :: comm_size
   integer :: proc_n(3)
 
+  integer :: n_in, p_in
+
   call MPI_Comm_rank(comm_world, nid, ierr) 
   call MPI_Comm_size(comm_world, comm_size, ierr) 
   !nid = nid/2 + mod(nid, 2) * comm_size / 2
 
+  p_in = comm_size
+  do while ((shape_x(2) * shape_x(3) / p_in) * p_in /= shape_x(2) * shape_x(3))
+    p_in = p_in - 1
+  enddo
+  n_in = (shape_x(2)*shape_x(3) / p_in)
+  if (nid < p_in) then
+    n_x(1) = int(sqrt(float(n_in)))
+    n_x(2) = n_in / n_x(1)
+    idx_x(1) = mod(nid*n_x(1), shape_x(2)) 
+    idx_x(2) = n_x(2)*(nid*n_x(1)/shape_x(2))
+  else
+    n_x = 0
+    idx_x = -1
+  endif
+  p_in = comm_size
+  do while ((shape_x(1) * shape_x(3) / p_in) * p_in /= shape_x(1) * shape_x(3))
+    p_in = p_in - 1
+  enddo
+  n_in = (shape_x(1)*shape_x(3) / p_in)
+  if (nid < p_in) then
+    n_y(1) = int(sqrt(float(n_in)))
+    n_y(2) = n_in / n_y(1)
+    idx_y(1) = mod(nid*n_y(1), shape_x(1)) 
+    idx_y(2) = n_y(2)*(nid*n_y(1)/shape_x(1))
+  else
+    n_y = 0
+    idx_y = -1
+  endif
+  p_in = comm_size
+  do while ((shape_x(2) * shape_x(1) / p_in) * p_in /= shape_x(2) * shape_x(1))
+    p_in = p_in - 1
+  enddo
+  n_in = (shape_x(2)*shape_x(1) / p_in)
+  if (nid < p_in) then
+    n_z(1) = int(sqrt(float(n_in)))
+    n_z(2) = n_in / n_z(1)
+    idx_z(1) = mod(nid*n_z(1), shape_x(1)) 
+    idx_z(2) = n_z(2)*(nid*n_z(1)/shape_x(1))
+  else
+    n_z = 0
+    idx_z = -1
+  endif
+ 
+#if 0
   proc_n = shape_x / proc_shape
   if (proc_n(1) <= proc_shape(3)*proc_shape(2)) then
     nin_local_xy = max(proc_shape(3)*proc_shape(2) / proc_n(1), proc_shape(2))
@@ -222,11 +272,28 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
     idx_in_local_xy = proc_pos(2) + mod(proc_pos(1)/proc_shape(1)*nin_local_xy, proc_shape(2))
     idx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
   else
-    if (proc_pos(1)/proc_shape(1) < proc_n(1)) then
+    if (proc_pos(1)/proc_shape(1) < proc_shape(2) * proc_shape(3)) then
       nin_local_xy = 1
       nin_local_yz = 1
       idx_in_local_xy = proc_pos(2) + mod(proc_pos(1)/proc_shape(1)*nin_local_xy, proc_shape(2))
       idx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
+    else
+      nin_local_xy = 0
+      nin_local_yz = 0
+      idx_in_local_xy = -1
+      idx_in_local_yz = -1
+    endif
+  endif
+  if (proc_n(2) <= proc_shape(3)*proc_shape(1)) then
+    nin_local_xy = max(proc_shape(3)*proc_shape(2) / proc_n(1), proc_shape(2))
+    nin_local_yz = proc_n(1) / nin_local_xy
+    idx_in_local_xy = proc_pos(2) + mod(proc_pos(1)/proc_shape(1)*nin_local_xy, proc_shape(2))
+    idx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
+  else
+    if (proc_pos(2)/proc_shape(2) < proc_shape(1) * proc_shape(3)) then
+      nout_local_xy = 1
+      idx_out_local_xy = proc_pos(1) + mod(proc_pos(2)/proc_shape(2)*nout_local_xy, proc_shape(2))
+      odx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
     else
       nin_local_xy = 0
       nin_local_yz = 0
@@ -241,7 +308,8 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
     comm_size = min(comm_size, int(param(49)))
   endif
 #endif
-  
+ 
+#if 0 
   comm_size = min(comm_size, shape_x(1) * shape_x(2))
   comm_size = min(comm_size, shape_x(2) * shape_x(3))
   comm_size = min(comm_size, shape_x(1) * shape_x(3))
@@ -266,6 +334,7 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
     idx_in_local_xy = -1; idx_out_local_xy = -1
     idx_in_local_yz = -1; idx_out_local_yz = -1
   endif
+#endif
 
 #if 1
   do i = 0, 65
@@ -280,10 +349,12 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
 !  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
 #endif
 
+#endif
+
   if (param(75) < 1) then
     call transpose_test()
     call shuffle_test()
-    call cos_test()
+    !call cos_test()
   endif
 
   interface_initialized = .true.
@@ -309,14 +380,21 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
 
   integer :: ix(3), i, j
   integer(i8), allocatable :: glo_num(:)
-  integer :: nxy_max, nyz_max
+  integer :: nx_max, ny_max, nz_max
   integer :: idx, idy, idz, ieg
   integer :: buff_size
 
-  nxy_max = iglmax(nin_local_xy,1)
+#if 0
+  nxy_max = iglmax(nin_local,1)
   nyz_max = iglmax(nin_local_yz,1)
+#else
+  nx_max = iglmax(n_x(1)*n_x(2),1)
+  ny_max = iglmax(n_y(1)*n_y(2),1)
+  nz_max = iglmax(n_z(1)*n_z(2),1)  
+#endif
 
-  buff_size = max(nelm + shape_x(1) * nxy_max * nyz_max, 2*shape_x(1) * nxy_max * nyz_max)
+  buff_size = max(nelm + shape_x(1) * nx_max, shape_x(1)*nx_max + shape_x(2)*ny_max)
+  buff_size = max(buff_size, shape_x(2)*ny_max + shape_x(3) * nz_max)
   allocate(glo_num(buff_size))
   glo_num = 0
 
@@ -326,6 +404,7 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
     glo_num(i) = xyz_to_glo(ix(1), ix(2), ix(3), shape_x)
   enddo
 
+#if 0
   i = nelm + 1
   do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
     do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
@@ -417,7 +496,98 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
     enddo
   enddo
   call gs_setup(transpose_zy_handle,glo_num,2*shape_x(1) * nxy_max * nyz_max,comm_world,np)
+#else
+  i = nelm + 1
+  do idz = idx_x(2), idx_x(2) + n_x(2) - 1
+    do idy = idx_x(1), idx_x(1) + n_x(1) - 1
+      do idx = 0, shape_x(1)-1
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  call gs_setup(mesh_to_grid_handle,glo_num,nelm+ shape_x(1) * nx_max,comm_world,np)
+  
+  glo_num = 0
+  i = 1
+  do idz = idx_x(2), idx_x(2) + n_x(2) - 1
+    do idy = idx_x(1), idx_x(1) + n_x(1) - 1
+      do idx = 0, shape_x(1)-1
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  do idz = idx_y(2), idx_y(2) + n_y(2) - 1
+    do idx = idx_y(1), idx_y(1) + n_y(1) - 1
+      do idy = 0, shape_x(2)-1
+        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  call gs_setup(transpose_xy_handle,glo_num, shape_x(1)*nx_max + shape_x(2)*ny_max ,comm_world,np)
 
+  glo_num = 0
+  i = 1
+  do idz = idx_y(2), idx_y(2) + n_y(2) - 1
+    do idx = idx_y(1), idx_y(1) + n_y(1) - 1
+      do idy = 0, shape_x(2)-1
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  do idz = idx_x(2), idx_x(2) + n_x(2) - 1
+    do idy = idx_x(1), idx_x(1) + n_x(1) - 1
+      do idx = 0, shape_x(1)-1
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  call gs_setup(transpose_yx_handle,glo_num,shape_x(1)*nx_max + shape_x(2)*ny_max,comm_world,np)
+
+  glo_num = 0
+  i = 1
+  do idz = idx_y(2), idx_y(2) + n_y(2) - 1
+    do idx = idx_y(1), idx_y(1) + n_y(1) - 1
+      do idy = 0, shape_x(2)-1
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  do idy = idx_z(2), idx_z(2) + n_z(2) - 1
+    do idx = idx_z(1), idx_z(1) + n_z(1) - 1
+      do idz = 0, shape_x(3)-1
+        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  call gs_setup(transpose_yz_handle,glo_num, shape_x(2)*ny_max + shape_x(3)*nz_max,comm_world,np)
+
+  glo_num = 0
+  i = 1
+  do idy = idx_z(2), idx_z(2) + n_z(2) - 1
+    do idx = idx_z(1), idx_z(1) + n_z(1) - 1
+      do idz = 0, shape_x(3)-1
+        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  do idz = idx_y(2), idx_y(2) + n_y(2) - 1
+    do idx = idx_y(1), idx_y(1) + n_y(1) - 1
+      do idy = 0, shape_x(2)-1
+        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
+        i = i + 1
+      enddo
+    enddo
+  enddo
+  call gs_setup(transpose_zy_handle,glo_num,shape_x(2)*ny_max + shape_x(3)*nz_max,comm_world,np)
+#endif
 
   deallocate(glo_num)
   allocate(buffer(buff_size))
@@ -453,10 +623,10 @@ subroutine mesh_to_grid(mesh, grid, shape_x)
   call gs_op(mesh_to_grid_handle,buffer,1,1,0)
 
   i = nelm + 1
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
+  do idz = idx_x(2), idx_x(2) + n_x(2) - 1
+    do idy = idx_x(1), idx_x(1) + n_x(1) - 1
       do idx = 0, shape_x(1)-1
-        grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz) = buffer(i)
+        grid(idx, idy-idx_x(1), idz-idx_x(2)) = buffer(i)
         i = i + 1
       enddo
     enddo
@@ -480,10 +650,10 @@ subroutine grid_to_mesh(grid, mesh, shape_x)
 
   buffer = 0._dp
   i = nelm + 1
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
+  do idz = idx_x(2), idx_x(2) + n_x(2) - 1
+    do idy = idx_x(1), idx_x(1) + n_x(1) - 1
       do idx = 0, shape_x(1)-1
-        buffer(i) = grid(idx, idy-idx_in_local_xy, idz-idx_in_local_yz)
+        buffer(i) = grid(idx, idy-idx_x(1), idz-idx_x(2))
         i = i + 1
       enddo
     enddo
@@ -503,8 +673,14 @@ subroutine transpose_grid(plane_xy, plane_yx, dir)
   real(DP), intent(out) :: plane_yx(*)
   integer :: dir
 
-  integer :: n
-  n = shape_x(1) * nin_local_xy * nin_local_yz
+  integer :: n, m
+  if (dir == 1) then
+    n = shape_x(1) * n_x(1) * n_x(2) 
+  else if (dir == 2 .or. dir == -1) then
+    n = shape_x(2) * n_y(1) * n_y(2) 
+  else if (dir == -2) then
+    n = shape_x(3) * n_z(1) * n_z(2) 
+  endif
   
   buffer = 0._dp
   buffer(1:n) = plane_xy(1:n)
@@ -517,7 +693,16 @@ subroutine transpose_grid(plane_xy, plane_yx, dir)
   else if (dir == -2) then
     call gs_op(transpose_zy_handle, buffer, 1, 1, 1)
   endif
-  plane_yx(1:n) = buffer(n+1:2*n)
+
+  if (dir == 1 .or. dir == -2) then
+    m = shape_x(2) * n_y(1) * n_y(2) 
+  else if (dir == 2) then
+    m = shape_x(3) * n_z(1) * n_z(2) 
+  else if (dir == -1) then
+    m = shape_x(1) * n_x(1) * n_x(2)
+  endif
+
+  plane_yx(1:m) = buffer(n+1:n+m)
   return
 
 end subroutine transpose_grid
@@ -538,23 +723,23 @@ subroutine poisson_kernel(grid, shape_x, start_x, end_x, boundaries)
 
   ! if we don't have the kernel weights, generate them 
   if (.not. allocated(ks)) then
-    allocate(ks(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1)) 
+    allocate(ks(0:shape_x(3)-1, 0:n_z(1)-1, 0:n_z(2)-1)) 
     do idz = 0, shape_x(3) - 1
-      do idy = 0, nout_local_yz - 1
-        do idx = 0, nout_local_xy - 1
+      do idy = 0, n_z(2) - 1
+        do idx = 0, n_z(1) - 1
           if (boundaries(2) == 'P  ') then
-            kx = wavenumber(idx + idx_out_local_xy, shape_x(1), &
+            kx = wavenumber(idx + idx_z(1), shape_x(1), &
                             end_x(1)-start_x(1), P_FORWARD)
           else
-            kx = wavenumber(idx + idx_out_local_xy, shape_x(1), &
+            kx = wavenumber(idx + idx_z(1), shape_x(1), &
                             end_x(1)-start_x(1), W_FORWARD)
           endif
 
           if (boundaries(1) == 'P  ') then
-            ky = wavenumber(idy + idx_out_local_yz, shape_x(2), &
+            ky = wavenumber(idy + idx_z(2), shape_x(2), &
                             end_x(2)-start_x(2), P_FORWARD)
           else
-            ky = wavenumber(idy + idx_out_local_yz, shape_x(2), &
+            ky = wavenumber(idy + idx_z(2), shape_x(2), &
                             end_x(2)-start_x(2), W_FORWARD)
           endif
 
@@ -610,39 +795,39 @@ subroutine shuffle_test()
   enddo
  
   ! reorder onto sticks
-  allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
+  allocate(plane_xy(0:shape_x(1)-1, 0:n_x(1)-1, 0:n_x(2)-1) )
   call mesh_to_grid(rhs_coarse, plane_xy, shape_x)
 
   ! forward FFT
   rescale = 1._dp
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_FORWARD, rescale)
+  call fft_r2r(plane_xy, shape_x(1), int(n_x(1)*n_x(2)), P_FORWARD, rescale)
   
-  allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
+  allocate(plane_yx(0:shape_x(2)-1, 0:n_y(1)-1, 0:n_y(2)-1) )
   call transpose_grid(plane_xy, plane_yx, 1) 
   deallocate(plane_xy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_FORWARD, rescale)
+  call fft_r2r(plane_yx, shape_x(2), int(n_y(1)*n_y(2)), P_FORWARD, rescale)
 
-  allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
+  allocate(plane_zy(0:shape_x(3)-1, 0:n_z(1)-1, 0:n_z(2)-1) )
   call transpose_grid(plane_yx, plane_zy, 2) 
   deallocate(plane_yx)
 
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_FORWARD, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(n_z(1)*n_z(2)), W_FORWARD, rescale)
 
   ! reverse FFT
-  call fft_r2r(plane_zy, shape_x(3), int(nout_local_xy * nout_local_yz), W_BACKWARD, rescale)
+  call fft_r2r(plane_zy, shape_x(3), int(n_z(1)*n_z(2)), W_BACKWARD, rescale)
 
-  allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
+  allocate(plane_yx(0:shape_x(2)-1, 0:n_y(1)-1, 0:n_y(2)-1) )
   call transpose_grid(plane_zy, plane_yx, -2) 
   deallocate(plane_zy)
 
-  call fft_r2r(plane_yx, shape_x(2), int(nout_local_xy * nin_local_yz), P_BACKWARD, rescale)
+  call fft_r2r(plane_yx, shape_x(2), int(n_y(1)*n_y(2)), P_BACKWARD, rescale)
 
-  allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1))
+  allocate(plane_xy(0:shape_x(1)-1, 0:n_x(1)-1, 0:n_x(2)-1))
   call transpose_grid(plane_yx, plane_xy, -1) 
   deallocate(plane_yx)
 
-  call fft_r2r(plane_xy, shape_x(1), int(nin_local_xy * nin_local_yz), P_BACKWARD, rescale)
+  call fft_r2r(plane_xy, shape_x(1), int(n_x(1)*n_x(2)), P_BACKWARD, rescale)
 
   plane_xy = plane_xy * (1._dp/ rescale)
 
@@ -684,18 +869,18 @@ subroutine transpose_test()
   enddo
  
   ! reorder onto sticks
-  allocate(plane_xy(0:shape_x(1)-1, 0:nin_local_xy-1, 0:nin_local_yz-1) )
+  allocate(plane_xy(0:shape_x(1)-1, 0:n_x(1)-1, 0:n_x(2)-1) )
 
   call mesh_to_grid(rhs_coarse, plane_xy, shape_x)
 
   do idx = 0, shape_x(1)-1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
+    do idy = idx_x(1), idx_x(1) + n_x(1) - 1
+      do idz = idx_x(2), idx_x(2) + n_x(2) - 1
         ieg = 1 + idx + idy * shape_x(1) + idz * shape_x(1) * shape_x(2)
-        err = abs(plane_xy(idx, idy-idx_in_local_xy, idz-idx_in_local_yz) - ieg)
+        err = abs(plane_xy(idx, idy-idx_x(1), idz-idx_x(2)) - ieg)
         if (err > 0.001) then
           write(*,'(A,6(I6))') "WARNING: confused about k after init", nid, idx, idy, idz, ieg, &
-          int(plane_xy(idx,idy-idx_in_local_xy,idz-idx_in_local_yz))
+          int(plane_xy(idx,idy-idx_x(1),idz-idx_x(2)))
           return
         endif
       enddo
@@ -706,15 +891,15 @@ subroutine transpose_test()
   ! forward FFT
   rescale = 1._dp
   
-  allocate(plane_yx(0:shape_x(2)-1, 0:nout_local_xy-1, 0:nin_local_yz-1) )
+  allocate(plane_yx(0:shape_x(2)-1, 0:n_y(1)-1, 0:n_y(2)-1) )
   call transpose_grid(plane_xy, plane_yx, 1)
   deallocate(plane_xy)
 
-  do idx = 0, nout_local_xy - 1
+  do idx = 0, n_y(1) - 1
     do idy = 0, shape_x(2) - 1
-      do idz = 0, nin_local_yz - 1
-        ieg = 1 + idx + idx_out_local_xy + shape_x(1)*idy &
-                + shape_x(1) * shape_x(2) * (idz + idx_in_local_yz)
+      do idz = 0, n_y(2) - 1
+        ieg = 1 + idx + idx_y(1) + shape_x(1)*idy &
+                + shape_x(1) * shape_x(2) * (idz + idx_y(2))
         err = abs(plane_yx(idy,idx,idz) - ieg)
         if (err > 0.001) then
           write(*,'(A,6(I6))') "WARNING: confused about k after xy", nid, idx, idy, idz, ieg, int(plane_yx(idy,idx,idz))
@@ -725,14 +910,14 @@ subroutine transpose_test()
   enddo
   if (nid == 0) write(*,*) "Passed xy transpose"
 
-  allocate(plane_zy(0:shape_x(3)-1, 0:nout_local_xy-1, 0:nout_local_yz-1) )
+  allocate(plane_zy(0:shape_x(3)-1, 0:n_z(1)-1, 0:n_z(2)-1) )
   call transpose_grid(plane_yx, plane_zy, 2)
   deallocate(plane_yx)
 
-  do idx = 0, nout_local_xy - 1
-    do idy = 0, nout_local_yz - 1
+  do idx = 0, n_z(1) - 1
+    do idy = 0, n_z(2) - 1
       do idz = 0, shape_x(3) - 1
-        ieg = 1 + idx + idx_out_local_xy + shape_x(1)*(idy + idx_out_local_yz) &
+        ieg = 1 + idx + idx_z(1) + shape_x(1)*(idy + idx_z(2)) &
                 + shape_x(1) * shape_x(2) * idz
         err = abs(plane_zy(idz,idx,idy) - ieg)
         if (err > 0.001) then
@@ -746,6 +931,8 @@ subroutine transpose_test()
  
 end subroutine transpose_test
 
+
+#if 0
 subroutine cos_test()
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, nelv
@@ -828,6 +1015,6 @@ subroutine cos_test()
   return
  
 end subroutine cos_test
-
+#endif
 
 end module poisson

@@ -54,6 +54,7 @@ module parallel
     integer :: np_targ
     integer :: my_shape(3), my_nid
     integer :: factors(30), num_fac
+    integer :: factors2(30), num_fac2
     integer :: largest_idx
     integer :: queue_pos
 
@@ -73,22 +74,61 @@ module parallel
 
     my_shape = shape_x
     num_queue = 0
+    num_fac2 = 0
     do while (num_fac > 0) 
       largest_idx = 3
       if (my_shape(2) > my_shape(largest_idx)) largest_idx = 2
       if (my_shape(1) > my_shape(largest_idx)) largest_idx = 1
 
       if ((my_shape(largest_idx) / factors(num_fac)) * factors(num_fac) /= my_shape(largest_idx)) then
-          if (nid == 0) write(*,*) "Largest dimension isn't divisible by largest factor"
+          num_fac2 = num_fac2 + 1
+          factors2(num_fac2) = factors(num_fac)
+      else
+          my_shape(largest_idx) = my_shape(largest_idx) / factors(num_fac)
+          num_queue = num_queue + 1
+          queue_dim(num_queue) = largest_idx
+          queue_fac(num_queue) = factors(num_fac)
+          queue_div(num_queue) = my_shape(largest_idx)
       endif
-
-      my_shape(largest_idx) = my_shape(largest_idx) / factors(num_fac)
-      num_queue = num_queue + 1
-      queue_dim(num_queue) = largest_idx
-      queue_fac(num_queue) = factors(num_fac)
-      queue_div(num_queue) = my_shape(largest_idx)
       num_fac = num_fac - 1
     enddo
+
+    do while (num_fac2 > 0) 
+      largest_idx = 3
+      if (my_shape(2) > my_shape(largest_idx)) largest_idx = 2
+      if (my_shape(1) > my_shape(largest_idx)) largest_idx = 1
+
+      if ((my_shape(largest_idx) / factors2(num_fac2)) * factors2(num_fac2) == my_shape(largest_idx)) then
+          my_shape(largest_idx) = my_shape(largest_idx) / factors2(num_fac2)
+          num_queue = num_queue + 1
+          queue_dim(num_queue) = largest_idx
+          queue_fac(num_queue) = factors2(num_fac2)
+          queue_div(num_queue) = my_shape(largest_idx)
+      else if ((my_shape(1) / factors2(num_fac2)) * factors2(num_fac2) == my_shape(1)) then
+          my_shape(1) = my_shape(1) / factors2(num_fac2)
+          num_queue = num_queue + 1
+          queue_dim(num_queue) = 1
+          queue_fac(num_queue) = factors2(num_fac2)
+          queue_div(num_queue) = my_shape(1)
+      else if ((my_shape(2) / factors2(num_fac2)) * factors2(num_fac2) == my_shape(2)) then
+          my_shape(2) = my_shape(2) / factors2(num_fac2)
+          num_queue = num_queue + 1
+          queue_dim(num_queue) = 2
+          queue_fac(num_queue) = factors2(num_fac2)
+          queue_div(num_queue) = my_shape(2)
+      else if ((my_shape(3) / factors2(num_fac2)) * factors2(num_fac2) == my_shape(3)) then
+          my_shape(1) = my_shape(3) / factors2(num_fac2)
+          num_queue = num_queue + 1
+          queue_dim(num_queue) = 3
+          queue_fac(num_queue) = factors2(num_fac2)
+          queue_div(num_queue) = my_shape(3)
+      else
+        write(*,*) "Warning: processes don't divide mesh"
+      endif
+      num_fac2 = num_fac2 - 1
+    enddo
+
+
     proc_shape = my_shape
 
     proc_pos = 0

@@ -350,7 +350,7 @@ fi
 echo $PPLIST | grep 'BGQ' >/dev/null 
 if [ $? -eq 0 ]; then
    MXM_USER="mxm_std.o mxm_bgq.o " 
-   USR_
+   USR_FLAGS_STD+="-DBGQ"
 fi
 echo $PPLIST | grep 'XSMM' >/dev/null 
 if [ $? -eq 0 ]; then

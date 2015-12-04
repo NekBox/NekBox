@@ -104,11 +104,6 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   integer :: nel, nxy, nyz, nxz, nxyz, ntot
   integer :: e, iz
 
-#ifdef BGQ
-  integer :: iy, ix
-  vector(real(DP)) :: tm1v, tm2v, tm3v, g4mv, g5mv, g6mv, uv, auv, bm1v, h1v, h2v
-#endif
-
   nel=nelt
   if (imesh == 1) nel=nelv
 

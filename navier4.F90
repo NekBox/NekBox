@@ -327,7 +327,7 @@ subroutine updrhsh(apx,h1,h2,vml,vmk,ws)
 
   ! First, we have to decide if the dt has changed.
   ifupdate = .FALSE. 
-  if (dt /= apx%dt) then
+  if (abs(dt-apx%dt)/apx%dt > 0.01) then
       apx%dt   = dt
       ifnewdt  = .TRUE. 
       ifupdate = .TRUE. 

@@ -541,7 +541,7 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
   do idz = idx_x(2), idx_x(2) + n_x(2) - 1
     do idy = idx_x(1), idx_x(1) + n_x(1) - 1
       do idx = 0, shape_x(1)-1
-        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
+        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
         i = i + 1
       enddo
     enddo

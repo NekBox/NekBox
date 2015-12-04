@@ -221,6 +221,10 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   call MPI_Comm_size(comm_world, comm_size, ierr) 
   !nid = nid/2 + mod(nid, 2) * comm_size / 2
 
+  comm_size = min(comm_size, shape_x(1)*shape_x(2))
+  comm_size = min(comm_size, shape_x(1)*shape_x(3))
+  comm_size = min(comm_size, shape_x(2)*shape_x(3))
+
   p_in = comm_size
   do while ((shape_x(2) * shape_x(3) / p_in) * p_in /= shape_x(2) * shape_x(3))
     p_in = p_in - 1
@@ -235,6 +239,7 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
     n_x = 0
     idx_x = -1
   endif
+
   p_in = comm_size
   do while ((shape_x(1) * shape_x(3) / p_in) * p_in /= shape_x(1) * shape_x(3))
     p_in = p_in - 1
@@ -249,6 +254,7 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
     n_y = 0
     idx_y = -1
   endif
+
   p_in = comm_size
   do while ((shape_x(2) * shape_x(1) / p_in) * p_in /= shape_x(2) * shape_x(1))
     p_in = p_in - 1
@@ -264,93 +270,6 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
     idx_z = -1
   endif
  
-#if 0
-  proc_n = shape_x / proc_shape
-  if (proc_n(1) <= proc_shape(3)*proc_shape(2)) then
-    nin_local_xy = max(proc_shape(3)*proc_shape(2) / proc_n(1), proc_shape(2))
-    nin_local_yz = proc_n(1) / nin_local_xy
-    idx_in_local_xy = proc_pos(2) + mod(proc_pos(1)/proc_shape(1)*nin_local_xy, proc_shape(2))
-    idx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
-  else
-    if (proc_pos(1)/proc_shape(1) < proc_shape(2) * proc_shape(3)) then
-      nin_local_xy = 1
-      nin_local_yz = 1
-      idx_in_local_xy = proc_pos(2) + mod(proc_pos(1)/proc_shape(1)*nin_local_xy, proc_shape(2))
-      idx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
-    else
-      nin_local_xy = 0
-      nin_local_yz = 0
-      idx_in_local_xy = -1
-      idx_in_local_yz = -1
-    endif
-  endif
-  if (proc_n(2) <= proc_shape(3)*proc_shape(1)) then
-    nin_local_xy = max(proc_shape(3)*proc_shape(2) / proc_n(1), proc_shape(2))
-    nin_local_yz = proc_n(1) / nin_local_xy
-    idx_in_local_xy = proc_pos(2) + mod(proc_pos(1)/proc_shape(1)*nin_local_xy, proc_shape(2))
-    idx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
-  else
-    if (proc_pos(2)/proc_shape(2) < proc_shape(1) * proc_shape(3)) then
-      nout_local_xy = 1
-      idx_out_local_xy = proc_pos(1) + mod(proc_pos(2)/proc_shape(2)*nout_local_xy, proc_shape(2))
-      odx_in_local_yz = proc_pos(3) + mod(proc_pos(1)/proc_shape(1)/nin_local_xy*nin_local_yz, proc_shape(3))
-    else
-      nin_local_xy = 0
-      nin_local_yz = 0
-      idx_in_local_xy = -1
-      idx_in_local_yz = -1
-    endif
-  endif
-
-
-#if 0
-  if (param(49) >= 1) then
-    comm_size = min(comm_size, int(param(49)))
-  endif
-#endif
- 
-#if 0 
-  comm_size = min(comm_size, shape_x(1) * shape_x(2))
-  comm_size = min(comm_size, shape_x(2) * shape_x(3))
-  comm_size = min(comm_size, shape_x(1) * shape_x(3))
-
-  nxy =  int(2**int(log(real(comm_size))/log(2.) / 2))
-  comm_size = nxy*nxy
-
-  nyz =  comm_size/nxy
-
-  if (nid < comm_size) then
-    shape_c = shape_x
-    idx_in_local_xy = (mod(nid,nxy) * shape_x(2)) / nxy
-    idx_out_local_xy = (mod(nid,nxy) * shape_x(1)) / nxy
-    idx_in_local_yz = ((nxy*nid/comm_size) * shape_x(3)) / nyz
-    idx_out_local_yz = ((nxy*nid/comm_size) * shape_x(2)) / nyz
-    nin_local_yz = shape_x(3) / nxy; nout_local_yz = shape_x(2)/nxy
-    nin_local_xy = shape_x(2) / nyz; nout_local_xy = shape_x(1)/nyz
-
-  else
-    nin_local_xy = 0; nout_local_xy = 0
-    nin_local_yz = 0; nout_local_yz = 0
-    idx_in_local_xy = -1; idx_out_local_xy = -1
-    idx_in_local_yz = -1; idx_out_local_yz = -1
-  endif
-#endif
-
-#if 1
-  do i = 0, 65
-    call nekgsync()
-    if (nid == i) write(*,'(A,15(I5))') "MAX:", nid, nin_local_xy, nout_local_xy, &
-      nin_local_yz, nout_local_yz, &
-      idx_in_local_xy, idx_out_local_xy, idx_in_local_yz, idx_out_local_yz, &
-      nxy, nyz
-    !if (nid == i) write(*,'(A,6(I5))') "MAX:", nid, alloc_local_xy, nin_local_xy, nout_local_xy, idx_in_local_xy, idx_out_local_xy
-  enddo
-  call nekgsync()
-!  write(*,'(A,6(I5))') "MAX:", nid, alloc_local_yz, nin_local_yz, idx_in_local_yz, nout_local_yz, idx_out_local_yz
-#endif
-
-#endif
-
   if (param(75) < 1) then
     call transpose_test()
     call shuffle_test()
@@ -384,14 +303,9 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
   integer :: idx, idy, idz, ieg
   integer :: buff_size
 
-#if 0
-  nxy_max = iglmax(nin_local,1)
-  nyz_max = iglmax(nin_local_yz,1)
-#else
   nx_max = iglmax(n_x(1)*n_x(2),1)
   ny_max = iglmax(n_y(1)*n_y(2),1)
   nz_max = iglmax(n_z(1)*n_z(2),1)  
-#endif
 
   buff_size = max(nelm + shape_x(1) * nx_max, shape_x(1)*nx_max + shape_x(2)*ny_max)
   buff_size = max(buff_size, shape_x(2)*ny_max + shape_x(3) * nz_max)
@@ -404,99 +318,6 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
     glo_num(i) = xyz_to_glo(ix(1), ix(2), ix(3), shape_x)
   enddo
 
-#if 0
-  i = nelm + 1
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idx = 0, shape_x(1)-1
-        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  buff_size = max(i, nin_local_xy*nin_local_yz * shape_x(1) * 2)
-  call gs_setup(mesh_to_grid_handle,glo_num,nelm+ shape_x(1) * nxy_max * nyz_max,comm_world,np)
-  
-  glo_num = 0
-  i = 1
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idx = 0, shape_x(1)-1
-        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
-      do idy = 0, shape_x(2)-1
-        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  call gs_setup(transpose_xy_handle,glo_num,2*shape_x(1) * nxy_max * nyz_max,comm_world,np)
-
-  glo_num = 0
-  i = 1
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
-      do idy = 0, shape_x(2)-1
-        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idy = idx_in_local_xy, idx_in_local_xy + nin_local_xy - 1
-      do idx = 0, shape_x(1)-1
-        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  call gs_setup(transpose_yx_handle,glo_num,2*shape_x(1) * nxy_max * nyz_max,comm_world,np)
-
-  glo_num = 0
-  i = 1
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
-      do idy = 0, shape_x(2)-1
-        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  do idy = idx_out_local_yz, idx_out_local_yz + nout_local_yz - 1
-    do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
-      do idz = 0, shape_x(3)-1
-        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  call gs_setup(transpose_yz_handle,glo_num,2*shape_x(1) * nxy_max * nyz_max,comm_world,np)
-
-  glo_num = 0
-  i = 1
-  do idy = idx_out_local_yz, idx_out_local_yz + nout_local_yz - 1
-    do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
-      do idz = 0, shape_x(3)-1
-        glo_num(i) = -xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  do idz = idx_in_local_yz, idx_in_local_yz + nin_local_yz - 1
-    do idx = idx_out_local_xy, idx_out_local_xy + nout_local_xy - 1
-      do idy = 0, shape_x(2)-1
-        glo_num(i) = xyz_to_glo(idx, idy, idz, shape_x)
-        i = i + 1
-      enddo
-    enddo
-  enddo
-  call gs_setup(transpose_zy_handle,glo_num,2*shape_x(1) * nxy_max * nyz_max,comm_world,np)
-#else
   i = nelm + 1
   do idz = idx_x(2), idx_x(2) + n_x(2) - 1
     do idy = idx_x(1), idx_x(1) + n_x(1) - 1
@@ -587,7 +408,6 @@ subroutine init_mesh_to_grid(nelm, shape_x, comm_world)
     enddo
   enddo
   call gs_setup(transpose_zy_handle,glo_num,shape_x(2)*ny_max + shape_x(3)*nz_max,comm_world,np)
-#endif
 
   deallocate(glo_num)
   allocate(buffer(buff_size))

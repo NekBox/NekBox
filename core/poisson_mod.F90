@@ -231,7 +231,10 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   enddo
   n_in = (shape_x(2)*shape_x(3) / p_in)
   if (nid < p_in) then
-    n_x(1) = int(sqrt(float(n_in)))
+    n_x(1) = min(int(sqrt(float(n_in))), shape_x(2))
+    do while ((n_in / n_x(1)) * n_x(1) /= n_in)
+      n_x(1) = n_x(1) - 1
+    enddo
     n_x(2) = n_in / n_x(1)
     idx_x(1) = mod(nid*n_x(1), shape_x(2)) 
     idx_x(2) = n_x(2)*(nid*n_x(1)/shape_x(2))
@@ -246,7 +249,10 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   enddo
   n_in = (shape_x(1)*shape_x(3) / p_in)
   if (nid < p_in) then
-    n_y(1) = int(sqrt(float(n_in)))
+    n_y(1) = min(int(sqrt(float(n_in))), shape_x(1))
+    do while ((n_in / n_y(1)) * n_y(1) /= n_in)
+      n_y(1) = n_y(1) - 1
+    enddo
     n_y(2) = n_in / n_y(1)
     idx_y(1) = mod(nid*n_y(1), shape_x(1)) 
     idx_y(2) = n_y(2)*(nid*n_y(1)/shape_x(1))
@@ -261,7 +267,10 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   enddo
   n_in = (shape_x(2)*shape_x(1) / p_in)
   if (nid < p_in) then
-    n_z(1) = int(sqrt(float(n_in)))
+    n_z(1) = min(int(sqrt(float(n_in))), shape_x(1))
+    do while ((n_in / n_z(1)) * n_z(1) /= n_in)
+      n_z(1) = n_z(1) - 1
+    enddo
     n_z(2) = n_in / n_z(1)
     idx_z(1) = mod(nid*n_z(1), shape_x(1)) 
     idx_z(2) = n_z(2)*(nid*n_z(1)/shape_x(1))

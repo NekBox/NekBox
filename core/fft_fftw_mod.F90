@@ -40,7 +40,7 @@ contains
 !! transform.
 subroutine fft_r2r(u, length, num, kind, rescale)
   use kinds, only : DP
-  use fftw3, only : FFTW_EXHAUSTIVE, FFTW_ESTIMATE, FFTW_UNALIGNED
+  use fftw3, only : FFTW_MEASURE, FFTW_ESTIMATE, FFTW_UNALIGNED
   use parallel, only : nid
 
   real(DP), intent(inout) :: u(:,:,:) !>!< data, leading dim is transformed
@@ -78,7 +78,7 @@ subroutine fft_r2r(u, length, num, kind, rescale)
                             (/length/), num, &
                             proxy, (/length/), 1, length, &
                             proxy, (/length/), 1, length, &
-                            (/kind/), FFTW_EXHAUSTIVE + FFTW_UNALIGNED) 
+                            (/kind/), FFTW_MEASURE + FFTW_UNALIGNED) 
     deallocate(proxy)
     r2r_plan_lengths(plan_idx) = length
     r2r_plan_nums(plan_idx)    = num

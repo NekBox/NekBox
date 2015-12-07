@@ -52,7 +52,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   use size_m, only : nelv
   use size_m, only : lx1, lxd, lyd, lzd, ldim
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd
-  use ctimer, only : tscn, dnekclock
+  use ctimer, only : tscn, dnekclock, conv_flop, conv_mop
   use interp, only : jgl, jgt, dgl, dgt
   use interp, only : get_int_ptr, get_dgl_ptr
   implicit none
@@ -95,6 +95,10 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   call get_dgl_ptr (iptr2, nxd,nxd)
 #endif
 
+  conv_mop = conv_mop + nelv*nxyzd*3 + nelv*nxyz1*2
+  conv_flop = conv_flop + (2*nx1-1)*(nx1*nx1*nxd + nx1*nxd*nxd + nxd*nxd*nxd)
+  conv_flop = conv_flop + 3*(2*nxd-1)*nxd*nxd*nxd
+  conv_flop = conv_flop + (2*nxd-1)*(nxd*nxd*nx1 + nxd*nx1*nx1 + nx1*nx1*nx1)
   do e=1,nelv
     call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
     call copy(tr(1,2),cy(ic),nxyzd)
@@ -126,7 +130,7 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   use size_m, only : nx1, ny1, nz1, nxd, nyd, nzd, nelv
   use geom, only : rx
   use mesh, only : if_ortho
-  use ctimer, only : tscn, nscn, dnekclock
+  use ctimer, only : tscn, nscn, dnekclock, conv_mop, conv_flop
   use interp, only : jgl, jgt
   use interp, only : get_int_ptr
 
@@ -156,6 +160,10 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 #ifdef INLINE_INTP
   call get_int_ptr (iptr, nx1, nxd) 
 #endif
+
+  conv_flop = conv_flop + 3*nelv*(2*nx1-1)*(nx1*nx1*nxd + nx1*nxd*nxd + nxd*nxd*nxd)
+  conv_flop = conv_flop + nxyzd*nelv*3
+  conv_mop = conv_mop + 3*nelv*nxyz1 + 6*nelv*nxyzd 
 
   do e=1,nelv
 

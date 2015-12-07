@@ -953,7 +953,7 @@ subroutine runstat
   use ctimer, only : nhconj, thconj, hconj_flop, hconj_mop
   use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop
   use ctimer, only : naxhm, taxhm, axhelm_flop, axhelm_mop
-  use ctimer, only : nintp, tintp, intp_flop, intp_mop
+  use ctimer, only : nintp, tintp, conv_flop, conv_mop
   use ctimer, only : ngrst, tgrst, grst_flop, grst_mop
   use ctimer, only : nscn, tscn
   use ctimer, only : nmakef, tmakef
@@ -1158,7 +1158,7 @@ subroutine runstat
       call print_flops('schw   ', schw_flop, schw_mop, tschw)
       call print_flops('axhm   ', axhelm_flop, axhelm_mop, taxhm)
       !call print_flops('grst   flop/s', grst_flop, grst_mop, tgrst)
-      !call print_flops('intp   flop/s', intp_flop, intp_mop, tintp)
+      call print_flops('conv   ', conv_flop, conv_mop, tscn)
       call print_flops('proj   ', proj_flop, proj_mop, tproj)
       call print_flops('hcoj   ', hconj_flop, hconj_mop, thconj)
       write(6,*) ""

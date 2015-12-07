@@ -221,9 +221,9 @@ subroutine init_comm_infrastructure(comm_world, shape_x)
   call MPI_Comm_size(comm_world, comm_size, ierr) 
   !nid = nid/2 + mod(nid, 2) * comm_size / 2
 
-  comm_size = min(comm_size, shape_x(1)*shape_x(2))
-  comm_size = min(comm_size, shape_x(1)*shape_x(3))
-  comm_size = min(comm_size, shape_x(2)*shape_x(3))
+  !comm_size = min(comm_size, shape_x(1)*shape_x(2))
+  !comm_size = min(comm_size, shape_x(1)*shape_x(3))
+  !comm_size = min(comm_size, shape_x(2)*shape_x(3))
 
   p_in = comm_size
   do while ((shape_x(2) * shape_x(3) / p_in) * p_in /= shape_x(2) * shape_x(3))

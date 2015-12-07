@@ -19,6 +19,7 @@ subroutine plan4()
   use size_m, only : nx1, ny1, nz1, nelv
   use ctimer, only : icalld, tpres, npres, etime1, dnekclock
   use ctimer, only : np4misc, tp4misc
+  use ctimer, only : othr_flop, othr_mop
   use geom, only : binvm1, bm1, volvm1
   use helmholtz, only : hsolve, approx_space, init_approx_space
   use soln, only : vx, vy, vz, v1mask, v2mask, v3mask
@@ -141,6 +142,8 @@ subroutine plan4()
   allocate(DV1 (LX1,LY1,LZ1,LELV)) 
 
   !> \note These three calls are task-parallel
+  othr_mop = othr_mop + 9*ntot1
+  othr_flop = othr_flop + 3*ntot1
   etime = etime - dnekclock()
   call hsolve('VELX', dv1, res1, h1, h2, v1mask, vmult, imesh, tolhv, nmxh, 1, &
               vx_apx, binvm1)
@@ -234,6 +237,7 @@ subroutine crespsp (respr, vext)
   use mesh, only : if_ortho
   use dxyz, only : dxtm12, dym12, dzm12
   use ctimer, only : ncrespsp, tcrespsp, dnekclock
+  use ctimer, only : othr_flop, othr_mop
   use parallel, only : nid
   implicit none
 

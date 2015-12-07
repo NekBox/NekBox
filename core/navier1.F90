@@ -363,14 +363,17 @@ end subroutine makef
 !> \brief Compute and add: (1) user specified forcing function (FX,FY,FZ)
 !----------------------------------------------------------------------
 subroutine makeuf
-  use size_m, only : nelv
+  use size_m, only : nelv, nx1, ny1, nz1
   use geom, only : bm1
   use soln, only : bfx, bfy, bfz
   use tstep, only : time, dt
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   integer :: i
   TIME = TIME-DT
+  othr_flop = othr_flop + 3*nx1*ny1*nz1*nelv
+  othr_mop  = othr_mop  + 3*nx1*ny1*nz1*nelv
   CALL NEKUF   (BFX,BFY,BFZ)
   do i = 1, nelv
     bfx(:,:,:,i) = bfx(:,:,:,i) * bm1(:,:,:,i)
@@ -422,14 +425,18 @@ subroutine advab()
   use size_m, only : nx1, ny1, nz1, nelv, ndim
   use geom, only : bm1
   use soln, only : vx, vy, vz, bfx, bfy, bfz
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), allocatable:: TA (:,:,:,:)
 
   integer :: ntot1
+  NTOT1 = NX1*NY1*NZ1*NELV
+
+  othr_flop = othr_flop + 6*ntot1
+  othr_mop  = othr_mop + 12*ntot1
 
   allocate(TA(nx1,ny1,nz1,nelv)) 
-  NTOT1 = NX1*NY1*NZ1*NELV
   CALL CONVOP  (TA,VX)
   bfx = bfx - bm1*ta
   CALL CONVOP  (TA,VY)
@@ -452,6 +459,7 @@ subroutine makebdf()
   use soln, only : vx, vy, vz, vxlag, vylag, vzlag, bfx, bfy, bfz
   use soln, only : vtrans
   use tstep, only : dt, ifield, bd, nbd
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), allocatable :: H2 (:,:,:)
@@ -459,7 +467,9 @@ subroutine makebdf()
   integer :: ilag, i
 
   allocate(H2(nx1,ny1,nz1))
- 
+
+  othr_flop = othr_flop + (12*nbd+1)*nelv*nx1*ny1*nz1
+  othr_mop  = othr_mop  + (10*nbd+1)*nelv*nx1*ny1*nz1 
   do i = 1, nelv 
     h2 = (1./DT) * vtrans(:,:,:,i,ifield) 
     DO ILAG=2,NBD
@@ -491,6 +501,7 @@ subroutine makeabf
   use size_m, only : nx1, ny1, nz1, nelv, ndim
   use soln, only : abx1, aby1, abz1, abx2, aby2, abz2, bfx, bfy, bfz, vtrans
   use tstep, only : ab
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), allocatable :: TA (:,:,:,:) 
@@ -528,6 +539,10 @@ subroutine makeabf
 #else
 ! 7*ntot mops
 ! 6*ntot flops
+
+  othr_flop = othr_flop + 18*ntot1
+  othr_mop  = othr_mop + 21*ntot1
+
   do iel = 1, nelv
     ta(:,:,:,1) = ab1 * abx1(:,:,:,iel) + ab2 * abx2(:,:,:,iel)
     abx2(:,:,:,iel) = abx1(:,:,:,iel)

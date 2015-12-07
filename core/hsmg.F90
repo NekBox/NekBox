@@ -781,35 +781,6 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 end subroutine h1mg_schwarz_part1
 
 !----------------------------------------------------------------------
-subroutine hsmg_schwarz_toext3d(a,b,n)
-  use kinds, only : DP
-  use ctimer, only : schw_mop
-  use size_m, only : nelv
-  implicit none
-  integer :: n
-  real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
-        
-  integer :: i,j,k,ie
-  schw_mop = schw_mop + nelv*((n+2)**3 +  n**3)
-  do ie=1,nelv
-      a(:,:,0,ie) = 0._dp
-      do k=1,n
-          a(:,0,k,ie) = 0._dp
-          do j=1,n
-              a(0,j,k,ie) = 0._dp
-              do i=1,n
-                  a(i,j,k,ie)=b(i,j,k,ie)
-              enddo
-              a(n+1,j,k,ie) = 0._dp
-          enddo
-          a(:,n+1,k,ie) = 0._dp
-      enddo
-      a(:,:,n+1,ie) = 0._dp
-  enddo
-  return
-end subroutine hsmg_schwarz_toext3d
-
-!----------------------------------------------------------------------
 subroutine hsmg_schwarz_toreg3d(b,a,n)
   use kinds, only : DP
   use ctimer, only : schw_mop

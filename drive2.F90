@@ -979,7 +979,7 @@ subroutine runstat
   use ctimer, only : nusrc, tusrc
   use ctimer, only : nqflt, tqflt
   use ctimer, only : othr_flop, othr_mop
-  use size_m, only : nid
+  use size_m, only : nid, nx1, ny1, nz1, nelv
   use parallel, only : np
   implicit none
 
@@ -1166,6 +1166,8 @@ subroutine runstat
       call sum_flops()
       write(6,*) "Subset is ", time_flop / tttstp
       call print_flops('Subset ', total_flop, total_mop, time_flop)
+      othr_flop = othr_flop + ndsum*(nx1*ny1*nz1 - (nx1-2)*(ny1-2)*(nz1-2))*nelv
+      othr_mop = othr_mop + 2*ndsum*(nx1*ny1*nz1 - (nx1-2)*(ny1-2)*(nz1-2))*nelv
       call print_flops('Total  ', total_flop+othr_flop, total_mop+othr_mop, tttstp)
       write(6,*) ""
 

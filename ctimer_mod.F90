@@ -74,8 +74,9 @@ module ctimer
   integer, save :: nsetn  = 0
   integer, save :: nusrc  = 0
   integer, save :: nqflt  = 0
+  integer, save :: ndsum = 0
 
-  integer :: nmxmf,nmxms,ndsum,ncopy,ninvc,ninv3
+  integer :: nmxmf,nmxms,ncopy,ninvc,ninv3
   integer :: nsolv,ngsum,ndsnd,ndadd,ncdtp,nmltd &
   ,npres,ngop ,ngop1,ndott,nbsol,nbso2 &
   ,nsett,nslvb,nusbc,nddsl,ncrsl,ndsmx,ndsmn &

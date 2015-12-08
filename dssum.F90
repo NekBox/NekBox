@@ -106,7 +106,7 @@ subroutine dssum(u)
 #ifndef NOTIMER
   timee=(dnekclock()-etime1)
   tdsum=tdsum+timee
-  ndsum=icalld
+  ndsum=ndsum + 1
   tdsmx=max(timee,tdsmx)
   tdsmn=min(timee,tdsmn)
 #endif

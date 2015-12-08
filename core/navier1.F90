@@ -51,6 +51,7 @@ subroutine ortho (respr)
   use input, only : ifldmhd
   use parallel, only : nelgv
   use tstep, only : ifield
+  use ctimer, only : othr_mop, othr_flop
   implicit none
 
   real(DP) :: respr (lx2,ly2,lz2,lelv)
@@ -62,6 +63,9 @@ subroutine ortho (respr)
   nxyz2 = nx2*ny2*nz2
   ntot  = int(nxyz2*nelv, kind=i4)
   ntotg = nxyz2*nelgv
+
+  othr_flop = othr_flop + ntot * 2
+  othr_mop = othr_mop + 3*ntot
 
   if (ifield == 1) then
       if (ifvcor) then
@@ -809,6 +813,7 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   use size_m, only : nx1, ny1, nz1, nelv, nelt, ndim
   use geom, only : bm1, voltm1, volvm1
   use ctimer, only : tnmsc, nnmsc, dnekclock
+  use ctimer, only : othr_mop, othr_flop
   implicit none
 
   real(DP) :: h1, semi, l2, linf
@@ -847,6 +852,9 @@ subroutine normsc (h1,semi,l2,linf,x,imesh)
   L2     = 0.
   LINF   = 0.
 
+  othr_mop = othr_mop + 11*ntot1
+  othr_flop = othr_flop + 5*ntot1
+
   LINF = GLAMAX (X,NTOT1)
 
   ta1 = x(:,:,:,1:nel)*x(:,:,:,1:nel) * bm1
@@ -882,6 +890,7 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   use size_m, only : lx1, ly1, lz1, lelt
   use geom, only : volvm1, bm1
   use ctimer, only : tnmvc, nnmvc, dnekclock
+  use ctimer, only : othr_mop, othr_flop
   implicit none
 
   REAL(DP) :: H1,SEMI,L2,LINF
@@ -917,6 +926,9 @@ subroutine normvc (h1,semi,l2,linf,x1,x2,x3)
   ,TA1(LX1,LY1,LZ1,LELT) &
   ,TA2(LX1,LY1,LZ1,LELT) )
 
+
+  othr_mop = othr_mop + 19*ntot1
+  othr_flop = othr_flop + 12*ntot1
 
   IF (NDIM == 3) THEN
     ta1 = x1*x1 + x2*x2 + x3*x3

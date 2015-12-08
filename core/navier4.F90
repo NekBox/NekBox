@@ -222,6 +222,7 @@ end subroutine projh
 subroutine gensh(v1,h1,h2,vml,vmk,apx,ws)
   use kinds, only : DP
   use mesh, only : niterhm
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   REAL(DP), intent(inout) :: V1 (*) !>!< Full solution
@@ -234,6 +235,8 @@ subroutine gensh(v1,h1,h2,vml,vmk,apx,ws)
 
   integer :: ntot
   ntot = size(apx%projectors,1)
+  othr_mop = othr_mop + 5*ntot
+  othr_flop = othr_flop + ntot
 
   ! Reconstruct solution 
   v1(1:ntot) = v1(1:ntot) + apx%projectors(:,0)
@@ -411,6 +414,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   use string, only : capit
   use tstep, only : ifield, nelfld, istep
   use ctimer, only : dnekclock, nhslv, thslv
+  use ctimer, only : othr_mop, othr_flop
   implicit none
 
   CHARACTER(4), intent(in) :: NAME !>!< name of field we're solving for
@@ -468,6 +472,8 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
       nel = nelfld(ifield)
 
+      othr_mop = othr_mop + 3*lx1*ly1*lz1*nel
+      othr_flop = othr_flop + lx1*ly1*lz1*nel
       call dssum  (r)
       r(:,:,:,1:nel) = r(:,:,:,1:nel) * vmk(:,:,:,1:nel)
 

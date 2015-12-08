@@ -60,9 +60,6 @@ subroutine prepost(ifdoin,prefin)
      & disable this check BUT BEWARE!!!!!!$')
   endif
 
-  allocate(pm1(lx1,ly1,lz1,lelv))
-  call prepost_map(0, pm1) ! map pr and axisymm. arrays
-
   if(istep >= nsteps) lastep=1
 
   timdump=0
@@ -113,11 +110,15 @@ subroutine prepost(ifdoin,prefin)
 
 
   if (ifdoit .AND. nid == 0)write(6,*)'call outfld: ifpsco:',ifpsco(1)
-  if (ifdoit) call outfld(prefix, pm1)
 
-  call outhis(ifhis, pm1)
 
-  call prepost_map(1, pm1) ! map back axisymm. arrays
+  if (ifdoit) then
+    allocate(pm1(lx1,ly1,lz1,lelv))
+    call prepost_map(0, pm1) ! map pr and axisymm. arrays
+    !call outhis(ifhis, pm1)
+    call outfld(prefix, pm1)
+    call prepost_map(1, pm1) ! map back axisymm. arrays
+  endif
 
   if (lastep == 1 .AND. nid == 0) close(unit=26)
 

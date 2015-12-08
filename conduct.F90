@@ -221,6 +221,7 @@ subroutine convab()
   use geom, only : bm1
   use soln, only : t, vtrans, bq
   use tstep, only : ifield, nelfld
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), allocatable :: TA (:,:,:,:)
@@ -230,6 +231,8 @@ subroutine convab()
 
   NEL = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
+  othr_flop = othr_flop + ntot1*3
+  othr_mop = othr_mop + ntot1*5
   CALL CONVOP  (TA,T(1,1,1,1,IFIELD-1))
   bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) - bm1*ta *vtrans(:,:,:,:,ifield)
 
@@ -243,13 +246,14 @@ subroutine makeabq
   use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, lelt
   use soln, only : vgradt1, vgradt2, bq
   use tstep, only : ab, ifield, nelfld
+  use ctimer, only : othr_mop, othr_flop
   implicit none
 
-  real(DP), allocatable :: TA (:,:,:,:)
+  real(DP), allocatable :: TA (:,:,:)
   real(DP) :: ab0, ab1, ab2
-  integer :: nel, ntot1
+  integer :: nel, ntot1, i
 
-  allocate(TA(LX1,LY1,LZ1,LELT))
+  allocate(TA(LX1,LY1,LZ1))
 
   AB0   = AB(1)
   AB1   = AB(2)
@@ -257,10 +261,14 @@ subroutine makeabq
   NEL   = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
 
-  ta = ab1*vgradt1(:,:,:,:,ifield-1) + ab2*vgradt2(:,:,:,:,ifield-1)
-  vgradt2(:,:,:,:,ifield-1) = vgradt1(:,:,:,:,ifield-1)
-  vgradt1(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1)
-  bq(:,:,:,:,ifield-1) = ab0*bq(:,:,:,:,ifield-1) + ta
+  othr_mop = othr_mop + 6*ntot1
+  othr_flop = othr_flop + 4*ntot1
+  do i = 1, nel
+    ta = ab1*vgradt1(:,:,:,i,ifield-1) + ab2*vgradt2(:,:,:,i,ifield-1)
+    vgradt2(:,:,:,i,ifield-1) = vgradt1(:,:,:,i,ifield-1)
+    vgradt1(:,:,:,i,ifield-1) = bq(:,:,:,i,ifield-1)
+    bq(:,:,:,i,ifield-1) = ab0*bq(:,:,:,i,ifield-1) + ta
+  enddo
 
   return
 end subroutine makeabq
@@ -276,29 +284,34 @@ subroutine makebdq()
   use geom, only : bm1, bm1lag
   use soln, only : vtrans, t, tlag, bq
   use tstep, only : ifield, nelfld, dt, bd, nbd
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
-  real(DP), allocatable :: TB(:,:,:,:)
+  real(DP), allocatable :: TB(:,:,:)
 
-  integer :: nel, ntot1, ilag
+  integer :: nel, ntot1, ilag, i
 
-  allocate(TB(LX1,LY1,LZ1,LELT))
+  allocate(TB(LX1,LY1,LZ1))
 
   NEL   = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
 
-  tb = bd(2) * bm1 * t(:,:,:,:,ifield-1)
+  othr_flop = othr_flop + ntot1*8
+  othr_mop = othr_mop + ntot1*6
+  do i = 1, nel
+    tb = bd(2) * bm1(:,:,:,i) * t(:,:,:,i,ifield-1)
 
-  DO ILAG=2,NBD
-      IF (IFGEOM) THEN
-          tb = tb + bd(ilag+1) * bm1lag(:,:,:,:,ilag-1) * tlag(:,:,:,:,ilag-1, ifield-1)
-      ELSE
-          tb = tb + bd(ilag+1) * bm1 * tlag(:,:,:,:,ilag-1,ifield-1)
-      ENDIF
-  END DO
-
-  tb = (1./DT) * tb * vtrans(:,:,:,:,ifield)
-  bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) + tb
+    DO ILAG=2,NBD
+        IF (IFGEOM) THEN
+            tb = tb + bd(ilag+1) * bm1lag(:,:,:,i,ilag-1) * tlag(:,:,:,i,ilag-1, ifield-1)
+        ELSE
+            tb = tb + bd(ilag+1) * bm1(:,:,:,i) * tlag(:,:,:,i,ilag-1,ifield-1)
+        ENDIF
+    END DO
+ 
+    tb = (1./DT) * tb * vtrans(:,:,:,i,ifield)
+    bq(:,:,:,i,ifield-1) = bq(:,:,:,i,ifield-1) + tb
+  enddo
 
   return
 end subroutine makebdq
@@ -310,11 +323,13 @@ subroutine lagscal
   use size_m, only : nx1, ny1, nz1
   use soln, only : t, tlag
   use tstep, only : ifield, nelfld, nbdinp
+  use ctimer, only : othr_mop
   implicit none
 
   integer :: ntot1, ilag
   NTOT1 = NX1*NY1*NZ1*NELFLD(IFIELD)
 
+  othr_mop = othr_mop + ntot1*NBDINP*2
   DO 100 ILAG=NBDINP-1,2,-1
       CALL COPY (TLAG(1,1,1,1,ILAG  ,IFIELD-1), &
       TLAG(1,1,1,1,ILAG-1,IFIELD-1),NTOT1)

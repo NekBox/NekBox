@@ -128,6 +128,7 @@ subroutine makeuq
   use geom, only : bm1
   use soln, only : bq
   use tstep, only : time, dt, ifield, nelfld
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   integer :: ntot
@@ -136,9 +137,10 @@ subroutine makeuq
 
   time = time-dt        ! Set time to t^n-1 for user function
 
+  othr_mop = othr_mop + ntot
   bq(:,:,:,:,ifield-1) = 0._dp
-  call setqvol ( bq(1,1,1,1,ifield-1)          )
-  bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) * bm1
+  !max call setqvol ( bq(1,1,1,1,ifield-1)          )
+  !max bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) * bm1
 
   time = time+dt        ! Restore time
 

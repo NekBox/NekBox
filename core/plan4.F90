@@ -413,6 +413,7 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
   use input, only : ifaxis
   use soln, only : vx, vy, vz, pr, bfx, bfy, bfz !, qtl
   use ctimer, only : ncresvsp, tcresvsp, dnekclock
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), intent(out) :: resv1(lx1,ly1,lz1,lelv) 
@@ -455,6 +456,8 @@ subroutine cresvsp (resv1,resv2,resv3,h1,h2)
 !max      CALL COL2 (TA3, OMASK,NTOT)
   endif
 
+  othr_flop = othr_flop + 3*ntot
+  othr_mop = othr_mop + 12*ntot
   resv1 = -resv1 + bfx - ta1
   resv2 = -resv2 + bfy - ta2
   resv3 = -resv3 + bfz - ta3
@@ -474,6 +477,7 @@ subroutine v_extrap(vext)
   use size_m, only : lx1, ly1, lz1, lelv
   use soln, only : vx, vy, vz, vxlag, vylag, vzlag
   use tstep, only : ab, nab
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   !> velocity (3 components) extrapolated forward in time
@@ -484,14 +488,18 @@ subroutine v_extrap(vext)
   AB1 = AB(2)
   AB2 = AB(3)
 
+
   if(nab == 3) then
-             vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1) + ab2*vxlag(:,:,:,:,2)
-             vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1) + ab2*vylag(:,:,:,:,2)
-             vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1) + ab2*vzlag(:,:,:,:,2)
+    othr_flop = othr_flop + lx1*ly1*lz1*lelv*15
+    othr_mop = othr_mop + lx1*ly1*lz1*lelv*12
+
+    vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1) + ab2*vxlag(:,:,:,:,2)
+    vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1) + ab2*vylag(:,:,:,:,2)
+    vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1) + ab2*vzlag(:,:,:,:,2)
   else
-             vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1)
-             vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1)
-             vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1)
+    vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1)
+    vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1)
+    vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1)
   endif
 
   return

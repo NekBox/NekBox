@@ -373,7 +373,7 @@ subroutine makeuf
   integer :: i
   TIME = TIME-DT
   othr_flop = othr_flop + 3*nx1*ny1*nz1*nelv
-  othr_mop  = othr_mop  + 3*nx1*ny1*nz1*nelv
+  othr_mop  = othr_mop  + 6*nx1*ny1*nz1*nelv
   CALL NEKUF   (BFX,BFY,BFZ)
   do i = 1, nelv
     bfx(:,:,:,i) = bfx(:,:,:,i) * bm1(:,:,:,i)
@@ -397,7 +397,6 @@ subroutine nekuf (f1,f2,f3)
   REAL(DP) :: F3 (LX1,LY1,LZ1,LELV)
 
   integer :: i, j, k, ielg, iel
-  f1 = 0._dp; f2 = 0._dp; f3=0._dp 
   DO IEL=1,NELV
       ielg = lglel(iel)
       DO K=1,NZ1

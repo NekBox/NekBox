@@ -317,6 +317,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   use input, only : ifprint
   use geom, only : volvm1, voltm1, binvm1, bintm1, bm1
   use ctimer, only : nfoo, tfoo, dnekclock
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), intent(out) :: tol
@@ -330,7 +331,8 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   real(DP), allocatable :: W1(:,:,:,:), W2(:,:,:,:)
 
   real(DP) :: acondno, delta, x, y, diff, eps
-  real(DP) :: vol, rinit, rmin, bcneu1, bcneu2, bctest, bcrob, tolmin
+  real(DP) :: vol, rinit, rmin, bctest, bcrob, tolmin 
+  real(DP) :: bcneu1, bcneu2 
   real(DP) :: etime
   integer :: nl, ntot1
   real(DP), external :: glsc3, glsum
@@ -370,6 +372,8 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   allocate(W1(nx1,ny1,nz1,nl), W2(nx1,ny1,nz1,nl))
   NTOT1 = NX1*NY1*NZ1*NL
 
+  othr_mop = othr_mop + ntot1*5
+  othr_flop = othr_flop + ntot1*4
   IF (IMESH == 1) THEN
       w2 = binvm1 * res(:,:,:,1:nl)
       RINIT  = SQRT(GLSC3 (W2,res,MULT,NTOT1)/VOLVM1)
@@ -384,10 +388,17 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
       TOL = RMIN
   ENDIF
 
+  othr_mop = othr_mop + ntot1*4
+  othr_flop = othr_flop + ntot1*6
   w1 = 1._dp
   BCNEU1 = GLSC3(W1,MASK,MULT,NTOT1)
   BCNEU2 = GLSC3(W1,W1  ,MULT,NTOT1)
   BCTEST = ABS(BCNEU1-BCNEU2)
+
+  if (BCTEST >= .1) then
+    tfoo = tfoo + (dnekclock() - etime)
+    return
+  endif
 
   etime = etime - dnekclock()
   CALL AXHELM (W2,W1,H1,H2,IMESH,ISD)
@@ -395,7 +406,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   w2 = w2 * w2 * bm1
   BCROB  = SQRT(GLSUM(W2,NTOT1)/VOL)
 
-  IF ((BCTEST < .1) .AND. (BCROB < (EPS*ACONDNO))) THEN
+  IF (BCROB < (EPS*ACONDNO)) THEN
   !         OTR = GLSC3 (W1,RES,MULT,NTOT1)
       TOLMIN = RINIT*EPS*10.
       IF (TOL < TOLMIN) THEN

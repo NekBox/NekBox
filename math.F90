@@ -226,6 +226,7 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   use input, only : ifaxis, ifcyclic
   use tstep, only : ifield
   use mesh, only : if_ortho
+  use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), intent(out) :: w1(lx1,ly1,lz1,lelv) !>!< 1st component of curl U
@@ -249,6 +250,8 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
   NYZ1  = NY1*NZ1
 
   if (if_ortho) then
+    othr_mop = othr_mop + ntot*11
+    othr_flop = othr_flop + ntot*(2*nx1-1) * 6 + ntot*13
     do iel = 1, nelv
 
       if (ifavg .and. .not. ifcyclic) then
@@ -308,6 +311,9 @@ subroutine op_curl(w1,w2,w3,u1,u2,u3,ifavg,work1,work2)
     call opdssum (w1,w2,w3)
     ifield = ifielt
 
+    othr_mop = othr_mop + ntot*7
+    othr_flop = othr_flop + ntot*3
+
     do iel = 1, nelv
       w1(:,:,:,iel) = w1(:,:,:,iel) * binvm1(:,:,:,iel)
       w2(:,:,:,iel) = w2(:,:,:,iel) * binvm1(:,:,:,iel)
@@ -323,6 +329,7 @@ subroutine div_diag(alpha, beta, nx, ny, nz, prefactor, &
                     u, rx, v, sy, w, tz, res, work1, work2)
   use kinds, only : DP
   use dxyz, only : dxtm12, dym12, dzm12
+  use ctimer, only : othr_flop, othr_mop
   implicit none
   real(DP), intent(in) :: alpha, beta
   integer, intent(in) :: nx, ny, nz
@@ -332,6 +339,8 @@ subroutine div_diag(alpha, beta, nx, ny, nz, prefactor, &
 
   integer :: iz 
 
+  othr_mop = othr_mop + 8*nx*ny*nz
+  othr_flop = othr_flop + 13*nx*ny*nz + 3*nx*ny*nz*(2*nx-1)
   ! X 
   work1 = u * rx * prefactor
   call mxm  (dxtm12,nx,work1,nx,work2,ny*nz)

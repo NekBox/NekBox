@@ -302,6 +302,9 @@ subroutine crespsp (respr, vext)
   endif
 
 !   add old pressure term because we solve for delta p
+  n = nx1*ny1*nz1*nelv
+  othr_mop  = othr_mop + 3 * n
+  othr_flop = othr_flop + n
   ta2 = 0._dp
   ta1 = 1._dp / vtrans(:,:,:,:,1)
 
@@ -309,8 +312,9 @@ subroutine crespsp (respr, vext)
   CALL AXHELM  (RESPR,PR,TA1,TA2,IMESH,1)
   etime = etime + dnekclock()
 
+  othr_mop  = othr_mop + 13 * n
+  othr_flop = othr_flop + 14*n
   !   add explicit (NONLINEAR) terms
-  n = nx1*ny1*nz1*nelv
   do iel = 1, nelv
     !tmp1 = vdiff(:,:,:,iel,1) *ta1(:,:,:,iel)
     tmp1 = bm1(:,:,:,iel) * vdiff(:,:,:,iel,1) *ta1(:,:,:,iel)

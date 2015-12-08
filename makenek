@@ -7,10 +7,9 @@
 
 # Fortran compiler
 #F77="gfortran -I/opt/openmpi/include -I/opt/openmpi/lib -L/opt/openmpi/lib -lmpi_f90 -lmpi_f77 -lmpi -ldl -lm -Wl,--export-dynamic -lrt -lnsl -lutil  -pg"
-#CHECKS="-Wall -Wextra -Wno-unused-dummy-argument -pedantic-errors -Wline-truncation -Wunderflow -finit-real=nan -fbacktrace -fcheck=all " #-ffpe-trap=invalid,zero,overflow "
+CHECKS="-Wall -Wextra -Wno-unused-dummy-argument -pedantic-errors -Wline-truncation -Wunderflow -finit-real=nan -fbacktrace -fcheck=all " #-ffpe-trap=invalid,zero,overflow "
 #F77="mpif90  -g -check all -debug all -traceback "
-F77="mpif90 "
-#F77="mpif90 "
+F77="mpif90  "
 
 # C compiler
 CC="mpicc "
@@ -18,7 +17,7 @@ CC="mpicc "
 
 # pre-processor symbol list 
 # (set PPLIST=? to get a list of available symbols)
-PPLIST="XSMM" 
+#PPLIST="NO_LAPACK" 
 
 # plug-in list
 #PLUGIN_LIST=""
@@ -36,21 +35,16 @@ PPLIST="XSMM"
 #USR=""
 
 # linking flags
-#USR_LFLAGS=""
-#USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core" # -L/swtools/fftw/fftw-3.3.4/lib -lfftw3"
-#USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core -L/home/mhutchin/libxsmm/lib/intel64/ -lxsmm"
-USR_LFLAGS="-L/swtools/fftw/fftw-3.3.4/lib -lfftw3 -lmkl_intel_lp64  -lmkl_sequential -lmkl_core -L/home/mhutchin/libxsmm/lib/intel64/ -lxsmm -lstream_update_kernels"
-#USR_LFLAGS="-L/swtools/fftw/fftw-3.3.4/lib -lfftw3 -lmkl_intel_lp64  -lmkl_sequential -lmkl_core "
+#USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core"
+USR_LFLAGS="-lblas -llapack -lfftw3"
 
 
 # generic compiler flags
-#G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans -I/usr/include/"
-G=" -I/swtools/fftw/fftw-3.3.4/include/ -I/home/mhutchin/libxsmm/include -D__extern_always_inline=inline"
-#G=" -I/opt/intel/mkl/include/fftw -I/home/mhutchin/libxsmm/include"
+G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans -I/usr/include/"
+
 # optimization flags
-#OPT_FLAGS_STD=" -mavx -O2 "
-OPT_FLAGS_STD=" -O0 "
-OPT_FLAGS_MAG=" -mavx -O2 "
+#OPT_FLAGS_STD=" "
+#OPT_FLAGS_MAG=" "
 
 # enable AMG coarse grid solver (default XXT)
 #IFAMG="true"

@@ -400,6 +400,8 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
     return
   endif
 
+  othr_mop = othr_mop + ntot1*4
+  othr_flop = othr_flop + ntot1*3
   etime = etime - dnekclock()
   CALL AXHELM (W2,W1,H1,H2,IMESH,ISD)
   etime = etime + dnekclock()

@@ -9,6 +9,7 @@ subroutine cdscal (igeom)
   use soln, only : t, bq, tmask, tmult
   use tstep, only : nelfld, ifield, nmxnl, imesh, tolht, nmxh
   use ctimer, only : nheat2, theat2, dnekclock
+  use ctimer, only : othr_mop, othr_flop
   implicit none
 
   integer, intent(in) :: igeom
@@ -62,7 +63,8 @@ subroutine cdscal (igeom)
       allocate(TA(LX1,LY1,LZ1,LELT), TB(LX1,LY1,LZ1,LELT))
       allocate(H1(LX1,LY1,LZ1,LELT), H2(LX1,LY1,LZ1,LELT))
       do iter=1,nmxnl ! iterate for nonlin. prob. (e.g. radiation b.c.)
-
+          othr_mop = othr_mop + lx1*ly1*lz1*lelt*15
+          othr_flop = othr_flop + lx1*ly1*lz1*lelt*6
           INTYPE = 0
           IF (IFTRAN) INTYPE = -1
           CALL SETHLM  (H1,H2,INTYPE)

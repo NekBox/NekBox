@@ -320,7 +320,7 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   use ctimer, only : othr_flop, othr_mop
   implicit none
 
-  real(DP), intent(out) :: tol
+  real(DP), intent(inout) :: tol
   REAL(DP), intent(in)  :: RES  (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)  :: H1   (LX1,LY1,LZ1,*)
   REAL(DP), intent(in)  :: H2   (LX1,LY1,LZ1,*)
@@ -336,6 +336,8 @@ subroutine chktcg1 (tol,res,h1,h2,mask,mult,imesh,isd)
   real(DP) :: etime
   integer :: nl, ntot1
   real(DP), external :: glsc3, glsum
+
+  return
 
   nfoo = nfoo + 1
   etime = dnekclock()

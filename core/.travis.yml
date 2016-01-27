@@ -38,6 +38,7 @@ before_script:
 # - ../../makenek RTI_LST $ROOT_DIR
 
 script: 
+ - set -o pipefail
  - sh ../../nekmpi test_f90 4 |tee test_f90.out
  - grep "Max" test_f90.out > f90.grp
  - grep "Max" $(basename "$TEST_SUITE")_ref.out > f77.grp

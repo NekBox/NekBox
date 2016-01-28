@@ -415,6 +415,7 @@ end subroutine hsmg_intp
 subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   use kinds, only : DP
   use size_m, only : nelv
+  use math, only : tensor_product_multiply
   use ctimer, only : h1mg_flop, h1mg_mop
   implicit none
 
@@ -430,7 +431,7 @@ subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   h1mg_mop  = h1mg_mop + nv**3 + nu**3
 
   do ie=1,nelv
-    call tensor_product_multiply(u(1,ie), nu, v(1,ie), nv, A, At, At, work, work2)
+    call tensor_product_multiply(u(:,ie), nu, v(:,ie), nv, A, At, At, work, work2)
   enddo
 
   return
@@ -1469,6 +1470,7 @@ end subroutine mg_mask_e
 subroutine hsmg_tnsr1(v,nv,nu,A,At)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, nelv
+  use math, only : tensor_product_multiply
   use ctimer, only : h1mg_flop, h1mg_mop
   implicit none
 
@@ -1499,7 +1501,7 @@ subroutine hsmg_tnsr1(v,nv,nu,A,At)
   do e=e0,ee,es
       iu = 1 + (e-1)*nu3
       iv = 1 + (e-1)*nv3
-      call tensor_product_multiply(v(iu), nu, v(iv), nv, A, At, At, work1, work2)
+      call tensor_product_multiply(v(iu:iu+nu3-1), nu, v(iv:iv+nv3-1), nv, A, At, At, work1, work2)
   enddo
 
   return

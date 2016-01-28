@@ -402,6 +402,7 @@ end subroutine linquad
 subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, ndim
+  use math, only : tensor_product_multiply
   use input, only : xc, yc, zc
   implicit none
 
@@ -460,9 +461,9 @@ subroutine xyzlin(xl,yl,zl,nxl,nyl,nzl,e,ifaxl)
   call tensr3(yl,nxl,ycb,2,jx,jyt,jzt,w)
   call tensr3(zl,nxl,zcb,2,jx,jyt,jzt,w)
 #else
-  call tensor_product_multiply(xcb,2,xl,nxl, jx,jyt, jzt, w1, w2)
-  call tensor_product_multiply(ycb,2,yl,nxl, jx,jyt, jzt, w1, w2)
-  call tensor_product_multiply(zcb,2,zl,nxl, jx,jyt, jzt, w1, w2)
+  call tensor_product_multiply(xcb(:,1,1),2,xl(:,1,1),nxl, jx,jyt, jzt, w1, w2)
+  call tensor_product_multiply(ycb(:,1,1),2,yl(:,1,1),nxl, jx,jyt, jzt, w1, w2)
+  call tensor_product_multiply(zcb(:,1,1),2,zl(:,1,1),nxl, jx,jyt, jzt, w1, w2)
 #endif
 
 

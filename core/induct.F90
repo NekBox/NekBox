@@ -108,6 +108,7 @@ subroutine set_dealias_rx
   use mesh, only : if_ortho
   use interp, only : jgl, jgt
   use interp, only : get_int_ptr
+  use math, only : tensor_product_multiply
   implicit none
 
   real(DP) ::  zd(lxd),wd(lxd)
@@ -138,9 +139,9 @@ subroutine set_dealias_rx
 
       !           Interpolate z+ and z- into fine mesh, translate to r-s-t coords
           if (if_ortho) then
-            call tensor_product_multiply(rxm1(1,1,1,e),nx1,rx(1,1,e),nxd,jgl(iptr),jgt(iptr),jgt(iptr),work2,work1)
-            call tensor_product_multiply(sym1(1,1,1,e),nx1,rx(1,2,e),nxd,jgl(iptr),jgt(iptr),jgt(iptr),work2,work1)
-            call tensor_product_multiply(tzm1(1,1,1,e),nx1,rx(1,3,e),nxd,jgl(iptr),jgt(iptr),jgt(iptr),work2,work1)
+            call tensor_product_multiply(rxm1(:,1,1,e),nx1,rx(:,1,e),nxd,jgl(iptr:),jgt(iptr:),jgt(iptr:),work2,work1)
+            call tensor_product_multiply(sym1(:,1,1,e),nx1,rx(:,2,e),nxd,jgl(iptr:),jgt(iptr:),jgt(iptr:),work2,work1)
+            call tensor_product_multiply(tzm1(:,1,1,e),nx1,rx(:,3,e),nxd,jgl(iptr:),jgt(iptr:),jgt(iptr:),work2,work1)
           else
 #if 0
             call intp_rstd(rx(1,1,e),rxm1(1,1,1,e),nx1,nxd,if3d,0) ! 0 --> fwd

@@ -148,13 +148,12 @@ subroutine set_up_h1_crs
   if (coarse_grid_solve == 0) then
     call crs_setup_xxt(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
     nz,ia,ja,a, null_space)
-    write(*,*) "Called crs_setup_xxt: ", xxth(ifield)
   else if (coarse_grid_solve == 2) then
     call crs_setup_amg(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
-    nz,ia,ja,a, null_space)
-    write(*,*) "Called crs_setup_amg: ", xxth(ifield)
-  else 
-    write(*,*) "Didn't setup crs"
+    nz,ia,ja,a, null_space, 0)
+  else if (coarse_grid_solve == -2) then
+    call crs_setup_amg(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
+    nz,ia,ja,a, null_space, 1)
   endif
   deallocate(a)
 !   call crs_stats(xxth(ifield))

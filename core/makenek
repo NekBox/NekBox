@@ -46,10 +46,6 @@ G=" -ffpe-trap=invalid,zero,overflow -fsignaling-nans -I/usr/include/"
 #OPT_FLAGS_STD=" "
 #OPT_FLAGS_MAG=" "
 
-# enable AMG coarse grid solver (default XXT)
-#IFAMG="true"
-#IFAMG_DUMP="true"
-
 # CVODE path
 #CVODE_DIR=$HOME/cvode/lib
  

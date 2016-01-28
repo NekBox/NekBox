@@ -20,7 +20,7 @@ subroutine mxm(a,n1,b,n2,c,n3)
   integer :: K10_mxm
 
 #ifdef XSMM
-  TYPE(LIBXSMM_DMM_FUNCTION) :: xmm
+  TYPE(LIBXSMM_DMMFUNCTION) :: xmm
 #endif
 
 #ifdef BGQ
@@ -69,7 +69,7 @@ subroutine mxm(a,n1,b,n2,c,n3)
 #endif
 
 #ifdef XSMM
-  CALL libxsmm_dispatch(xmm, n1, n3, n2, 1.0_dp, 0.0_dp)
+  CALL libxsmm_dispatch(xmm, n1, n3, n2, alpha=1.0_dp, beta=0.0_dp)
   IF (libxsmm_available(xmm)) then
       CALL libxsmm_call(xmm, C_LOC(a), C_LOC(b), C_LOC(c))
       return

@@ -2,14 +2,17 @@ language: fortran
 
 env:
  - TEST_SUITE=RTI-LST/LST
+ - TEST_SUITE=lid/lid
+ - TEST_SUITE=iturb/iturb
+ - TEST_SUITE=Hill/Hill
  - TEST_SUITE=RTI-LST/LST_fft
  - TEST_SUITE=RTI-LST/LST_all
  - TEST_SUITE=RTI-LST/LST_sym
  - TEST_SUITE=RTI-LST/LST_sym_half
- - TEST_SUITE=Hill/Hill
- - TEST_SUITE=lid/lid
+ - TEST_SUITE=RTI-LST/LST_sym_half_amg
+ - TEST_SUITE=Hill/Hill_amg
  - TEST_SUITE=lid/lid_amg
- - TEST_SUITE=iturb/iturb
+ - TEST_SUITE=iturb/iturb_amg
  - TEST_SUITE=iturb/iturb_courant
 
 before_install: 

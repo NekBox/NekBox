@@ -1289,10 +1289,10 @@ end subroutine hsmg_schwarz_wt3d
 subroutine hsmg_coarse_solve(e,r)
   use kinds, only : DP
   use ctimer, only : icalld, ncrsl, tcrsl, ifsync, etime1, dnekclock
-  use parallel, only : xxth
+  use parallel, only : nid, xxth
   use tstep, only : ifield
+  use input, only : coarse_grid_solve
   use poisson, only : spectral_solve
-  use hsmg, only : use_spectral_coarse
  
   implicit none
   real(DP) :: e(:),r(:)
@@ -1311,10 +1311,15 @@ subroutine hsmg_coarse_solve(e,r)
 #endif
 
 !  call spectral_solve(e, r)!, 0,0,0, 0, 0)
-  if (use_spectral_coarse) then
+  if (coarse_grid_solve == 0) then
+    call crs_solve_xxt(xxth(ifield),e,r)
+  else if (coarse_grid_solve == 1) then
     call spectral_solve(e, r)!, 0,0,0, 0, 0)
+  else if (coarse_grid_solve == 2) then
+    call crs_solve_amg(xxth(ifield),e,r)
   else
-    call crs_solve(xxth(ifield),e,r)
+    if (nid == 0) write(*,*) "ERROR: invalid coarse grid solve in .rea"
+    call exitt 
   endif
 
 #ifndef NOTIMER

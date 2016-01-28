@@ -93,11 +93,12 @@ NEKNEKO := singlmesh.o
 endif
 
 # JL CRS GRID SOLVER
-ifeq ($(IFAMG),true)
-CGS := $(JO)amg.o $(JO)fcrs.o
-else
-CGS = $(JO)sparse_cholesky.o $(JO)xxt.o $(JO)fcrs.o
-endif
+#ifeq ($(IFAMG),true)
+#CGS := $(JO)amg.o $(JO)fcrs.o
+#else
+#CGS = $(JO)sparse_cholesky.o $(JO)xxt.o $(JO)fcrs.o
+#endif
+CGS = $(JO)amg.o $(JO)sparse_cholesky.o $(JO)xxt.o $(JO)fcrs.o
 
 JL := -DPREFIX=jl_
 ifeq ($(IFAMG_DUMP),true)

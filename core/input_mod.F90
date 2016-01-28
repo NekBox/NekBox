@@ -73,6 +73,7 @@ module input
   integer, allocatable :: matindx(:), matids(:), imatie(:), ibcsts(:), bcf(:)
   character(3), allocatable :: BCTYPS(:)
   integer :: numflu, numoth, numbcs
+  integer :: coarse_grid_solve
 
   contains
 

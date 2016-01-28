@@ -31,8 +31,8 @@
 subroutine set_overlap
   use size_m, only : lx1, nid
   use input, only : param, ifaxis, ifmgrid, ifmhd, ifsplit, ifldmhd
+  use input, only : coarse_grid_solve
   use tstep, only : ifield
-  use hsmg, only : use_spectral_coarse
   use hsmg_routines, only : hsmg_setup, h1mg_setup
   implicit none
 
@@ -81,7 +81,7 @@ subroutine set_overlap
 #endif
       endif
 
-      if (.not. use_spectral_coarse) call set_up_h1_crs
+      if (.not. coarse_grid_solve == 1.0) call set_up_h1_crs
 
   enddo
    

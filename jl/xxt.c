@@ -18,10 +18,10 @@
 #include "sparse_cholesky.h"
 #include "gs.h"
 
-#define crs_setup PREFIXED_NAME(crs_setup)
-#define crs_solve PREFIXED_NAME(crs_solve)
-#define crs_stats PREFIXED_NAME(crs_stats)
-#define crs_free  PREFIXED_NAME(crs_free )
+#define crs_setup PREFIXED_NAME(crs_setup_xxt)
+#define crs_solve PREFIXED_NAME(crs_solve_xxt)
+#define crs_stats PREFIXED_NAME(crs_stats_xxt)
+#define crs_free  PREFIXED_NAME(crs_free_xxt )
 
 /*
   portable log base 2

@@ -15,7 +15,7 @@ subroutine nek_init(intracomm)
   use esolv, only : init_esolv
   use fdmh1, only : init_fdmh1
   use geom, only : init_geom
-  use hsmg, only : init_hsmg, use_spectral_coarse
+  use hsmg, only : init_hsmg
   use input, only : init_input
   use ixyz, only : init_ixyz
 !  use geom, only : init_mass
@@ -31,7 +31,7 @@ subroutine nek_init(intracomm)
 
   use ctimer, only : etimes, dnekclock, etime1, ifsync, etims0, dnekclock_sync
   use ctimer, only : benchmark
-  use input, only : ifflow, iftran, solver_type, param
+  use input, only : ifflow, iftran, solver_type, param, coarse_grid_solve
   use soln, only : nid, jp
   use tstep, only : istep, instep, nsteps, fintim, time
   use geom, only : unx, uny, unz
@@ -87,9 +87,11 @@ subroutine nek_init(intracomm)
   etime1 = dnekclock()
   call readat
 
-  use_spectral_coarse = .false.
+  coarse_grid_solve = 0
   if (param(48) == 1.) then
-    use_spectral_coarse = .true.
+    coarse_grid_solve = 1
+  else if (param(48) == 2.) then
+    coarse_grid_solve = 2
   endif
 
   ifsync_ = ifsync
@@ -360,12 +362,18 @@ end subroutine nek_advance
 !> \brief perform any end-of-run reporting
 subroutine nek_end
   use parallel, only : xxth
+  use input, only : coarse_grid_solve
   use tstep, only : instep
   implicit none
 
   if(instep /= 0) call runstat
-  if(xxth(1) > 0) call crs_stats(xxth(1))
-     
+  if(xxth(1) > 0) then
+    if (coarse_grid_solve == 0) then
+      call crs_stats_xxt(xxth(1))
+    else 
+      call crs_stats_amg(xxth(1))
+    endif
+  endif 
 !  call in_situ_end()
   return
 end subroutine nek_end

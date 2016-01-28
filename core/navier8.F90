@@ -33,7 +33,7 @@ subroutine set_up_h1_crs
   use ctimer, only : dnekclock
   use domain, only : nx_crs, nxyz_c, se_to_gcrs, lcr
   use geom, only : ifvcor, ifbcor
-  use input, only : ifldmhd, cbc
+  use input, only : ifldmhd, cbc, coarse_grid_solve
   use mesh, only : vertex
   use parallel, only : xxth, mp=>np, nekcomm
   use tstep, only : ifield
@@ -145,8 +145,17 @@ subroutine set_up_h1_crs
   endif
 
   nz=ncr*ncr*nelv
-  call crs_setup(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
-  nz,ia,ja,a, null_space)
+  if (coarse_grid_solve == 0) then
+    call crs_setup_xxt(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
+    nz,ia,ja,a, null_space)
+    write(*,*) "Called crs_setup_xxt: ", xxth(ifield)
+  else if (coarse_grid_solve == 2) then
+    call crs_setup_amg(xxth(ifield),nekcomm,mp, ntot,se_to_gcrs, &
+    nz,ia,ja,a, null_space)
+    write(*,*) "Called crs_setup_amg: ", xxth(ifield)
+  else 
+    write(*,*) "Didn't setup crs"
+  endif
   deallocate(a)
 !   call crs_stats(xxth(ifield))
 

@@ -523,20 +523,16 @@ static void amg_dump(
 struct crs_data *crs_setup(
   uint n, const ulong *id,
   uint nz, const uint *Ai, const uint *Aj, const double *A,
-  uint null_space, const struct comm *comm)
+  uint null_space, const struct comm *comm, uint dump)
 {
   struct crs_data *data = tmalloc(struct crs_data,1);
-  
-#ifdef AMG_DUMP
-  int dump=1;
-#else
-  int dump=0;
-#endif
   
   comm_dup(&data->comm,comm);
 
   data->gs_top = gs_setup((const slong*)id,n, &data->comm, 1,
     dump?gs_crystal_router:gs_auto, !dump);
+
+  printf("The value of dump is %d\n", dump);
 
   if(dump) {
     amg_dump(n,id,nz,Ai,Aj,A,data);

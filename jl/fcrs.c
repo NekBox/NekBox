@@ -36,7 +36,7 @@ static int handle_n = 0;
 void fcrs_setup(sint *handle, const MPI_Fint *comm, const sint *np,
                 const sint *n, const slong id[], const sint *nz,
                 const sint Ai[], const sint Aj[], const double A[],
-                const sint *null_space)
+                const sint *null_space, const sint *dump)
 {
   struct comm c;
   if(handle_n==handle_max)
@@ -45,7 +45,7 @@ void fcrs_setup(sint *handle, const MPI_Fint *comm, const sint *np,
   comm_init_check(&c, *comm, *np);
   handle_array[handle_n]=ccrs_setup(*n,(const ulong*)id,
                                     *nz,(const uint*)Ai,(const uint*)Aj,A,
-                                    *null_space,&c);
+                                    *null_space,&c, *dump);
   comm_free(&c);
   *handle = handle_n++;
 }

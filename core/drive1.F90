@@ -92,6 +92,8 @@ subroutine nek_init(intracomm)
     coarse_grid_solve = 1
   else if (param(48) == 2.) then
     coarse_grid_solve = 2
+  else if (param(48) == -2.) then
+    coarse_grid_solve = -2
   endif
 
   ifsync_ = ifsync

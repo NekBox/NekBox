@@ -163,6 +163,7 @@ subroutine readat()
 #if 1
           ! generate the mesh without reading
           call nekgsync()
+          call genmesh
 #else
           maxrd = 32            ! max # procs to read at once
           mread = (np-1)/maxrd+1   ! mod param
@@ -775,8 +776,6 @@ subroutine genmesh
   do iel = 0, shape_x(3)
     ticks_z(iel) = start_x(3) + dx(3)*iel
   enddo
-
-  call usrmesh() 
 
   ldimt1 = 2
   curve = 0._dp

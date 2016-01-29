@@ -6,6 +6,7 @@ env:
  - TEST_SUITE=iturb/iturb
  - TEST_SUITE=Hill/Hill
  - TEST_SUITE=RTI-LST/LST_fft
+ - TEST_SUITE=RTI-LST/LST_nonuniform
  - TEST_SUITE=RTI-LST/LST_all
  - TEST_SUITE=RTI-LST/LST_sym
  - TEST_SUITE=RTI-LST/LST_sym_half

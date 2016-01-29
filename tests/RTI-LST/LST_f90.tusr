@@ -55,6 +55,32 @@
     return
     end subroutine userq2
 !-----------------------------------------------------------------------
+    subroutine usrmesh()
+      use kinds, only : DP
+      use size_m
+      use mesh
+      use parallel, only : nid
+      implicit none
+
+      integer :: i
+      real(DP), external :: pos_1d
+
+      do i = 1, shape_x(1)-1
+        ticks_x(i) = pos_1d(i, shape_x(1), start_x(1), end_x(1), {alpha[0]}) 
+      enddo
+      do i = 1, shape_x(2)-1
+        ticks_y(i) = pos_1d(i, shape_x(2), start_x(2), end_x(2), {alpha[1]}) 
+      enddo
+      do i = 1, shape_x(3)-1
+        ticks_z(i) = pos_1d(i, shape_x(3), start_x(3), end_x(3), {alpha[2]}) 
+      enddo
+      if (nid == 0) then
+        write(*,*) ticks_x
+      endif
+         
+
+    end subroutine usrmesh
+!-----------------------------------------------------------------------
     subroutine userbc(ix,iy,iz,iside,ieg) ! set up boundary conditions
     use size_m
     use nekuse
@@ -169,4 +195,22 @@
 
     return
     end subroutine usrdat3
+!-----------------------------------------------------------------------
+real(DP) function pos_1d(i, N, x0, x1, alpha)
+  use kinds, only : DP
+  implicit none
+
+  integer, intent(in) :: i, N
+  real(DP), intent(in) :: x0, x1, alpha
+  real(DP) :: beta
+
+  beta = exp(-2.*log(alpha) / N * abs(i - N / 2.))
+  if (i < N / 2.) then
+    pos_1d  = beta * real(i  ,kind=DP) / N * (x1 - x0) + x0
+  else 
+    pos_1d  = beta * real(N-i,kind=DP) / N * (x0 - x1) + x1
+  endif
+  return
+
+end function pos_1d
 !-----------------------------------------------------------------------

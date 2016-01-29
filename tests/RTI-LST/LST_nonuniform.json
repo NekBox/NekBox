@@ -1,0 +1,59 @@
+{
+  "atwood": 0.1,
+  "g": 1.0,
+  "density": 1.0,
+  "rho_cp": 1.0,
+  "tolrel": 0.0,
+  "toldiv": 1.0e-12,
+  "tolhelm": 1.0e-14,
+  "wait_pres": 1000.0,
+  "wait_vel": 1000.0,
+  "cps": 0.0,
+  "kmax": 1,
+  "kmin": 1,
+  "amp0": 0.01,
+  "bottom_bound": "W", 
+  "front_bound": "P", 
+  "top_bound": "W", 
+  "conductivity": 1.0e-3, 
+  "courant": 0.1, 
+  "num_steps": 101, 
+  "scale_mesh": [
+    1.0, 
+    1.0, 
+    1.0
+  ], 
+  "viscosity": 1.0e-2, 
+  "back_bound": "P", 
+  "left_bound": "P", 
+  "root_mesh": [
+    0.0, 
+    0.0, 
+   -0.25
+  ], 
+  "io_step": 0.0, 
+  "kscal" : 1,
+  "extent_mesh": [
+    1.0, 
+    1.0, 
+    0.25 
+  ], 
+  "dt": 0.01, 
+  "right_bound": "P", 
+  "dim": 3, 
+  "io_time": 0.0, 
+  "shape_mesh": [
+    16, 
+    16, 
+    8
+  ], 
+  "alpha": [
+    2.0,
+    2.0,
+    1.0
+  ],
+  "order": 8,
+  "dealiasing_order" : 12,
+  "nfilt": 1.0,
+  "procs" : 4
+}

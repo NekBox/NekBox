@@ -13,6 +13,7 @@ module mesh
   real(DP) :: start_x(3)
   real(DP) :: end_x(3)
   integer  :: shape_x(3)
+  real(DP), allocatable :: ticks_x(:), ticks_y(:), ticks_z(:)
 
   character(3) :: boundaries(6), tboundaries(6)
 

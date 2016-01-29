@@ -163,7 +163,6 @@ subroutine readat()
 #if 1
           ! generate the mesh without reading
           call nekgsync()
-          call genmesh
 #else
           maxrd = 32            ! max # procs to read at once
           mread = (np-1)/maxrd+1   ! mod param

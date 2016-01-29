@@ -126,6 +126,9 @@ subroutine nek_init(intracomm)
     call usrdat
     if(nid == 0) write(6,'(A,/)') ' done :: usrdat'
 
+    ! 
+    call genmesh
+
 !     generate geometry (called after usrdat in case something changed)
     call gengeom (igeom)
 

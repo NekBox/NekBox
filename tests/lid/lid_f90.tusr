@@ -51,11 +51,6 @@
     return
     end subroutine userq2
 !-----------------------------------------------------------------------
-    subroutine usrmesh()
-      implicit none
-      return
-    end subroutine usrmesh
-!-----------------------------------------------------------------------
     subroutine userbc(ix,iy,iz,iside,ieg) ! set up boundary conditions
     use size_m
     use nekuse

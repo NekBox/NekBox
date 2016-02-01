@@ -5,6 +5,7 @@ env:
  - TEST_SUITE=lid/lid
  - TEST_SUITE=iturb/iturb
  - TEST_SUITE=Hill/Hill
+ - TEST_SUITE=duct/duct
  - TEST_SUITE=RTI-LST/LST_fft
  - TEST_SUITE=RTI-LST/LST_nonuniform
  - TEST_SUITE=RTI-LST/LST_all
@@ -40,7 +41,6 @@ install:
 
 before_script: 
  - python ../../nek-tools/genrun/genrun.py -u *_f90.tusr -d $(basename "$TEST_SUITE").json --makenek=../../makenek test_f90
-# - ../../makenek RTI_LST $ROOT_DIR
 
 script: 
  - set -o pipefail

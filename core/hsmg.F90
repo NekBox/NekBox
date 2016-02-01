@@ -1452,8 +1452,8 @@ subroutine mg_mask_e(w,mask) ! Zero out Dirichlet conditions
   use kinds, only : DP
   implicit none
 
-  real(DP) :: w(1)
-  integer :: mask(0:1)
+  real(DP) :: w(*)
+  integer :: mask(0:*)
   integer :: n, i
   n=mask(0)
   do i=1,n

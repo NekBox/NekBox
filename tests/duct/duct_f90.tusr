@@ -1,0 +1,150 @@
+!-----------------------------------------------------------------------
+    subroutine uservp(ix,iy,iz,eg) ! set variable properties
+    use size_m
+    use nekuse
+    implicit none
+
+    integer :: ix, iy, iz
+    integer :: e,f,eg
+
+    return
+    end subroutine uservp
+!-----------------------------------------------------------------------
+    subroutine userf(ix,iy,iz,eg) ! set acceleration term
+    use size_m
+    use nekuse
+    implicit none
+
+!     Note: this is an acceleration term, NOT a force!
+!     Thus, ffx will subsequently be multiplied by rho(x,t).
+
+
+    integer :: ix, iy, iz, eg
+
+
+    ffx = 0.0
+    ffy = 0.0
+    ffz = 0.0
+
+    return
+    end subroutine userf
+!-----------------------------------------------------------------------
+    subroutine userq(ix,iy,iz,eg) ! set source term
+    use size_m
+    use nekuse
+    implicit none
+
+    integer :: ix, iy, iz, eg
+
+    qvol   = 0.0
+
+    return
+    end subroutine userq
+!-----------------------------------------------------------------------
+    subroutine userq2(q) ! set source term
+    use size_m
+    use nekuse
+    implicit none
+
+    real :: q(lx1, ly1, lz1, lelt)
+
+    return
+    end subroutine userq2
+!-----------------------------------------------------------------------
+    subroutine userbc(ix,iy,iz,iside,ieg) ! set up boundary conditions
+    use size_m
+    use nekuse
+    use mesh, only : ieg_to_xyz
+    use parallel, only: gllel
+    use soln, only : vmult
+    implicit none
+
+    integer :: ix, iy, iz, iside, ieg
+    integer :: iel
+    integer :: pos(3)
+
+!      if (cbc(iside,gllel(ieg),ifield).eq.'v01')
+
+    ux = 0.0
+    uy = 0.0
+    if (z == {root_mesh[2]}) then
+      uz = {velocity}
+      uz = uz * (x - {root_mesh[0]})
+      uz = uz * (y - {root_mesh[1]})
+      uz = uz * ({extent_mesh[0]} - x)
+      uz = uz * ({extent_mesh[1]} - y)
+    else
+      uz = 0.0
+    endif
+
+    return
+    end subroutine userbc
+!-----------------------------------------------------------------------
+    subroutine useric(ix,iy,iz,ieg) ! set up initial conditions
+!      use ifport, only : random_number, random_seed
+    use kinds, only : DP
+    use size_m
+    use nekuse
+    use zper
+    use mesh, only : ieg_to_xyz
+    implicit none
+
+    integer :: ix, iy, iz, ieg
+    integer :: pos(3)
+
+    ux = 0.0
+    uy = 0.0
+    uz = {velocity}
+    uz = uz * (x - {root_mesh[0]})
+    uz = uz * (y - {root_mesh[1]})
+    uz = uz * ({extent_mesh[0]} - x)
+    uz = uz * ({extent_mesh[1]} - y)
+    if (x - {root_mesh[1]} > ({extent_mesh[1]} - {root_mesh[1]}) / 2.) uz = uz * 1.1
+
+    temp = erf((x-{root_mesh[0]})/({extent_mesh[0]}-{root_mesh[0]})/2.) + 1
+
+    return
+    end subroutine useric
+!-----------------------------------------------------------------------
+    subroutine userchk()
+    use size_m
+    use tstep
+    use soln
+    implicit none
+
+    real(DP), external :: glmax, glmin
+    real(DP) :: tmax, umax, vmax, wmax
+
+    if (istep == 0) call outpost(vx,vy,vz,pr,t,'   ')
+    tmax = max(glmax(t, lx1*ly1*lz1*lelt), -glmin(t, lx1*ly1*lz1*lelt))
+    if (nid == 0) write(*,'(A,F16.12)') "Maximum scalar", tmax
+
+    umax = max(glmax(vx, lx1*ly1*lz1*lelt), -glmin(vx, lx1*ly1*lz1*lelt))
+    vmax = max(glmax(vy, lx1*ly1*lz1*lelt), -glmin(vy, lx1*ly1*lz1*lelt))
+    wmax = max(glmax(vz, lx1*ly1*lz1*lelt), -glmin(vz, lx1*ly1*lz1*lelt))
+    if (nid == 0) write(*,'(A,3F16.11)') "Maximum velocity", umax, vmax, wmax
+
+    return
+    end subroutine userchk
+!-----------------------------------------------------------------------
+    subroutine usrdat()   ! This routine to modify element vertices
+    use size_m
+    implicit none
+
+    return
+    end subroutine usrdat
+!-----------------------------------------------------------------------
+    subroutine usrdat2()  ! This routine to modify mesh coordinates
+    use size_m
+    implicit none
+
+    return
+    end subroutine usrdat2
+!-----------------------------------------------------------------------
+    subroutine usrdat3()
+    use size_m
+    implicit none
+
+    return
+    end subroutine usrdat3
+!-----------------------------------------------------------------------

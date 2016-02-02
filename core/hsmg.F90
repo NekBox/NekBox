@@ -570,7 +570,7 @@ subroutine h1mg_schwarz(e,r,sigma,l)
   pm = p_mg_msk(l,mg_fld)
   do ie = 1, nelv
     im = mg_imask(pm+ie-1)
-    call mg_mask_e(e(1+(ie-1)*nn),mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
+    call mg_mask_e(e, mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
 
     call hsmg_schwarz_wt    (e,l, ie)          ! e  := W e
     e(1+(ie-1)*nn:ie*nn) = e(1+(ie-1)*nn:ie*nn) * sigma
@@ -628,7 +628,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   do ie=1,nelv
 
       im = mg_imask(pm+ie-1)
-      call mg_mask_e(r(1+(ie-1)*mg_nh(l)**3),mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
+      call mg_mask_e(r,mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
 
       w1(:,:,1,ie) = 0._dp
       do k = 0, enz-3
@@ -1453,8 +1453,8 @@ subroutine mg_mask_e(w,mask) ! Zero out Dirichlet conditions
   use kinds, only : DP
   implicit none
 
-  real(DP) :: w(1)
-  integer :: mask(0:1)
+  real(DP) :: w(*)
+  integer :: mask(0:*)
   integer :: n, i
   n=mask(0)
   do i=1,n

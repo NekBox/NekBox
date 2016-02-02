@@ -736,6 +736,7 @@ subroutine genmesh
   use input, only : bc, cbc
   use mesh, only : shape_x, start_x, end_x
   use mesh, only : boundaries, tboundaries
+  use mesh, only : ticks_x, ticks_y, ticks_z
   use parallel, only : gllnid, gllel, wdsize
   use parallel, only : lglel
   implicit none
@@ -743,7 +744,6 @@ subroutine genmesh
   integer :: nsides, ieg, iel, lcbc, ldimt1
   integer :: ix(3)
   real(DP) :: dx(3)
-  real(DP) :: root(3)
 
 !   Read elemental mesh data, formatted
   iffmtin = .TRUE. 
@@ -764,6 +764,19 @@ subroutine genmesh
 
   dx = (end_x - start_x) / shape_x
 
+  allocate(ticks_x(0:shape_x(1)))
+  do iel = 0, shape_x(1)
+    ticks_x(iel) = start_x(1) + dx(1)*iel
+  enddo
+  allocate(ticks_y(0:shape_x(2)))
+  do iel = 0, shape_x(2)
+    ticks_y(iel) = start_x(2) + dx(2)*iel
+  enddo
+  allocate(ticks_z(0:shape_x(3)))
+  do iel = 0, shape_x(3)
+    ticks_z(iel) = start_x(3) + dx(3)*iel
+  enddo
+
   ldimt1 = 2
   curve = 0._dp
   CALL BLANK(CCURVE,12*LELT)
@@ -779,40 +792,38 @@ subroutine genmesh
     ix(2) = mod((ieg-1)/shape_x(1), shape_x(2))
     ix(3) = mod((ieg-1)/(shape_x(1)*shape_x(2)), shape_x(3))
 
-    root = start_x + ix * dx
-
     igroup(iel) = 0
-    XC(1,iel) = root(1)
-    XC(2,iel) = root(1) + dx(1)
-    XC(3,iel) = root(1) + dx(1)
-    XC(4,iel) = root(1)
-    XC(5,iel) = root(1)
-    XC(6,iel) = root(1) + dx(1)
-    XC(7,iel) = root(1) + dx(1)
-    XC(8,iel) = root(1)
+    XC(1,iel) = ticks_x(ix(1))
+    XC(2,iel) = ticks_x(ix(1)+1)
+    XC(3,iel) = ticks_x(ix(1)+1)
+    XC(4,iel) = ticks_x(ix(1))
+    XC(5,iel) = ticks_x(ix(1))
+    XC(6,iel) = ticks_x(ix(1)+1)
+    XC(7,iel) = ticks_x(ix(1)+1)
+    XC(8,iel) = ticks_x(ix(1))
 
-    YC(1,iel) = root(2)
-    YC(2,iel) = root(2)
-    YC(3,iel) = root(2) + dx(2)
-    YC(4,iel) = root(2) + dx(2)
-    YC(5,iel) = root(2)
-    YC(6,iel) = root(2)
-    YC(7,iel) = root(2) + dx(2)
-    YC(8,iel) = root(2) + dx(2)
+    YC(1,iel) = ticks_y(ix(2))
+    YC(2,iel) = ticks_y(ix(2))
+    YC(3,iel) = ticks_y(ix(2)+1)
+    YC(4,iel) = ticks_y(ix(2)+1)
+    YC(5,iel) = ticks_y(ix(2))
+    YC(6,iel) = ticks_y(ix(2))
+    YC(7,iel) = ticks_y(ix(2)+1)
+    YC(8,iel) = ticks_y(ix(2)+1)
 
-    ZC(1,iel) = root(3)
-    ZC(2,iel) = root(3)
-    ZC(3,iel) = root(3)
-    ZC(4,iel) = root(3)
-    ZC(5,iel) = root(3) + dx(3)
-    ZC(6,iel) = root(3) + dx(3)
-    ZC(7,iel) = root(3) + dx(3)
-    ZC(8,iel) = root(3) + dx(3)
+    ZC(1,iel) = ticks_z(ix(3))
+    ZC(2,iel) = ticks_z(ix(3))
+    ZC(3,iel) = ticks_z(ix(3))
+    ZC(4,iel) = ticks_z(ix(3))
+    ZC(5,iel) = ticks_z(ix(3)+1)
+    ZC(6,iel) = ticks_z(ix(3)+1)
+    ZC(7,iel) = ticks_z(ix(3)+1)
+    ZC(8,iel) = ticks_z(ix(3)+1)
 
     CBC(:,IEL,:) = 'E'
     if (ix(2) == 0) then
-      CBC(1,IEL,:) = boundaries(1)
-      CBC(1,IEL,2) = tboundaries(1)
+      CBC(1,IEL,:) = boundaries(4)
+      CBC(1,IEL,2) = tboundaries(4)
       bc(1,1,iel,:) = ieg + (shape_x(2)-1)*shape_x(1)
     else
       bc(1,1,iel,:) = ieg - shape_x(1)
@@ -827,8 +838,8 @@ subroutine genmesh
     endif
 
     if (ix(1) == 0)  then
-      CBC(4,IEL,:) = boundaries(4)
-      CBC(4,IEL,2) = tboundaries(4)
+      CBC(4,IEL,:) = boundaries(1)
+      CBC(4,IEL,2) = tboundaries(1)
       bc(1,4,iel,:) = ieg + (shape_x(1) - 1)
     else
       bc(1,4,iel,:) = ieg - 1

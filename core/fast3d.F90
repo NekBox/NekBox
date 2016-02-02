@@ -525,11 +525,11 @@ end subroutine swap_lengths
 !----------------------------------------------------------------------
 !> \brief zero the eth row of a
 subroutine row_zero(a,m,n,e)
-  use kinds, only : DP
+  use kinds, only : PP
   implicit none
 
   integer :: m,n,e
-  real(DP) :: a(m,n)
+  real(PP) :: a(m,n)
   integer :: j
   do j=1,n
       a(e,j)=0.

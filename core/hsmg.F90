@@ -43,6 +43,14 @@ module hsmg_routines
   public :: h1mg_setup, h1mg_solve
   public :: hsmg_setup
 
+  interface hsmg_schwarz_dssum
+    module procedure hsmg_schwarz_dssum_dp, hsmg_schwarz_dssum_sp
+  end interface 
+
+  interface generalev
+    module procedure generalev_dp, generalev_sp
+  end interface
+
 contains
 
 !----------------------------------------------------------------------
@@ -225,7 +233,7 @@ subroutine hsmg_setup_semhat
   use semhat, only : ah, bh, ch, dh, zh, dph, jph, bgl, zgl, dgl, jgl, wh
   implicit none
 
-  integer :: n,l
+  integer :: n,l, i
 !   generate the SEM hat matrices for each level
 !   top level
   n = mg_nx(mg_lmax)
@@ -237,12 +245,17 @@ subroutine hsmg_setup_semhat
   do l=1,mg_lmax-1
       n = mg_nx(l)
       if(n > 1) then
+
           call generate_semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
-          call copy(mg_ah(1,l),ah,(n+1)*(n+1))
-          call copy(mg_bh(1,l),bh,n+1)
-          call copy(mg_dh(1,l),dh,(n+1)*(n+1))
+          do i = 1, (n+1)*(n+1)
+            mg_ah(i, l) = ah(i)
+            mg_dh(i, l) = dh(i)
+          enddo
+          do i = 1, (n+1)
+            mg_zh(i, l) = zh(i)
+            mg_bh(i, l) = bh(i)
+          enddo
           call transpose(mg_dht(1,l),n+1,dh,n+1)
-          call copy(mg_zh(1,l),zh,n+1)
       else
           mg_zh(1,l) = -1.
           mg_zh(2,l) =  1.
@@ -474,12 +487,12 @@ subroutine hsmg_dsprod(u,l)
 end subroutine hsmg_dsprod
 
 !----------------------------------------------------------------------
-subroutine hsmg_schwarz_dssum(u,l)
+subroutine hsmg_schwarz_dssum_dp(u,l)
   use kinds, only : DP
   use ctimer, only : ifsync, etime1, dnekclock, tdadd
   use hsmg, only : mg_gsh_schwarz_handle, mg_fld
   implicit none
-  real(DP) :: u(1)
+  real(DP) :: u(*)
   integer :: l
 
   if (ifsync) call nekgsync()
@@ -491,7 +504,28 @@ subroutine hsmg_schwarz_dssum(u,l)
   tdadd =tdadd + dnekclock()-etime1
 #endif
   return
-end subroutine hsmg_schwarz_dssum
+end subroutine hsmg_schwarz_dssum_dp
+
+subroutine hsmg_schwarz_dssum_sp(u,l)
+  use kinds, only : SP
+  use ctimer, only : ifsync, etime1, dnekclock, tdadd
+  use hsmg, only : mg_gsh_schwarz_handle, mg_fld
+  implicit none
+  real(SP) :: u(*)
+  integer :: l
+
+  if (ifsync) call nekgsync()
+#ifndef NOTIMER
+  etime1=dnekclock()
+#endif
+  call gs_op(mg_gsh_schwarz_handle(l,mg_fld),u,2,1,0)
+#ifndef NOTIMER
+  tdadd =tdadd + dnekclock()-etime1
+#endif
+  return
+end subroutine hsmg_schwarz_dssum_sp
+
+!
 
 !----------------------------------------------------------------------
 subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
@@ -584,7 +618,7 @@ end subroutine h1mg_schwarz
 
 !----------------------------------------------------------------------
 subroutine h1mg_schwarz_part1 (e,r,l)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use size_m, only : nelv
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
 
@@ -598,16 +632,11 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   real(DP) :: etime
 
   integer :: enx,eny,enz,pm, n, l
-  real(DP) :: zero, one, onem
-  real(DP), allocatable :: w1(:,:,:,:), w2(:,:,:,:)
-  real(DP), allocatable :: w3(:,:,:), w4(:,:,:)
+  real(PP), allocatable :: w1(:,:,:,:), w2(:,:,:,:)
+  real(PP), allocatable :: w3(:,:,:), w4(:,:,:)
   integer :: i,j,k,ie, im
 
   etime = 0._dp
-
-  zero =  0
-  one  =  1
-  onem = -1
 
   n  = mg_h1_n (l,mg_fld)
   pm = p_mg_msk(l,mg_fld)
@@ -668,7 +697,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
       enddo
   enddo
 
-  call hsmg_schwarz_dssum(w1,l)
+  call hsmg_schwarz_dssum(w1(:,1,1,1),l)
 
   schw_flop = schw_flop + 2*nelv * 3 * (enx-2)**2 * 6
   schw_mop  = schw_mop  + 2*nelv * 3 * (enx-2)**2 * 6
@@ -734,7 +763,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
       enddo
   enddo
 
-  call hsmg_schwarz_dssum(w2,l)
+  call hsmg_schwarz_dssum(w2(:,1,1,1),l)
 
   schw_flop = schw_flop + nelv * (6*2*(enx-2)**2)
   schw_mop  = schw_mop  + nelv * ((enx-2)**3 + enx**3 + 6*(enx-2)**2)
@@ -883,15 +912,15 @@ end subroutine hsmg_setup_fdm
 !----------------------------------------------------------------------
 !> \brief not sure    
 subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use hsmg, only : lr, llr, lrr, lmr, ls, lls, lms, lrs, lt, llt, lmt, lrt
   use size_m, only : nid, ndim, nelv
   implicit none
 
   integer :: nl
-  real(DP) :: s(nl*nl,2,ndim,nelv)
-  real(DP) :: d(nl**ndim,nelv)
-  real(DP) :: ah(1),bh(1)
+  real(PP) :: s(nl*nl,2,ndim,nelv)
+  real(PP) :: d(nl**ndim,nelv)
+  real(PP) :: ah(1),bh(1)
   integer :: n
       
   integer :: i,j,k
@@ -946,22 +975,24 @@ end subroutine hsmg_setup_fast
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_fast1d(s,lam,nl,lbc,rbc,ll,lm,lr,ah,bh,n,ie)
-  use kinds, only : DP          
+  use kinds, only : DP, PP
   use size_m, only : lx1
   implicit none
 
   integer :: nl,lbc,rbc,n, ie
-  real(DP) :: s(nl,nl,2),lam(nl),ll,lm,lr
-  real(DP) :: ah(0:n,0:n),bh(0:n)
+  real(PP) :: s(nl,nl,2)
+  real(PP) :: lam(nl)
+  real(DP) :: ll,lm,lr
+  real(PP) :: ah(0:n,0:n),bh(0:n)
 
   integer, parameter :: lxm=lx1+2
-  real(DP) :: b(2*lxm*lxm),w(2*lxm*lxm)
+  real(PP) :: b(lxm, lxm, 2)
         
   call hsmg_setup_fast1d_a(s,lbc,rbc,ll,lm,lr,ah,n)
   call hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
           
 !   if (nid.eq.0) write(6,*) 'THIS is generalev call',nl,lbc
-  call generalev(s,b,lam,nl,w)
+  call generalev(s(:,:,1),b(:,:,1),lam,nl)
   if(lbc > 0) call row_zero(s,nl,nl,1)
   if(lbc == 1) call row_zero(s,nl,nl,2)
   if(rbc > 0) call row_zero(s,nl,nl,nl)
@@ -973,12 +1004,13 @@ end subroutine hsmg_setup_fast1d
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_fast1d_a(a,lbc,rbc,ll,lm,lr,ah,n)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   implicit none
 
   integer :: lbc,rbc,n
-  real(DP) :: a(0:n+2,0:n+2),ll,lm,lr
-  real(DP) :: ah(0:n,0:n)
+  real(PP) :: a(0:n+2,0:n+2)
+  real(DP) :: ll,lm,lr
+  real(PP) :: ah(0:n,0:n)
         
   real(DP) :: fac
   integer :: i,j,i0,i1
@@ -1019,12 +1051,13 @@ end subroutine hsmg_setup_fast1d_a
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   implicit none
 
   integer :: lbc,rbc,n
-  real(DP) :: b(0:n+2,0:n+2),ll,lm,lr
-  real(DP) :: bh(0:n)
+  real(PP) :: b(0:n+2,0:n+2)
+  real(DP) :: ll,lm,lr
+  real(PP) :: bh(0:n)
         
   real(DP) :: fac
   integer :: i,i0,i1
@@ -1594,16 +1627,20 @@ subroutine h1mg_setup_semhat
   use semhat, only : ah, bh, ch, dh, zh, dph, jph, bgl, zgl, dgl, jgl, wh
   implicit none
 
-  integer :: l, n
+  integer :: l, n, i
 
   do l=1,mg_h1_lmax
       n = mg_nx(l)     ! polynomial order
       call generate_semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
-      call copy(mg_ah(1,l),ah,(n+1)*(n+1))
-      call copy(mg_bh(1,l),bh,n+1)
-      call copy(mg_dh(1,l),dh,(n+1)*(n+1))
+      do i = 1, (n+1)*(n+1)
+        mg_ah(i, l) = ah(i)
+        mg_dh(i, l) = dh(i)
+      enddo
+      do i = 1, n+1
+        mg_bh(i, l) = bh(i)
+        mg_zh(i, l) = zh(i)
+      enddo
       call transpose(mg_dht(1,l),n+1,dh,n+1)
-      call copy(mg_zh(1,l),zh,n+1)
 
       mg_nh(l)=n+1
       mg_nhz(l)=mg_nz(l)+1
@@ -1874,7 +1911,7 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
    
 !   Sum overlap region (border excluded)
   call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
-  call hsmg_schwarz_dssum(work(i),l)
+  call hsmg_schwarz_dssum(work(i:),l)
   call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
   call hsmg_extrude(work(i),2,one, work(i),0,one,enx,eny,enz)
 
@@ -1897,6 +1934,70 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
 
   return
 end subroutine h1mg_setup_schwarz_wt_1
+!-----------------------------------------------------------------------
+!> \brief Solve the generalized eigenvalue problem  A x = lam B x
+!!
+!! A -- symm.
+!! B -- symm., pos. definite
+!!
+!! "SIZE" is included here only to deduce WDSIZE, the working
+!! precision, in bytes, so as to know whether dsygv or ssygv
+!! should be called.
+subroutine generalev_dp(a,b,lam,n)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nid
+  implicit none
+
+  integer, intent(in) :: n
+  real(DP), intent(inout) :: a(n,n), b(n,n)
+  real(DP), intent(out)   :: lam(n)
+
+  integer, parameter :: lbw=4*lx1*ly1*lz1*lelv
+  real(DP), allocatable :: bw(:)
+
+  integer :: info, ninf
+
+  allocate(bw(lbw))
+
+
+  call dsygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
+
+  if (info /= 0) then
+      ninf = n-info
+      write(6,*) 'Error in generalev, info=',info,n,ninf
+      call exitt
+  endif
+
+  return
+end subroutine generalev_dp
+subroutine generalev_sp(a,b,lam,n)
+  use kinds, only : SP
+  use size_m, only : lx1, ly1, lz1, lelv, nid
+  implicit none
+
+  integer, intent(in) :: n
+  real(SP), intent(inout) :: a(n,n), b(n,n)
+  real(SP), intent(out)   :: lam(n)
+
+  integer, parameter :: lbw=4*lx1*ly1*lz1*lelv
+  real(SP), allocatable :: bw(:)
+
+  integer :: info, ninf
+
+  allocate(bw(lbw))
+
+
+  call ssygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
+
+  if (info /= 0) then
+      ninf = n-info
+      write(6,*) 'Error in generalev, info=',info,n,ninf
+      call exitt
+  endif
+
+  return
+end subroutine generalev_sp
+
 
 !----------------------------------------------------------------------
 end module hsmg_routines

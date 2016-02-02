@@ -235,11 +235,11 @@ subroutine hsmg_do_fast(e,r,s,d,nl, work1, work2)
   implicit none
 
   integer, intent(in) :: nl
-  real(DP), intent(out) :: e(nl**ndim)
-  real(DP), intent(inout) :: r(nl**ndim)
-  real(DP), intent(in) :: s(nl,nl,2,ndim)
-  real(DP), intent(in) :: d(nl**ndim)
-  real(DP), intent(out) :: work1(nl*nl*nl),work2(nl*nl*nl)
+  real(PP), intent(out) :: e(nl**ndim)
+  real(PP), intent(inout) :: r(nl**ndim)
+  real(PP), intent(in) :: s(nl,nl,2,ndim)
+  real(PP), intent(in) :: d(nl**ndim)
+  real(PP), intent(out) :: work1(nl*nl*nl),work2(nl*nl*nl)
         
   integer :: ie,nn,i
 
@@ -252,19 +252,14 @@ subroutine hsmg_do_fast(e,r,s,d,nl, work1, work2)
   schw_flop = schw_flop + 3*nn*(2*nl-1)
   schw_mop  = schw_mop + (nn + 3*nl*nl)
 
-  !do ie=1,nelv
 
-    call tensor_product_multiply(r, nl, r, nl, s(:,1,2,1), s(:,1,1,2), s(:,1,1,3), work1, work2)
-    !call tensor_product_multiply(r, nl, r, nl, transpose(s(:,:,1,1)), s(1,1,1,2), s(1,1,1,3), work1, work2)
+  call tensor_product_multiply(r, nl, r, nl, s(:,1,2,1), s(:,1,1,2), s(:,1,1,3), work1, work2)
 
-    do i=1,nn
-        r(i)=d(i)*r(i)
-    enddo
+  do i=1,nn
+      r(i)=d(i)*r(i)
+  enddo
 
-    call tensor_product_multiply(r, nl, e, nl, s(:,1,1,1), s(:,1,2,2), s(:,1,2,3), work1, work2)
-    !call tensor_product_multiply(r, nl, e, nl, s(1,1,1,1), transpose(s(:,:,1,2)), transpose(s(:,:,1,3)), work1, work2)
-
-  !enddo
+  call tensor_product_multiply(r, nl, e, nl, s(:,1,1,1), s(:,1,2,2), s(:,1,2,3), work1, work2)
 
   return
 end subroutine hsmg_do_fast

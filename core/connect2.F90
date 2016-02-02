@@ -822,8 +822,8 @@ subroutine genmesh
 
     CBC(:,IEL,:) = 'E'
     if (ix(2) == 0) then
-      CBC(1,IEL,:) = boundaries(1)
-      CBC(1,IEL,2) = tboundaries(1)
+      CBC(1,IEL,:) = boundaries(4)
+      CBC(1,IEL,2) = tboundaries(4)
       bc(1,1,iel,:) = ieg + (shape_x(2)-1)*shape_x(1)
     else
       bc(1,1,iel,:) = ieg - shape_x(1)
@@ -838,8 +838,8 @@ subroutine genmesh
     endif
 
     if (ix(1) == 0)  then
-      CBC(4,IEL,:) = boundaries(4)
-      CBC(4,IEL,2) = tboundaries(4)
+      CBC(4,IEL,:) = boundaries(1)
+      CBC(4,IEL,2) = tboundaries(1)
       bc(1,4,iel,:) = ieg + (shape_x(1) - 1)
     else
       bc(1,4,iel,:) = ieg - 1

@@ -349,8 +349,10 @@ SUBROUTINE BCMASK
   
   !        Pressure mask
   
-      pmask => tmask(:,:,:,:,1)
 #if 0
+      pmask => tmask(:,:,:,:,1)
+#else
+      pmask = 1._dp
       DO IEL=1,NELV
           DO IFACE=1,NFACES
               CB=CBC(IFACE,IEL,IFIELD)

@@ -1,16 +1,14 @@
-# Nek[Box] on Github
-![https://travis-ci.org/maxhutch/nek](https://travis-ci.org/maxhutch/nek.svg?branch=box)
-
-This repo mirrors Nek5000's [development SVN repository](https://svn.mcs.anl.gov/repos/nek5/) hosted at [their MCS page](https://nek5000.mcs.anl.gov/index.php/Main_Page). 
+# NekBox on Github
+![https://travis-ci.org/maxhutch/NekBox](https://travis-ci.org/maxhutch/NekBox.svg?branch=box)
 
 
 ## NekBox
 
-NekBox is a version of Nek5000 specialized to box geometries.
+NekBox is a version of Nek5000 specialized to box geometries and intended for prototyping new methods.
 
 ### Constraints
  - Box geometry
- - Only `P`, `W`, or `SYM` boundaries
+ - Only `P`, `W`, `O`, or `SYM` boundaries
  - PN-PN only
  - A few more...
 

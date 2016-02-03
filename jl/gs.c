@@ -1220,12 +1220,12 @@ static void fgs_check_handle(sint handle, const char *func, unsigned line)
     fail(1,__FILE__,line,"%s: invalid handle", func);
 }
 
-static const gs_dom fgs_dom[4] = { 0, gs_double, gs_sint, gs_slong };
+static const gs_dom fgs_dom[5] = { 0, gs_double, gs_sint, gs_slong, gs_float };
 
 static void fgs_check_parms(sint handle, sint dom, sint op,
                             const char *func, unsigned line)
 {
-  if(dom<1 || dom>3)
+  if(dom<1 || dom>4)
     fail(1,__FILE__,line,"%s: datatype %d not in valid range 1-3",func,dom);
   if(op <1 || op >4)
     fail(1,__FILE__,line,"%s: op %d not in valid range 1-4",func,op);

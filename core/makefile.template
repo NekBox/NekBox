@@ -70,7 +70,7 @@ makeq.o makeq_aux.o \
 #fft_custom_transpose_mod.o \
 ################################################################################
 # MXM 
-MXM = mxm_std.o 
+MXM = mxm_std.o mxm_std_sp.o 
 ################################################################################
 # LAPACK
 #LPACK = dsygv.o ssygv.o
@@ -319,6 +319,7 @@ $(OBJDIR)/math.o	:$S/math.F90;			$(F90) -c $(FL4) $< -o $@
 # MXM       ############################################################################
 $(OBJDIR)/mxm_wrapper.o	  :$S/mxm_wrapper.F90;		$(F77) -c $(FL2) $< -o $@ 
 $(OBJDIR)/mxm_std.o	  :$S/mxm_std.F90;		$(F77) -c $(FL4) $< -o $@
+$(OBJDIR)/mxm_std_sp.o	  :$S/mxm_std_sp.F90;		$(F77) -c $(FL4) $< -o $@
 $(OBJDIR)/mxm_bgq.o	  :$S/mxm_bgq.F90;		$(F77) -c $(FL2) $< -o $@ 
 $(OBJDIR)/k10_mxm.o	  :$S/k10_mxm.c;		$(CC)  -c $(cFL2) $(JL) $< -o $@
 $(OBJDIR)/bg_aligned3.o	  :$S/bg_aligned3.s;		$(CC) -c $< -o $@

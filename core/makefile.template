@@ -10,6 +10,7 @@ IFMPI=
 IFAMG= 
 IFAMG_DUMP=
 IFNEKNEK=
+IFLZ4=
 IFMOAB=
 MOAB_DIR=
 F77=
@@ -110,6 +111,10 @@ ifeq ($(IFMPI),false)
   COMM_MPI := ${COMM_MPI} mpi_dummy.o
 endif
 
+# lz4   ########################################################################
+ifeq ($(IFLZ4),true)
+  lFLAGS := ${lFLAGS} $S/lz4/lib/liblz4.a 
+endif
 # VISIT ########################################################################
 ifeq ($(IFVISIT),true)
   VISITNEK_INCLUDES:=-I$S/3rd_party

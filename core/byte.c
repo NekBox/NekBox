@@ -248,8 +248,6 @@ void byte_open(char *n,int *ierr)
 void byte_close(int *ierr)
 {
   if (!fp) return;
-  int tmp=0;
-  fwrite(&tmp, sizeof(tmp), 1, fp);
 
   if (fclose(fp))
   {

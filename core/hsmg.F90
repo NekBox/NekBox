@@ -518,7 +518,7 @@ subroutine hsmg_schwarz_dssum_sp(u,l)
 #ifndef NOTIMER
   etime1=dnekclock()
 #endif
-  call gs_op(mg_gsh_schwarz_handle(l,mg_fld),u,2,1,0)
+  call gs_op(mg_gsh_schwarz_handle(l,mg_fld),u,4,1,0)
 #ifndef NOTIMER
   tdadd =tdadd + dnekclock()-etime1
 #endif
@@ -646,11 +646,6 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   enz=mg_nh(l)+2
 
   allocate(w1(enx,eny,enz,nelv),w2(enx,eny,enz,nelv))
-  allocate(w3(enx,eny,enz),w4(enx,eny,enz))
-
-
-  !call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
-
 
   schw_mop  = schw_mop  + nelv * ((enx-2)**3  + enx**3)
 
@@ -702,6 +697,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   schw_flop = schw_flop + 2*nelv * 3 * (enx-2)**2 * 6
   schw_mop  = schw_mop  + 2*nelv * 3 * (enx-2)**2 * 6
 
+  allocate(w3(enx,eny,enz),w4(enx,eny,enz))
   do ie=1,nelv
       do j=2,eny-1
           do i=2,enx-1
@@ -762,6 +758,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
           enddo
       enddo
   enddo
+  deallocate(w3,w4)
 
   call hsmg_schwarz_dssum(w2(:,1,1,1),l)
 
@@ -804,8 +801,6 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   enddo
 
   call hsmg_dssum(e,l)                           ! sum border nodes
-
-
 
   return
 end subroutine h1mg_schwarz_part1
@@ -998,7 +993,7 @@ subroutine hsmg_setup_fast1d(s,lam,nl,lbc,rbc,ll,lm,lr,ah,bh,n,ie)
   if(rbc > 0) call row_zero(s,nl,nl,nl)
   if(rbc == 1) call row_zero(s,nl,nl,nl-1)
         
-  call transpose(s(1,1,2),nl,s,nl)
+  s(:,:,2) =  transpose(s(:,:,1))
   return
 end subroutine hsmg_setup_fast1d
 

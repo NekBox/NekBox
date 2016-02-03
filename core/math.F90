@@ -94,11 +94,11 @@ subroutine tensor_product_multiply_sp(u, nu, v, nv, A, Bt, Ct, work1, work2)
   enddo
   call libxsmm_call(xmm3, C_LOC(work2),C_LOC(Ct), C_LOC(v))
 #else 
-  call mxm(A,nv,u,nu,work1,nu*nu)
+  call mxm_sp(A,nv,u,nu,work1,nu*nu)
   do i=0,nu-1
-      call mxm(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+      call mxm_sp(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
   enddo
-  call mxm(work2,nv*nv,Ct,nu,v,nv)
+  call mxm_sp(work2,nv*nv,Ct,nu,v,nv)
 #endif
   return
 

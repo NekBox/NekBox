@@ -17,7 +17,7 @@ CC="mpicc "
 
 # pre-processor symbol list 
 # (set PPLIST=? to get a list of available symbols)
-#PPLIST="NO_LAPACK" 
+PPLIST="LZ4COMPRESSION" 
 
 # plug-in list
 #PLUGIN_LIST=""

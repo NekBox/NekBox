@@ -128,7 +128,6 @@ FILE* fopen_lz4 (FILE *fp) {
       break;
     }
 
-      printf("lz4 cmpBytes %d\n", cmpBytes);
     const size_t readCount1 = fread(cmpBuf,1,cmpBytes,fp);
     if(readCount1 != cmpBytes) {
       printf("lz4 readCount1: %zu, cmpBytes %d\n", readCount1, cmpBytes);
@@ -152,7 +151,6 @@ FILE* fopen_lz4 (FILE *fp) {
       offset=offset+(size_t) decBytes;
     }
     decBufIndex = (decBufIndex + 1) % 2;
-    printf("lz4 k: %d\n", k);
   }
   fclose(fp);
   return fmemopen(decStream, BLOCK_BYTES*100*k,"rw");

@@ -19,6 +19,7 @@ if [ "$PPLIST" == "?" ]; then
   echo "  NO_LAPACK disable nek-supplied LAPACK routines"
   echo "  BLAS_MXM  disable nek-supplied BLAS routines"
   echo "  EXTBAR    adds underscore to exit call(for BGQ)"
+  echo "  LZ4COMPRESSION lossless compression of output using lz4"
   echo "  XSMM      uses libxsmm for small matrix multiplies"
   exit 1
 fi
@@ -60,6 +61,7 @@ SOURCE_ROOT=$APATH_SRC
 
 IFMOAB=false
 IFNEKNEK=false
+IFLZ4=false
 
 # do some basic checks
 if [ "$CASEDIR" == "$SOURCE_ROOT" ]; then
@@ -292,6 +294,10 @@ if [ "$i" == "NEKNEK" ]; then
      IFNEKNEK=true
 fi
 
+if [ "$i" == "LZ4COMPRESSION" ]; then
+     IFLZ4=true
+fi
+
    if [ "$i" == "CVODE" ]; then
     if [ "$CVODE_DIR" == "" ]; then
        echo "ABORT: Please specify path to CVODE in CVODE_DIR!" 
@@ -422,6 +428,7 @@ sed -e "s:^F77[ ]*=.*:F77\:=$F77:" \
 -e "s/^IFMOAB[ ]*=.*/IFMOAB:=$IFMOAB/" \
 -e "s:^MOAB_DIR[ ]*=.*:MOAB_DIR\:=${MOAB_DIR}:" \
 -e "s/^IFNEKNEK[ ]*=.*/IFNEKNEK:=$IFNEKNEK/" \
+-e "s/^IFLZ4[ ]*=.*/IFLZ4:=$IFLZ4/" \
 -e "s:^USR[ ]*=.*:USR\:=$USR:" \
 -e "s:^USR_LFLAGS[ ]*=.*:USR_LFLAGS\:=$USR_LFLAGS:" \
 -e "s:^S[ ]*=.*:S\:=${SOURCE_ROOT}:" $SOURCE_ROOT/makefile.template >.makefile

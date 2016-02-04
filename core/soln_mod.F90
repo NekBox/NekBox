@@ -136,7 +136,7 @@ module soln
     allocate(V1MASK (LX1,LY1,LZ1,LELV) &
     , V2MASK (LX1,LY1,LZ1,LELV) &
     , V3MASK (LX1,LY1,LZ1,LELV) &
-!    , PMASK  (LX1,LY1,LZ1,LELV) &
+    , PMASK  (LX1,LY1,LZ1,LELV) &
     , TMASK  (LX1,LY1,LZ1,LELT,LDIMT) &
 !    , OMASK  (LX1,LY1,LZ1,LELT) &
 !    , VMULT  (LX1,LY1,LZ1,LELV) &

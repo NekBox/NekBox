@@ -32,8 +32,8 @@ module hsmg
   integer, allocatable :: mg_solve_index(:,:)
   integer, allocatable :: mg_g_index(:,:), mg_schwarz_wt_index(:,:)
 
-  real(DP), allocatable :: mg_jh(:,:) !c-to-f interpolation matrices
-  real(DP), allocatable :: mg_jht(:,:) !transpose of mg_jh
+  real(PP), allocatable :: mg_jh(:,:) !c-to-f interpolation matrices
+  real(PP), allocatable :: mg_jht(:,:) !transpose of mg_jh
   !real(DP), allocatable :: mg_jhfc(:,:) !c-to-f interpolation matrices
   !real(DP), allocatable :: mg_jhfct(:,:) !transpose of mg_jh
 
@@ -43,7 +43,7 @@ module hsmg
   real(DP), allocatable :: mg_dh(:,:) !D hat matrices
   real(DP), allocatable :: mg_dht(:,:) !D hat transpose matrices
   real(DP), allocatable :: mg_zh(:,:) !Nodal coordinates
-  real(DP), allocatable :: mg_rstr_wt(:) !restriction wt
+  real(PP), allocatable :: mg_rstr_wt(:) !restriction wt
 !  real(DP), allocatable :: mg_mask(:) !b.c. mask (Max: might not be used)
   real(PP), allocatable :: mg_fast_s(:), mg_fast_d(:)
   real(PP), allocatable :: mg_schwarz_wt(:)

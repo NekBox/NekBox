@@ -1,3 +1,13 @@
+module ds
+
+  public
+
+  interface dssum
+    module procedure dssum_dp, dssum_sp
+  end interface
+
+contains
+
 !-----------------------------------------------------------------------
 !> \brief setup data structures for direct stiffness operations
 subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
@@ -51,7 +61,7 @@ end subroutine setupds
 
 !-----------------------------------------------------------------------
 !> \brief Direct stiffness sum
-subroutine dssum(u)
+subroutine dssum_dp(u)
   use kinds, only : DP
   use ctimer, only : ifsync, icalld, tdsmx, tdsmn, etime1, dnekclock
   use ctimer, only : tdsum, ndsum
@@ -112,7 +122,49 @@ subroutine dssum(u)
 #endif
 
   return
-end subroutine dssum
+end subroutine dssum_dp
+!-----------------------------------------------------------------------
+!> \brief Direct stiffness sum
+subroutine dssum_sp(u)
+  use kinds, only : SP, DP
+  use ctimer, only : ifsync, icalld, tdsmx, tdsmn, etime1, dnekclock
+  use ctimer, only : tdsum, ndsum
+  use input, only : ifldmhd
+  use parallel, only : gsh_fld
+  use tstep, only : ifield
+  implicit none
+
+  real(SP), intent(inout) :: u(*)
+  
+  integer :: ifldt
+  real(DP) :: timee
+
+  ifldt = ifield
+  if (ifldt == ifldmhd) ifldt = 1
+
+  if (ifsync) call nekgsync()
+
+#ifndef NOTIMER
+  if (icalld == 0) then
+      tdsmx=0.
+      tdsmn=0.
+  endif
+  icalld=icalld+1
+  etime1=dnekclock()
+#endif
+  call gs_op(gsh_fld(ifldt),u,4,1,0)  ! 1 ==> +
+
+#ifndef NOTIMER
+  timee=(dnekclock()-etime1)
+  tdsum=tdsum+timee
+  ndsum=ndsum + 1
+  tdsmx=max(timee,tdsmx)
+  tdsmn=min(timee,tdsmn)
+#endif
+
+  return
+end subroutine dssum_sp
+
 
 !-----------------------------------------------------------------------
 !> \brief generalization of dssum to other reducers.
@@ -271,3 +323,4 @@ subroutine vec_dsop(u,v,w,op)
 end subroutine vec_dsop
 
 !-----------------------------------------------------------------------
+end module ds

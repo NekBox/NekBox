@@ -3,6 +3,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1, nelv, nelt, ndim, nid
   use ctimer, only : icalld, thmhz, nhmhz, dnekclock
+  use ds, only : dssum
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param
   use geom, only : binvm1, bintm1
@@ -52,7 +53,7 @@ subroutine hmholtz(name,u,rhs,h1,h2,mask,mult,imsh,tli,maxit,isd)
   if (name == 'PRES') kfldfdm =  ndim+1
 !   if (.not.iffdm) kfldfdm=-1
 
-  call dssum   (rhs)
+  call dssum   (rhs(:,1,1,1))
   rhs(:,:,:,1:nelfld(ifield)) = rhs(:,:,:,1:nelfld(ifield)) * mask(:,:,:,1:nelfld(ifield))
   if (nid == 0 .AND. istep <= 10) &
   write(6,*) param(22),' p22 ',istep,imsh
@@ -225,6 +226,7 @@ subroutine sfastax()
 subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, nelt, nelv, ndim
+  use ds, only : dssum
   use dxyz, only : dxtm1, dytm1, dztm1, datm1, dam1
   use geom, only : ifrzer, g1m1, g2m1, g3m1, ym1, jacm1
   use input, only : ifaxis
@@ -297,7 +299,7 @@ subroutine setprec (dpcm1,helm1,helm2,imsh,isd)
 
   dpcm1(:,:,:,1:nel) = dpcm1(:,:,:,1:nel)*helm1(:,:,:,1:nel) + bm1*helm2(:,:,:,1:nel)
 
-  CALL DSSUM (DPCM1)
+  CALL DSSUM (DPCM1(:,1,1,1))
   dpcm1(:,:,:,1:nel) = 1._dp / dpcm1(:,:,:,1:nel)
   tdpc = tdpc + (dnekclock() - etime)
 
@@ -438,6 +440,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use kinds, only : DP
   use size_m, only : nid, nx1, ny1, nz1, nelt, nelv
   use size_m, only : lx1, ly1, lz1, lelt
+  use ds, only : dssum
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param, ifprint
   use geom, only : volvm1, voltm1
@@ -584,7 +587,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   etime = etime - dnekclock()
   call axhelm (w,p,h1,h2,imsh,isd)
   etime = etime + dnekclock()
-  call dssum  (w)
+  call dssum  (w(:,1))
 
   cggo_flop = cggo_flop + 4*n
   cggo_mop  = cggo_mop  + 5*n
@@ -651,7 +654,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     etime = etime - dnekclock()
     call axhelm (w,p,h1,h2,imsh,isd)
     etime = etime + dnekclock()
-    call dssum  (w)    
+    call dssum  (w(:,1))    
 
     cggo_flop = cggo_flop + 4*n
     cggo_mop  = cggo_mop  + 5*n
@@ -694,83 +697,4 @@ subroutine set_fdm_prec_h1b(d,h1,h2,nel)
 
   return
 end subroutine set_fdm_prec_h1b
-
-!-----------------------------------------------------------------------
-!> \brief Solve the generalized eigenvalue problem  A x = lam B x
-!!
-!! A -- symm.
-!! B -- symm., pos. definite
-!!
-!! "SIZE" is included here only to deduce WDSIZE, the working
-!! precision, in bytes, so as to know whether dsygv or ssygv
-!! should be called.
-subroutine generalev(a,b,lam,n,w)
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, nid
-  use parallel, only : ifdblas
-  implicit none
-
-  integer, intent(in) :: n
-  real(DP), intent(inout) :: a(n,n), b(n,n)
-  real(DP), intent(out)   :: lam(n)
-  real(DP), intent(in) :: w(n,n) !>!< unused
-
-  real(DP) :: aa(100),bb(100)
-
-  integer, parameter :: lbw=4*lx1*ly1*lz1*lelv
-  real(DP), allocatable :: bw(:)
-
-  integer :: info, ninf, lw
-
-  allocate(bw(lbw))
-
-  lw = n*n
-!   write(6,*) 'in generalev, =',info,n,ninf
-
-  call copy(aa,a,100)
-  call copy(bb,b,100)
-
-  if (ifdblas) then
-      call dsygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
-  else
-      call ssygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
-  endif
-
-  if (info /= 0) then
-      if (nid == 0) then
-          call outmat2(aa ,n,n,n,'aa  ')
-          call outmat2(bb ,n,n,n,'bb  ')
-          call outmat2(a  ,n,n,n,'Aeig')
-          call outmat2(lam,1,n,n,'Deig')
-      endif
-
-      ninf = n-info
-      write(6,*) 'Error in generalev, info=',info,n,ninf
-      call exitt
-  endif
-
-  return
-end subroutine generalev
-
-!-----------------------------------------------------------------------
-subroutine outmat2(a,m,n,k,name)
-  use size_m, only : nid
-  use kinds, only : DP
-  implicit none
-  integer :: m,n,k
-  real(DP) :: a(m,n)
-  character(4) :: name
-  integer :: n2, i, j
-
-  n2 = min(n,8)
-  write(6,2) nid,name,m,n,k
-  do i=1,m
-      write(6,1) nid,name,(a(i,j),j=1,n2)
-  enddo
-!  1 format(i3,1x,a4,16f6.2)
-  1 format(i3,1x,a4,1p8e14.5)
-  2 format(/,'Matrix: ',i3,1x,a4,3i8)
-  return
-end subroutine outmat2
-
 !-----------------------------------------------------------------------

@@ -43,6 +43,26 @@ module hsmg_routines
   public :: h1mg_setup, h1mg_solve
   public :: hsmg_setup
 
+  interface hsmg_schwarz_dssum
+    module procedure hsmg_schwarz_dssum_dp, hsmg_schwarz_dssum_sp
+  end interface 
+
+  interface hsmg_dssum
+    module procedure hsmg_dssum_dp, hsmg_dssum_sp
+  end interface 
+
+  interface mg_mask_e
+    module procedure mg_mask_e_dp, mg_mask_e_sp
+  end interface
+
+  interface generalev
+    module procedure generalev_dp, generalev_sp
+  end interface
+
+  interface hsmg_coarse_solve
+    module procedure hsmg_coarse_solve_dp, hsmg_coarse_solve_sp
+  end interface
+
 contains
 
 !----------------------------------------------------------------------
@@ -109,11 +129,13 @@ end subroutine h1mg_setup
 !!
 !! Assumes that preprocessing has been completed via h1mg_setup()
 subroutine h1mg_solve(z,rhs,if_hybrid)  
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use size_m, only : lx1, ly1, lz1, lelt
+  use ds, only : dssum
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
   use ctimer, only : th1mg, nh1mg, h1mg_flop, h1mg_mop, dnekclock
+  use soln, only : vmult
   implicit none
 
   real(DP), intent(out) :: z(*)      !>!< approximate solution to A z = rhs
@@ -121,7 +143,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   logical,  intent(in)  :: if_hybrid !>!< Use hybrid or normal?
        
   integer, parameter :: lt=lx1*ly1*lz1*lelt
-  real(DP), allocatable :: e(:),w(:),r(:)
+  real(PP), allocatable :: e(:),w(:),r(:)
   integer :: p_msk
 
   real(DP) :: op, om, sigma
@@ -142,18 +164,23 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   l     = mg_h1_lmax
   n     = mg_h1_n(l,mg_fld)
   is    = 1                                       ! solve index
-  etime = etime - dnekclock()
-  call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M  rhs
-  etime = etime + dnekclock()
+  !etime = etime - dnekclock()
+  !call h1mg_schwarz(z,rhs,sigma,l)                ! z := sigma W M  rhs
+  !etime = etime + dnekclock()
 
   allocate(r(lt))
   h1mg_mop = h1mg_mop + 2*n
-  call copy(r,rhs,n)                              ! r  := rhs
+  r(1:n) = rhs(1:n)
+
+  allocate(e(2*lt)); e = 0._pp
+  h1mg_mop = h1mg_mop + 2*lt
+  etime = etime - dnekclock()
+  call h1mg_schwarz(e,r,sigma,l)                ! z := sigma W M  rhs
+  etime = etime + dnekclock()
+
 !max    if (if_hybrid) call h1mg_axm(r,z,op,om,l,w)     ! r  := rhs - A z
 !  l
 
-  h1mg_mop = h1mg_mop + 2*lt
-  allocate(e(2*lt)); e = 0_dp
   do l = mg_h1_lmax-1,2,-1                        ! DOWNWARD Leg of V-cycle
       is = is + n
       n  = mg_h1_n(l,mg_fld)
@@ -175,12 +202,15 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
 !  l         l+1
   p_msk = p_mg_msk(l,mg_fld)
   etime = etime - dnekclock()
-  call h1mg_mask(r,mg_imask(p_msk),nel)           !        -1
+
+  call h1mg_mask(r,mg_imask(p_msk:),nel)           !        -1
   call hsmg_coarse_solve ( e(is:is+mg_h1_n(1,mg_fld)-1) , r(1:mg_h1_n(1,mg_fld)) )            ! e  := A   r
-  call h1mg_mask(e(is),mg_imask(p_msk),nel)       !  1     1   1
+  call h1mg_mask(e(is),mg_imask(p_msk:),nel)       !  1     1   1
   etime = etime + dnekclock()
   deallocate(r)
 
+
+  !> \todo there are no syncs here, so transpose loop over elements.
   h1mg_mop = h1mg_mop + lt
   allocate(w(lt)); w = 0_dp
   do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
@@ -202,12 +232,16 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   call hsmg_intp(w,e(im),l-1)                     ! w   :=  J e
   h1mg_flop = h1mg_flop +   n
   h1mg_mop  = h1mg_mop  + 3*n
-  do i = 1,n                                      !            l-1
-      z(i) = z(i) + w(i)                           ! z := z + w
-  enddo
-  deallocate(w,e)
 
-  call dsavg(z) ! Emergency hack --- to ensure continuous z!
+  do i = 1,n                                      !            l-1
+      e(i) = e(i) + w(i)                           ! z := z + w
+  enddo
+  deallocate(w)
+
+  call dssum(e)
+  z(1:n) = e(1:n) * reshape(vmult, (/n/))
+  deallocate(e)
+  !call dsavg(z) ! Emergency hack --- to ensure continuous z!
 
   th1mg = th1mg + (dnekclock() - etime)
 
@@ -225,7 +259,7 @@ subroutine hsmg_setup_semhat
   use semhat, only : ah, bh, ch, dh, zh, dph, jph, bgl, zgl, dgl, jgl, wh
   implicit none
 
-  integer :: n,l
+  integer :: n,l, i
 !   generate the SEM hat matrices for each level
 !   top level
   n = mg_nx(mg_lmax)
@@ -237,12 +271,17 @@ subroutine hsmg_setup_semhat
   do l=1,mg_lmax-1
       n = mg_nx(l)
       if(n > 1) then
+
           call generate_semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
-          call copy(mg_ah(1,l),ah,(n+1)*(n+1))
-          call copy(mg_bh(1,l),bh,n+1)
-          call copy(mg_dh(1,l),dh,(n+1)*(n+1))
+          do i = 1, (n+1)*(n+1)
+            mg_ah(i, l) = ah(i)
+            mg_dh(i, l) = dh(i)
+          enddo
+          do i = 1, (n+1)
+            mg_zh(i, l) = zh(i)
+            mg_bh(i, l) = bh(i)
+          enddo
           call transpose(mg_dht(1,l),n+1,dh,n+1)
-          call copy(mg_zh(1,l),zh,n+1)
       else
           mg_zh(1,l) = -1.
           mg_zh(2,l) =  1.
@@ -267,7 +306,7 @@ subroutine hsmg_setup_intp
   !        Standard multigrid coarse-to-fine interpolation
       call hsmg_setup_intpm( &
       mg_jh(1,l),mg_zh(1,l+1),mg_zh(1,l),nf,nc)
-      call transpose(mg_jht(1,l),nc,mg_jh(1,l),nf)
+      mg_jht(1:nc*nf,l) = reshape(transpose(reshape(mg_jh(1:nc*nf,l), (/nf, nc/))), (/nc*nf/))
 
   !        Fine-to-coarse interpolation for variable-coefficient operators
 !      call hsmg_setup_intpm( &
@@ -280,11 +319,12 @@ end subroutine hsmg_setup_intp
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_intpm(jh,zf,zc,nf,nc)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use size_m, only : lx1
   implicit none
   integer :: nf,nc
-  real(DP) :: jh(nf,nc),zf(*),zc(*)
+  real(PP) :: jh(nf,nc)
+  real(DP) :: zf(*),zc(*)
   real(DP) :: w(2*lx1+2)
 
   integer :: i, j
@@ -301,6 +341,7 @@ end subroutine hsmg_setup_intpm
 subroutine hsmg_setup_dssum
   use kinds, only : i8
   use size_m, only : lx1, ly1, lz1, lelv, nelv, ndim
+  use ds, only : setupds
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
   use mesh, only : vertex
@@ -336,13 +377,13 @@ end subroutine hsmg_setup_dssum
 
 !----------------------------------------------------------------------
 subroutine h1mg_setup_wtmask
-  use kinds, only : DP
+  use kinds, only : PP
   use size_m, only : ndim, ldim, nelv, lelv
   use hsmg, only : mg_mask_index, mg_lmax, mg_rstr_wt_index, mg_nh, mg_nhz
   use hsmg, only : mg_fld, lmgs, lmg_rwt, mg_rstr_wt
   implicit none
 
-  real(DP), allocatable :: work(:)
+  real(PP), allocatable :: work(:)
   integer :: i,l, itmp
 
   allocate(work(maxval(mg_nh(1:mg_lmax))*maxval(mg_nh(1:mg_lmax))*maxval(mg_nhz(1:mg_lmax))* nelv))
@@ -368,18 +409,18 @@ end subroutine h1mg_setup_wtmask
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_wtmask
-  use kinds, only : DP
+  use kinds, only : PP
   use size_m, only : ndim, ldim, nelv, lelv
   use hsmg, only : mg_mask_index, mg_lmax, mg_rstr_wt_index, mg_nh, mg_nhz
   use hsmg, only : lmgs, lmg_rwt, mg_rstr_wt, mg_fld
   implicit none
 
-  real(DP), allocatable :: work(:)
+  real(PP), allocatable :: work(:)
   integer :: i,l, itmp
 
-  allocate(work(maxval(mg_nh(1:mg_lmax-1)) &
-               *maxval(mg_nh(1:mg_lmax-1)) &
-               *maxval(mg_nhz(1:mg_lmax-1))* nelv))
+  allocate(work(maxval(mg_nh(1:mg_lmax)) &
+               *maxval(mg_nh(1:mg_lmax)) &
+               *maxval(mg_nhz(1:mg_lmax))* nelv))
 
   i = mg_mask_index(mg_lmax,mg_fld-1)
   do l=1,mg_lmax-1
@@ -401,10 +442,10 @@ end subroutine hsmg_setup_wtmask
 
 !----------------------------------------------------------------------
 subroutine hsmg_intp(uf,uc,l) ! l is coarse level
-  use kinds, only : DP
+  use kinds, only : PP
   use hsmg, only : mg_nh, mg_jh, mg_jht
   implicit none
-  real(DP) :: uf(*),uc(*)
+  real(PP) :: uf(*),uc(*)
   integer :: l
   call hsmg_tnsr(uf,mg_nh(l+1),uc,mg_nh(l),mg_jh(1,l),mg_jht(1,l))
   return
@@ -413,14 +454,15 @@ end subroutine hsmg_intp
 !----------------------------------------------------------------------
 !> \brief     computes v = [A (x) A] u or v = [A (x) A (x) A] u
 subroutine hsmg_tnsr(v,nv,u,nu,A,At)
-  use kinds, only : DP
+  use kinds, only : PP
   use size_m, only : nelv
+  use math, only : tensor_product_multiply
   use ctimer, only : h1mg_flop, h1mg_mop
   implicit none
 
   integer :: nv,nu
-  real(DP) :: v(nv*nv*nv,*),u(nu*nu*nu,*),A(*),At(*)
-  real(DP) :: work(nu*nu*nv),work2(nu*nv*nv)
+  real(PP) :: v(nv*nv*nv,*),u(nu*nu*nu,*),A(*),At(*)
+  real(PP) :: work(nu*nu*nv),work2(nu*nv*nv)
 
   integer :: ie
 
@@ -430,14 +472,14 @@ subroutine hsmg_tnsr(v,nv,u,nu,A,At)
   h1mg_mop  = h1mg_mop + nv**3 + nu**3
 
   do ie=1,nelv
-    call tensor_product_multiply(u(1,ie), nu, v(1,ie), nv, A, At, At, work, work2)
+    call tensor_product_multiply(u(:,ie), nu, v(:,ie), nv, A, At, At, work, work2)
   enddo
 
   return
 end subroutine hsmg_tnsr
 
 !----------------------------------------------------------------------
-subroutine hsmg_dssum(u,l)
+subroutine hsmg_dssum_dp(u,l)
   use kinds, only : DP
   use ctimer, only : dnekclock, etime1, tdadd, ifsync
   use hsmg, only : mg_gsh_handle, mg_fld
@@ -455,7 +497,28 @@ subroutine hsmg_dssum(u,l)
 #endif
 
   return
-end subroutine hsmg_dssum
+end subroutine hsmg_dssum_dp
+!----------------------------------------------------------------------
+subroutine hsmg_dssum_sp(u,l)
+  use kinds, only : SP
+  use ctimer, only : dnekclock, etime1, tdadd, ifsync
+  use hsmg, only : mg_gsh_handle, mg_fld
+  implicit none
+  real(SP) :: u(*)
+  integer :: l
+
+  if (ifsync) call nekgsync()
+#ifndef NOTIMER
+  etime1=dnekclock()
+#endif
+  call gs_op(mg_gsh_handle(l,mg_fld),u,4,1,0)
+#ifndef NOTIMER
+  tdadd =tdadd + dnekclock()-etime1
+#endif
+
+  return
+end subroutine hsmg_dssum_sp
+
 
 !----------------------------------------------------------------------
 subroutine hsmg_dsprod(u,l)
@@ -473,12 +536,12 @@ subroutine hsmg_dsprod(u,l)
 end subroutine hsmg_dsprod
 
 !----------------------------------------------------------------------
-subroutine hsmg_schwarz_dssum(u,l)
+subroutine hsmg_schwarz_dssum_dp(u,l)
   use kinds, only : DP
   use ctimer, only : ifsync, etime1, dnekclock, tdadd
   use hsmg, only : mg_gsh_schwarz_handle, mg_fld
   implicit none
-  real(DP) :: u(1)
+  real(DP) :: u(*)
   integer :: l
 
   if (ifsync) call nekgsync()
@@ -490,17 +553,38 @@ subroutine hsmg_schwarz_dssum(u,l)
   tdadd =tdadd + dnekclock()-etime1
 #endif
   return
-end subroutine hsmg_schwarz_dssum
+end subroutine hsmg_schwarz_dssum_dp
+
+subroutine hsmg_schwarz_dssum_sp(u,l)
+  use kinds, only : SP
+  use ctimer, only : ifsync, etime1, dnekclock, tdadd
+  use hsmg, only : mg_gsh_schwarz_handle, mg_fld
+  implicit none
+  real(SP) :: u(*)
+  integer :: l
+
+  if (ifsync) call nekgsync()
+#ifndef NOTIMER
+  etime1=dnekclock()
+#endif
+  call gs_op(mg_gsh_schwarz_handle(l,mg_fld),u,4,1,0)
+#ifndef NOTIMER
+  tdadd =tdadd + dnekclock()-etime1
+#endif
+  return
+end subroutine hsmg_schwarz_dssum_sp
+
+!
 
 !----------------------------------------------------------------------
 subroutine hsmg_extrude(arr1,l1,f1,arr2,l2,f2,nx,ny,nz)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use size_m, only : nelv
   use ctimer, only : schw_flop, schw_mop
   implicit none
 
   integer :: l1,l2,nx,ny,nz
-  real(DP) :: arr1(nx,ny,nz,nelv),arr2(nx,ny,nz,nelv)
+  real(PP) :: arr1(nx,ny,nz,nelv),arr2(nx,ny,nz,nelv)
   real(DP) :: f1,f2
         
   integer :: i,j,k,ie,i0,i1
@@ -544,13 +628,14 @@ end subroutine hsmg_extrude
 
 !----------------------------------------------------------------------
 subroutine h1mg_schwarz(e,r,sigma,l)
-  use kinds, only : DP
+  use kinds, only : PP, DP
   use size_m, only : nelv
   use hsmg, only : mg_h1_n, mg_fld, mg_nh, mg_imask, p_mg_msk
   use ctimer, only : tschw, nschw, schw_flop, schw_mop, dnekclock
   implicit none
 
-  real(DP) :: e(*),r(*)
+  real(PP) :: r(*)
+  real(PP), intent(out) :: e(*)
   real(DP), intent(in) :: sigma
   integer :: l, n, ie, nn, im, pm
   real(DP) :: etime
@@ -563,13 +648,12 @@ subroutine h1mg_schwarz(e,r,sigma,l)
   !call hpm_start('schwarz')
   etime = dnekclock()
 
-
   call h1mg_schwarz_part1 (e,r,l)
   
   pm = p_mg_msk(l,mg_fld)
   do ie = 1, nelv
     im = mg_imask(pm+ie-1)
-    call mg_mask_e(e, mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
+    call mg_mask_e(e, mg_imask(pm+im-1:)) ! Zero out Dirichlet conditions
 
     call hsmg_schwarz_wt    (e,l, ie)          ! e  := W e
     e(1+(ie-1)*nn:ie*nn) = e(1+(ie-1)*nn:ie*nn) * sigma
@@ -583,7 +667,7 @@ end subroutine h1mg_schwarz
 
 !----------------------------------------------------------------------
 subroutine h1mg_schwarz_part1 (e,r,l)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use size_m, only : nelv
   use hsmg, only : mg_h1_n, p_mg_msk, mg_imask, mg_nh, mg_fld
 
@@ -593,20 +677,16 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   use tstep, only : ifield, nelfld
   implicit none
 
-  real(DP) :: e(*),r(*)
+  real(PP), intent(inout) :: r(*)
+  real(PP), intent(out)   :: e(*)
   real(DP) :: etime
 
   integer :: enx,eny,enz,pm, n, l
-  real(DP) :: zero, one, onem
-  real(DP), allocatable :: w1(:,:,:,:), w2(:,:,:,:)
-  real(DP), allocatable :: w3(:,:,:), w4(:,:,:)
+  real(PP), allocatable :: w1(:,:,:,:), w2(:,:,:,:)
+  real(PP), allocatable :: w3(:,:,:), w4(:,:,:)
   integer :: i,j,k,ie, im
 
   etime = 0._dp
-
-  zero =  0
-  one  =  1
-  onem = -1
 
   n  = mg_h1_n (l,mg_fld)
   pm = p_mg_msk(l,mg_fld)
@@ -616,18 +696,13 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   enz=mg_nh(l)+2
 
   allocate(w1(enx,eny,enz,nelv),w2(enx,eny,enz,nelv))
-  allocate(w3(enx,eny,enz),w4(enx,eny,enz))
-
-
-  !call h1mg_mask  (r,mg_imask(pm),nelfld(ifield))  ! Zero Dirichlet nodes
-
 
   schw_mop  = schw_mop  + nelv * ((enx-2)**3  + enx**3)
 
   do ie=1,nelv
 
       im = mg_imask(pm+ie-1)
-      call mg_mask_e(r,mg_imask(pm+im-1)) ! Zero out Dirichlet conditions
+      call mg_mask_e(r,mg_imask(pm+im-1:)) ! Zero out Dirichlet conditions
 
       w1(:,:,1,ie) = 0._dp
       do k = 0, enz-3
@@ -667,11 +742,12 @@ subroutine h1mg_schwarz_part1 (e,r,l)
       enddo
   enddo
 
-  call hsmg_schwarz_dssum(w1,l)
+  call hsmg_schwarz_dssum(w1(:,1,1,1),l)
 
   schw_flop = schw_flop + 2*nelv * 3 * (enx-2)**2 * 6
   schw_mop  = schw_mop  + 2*nelv * 3 * (enx-2)**2 * 6
 
+  allocate(w3(enx,eny,enz),w4(enx,eny,enz))
   do ie=1,nelv
       do j=2,eny-1
           do i=2,enx-1
@@ -732,8 +808,9 @@ subroutine h1mg_schwarz_part1 (e,r,l)
           enddo
       enddo
   enddo
+  deallocate(w3,w4)
 
-  call hsmg_schwarz_dssum(w2,l)
+  call hsmg_schwarz_dssum(w2(:,1,1,1),l)
 
   schw_flop = schw_flop + nelv * (6*2*(enx-2)**2)
   schw_mop  = schw_mop  + nelv * ((enx-2)**3 + enx**3 + 6*(enx-2)**2)
@@ -775,20 +852,18 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 
   call hsmg_dssum(e,l)                           ! sum border nodes
 
-
-
   return
 end subroutine h1mg_schwarz_part1
 
 !----------------------------------------------------------------------
 subroutine hsmg_schwarz_toreg3d(b,a,n)
-  use kinds, only : DP
+  use kinds, only : PP
   use ctimer, only : schw_mop
   use size_m, only : nelv
   implicit none
 
   integer :: n
-  real(DP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
+  real(PP) :: a(0:n+1,0:n+1,0:n+1,nelv),b(n,n,n,nelv)
         
   integer :: i,j,k,ie
   !schw_mop = schw_mop + nelv*n**3 + nelv * (n+2)**3
@@ -882,15 +957,15 @@ end subroutine hsmg_setup_fdm
 !----------------------------------------------------------------------
 !> \brief not sure    
 subroutine hsmg_setup_fast(s,d,nl,ah,bh,n)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use hsmg, only : lr, llr, lrr, lmr, ls, lls, lms, lrs, lt, llt, lmt, lrt
   use size_m, only : nid, ndim, nelv
   implicit none
 
   integer :: nl
-  real(DP) :: s(nl*nl,2,ndim,nelv)
-  real(DP) :: d(nl**ndim,nelv)
-  real(DP) :: ah(1),bh(1)
+  real(PP) :: s(nl*nl,2,ndim,nelv)
+  real(PP) :: d(nl**ndim,nelv)
+  real(PP) :: ah(1),bh(1)
   integer :: n
       
   integer :: i,j,k
@@ -945,39 +1020,42 @@ end subroutine hsmg_setup_fast
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_fast1d(s,lam,nl,lbc,rbc,ll,lm,lr,ah,bh,n,ie)
-  use kinds, only : DP          
+  use kinds, only : DP, PP
   use size_m, only : lx1
   implicit none
 
   integer :: nl,lbc,rbc,n, ie
-  real(DP) :: s(nl,nl,2),lam(nl),ll,lm,lr
-  real(DP) :: ah(0:n,0:n),bh(0:n)
+  real(PP) :: s(nl,nl,2)
+  real(PP) :: lam(nl)
+  real(DP) :: ll,lm,lr
+  real(PP) :: ah(0:n,0:n),bh(0:n)
 
   integer, parameter :: lxm=lx1+2
-  real(DP) :: b(2*lxm*lxm),w(2*lxm*lxm)
+  real(PP) :: b(lxm, lxm, 2)
         
   call hsmg_setup_fast1d_a(s,lbc,rbc,ll,lm,lr,ah,n)
   call hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
           
 !   if (nid.eq.0) write(6,*) 'THIS is generalev call',nl,lbc
-  call generalev(s,b,lam,nl,w)
+  call generalev(s(:,:,1),b(:,:,1),lam,nl)
   if(lbc > 0) call row_zero(s,nl,nl,1)
   if(lbc == 1) call row_zero(s,nl,nl,2)
   if(rbc > 0) call row_zero(s,nl,nl,nl)
   if(rbc == 1) call row_zero(s,nl,nl,nl-1)
         
-  call transpose(s(1,1,2),nl,s,nl)
+  s(:,:,2) =  transpose(s(:,:,1))
   return
 end subroutine hsmg_setup_fast1d
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_fast1d_a(a,lbc,rbc,ll,lm,lr,ah,n)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   implicit none
 
   integer :: lbc,rbc,n
-  real(DP) :: a(0:n+2,0:n+2),ll,lm,lr
-  real(DP) :: ah(0:n,0:n)
+  real(PP) :: a(0:n+2,0:n+2)
+  real(DP) :: ll,lm,lr
+  real(PP) :: ah(0:n,0:n)
         
   real(DP) :: fac
   integer :: i,j,i0,i1
@@ -1018,12 +1096,13 @@ end subroutine hsmg_setup_fast1d_a
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_fast1d_b(b,lbc,rbc,ll,lm,lr,bh,n)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   implicit none
 
   integer :: lbc,rbc,n
-  real(DP) :: b(0:n+2,0:n+2),ll,lm,lr
-  real(DP) :: bh(0:n)
+  real(PP) :: b(0:n+2,0:n+2)
+  real(DP) :: ll,lm,lr
+  real(PP) :: bh(0:n)
         
   real(DP) :: fac
   integer :: i,i0,i1
@@ -1059,14 +1138,14 @@ end subroutine hsmg_setup_fast1d_b
 !----------------------------------------------------------------------
 !> \brief u = wt .* u
 subroutine hsmg_do_wt(u,wt,nx,ny,nz)
-  use kinds, only : DP
+  use kinds, only : PP
   use size_m, only : nelv, ndim
   use ctimer, only : h1mg_flop, h1mg_mop
   implicit none
 
   integer :: nx,ny,nz
-  real(DP) :: u(nx,ny,nz,nelv)
-  real(DP) :: wt(nx,nz,2,ndim,nelv)
+  real(PP) :: u(nx,ny,nz,nelv)
+  real(PP) :: wt(nx,nz,2,ndim,nelv)
         
   integer :: i, j, k, ie
 
@@ -1112,17 +1191,17 @@ end subroutine hsmg_do_wt
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
-  use kinds, only : DP
+  use kinds, only : PP
   use size_m, only : nelv, ndim
   implicit none
 
   integer, intent(in) :: nx,ny,nz,l
-  real(DP), intent(out) :: w(nx,ny,nz,nelv)
-  real(DP), intent(out) :: wt(nx,nz,2,ndim,nelv)
+  real(PP), intent(out) :: w(nx,ny,nz,nelv)
+  real(PP), intent(out) :: wt(nx,nz,2,ndim,nelv)
         
   integer :: ie, i, j, k
 ! nit border nodes to 1
-  w = 0._dp
+  w = 0._pp
 !     print *, 'Setup rstr wt: ',nx,ny,nz,nelv
       do ie=1,nelv
           do j=1,ny
@@ -1144,7 +1223,7 @@ subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
               enddo
           enddo
       enddo
-  call hsmg_dssum(w,l)
+  call hsmg_dssum(w(:,1,1,1),l)
 ! nvert the count w to get the weight wt
       do ie=1,nelv
           do k=1,nz
@@ -1238,10 +1317,10 @@ end subroutine h1mg_setup_schwarz_wt
 
 !----------------------------------------------------------------------
 subroutine hsmg_schwarz_wt(e,l, ie)
-  use kinds, only : DP
+  use kinds, only : PP
   use hsmg, only : mg_schwarz_wt, mg_schwarz_wt_index, mg_fld, mg_nh
   implicit none
-  real(DP) :: e(*)
+  real(PP) :: e(*)
   integer :: l, ie
           
   call hsmg_schwarz_wt3d( &
@@ -1251,14 +1330,14 @@ end subroutine hsmg_schwarz_wt
 
 !----------------------------------------------------------------------
 subroutine hsmg_schwarz_wt3d(e,wt,n, ie)
-  use kinds, only : DP
+  use kinds, only : PP
   use size_m, only : nelv
   use ctimer, only : schw_flop, schw_mop
   implicit none
 
   integer :: n, ie
-  real(DP) :: e(n,n,n,nelv)
-  real(DP) :: wt(n,n,4,3,nelv)
+  real(PP) :: e(n,n,n,nelv)
+  real(PP) :: wt(n,n,4,3,nelv)
   integer :: j,k
 
   schw_flop = schw_flop +  4*n*n +  4*n*(n-4) +  4*(n-4)*(n-4)
@@ -1286,8 +1365,9 @@ subroutine hsmg_schwarz_wt3d(e,wt,n, ie)
 end subroutine hsmg_schwarz_wt3d
 
 !----------------------------------------------------------------------
-subroutine hsmg_coarse_solve(e,r)
+subroutine hsmg_coarse_solve_dp(e,r)
   use kinds, only : DP
+  use size_m, only : nelv
   use ctimer, only : icalld, ncrsl, tcrsl, ifsync, etime1, dnekclock
   use parallel, only : nid, xxth
   use tstep, only : ifield
@@ -1310,7 +1390,6 @@ subroutine hsmg_coarse_solve(e,r)
   etime1=dnekclock()
 #endif
 
-!  call spectral_solve(e, r)!, 0,0,0, 0, 0)
   if (coarse_grid_solve == 0) then
     call crs_solve_xxt(xxth(ifield),e,r)
   else if (coarse_grid_solve == 1) then
@@ -1327,7 +1406,58 @@ subroutine hsmg_coarse_solve(e,r)
 #endif
 
   return
-end subroutine hsmg_coarse_solve
+end subroutine hsmg_coarse_solve_dp
+!----------------------------------------------------------------------
+subroutine hsmg_coarse_solve_sp(e,r)
+  use kinds, only : SP, DP
+  use size_m, only : nelv
+  use ctimer, only : icalld, ncrsl, tcrsl, ifsync, etime1, dnekclock
+  use parallel, only : nid, xxth
+  use tstep, only : ifield
+  use input, only : coarse_grid_solve
+  use poisson, only : spectral_solve
+ 
+  implicit none
+  real(SP) :: e(:),r(:)
+  real(DP), allocatable :: tmp_e(:), tmp_r(:)
+
+  if (icalld == 0) then ! timer info
+      ncrsl=0
+      tcrsl=0.0
+  endif
+  icalld = 1
+
+  if (ifsync) call nekgsync()
+
+  ncrsl  = ncrsl  + 1
+#ifndef NOTIMER
+  etime1=dnekclock()
+#endif
+
+  allocate(tmp_e(8*nelv), tmp_r(8*nelv))
+  tmp_r(1:8*nelv) = r(1:8*nelv)
+
+  if (coarse_grid_solve == 0) then
+    call crs_solve_xxt(xxth(ifield),tmp_e,tmp_r)
+  else if (coarse_grid_solve == 1) then
+    call spectral_solve(tmp_e, tmp_r)!, 0,0,0, 0, 0)
+  else if (coarse_grid_solve == 2) then
+    call crs_solve_amg(xxth(ifield),tmp_e,tmp_r)
+  else
+    if (nid == 0) write(*,*) "ERROR: invalid coarse grid solve in .rea"
+    call exitt 
+  endif
+
+  e(1:8*nelv) = tmp_e(1:8*nelv)
+  deallocate(tmp_e, tmp_r)
+
+#ifndef NOTIMER
+  tcrsl=tcrsl+dnekclock()-etime1
+#endif
+
+  return
+end subroutine hsmg_coarse_solve_sp
+
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_solve
@@ -1425,12 +1555,12 @@ end subroutine hsmg_index_0
 
 !-----------------------------------------------------------------------
 subroutine h1mg_mask(w,mask,nel)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use ctimer, only : nmg_mask, tmg_mask, dnekclock
   implicit none
 
-  real(DP) ::  w(*)
-  integer :: mask(*)        ! Pointer to Dirichlet BCs
+  real(PP) ::  w(*)
+  integer :: mask(:)        ! Pointer to Dirichlet BCs
   integer :: nel
   real(DP) :: etime
 
@@ -1440,7 +1570,7 @@ subroutine h1mg_mask(w,mask,nel)
   etime = dnekclock() 
   do e=1,nel
       im = mask(e)
-      call mg_mask_e(w,mask(im)) ! Zero out Dirichlet conditions
+      call mg_mask_e(w,mask(im:)) ! Zero out Dirichlet conditions
   enddo
   tmg_mask = tmg_mask + (dnekclock() - etime)
 
@@ -1448,7 +1578,7 @@ subroutine h1mg_mask(w,mask,nel)
 end subroutine h1mg_mask
 
 !----------------------------------------------------------------------
-subroutine mg_mask_e(w,mask) ! Zero out Dirichlet conditions
+subroutine mg_mask_e_dp(w,mask) ! Zero out Dirichlet conditions
   use kinds, only : DP
   implicit none
 
@@ -1462,19 +1592,36 @@ subroutine mg_mask_e(w,mask) ! Zero out Dirichlet conditions
   enddo
 
   return
-end subroutine mg_mask_e
+end subroutine mg_mask_e_dp
+
+subroutine mg_mask_e_sp(w,mask) ! Zero out Dirichlet conditions
+  use kinds, only : SP
+  implicit none
+
+  real(SP) :: w(*)
+  integer :: mask(0:*)
+  integer :: n, i
+  n=mask(0)
+  do i=1,n
+  !        write(6,*) i,mask(i),n,' MG_MASK'
+      w(mask(i)) = 0.
+  enddo
+
+  return
+end subroutine mg_mask_e_sp
 
 !-----------------------------------------------------------------------
 !> \brief compute  v = [A (x) A] u  or  v = [A (x) A (x) A] u
 subroutine hsmg_tnsr1(v,nv,nu,A,At)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use size_m, only : lx1, ly1, lz1, nelv
+  use math, only : tensor_product_multiply
   use ctimer, only : h1mg_flop, h1mg_mop
   implicit none
 
   integer :: nv,nu
-  real(DP) :: v(*),A(*),At(*)
-  real(DP) :: work1(0:nu*nu*nv),work2(0:nu*nv*nv)
+  real(PP) :: v(*),A(*),At(*)
+  real(PP) :: work1(0:nu*nu*nv),work2(0:nu*nv*nv)
   integer :: e,e0,ee,es
   integer :: nu3, nv3, iu, iv, i
 
@@ -1499,7 +1646,7 @@ subroutine hsmg_tnsr1(v,nv,nu,A,At)
   do e=e0,ee,es
       iu = 1 + (e-1)*nu3
       iv = 1 + (e-1)*nv3
-      call tensor_product_multiply(v(iu), nu, v(iv), nv, A, At, At, work1, work2)
+      call tensor_product_multiply(v(iu:iu+nu3-1), nu, v(iv:iv+nv3-1), nv, A, At, At, work1, work2)
   enddo
 
   return
@@ -1508,12 +1655,12 @@ end subroutine hsmg_tnsr1
 !------------------------------------------   T  -----------------------
 !> \brief r =J r,   l is coarse level
 subroutine h1mg_rstr(r,l,ifdssum) 
-  use kinds, only : DP
+  use kinds, only : PP
   use hsmg, only : mg_rstr_wt, mg_rstr_wt_index, mg_nh, mg_nhz, mg_jht
   use hsmg, only : mg_jh, mg_fld
   implicit none
   logical :: ifdssum
-  real(DP) :: r(1)
+  real(PP) :: r(1)
   integer :: l
 
   call hsmg_do_wt(r,mg_rstr_wt(mg_rstr_wt_index(l+1,mg_fld)) &
@@ -1592,16 +1739,20 @@ subroutine h1mg_setup_semhat
   use semhat, only : ah, bh, ch, dh, zh, dph, jph, bgl, zgl, dgl, jgl, wh
   implicit none
 
-  integer :: l, n
+  integer :: l, n, i
 
   do l=1,mg_h1_lmax
       n = mg_nx(l)     ! polynomial order
       call generate_semhat(ah,bh,ch,dh,zh,dph,jph,bgl,zgl,dgl,jgl,n,wh)
-      call copy(mg_ah(1,l),ah,(n+1)*(n+1))
-      call copy(mg_bh(1,l),bh,n+1)
-      call copy(mg_dh(1,l),dh,(n+1)*(n+1))
+      do i = 1, (n+1)*(n+1)
+        mg_ah(i, l) = ah(i)
+        mg_dh(i, l) = dh(i)
+      enddo
+      do i = 1, n+1
+        mg_bh(i, l) = bh(i)
+        mg_zh(i, l) = zh(i)
+      enddo
       call transpose(mg_dht(1,l),n+1,dh,n+1)
-      call copy(mg_zh(1,l),zh,n+1)
 
       mg_nh(l)=n+1
       mg_nhz(l)=mg_nz(l)+1
@@ -1613,6 +1764,7 @@ end subroutine h1mg_setup_semhat
 subroutine h1mg_setup_dssum
   use kinds, only : i8
   use size_m, only : lx1, ly1, lz1, lelt, nelv, ndim
+  use ds, only : setupds
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
   use mesh, only : vertex
@@ -1773,10 +1925,10 @@ end subroutine h1mg_setup_mask
 
 !-----------------------------------------------------------------------
 subroutine h1mg_setup_schwarz_wt_2(wt,ie,n,work,ifsqrt)
-  use kinds, only : DP
+  use kinds, only : PP
   use size_m, only : ndim
   implicit none
-  real(DP) :: wt(1),work(1)
+  real(PP) :: wt(1),work(1)
   integer :: ie, n
   logical :: ifsqrt
 
@@ -1788,14 +1940,14 @@ end subroutine h1mg_setup_schwarz_wt_2
 
 !----------------------------------------------------------------------
 subroutine h1mg_setup_schwarz_wt3d_2(wt,ie,n,work,ifsqrt)
-  use kinds, only : DP
+  use kinds, only : PP
   use size_m, only : nelv
   implicit none
 
   logical :: ifsqrt
   integer :: ie, n
-  real(DP) :: wt(n,n,4,3,nelv)
-  real(DP) :: work(n,n,n)
+  real(PP) :: wt(n,n,4,3,nelv)
+  real(PP) :: work(n,n,n)
         
   integer :: i,j,k, ii, ierr
 
@@ -1841,18 +1993,18 @@ end subroutine h1mg_setup_schwarz_wt3d_2
 
 !----------------------------------------------------------------------
 subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
-  use kinds, only : DP
+  use kinds, only : PP, DP
   use hsmg, only : mg_h1_n, p_mg_msk, mg_nh, mg_fld
   use tstep, only : ifield, nelfld
   implicit none
 
-  real(DP) :: wt(1)
+  real(PP) :: wt(1)
   integer :: l
   logical :: ifsqrt
 
   integer :: enx,eny,enz,pm, n, ns, i, nx, ny, nz, nxyz, k, ie
   real(DP) :: zero, one, onem
-  real(DP), allocatable :: work(:)
+  real(PP), allocatable :: work(:)
 
   zero =  0
   one  =  1
@@ -1868,11 +2020,11 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
   i  = ns+1
 
   allocate(work(2*ns))
-  work(1:ns) = 0._dp; work(i:i+ns-1) = 1._dp
+  work(1:ns) = 0._pp; work(i:i+ns-1) = 1._pp
    
 !   Sum overlap region (border excluded)
   call hsmg_extrude(work,0,zero,work(i),0,one ,enx,eny,enz)
-  call hsmg_schwarz_dssum(work(i),l)
+  call hsmg_schwarz_dssum(work(i:),l)
   call hsmg_extrude(work(i),0,one ,work,0,onem,enx,eny,enz)
   call hsmg_extrude(work(i),2,one, work(i),0,one,enx,eny,enz)
 
@@ -1895,6 +2047,70 @@ subroutine h1mg_setup_schwarz_wt_1(wt,l,ifsqrt)
 
   return
 end subroutine h1mg_setup_schwarz_wt_1
+!-----------------------------------------------------------------------
+!> \brief Solve the generalized eigenvalue problem  A x = lam B x
+!!
+!! A -- symm.
+!! B -- symm., pos. definite
+!!
+!! "SIZE" is included here only to deduce WDSIZE, the working
+!! precision, in bytes, so as to know whether dsygv or ssygv
+!! should be called.
+subroutine generalev_dp(a,b,lam,n)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv, nid
+  implicit none
+
+  integer, intent(in) :: n
+  real(DP), intent(inout) :: a(n,n), b(n,n)
+  real(DP), intent(out)   :: lam(n)
+
+  integer, parameter :: lbw=4*lx1*ly1*lz1*lelv
+  real(DP), allocatable :: bw(:)
+
+  integer :: info, ninf
+
+  allocate(bw(lbw))
+
+
+  call dsygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
+
+  if (info /= 0) then
+      ninf = n-info
+      write(6,*) 'Error in generalev, info=',info,n,ninf
+      call exitt
+  endif
+
+  return
+end subroutine generalev_dp
+subroutine generalev_sp(a,b,lam,n)
+  use kinds, only : SP
+  use size_m, only : lx1, ly1, lz1, lelv, nid
+  implicit none
+
+  integer, intent(in) :: n
+  real(SP), intent(inout) :: a(n,n), b(n,n)
+  real(SP), intent(out)   :: lam(n)
+
+  integer, parameter :: lbw=4*lx1*ly1*lz1*lelv
+  real(SP), allocatable :: bw(:)
+
+  integer :: info, ninf
+
+  allocate(bw(lbw))
+
+
+  call ssygv(1,'V','U',n,a,n,b,n,lam,bw,lbw,info)
+
+  if (info /= 0) then
+      ninf = n-info
+      write(6,*) 'Error in generalev, info=',info,n,ninf
+      call exitt
+  endif
+
+  return
+end subroutine generalev_sp
+
 
 !----------------------------------------------------------------------
 end module hsmg_routines

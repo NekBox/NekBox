@@ -5,6 +5,7 @@
 !> \brief w = A*x for pressure iteration
 subroutine ax(w,x,h1,h2,n)
   use kinds, only : DP
+  use ds, only : dssum
   use soln, only : pmask
   implicit none
 

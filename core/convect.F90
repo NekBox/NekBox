@@ -55,6 +55,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   use ctimer, only : tscn, dnekclock, conv_flop, conv_mop
   use interp, only : jgl, jgt, dgl, dgt
   use interp, only : get_int_ptr, get_dgl_ptr
+  use math, only : tensor_product_multiply
   implicit none
 
   real(DP) :: bdu(*),u(*),cx(*),cy(*),cz(*)
@@ -104,12 +105,12 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
     call copy(tr(1,2),cy(ic),nxyzd)
     call copy(tr(1,3),cz(ic),nxyzd)
 
-    call tensor_product_multiply(u(iu), nx1, uf, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
+    call tensor_product_multiply(u(iu:iu+nxyzu-1), nx1, uf(:), nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
     call local_grad3(ur,us,ut,uf,nxd-1,dgl(iptr2),dgt(iptr2))
     do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
         uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
     enddo
-    call tensor_product_multiply(uf, nxd, bdu(ib), nx1, jgt(iptr), jgl(iptr), jgl(iptr), w1, w2)
+    call tensor_product_multiply(uf(:), nxd, bdu(ib:ib+nxyz1-1), nx1, jgt(iptr:), jgl(iptr:), jgl(iptr:), w1, w2)
 
     ic = ic + nxyzc
     iu = iu + nxyzu
@@ -133,7 +134,7 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   use ctimer, only : tscn, nscn, dnekclock, conv_mop, conv_flop
   use interp, only : jgl, jgt
   use interp, only : get_int_ptr
-
+  use math, only : tensor_product_multiply
   implicit none
 
   integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
@@ -169,9 +170,9 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   !      Map coarse velocity to fine mesh (C-->F)
 #ifdef INLINE_INTP
-    call tensor_product_multiply(ux(1,e), nx1, fx, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
-    call tensor_product_multiply(uy(1,e), nx1, fy, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
-    call tensor_product_multiply(uz(1,e), nx1, fz, nxd, jgl(iptr), jgt(iptr), jgt(iptr), w2, w1)
+    call tensor_product_multiply(ux(:,e), nx1, fx, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
+    call tensor_product_multiply(uy(:,e), nx1, fy, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
+    call tensor_product_multiply(uz(:,e), nx1, fz, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
 #else
     call intp_rstd(fx,ux(1,e),nx1,nxd,.true.,0) ! 0 --> forward
     call intp_rstd(fy,uy(1,e),nx1,nxd,.true.,0) ! 0 --> forward

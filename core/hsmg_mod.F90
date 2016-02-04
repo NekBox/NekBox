@@ -46,7 +46,7 @@ module hsmg
   real(DP), allocatable :: mg_rstr_wt(:) !restriction wt
 !  real(DP), allocatable :: mg_mask(:) !b.c. mask (Max: might not be used)
   real(PP), allocatable :: mg_fast_s(:), mg_fast_d(:)
-  real(DP), allocatable :: mg_schwarz_wt(:)
+  real(PP), allocatable :: mg_schwarz_wt(:)
   real(DP), allocatable :: mg_solve_e(:), mg_solve_r(:)
   real(DP), allocatable, dimension(:) :: mg_h1,mg_h2,mg_b
   real(DP), allocatable :: mg_g(:) ! metrics matrices

@@ -937,6 +937,7 @@ end subroutine lagmass
 subroutine setinvm()
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, nelt, nfield
+  use ds, only : dssum
   use input, only : ifflow, ifheat, iftmsh
   use geom, only : bm1, binvm1, bintm1
   use tstep, only : ifield
@@ -952,7 +953,7 @@ subroutine setinvm()
       IFIELD = 1
       NTOT   = NXYZ1*NELV
       CALL COPY    (BINVM1,BM1,NTOT)
-      CALL DSSUM   (BINVM1)
+      CALL DSSUM   (BINVM1(:,1,1,1))
       binvm1 = 1._dp / binvm1 
   ENDIF
 
@@ -965,7 +966,7 @@ subroutine setinvm()
       IFIELD = 2
       NTOT   = NXYZ1*NELT
       CALL COPY    (BINTM1,BM1,NTOT)
-      CALL DSSUM   (BINTM1)
+      CALL DSSUM   (BINTM1(:,1,1,1))
       bintm1 = 1._dp / bintm1
   ENDIF
 

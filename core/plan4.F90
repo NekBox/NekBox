@@ -20,6 +20,7 @@ subroutine plan4()
   use ctimer, only : icalld, tpres, npres, etime1, dnekclock
   use ctimer, only : np4misc, tp4misc
   use ctimer, only : othr_flop, othr_mop
+  use ds, only : dssum
   use geom, only : binvm1, bm1, volvm1
   use helmholtz, only : hsolve, approx_space, init_approx_space
   use soln, only : vx, vy, vz, v1mask, v2mask, v3mask
@@ -166,7 +167,7 @@ subroutine plan4()
     ! Calculate Divergence norms of new VX,VY,VZ
     allocate(dvc(lx1,ly1,lz1,lelv), dfc(lx1,ly1,lz1,lelv))
     CALL OPDIV   (DVC,VX,VY,VZ)
-    CALL DSSUM   (DVC)
+    CALL DSSUM   (DVC(:,1,1,1))
     dvc = dvc * binvm1
  
     dv1 = dvc * bm1

@@ -45,12 +45,13 @@ interp_mod.o ixyz_mod.o mvgeom_mod.o nekuse_mod.o  \
 opctr_mod.o restart_mod.o scratch_mod.o semhat_mod.o soln_mod.o steady_mod.o  \
 string_mod.o topol_mod.o tstep_mod.o turbo_mod.o wz_mod.o wzf_mod.o zper_mod.o \
 io_mod.o \
-math.o  \
+math.o \
+dssum.o \
 poisson_mod.o \
 navier4.o \
 drive.o drive1.o drive2.o \
 plan4.o bdry.o coef.o conduct.o connect1.o connect2.o \
-dssum.o eigsolv.o genxyz.o  \
+eigsolv.o genxyz.o  \
 hsmg.o gmres.o convect.o induct.o \
 navier0.o navier1.o navier5.o navier6.o  navier8.o \
 map2.o ic.o ssolv.o mxm_wrapper.o \

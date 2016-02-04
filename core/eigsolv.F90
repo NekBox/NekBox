@@ -233,6 +233,7 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelt, nelv
+  use ds, only : dssum
   use geom, only : binvm1
   use tstep, only : imesh, nmxe, tolev
   implicit none
@@ -266,7 +267,7 @@ SUBROUTINE GAMMAM1 (GAMMA,MASK,MULT,H1,H2,ISD)
   DO 1000 ITER=1,NMXE
       CALL AXHELM (Y1,X1,H1,H2,IMESH,ISD)
       y1 = y1 * mask(:,:,:,1:nel)
-      CALL DSSUM  (Y1)
+      CALL DSSUM  (Y1(:,1,1,1))
       RQ     = GLSC3 (X1,Y1,MULT,NTOT1)
       EVOLD  = EVNEW
       EVNEW  = RQ
@@ -295,6 +296,7 @@ END SUBROUTINE GAMMAM1
 SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, nx1, ny1, nz1
+  use ds, only : dssum
   use geom, only : bm1
   implicit none
 
@@ -319,7 +321,7 @@ SUBROUTINE STARTX1 (X1,Y1,MASK,MULT,NEL)
 
   x1 = x1 * mask
   y1 = bm1 * x1
-  CALL DSSUM      (Y1)
+  CALL DSSUM      (Y1(:,1,1,1))
   XX     = GLSC3 (X1,Y1,MULT,NTOT1)
   XNORM  = 1./SQRT(XX)
   x1 = x1 * xnorm

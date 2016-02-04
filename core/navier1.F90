@@ -4,6 +4,7 @@ subroutine ctolspl (tolspl,respr)
   use kinds, only : DP
   use size_m, only : lelv, lx2, ly2, lz2
   use size_m, only : nx1, ny1, nz1, nelv, nid
+  use ds, only : dssum
   use geom, only : binvm1, volvm1
   use tstep, only : dt, tolpdf, tolps, prelax
   use soln, only : pmask, vmult
@@ -20,7 +21,7 @@ subroutine ctolspl (tolspl,respr)
   allocate(WORK(lx2,ly2,lz2,lelv))
   NTOT1 = NX1*NY1*NZ1*NELV
   work = respr
-  call dssum(work)
+  call dssum(work(:,1,1,1))
   work = work * pmask
   rinit = glsc23(work, binvm1, vmult, ntot1)
   RINIT  = SQRT (rinit/VOLVM1)
@@ -1020,6 +1021,7 @@ end subroutine opcopy
 !-----------------------------------------------------------------------
 subroutine opdssum (a,b,c)! NOTE: opdssum works on FLUID/MHD arrays only!
   use kinds, only : DP
+  use ds, only : vec_dssum
   use input, only : ifcyclic
   implicit none
 
@@ -1042,6 +1044,7 @@ end subroutine opdssum
 !-----------------------------------------------------------------------
 subroutine opdsop (a,b,c,op)! opdsop works on FLUID/MHD arrays only!
   use kinds, only : DP
+  use ds, only : vec_dsop
   use input, only : ifcyclic
   implicit none
 

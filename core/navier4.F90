@@ -66,6 +66,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   use tstep, only : istep, ifield, nelfld
   use parallel, only : nid
   use ctimer, only : nproj, tproj, proj_flop, proj_mop
+  use ds, only : dssum
   use ctimer, only : dnekclock
   implicit none
 
@@ -260,6 +261,7 @@ end subroutine gensh
 subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
   use kinds,  only : DP
   use ctimer, only : nhconj, thconj, hconj_flop, hconj_mop, dnekclock
+  use ds, only : dssum
   implicit none
 
   type(approx_space), intent(inout) :: apx !>!< Current approximation space
@@ -415,6 +417,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
   use tstep, only : ifield, nelfld, istep
   use ctimer, only : dnekclock, nhslv, thslv
   use ctimer, only : othr_mop, othr_flop
+  use ds, only : dssum
   implicit none
 
   CHARACTER(4), intent(in) :: NAME !>!< name of field we're solving for
@@ -474,7 +477,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
       othr_mop = othr_mop + 3*lx1*ly1*lz1*nel
       othr_flop = othr_flop + lx1*ly1*lz1*nel
-      call dssum  (r)
+      call dssum  (r(:,1,1,1))
       r(:,:,:,1:nel) = r(:,:,:,1:nel) * vmk(:,:,:,1:nel)
 
       allocate(w2(2+2*apx%n_max))

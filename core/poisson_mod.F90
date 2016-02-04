@@ -41,7 +41,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use soln, only : vmult
   use size_m, only : nx1, ny1, nz1
   use ctimer, only : nscps, tscps, dnekclock
-
+  use ds, only : dssum
   use fft, only : P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r
   use mesh, only : boundaries
@@ -80,7 +80,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
     tmp_fine(1,  ny1,nz1, i) = rhs(7 + (i-1)*8)
     tmp_fine(nx1,ny1,nz1, i) = rhs(8 + (i-1)*8)
   end forall
-  call dssum(tmp_fine)
+  call dssum(tmp_fine(:,1,1,1))
 
   ! convert RHS to coarse mesh
   allocate(rhs_coarse(nelm))
@@ -181,7 +181,7 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
     tmp_fine(1  , ny1, nz1, i)   = soln_coarse(i) 
     tmp_fine(nx1, ny1, nz1, i)   = soln_coarse(i) 
   end forall
-  call dssum(tmp_fine)
+  call dssum(tmp_fine(:,1,1,1))
   tmp_fine = tmp_fine * vmult
 
   ! extract coarse values

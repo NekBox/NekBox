@@ -131,6 +131,7 @@ end subroutine h1mg_setup
 subroutine h1mg_solve(z,rhs,if_hybrid)  
   use kinds, only : DP, PP
   use size_m, only : lx1, ly1, lz1, lelt
+  use ds, only : dssum
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
   use ctimer, only : th1mg, nh1mg, h1mg_flop, h1mg_mop, dnekclock
@@ -208,6 +209,8 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   etime = etime + dnekclock()
   deallocate(r)
 
+
+  !> \todo there are no syncs here, so transpose loop over elements.
   h1mg_mop = h1mg_mop + lt
   allocate(w(lt)); w = 0_dp
   do l = 2,mg_h1_lmax-1                           ! UNWIND.  No smoothing.
@@ -231,13 +234,14 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   h1mg_mop  = h1mg_mop  + 3*n
 
   do i = 1,n                                      !            l-1
-      z(i) = e(i) + w(i)                           ! z := z + w
+      e(i) = e(i) + w(i)                           ! z := z + w
   enddo
-  deallocate(w,e)
+  deallocate(w)
 
-  !call dssum(e)
-  !z(1:n) = e(1:n) * vmult
-  call dsavg(z) ! Emergency hack --- to ensure continuous z!
+  call dssum(e)
+  z(1:n) = e(1:n) * reshape(vmult, (/n/))
+  deallocate(e)
+  !call dsavg(z) ! Emergency hack --- to ensure continuous z!
 
   th1mg = th1mg + (dnekclock() - etime)
 
@@ -337,6 +341,7 @@ end subroutine hsmg_setup_intpm
 subroutine hsmg_setup_dssum
   use kinds, only : i8
   use size_m, only : lx1, ly1, lz1, lelv, nelv, ndim
+  use ds, only : setupds
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
   use mesh, only : vertex
@@ -1759,6 +1764,7 @@ end subroutine h1mg_setup_semhat
 subroutine h1mg_setup_dssum
   use kinds, only : i8
   use size_m, only : lx1, ly1, lz1, lelt, nelv, ndim
+  use ds, only : setupds
   use hsmg, only : mg_lmax, mg_nh, mg_nhz, mg_fld
   use hsmg, only : mg_gsh_handle, mg_gsh_schwarz_handle
   use mesh, only : vertex

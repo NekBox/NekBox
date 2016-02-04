@@ -13,6 +13,7 @@ subroutine setup_topo()
   use kinds, only : DP, i8
   use size_m, only : nid, ndim, nx1, ny1, nz1, nelv, nelt, nfield
   use size_m, only : lx1, ly1, lz1, lelv
+  use ds, only : setupds, dssum
   use input, only : ifflow, ifmvbd, ifheat, param
   use mesh, only : vertex
   use mvgeom, only : wmult
@@ -130,7 +131,7 @@ subroutine setup_topo()
       ifield = 2
       allocate(tmult(nx1,ny1,nz1,nelt,1))
       tmult(:,:,:,:,1) = 1._dp
-      call dssum   (tmult)
+      call dssum   (tmult(:,1,1,1,1))
       tmult(:,:,:,:,1) = 1._dp / tmult(:,:,:,:,1)
   endif
 
@@ -141,7 +142,7 @@ subroutine setup_topo()
       ifield = 1
       allocate(vmult(nx1,ny1,nz1,nelv))
       vmult = 1._dp
-      call dssum   (vmult)
+      call dssum   (vmult(:,1,1,1))
       vmltmax=glmax(vmult,ntotv)
       ivmltmax=vmltmax
       if (nid == 0) write(6,*) ivmltmax,' max multiplicity'

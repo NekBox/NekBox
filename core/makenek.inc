@@ -343,34 +343,34 @@ if [ "$MXM_USER" != "" ]; then
 fi
 SYS_BLAS=true
 if  $SYS_BLAS ; then
-  MXM_USER="mxm_std.o " # blas.o"
+  MXM_USER="mxm_std.o mxm_std_sp.o" # blas.o"
 else
-  MXM_USER="mxm_std.o blas.o"
+  MXM_USER="mxm_std.o mxm_std_sp.o blas.o"
 fi 
 echo $PPLIST | grep 'BGL' >/dev/null 
 if [ $? -eq 0 ]; then
-   MXM_USER="mxm_std.o bg_aligned3.o bg_mxm44.o bg_mxm44_uneven.o bg_mxm3.o blas.o" 
+   MXM_USER="mxm_std.o mxm_std_sp.o bg_aligned3.o bg_mxm44.o bg_mxm44_uneven.o bg_mxm3.o blas.o" 
    OPT_FLAGS_STD="-qarch=450 -qtune=450"
    OPT_FLAGS_MAG="-O5 -qarch=450d -qtune=450"
 fi
 echo $PPLIST | grep 'BGQ' >/dev/null 
 if [ $? -eq 0 ]; then
-   MXM_USER="mxm_std.o mxm_bgq.o " 
+   MXM_USER="mxm_std.o mxm_std_sp.o mxm_bgq.o " 
    USR_FLAGS_STD+="-DBGQ"
 fi
 echo $PPLIST | grep 'XSMM' >/dev/null 
 if [ $? -eq 0 ]; then
-   MXM_USER="mxm_std.o" 
+   MXM_USER="mxm_std.o mxm_std_sp.o" 
    OPT_FLAGS_STD+=" -DUSE_LIBXSMM "
 fi
 echo $PPLIST | grep 'K10_MXM' >/dev/null 
 if [ $? -eq 0 ]; then
-   MXM_USER="mxm_std.o k10_mxm.o blas.o" 
+   MXM_USER="mxm_std.o mxm_std_sp.o k10_mxm.o blas.o" 
    OPT_FLAGS_STD="-DBGQ"
 fi
 echo $PPLIST | grep 'BLAS_MXM' >/dev/null 
 if [ $? -eq 0 ]; then
-   MXM_USER="mxm_std.o" 
+   MXM_USER="mxm_std.o mxm_std_sp.o" 
 fi
 LPACK="dsygv.o ssygv.o"
 echo $PPLIST | grep 'NO_LAPACK' >/dev/null 

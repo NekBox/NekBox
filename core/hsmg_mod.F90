@@ -1,7 +1,7 @@
 !> Module containing data for HSMG
 !
 module hsmg
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use size_m
   implicit none
 
@@ -32,21 +32,21 @@ module hsmg
   integer, allocatable :: mg_solve_index(:,:)
   integer, allocatable :: mg_g_index(:,:), mg_schwarz_wt_index(:,:)
 
-  real(DP), allocatable :: mg_jh(:,:) !c-to-f interpolation matrices
-  real(DP), allocatable :: mg_jht(:,:) !transpose of mg_jh
+  real(PP), allocatable :: mg_jh(:,:) !c-to-f interpolation matrices
+  real(PP), allocatable :: mg_jht(:,:) !transpose of mg_jh
   !real(DP), allocatable :: mg_jhfc(:,:) !c-to-f interpolation matrices
   !real(DP), allocatable :: mg_jhfct(:,:) !transpose of mg_jh
 
-  real(DP), allocatable :: mg_ah(:,:) !A hat matrices
-  real(DP), allocatable :: mg_bh(:,:) !B hat matrices
+  real(PP), allocatable :: mg_ah(:,:) !A hat matrices
+  real(PP), allocatable :: mg_bh(:,:) !B hat matrices
   real(DP), allocatable :: mg_ch(:,:) !C hat matrices
   real(DP), allocatable :: mg_dh(:,:) !D hat matrices
   real(DP), allocatable :: mg_dht(:,:) !D hat transpose matrices
   real(DP), allocatable :: mg_zh(:,:) !Nodal coordinates
-  real(DP), allocatable :: mg_rstr_wt(:) !restriction wt
+  real(PP), allocatable :: mg_rstr_wt(:) !restriction wt
 !  real(DP), allocatable :: mg_mask(:) !b.c. mask (Max: might not be used)
-  real(DP), allocatable :: mg_fast_s(:), mg_fast_d(:)
-  real(DP), allocatable :: mg_schwarz_wt(:)
+  real(PP), allocatable :: mg_fast_s(:), mg_fast_d(:)
+  real(PP), allocatable :: mg_schwarz_wt(:)
   real(DP), allocatable :: mg_solve_e(:), mg_solve_r(:)
   real(DP), allocatable, dimension(:) :: mg_h1,mg_h2,mg_b
   real(DP), allocatable :: mg_g(:) ! metrics matrices
@@ -62,8 +62,8 @@ module hsmg
   integer, allocatable, dimension(:,:) :: p_mg_h1,p_mg_h2,p_mg_b,p_mg_g,p_mg_msk
   
 
-  real(DP), allocatable, dimension(:) :: lr,ls,lt &
-                          , llr,lls,llt &
+  real(PP), allocatable, dimension(:) :: lr,ls,lt 
+  real(DP), allocatable, dimension(:) :: llr,lls,llt &
                           , lmr,lms,lmt &
                           , lrr,lrs,lrt
 

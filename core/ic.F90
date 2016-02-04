@@ -7,6 +7,7 @@ subroutine setics
   use size_m, only : lx1, ly1, lz1, lelv, ldimt, ldimt1
   use size_m, only : nx1, ny1, nz1, nelt, nx2, ny2, nz2, nelv
   use size_m, only : nid, lpert, nfield
+  use ds, only : dssum
   use geom, only : ifvcor, xm1, ym1, zm1
   use input, only : ifheat, ifsplit, ifflow, ifmhd, ifpert, ifmodel, ifkeps
   use input, only : param, ifmvbd, npscal
@@ -224,7 +225,7 @@ subroutine setics
   allocate(work(lx1,ly1,lz1,lelv))
   work = 1._dp
   ifield = 1
-  call dssum(work)
+  call dssum(work(:,1,1,1))
   work = work * vmult
   rdif = glsum(work,ntotv)
   deallocate(work)
@@ -279,10 +280,10 @@ subroutine setics
 
   if (ifheat) then
       ifield = 2
-      call dssum(t)
+      call dssum(t(:,1,1,1,1))
       t = t * tmult
       do ifield=3,nfield
-          call dssum(t(1,1,1,1,i-1))
+          call dssum(t(:,1,1,1,i-1))
           if(iftmsh(ifield)) then
               t(:,:,:,:,i-1) = t(:,:,:,:,i-1) * tmult(:,:,:,:,1)
 !              call col2 (t(1,1,1,1,i-1),tmult,ntott)
@@ -1560,6 +1561,7 @@ subroutine dsavg(u)
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, nelt
   use size_m, only : lx1, ly1, lz1, lelt
+  use ds, only : dssum
   use input, only : ifflow
   use soln, ONLY : vmult, tmult
   use tstep, only : ifield
@@ -1574,12 +1576,12 @@ subroutine dsavg(u)
   if (ifflow) then
       ifield = 1
       ntot = nx1*ny1*nz1*nelv
-      call dssum(u)
+      call dssum(u(:,1,1,1))
       u = u * vmult
   else
       ifield = 2
       ntot = nx1*ny1*nz1*nelt
-      call dssum(u)
+      call dssum(u(:,1,1,1))
       u = u * tmult(:,:,:,:,1)
   endif
   ifield = ifieldo

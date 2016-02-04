@@ -1590,6 +1590,7 @@ subroutine vrdsmsh()
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, nelt, ndim, nid
+  use ds, only : dssum, dsop
   use geom, only : xm1, ym1, zm1
   use input, only : ifheat, cbc, if3d
   use parallel, only : lglel
@@ -1648,7 +1649,7 @@ subroutine vrdsmsh()
 !  $(nid,'tab4',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)
 ! 1 format(i3,a4,i3,16f5.2)
 
-  CALL DSSUM(TA)
+  CALL DSSUM(TA(:,1,1,1))
 
 !   write(6,1)
 !  $(nid,'taaf',lglel(ie),(ta(k,1,1,ie),k=1,nx1*ny1),ie=1,nelt)

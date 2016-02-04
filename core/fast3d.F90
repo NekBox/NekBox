@@ -454,6 +454,7 @@ subroutine swap_lengths()
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelv
   use size_m, only : nx1, nelv
+  use ds, only : dssum
   use geom, only : xm1, ym1, zm1
   use hsmg, only : llr, lrr, lmr, lls, lms, lrs, llt, lmt, lrt
   use input, only : if3d
@@ -489,7 +490,7 @@ subroutine swap_lengths()
               enddo
           enddo
       enddo
-      call dssum(l)
+      call dssum(l(:,1,1,1))
       do e=1,nelv
           llr(e) = l(1,2,2,e)-lmr(e)
           lrr(e) = l(n,2,2,e)-lmr(e)
@@ -509,7 +510,7 @@ subroutine swap_lengths()
           enddo
       enddo
   !        call outmat(l(1,1,1,25),n,n,' L    ',25)
-      call dssum(l)
+      call dssum(l(:,1,1,1))
   !        call outmat(l(1,1,1,25),n,n,' L    ',25)
       do e=1,nelv
       !           call outmat(l(1,1,1,e),n,n,' L    ',e)
@@ -525,11 +526,11 @@ end subroutine swap_lengths
 !----------------------------------------------------------------------
 !> \brief zero the eth row of a
 subroutine row_zero(a,m,n,e)
-  use kinds, only : DP
+  use kinds, only : PP
   implicit none
 
   integer :: m,n,e
-  real(DP) :: a(m,n)
+  real(PP) :: a(m,n)
   integer :: j
   do j=1,n
       a(e,j)=0.

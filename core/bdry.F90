@@ -308,6 +308,7 @@ SUBROUTINE BCMASK
   use input, only : ifaxis
   use soln, only : v1mask, v2mask, v3mask, pmask, omask, tmask
   use tstep, only : ifield, nelfld
+  use ds, only : dsop
   implicit none
 
   character(3) :: cb
@@ -764,6 +765,7 @@ SUBROUTINE BCDIRSC(S)
   use size_m, only : lx1, ly1, lz1, lelt
   use size_m, only : nx1, ny1, nz1, ndim, nfield
   use ctimer, only : icalld, tusbc, nusbc, etime1, dnekclock
+  use ds, only : dsop
   use input, only : cbc, bc
   use soln, only : tmask
   use tstep, only : ifield, nelfld

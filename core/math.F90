@@ -3,15 +3,24 @@
 #include "libxsmm.f"
 #endif
 
+module math
+
+implicit none
+
+interface tensor_product_multiply
+  module procedure tensor_product_multiply_dp, tensor_product_multiply_sp
+end interface 
+
+contains
 !-----------------------------------------------------------------------
 !> \brief  Tensor product application of v = (C x B x A) u .
 !!  NOTE -- the transpose of B & C must be input, rather than B & C.
 !!  -  scratch arrays: work1(nu*nu*nv), work2(nu*nv*nv)
-subroutine tensor_product_multiply(u, nu, v, nv, A, Bt, Ct, work1, work2)
+subroutine tensor_product_multiply_dp(u, nu, v, nv, A, Bt, Ct, work1, work2)
   use kinds, only : DP
 #ifdef XSMM
   use iso_c_binding
-  use LIBXSMM, only : LIBXSMM_DMM_FUNCTION
+  use LIBXSMM, only : LIBXSMM_DMMFUNCTION
   use LIBXSMM, only : libxsmm_dispatch, libxsmm_call
 #endif
 
@@ -25,12 +34,12 @@ subroutine tensor_product_multiply(u, nu, v, nv, A, Bt, Ct, work1, work2)
   integer :: i
 #ifdef XSMM
   integer, save :: last_nu = 0, last_nv = 0
-  TYPE(LIBXSMM_DMM_FUNCTION), save :: xmm1, xmm2, xmm3
+  TYPE(LIBXSMM_DMMFUNCTION), save :: xmm1, xmm2, xmm3
 
   if (last_nu /= nu .or. last_nv /= nv) then
-    CALL libxsmm_dispatch(xmm1, nv, nu*nu, nu, 1._dp, 0._dp)
-    CALL libxsmm_dispatch(xmm2, nv, nv, nu,    1._dp, 0._dp)
-    CALL libxsmm_dispatch(xmm3, nv*nv, nv, nu, 1._dp, 0._dp)
+    CALL libxsmm_dispatch(xmm1, nv, nu*nu, nu, alpha=1._dp, beta=0._dp)
+    CALL libxsmm_dispatch(xmm2, nv, nv, nu,    alpha=1._dp, beta=0._dp)
+    CALL libxsmm_dispatch(xmm3, nv*nv, nv, nu, alpha=1._dp, beta=0._dp)
     last_nu = nu; last_nv = nv;
   endif
   call libxsmm_call(xmm1, C_LOC(A), C_LOC(u), C_LOC(work1))
@@ -47,9 +56,55 @@ subroutine tensor_product_multiply(u, nu, v, nv, A, Bt, Ct, work1, work2)
 #endif
   return
 
-end subroutine tensor_product_multiply
+end subroutine tensor_product_multiply_dp
 
+!-----------------------------------------------------------------------
+!> \brief  Tensor product application of v = (C x B x A) u .
+!!  NOTE -- the transpose of B & C must be input, rather than B & C.
+!!  -  scratch arrays: work1(nu*nu*nv), work2(nu*nv*nv)
+subroutine tensor_product_multiply_sp(u, nu, v, nv, A, Bt, Ct, work1, work2)
+  use kinds, only : SP
+#ifdef XSMM
+  use iso_c_binding
+  use LIBXSMM, only : LIBXSMM_SMMFUNCTION
+  use LIBXSMM, only : libxsmm_dispatch, libxsmm_call
+#endif
 
+  implicit none
+  integer, intent(in)   :: nu, nv
+  real(SP), intent(in)  :: u(*)
+  real(SP), intent(out) :: v(*)
+  real(SP), intent(in)  :: A(*), Bt(*), Ct(*)
+  real(SP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
+
+  integer :: i
+#ifdef XSMM
+  integer, save :: last_nu = 0, last_nv = 0
+  TYPE(LIBXSMM_SMMFUNCTION), save :: xmm1, xmm2, xmm3
+
+  if (last_nu /= nu .or. last_nv /= nv) then
+    CALL libxsmm_dispatch(xmm1, nv, nu*nu, nu, alpha=1._sp, beta=0._sp)
+    CALL libxsmm_dispatch(xmm2, nv, nv, nu,    alpha=1._sp, beta=0._sp)
+    CALL libxsmm_dispatch(xmm3, nv*nv, nv, nu, alpha=1._sp, beta=0._sp)
+    last_nu = nu; last_nv = nv;
+  endif
+  call libxsmm_call(xmm1, C_LOC(A), C_LOC(u), C_LOC(work1))
+  do i=0,nu-1
+      call libxsmm_call(xmm2, C_LOC(work1(nv*nu*i)), C_LOC(Bt), C_LOC(work2(nv*nv*i)))
+  enddo
+  call libxsmm_call(xmm3, C_LOC(work2),C_LOC(Ct), C_LOC(v))
+#else 
+  call mxm_sp(A,nv,u,nu,work1,nu*nu)
+  do i=0,nu-1
+      call mxm_sp(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+  enddo
+  call mxm_sp(work2,nv*nv,Ct,nu,v,nv)
+#endif
+  return
+
+end subroutine tensor_product_multiply_sp
+
+end module math
 
 !-----------------------------------------------------------------------
 !> \brief     Output: ur,us,ut         Input:u,N,e,D,Dt
@@ -57,7 +112,7 @@ subroutine local_grad3(ur,us,ut,u,N,D,Dt)
   use kinds, only : DP
 #ifdef XSMM
   use iso_c_binding
-  use LIBXSMM, only : LIBXSMM_DMM_FUNCTION
+  use LIBXSMM, only : LIBXSMM_DMMFUNCTION
   use LIBXSMM, only : libxsmm_dispatch, libxsmm_call
 #endif
 
@@ -70,15 +125,15 @@ subroutine local_grad3(ur,us,ut,u,N,D,Dt)
   integer :: m1, m2, k
 #ifdef XSMM
   integer, save :: last_N = 0
-  TYPE(LIBXSMM_DMM_FUNCTION), save :: xmm1, xmm2, xmm3
+  TYPE(LIBXSMM_DMMFUNCTION), save :: xmm1, xmm2, xmm3
 
   m1 = N+1
   m2 = m1*m1
 
   if (last_N /= N) then
-    CALL libxsmm_dispatch(xmm1, m1, m2, m1, 1._dp, 0._dp)
-    CALL libxsmm_dispatch(xmm2, m1, m1, m1, 1._dp, 0._dp)
-    CALL libxsmm_dispatch(xmm3, m2, m1, m1, 1._dp, 0._dp)
+    CALL libxsmm_dispatch(xmm1, m1, m2, m1, alpha=1._dp, beta=0._dp)
+    CALL libxsmm_dispatch(xmm2, m1, m1, m1, alpha=1._dp, beta=0._dp)
+    CALL libxsmm_dispatch(xmm3, m2, m1, m1, alpha=1._dp, beta=0._dp)
     last_N = N
   endif
   call libxsmm_call(xmm1, C_LOC(D), C_LOC(u(0,0,0)), C_LOC(ur))
@@ -111,7 +166,7 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
   use iso_c_binding
   use STREAM_UPDATE_KERNELS, only : stream_update_helmholtz
   use STREAM_UPDATE_KERNELS, only : stream_update_helmholtz_no_h2
-  use LIBXSMM, only : LIBXSMM_DMM_FUNCTION
+  use LIBXSMM, only : LIBXSMM_DMMFUNCTION
   use LIBXSMM, only : libxsmm_dispatch, libxsmm_call
 #endif
   implicit none
@@ -124,12 +179,12 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
   integer :: iz
 #ifdef XSMM
   logical, save :: init = .false.
-  TYPE(LIBXSMM_DMM_FUNCTION), save :: xmm1, xmm2, xmm3
+  TYPE(LIBXSMM_DMMFUNCTION), save :: xmm1, xmm2, xmm3
 
   if (.not. init) then
-    call libxsmm_dispatch(xmm1, nx, ny*nz, nx, 1.0_dp, 0.0_dp)
-    call libxsmm_dispatch(xmm2, nx, ny, ny, 1.0_dp, 0.0_dp)
-    call libxsmm_dispatch(xmm3, nx*ny, nz, nz, 1.0_dp, 0.0_dp)
+    call libxsmm_dispatch(xmm1, nx, ny*nz, nx, alpha=1.0_dp, beta=0.0_dp)
+    call libxsmm_dispatch(xmm2, nx, ny,    ny, alpha=1.0_dp, beta=0.0_dp)
+    call libxsmm_dispatch(xmm3, nx*ny, nz, nz, alpha=1.0_dp, beta=0.0_dp)
     init = .true.
   endif
 
@@ -172,18 +227,19 @@ end subroutine helmholtz
 !----------------------------------------------------------------------
 !> \brief clobbers r
 subroutine hsmg_do_fast(e,r,s,d,nl, work1, work2)
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use size_m, only : ndim, nelv
   use size_m, only : lx1, ly1, lz1
+  use math, only : tensor_product_multiply
   use ctimer, only : schw_flop, schw_mop
   implicit none
 
-  integer :: nl
-  real(DP) :: e(nl**ndim)
-  real(DP) :: r(nl**ndim)
-  real(DP) :: s(nl,nl,2,ndim)
-  real(DP) :: d(nl**ndim)
-  real(DP) :: work1(nl*nl*nl),work2(nl*nl*nl)
+  integer, intent(in) :: nl
+  real(PP), intent(out) :: e(nl**ndim)
+  real(PP), intent(inout) :: r(nl**ndim)
+  real(PP), intent(in) :: s(nl,nl,2,ndim)
+  real(PP), intent(in) :: d(nl**ndim)
+  real(PP), intent(out) :: work1(nl*nl*nl),work2(nl*nl*nl)
         
   integer :: ie,nn,i
 
@@ -196,19 +252,14 @@ subroutine hsmg_do_fast(e,r,s,d,nl, work1, work2)
   schw_flop = schw_flop + 3*nn*(2*nl-1)
   schw_mop  = schw_mop + (nn + 3*nl*nl)
 
-  !do ie=1,nelv
 
-    call tensor_product_multiply(r, nl, r, nl, s(1,1,2,1), s(1,1,1,2), s(1,1,1,3), work1, work2)
-    !call tensor_product_multiply(r, nl, r, nl, transpose(s(:,:,1,1)), s(1,1,1,2), s(1,1,1,3), work1, work2)
+  call tensor_product_multiply(r, nl, r, nl, s(:,1,2,1), s(:,1,1,2), s(:,1,1,3), work1, work2)
 
-    do i=1,nn
-        r(i)=d(i)*r(i)
-    enddo
+  do i=1,nn
+      r(i)=d(i)*r(i)
+  enddo
 
-    call tensor_product_multiply(r, nl, e, nl, s(1,1,1,1), s(1,1,2,2), s(1,1,2,3), work1, work2)
-    !call tensor_product_multiply(r, nl, e, nl, s(1,1,1,1), transpose(s(:,:,1,2)), transpose(s(:,:,1,3)), work1, work2)
-
-  !enddo
+  call tensor_product_multiply(r, nl, e, nl, s(:,1,1,1), s(:,1,2,2), s(:,1,2,3), work1, work2)
 
   return
 end subroutine hsmg_do_fast
@@ -372,7 +423,6 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   use input, only : ifaxis, ifsplit
   use ixyz, only : iym12, iam12, icm12
   use geom, only : bm1, bm2
-  use wz_m, only : w3m2, w2am2, w2cm2
   implicit none
 
   integer :: isd

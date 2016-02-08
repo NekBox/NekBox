@@ -3,8 +3,9 @@
 subroutine cdscal (igeom)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid
-  use helmholtz, only : hsolve, approx_space
+  use helmholtz, only : hsolve, init_approx_space, approx_space
   use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh, ifprint
+  use input, only : param
   use geom, only : bintm1, binvm1
   use soln, only : t, bq, tmask, tmult
   use tstep, only : nelfld, ifield, nmxnl, imesh, tolht, nmxh
@@ -21,14 +22,24 @@ subroutine cdscal (igeom)
 
   real(DP) :: etime
 
-  type(approx_space), save :: apx
+  type(approx_space), save :: t_apx
   character(4) ::     name4
 
   integer :: nel, ntot, nfldt, if1, isd, iter, intype
+  integer :: t_proj_space
+
+
 
   nel    = nelfld(ifield)
   ntot   = nx1*ny1*nz1*nel
   nheat2 = nheat2 + 1
+
+  if (.not. allocated(t_apx%projectors)) then
+    t_proj_space = int(param(92))
+    call init_approx_space(t_apx, t_proj_space, ntot)
+  endif
+
+
 
   if (igeom == 1) then   ! geometry at t^{n-1}
       call makeq
@@ -89,13 +100,13 @@ subroutine cdscal (igeom)
               ,tmask(1,1,1,1,ifield-1) &
               ,tmult(1,1,1,1,ifield-1) &
               ,imesh,tolht(ifield),nmxh,1 &
-              ,apx,bintm1)
+              ,t_apx,bintm1)
           else
               call hsolve  (name4,TA,TB,H1,H2 &
               ,tmask(1,1,1,1,ifield-1) &
               ,tmult(1,1,1,1,ifield-1) &
               ,imesh,tolht(ifield),nmxh,1 &
-              ,apx,binvm1)
+              ,t_apx,binvm1)
           endif
           etime = etime + dnekclock()
 

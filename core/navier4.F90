@@ -459,7 +459,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
       ifstdh = .FALSE.
     endif
   ! Is this a velocity solve?
-  elseif (cname == 'VELX' .or. cname == 'VELY' .or. cname == 'VELZ') then
+  else
     if (param(94) /= 0 .AND. istep > param(94) .and. param(92) > 0) then
       ifstdh = .FALSE. 
     endif

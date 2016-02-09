@@ -3,16 +3,16 @@
   "num_fields": 2, 
   "front_bound": "P", 
   "top_bound": "P", 
-  "conductivity": 1.99e-09, 
+  "conductivity": 1.99e-03, 
   "courant": 0.3, 
   "density": 1.0, 
-  "num_steps": 1000, 
+  "num_steps": 0.0, 
   "scale_mesh": [
     1.0, 
     1.0, 
     1.0
   ], 
-  "viscosity": 1e-07, 
+  "viscosity": 1e-02, 
   "back_bound": "P", 
   "left_bound": "P", 
   "root_mesh": [
@@ -35,7 +35,7 @@
     16, 
     1
   ], 
-  "end_time": 0, 
+  "end_time": 1.0, 
   "uservp": 0, 
   "rho_cp": 1.0,
   "order": 8,
@@ -56,7 +56,7 @@
   "procs" : 4,
   "io_prec" : 8,
   "no_check" : 0,
-  "filter_wt" : 0.05,
+  "filter_wt" : -0.05,
   "nfilt" : 0.0,
   "dt_initial" : 0.0,
   "torder" : 3.0,

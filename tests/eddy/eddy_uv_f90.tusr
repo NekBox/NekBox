@@ -1,7 +1,8 @@
 module usr
   use size_m
-  real :: ue(lx1,ly1,lz1,lelt),ve(lx1,ly1,lz1,lelt)
-  real :: ud(lx1,ly1,lz1,lelt),vd(lx1,ly1,lz1,lelt)
+  use kinds, only : DP
+  real(DP) :: ue(lx1,ly1,lz1,lelt),ve(lx1,ly1,lz1,lelt)
+  real(DP) :: ud(lx1,ly1,lz1,lelt),vd(lx1,ly1,lz1,lelt)
 end module usr
 
 !-----------------------------------------------------------------------
@@ -61,11 +62,12 @@ end module usr
 !
   use size_m
   use input
+  use kinds, only : DP
+  implicit none
 !
-      real uu(n),vv(n),xx(n),yy(n)
+      real(DP) uu(n),vv(n),xx(n),yy(n)
 !
-      real cpsi(2,5), a(2,5)
-      save cpsi     , a
+      real(DP), save :: cpsi(2,5), a(2,5)
 
 !     data a / .4,.45 , .4,.2 , -.2,-.1 , .2,.05, -.09,-.1 / ! See eddy.m
 !     data cpsi / 0,65 , 16,63 , 25,60 , 33,56 , 39,52 /     ! See squares.f
@@ -76,6 +78,13 @@ end module usr
 
 !      data a / -.2,-.2, .25,0.,   0,0  ,  0,0  ,  0,0  /
 !      data cpsi / 0, 5 ,  3, 4 ,  0,0  ,  0,0  ,  0,0  /
+      real(DP) :: time, visc, u0, v0
+      integer :: n
+      real(DP) :: sx, sy, sz, s1x, s1y, s1z, s2x, s2y
+      real(DP) :: x, y, u, v
+      real(DP) :: one, pi, aa, arg, e, cx, cy, cz
+      real(DP) :: c1, c1x, c1y, c1z, c2, c2x, c2y
+      integer :: i, k
 
       a(:,1) = (/-.2, -.2 /)
       a(:,2) = (/.25, 0.0 /)
@@ -176,12 +185,18 @@ end module usr
 !-----------------------------------------------------------------------
       subroutine userchk
       use size_m
+      use kinds, only : DP
       use input
       use tstep
       use geom
       use soln
       use usr
+      implicit none
 !c
+      real(DP) :: visc, u0, v0
+      real(DP) :: umx, vmx, uex, vex, udx, vdx
+      real(DP), external :: glamax
+      integer :: n
 
       ifield = 1  ! for outpost
 
@@ -235,16 +250,19 @@ end module usr
       use parallel
       use geom
       use usr
+      implicit none
 
 
-      integer icalld
-      save    icalld
-      data    icalld  /0/
+      integer :: ix, iy, iz, ieg
+      integer, save :: icalld = 0
+      integer :: n, ie
+      real(DP) :: u0, v0, visc, time
 
       n = nx1*ny1*nz1*nelv
       if (icalld.eq.0) then
          icalld = icalld + 1
          time = 0.
+         visc = {viscosity:e}
          u0   = {u0:e}
          v0   = {v0:e}
          call exact (ue,ve,xm1,ym1,n,time,visc,u0,v0)
@@ -254,7 +272,7 @@ end module usr
       ux=ue(ix,iy,iz,ie)
       uy=ve(ix,iy,iz,ie)
       uz=0.0
-      temp=0
+      temp=x
 
       return
       end
@@ -262,10 +280,8 @@ end module usr
       subroutine usrdat
       use size_m
       use input
-      integer e
+      implicit none
 
-      one   = 1.
-      twopi = 8.*atan(one)
 
 !     param(66) = 4
 !     param(67) = 4

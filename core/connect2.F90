@@ -733,7 +733,7 @@ subroutine genmesh
   use size_m, only : ndim, nid, lelt, nelt
   use input, only : iffmtin, igroup, xc, yc, zc
   use input, only : curve, ccurve
-  use input, only : bc, cbc
+  use input, only : bc, cbc, param
   use mesh, only : shape_x, start_x, end_x
   use mesh, only : boundaries, tboundaries
   use mesh, only : ticks_x, ticks_y, ticks_z
@@ -825,6 +825,9 @@ subroutine genmesh
       CBC(1,IEL,:) = boundaries(4)
       CBC(1,IEL,2) = tboundaries(4)
       bc(1,1,iel,:) = ieg + (shape_x(2)-1)*shape_x(1)
+      if (tboundaries(4) == 'T  ') then
+        bc(1,1,iel,2) = param(76) 
+      endif
     else
       bc(1,1,iel,:) = ieg - shape_x(1)
     endif
@@ -833,6 +836,9 @@ subroutine genmesh
       CBC(3,IEL,:) = boundaries(3)
       CBC(3,IEL,2) = tboundaries(3)
       bc(1,3,iel,:) = ieg - ix(2)*shape_x(1)
+      if (tboundaries(3) == 'T  ') then
+        bc(1,3,iel,2) = param(76) 
+      endif
     else
       bc(1,3,iel,:) = ieg + shape_x(1)
     endif
@@ -841,6 +847,9 @@ subroutine genmesh
       CBC(4,IEL,:) = boundaries(1)
       CBC(4,IEL,2) = tboundaries(1)
       bc(1,4,iel,:) = ieg + (shape_x(1) - 1)
+      if (tboundaries(1) == 'T  ') then
+        bc(1,4,iel,2) = param(76) 
+      endif
     else
       bc(1,4,iel,:) = ieg - 1
     endif
@@ -849,6 +858,9 @@ subroutine genmesh
       CBC(2,IEL,:) = boundaries(2)
       CBC(2,IEL,2) = tboundaries(2)
       bc(1,2,iel,:) = ieg - ix(1)
+      if (tboundaries(2) == 'T  ') then
+        bc(1,2,iel,2) = param(76) 
+      endif
     else
       bc(1,2,iel,:) = ieg +1
     endif
@@ -857,6 +869,9 @@ subroutine genmesh
       CBC(5,IEL,1) = boundaries(5)
       CBC(5,IEL,2) = tboundaries(5)
       bc(1,5,iel,:) = ieg + (shape_x(3) - 1)*shape_x(2)*shape_x(1)
+      if (tboundaries(5) == 'T  ') then
+        bc(1,5,iel,2) = param(76) 
+      endif
     else
       bc(1,5,iel,:) = ieg - shape_x(2)*shape_x(1)
     endif
@@ -864,6 +879,9 @@ subroutine genmesh
       CBC(6,IEL,1) = boundaries(6)
       CBC(6,IEL,2) = tboundaries(6)
       bc(1,6,iel,:) = ieg - ix(3) * shape_x(2)*shape_x(1)
+      if (tboundaries(6) == 'T  ') then
+        bc(1,6,iel,2) = param(76) 
+      endif
     else
       bc(1,6,iel,:) = ieg + shape_x(2)*shape_x(1)
     endif

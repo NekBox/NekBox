@@ -453,7 +453,7 @@ SUBROUTINE BCMASK
           NEL    = NELFLD(IFIELD)
           NTOT   = NXYZ*NEL
           tmask(:,:,:,:,ipscal) = 1._dp
-#if 0
+#if 1
           DO IEL=1,NEL
               DO IFACE=1,NFACES
                   CB =CBC(IFACE,IEL,IFIELD)
@@ -461,7 +461,7 @@ SUBROUTINE BCMASK
               !           Assign mask values.
               
                   IF  (CB == 'T  ' .OR. CB == 't  ' .OR. &
-                  (CB == 'A  ' .AND. IFAZIV)    .OR. &
+!max                  (CB == 'A  ' .AND. IFAZIV)    .OR. &
                   CB == 'MCI' .OR. CB == 'MLI' .OR. &
                   CB == 'KD ' .OR. CB == 'kd ' .OR. &
                   CB == 'ED ' .OR. CB == 'ed ' .OR. &
@@ -817,7 +817,9 @@ SUBROUTINE BCDIRSC(S)
               BC4=BC(4,IFACE,IE,IFIELD)
               BCK=BC(4,IFACE,IE,IFLD)
               BCE=BC(5,IFACE,IE,IFLD)
-              IF (CB == 'T  ') CALL FACEV (TMP,IE,IFACE,BC1,NX1,NY1,NZ1)
+              IF (CB == 'T  ') then
+                CALL FACEV (TMP,IE,IFACE,BC1,NX1,NY1,NZ1)
+              endif
               IF (CB == 'MCI') CALL FACEV (TMP,IE,IFACE,BC4,NX1,NY1,NZ1)
               IF (CB == 'MLI') CALL FACEV (TMP,IE,IFACE,BC4,NX1,NY1,NZ1)
               IF (CB == 'KD ') CALL FACEV (TMP,IE,IFACE,BCK,NX1,NY1,NZ1)
@@ -830,7 +832,6 @@ SUBROUTINE BCDIRSC(S)
       enddo
   
   !        Take care of Neumann-Dirichlet shared edges...
-  
       IF (ISWEEP == 1) CALL DSOP(TMP,'MXA')
       IF (ISWEEP == 2) CALL DSOP(TMP,'MNA')
   END DO

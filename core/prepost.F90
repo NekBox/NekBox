@@ -1438,8 +1438,15 @@ subroutine mfo_outs(u,nel,mx,my,mz)
 
   real(r4), allocatable :: u4(:)
   real(DP), allocatable :: u8(:)
+#ifdef LZ4COMMCOMP
+  real(r4), allocatable :: u4comp(:)
+  real(DP), allocatable :: u8comp(:)
+#endif
 
   integer :: nxyz, len, leo, ntot, idum, ierr, nout, k, mtype
+#ifdef LZ4COMMCOMP
+  integer :: sizein, sizeout, leocomp
+#endif
 
   call nekgsync() ! clear outstanding message queues.
   if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
@@ -1457,8 +1464,14 @@ subroutine mfo_outs(u,nel,mx,my,mz)
 
   if (wdsizo == 4) then
     allocate(u4(2+lxo*lxo*lxo*2*lelt))
+#ifdef LZ4COMMCOMP
+    allocate(u4comp(2+lxo*lxo*lxo*2*lelt))
+#endif
   else
     allocate(u8(1+lxo*lxo*lxo*1*lelt))
+#ifdef LZ4COMMCOMP
+    allocate(u8comp(1+lxo*lxo*lxo*1*lelt))
+#endif
   endif
 
   if (nid == pid0) then
@@ -1472,17 +1485,51 @@ subroutine mfo_outs(u,nel,mx,my,mz)
       endif
 
       if(wdsizo == 4 .and. ierr == 0) then
+#ifdef LZ4COMMCOMP
+        nout = wdsizo/4 * ntot
+        sizein=nout*4
+        sizeout=0
+        call lz4_pack(u4, sizein, u4comp, sizeout, ierr)
+        call byte_write(u4comp,(sizeout+4)/4,ierr)
+        call byte_write(sizeout,1,ierr)
+#else
         nout = wdsizo/4 * ntot
         call byte_write(u4,nout,ierr)          ! u4 :=: u8
+#endif
       elseif(ierr == 0) then
+#ifdef LZ4COMMCOMP
+        nout = wdsizo/4 * ntot
+        sizein=nout*4
+        sizeout=0
+        call lz4_pack(u8, sizein, u8comp, sizeout, ierr)
+        call byte_write(u8comp,(sizeout+4)/4,ierr)
+        call byte_write(sizeout,1,ierr)
+#else
         nout = wdsizo/4 * ntot
         call byte_write(u8,nout,ierr)          ! u4 :=: u8
+#endif
       endif
 
   ! write out the data of my childs
       idum  = 1
       do k=pid0+1,pid1
           mtype = k
+#ifdef LZ4COMMCOMP
+          call csend(mtype,idum,4,k,0)       ! handshake
+          call crecv(mtype,leocomp,4)
+
+          if (wdsizo == 4 .AND. ierr == 0) then
+            call crecv(mtype,u4,len)
+            nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
+            call byte_write(u4,nout,ierr) ! write also first byte as it does not contain nel
+            call byte_write(leocomp,1,ierr)
+          elseif(ierr == 0) then
+            call crecv(mtype,u8,len)
+            nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
+            call byte_write(u8,nout,ierr)
+            call byte_write(leocomp,1,ierr)
+          endif
+#else
           call csend(mtype,idum,4,k,0)       ! handshake
 
           if (wdsizo == 4 .AND. ierr == 0) then
@@ -1494,11 +1541,28 @@ subroutine mfo_outs(u,nel,mx,my,mz)
             nout  = wdsizo/4 * nxyz * int(u8(1))
             call byte_write(u8(2),nout,ierr)
           endif
-
+#endif
       enddo
-
   else
-
+#ifdef LZ4COMMCOMP
+      if (wdsizo == 4) then             ! 32-bit output
+        u4(1)= nel
+        call copyx4 (u4(3),u,ntot)
+        mtype = nid
+        call lz4_pack(u4(3), leo-1, u4comp, leocomp, ierr)
+        call crecv(mtype,idum,4)            ! hand-shake
+        call csend(mtype,leocomp,4,pid0,0)     ! u4 :=: u8
+        call csend(mtype,u4comp,leocomp,pid0,0)     ! u4 :=: u8
+      else
+        u8(1)= nel
+        call copy (u8(2),u,ntot)
+        mtype = nid
+        call lz4_pack(u8(2), leo-1, u8comp, leocomp, ierr)
+        call crecv(mtype,idum,4)            ! hand-shake
+        call csend(mtype,leocomp,4,pid0,0)     ! u4 :=: u8
+        call csend(mtype,u8comp,leocomp,pid0,0)     ! u4 :=: u8
+      endif
+#else
       if (wdsizo == 4) then             ! 32-bit output
         u4(1)= nel
         call copyx4 (u4(3),u,ntot)
@@ -1513,6 +1577,7 @@ subroutine mfo_outs(u,nel,mx,my,mz)
         call csend(mtype,u8,leo,pid0,0)     ! u4 :=: u8
       endif
 
+#endif
   endif
 
   call err_chk(ierr,'Error writing data to .f00 in mfo_outs. $')
@@ -1534,9 +1599,16 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
 
   real(r4), allocatable :: u4(:)
   real(DP), allocatable :: u8(:)
+#ifdef LZ4COMMCOMP
+  real(r4), allocatable :: u4comp(:)
+  real(DP), allocatable :: u8comp(:)
+#endif
 
   integer :: nxyz, len, leo, nel, idum, ierr
   integer :: j, iel, nout, k, mtype
+#ifdef LZ4COMMCOMP
+  integer :: sizein, sizeout, leocomp
+#endif
 
   call nekgsync() ! clear outstanding message queues.
   if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
@@ -1552,8 +1624,14 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
 
   if (wdsizo == 4) then
     allocate(u4(2+lxo*lxo*lxo*6*lelt))
+#ifdef LZ4COMMCOMP
+    allocate(u4comp(2+lxo*lxo*lxo*6*lelt))
+#endif
   else
     allocate(u8(1+lxo*lxo*lxo*3*lelt))
+#ifdef LZ4COMMCOMP
+    allocate(u8comp(1+lxo*lxo*lxo*3*lelt))
+#endif
   endif
   
   if (nid == pid0) then
@@ -1583,13 +1661,45 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
       endif
       nout = wdsizo/4 * ndim*nel * nxyz
       if (wdsizo == 4 .and. ierr == 0) then
+#ifdef LZ4COMMCOMP
+        sizein=nout*4
+        sizeout=0
+        call lz4_pack(u4, sizein, u4comp, sizeout, ierr)
+        call byte_write(u4comp,(sizeout+4)/4,ierr)
+        call byte_write(sizeout,1,ierr)
+#else
         call byte_write(u4,nout,ierr)          ! u4 :=: u8
+#endif
       elseif (ierr == 0) then
+#ifdef LZ4COMMCOMP
+        sizein=nout*4
+        sizeout=0
+        call lz4_pack(u8, sizein, u8comp, sizeout, ierr)
+        call byte_write(u8comp,(sizeout+4)/4,ierr)
+        call byte_write(sizeout,1,ierr)
+#else
         call byte_write(u8,nout,ierr)          ! u4 :=: u8
+#endif
       endif
   ! write out the data of my childs
       do k=pid0+1,pid1
           mtype = k
+#ifdef LZ4COMMCOMP
+          call csend(mtype,idum,4,k,0)       ! handshake
+          call crecv(mtype,leocomp,4)
+
+          if (wdsizo == 4 .AND. ierr == 0) then
+            call crecv(mtype,u4,len)
+            nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
+            call byte_write(u4,nout,ierr) ! write also first byte as it does not contain nel
+            call byte_write(leocomp,1,ierr)
+          elseif(ierr == 0) then
+            call crecv(mtype,u8,len)
+            nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
+            call byte_write(u8,nout,ierr)
+            call byte_write(leocomp,1,ierr)
+          endif
+#else
           call csend(mtype,idum,4,k,0)           ! handshake
 
           if (wdsizo == 4 .AND. ierr == 0) then
@@ -1601,6 +1711,7 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
               nout  = wdsizo/4 * ndim*nxyz * int(u8(1))
               call byte_write(u8(2),nout,ierr)
           endif
+#endif
       enddo
   else
 
@@ -1618,8 +1729,15 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
               endif
           enddo
         mtype = nid
+#ifdef LZ4COMMCOMP
+         call lz4_pack(u4(3), leo-1, u4comp, leocomp, ierr)
+         call crecv(mtype,idum,4)            ! hand-shake
+         call csend(mtype,leocomp,4,pid0,0)     ! u4 :=: u8
+         call csend(mtype,u4comp,leocomp,pid0,0)     ! u4 :=: u8
+#else
         call crecv(mtype,idum,4)            ! hand-shake
         call csend(mtype,u4,leo,pid0,0)     ! u4 :=: u8
+#endif
       else
           u8(1) = nel
           j = 1
@@ -1634,8 +1752,15 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
               endif
           enddo
         mtype = nid
+#ifdef LZ4COMMCOMP
+         call lz4_pack(u8(2), leo-1, u8comp, leocomp, ierr)
+         call crecv(mtype,idum,4)            ! hand-shake
+         call csend(mtype,leocomp,4,pid0,0)     ! u4 :=: u8
+         call csend(mtype,u8comp,leocomp,pid0,0)     ! u4 :=: u8
+#else
         call crecv(mtype,idum,4)            ! hand-shake
         call csend(mtype,u8,leo,pid0,0)     ! u4 :=: u8
+#endif
       endif
   endif
 

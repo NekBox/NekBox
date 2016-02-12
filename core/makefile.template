@@ -11,6 +11,7 @@ IFAMG=
 IFAMG_DUMP=
 IFNEKNEK=
 IFLZ4=
+IFLZ4COMMCOMP=
 IFMOAB=
 MOAB_DIR=
 F77=
@@ -115,6 +116,10 @@ endif
 ifeq ($(IFLZ4),true)
   lFLAGS := ${lFLAGS} $S/lz4/lib/liblz4.a 
 endif
+ifeq ($(IFLZ4COMMCOMP),true)
+  LZ4O := lz4.o
+  lFLAGS := ${lFLAGS} $S/lz4/lib/liblz4.a 
+endif
 # VISIT ########################################################################
 ifeq ($(IFVISIT),true)
   VISITNEK_INCLUDES:=-I$S/3rd_party
@@ -136,7 +141,7 @@ else
 	DUMMY:= $(shell rm -rf $S/mpif.h) 
 endif
 
-TMP1 = $(CORE) $(MXM) $(USR) $(MOABO) $(COMM_MPI) $(NEKNEKO) $(VISITO) $(LPACK)
+TMP1 = $(CORE) $(MXM) $(USR) $(MOABO) $(COMM_MPI) $(NEKNEKO) $(VISITO) $(LZ4O) $(LPACK)
 NOBJS_F = $(patsubst %,$(OBJDIR)/%,$(TMP1))
 TMP2 = $(JLCORE) $(JLINTP) $(CGS) 
 NOBJS_C = $(patsubst %,$(OBJDIR)/%,$(TMP2))
@@ -361,6 +366,7 @@ $(OBJDIR)/$(JO)findpts_el_2.o    :$(J)/findpts_el_2.c;    $(CC) -c $(cFL2) $(JL)
 #$(OBJDIR)/ssygv.o     	:$S/3rd_party/ssygv.F90;  	$(F77) -c $(FL2i4) $< -o $@
 # SYSTEM BLAS?
 #$(OBJDIR)/blas.o   	:$S/3rd_party/blas.F90;		$(F77) -c $(FL2i4) $< -o $@
+$(OBJDIR)/lz4.o             :$S/lz4.c;          $(CC) -c $(cFL2) $(JL) $< -o $@
 $(OBJDIR)/moab.o        :$S/3rd_party/moab.F90;           $(F77) -c $(FL2) $(IMESH_INCLUDES) $< -o $@
 $(OBJDIR)/imeshutil.o   :$S/3rd_party/imeshutil.F90;  	$(F77) -c $(FL2) $(IMESH_INCLUDES) $< -o $@
 $(OBJDIR)/imeshcutil.o   :$S/3rd_party/imeshcutil.c;  	$(CC) -c $(cFL2) $< -o $@

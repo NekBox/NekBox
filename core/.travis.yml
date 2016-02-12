@@ -17,6 +17,7 @@ env:
  - TEST_SUITE=lid/lid_amg
  - TEST_SUITE=iturb/iturb_amg
  - TEST_SUITE=iturb/iturb_courant
+ - TEST_SUITE=duct/duct_dir
 
 before_install: 
  - export ROOT_DIR=`pwd`

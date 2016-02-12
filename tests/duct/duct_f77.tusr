@@ -78,6 +78,13 @@ c      if (cbc(iside,gllel(ieg),ifield).eq.'v01')
         uz = 0.0
       endif
 
+      if (x == {root_mesh[0]} .or.
+     $    x == {extent_mesh[0]} .or.
+     $    y == {root_mesh[0]} .or.
+     $    y == {extent_mesh[0]}) then
+        temp = param(76)
+      endif
+
       return
       end
 c-----------------------------------------------------------------------

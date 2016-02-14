@@ -150,8 +150,8 @@ subroutine makeuq
 
   othr_mop = othr_mop + ntot
   bq(:,:,:,:,ifield-1) = 0._dp
-  !max call setqvol ( bq(1,1,1,1,ifield-1)          )
-  !max bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) * bm1
+  call setqvol ( bq(1,1,1,1,ifield-1)          )
+  bq(:,:,:,:,ifield-1) = bq(:,:,:,:,ifield-1) * bm1
 
   time = time+dt        ! Restore time
 

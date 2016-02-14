@@ -1,6 +1,7 @@
 {
   "density": 1.0,
   "velocity": 1.0,
+  "T_hat" : 0.0,
   "radius" : 0.125,
   "rho_cp": 1.0,
   "tolrel": 0.0,
@@ -47,6 +48,7 @@
     8
   ], 
   "order": 8,
+  "ngmres" : 4,
   "dealiasing_order" : 12,
   "nfilt" : 1.0,
   "procs" : 4

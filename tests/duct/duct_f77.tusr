@@ -38,7 +38,7 @@ c-----------------------------------------------------------------------
       integer e,f,eg
 c     e = gllel(eg)
 
-      qvol   = 0.0
+      qvol   = {T_hat} * uz
 
       return
       end

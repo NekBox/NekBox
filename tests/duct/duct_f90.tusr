@@ -36,7 +36,7 @@
 
     integer :: ix, iy, iz, eg
 
-    qvol   = 0.0
+    qvol   = {T_hat} * uz
 
     return
     end subroutine userq

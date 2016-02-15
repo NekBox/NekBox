@@ -1490,8 +1490,8 @@ subroutine mfo_outs(u,nel,mx,my,mz)
         sizein=nout*4
         sizeout=0
         call lz4_pack(u4, sizein, u4comp, sizeout, ierr)
-        call byte_write(u4comp,(sizeout+4)/4,ierr)
         call byte_write(sizeout,1,ierr)
+        call byte_write(u4comp,(sizeout+4)/4,ierr)
 #else
         nout = wdsizo/4 * ntot
         call byte_write(u4,nout,ierr)          ! u4 :=: u8
@@ -1502,8 +1502,8 @@ subroutine mfo_outs(u,nel,mx,my,mz)
         sizein=nout*4
         sizeout=0
         call lz4_pack(u8, sizein, u8comp, sizeout, ierr)
-        call byte_write(u8comp,(sizeout+4)/4,ierr)
         call byte_write(sizeout,1,ierr)
+        call byte_write(u8comp,(sizeout+4)/4,ierr)
 #else
         nout = wdsizo/4 * ntot
         call byte_write(u8,nout,ierr)          ! u4 :=: u8
@@ -1521,13 +1521,13 @@ subroutine mfo_outs(u,nel,mx,my,mz)
           if (wdsizo == 4 .AND. ierr == 0) then
             call crecv(mtype,u4,len)
             nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
-            call byte_write(u4,nout,ierr) ! write also first byte as it does not contain nel
             call byte_write(leocomp,1,ierr)
+            call byte_write(u4,nout,ierr) ! write also first byte as it does not contain nel
           elseif(ierr == 0) then
             call crecv(mtype,u8,len)
             nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
-            call byte_write(u8,nout,ierr)
             call byte_write(leocomp,1,ierr)
+            call byte_write(u8,nout,ierr)
           endif
 #else
           call csend(mtype,idum,4,k,0)       ! handshake
@@ -1549,7 +1549,7 @@ subroutine mfo_outs(u,nel,mx,my,mz)
         u4(1)= nel
         call copyx4 (u4(3),u,ntot)
         mtype = nid
-        call lz4_pack(u4(3), leo-1, u4comp, leocomp, ierr)
+        call lz4_pack(u4(3), leo-4, u4comp, leocomp, ierr)
         call crecv(mtype,idum,4)            ! hand-shake
         call csend(mtype,leocomp,4,pid0,0)     ! u4 :=: u8
         call csend(mtype,u4comp,leocomp,pid0,0)     ! u4 :=: u8
@@ -1557,7 +1557,7 @@ subroutine mfo_outs(u,nel,mx,my,mz)
         u8(1)= nel
         call copy (u8(2),u,ntot)
         mtype = nid
-        call lz4_pack(u8(2), leo-1, u8comp, leocomp, ierr)
+        call lz4_pack(u8(2), leo-8, u8comp, leocomp, ierr)
         call crecv(mtype,idum,4)            ! hand-shake
         call csend(mtype,leocomp,4,pid0,0)     ! u4 :=: u8
         call csend(mtype,u8comp,leocomp,pid0,0)     ! u4 :=: u8
@@ -1665,8 +1665,8 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
         sizein=nout*4
         sizeout=0
         call lz4_pack(u4, sizein, u4comp, sizeout, ierr)
-        call byte_write(u4comp,(sizeout+4)/4,ierr)
         call byte_write(sizeout,1,ierr)
+        call byte_write(u4comp,(sizeout+4)/4,ierr)
 #else
         call byte_write(u4,nout,ierr)          ! u4 :=: u8
 #endif
@@ -1675,8 +1675,8 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
         sizein=nout*4
         sizeout=0
         call lz4_pack(u8, sizein, u8comp, sizeout, ierr)
-        call byte_write(u8comp,(sizeout+4)/4,ierr)
         call byte_write(sizeout,1,ierr)
+        call byte_write(u8comp,(sizeout+4)/4,ierr)
 #else
         call byte_write(u8,nout,ierr)          ! u4 :=: u8
 #endif
@@ -1691,13 +1691,13 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
           if (wdsizo == 4 .AND. ierr == 0) then
             call crecv(mtype,u4,len)
             nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
-            call byte_write(u4,nout,ierr) ! write also first byte as it does not contain nel
             call byte_write(leocomp,1,ierr)
+            call byte_write(u4,nout,ierr) ! write also first byte as it does not contain nel
           elseif(ierr == 0) then
             call crecv(mtype,u8,len)
             nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
-            call byte_write(u8,nout,ierr)
             call byte_write(leocomp,1,ierr)
+            call byte_write(u8,nout,ierr)
           endif
 #else
           call csend(mtype,idum,4,k,0)           ! handshake
@@ -1730,7 +1730,7 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
           enddo
         mtype = nid
 #ifdef LZ4COMMCOMP
-         call lz4_pack(u4(3), leo-1, u4comp, leocomp, ierr)
+         call lz4_pack(u4(3), leo-4, u4comp, leocomp, ierr)
          call crecv(mtype,idum,4)            ! hand-shake
          call csend(mtype,leocomp,4,pid0,0)     ! u4 :=: u8
          call csend(mtype,u4comp,leocomp,pid0,0)     ! u4 :=: u8
@@ -1753,7 +1753,7 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
           enddo
         mtype = nid
 #ifdef LZ4COMMCOMP
-         call lz4_pack(u8(2), leo-1, u8comp, leocomp, ierr)
+         call lz4_pack(u8(2), leo-8, u8comp, leocomp, ierr)
          call crecv(mtype,idum,4)            ! hand-shake
          call csend(mtype,leocomp,4,pid0,0)     ! u4 :=: u8
          call csend(mtype,u8comp,leocomp,pid0,0)     ! u4 :=: u8

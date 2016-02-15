@@ -100,10 +100,11 @@ void lz4_pack(const void * const in, const int * const size, void * const out, i
   /*printf("compSize in C: %d\n", *compSize);*/
 }
 
-void lz4_unpack(void * in, const size_t * const compSize, void * const out, const int * const size, const int * const ierr) {
+void lz4_unpack(void * in, const size_t * const compSize, void * const out, int * const size, const int * const ierr) {
   size_t offset=0;
   size_t offset_in=0;
   decBufIndex=0;
+  LZ4_resetStream(lz4Stream);
   LZ4_setStreamDecode(lz4StreamDecode,NULL,0);
   for(;;) {
     char cmpBuf[LZ4_COMPRESSBOUND(BLOCK_BYTES)];
@@ -142,4 +143,5 @@ void lz4_unpack(void * in, const size_t * const compSize, void * const out, cons
     }
     decBufIndex = (decBufIndex + 1) % 2;
   }
+  *size=offset;
 }

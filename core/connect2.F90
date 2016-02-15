@@ -748,20 +748,6 @@ subroutine genmesh
 !   Read elemental mesh data, formatted
   iffmtin = .TRUE. 
 
-  if (nid == 0) then
-    read(9,*) start_x(1), end_x(1), shape_x(1)
-    read(9,*) start_x(2), end_x(2), shape_x(2)
-    read(9,*) start_x(3), end_x(3), shape_x(3)
-    read(9,*) boundaries(1:6)
-    read(9,*) tboundaries(1:6)
-  endif
-
-  call bcast(start_x,3*wdsize)  
-  call bcast(end_x,  3*wdsize)  
-  call bcast(shape_x,3*wdsize)  
-  call bcast(boundaries,3*6)  
-  call bcast(tboundaries,3*6)  
-
   dx = (end_x - start_x) / shape_x
 
   allocate(ticks_x(0:shape_x(1)))

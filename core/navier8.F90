@@ -595,7 +595,10 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   use parallel, only : np, gllnid, gllel, lglel, nelgt, nelgv
   use string, only : ltrunc
   use parallel, only : nid, init_gllnid, wdsize
-  use mesh, only : shape_x, ieg_to_xyz, boundaries
+  use mesh, only : ieg_to_xyz
+  use mesh, only : shape_x, start_x, end_x
+  use mesh, only : boundaries, tboundaries
+
   implicit none
 
   logical :: ifgfdm
@@ -608,7 +611,7 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   integer, parameter :: ndw=lx1*ly1*lz1*lelv/mdw
   integer :: lshape(3)
 
-  integer :: e,eg,eg0,eg1, ieg, iok, lfname, neli, nnzi, npass
+  integer :: e,eg,eg0,eg1, ieg, iok, lfname, neli, npass
   integer :: ipass, m, ntuple, iflag, mid
   integer, external :: iglmax, irecv
   integer :: ix(3)
@@ -619,28 +622,27 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   iflag = 0
 
   iok = 0
+
   if (nid == 0) then
-      lfname = ltrunc(reafle,132) - 4
-      call blank (mapfle,132)
-      call chcopy(mapfle,reafle,lfname)
-      call chcopy(mapfle1(lfname+1),suffix,4)
-      open(unit=80,file=mapfle,status='old',err=99)
-      read(80,*,err=99) neli,nnzi,shape_x
-      close(80)
-      iok = 1
+    read(9,*) start_x(1), end_x(1), shape_x(1)
+    read(9,*) start_x(2), end_x(2), shape_x(2)
+    read(9,*) start_x(3), end_x(3), shape_x(3)
+    read(9,*) boundaries(1:6)
+    read(9,*) tboundaries(1:6)
   endif
-  99 continue
-  iok = iglmax(iok,1)
-  if (iok == 0) goto 999     ! Mapfile not found
 
+  call bcast(start_x,3*wdsize)  
+  call bcast(end_x,  3*wdsize)  
   call bcast(shape_x,3*wdsize)  
-
+  call bcast(boundaries,3*6)  
+  call bcast(tboundaries,3*6)  
+ 
   lshape = shape_x
-  if (shape_x(1) < 0) lshape(1) = -lshape(1) + 1
-  if (shape_x(2) < 0) lshape(2) = -lshape(2) + 1
-  if (shape_x(3) < 0) lshape(3) = -lshape(3) + 1
-  shape_x = abs(shape_x)
+  if (boundaries(1) /= 'P') lshape(1) = lshape(1) + 1
+  if (boundaries(3) /= 'P') lshape(2) = lshape(2) + 1
+  if (boundaries(5) /= 'P') lshape(3) = lshape(3) + 1
 
+  neli = shape_x(1) * shape_x(2) * shape_x(3)
   if (nid == 0) then
       neli = iglmax(neli,1)   ! communicate to all procs
   else
@@ -659,10 +661,9 @@ subroutine get_vert_map(vertex, nlv, nel, suffix, ifgfdm)
   nelt = neli / np
   nelv = neli / np
 
-  if (np <= 64) write(6,*) nid,nelv,nelt,nelgv,nelgt,' NELV'
+  if (np <= 16) write(6,*) nid,nelv,nelt,nelgv,nelgt,' NELV'
 
 !   NOW: crystal route vertex by processor id
-
 
   do e = 1, nelt
     ieg = lglel(e)

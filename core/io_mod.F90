@@ -22,14 +22,15 @@ subroutine load_ic()
   use kinds, only : DP
   use parallel, only : nid
   use soln, only : vx, vy, vz, pr, t
-  use restart, only : pid0, fid0
-  use size_m, only : nx1, ny1, nz1
+  use restart, only : pid0, pid1,fid0
+  use size_m, only : nx1, ny1, nz1, nelt
   use tstep, only : time
+  use input, only : if3d
 
   integer :: nelo !>!< number of i/o elements per io-node
   integer :: word_size_load !>!< number of bytes per word
 
-  integer :: ierr, i
+  integer :: ierr, i, j, sizeout
   integer, parameter :: pad_size = 1
   real(DP), allocatable :: padding(:,:,:,:)
   logical :: skip_x
@@ -47,12 +48,20 @@ subroutine load_ic()
 
   ! seek past positions
   if (nid == pid0 .and. skip_x) then
+#ifdef LZ4COMMCOMP
+    allocate(padding(nx1,ny1,nz1,nelt))
+    do i=1,pid1+1
+      call byte_read(sizeout,1,ierr)
+      call byte_read(padding,(sizeout+4)/4,ierr)
+    enddo
+#else
     allocate(padding(nx1, ny1, nz1, pad_size))
     do i = 1, nelo, pad_size
       call byte_read(padding, word_size_load * size(padding) / 4, ierr)
       call byte_read(padding, word_size_load * size(padding) / 4, ierr)
       call byte_read(padding, word_size_load * size(padding) / 4, ierr)
     enddo
+#endif
   endif
 
   ! read velocities
@@ -252,9 +261,16 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, wdsizo)
   real(DP), intent(in) :: u(mx,my,mz,1)
 
   real(r4), allocatable :: u4(:)
+#ifdef LZ4COMMCOMP
+  real(r4), allocatable :: u4comp(:)
+  real(DP), allocatable :: u8comp(:)
+#endif
   real(DP), allocatable :: u8(:)
 
   integer :: nxyz, ntot, idum, ierr, nout, k, mtype
+#ifdef LZ4COMMCOMP
+  integer :: sizein, sizeout, leocomp
+#endif
 
   call nekgsync() ! clear outstanding message queues.
   if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
@@ -270,17 +286,39 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, wdsizo)
 
   if (wdsizo == 4) then
     allocate(u4(2+lxo*lxo*lxo*2*lelt))
+#ifdef LZ4COMMCOMP
+    allocate(u4comp(2+lxo*lxo*lxo*2*lelt))
+#endif
   else
     allocate(u8(1+lxo*lxo*lxo*1*lelt))
+#ifdef LZ4COMMCOMP
+    allocate(u8comp(1+lxo*lxo*lxo*1*lelt))
+#endif
   endif
 
   if (nid == pid0) then
       idum = nel
       nout = wdsizo/4 * nxyz * idum
       if(wdsizo == 4 .and. ierr == 0) then
+#ifdef LZ4COMMCOMP
+        sizein=nout*4
+        sizeout=0
+        call byte_read(sizeout,1,ierr)
+        call byte_read(u4comp,(sizeout+4)/4,ierr)
+        call lz4_unpack(u4comp, sizeout, u4, sizein, ierr)
+#else
         call byte_read(u4,nout,ierr)          ! u4 :=: u8
+#endif
       elseif(ierr == 0) then
+#ifdef LZ4COMMCOMP
+        sizein=0
+        sizeout=0
+        call byte_read(sizeout,1,ierr)
+        call byte_read(u8comp,(sizeout+4)/4,ierr)
+        call lz4_unpack(u8comp, sizeout, u8, sizein, ierr)
+#else
         call byte_read(u8,nout,ierr)          ! u4 :=: u8
+#endif
       endif
 
       if (wdsizo == 4) then             ! 32-bit output
@@ -294,6 +332,17 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, wdsizo)
       idum  = 1
       do k=pid0+1,pid1
           mtype = k
+#ifdef LZ4COMMCOMP
+          call byte_read(sizeout,1,ierr)
+          call csend(mtype,sizeout,4,k,0)       ! handshake
+          if (wdsizo == 4 .AND. ierr == 0) then
+            call byte_read(u4comp,(sizeout+4)/4,ierr)
+            call csend(mtype, u4comp, sizeout, k, 0)
+          elseif(ierr == 0) then
+            call byte_read(u8comp,(sizeout+4)/4,ierr)
+            call csend(mtype, u8comp, sizeout, k, 0)
+          endif
+#else
           call csend(mtype,idum,4,k,0)       ! handshake
           call crecv(mtype,idum,4)       ! handshake
 
@@ -305,10 +354,29 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, wdsizo)
             call byte_read(u8,nout,ierr)
             call csend(mtype, u8, nout*4, k, 0)
           endif
+#endif
       enddo
 
   else
       mtype = nid
+#ifdef LZ4COMMCOMP
+      call crecv(mtype,sizeout,4)            ! hand-shake
+      if (wdsizo == 4) then             ! 32-bit output
+        call crecv(mtype, u4comp, sizeout)
+        call lz4_unpack(u4comp, sizeout, u4, sizein, ierr)
+        if(sizein.ne.nxyz*nel*wdsizo) then
+          write (6,*) 'Error in compression: ', sizein, nxyz*nel*wdsizo
+        endif
+        call copy4r (u, u4, nxyz * nel)
+      else
+        call crecv(mtype, u8comp, sizeout)
+        call lz4_unpack(u8comp, sizeout, u8, sizein, ierr)
+        if(sizein.ne.nxyz*nel*wdsizo) then
+          write (6,*) 'Error in compression: ', sizein, nxyz*nel*wdsizo
+        endif
+        call copy   (u, u8, nxyz * nel)
+      endif
+#else
       call crecv(mtype,idum,4)            ! hand-shake
       call csend(mtype, nel, 4, pid0, 0)
 
@@ -319,6 +387,7 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, wdsizo)
         call crecv(mtype, u8, nxyz * nel *wdsizo)
         call copy   (u, u8, nxyz * nel)
       endif
+#endif
 
   endif
 
@@ -340,10 +409,17 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz, wdsizo)
   real(DP), intent(in) :: u(mx*my*mz,*),v(mx*my*mz,*),w(mx*my*mz,*)
 
   real(r4), allocatable :: u4(:)
+#ifdef LZ4COMMCOMP
+  real(r4), allocatable :: u4comp(:)
+  real(DP), allocatable :: u8comp(:)
+#endif
   real(DP), allocatable :: u8(:)
 
   integer :: nxyz, nel, idum, ierr
   integer :: j, iel, nout, k, mtype
+#ifdef LZ4COMMCOMP
+  integer :: sizein, sizeout, leocomp
+#endif
 
   call nekgsync() ! clear outstanding message queues.
   if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
@@ -357,16 +433,38 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz, wdsizo)
 
   if (wdsizo == 4) then
     allocate(u4(2+lxo*lxo*lxo*6*lelt))
+#ifdef LZ4COMMCOMP
+    allocate(u4comp(2+lxo*lxo*lxo*6*lelt))
+#endif
   else
     allocate(u8(1+lxo*lxo*lxo*3*lelt))
+#ifdef LZ4COMMCOMP
+    allocate(u8comp(1+lxo*lxo*lxo*3*lelt))
+#endif
   endif
   
   if (nid == pid0) then
       nout = wdsizo/4 * ndim * nel * nxyz
       if (wdsizo == 4 .and. ierr == 0) then
+#ifdef LZ4COMMCOMP
+        sizein=0
+        sizeout=0
+        call byte_read(sizeout,1,ierr)
+        call byte_read(u4comp,(sizeout+4)/4,ierr)
+        call lz4_unpack(u4comp, sizeout, u4, sizein, ierr)
+#else
         call byte_read(u4,nout,ierr)          ! u4 :=: u8
+#endif
       elseif (ierr == 0) then
+#ifdef LZ4COMMCOMP
+        sizein=0
+        sizeout=0
+        call byte_read(sizeout,1,ierr)
+        call byte_read(u8comp,(sizeout+4)/4,ierr)
+        call lz4_unpack(u8comp, sizeout, u8, sizein, ierr)
+#else
         call byte_read(u8,nout,ierr)          ! u4 :=: u8
+#endif
       endif
 
       j = 0
@@ -397,6 +495,17 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz, wdsizo)
   ! read in the data of my childs
       do k=pid0+1,pid1
           mtype = k
+#ifdef LZ4COMMCOMP
+          call byte_read(sizeout,1,ierr)
+          call csend(mtype,sizeout,4,k,0)       ! handshake
+          if (wdsizo == 4 .AND. ierr == 0) then
+            call byte_read(u4comp,(sizeout+4)/4,ierr)
+            call csend(mtype, u4comp, sizeout, k, 0)
+          elseif(ierr == 0) then
+            call byte_read(u8comp,(sizeout+4)/4,ierr)
+            call csend(mtype, u8comp, sizeout, k, 0)
+          endif
+#else
           call csend(mtype,idum,4,k,0)  ! handshake
           call crecv(mtype,idum,4)      ! hand-shake
               
@@ -408,9 +517,48 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz, wdsizo)
               call byte_read(u8,nout,ierr)
               call csend(mtype,u8,nout*4, k, 0)
           endif
+#endif
       enddo
   else
       mtype = nid
+#ifdef LZ4COMMCOMP
+      call crecv(mtype,sizeout,4)            ! hand-shake
+      if (wdsizo == 4) then             ! 32-bit output
+        call crecv(mtype, u4comp, sizeout)
+        call lz4_unpack(u4comp, sizeout, u4, sizein, ierr)
+        if(sizein.ne.3*nxyz*nel*wdsizo) then
+          write (6,*) 'Error in compression: ', sizein, nxyz*nel*wdsizo
+        endif
+        j = 0
+        do iel = 1,nel
+            call copy4r   (u(1,iel), u4(j+1),nxyz)
+            j = j + nxyz
+            call copy4r   (v(1,iel), u4(j+1),nxyz)
+            j = j + nxyz
+            if(if3d) then
+                call copy4r (w(1,iel), u4(j+1),nxyz)
+                j = j + nxyz
+            endif
+        enddo
+      else
+        call crecv(mtype, u8comp, sizeout)
+        call lz4_unpack(u8comp, sizeout, u8, sizein, ierr)
+        if(sizein.ne.3*nxyz*nel*wdsizo) then
+          write (6,*) 'Error in compression: ', sizein, nxyz*nel*3*wdsizo
+        endif
+        j = 0
+        do iel = 1,nel
+            call copy     (u(1,iel), u8(j+1),nxyz)
+            j = j + nxyz
+            call copy     (v(1,iel), u8(j+1),nxyz)
+            j = j + nxyz
+            if(if3d) then
+                call copy   (w(1,iel), u8(j+1),nxyz)
+                j = j + nxyz
+            endif
+        enddo
+      endif
+#else
       call crecv(mtype,idum,4)            ! hand-shake
       call csend(mtype,nel,4,pid0,0)     ! u4 :=: u8
 
@@ -443,6 +591,7 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz, wdsizo)
               endif
           enddo
       endif
+#endif
   endif
 
   call err_chk(ierr,'Error writing data to .f00 in mfo_outv. $')

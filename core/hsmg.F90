@@ -1368,27 +1368,17 @@ end subroutine hsmg_schwarz_wt3d
 subroutine hsmg_coarse_solve_dp(e,r)
   use kinds, only : DP
   use size_m, only : nelv
-  use ctimer, only : icalld, ncrsl, tcrsl, ifsync, etime1, dnekclock
   use parallel, only : nid, xxth
+  use ctimer, only : ncps, tcps, dnekclock
   use tstep, only : ifield
   use input, only : coarse_grid_solve
   use poisson, only : spectral_solve
  
   implicit none
-  real(DP) :: e(:),r(:)
+  real(DP) :: e(:),r(:), etime
 
-  if (icalld == 0) then ! timer info
-      ncrsl=0
-      tcrsl=0.0
-  endif
-  icalld = 1
-
-  if (ifsync) call nekgsync()
-
-  ncrsl  = ncrsl  + 1
-#ifndef NOTIMER
-  etime1=dnekclock()
-#endif
+  ncps  = ncps + 1
+  etime = dnekclock()
 
   if (coarse_grid_solve == 0) then
     call crs_solve_xxt(xxth(ifield),e,r)
@@ -1401,17 +1391,14 @@ subroutine hsmg_coarse_solve_dp(e,r)
     call exitt 
   endif
 
-#ifndef NOTIMER
-  tcrsl=tcrsl+dnekclock()-etime1
-#endif
-
+  tcps = tcps + (dnekclock() - etime)
   return
 end subroutine hsmg_coarse_solve_dp
 !----------------------------------------------------------------------
 subroutine hsmg_coarse_solve_sp(e,r)
   use kinds, only : SP, DP
   use size_m, only : nelv
-  use ctimer, only : icalld, ncrsl, tcrsl, ifsync, etime1, dnekclock
+  use ctimer, only : ncps, tcps, dnekclock
   use parallel, only : nid, xxth
   use tstep, only : ifield
   use input, only : coarse_grid_solve
@@ -1419,20 +1406,11 @@ subroutine hsmg_coarse_solve_sp(e,r)
  
   implicit none
   real(SP) :: e(:),r(:)
+  real(DP) :: etime
   real(DP), allocatable :: tmp_e(:), tmp_r(:)
 
-  if (icalld == 0) then ! timer info
-      ncrsl=0
-      tcrsl=0.0
-  endif
-  icalld = 1
-
-  if (ifsync) call nekgsync()
-
-  ncrsl  = ncrsl  + 1
-#ifndef NOTIMER
-  etime1=dnekclock()
-#endif
+  ncps  = ncps + 1
+  etime = dnekclock()
 
   allocate(tmp_e(8*nelv), tmp_r(8*nelv))
   tmp_r(1:8*nelv) = r(1:8*nelv)
@@ -1451,9 +1429,7 @@ subroutine hsmg_coarse_solve_sp(e,r)
   e(1:8*nelv) = tmp_e(1:8*nelv)
   deallocate(tmp_e, tmp_r)
 
-#ifndef NOTIMER
-  tcrsl=tcrsl+dnekclock()-etime1
-#endif
+  tcps = tcps + (dnekclock() - etime)
 
   return
 end subroutine hsmg_coarse_solve_sp

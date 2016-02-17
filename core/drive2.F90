@@ -966,7 +966,7 @@ subroutine runstat
   use ctimer, only : ngmres, tgmres, gmres_flop, gmres_mop
   use ctimer, only : nh1mg, th1mg, h1mg_flop, h1mg_mop
   use ctimer, only : nschw, tschw, schw_flop, schw_mop
-  use ctimer, only : nscps, tscps
+  use ctimer, only : ncps, tcps
   use ctimer, only : nnmsc, tnmsc
   use ctimer, only : nnmvc, tnmvc
   use ctimer, only : ncrespsp, tcrespsp
@@ -1132,7 +1132,7 @@ subroutine runstat
       call print_times('proj time', nproj   , tproj   , tttstp, total_share)
       call print_times('hcoj time', nhconj  , thconj  , tttstp, total_share)
       call print_times('dpc  time', ndpc    , tdpc    , tttstp, total_share)
-      call print_times('scps time', nscps   , tscps   , tttstp, total_share)
+      call print_times('cps  time', ncps    , tcps    , tttstp, total_share)
       call print_times('stft time', nsetfast, tsetfast, tttstp, total_share)
       call print_times('scn  time', nscn    , tscn    , tttstp, total_share)
       call print_times('het2 time', nheat2  , theat2  , tttstp, total_share)
@@ -1482,17 +1482,18 @@ end subroutine print_times
 !-----------------------------------------------------------------------
 subroutine print_flops(label, flops, mops, time)
   use kinds, only : i8, DP
-  use ctimer, only : max_mops
+  use ctimer, only : max_mops, max_flops
   implicit none
   character(*) :: label
   integer(i8) :: flops, mops
   real(DP) :: time
   !real(DP), parameter :: bandwidth = 30.*1024 / 64
   !real(DP), parameter :: bandwidth = 59.7*1024 / 4
-  real(DP), parameter :: compute = 1000. / 16
+  real(DP) :: compute 
   !real(DP), parameter :: compute = 3400*8
   real(DP) :: peak
 
+  compute = max_flops / 10**9
 
   if (time > 1.e-6 .and. flops > 1 .and. mops > 1) then
   peak = min(compute, flops * max_mops / (mops * 1.e9))

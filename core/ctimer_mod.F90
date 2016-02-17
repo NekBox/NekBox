@@ -12,6 +12,7 @@ module ctimer
 
   real(DP), save :: max_mops  = 0._dp
   real(DP), save :: max_flops = 0._dp
+  real(DP), save :: allreduce_latency = 0._dp
 
   real(DP), save :: tproj  = 0._dp
   real(DP), save :: thconj = 0._dp
@@ -23,7 +24,7 @@ module ctimer
   real(DP), save :: tdpc  = 0._dp
   real(DP), save :: tgmres  = 0._dp
   real(DP), save :: th1mg  = 0._dp
-  real(DP), save :: tscps  = 0._dp
+  real(DP), save :: tcps  = 0._dp
   real(DP), save :: tcrespsp  = 0._dp
   real(DP), save :: tcresvsp  = 0._dp
   real(DP), save :: theat2  = 0._dp
@@ -54,7 +55,7 @@ module ctimer
   integer, save :: ndpc = 0
   integer, save :: ngmres = 0
   integer, save :: nh1mg = 0
-  integer, save :: nscps = 0
+  integer, save :: ncps = 0
   integer, save :: ncrespsp = 0
   integer, save :: ncresvsp = 0
   integer, save :: nheat2 = 0
@@ -149,6 +150,104 @@ end subroutine sum_flops
 !!
 !! This is used when computing efficiencies in drive2
 subroutine benchmark()
+  use parallel, only : nid
+  call benchmark_mxm()
+  call benchmark_stream()
+  call benchmark_mxm()
+  call benchmark_stream()
+  call benchmark_allreduce()
+  if (nid == 0) write(*,'(2(A,F6.2),A,E11.3)') "GFLOP: ", max_flops/10.**9, &
+                                        " GiB/s: ", max_mops * 8 / (2_8 **30), &
+                                        " Allreduce: ", allreduce_latency
+end subroutine
+
+subroutine benchmark_allreduce()
+  use kinds, only : DP, i8
+
+  integer(i8) :: i, n
+  real(DP) :: a(1) 
+  real(DP) :: work(10), etime
+
+  n = 100
+
+  a = 1.
+  do i = 1, n
+    call nekgsync()
+    call gop(a,work,'+  ',1)
+  enddo
+
+
+  call nekgsync()
+  etime = dnekclock()
+  do i = 1, n
+    call nekgsync()
+    call gop(a,work,'+  ',1)
+  enddo
+
+  call nekgsync()
+  etime = dnekclock() - etime 
+  allreduce_latency = etime / n
+end subroutine benchmark_allreduce
+
+subroutine benchmark_mxm()
+  use kinds, only : DP
+  use parallel, only : nid
+  use size_m, only : lx1, ly1, lz1, lelt
+#ifdef XSMM
+  use iso_c_binding
+  use LIBXSMM, only : LIBXSMM_DMMFUNCTION
+  use LIBXSMM, only : libxsmm_dispatch, libxsmm_call
+#endif
+
+  real(DP), allocatable :: a(:,:,:), b(:,:,:), c(:,:)
+  !DIR$ ATTRIBUTES ALIGN:64 :: a, b, c
+
+
+  real(DP) :: etime
+  integer(8) :: i, n, k, flops
+  integer :: iz
+
+#ifdef XSMM
+  TYPE(LIBXSMM_DMMFUNCTION), save :: xmm1, xmm2, xmm3
+
+  call libxsmm_dispatch(xmm1, lx1,     lx1*lx1, lx1, alpha=1.0_dp, beta=0.0_dp)
+  call libxsmm_dispatch(xmm2, lx1,     lx1,     lx1, alpha=1.0_dp, beta=0.0_dp)
+  call libxsmm_dispatch(xmm3, lx1*lx1, lx1,     lx1, alpha=1.0_dp, beta=0.0_dp)
+#endif
+
+
+  allocate(a(lx1, lx1, lx1), b(lx1, lx1, lx1), c(lx1, lx1))
+  n = (2_8**40)/(lx1**4) / 4
+
+  etime = dnekclock()
+  do i = 1, n
+#ifdef XSMM
+  CALL libxsmm_call(xmm1, C_LOC(c), C_LOC(a(1,1,1)), C_LOC(b))
+  do iz=1,lx1
+      CALL libxsmm_call(xmm2, C_LOC(a(1,1,iz)), C_LOC(c), C_LOC(b(1,1,iz)))
+  enddo
+  CALL libxsmm_call(xmm3, C_LOC(a(1,1,1)), C_LOC(c), C_LOC(b))    
+#else
+  call mxm   (c,lx1,a(1,1,1),lx1,b,lx1*lx1)
+  do iz=1,lx1
+      call mxm   (a(1,1,iz),lx1,c,lx1,b(1,1,iz),lx1)
+  END DO
+  call mxm   (a(1,1,1),lx1*lx1,c,lx1,b,lx1)
+#endif
+  enddo
+  etime = dnekclock() - etime
+  flops = lx1*lx1*lx1*n * 3 * ( 2*lx1 - 1)
+  max_flops = flops / etime
+
+  if (nid == 0) write(*,*) "Got max flop rate of ", max_flops, etime
+
+end subroutine benchmark_mxm
+
+!-----------------------------------------------------------------------
+!> \brief compute the max bandwidth as in STREAM
+!!
+!! This is used when computing efficiencies in drive2
+subroutine benchmark_stream()
   use kinds, only : DP
   use parallel, only : nid
   use size_m, only : lx1, ly1, lz1, lelt
@@ -210,5 +309,5 @@ subroutine benchmark()
   max_mops = real((n*k*10))/sum(etime_total)
   if (nid == 0) write(*,'(A,5E12.5)') "STREAM: ", real(n*k*8) * (/2, 2, 3, 3/) / etime_total, max_mops*8
 
-end subroutine benchmark
+end subroutine benchmark_stream
 end module ctimer

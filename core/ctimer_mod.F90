@@ -232,7 +232,7 @@ subroutine benchmark_mxm()
 
 
   allocate(a(lx1, lx1, lx1), b(lx1, lx1, lx1), c(lx1, lx1))
-  n = (2_8**40)/(lx1**4) / 4
+  n = (2_8**40)/(lx1**4) / 64
 
   etime = dnekclock()
   do i = 1, n

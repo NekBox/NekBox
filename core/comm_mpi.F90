@@ -149,6 +149,47 @@
 
     return
   end subroutine gop
+
+  subroutine gop_gs(x, w, op, n)
+    use kinds, only : DP, i8
+    use parallel, only : nekcomm, np, nid
+    implicit none
+
+    integer :: n
+    real(DP) :: x(n), w(n)
+    character(3) :: op
+
+    logical, save :: init = .false.
+    integer, save :: handle
+    integer(i8) :: glo_num(1)
+
+    if (n > 1) then
+      call gop(x, w, op, n)
+      return
+    endif
+ 
+    if (.not. init) then
+      glo_num(1) = 1
+      call gs_setup(handle, glo_num, 1, nekcomm, np)
+      init = .true.
+    endif
+
+
+    if (op == '+  ') then
+        call gs_op(handle, x, 1, 1, 0)
+    elseif (op == 'M  ') then
+        call gs_op(handle, x, 1, 4, 0)
+    elseif (op == 'm  ') then
+        call gs_op(handle, x, 1, 3, 0)
+    elseif (op == '*  ') then
+        call gs_op(handle, x, 1, 2, 0)
+    else
+        write(6,*) nid,' OP ',op,' not supported.  ABORT in GOP.'
+        call exitt
+    endif
+
+  end subroutine gop_gs
+
 !-----------------------------------------------------------------------
 !> \brief Global vector commutative operation
   subroutine igop( x, w, op, n)

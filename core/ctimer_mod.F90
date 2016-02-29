@@ -163,10 +163,11 @@ end subroutine
 
 subroutine benchmark_allreduce()
   use kinds, only : DP, i8
+  use parallel, only : nid
 
   integer(i8) :: i, n
   real(DP) :: a(1) 
-  real(DP) :: work(10), etime
+  real(DP) :: work(10), etime_builtin, etime_gs, etime
 
   n = 100
 
@@ -174,6 +175,7 @@ subroutine benchmark_allreduce()
   do i = 1, n
     call nekgsync()
     call gop(a,work,'+  ',1)
+    !call gop_gs(a,work,'+  ',1)
   enddo
 
 
@@ -183,10 +185,23 @@ subroutine benchmark_allreduce()
     call nekgsync()
     call gop(a,work,'+  ',1)
   enddo
+  call nekgsync()
+  etime_builtin = dnekclock() - etime 
+  if (nid == 0) write(*,'(A,2E11.3)') "Builtin vs gs: ", etime_builtin / n
 
   call nekgsync()
-  etime = dnekclock() - etime 
-  allreduce_latency = etime / n
+  etime = dnekclock()
+  do i = 1, n
+    call nekgsync()
+    call gop(a,work,'+  ',1)
+  enddo
+  call nekgsync()
+  etime_gs = dnekclock() - etime 
+
+  if (nid == 0) write(*,'(A,2E11.3)') "Builtin vs gs: ", etime_builtin / n, etime_gs / n
+
+  allreduce_latency = etime_builtin / n
+
 end subroutine benchmark_allreduce
 
 subroutine benchmark_mxm()
@@ -236,6 +251,7 @@ subroutine benchmark_mxm()
 #endif
   enddo
   etime = dnekclock() - etime
+  deallocate(a,b,c)
   flops = lx1*lx1*lx1*n * 3 * ( 2*lx1 - 1)
   max_flops = flops / etime
 
@@ -306,6 +322,7 @@ subroutine benchmark_stream()
     etime_total(4) = etime_total(4) + etime
  
   enddo
+  deallocate(a,b,c)
   max_mops = real((n*k*10))/sum(etime_total)
   if (nid == 0) write(*,'(A,5E12.5)') "STREAM: ", real(n*k*8) * (/2, 2, 3, 3/) / etime_total, max_mops*8
 

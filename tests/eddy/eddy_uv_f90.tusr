@@ -195,8 +195,11 @@ end module usr
 !c
       real(DP) :: visc, u0, v0
       real(DP) :: umx, vmx, uex, vex, udx, vdx
-      real(DP), external :: glamax
       integer :: n
+
+      real(DP), external :: glamax
+      real(DP) :: tmax, umax, vmax, wmax
+
 
       ifield = 1  ! for outpost
 
@@ -229,6 +232,13 @@ end module usr
          call copy (vx,ue,n)      !  start-up contributions to
          call copy (vy,ve,n)      !  temporal-accuracy behavior.
       endif
+
+      tmax = glamax(t, lx1*ly1*lz1*lelt)
+      if (nid == 0) write(*,*) "Maximum scalar", tmax
+      umax = glamax(vx, lx1*ly1*lz1*lelt)
+      vmax = glamax(vy, lx1*ly1*lz1*lelt)
+      wmax = glamax(vz, lx1*ly1*lz1*lelt)
+      if (nid == 0) write(*,*) "Maximum velocity", umax, vmax, wmax
 
       return
       end
@@ -278,13 +288,23 @@ end module usr
       end
 !-----------------------------------------------------------------------
       subroutine usrdat
-      use size_m
-      use input
+      use kinds, only : DP
+      use size_m, only : nelv
+      use input, only : xc, yc
       implicit none
 
+      real(DP) :: one, twopi
+      integer e, i
 
-!     param(66) = 4
-!     param(67) = 4
+      one   = 1.
+      twopi = 8.*atan(one)
+
+      do e=1,nelv   !  Rescale mesh to [0,2pi]^2
+      do i=1,8      !  Assumes original domain in .rea file on [0,1]
+         xc(i,e) = twopi*xc(i,e)
+         yc(i,e) = twopi*yc(i,e)
+      enddo
+      enddo
 
       return
       end

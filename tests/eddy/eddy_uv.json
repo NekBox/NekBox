@@ -1,12 +1,12 @@
 {
-  "bottom_bound": "P", 
+  "bottom_bound": "SYM", 
   "num_fields": 2, 
   "front_bound": "P", 
-  "top_bound": "P", 
+  "top_bound": "SYM", 
   "conductivity": 1.99e-03, 
   "courant": 0.3, 
   "density": 1.0, 
-  "num_steps": 0.0, 
+  "num_steps": 100.0, 
   "scale_mesh": [
     1.0, 
     1.0, 
@@ -22,9 +22,9 @@
   ], 
   "io_step": 0.0, 
   "extent_mesh": [
-    6.28318530717958647, 
-    6.28318530717958647, 
-    6.28318530717958647
+    1.0, 
+    1.0,
+    1.0
   ], 
   "dt": -1.0000000E-04, 
   "right_bound": "P", 
@@ -33,13 +33,13 @@
   "shape_mesh": [
     16, 
     16, 
-    1
+    2
   ], 
-  "end_time": 1.0, 
+  "end_time": 0.0, 
   "uservp": 0, 
   "rho_cp": 1.0,
-  "order": 8,
-  "dealiasing_order" : 12,
+  "order": 16,
+  "dealiasing_order" : 24,
   "io_files" : 1.0,
   "restart" : 0.0,
   "tolrel" : 1.0e-04,

@@ -1,0 +1,11 @@
+cd ..
+cp test_convergence_ts/eddy_uv_convergence_ts.json  eddy_uv_param_dt.json
+cp zerodat eddy_uv_convergence_bdf2opt.csv
+
+for var0 in 5.0e-5 2.50e-5 1.25e-5 6.25e-6 3.125e-6 1.563e-6 7.81e-7
+  do
+    echo "Time step: $var0 "
+    cat eddy_uv_param_dt.json    | sed 's/time_step/'${var0}'/g' > eddy_uv.json
+    python ../../nek-tools/genrun/genrun.py -u eddy_uv_f90.tusr -d eddy_uv.json --makenek=../../NekBox/makenek test_eddy_uv_f9
+    sh ../../NekBox/nekmpi test_eddy_uv_f90 4 |tee test_eddy_uv_f90.out
+  done

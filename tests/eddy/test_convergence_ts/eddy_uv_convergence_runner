@@ -2,10 +2,12 @@ cd ..
 cp test_convergence_ts/eddy_uv_convergence_ts.json  eddy_uv_param_dt.json
 cp zerodat eddy_uv_convergence_bdf2opt.csv
 
-for var0 in 5.0e-5 2.50e-5 1.25e-5 6.25e-6 3.125e-6 1.563e-6 7.81e-7
+cat eddy_uv_param_dt.json    | sed 's/time_step/'1.0e-3'/g' > eddy_uv.json
+python /home/maxhutch/src/nek-tools/genrun/genrun.py -u eddy_uv_f90.tusr -d eddy_uv.json --makenek=/home/maxhutch/src/nek/makenek --clean test_eddy_uv_f90
+for var0 in 2.0e-3 1.0e-3 5.0e-4 2.50e-4 1.25e-4 6.25e-5 3.125e-5
   do
     echo "Time step: $var0 "
     cat eddy_uv_param_dt.json    | sed 's/time_step/'${var0}'/g' > eddy_uv.json
-    python ../../nek-tools/genrun/genrun.py -u eddy_uv_f90.tusr -d eddy_uv.json --makenek=../../NekBox/makenek test_eddy_uv_f9
-    sh ../../NekBox/nekmpi test_eddy_uv_f90 4 |tee test_eddy_uv_f90.out
+    python /home/maxhutch/src/nek-tools/genrun/genrun.py -u eddy_uv_f90.tusr -d eddy_uv.json --no-make test_eddy_uv_f90
+    sh /home/maxhutch/src/nek/nekmpi test_eddy_uv_f90 1 |tee test_eddy_uv_f90_${var0}.out
   done

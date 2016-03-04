@@ -26,7 +26,7 @@
     1.0,
     1.0
   ], 
-  "dt": time_step, 
+  "dt": 1.0e-3, 
   "right_bound": "P", 
   "dim": 3, 
   "io_time": 1.0, 
@@ -53,7 +53,7 @@
   "nvel" : 2,
   "cps" : 0,
   "max_fft_procs" : 0,
-  "procs" : 1,
+  "procs" : 4,
   "io_prec" : 8,
   "no_check" : 0,
   "filter_wt" : -0.05,

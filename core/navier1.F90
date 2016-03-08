@@ -663,8 +663,12 @@ subroutine setbd (bd,dtbd,nbd)
 
   integer, PARAMETER :: NDIM = 10
   REAL(DP) :: BDMAT(NDIM,NDIM),BDRHS(NDIM), BDF
+  REAL(DP) :: BDMAT2(NDIM, NDIM), BDRHS2(NDIM)
   INTEGER :: IR(NDIM),IC(NDIM)
   integer :: nsys, i, ibd
+  integer :: NBD_tmp
+  REAL(DP), PARAMETER :: beta_opt_bdf2 = 0.48_dp !>!< BDF2OPT mixing coefficient 
+  REAL(DP) :: one_m_beta
 
   BD(1:ndim) = 0._dp; bdf = -1
   ! BDF(1) is trivial
@@ -681,6 +685,30 @@ subroutine setbd (bd,dtbd,nbd)
           BD(I) = BDRHS(I)
       30 END DO
       BDF = BDRHS(NBD+1)
+  ELSEIF (NBD == 3) THEN
+      ! Compute the coefficients of BDF2 scheme
+      NBD_tmp = 2
+      NSYS = NBD_tmp+1
+      CALL BDSYS (BDMAT,BDRHS,DTBD,NBD_tmp,NDIM)
+      CALL LU    (BDMAT,NSYS,NDIM,IR,IC)
+      CALL SOLVE (BDRHS,BDMAT,1,NSYS,NDIM,IR,IC)
+      
+      ! Compute the coefficients of BDF3 scheme
+      NBD_tmp = 3
+      NSYS = NBD_tmp+1
+      CALL BDSYS (BDMAT2,BDRHS2,DTBD,NBD_tmp,NDIM)
+      CALL LU    (BDMAT2,NSYS,NDIM,IR,IC)
+      CALL SOLVE (BDRHS2,BDMAT2,1,NSYS,NDIM,IR,IC)
+
+      ! Mix BDF2 and BDF3 coefficients to get the optimized BDF2 scheme
+      ! In literature this is called BDF2opt(beta)
+      one_m_beta = 1._dp - beta_opt_bdf2
+      DO I=1,NBD_tmp
+          BD(I) = beta_opt_bdf2*BDRHS2(I) + one_m_beta*BDRHS(I)
+      END DO
+      ! Mix the last coefficient (for BDF2 this coeff is zero!!)
+      BDF = beta_opt_bdf2*BDRHS2(NBD_tmp+1) + one_m_beta*BDRHS(NBD_tmp+1)
+      
   ENDIF
 
   !   Normalize

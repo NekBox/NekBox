@@ -582,6 +582,7 @@ end subroutine makeabf
 !-----------------------------------------------------------------------
 subroutine setabbd (ab,dtlag,nab,nbd)
   use kinds, only : DP
+  use tstep, only : mixing_alpha
   implicit none
 
   REAL(DP), intent(out) :: AB(NAB)    !>!< Adams-Bashforth coefficients
@@ -590,40 +591,52 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   integer,  intent(in)  :: nbd        !>!< Order of accompanying BDF scheme
 
   real(DP) :: dt0, dt1, dt2, dta, dts, dtb, dtc, dtd, dte
+  real(DP) :: AB1(3), AB2(3), AB3(3)
+!  real(DP), parameter :: mixing_alpha = 0.0195831791549432
+
+  AB1 = 0._dp; AB2 = 0._dp; AB3 = 0._dp
+
+  DT0 = DTLAG(1)
+  DT1 = DTLAG(2)  
+  DT2 = DTLAG(3)
+
+  AB1(1) = 1.0
+
+  DTS =  DT1 + DT2
+  if (nab > 1) then 
+    DTA =  DT0 / DT1
+    AB2(2) = -DTA
+    AB2(1) =  1.0 - AB2(2)
+  endif
+  if (nab > 2) then
+    DTB =  DT1 / DT2
+    DTC =  DT0 / DT2
+    DTD =  DTS / DT1
+    DTE =  DT0 / DTS
+
+    AB3(3) =  DTE*(DTB + DTC)
+    AB3(2) = -DTA*(1.0 + DTB + DTC)
+    AB3(1) =  1.0 - AB3(2) - AB3(3)
+  endif
+ 
 
   IF ( NAB == 1 ) THEN
   
-      AB(1) = 1.0
+      AB(1) = AB1(1)
   
   ELSEIF ( NAB == 2 ) THEN
-      DT0 = DTLAG(1)
-      DT1 = DTLAG(2)
-  
-      DTA =  DT0/DT1
   
       IF ( NBD == 1 ) THEN
-      
-          AB(2) = -0.5*DTA
-          AB(1) =  1.0 - AB(2)
+
+          AB(1:2) = 1./2. * AB2(1:2) + 1./2. * AB1(1:2)
       
       ELSEIF ( NBD == 2 ) THEN
-      
-          AB(2) = -DTA
-          AB(1) =  1.0 - AB(2)
-      
+
+          AB(1:2) = AB2(1:2)
+            
       ENDIF
   
   ELSEIF ( NAB == 3 ) THEN
-      DT0 = DTLAG(1)
-      DT1 = DTLAG(2)  
-      DT2 = DTLAG(3)
-
-      DTS =  DT1 + DT2
-      DTA =  DT0 / DT1
-      DTB =  DT1 / DT2
-      DTC =  DT0 / DT2
-      DTD =  DTS / DT1
-      DTE =  DT0 / DTS
   
       IF ( NBD == 1 ) THEN
       
@@ -632,16 +645,12 @@ subroutine setabbd (ab,dtlag,nab,nbd)
           AB(1) =  1.0 - AB(2) - AB(3)
       
       ELSEIF ( NBD == 2 ) THEN
-      
-          AB(3) =  2./3.*DTC*(1./DTD + DTE)
-          AB(2) = -DTA - AB(3)*DTD
-          AB(1) =  1.0 - AB(2) - AB(3)
-      
+     
+          AB(1:3) = 2./3. * AB3(1:3) + 1./3. * AB2(1:3) 
+     
       ELSEIF ( NBD == 3 ) THEN
-      
-          AB(3) =  DTE*(DTB + DTC)
-          AB(2) = -DTA*(1.0 + DTB + DTC)
-          AB(1) =  1.0 - AB(2) - AB(3)
+
+          AB(1:3) = mixing_alpha * AB3(1:3) + (1.-mixing_alpha) * AB2(1:3)  
       
       ENDIF
   
@@ -655,6 +664,8 @@ end subroutine setabbd
 !-----------------------------------------------------------------------
 subroutine setbd (bd,dtbd,nbd)
   use kinds, only : DP
+  use parallel, only : nid
+  use tstep, only : mixing_beta
   implicit none
 
   REAL(dp), intent(out) :: BD(*)   !>!< BDF coefficients
@@ -663,11 +674,11 @@ subroutine setbd (bd,dtbd,nbd)
 
   integer, PARAMETER :: NDIM = 10
   REAL(DP) :: BDMAT(NDIM,NDIM),BDRHS(NDIM), BDF
-  REAL(DP) :: BDMAT2(NDIM, NDIM), BDRHS2(NDIM)
+  REAL(DP) :: BDMAT2(NDIM, NDIM), BDRHS2(NDIM), BDF2, BD2(NDIM)
   INTEGER :: IR(NDIM),IC(NDIM)
   integer :: nsys, i, ibd
   integer :: NBD_tmp
-  REAL(DP), PARAMETER :: beta_opt_bdf2 = 0.48_dp !>!< BDF2OPT mixing coefficient 
+!  REAL(DP), PARAMETER :: beta_opt_bdf2 = -1.4627759516195247_dp !>!< BDF2OPT mixing coefficient 
   REAL(DP) :: one_m_beta
 
   BD(1:ndim) = 0._dp; bdf = -1
@@ -685,32 +696,7 @@ subroutine setbd (bd,dtbd,nbd)
           BD(I) = BDRHS(I)
       30 END DO
       BDF = BDRHS(NBD+1)
-  ELSEIF (NBD == 3) THEN
-      ! Compute the coefficients of BDF2 scheme
-      NBD_tmp = 2
-      NSYS = NBD_tmp+1
-      CALL BDSYS (BDMAT,BDRHS,DTBD,NBD_tmp,NDIM)
-      CALL LU    (BDMAT,NSYS,NDIM,IR,IC)
-      CALL SOLVE (BDRHS,BDMAT,1,NSYS,NDIM,IR,IC)
-      
-      ! Compute the coefficients of BDF3 scheme
-      NBD_tmp = 3
-      NSYS = NBD_tmp+1
-      CALL BDSYS (BDMAT2,BDRHS2,DTBD,NBD_tmp,NDIM)
-      CALL LU    (BDMAT2,NSYS,NDIM,IR,IC)
-      CALL SOLVE (BDRHS2,BDMAT2,1,NSYS,NDIM,IR,IC)
-
-      ! Mix BDF2 and BDF3 coefficients to get the optimized BDF2 scheme
-      ! In literature this is called BDF2opt(beta)
-      one_m_beta = 1._dp - beta_opt_bdf2
-      DO I=1,NBD_tmp
-          BD(I) = beta_opt_bdf2*BDRHS2(I) + one_m_beta*BDRHS(I)
-      END DO
-      ! Mix the last coefficient (for BDF2 this coeff is zero!!)
-      BDF = beta_opt_bdf2*BDRHS2(NBD_tmp+1) + one_m_beta*BDRHS(NBD_tmp+1)
-      
-  ENDIF
-
+  endif 
   !   Normalize
   DO IBD=NBD,1,-1
       BD(IBD+1) = BD(IBD)
@@ -719,6 +705,43 @@ subroutine setbd (bd,dtbd,nbd)
   DO IBD=1,NBD+1
       BD(IBD) = BD(IBD)/BDF
   END DO
+
+
+
+  IF (NBD == 3) THEN
+      ! Compute the coefficients of BDF2 scheme
+      NBD_tmp = 2
+      NSYS = NBD_tmp+1
+      BD2(1:ndim) = 0._dp; bdf2 = -1
+      CALL BDSYS (BDMAT2,BDRHS2,DTBD,NBD_tmp,NDIM)
+      CALL LU    (BDMAT2,NSYS,NDIM,IR,IC)
+      CALL SOLVE (BDRHS2,BDMAT2,1,NSYS,NDIM,IR,IC)
+
+      ! Mix BDF2 and BDF3 coefficients to get the optimized BDF2 scheme
+      ! In literature this is called BDF2opt(beta)
+      one_m_beta = 1._dp - mixing_beta
+      DO I=1,NBD_tmp
+          BD2(I) = BDRHS2(I)
+      END DO
+      ! Mix the last coefficient (for BDF2 this coeff is zero!!)
+      BDF2 = BDRHS2(NBD_tmp+1) 
+
+      !   Normalize
+      DO IBD=NBD_tmp,1,-1
+          BD2(IBD+1) = BD2(IBD)
+      END DO
+      BD2(1) = 1.
+      DO IBD=1,NBD_tmp+1
+          BD2(IBD) = BD2(IBD)/BDF2
+      END DO
+      BD2(NBD+1) = 0._dp
+
+      do IBD=1, NBD+1
+        BD(IBD) = mixing_beta*BD(IBD) + one_m_beta*BD2(IBD)
+      enddo
+      
+  ENDIF
+!  if (nid == 0) write(*,*) "BD: ", BD(1:5)
 !   write(6,1) (bd(k),k=1,nbd+1)
 ! 1 format('bd:',1p8e13.5)
 

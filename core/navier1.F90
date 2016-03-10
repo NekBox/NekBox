@@ -503,23 +503,18 @@ end subroutine makebdf
 subroutine makeabf
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, ndim
-  use soln, only : abx1, aby1, abz1, abx2, aby2, abz2, bfx, bfy, bfz, vtrans
-  use tstep, only : ab
+  use soln, only : abxlag, abylag, abzlag, bfx, bfy, bfz, vtrans
+  use tstep, only : ab, nab, nbdinp
   use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), allocatable :: TA (:,:,:,:) 
 
-  integer :: ntot1, iel
-  real(DP) :: ab0, ab1, ab2
+  integer :: ntot1, iel, j
 
   allocate(TA(nx1,ny1,nz1,nelv))
 
   NTOT1 = NX1*NY1*NZ1*NELV
-
-  AB0 = AB(1)
-  AB1 = AB(2)
-  AB2 = AB(3)
 
 #if 0
 ! 11*ntot mops
@@ -544,29 +539,45 @@ subroutine makeabf
 ! 7*ntot mops
 ! 6*ntot flops
 
-  othr_flop = othr_flop + 18*ntot1
-  othr_mop  = othr_mop + 21*ntot1
+  othr_flop = othr_flop + 6*nab*ntot1
+  othr_mop  = othr_mop + (15+3*nab)*ntot1
 
   do iel = 1, nelv
-    ta(:,:,:,1) = ab1 * abx1(:,:,:,iel) + ab2 * abx2(:,:,:,iel)
-    abx2(:,:,:,iel) = abx1(:,:,:,iel)
-    abx1(:,:,:,iel) = bfx(:,:,:,iel)
-    bfx(:,:,:,iel) = (ab0*bfx(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    ta(:,:,:,1) = ab(2) * abxlag(:,:,:,iel,1)
+    do j = 2, nab-1
+      ta(:,:,:,1) = ta(:,:,:,1)+ab(j+1)*abxlag(:,:,:,iel,j)
+    enddo
+    do j = nbdinp-1, 2, -1
+      abxlag(:,:,:,iel,j) = abxlag(:,:,:,iel,j-1)
+    enddo
+    abxlag(:,:,:,iel,1) = bfx(:,:,:,iel)
+    bfx(:,:,:,iel) = (ab(1)*bfx(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
 
   do iel = 1, nelv
-    ta(:,:,:,1) = ab1 * aby1(:,:,:,iel) + ab2 * aby2(:,:,:,iel)
-    aby2(:,:,:,iel) = aby1(:,:,:,iel)
-    aby1(:,:,:,iel) = bfy(:,:,:,iel)
-    bfy(:,:,:,iel) = (ab0*bfy(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    ta(:,:,:,1) = ab(2) * abylag(:,:,:,iel,1)
+    do j = 2, nab-1
+      ta(:,:,:,1) = ta(:,:,:,1)+ab(j+1)*abylag(:,:,:,iel,j)
+    enddo
+    do j = nbdinp-1, 2, -1
+      abylag(:,:,:,iel,j) = abylag(:,:,:,iel,j-1)
+    enddo
+    abylag(:,:,:,iel,1) = bfy(:,:,:,iel)
+    bfy(:,:,:,iel) = (ab(1)*bfy(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
 
   do iel = 1, nelv
-    ta(:,:,:,1) = ab1 * abz1(:,:,:,iel) + ab2 * abz2(:,:,:,iel)
-    abz2(:,:,:,iel) = abz1(:,:,:,iel)
-    abz1(:,:,:,iel) = bfz(:,:,:,iel)
-    bfz(:,:,:,iel) = (ab0*bfz(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    ta(:,:,:,1) = ab(2) * abzlag(:,:,:,iel,1)
+    do j = 2, nab-1
+      ta(:,:,:,1) = ta(:,:,:,1)+ ab(j+1)*abzlag(:,:,:,iel,j)
+    enddo
+    do j = nbdinp-1, 2, -1
+      abzlag(:,:,:,iel,j) = abzlag(:,:,:,iel,j-1)
+    enddo
+    abzlag(:,:,:,iel,1) = bfz(:,:,:,iel)
+    bfz(:,:,:,iel) = (ab(1)*bfz(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
+
 #endif
 
   return
@@ -621,6 +632,7 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   else
     ab(1:nab) = exrhs(1:nab)
   endif
+  if (nid == 0) write(*,*) "EX: ", ab
 
   return
 end subroutine setabbd
@@ -707,7 +719,7 @@ subroutine setbd (bd,dtbd,nbd)
       enddo
       
   ENDIF
-!  if (nid == 0) write(*,*) "BD: ", BD(1:5)
+  if (nid == 0) write(*,*) "BD: ", BD(1:nbd+1)
 !   write(6,1) (bd(k),k=1,nbd+1)
 ! 1 format('bd:',1p8e13.5)
 
@@ -779,13 +791,14 @@ end subroutine tauinit
 subroutine lagvel
   use size_m, only : nx1, ny1, nz1, nelv, ndim
   use soln, only : vxlag, vylag, vzlag, vx, vy, vz
+  use tstep, only : nbdinp
   implicit none
 
   integer :: ntot1, ilag
   NTOT1 = NX1*NY1*NZ1*NELV
 
-!    DO 100 ILAG=NBDINP-1,2,-1
-  DO 100 ILAG=3-1,2,-1
+  DO 100 ILAG=NBDINP-1,2,-1
+!  DO 100 ILAG=3-1,2,-1
       CALL COPY (VXLAG (1,1,1,1,ILAG),VXLAG (1,1,1,1,ILAG-1),NTOT1)
       CALL COPY (VYLAG (1,1,1,1,ILAG),VYLAG (1,1,1,1,ILAG-1),NTOT1)
       IF (NDIM == 3) &

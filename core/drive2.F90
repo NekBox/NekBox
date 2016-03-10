@@ -41,7 +41,6 @@ subroutine initdat
   use size_m,   only : lx1, lx2, lelt, nx1, ny1, nz1, nx2, ny2, nz2
   use input,    only : IFCVODE, IFEXPLVIS, ifsplit, param, ccurve, xc, yc, zc
   use parallel, only : ifgprnt 
-  use soln,     only : abx1, abx2, aby1, aby2, abz1, abz2, vgradt1, vgradt2
   use tstep,    only : if_full_pres
   implicit none
 
@@ -73,15 +72,6 @@ subroutine initdat
   zc = 0._dp
 
   NTOT=NX1*NY1*NZ1*LELT
-  abx1 = 0._dp
-  abx2 = 0._dp
-  aby1 = 0._dp
-  aby2 = 0._dp
-  abz1 = 0._dp
-  abz2 = 0._dp
-  vgradt1 = 0._dp
-  vgradt2 = 0._dp
-
   NTOT=NX2*NY2*NZ2*LELT
 !max  CALL RZERO(USRDIV,NTOT)
 
@@ -645,8 +635,8 @@ subroutine settime
   if (irst > 0) nbd = nbdinp
   bd = 0._dp
   CALL SETBD (BD,DTLAG,NBD)
-  NAB = 3
-  IF (ISTEP <= 2 .AND. irst <= 0) NAB = ISTEP
+  NAB = max(3, nbd)
+  IF (ISTEP <= 3 .AND. irst <= 0) NAB = ISTEP
   ab = 0._dp
   CALL SETABBD (AB,DTLAG,NAB,NBD)
   IF (IFMVBD) THEN

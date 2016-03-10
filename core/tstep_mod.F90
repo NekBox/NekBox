@@ -28,5 +28,6 @@ module tstep
   LOGICAL :: IFPRNT,if_full_pres
 
   real(DP) :: lyap(3,lpert)
+  real(DP) :: mixing_alpha = 1.0_dp, mixing_beta = 1.0_dp
 
 end module tstep

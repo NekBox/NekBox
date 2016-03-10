@@ -157,6 +157,8 @@ subroutine setvar
   use tstep, only : dtinit, dt, gtheta, betag, nmxnl, dtlag, nbd, ifield, tolnl
   use tstep, only : prelax, nbdinp, tolrel, tolhdf, pi, ctarg, tolabs, nmxe
   use tstep, only : nelfld, nmxh, nmxp
+  use tstep, only : mixing_alpha, mixing_beta
+
 
   implicit none
 
@@ -242,6 +244,12 @@ subroutine setvar
   CTARG  = PARAM(26)
   NBDINP = int(PARAM(27))
   NABMSH = int(PARAM(28))
+
+  if (NBDINP < 0) then
+    NBDINP = abs(NBDINP)
+    mixing_alpha = 0.0195831791549432_dp
+    mixing_beta = -1.4627759516195247_dp
+  endif
 
   if (nbdinp > lorder) then
       if (nid == 0) then

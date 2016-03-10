@@ -22,9 +22,8 @@ module soln
 !     Can be used for post-processing runs (SIZE .gt. 10+3*LDIMT flds)
   real(DP), allocatable, dimension(:,:,:,:,:) :: VXLAG, VYLAG, VZLAG
   real(DP), allocatable :: TLAG(:,:,:,:,:,:)
-  real(DP), allocatable, dimension(:,:,:,:,:) :: VGRADT1, VGRADT2
-  real(DP), allocatable, dimension(:,:,:,:) :: ABX1, ABY1, ABZ1 
-  real(DP), allocatable, dimension(:,:,:,:) :: ABX2, ABY2, ABZ2
+  real(DP), allocatable, dimension(:,:,:,:,:,:) :: VGRADTLAG
+  real(DP), allocatable, dimension(:,:,:,:,:) :: abxlag, abylag, abzlag
   real(DP), allocatable, dimension(:,:,:,:) :: VDIFF_E
 !     Solution data
   real(DP), allocatable, dimension(:,:,:,:) :: VX, VY, VZ
@@ -78,25 +77,19 @@ module soln
 
     allocate( &
 !     Can be used for post-processing runs (SIZE .gt. 10+3*LDIMT flds)
-    VXLAG  (LX1,LY1,LZ1,LELV,2) &
-    , VYLAG  (LX1,LY1,LZ1,LELV,2) &
-    , VZLAG  (LX1,LY1,LZ1,LELV,2) &
-    , TLAG   (LX1,LY1,LZ1,LELT,LORDER-1,LDIMT))
+    VXLAG  (LX1,LY1,LZ1,LELV,max(LORDER-1,2)) &
+    , VYLAG  (LX1,LY1,LZ1,LELV,max(LORDER-1,2)) &
+    , VZLAG  (LX1,LY1,LZ1,LELV,max(LORDER-1,2)) &
+    , TLAG   (LX1,LY1,LZ1,LELT,max(LORDER-1,2),LDIMT))
     vxlag = 0._dp; vylag = 0._dp; vzlag = 0._dp; tlag = 0._dp
 
-    allocate( &
-      VGRADT1(LX1,LY1,LZ1,LELT,LDIMT) &
-    , VGRADT2(LX1,LY1,LZ1,LELT,LDIMT) )
-    allocate( &
-      ABX1   (LX1,LY1,LZ1,LELV) &
-    , ABY1   (LX1,LY1,LZ1,LELV) &
-    , ABZ1   (LX1,LY1,LZ1,LELV) &
-    , ABX2   (LX1,LY1,LZ1,LELV) &
-    , ABY2   (LX1,LY1,LZ1,LELV) &
-    , ABZ2   (LX1,LY1,LZ1,LELV) &
-!    , VDIFF_E(LX1,LY1,LZ1,LELT) &
+    allocate(VGRADTLAG(LX1,LY1,LZ1,LELT,LDIMT, max(LORDER-1,2)))
+    allocate(abxlag(lx1, ly1, lz1, lelv, max(LORDER-1, 2)))
+    allocate(abylag(lx1, ly1, lz1, lelv, max(LORDER-1, 2)))
+    allocate(abzlag(lx1, ly1, lz1, lelv, max(LORDER-1, 2)))
 !     Solution data
-    , VX     (LX1,LY1,LZ1,LELV) &
+    allocate( &
+      VX     (LX1,LY1,LZ1,LELV) &
     , VY     (LX1,LY1,LZ1,LELV) &
     , VZ     (LX1,LY1,LZ1,LELV) &
     , T      (LX1,LY1,LZ1,LELT,LDIMT) &
@@ -125,6 +118,13 @@ module soln
     , BYLAG  (LBX1*LBY1*LBZ1*LBELV,LORDER-1) &
     , BZLAG  (LBX1*LBY1*LBZ1*LBELV,LORDER-1) &
     , PMLAG  (LBX2*LBY2*LBZ2*LBELV,LORDER2) )
+
+
+    abxlag = 0._dp
+    abylag = 0._dp
+    abzlag = 0._dp
+    vgradtlag = 0._dp
+
 
     allocate(PR(LX2,LY2,LZ2,LELV))
 !    allocate(PRLAG(LX2,LY2,LZ2,LELV,LORDER2)) 

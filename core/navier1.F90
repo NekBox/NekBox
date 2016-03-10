@@ -583,6 +583,7 @@ end subroutine makeabf
 subroutine setabbd (ab,dtlag,nab,nbd)
   use kinds, only : DP
   use tstep, only : mixing_alpha
+  use parallel, only : nid
   implicit none
 
   REAL(DP), intent(out) :: AB(NAB)    !>!< Adams-Bashforth coefficients
@@ -590,73 +591,36 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   integer,  intent(in)  :: nab        !>!< Order of AB scheme
   integer,  intent(in)  :: nbd        !>!< Order of accompanying BDF scheme
 
-  real(DP) :: dt0, dt1, dt2, dta, dts, dtb, dtc, dtd, dte
-  real(DP) :: AB1(3), AB2(3), AB3(3)
+  integer, parameter :: NDIM = 10
+  !real(DP) :: dt0, dt1, dt2, dta, dts, dtb, dtc, dtd, dte
+  REAL(DP) :: EXMAT(NDIM,NDIM),EXRHS(NDIM)
+  REAL(DP) :: EXMAT2(NDIM,NDIM),EXRHS2(NDIM)
+  INTEGER :: IR(NDIM),IC(NDIM)
 !  real(DP), parameter :: mixing_alpha = 0.0195831791549432
+  real(DP) :: alpha
 
-  AB1 = 0._dp; AB2 = 0._dp; AB3 = 0._dp
+  CALL BDSYS (EXMAT,EXRHS,DTLAG,NAB,NDIM)
+  CALL LU    (EXMAT,NAB,NDIM,IR,IC)
+  CALL SOLVE (EXRHS,EXMAT,1,NAB,NDIM,IR,IC)
 
-  DT0 = DTLAG(1)
+  if (mixing_alpha < 1._dp .or. nab < nbd) then 
 
-  AB1(1) = 1.0
+    CALL BDSYS (EXMAT2,EXRHS2,DTLAG,NAB-1,NDIM)
+    CALL LU    (EXMAT2,NAB-1,NDIM,IR,IC)
+    CALL SOLVE (EXRHS2,EXMAT2,1,NAB-1,NDIM,IR,IC)
+    exrhs2(nab) = 0._dp
 
-  if (nab > 1) then 
-    DT1 = DTLAG(2)  
-
-    DTA =  DT0 / DT1
-    AB2(2) = -DTA
-    AB2(1) =  1.0 - AB2(2)
+    if (nab == 2 .and. nbd == 1) then
+      alpha = .5_dp
+    else if (nab == 3 .and. nbd == 2) then
+      alpha = 2._dp/3._dp
+    else
+      alpha = mixing_alpha
+    endif
+    ab(1:nab) = alpha * exrhs(1:nab)  + (1._dp-alpha)*exrhs2(1:nab)
+  else
+    ab(1:nab) = exrhs(1:nab)
   endif
-  if (nab > 2) then
-    DT2 = DTLAG(3)
-
-    DTS =  DT1 + DT2
-    DTB =  DT1 / DT2
-    DTC =  DT0 / DT2
-    DTD =  DTS / DT1
-    DTE =  DT0 / DTS
-
-    AB3(3) =  DTE*(DTB + DTC)
-    AB3(2) = -DTA*(1.0 + DTB + DTC)
-    AB3(1) =  1.0 - AB3(2) - AB3(3)
-  endif
- 
-
-  IF ( NAB == 1 ) THEN
-  
-      AB(1) = AB1(1)
-  
-  ELSEIF ( NAB == 2 ) THEN
-  
-      IF ( NBD == 1 ) THEN
-
-          AB(1:2) = 1./2. * AB2(1:2) + 1./2. * AB1(1:2)
-      
-      ELSEIF ( NBD == 2 ) THEN
-
-          AB(1:2) = AB2(1:2)
-            
-      ENDIF
-  
-  ELSEIF ( NAB == 3 ) THEN
-  
-      IF ( NBD == 1 ) THEN
-      
-          AB(3) =  DTE*( 0.5*DTB + DTC/3. )
-          AB(2) = -0.5*DTA - AB(3)*DTD
-          AB(1) =  1.0 - AB(2) - AB(3)
-      
-      ELSEIF ( NBD == 2 ) THEN
-     
-          AB(1:3) = 2./3. * AB3(1:3) + 1./3. * AB2(1:3) 
-     
-      ELSEIF ( NBD == 3 ) THEN
-
-          AB(1:3) = mixing_alpha * AB3(1:3) + (1.-mixing_alpha) * AB2(1:3)  
-      
-      ENDIF
-  
-  ENDIF
 
   return
 end subroutine setabbd

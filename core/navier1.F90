@@ -597,18 +597,20 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   AB1 = 0._dp; AB2 = 0._dp; AB3 = 0._dp
 
   DT0 = DTLAG(1)
-  DT1 = DTLAG(2)  
-  DT2 = DTLAG(3)
 
   AB1(1) = 1.0
 
-  DTS =  DT1 + DT2
   if (nab > 1) then 
+    DT1 = DTLAG(2)  
+
     DTA =  DT0 / DT1
     AB2(2) = -DTA
     AB2(1) =  1.0 - AB2(2)
   endif
   if (nab > 2) then
+    DT2 = DTLAG(3)
+
+    DTS =  DT1 + DT2
     DTB =  DT1 / DT2
     DTC =  DT0 / DT2
     DTD =  DTS / DT1

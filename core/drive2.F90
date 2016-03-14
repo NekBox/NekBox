@@ -829,16 +829,30 @@ subroutine heat (igeom)
 #endif
   elseif (ifsplit) then
 
-      do igeo=1,2
-          do ifield=2,nfield
-              intype        = -1
-              if ( .NOT. iftmsh(ifield)) imesh = 1
-              if (     iftmsh(ifield)) imesh = 2
-              call unorm
-              call settolt
-              call cdscal (igeo)
-          enddo
+      do ifield=2,nfield
+          intype        = -1
+          if ( .NOT. iftmsh(ifield)) imesh = 1
+          if (     iftmsh(ifield)) imesh = 2
+          call unorm
+          call settolt
+          call cdscal (1)
       enddo
+  
+      ! call userf before heat is solved
+      ifield = 1
+      imesh = 1
+      CALL MAKEF()
+
+      do ifield=2,nfield
+          intype        = -1
+          if ( .NOT. iftmsh(ifield)) imesh = 1
+          if (     iftmsh(ifield)) imesh = 2
+          call unorm
+          call settolt
+          call cdscal (2)
+      enddo
+
+
       igeom = 2
 
   else  ! PN-PN-2

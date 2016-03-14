@@ -83,9 +83,10 @@ subroutine plan4()
   CALL V_EXTRAP(vext)
 
   ! compute explicit contributions (bf{x,y,z}) with BDF(k)
-  etime = etime - dnekclock()
-  CALL MAKEF()
-  etime = etime + dnekclock()
+  ! NOTE: this is moved into heat
+!  etime = etime - dnekclock()
+!  CALL MAKEF()
+!  etime = etime + dnekclock()
 
   ! store the velocity field for later
   CALL LAGVEL()

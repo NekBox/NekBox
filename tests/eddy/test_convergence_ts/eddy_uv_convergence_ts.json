@@ -12,7 +12,7 @@
     1.0, 
     1.0
   ], 
-  "viscosity": 1e-01, 
+  "viscosity": 4e-01, 
   "back_bound": "P", 
   "left_bound": "P", 
   "root_mesh": [
@@ -38,8 +38,8 @@
   "end_time": 0.02, 
   "uservp": 0, 
   "rho_cp": 1.0,
-  "order": 32,
-  "dealiasing_order" : 48,
+  "order": 16,
+  "dealiasing_order" : 24,
   "io_files" : 1.0,
   "restart" : 0.0,
   "tolrel" : 0.0,
@@ -59,7 +59,7 @@
   "filter_wt" : -0.05,
   "nfilt" : 0.0,
   "dt_initial" : 0.0,
-  "torder" : 3.0,
+  "torder" : 4.0,
   "u0" : 1.0,
   "v0" : 0.9, 
   "io_pad" : 23

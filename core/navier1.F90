@@ -547,7 +547,7 @@ subroutine makeabf
     do j = 2, nab-1
       ta(:,:,:,1) = ta(:,:,:,1)+ab(j+1)*abxlag(:,:,:,iel,j)
     enddo
-    do j = nbdinp-1, 2, -1
+    do j = max(nbdinp-1,2), 2, -1
       abxlag(:,:,:,iel,j) = abxlag(:,:,:,iel,j-1)
     enddo
     abxlag(:,:,:,iel,1) = bfx(:,:,:,iel)
@@ -559,7 +559,7 @@ subroutine makeabf
     do j = 2, nab-1
       ta(:,:,:,1) = ta(:,:,:,1)+ab(j+1)*abylag(:,:,:,iel,j)
     enddo
-    do j = nbdinp-1, 2, -1
+    do j = max(nbdinp-1,2), 2, -1
       abylag(:,:,:,iel,j) = abylag(:,:,:,iel,j-1)
     enddo
     abylag(:,:,:,iel,1) = bfy(:,:,:,iel)
@@ -571,7 +571,7 @@ subroutine makeabf
     do j = 2, nab-1
       ta(:,:,:,1) = ta(:,:,:,1)+ ab(j+1)*abzlag(:,:,:,iel,j)
     enddo
-    do j = nbdinp-1, 2, -1
+    do j = max(nbdinp-1,2), 2, -1
       abzlag(:,:,:,iel,j) = abzlag(:,:,:,iel,j-1)
     enddo
     abzlag(:,:,:,iel,1) = bfz(:,:,:,iel)
@@ -614,7 +614,7 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   CALL LU    (EXMAT,NAB,NDIM,IR,IC)
   CALL SOLVE (EXRHS,EXMAT,1,NAB,NDIM,IR,IC)
 
-  if (mixing_alpha < 1._dp .or. nab < nbd) then 
+  if (mixing_alpha < 1._dp .or. nab > nbd) then 
 
     CALL BDSYS (EXMAT2,EXRHS2,DTLAG,NAB-1,NDIM)
     CALL LU    (EXMAT2,NAB-1,NDIM,IR,IC)
@@ -794,7 +794,7 @@ subroutine lagvel
   integer :: ntot1, ilag
   NTOT1 = NX1*NY1*NZ1*NELV
 
-  DO 100 ILAG=NBDINP-1,2,-1
+  DO 100 ILAG=max(NBDINP-1,2),2,-1
 !  DO 100 ILAG=3-1,2,-1
       CALL COPY (VXLAG (1,1,1,1,ILAG),VXLAG (1,1,1,1,ILAG-1),NTOT1)
       CALL COPY (VYLAG (1,1,1,1,ILAG),VYLAG (1,1,1,1,ILAG-1),NTOT1)

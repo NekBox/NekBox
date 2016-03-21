@@ -235,10 +235,19 @@ subroutine setvar
   NBDINP = int(PARAM(27))
   NABMSH = int(PARAM(28))
 
+  mixing_alpha = 1._dp
+  mixing_beta = 1._dp
   if (NBDINP < 0) then
     NBDINP = abs(NBDINP)
-    mixing_alpha = 0.0195831791549432_dp
-    mixing_beta = -1.4627759516195247_dp
+    if (NBDINP == 3) then
+      mixing_alpha = 0.0195831791549432_dp
+      mixing_beta = -1.4627759516195247_dp
+    else if (NBDINP == 4) then
+!      mixing_alpha = 0.3153243849671089_dp
+!      mixing_Beta  = 3.2445629785909533e-18_dp
+       mixing_alpha = 0._dp
+       mixing_beta = -1.4682977182989303_dp
+    endif
   endif
 
   if (nbdinp > lorder) then

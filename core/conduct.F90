@@ -280,7 +280,7 @@ subroutine makeabq
     do j = 2, nab-1
       ta = ta + ab(j+1)*vgradtlag(:,:,:,i,ifield-1,j)
     enddo
-    do j = lorder-1, 2, -1
+    do j = max(lorder-1,2), 2, -1
       vgradtlag(:,:,:,i,ifield-1,j) = vgradtlag(:,:,:,i,ifield-1,j-1)
     enddo
     vgradtlag(:,:,:,i,ifield-1,1) = bq(:,:,:,i,ifield-1)

@@ -632,7 +632,6 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   else
     ab(1:nab) = exrhs(1:nab)
   endif
-  if (nid == 0) write(*,*) "EX: ", ab
 
   return
 end subroutine setabbd
@@ -685,10 +684,9 @@ subroutine setbd (bd,dtbd,nbd)
   END DO
 
 
-
-  IF (NBD == 3) THEN
+  IF (NBD >= 3) THEN
       ! Compute the coefficients of BDF2 scheme
-      NBD_tmp = 2
+      NBD_tmp = NBD-1
       NSYS = NBD_tmp+1
       BD2(1:ndim) = 0._dp; bdf2 = -1
       CALL BDSYS (BDMAT2,BDRHS2,DTBD,NBD_tmp,NDIM)
@@ -719,7 +717,6 @@ subroutine setbd (bd,dtbd,nbd)
       enddo
       
   ENDIF
-  if (nid == 0) write(*,*) "BD: ", BD(1:nbd+1)
 !   write(6,1) (bd(k),k=1,nbd+1)
 ! 1 format('bd:',1p8e13.5)
 

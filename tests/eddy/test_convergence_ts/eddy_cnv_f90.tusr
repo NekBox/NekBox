@@ -310,8 +310,8 @@ end module usr
 
       do e=1,nelv   !  Rescale mesh to [0,2pi]^2
       do i=1,8      !  Assumes original domain in .rea file on [0,1]
-         xc(i,e) = 2*twopi*xc(i,e)
-         yc(i,e) = 2*twopi*yc(i,e)
+         xc(i,e) = {nper}*twopi*xc(i,e)
+         yc(i,e) = {nper}*twopi*yc(i,e)
       enddo
       enddo
 

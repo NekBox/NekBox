@@ -4,7 +4,7 @@
   "front_bound": "P", 
   "top_bound": "SYM", 
   "conductivity": 1.99e-01, 
-  "courant": 0.6328, 
+  "courant": 0.5, 
   "density": 1.0, 
   "num_steps": 0.0, 
   "scale_mesh": [
@@ -26,7 +26,7 @@
     1.0,
     1.0
   ], 
-  "dt": 1.0e-3, 
+  "dt": 1.0, 
   "right_bound": "P", 
   "dim": 3, 
   "io_time": 1.0, 
@@ -35,11 +35,11 @@
     4, 
     1
   ], 
-  "end_time": 0.08, 
+  "end_time": 1.00, 
   "uservp": 0, 
   "rho_cp": 1.0,
-  "order": 32,
-  "dealiasing_order" : 48,
+  "order": 8,
+  "dealiasing_order" : 12,
   "io_files" : 1.0,
   "restart" : 0.0,
   "tolrel" : 0.0e-10,
@@ -59,9 +59,9 @@
   "filter_wt" : 0.05,
   "nfilt" : 1.0,
   "dt_initial" : 0.0,
-  "torder" : -4.0,
-  "u0" : 0.02,
-  "v0" : 0.01, 
-  "nper" : 2.0,
+  "torder" : 2.0,
+  "u0" : 2.00,
+  "v0" : 4.00, 
+  "nper" : 1.0,
   "io_pad" : 23
 }

@@ -100,7 +100,8 @@ subroutine setdt
     dt = ((ntdump + 1)*timeio - time) / nstep
   endif
 
-  IF (FINTIM /= 0.0 .and. fintim <= (ntdump + 1)*timeio) THEN
+
+  IF (FINTIM /= 0.0 .and. (fintim <= (ntdump + 1)*timeio .or. fintim <= time+dt)) THEN
   !        Last step
       nstep = int((fintim - time - .99*DT) / DT) + 1
       if (nstep == 1) then

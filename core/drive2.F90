@@ -41,7 +41,6 @@ subroutine initdat
   use size_m,   only : lx1, lx2, lelt, nx1, ny1, nz1, nx2, ny2, nz2
   use input,    only : IFCVODE, IFEXPLVIS, ifsplit, param, ccurve, xc, yc, zc
   use parallel, only : ifgprnt 
-  use soln,     only : abx1, abx2, aby1, aby2, abz1, abz2, vgradt1, vgradt2
   use tstep,    only : if_full_pres
   implicit none
 
@@ -73,15 +72,6 @@ subroutine initdat
   zc = 0._dp
 
   NTOT=NX1*NY1*NZ1*LELT
-  abx1 = 0._dp
-  abx2 = 0._dp
-  aby1 = 0._dp
-  aby2 = 0._dp
-  abz1 = 0._dp
-  abz2 = 0._dp
-  vgradt1 = 0._dp
-  vgradt2 = 0._dp
-
   NTOT=NX2*NY2*NZ2*LELT
 !max  CALL RZERO(USRDIV,NTOT)
 
@@ -157,6 +147,8 @@ subroutine setvar
   use tstep, only : dtinit, dt, gtheta, betag, nmxnl, dtlag, nbd, ifield, tolnl
   use tstep, only : prelax, nbdinp, tolrel, tolhdf, pi, ctarg, tolabs, nmxe
   use tstep, only : nelfld, nmxh, nmxp
+  use tstep, only : mixing_alpha, mixing_beta
+
 
   implicit none
 
@@ -242,6 +234,21 @@ subroutine setvar
   CTARG  = PARAM(26)
   NBDINP = int(PARAM(27))
   NABMSH = int(PARAM(28))
+
+  mixing_alpha = 1._dp
+  mixing_beta = 1._dp
+  if (NBDINP < 0) then
+    NBDINP = abs(NBDINP)
+    if (NBDINP == 3) then
+      mixing_alpha = 0.0195831791549432_dp
+      mixing_beta = -1.4627759516195247_dp
+    else if (NBDINP == 4) then
+!      mixing_alpha = 0.3153243849671089_dp
+!      mixing_Beta  = 3.2445629785909533e-18_dp
+       mixing_alpha = 0._dp
+       mixing_beta = -1.4682977182989303_dp
+    endif
+  endif
 
   if (nbdinp > lorder) then
       if (nid == 0) then
@@ -637,8 +644,8 @@ subroutine settime
   if (irst > 0) nbd = nbdinp
   bd = 0._dp
   CALL SETBD (BD,DTLAG,NBD)
-  NAB = 3
-  IF (ISTEP <= 2 .AND. irst <= 0) NAB = ISTEP
+  NAB = max(3, nbd)
+  IF (ISTEP <= 3 .AND. irst <= 0) NAB = ISTEP
   ab = 0._dp
   CALL SETABBD (AB,DTLAG,NAB,NBD)
   IF (IFMVBD) THEN
@@ -831,16 +838,30 @@ subroutine heat (igeom)
 #endif
   elseif (ifsplit) then
 
-      do igeo=1,2
-          do ifield=2,nfield
-              intype        = -1
-              if ( .NOT. iftmsh(ifield)) imesh = 1
-              if (     iftmsh(ifield)) imesh = 2
-              call unorm
-              call settolt
-              call cdscal (igeo)
-          enddo
+      do ifield=2,nfield
+          intype        = -1
+          if ( .NOT. iftmsh(ifield)) imesh = 1
+          if (     iftmsh(ifield)) imesh = 2
+          call unorm
+          call settolt
+          call cdscal (1)
       enddo
+  
+      ! call userf before heat is solved
+      ifield = 1
+      imesh = 1
+      CALL MAKEF()
+
+      do ifield=2,nfield
+          intype        = -1
+          if ( .NOT. iftmsh(ifield)) imesh = 1
+          if (     iftmsh(ifield)) imesh = 2
+          call unorm
+          call settolt
+          call cdscal (2)
+      enddo
+
+
       igeom = 2
 
   else  ! PN-PN-2

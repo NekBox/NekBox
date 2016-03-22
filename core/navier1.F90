@@ -503,23 +503,18 @@ end subroutine makebdf
 subroutine makeabf
   use kinds, only : DP
   use size_m, only : nx1, ny1, nz1, nelv, ndim
-  use soln, only : abx1, aby1, abz1, abx2, aby2, abz2, bfx, bfy, bfz, vtrans
-  use tstep, only : ab
+  use soln, only : abxlag, abylag, abzlag, bfx, bfy, bfz, vtrans
+  use tstep, only : ab, nab, nbdinp
   use ctimer, only : othr_flop, othr_mop
   implicit none
 
   real(DP), allocatable :: TA (:,:,:,:) 
 
-  integer :: ntot1, iel
-  real(DP) :: ab0, ab1, ab2
+  integer :: ntot1, iel, j
 
   allocate(TA(nx1,ny1,nz1,nelv))
 
   NTOT1 = NX1*NY1*NZ1*NELV
-
-  AB0 = AB(1)
-  AB1 = AB(2)
-  AB2 = AB(3)
 
 #if 0
 ! 11*ntot mops
@@ -544,29 +539,45 @@ subroutine makeabf
 ! 7*ntot mops
 ! 6*ntot flops
 
-  othr_flop = othr_flop + 18*ntot1
-  othr_mop  = othr_mop + 21*ntot1
+  othr_flop = othr_flop + 6*nab*ntot1
+  othr_mop  = othr_mop + (15+3*nab)*ntot1
 
   do iel = 1, nelv
-    ta(:,:,:,1) = ab1 * abx1(:,:,:,iel) + ab2 * abx2(:,:,:,iel)
-    abx2(:,:,:,iel) = abx1(:,:,:,iel)
-    abx1(:,:,:,iel) = bfx(:,:,:,iel)
-    bfx(:,:,:,iel) = (ab0*bfx(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    ta(:,:,:,1) = ab(2) * abxlag(:,:,:,iel,1)
+    do j = 2, nab-1
+      ta(:,:,:,1) = ta(:,:,:,1)+ab(j+1)*abxlag(:,:,:,iel,j)
+    enddo
+    do j = max(nbdinp-1,2), 2, -1
+      abxlag(:,:,:,iel,j) = abxlag(:,:,:,iel,j-1)
+    enddo
+    abxlag(:,:,:,iel,1) = bfx(:,:,:,iel)
+    bfx(:,:,:,iel) = (ab(1)*bfx(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
 
   do iel = 1, nelv
-    ta(:,:,:,1) = ab1 * aby1(:,:,:,iel) + ab2 * aby2(:,:,:,iel)
-    aby2(:,:,:,iel) = aby1(:,:,:,iel)
-    aby1(:,:,:,iel) = bfy(:,:,:,iel)
-    bfy(:,:,:,iel) = (ab0*bfy(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    ta(:,:,:,1) = ab(2) * abylag(:,:,:,iel,1)
+    do j = 2, nab-1
+      ta(:,:,:,1) = ta(:,:,:,1)+ab(j+1)*abylag(:,:,:,iel,j)
+    enddo
+    do j = max(nbdinp-1,2), 2, -1
+      abylag(:,:,:,iel,j) = abylag(:,:,:,iel,j-1)
+    enddo
+    abylag(:,:,:,iel,1) = bfy(:,:,:,iel)
+    bfy(:,:,:,iel) = (ab(1)*bfy(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
 
   do iel = 1, nelv
-    ta(:,:,:,1) = ab1 * abz1(:,:,:,iel) + ab2 * abz2(:,:,:,iel)
-    abz2(:,:,:,iel) = abz1(:,:,:,iel)
-    abz1(:,:,:,iel) = bfz(:,:,:,iel)
-    bfz(:,:,:,iel) = (ab0*bfz(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
+    ta(:,:,:,1) = ab(2) * abzlag(:,:,:,iel,1)
+    do j = 2, nab-1
+      ta(:,:,:,1) = ta(:,:,:,1)+ ab(j+1)*abzlag(:,:,:,iel,j)
+    enddo
+    do j = max(nbdinp-1,2), 2, -1
+      abzlag(:,:,:,iel,j) = abzlag(:,:,:,iel,j-1)
+    enddo
+    abzlag(:,:,:,iel,1) = bfz(:,:,:,iel)
+    bfz(:,:,:,iel) = (ab(1)*bfz(:,:,:,iel) + ta(:,:,:,1)) * vtrans(:,:,:,iel,1)
   enddo
+
 #endif
 
   return
@@ -582,6 +593,8 @@ end subroutine makeabf
 !-----------------------------------------------------------------------
 subroutine setabbd (ab,dtlag,nab,nbd)
   use kinds, only : DP
+  use tstep, only : mixing_alpha
+  use parallel, only : nid
   implicit none
 
   REAL(DP), intent(out) :: AB(NAB)    !>!< Adams-Bashforth coefficients
@@ -589,63 +602,36 @@ subroutine setabbd (ab,dtlag,nab,nbd)
   integer,  intent(in)  :: nab        !>!< Order of AB scheme
   integer,  intent(in)  :: nbd        !>!< Order of accompanying BDF scheme
 
-  real(DP) :: dt0, dt1, dt2, dta, dts, dtb, dtc, dtd, dte
+  integer, parameter :: NDIM = 10
+  !real(DP) :: dt0, dt1, dt2, dta, dts, dtb, dtc, dtd, dte
+  REAL(DP) :: EXMAT(NDIM,NDIM),EXRHS(NDIM)
+  REAL(DP) :: EXMAT2(NDIM,NDIM),EXRHS2(NDIM)
+  INTEGER :: IR(NDIM),IC(NDIM)
+!  real(DP), parameter :: mixing_alpha = 0.0195831791549432
+  real(DP) :: alpha
 
-  IF ( NAB == 1 ) THEN
-  
-      AB(1) = 1.0
-  
-  ELSEIF ( NAB == 2 ) THEN
-      DT0 = DTLAG(1)
-      DT1 = DTLAG(2)
-  
-      DTA =  DT0/DT1
-  
-      IF ( NBD == 1 ) THEN
-      
-          AB(2) = -0.5*DTA
-          AB(1) =  1.0 - AB(2)
-      
-      ELSEIF ( NBD == 2 ) THEN
-      
-          AB(2) = -DTA
-          AB(1) =  1.0 - AB(2)
-      
-      ENDIF
-  
-  ELSEIF ( NAB == 3 ) THEN
-      DT0 = DTLAG(1)
-      DT1 = DTLAG(2)  
-      DT2 = DTLAG(3)
+  CALL BDSYS (EXMAT,EXRHS,DTLAG,NAB,NDIM)
+  CALL LU    (EXMAT,NAB,NDIM,IR,IC)
+  CALL SOLVE (EXRHS,EXMAT,1,NAB,NDIM,IR,IC)
 
-      DTS =  DT1 + DT2
-      DTA =  DT0 / DT1
-      DTB =  DT1 / DT2
-      DTC =  DT0 / DT2
-      DTD =  DTS / DT1
-      DTE =  DT0 / DTS
-  
-      IF ( NBD == 1 ) THEN
-      
-          AB(3) =  DTE*( 0.5*DTB + DTC/3. )
-          AB(2) = -0.5*DTA - AB(3)*DTD
-          AB(1) =  1.0 - AB(2) - AB(3)
-      
-      ELSEIF ( NBD == 2 ) THEN
-      
-          AB(3) =  2./3.*DTC*(1./DTD + DTE)
-          AB(2) = -DTA - AB(3)*DTD
-          AB(1) =  1.0 - AB(2) - AB(3)
-      
-      ELSEIF ( NBD == 3 ) THEN
-      
-          AB(3) =  DTE*(DTB + DTC)
-          AB(2) = -DTA*(1.0 + DTB + DTC)
-          AB(1) =  1.0 - AB(2) - AB(3)
-      
-      ENDIF
-  
-  ENDIF
+  if (mixing_alpha < 1._dp .or. nab > nbd) then 
+
+    CALL BDSYS (EXMAT2,EXRHS2,DTLAG,NAB-1,NDIM)
+    CALL LU    (EXMAT2,NAB-1,NDIM,IR,IC)
+    CALL SOLVE (EXRHS2,EXMAT2,1,NAB-1,NDIM,IR,IC)
+    exrhs2(nab) = 0._dp
+
+    if (nab == 2 .and. nbd == 1) then
+      alpha = .5_dp
+    else if (nab == 3 .and. nbd == 2) then
+      alpha = 2._dp/3._dp
+    else
+      alpha = mixing_alpha
+    endif
+    ab(1:nab) = alpha * exrhs(1:nab)  + (1._dp-alpha)*exrhs2(1:nab)
+  else
+    ab(1:nab) = exrhs(1:nab)
+  endif
 
   return
 end subroutine setabbd
@@ -655,6 +641,8 @@ end subroutine setabbd
 !-----------------------------------------------------------------------
 subroutine setbd (bd,dtbd,nbd)
   use kinds, only : DP
+  use parallel, only : nid
+  use tstep, only : mixing_beta
   implicit none
 
   REAL(dp), intent(out) :: BD(*)   !>!< BDF coefficients
@@ -663,8 +651,12 @@ subroutine setbd (bd,dtbd,nbd)
 
   integer, PARAMETER :: NDIM = 10
   REAL(DP) :: BDMAT(NDIM,NDIM),BDRHS(NDIM), BDF
+  REAL(DP) :: BDMAT2(NDIM, NDIM), BDRHS2(NDIM), BDF2, BD2(NDIM)
   INTEGER :: IR(NDIM),IC(NDIM)
   integer :: nsys, i, ibd
+  integer :: NBD_tmp
+!  REAL(DP), PARAMETER :: beta_opt_bdf2 = -1.4627759516195247_dp !>!< BDF2OPT mixing coefficient 
+  REAL(DP) :: one_m_beta
 
   BD(1:ndim) = 0._dp; bdf = -1
   ! BDF(1) is trivial
@@ -681,8 +673,7 @@ subroutine setbd (bd,dtbd,nbd)
           BD(I) = BDRHS(I)
       30 END DO
       BDF = BDRHS(NBD+1)
-  ENDIF
-
+  endif 
   !   Normalize
   DO IBD=NBD,1,-1
       BD(IBD+1) = BD(IBD)
@@ -691,6 +682,41 @@ subroutine setbd (bd,dtbd,nbd)
   DO IBD=1,NBD+1
       BD(IBD) = BD(IBD)/BDF
   END DO
+
+
+  IF (NBD >= 3) THEN
+      ! Compute the coefficients of BDF2 scheme
+      NBD_tmp = NBD-1
+      NSYS = NBD_tmp+1
+      BD2(1:ndim) = 0._dp; bdf2 = -1
+      CALL BDSYS (BDMAT2,BDRHS2,DTBD,NBD_tmp,NDIM)
+      CALL LU    (BDMAT2,NSYS,NDIM,IR,IC)
+      CALL SOLVE (BDRHS2,BDMAT2,1,NSYS,NDIM,IR,IC)
+
+      ! Mix BDF2 and BDF3 coefficients to get the optimized BDF2 scheme
+      ! In literature this is called BDF2opt(beta)
+      one_m_beta = 1._dp - mixing_beta
+      DO I=1,NBD_tmp
+          BD2(I) = BDRHS2(I)
+      END DO
+      ! Mix the last coefficient (for BDF2 this coeff is zero!!)
+      BDF2 = BDRHS2(NBD_tmp+1) 
+
+      !   Normalize
+      DO IBD=NBD_tmp,1,-1
+          BD2(IBD+1) = BD2(IBD)
+      END DO
+      BD2(1) = 1.
+      DO IBD=1,NBD_tmp+1
+          BD2(IBD) = BD2(IBD)/BDF2
+      END DO
+      BD2(NBD+1) = 0._dp
+
+      do IBD=1, NBD+1
+        BD(IBD) = mixing_beta*BD(IBD) + one_m_beta*BD2(IBD)
+      enddo
+      
+  ENDIF
 !   write(6,1) (bd(k),k=1,nbd+1)
 ! 1 format('bd:',1p8e13.5)
 
@@ -762,13 +788,14 @@ end subroutine tauinit
 subroutine lagvel
   use size_m, only : nx1, ny1, nz1, nelv, ndim
   use soln, only : vxlag, vylag, vzlag, vx, vy, vz
+  use tstep, only : nbdinp
   implicit none
 
   integer :: ntot1, ilag
   NTOT1 = NX1*NY1*NZ1*NELV
 
-!    DO 100 ILAG=NBDINP-1,2,-1
-  DO 100 ILAG=3-1,2,-1
+  DO 100 ILAG=max(NBDINP-1,2),2,-1
+!  DO 100 ILAG=3-1,2,-1
       CALL COPY (VXLAG (1,1,1,1,ILAG),VXLAG (1,1,1,1,ILAG-1),NTOT1)
       CALL COPY (VYLAG (1,1,1,1,ILAG),VYLAG (1,1,1,1,ILAG-1),NTOT1)
       IF (NDIM == 3) &

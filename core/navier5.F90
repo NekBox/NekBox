@@ -392,7 +392,7 @@ subroutine build_new_filter(intv,zpts,nx,kut,wght,nid)
   integer :: nx, nid, kut
   real(DP) :: intv(nx,nx),zpts(nx), wght
 
-  integer, parameter :: lm=40
+  integer, parameter :: lm=64
   integer, parameter :: lm2=lm*lm
   real(DP) :: phi(lm2),pht(lm2),diag(lm2),rmult(lm),Lj(lm)
   integer  :: indr(lm),indc(lm),ipiv(lm)

@@ -11,12 +11,12 @@ module hsmg
   integer, parameter :: lmg_mhd=1-(lx1-lbx1)/(lx1-1) !1 if MHD is true, 0 otherwise
 
   integer, parameter :: lmgs=1 + lmg_mhd         ! max number of multigrid solvers
-  integer, parameter :: lmgn=3                   ! max number of multigrid levels
+  integer, parameter :: lmgn=4                   ! max number of multigrid levels
   integer, parameter :: lmgx=lmgn+1              ! max number of mg index levels
   integer, parameter :: lxm=lx2+2,lym=lxm,lzm=lz2+2*(ldim-2) ! mgrid sizes
   integer, parameter :: lmg_rwt=2*lxm*lzm        ! restriction weight max size
   integer, parameter :: lmg_fasts=2*lxm*lxm      ! FDM S max size
-  integer, parameter :: lmg_fastd=2*lxm*lym*lzm  ! FDM D max size
+  integer, parameter :: lmg_fastd=lmgn*lxm*lym*lzm  ! FDM D max size
   integer, parameter :: lmg_swt=2*lxm*lzm        ! schwarz weight max size
   integer, parameter :: lmg_g=2*lx2*ly2*lz2      ! metrics max size
   integer, parameter :: lmg_solve=2*lxm*lym*lzm  ! solver r,e max size
@@ -94,11 +94,11 @@ module hsmg
     , mg_dh(lxm*lxm,lmgn)       & 
     , mg_dht(lxm*lxm,lmgn)      & 
     , mg_zh(lxm,lmgn)           & 
-    , mg_rstr_wt   (0:lmgs*lmg_rwt*2*ldim*lelt-1)  & !restriction wt
+    , mg_rstr_wt   (0:lmgs*lmg_rwt*lmgn*ldim*lelt-1)  & !restriction wt
 !    , mg_mask      (0:lmgs*lmg_rwt*4*ldim*lelt-1)    & !b.c. mask
-    , mg_fast_s    (0:lmgs*lmg_fasts*2*ldim*lelt-1) &
+    , mg_fast_s    (0:lmgs*lmg_fasts*lmgn*ldim*lelt-1) &
     , mg_fast_d    (0:lmgs*lmg_fastd*lelt-1) & ! verified
-    , mg_schwarz_wt(0:lmgs*lmg_swt*4*ldim*lelt-1) & ! verified
+    , mg_schwarz_wt(0:lmgs*lmg_swt*lmgx*ldim*lelt-1) & ! verified
 !    , mg_solve_e   (0:lmg_solve*lelt-1) &
 !    , mg_solve_r   (0:lmg_solve*lelt-1) &
 !    , mg_h1        (0:lmg_g*lelt-1) &
@@ -112,7 +112,7 @@ module hsmg
     )
     mg_schwarz_wt = 0_dp
 
-    allocate(mg_imask(0:lmgs*lmg_rwt*4*ldim*lelt-1)) ! verified
+    allocate(mg_imask(0:lmgs*lmg_rwt*lmgx*ldim*lelt-1)) ! verified
 
 !     Specific to h1 multigrid:
     allocate(mg_h1_n  (lmgx,ldimt1) &

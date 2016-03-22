@@ -67,7 +67,7 @@
 module speclib
   use kinds, only : DP
 
-  integer, PARAMETER :: nmax = 84
+  integer, PARAMETER :: nmax = 96
   public zwgl, zwgll, igllm, dgll, dgllgl, zwglj
   private
 

@@ -136,7 +136,7 @@ subroutine mxm_sp(a,n1,b,n2,c,n3)
 #endif
 
 #ifdef XSMM
-  CALL libxsmm_dispatch(xmm, n1, n3, n2, alpha=1.0_dp, beta=0.0_dp)
+  CALL libxsmm_dispatch(xmm, n1, n3, n2, alpha=1.0_sp, beta=0.0_sp)
   IF (libxsmm_available(xmm)) then
       CALL libxsmm_call(xmm, C_LOC(a), C_LOC(b), C_LOC(c))
       return

@@ -258,31 +258,33 @@ end subroutine convab
 !> \brief Sum up contributions to 3rd order Adams-Bashforth scheme.
 subroutine makeabq
   use kinds, only : DP
-  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, lelt
-  use soln, only : vgradt1, vgradt2, bq
-  use tstep, only : ab, ifield, nelfld
+  use size_m, only : nx1, ny1, nz1, lx1, ly1, lz1, lelt, lorder
+  use soln, only : vgradtlag, bq
+  use tstep, only : nab, ab, ifield, nelfld
   use ctimer, only : othr_mop, othr_flop
   implicit none
 
   real(DP), allocatable :: TA (:,:,:)
   real(DP) :: ab0, ab1, ab2
-  integer :: nel, ntot1, i
+  integer :: nel, ntot1, i, j
 
   allocate(TA(LX1,LY1,LZ1))
 
-  AB0   = AB(1)
-  AB1   = AB(2)
-  AB2   = AB(3)
   NEL   = NELFLD(IFIELD)
   NTOT1 = NX1*NY1*NZ1*NEL
 
   othr_mop = othr_mop + 6*ntot1
   othr_flop = othr_flop + 4*ntot1
   do i = 1, nel
-    ta = ab1*vgradt1(:,:,:,i,ifield-1) + ab2*vgradt2(:,:,:,i,ifield-1)
-    vgradt2(:,:,:,i,ifield-1) = vgradt1(:,:,:,i,ifield-1)
-    vgradt1(:,:,:,i,ifield-1) = bq(:,:,:,i,ifield-1)
-    bq(:,:,:,i,ifield-1) = ab0*bq(:,:,:,i,ifield-1) + ta
+    ta = ab(2)*vgradtlag(:,:,:,i,ifield-1,1)
+    do j = 2, nab-1
+      ta = ta + ab(j+1)*vgradtlag(:,:,:,i,ifield-1,j)
+    enddo
+    do j = max(lorder-1,2), 2, -1
+      vgradtlag(:,:,:,i,ifield-1,j) = vgradtlag(:,:,:,i,ifield-1,j-1)
+    enddo
+    vgradtlag(:,:,:,i,ifield-1,1) = bq(:,:,:,i,ifield-1)
+    bq(:,:,:,i,ifield-1) = ab(1)*bq(:,:,:,i,ifield-1) + ta
   enddo
 
   return

@@ -92,11 +92,11 @@ SUBROUTINE SETCHAR
   use kinds, only : DP
   use size_m, only : nid
   use input, only : ifchar
-  use tstep, only : ctarg, ntaubd
+  use tstep, only : ctarg, ntaubd, nbdinp, mixing_alpha, mixing_beta
   implicit none
 
   integer :: ict
-  real(DP) :: rict, dct
+  real(DP) :: rict, dct, max_courant
 
   IF (IFCHAR) THEN
       ICT    = INT(CTARG)
@@ -111,10 +111,27 @@ SUBROUTINE SETCHAR
   !        endif
   ELSE
       NTAUBD = 0
-      IF (CTARG > 0.5) THEN
+
+      if (nbdinp < 0 .or. mixing_alpha /= 1.0_dp .or. mixing_beta /= 1.0_dp) then
+        if (abs(nbdinp) == 3) then
+          max_courant = 1.0_dp
+        else if (abs(nbdinp) == 4) then
+          max_courant = 0.89_dp
+        endif
+      else
+        if (abs(nbdinp) == 2) then
+          max_courant = 0.72_dp
+        else if (abs(nbdinp) == 3) then
+          max_courant = 0.63_dp
+        else if (abs(nbdinp) == 4) then
+          max_courant = 0.544_dp
+        endif
+      endif
+
+      IF (CTARG > max_courant) THEN
           IF (NID == 0) &
-          WRITE (6,*) 'Reset the target Courant number to .5'
-          CTARG = 0.5
+          WRITE (6,*) 'Reset the target Courant number to ', max_courant
+          CTARG = max_courant
       ENDIF
   ENDIF
 

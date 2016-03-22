@@ -83,9 +83,10 @@ subroutine plan4()
   CALL V_EXTRAP(vext)
 
   ! compute explicit contributions (bf{x,y,z}) with BDF(k)
-  etime = etime - dnekclock()
-  CALL MAKEF()
-  etime = etime + dnekclock()
+  ! NOTE: this is moved into heat
+!  etime = etime - dnekclock()
+!  CALL MAKEF()
+!  etime = etime + dnekclock()
 
   ! store the velocity field for later
   CALL LAGVEL()
@@ -497,6 +498,13 @@ subroutine v_extrap(vext)
     vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1) + ab2*vxlag(:,:,:,:,2)
     vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1) + ab2*vylag(:,:,:,:,2)
     vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1) + ab2*vzlag(:,:,:,:,2)
+  else if (nab == 4) then
+    othr_flop = othr_flop + lx1*ly1*lz1*lelv*21
+    othr_mop = othr_mop + lx1*ly1*lz1*lelv*15
+
+    vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1) + ab2*vxlag(:,:,:,:,2) + ab(4)*vxlag(:,:,:,:,3)
+    vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1) + ab2*vylag(:,:,:,:,2) + ab(4)*vylag(:,:,:,:,3)
+    vext(:,:,:,:,3) = ab0*vz + ab1*vzlag(:,:,:,:,1) + ab2*vzlag(:,:,:,:,2) + ab(4)*vzlag(:,:,:,:,3)
   else
     vext(:,:,:,:,1) = ab0*vx + ab1*vxlag(:,:,:,:,1)
     vext(:,:,:,:,2) = ab0*vy + ab1*vylag(:,:,:,:,1)

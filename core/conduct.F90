@@ -3,7 +3,7 @@
 subroutine cdscal (igeom)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lelt, nx1, ny1, nz1, nfield, nid
-  use helmholtz, only : hsolve, init_approx_space, approx_space
+  use solver, only : hsolve, init_approx_space, approx_space
   use input, only : ifmodel, ifkeps, ifaxis, ifaziv, iftran, iftmsh, ifprint
   use input, only : param
   use geom, only : bintm1, binvm1

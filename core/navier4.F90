@@ -12,7 +12,7 @@
 !! problem, and the oldest solution is replaced with the current solution
 !! at the end of hsolve.
 !-----------------------------------------------------------------------
-module helmholtz
+module solver
   use kinds, only : DP
   implicit none
 
@@ -498,4 +498,4 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 end subroutine hsolve
 !-----------------------------------------------------------------------
 
-end module helmholtz
+end module solver

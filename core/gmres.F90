@@ -191,21 +191,22 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
                
-          etime = etime - dnekclock()
-  !call hpm_stop('gmres')
-          call axhelm (v(:,1,j+1),z(:,1,j),h1,h2,1,1)
-          etime = etime + dnekclock()
-          call dssum  (v(:,1,j+1))
-          v(:,:,j+1) = v(:,:,j+1) * reshape(pmask, (/ lx2*ly2*lz2,lelv /))
-  !call hpm_start('gmres')
+          call dssum_irec  (v(:,1,j+1))
+          do i = 1, lelv
+            etime = etime - dnekclock()
+            call axhelm_e (v(:,1,j+1),z(:,1,j),h1,h2,1,1,i)
+            etime = etime + dnekclock()
+            call dssum_isend_e  (v(:,1,j+1),i)
+          enddo
+          call dssum_wait(v(:,1,j+1))
 
-          gmres_mop  = gmres_mop  + 3*n + (j+1)*n
+          gmres_mop  = gmres_mop  + 4*n + (j+1)*n
           gmres_flop = gmres_flop + (2*n-1)*j + n
-#ifdef XSMM
-          call stream_vector_compscale(v(:,1,j+1), wt, r, n)
-#else
-          r = v(:,:,j+1) * wt
-#endif
+          do i = 1, lelv
+            v(:,i,j+1) = v(:,i,j+1) * reshape(pmask(:,:,:,i), (/ lx2*ly2*lz2 /))
+            r(:,i) = v(:,i,j+1) * wt(:,i)
+          enddo
+
           call dgemv('T',  n, j, &
                      one,  v, n, &
                            r, 1, &

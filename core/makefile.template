@@ -145,7 +145,11 @@ endif
 
 TMP1 = $(CORE) $(MXM) $(USR) $(MOABO) $(COMM_MPI) $(NEKNEKO) $(VISITO) $(LZ4O) $(LPACK)
 NOBJS_F = $(patsubst %,$(OBJDIR)/%,$(TMP1))
-TMP2 = $(JLCORE) $(JLINTP) $(CGS) 
+ifeq ($(IFLIBGS),false)
+  TMP2 = $(JLCORE) $(JLINTP) $(CGS) 
+else
+  TMP2 = $(JLINTP) $(CGS) 
+endif
 NOBJS_C = $(patsubst %,$(OBJDIR)/%,$(TMP2))
 NOBJS  = $(NOBJS_F) $(NOBJS_C)
 

@@ -440,7 +440,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use kinds, only : DP
   use size_m, only : nid, nx1, ny1, nz1, nelt, nelv
   use size_m, only : lx1, ly1, lz1, lelt
-  use ds, only : dssum
+  use ds, only : dssum, dssum_e_send
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param, ifprint
   use geom, only : volvm1, voltm1
@@ -654,7 +654,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     etime = etime - dnekclock()
     call axhelm (w,p,h1,h2,imsh,isd)
     etime = etime + dnekclock()
-    call dssum  (w(:,1))    
+    call dssum_e_send  (w(:,1))    
 
     cggo_flop = cggo_flop + 4*n
     cggo_mop  = cggo_mop  + 5*n

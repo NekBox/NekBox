@@ -17,10 +17,10 @@ CC="mpicc "
 
 # pre-processor symbol list 
 # (set PPLIST=? to get a list of available symbols)
-#PPLIST="NO_LAPACK"
+PPLIST="LIBGS"
 
 # plug-in list
-PLUGIN_LIST="LIBGS"
+#PLUGIN_LIST=""
 
 
 # OPTIONAL SETTINGS

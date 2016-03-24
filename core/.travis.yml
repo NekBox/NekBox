@@ -28,7 +28,10 @@ before_install:
  - sudo apt-get install -y gfortran 
  - git clone https://github.com/maxhutch/nek-tests.git
  - git clone https://github.com/maxhutch/nek-tools.git
- - cd nek-tests/$(dirname "$TEST_SUITE")
+ - git clone https://github.com/maxhutch/gslib.git
+ - cd gslib
+ - make
+ - cd ../nek-tests/$(dirname "$TEST_SUITE")
 
 install:
  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;

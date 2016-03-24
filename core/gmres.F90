@@ -35,6 +35,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use soln, only : pmask, vmult
   use tstep, only : tolps, istep
   use hsmg_routines, only : h1mg_solve
+  use ds, only : dssum
 #ifdef XSMM
   use STREAM_UPDATE_KERNELS, only : stream_vector_compscale
 #endif
@@ -128,22 +129,21 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
       if(iter == 0) then               !      -1
           v(:,1) = res          ! r = L  res
-      !           call copy(r,res,n)
       else
       ! update residual
           gmres_mop  = gmres_mop  + 5*n
           gmres_flop = gmres_flop + n
           r = res
-          etime = etime - dnekclock()
   !call hpm_stop('gmres')
-          call ax    (v(:,1),x,h1,h2,n)              ! w = A x
-  !call hpm_start('gmres')
+          etime = etime - dnekclock()
+          call axhelm (v(:,1),x,h1,h2,1,1)
           etime = etime + dnekclock()
+          call dssum  (v(:,1))
+          v(:,1) = v(:,1) * reshape(pmask, (/ n /))
+  !call hpm_start('gmres')
           v(:,1) = r - v(:,1)  
-      !      -1
-      !    r = r * ml ! r = L   r
       endif
-  !            ______
+
       gmres_mop  = gmres_mop  + 2*n
       gmres_flop = gmres_flop + 3*n
       gamma(1) = sum(v(:,1)*v(:,1)*wt)
@@ -206,9 +206,11 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
                
           etime = etime - dnekclock()
   !call hpm_stop('gmres')
-          call ax  (v(:,j+1),z(1,j),h1,h2,n)           ! w = A z
-  !call hpm_start('gmres')
+          call axhelm (v(:,j+1),z(:,j),h1,h2,1,1)
           etime = etime + dnekclock()
+          call dssum  (v(:,j+1))
+          v(:,j+1) = v(:,j+1) * reshape(pmask, (/ n /))
+  !call hpm_start('gmres')
 
           gmres_mop  = gmres_mop  + 3*n + (j+1)*n
           gmres_flop = gmres_flop + (2*n-1)*j + n

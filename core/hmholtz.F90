@@ -142,6 +142,58 @@ subroutine axhelm (au,u,helm1,helm2,imesh,isd)
   return
 end subroutine axhelm
 
+subroutine axhelm_e (au,u,helm1,helm2,imesh,isd,iel)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1
+  use size_m, only : nx1, ny1, nz1, nelt, nelv
+  use ctimer, only : taxhm, naxhm, etime1, dnekclock
+  use ctimer, only : axhelm_flop, axhelm_mop
+  use geom, only : g4m1, g5m1, g6m1, bm1
+  implicit none
+
+  real(DP), intent(out) :: AU    (LX1,LY1,LZ1,*) !>!< H u
+  real(DP), intent(in)  :: U     (LX1,LY1,LZ1,*) !>!< u
+  real(DP), intent(in)  :: HELM1 (LX1,LY1,LZ1,*) !>!< coefficient of stif
+  real(DP), intent(in)  :: HELM2 (LX1,LY1,LZ1,*) !>!< coefficient of mass
+  integer,  intent(in)  :: imesh !>!< mesh index (v or t)
+  integer,  intent(in)  :: isd !>!< axi-symmetric flag of sorts
+  integer,  intent(in)  :: iel !>!< local element index
+
+   ! locals
+  REAL(DP) ::           TM1   (LX1,LY1,LZ1)
+  REAL(DP) ::           TM2   (LX1,LY1,LZ1)
+  REAL(DP) ::           TM3   (LX1,LY1,LZ1)
+
+  integer :: nel 
+
+  nel=nelt
+  if (imesh == 1) nel=nelv
+
+  if (iel == 1) then
+    naxhm=naxhm + 1
+    if (helm2(1,1,1,1) /= 0._dp) then
+      axhelm_mop = axhelm_mop + 6*nx1*ny1*nz1*nel
+    else
+      axhelm_mop = axhelm_mop + 5*nx1*ny1*nz1*nel
+    endif
+    axhelm_flop = axhelm_flop + (2*nx1-1)*nx1*ny1*nz1*nel
+    axhelm_flop = axhelm_flop + 9*nx1*ny1*nz1*nel
+    axhelm_flop = axhelm_flop + (2*ny1-1)*nx1*ny1*nz1*nel
+    axhelm_flop = axhelm_flop + nx1*ny1*(2*nz1-1)*nz1*nel
+  endif
+
+  etime1=dnekclock()
+  ! Fast 3-d mode: constant properties and undeformed element
+  call helmholtz(helm1(1,1,1,1), helm2(1,1,1,1), nx1, ny1, nz1, &
+                 u(1,1,1,iel), au(1,1,1,iel), &
+                 g4m1(1,1,1,iel), g5m1(1,1,1,iel), g6m1(1,1,1,iel), bm1(1,1,1,iel), &
+                 tm1, tm2, tm3)
+
+  taxhm=taxhm+(dnekclock()-etime1)
+  return
+end subroutine axhelm_e
+
+
 !----------------------------------------------------------------------
 !> \brief For undeformed elements, set up appropriate elemental matrices
 !!        and geometric factors for fast evaluation of Ax.
@@ -440,7 +492,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use kinds, only : DP
   use size_m, only : nid, nx1, ny1, nz1, nelt, nelv
   use size_m, only : lx1, ly1, lz1, lelt
-  use ds, only : dssum, dssum_e_send
+  use ds, only : dssum, dssum_irec, dssum_wait, dssum_isend_e
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param, ifprint
   use geom, only : volvm1, voltm1
@@ -584,10 +636,14 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   
   beta = 0._dp
 
-  etime = etime - dnekclock()
-  call axhelm (w,p,h1,h2,imsh,isd)
-  etime = etime + dnekclock()
-  call dssum  (w(:,1))
+  call dssum_irec (w(:,1))
+  do i = 1, nel
+    etime = etime - dnekclock()
+    call axhelm_e (w,p,h1,h2,imsh,isd,i)
+    etime = etime + dnekclock()
+    call dssum_isend_e (w(:,1),i)
+  enddo
+  call dssum_wait(w(:,1))
 
   cggo_flop = cggo_flop + 4*n
   cggo_mop  = cggo_mop  + 5*n
@@ -647,14 +703,17 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     cggo_flop = cggo_flop + 4*n 
     cggo_mop  = cggo_mop  + 5*n 
     beta = rtz1/rtz2
+    call dssum_irec (w(:,1))
     do i = 1, nel
       x(:,i) = x(:,i) + alpha * p(:,i)
       p(:,i) = z(:,i) + beta  * p(:,i)
+      etime = etime - dnekclock()
+      call axhelm_e (w,p,h1,h2,imsh,isd,i)
+      etime = etime + dnekclock()
+      call dssum_isend_e(w(:,1),i)    
     enddo
-    etime = etime - dnekclock()
-    call axhelm (w,p,h1,h2,imsh,isd)
-    etime = etime + dnekclock()
-    call dssum_e_send  (w(:,1))    
+
+    call dssum_wait (w(:,1))
 
     cggo_flop = cggo_flop + 4*n
     cggo_mop  = cggo_mop  + 5*n

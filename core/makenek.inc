@@ -443,6 +443,7 @@ sed -e "s:^F77[ ]*=.*:F77\:=$F77:" \
 -e "s/^IFNEKNEK[ ]*=.*/IFNEKNEK:=$IFNEKNEK/" \
 -e "s/^IFLZ4[ ]*=.*/IFLZ4:=$IFLZ4/" \
 -e "s/^IFLZ4COMMCOMP[ ]*=.*/IFLZ4COMMCOMP:=$IFLZ4COMMCOMP/" \
+-e "s/^IFLIBGS[ ]*=.*/IFLIBGS:=$IFLIBGS/" \
 -e "s:^USR[ ]*=.*:USR\:=$USR:" \
 -e "s:^USR_LFLAGS[ ]*=.*:USR_LFLAGS\:=$USR_LFLAGS:" \
 -e "s:^S[ ]*=.*:S\:=${SOURCE_ROOT}:" $SOURCE_ROOT/makefile.template >.makefile

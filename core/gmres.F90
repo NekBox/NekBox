@@ -1,27 +1,5 @@
 !> \file gmres.F90 \copybrief hmh_gmres()
 
-
-!-----------------------------------------------------------------------
-!> \brief w = A*x for pressure iteration
-subroutine ax(w,x,h1,h2,n)
-  use kinds, only : DP
-  use ds, only : dssum
-  use soln, only : pmask
-  implicit none
-
-  integer :: n
-  real(DP) :: w(n),x(n),h1(n),h2(n)
-  integer :: imsh, isd
-
-  imsh = 1
-  isd  = 1
-  call axhelm (w,x,h1,h2,imsh,isd)
-  call dssum  (w)
-  w = w * reshape(pmask, (/ n /))
-
-  return
-end subroutine ax
-
 !-----------------------------------------------------------------------
 !> \brief Solve the Helmholtz equation by right-preconditioned
 !! GMRES iteration.
@@ -35,23 +13,23 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use soln, only : pmask, vmult
   use tstep, only : tolps, istep
   use hsmg_routines, only : h1mg_solve
-  use ds, only : dssum
+  use ds, only : dssum, dssum_irec, dssum_wait, dssum_isend_e
 #ifdef XSMM
   use STREAM_UPDATE_KERNELS, only : stream_vector_compscale
 #endif
   implicit none
 
-  real(DP) ::             res  (lx1*ly1*lz1*lelv)
+  real(DP) ::             res  (lx1*ly1*lz1,lelv)
   real(DP) ::             h1   (lx1,ly1,lz1,lelv)
   real(DP) ::             h2   (lx1,ly1,lz1,lelv)
-  real(DP) ::             wt   (lx1*ly1*lz1*lelv)
+  real(DP) ::             wt   (lx1*ly1*lz1,lelv)
   integer :: iter
 
-  real(DP), allocatable :: x(:),r(:),w(:)
+  real(DP), allocatable :: x(:,:),r(:,:),w(:,:)
   real(DP), allocatable :: h(:,:),gamma(:)
   real(DP), allocatable :: c(:),s(:) ! store the Givens rotations
-  real(DP), allocatable :: v(:,:) ! stores the orthogonal Krylov subspace basis
-  real(DP), allocatable :: z(:,:) ! Z = M**(-1) V
+  real(DP), allocatable :: v(:,:,:) ! stores the orthogonal Krylov subspace basis
+  real(DP), allocatable :: z(:,:,:) ! Z = M**(-1) V
 
   real(DP) :: etime
 
@@ -82,8 +60,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   allocate(gamma(lgmres+1))
   allocate(c(lgmres), s(lgmres))
 
-  allocate(v(lx2*ly2*lz2*lelv,lgmres+1)) ! verified
-  allocate(z(lx2*ly2*lz2*lelv,lgmres)) ! verified
+  allocate(v(lx2*ly2*lz2,lelv,lgmres+1)) ! verified
+  allocate(z(lx2*ly2*lz2,lelv,lgmres)) ! verified
 
 
 !  if (.not. allocated(ml)) allocate(ml(lx2*ly2*lz2*lelv))
@@ -121,32 +99,43 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   iconv = 0
 
   outer = 0
-  allocate(x(lx2*ly2*lz2*lelv)); x = 0._dp
+  allocate(x(lx2*ly2*lz2,lelv)); x = 0._dp
   !allocate(w(lx2*ly2*lz2*lelv)) 
-  allocate(r(lx2*ly2*lz2*lelv))
+  allocate(r(lx2*ly2*lz2,lelv))
   do while (iconv == 0 .AND. iter < 50)
       outer = outer+1
 
       if(iter == 0) then               !      -1
-          v(:,1) = res          ! r = L  res
+          gmres_mop  = gmres_mop  + 3*n
+          gmres_flop = gmres_flop + 3*n
+          gamma(1) = 0._dp
+          do i = 1, lelv
+            v(:,i,1) = res(:,i)          ! r = L  res
+            gamma(1) = gamma(1) + sum(v(:,i,1)*v(:,i,1)* wt(:,i))
+          enddo
       else
       ! update residual
           gmres_mop  = gmres_mop  + 5*n
           gmres_flop = gmres_flop + n
-          r = res
-  !call hpm_stop('gmres')
-          etime = etime - dnekclock()
-          call axhelm (v(:,1),x,h1,h2,1,1)
-          etime = etime + dnekclock()
-          call dssum  (v(:,1))
-          v(:,1) = v(:,1) * reshape(pmask, (/ n /))
-  !call hpm_start('gmres')
-          v(:,1) = r - v(:,1)  
+          call dssum_irec(v(:,1,1))
+          do i = 1, lelv
+            r(:,i) = res(:,i)
+            etime = etime - dnekclock()
+            call axhelm_e(v(:,1,1),x,h1,h2,1,1,i)
+            etime = etime + dnekclock()
+            call dssum_isend_e  (v(:,1,1),i)
+          enddo
+          call dssum_wait(v(:,1,1))
+          gmres_mop  = gmres_mop  + n
+          gmres_flop = gmres_flop + 3*n
+          gamma(1) = 0._dp
+          do i = 1, lelv
+            v(:,i,1) = v(:,i,1) * reshape(pmask(:,:,:,i), (/ lx2*ly2*lz2 /))
+            v(:,i,1) = r(:,i) - v(:,i,1)  
+            gamma(1) = gamma(1) + sum(v(:,i,1)*v(:,i,1)* wt(:,i))
+          enddo
       endif
 
-      gmres_mop  = gmres_mop  + 2*n
-      gmres_flop = gmres_flop + 3*n
-      gamma(1) = sum(v(:,1)*v(:,1)*wt)
       call gop(gamma,wk1,'+  ',1)          ! sum over P procs
       gamma(1) = sqrt(gamma(1))
   !      1
@@ -161,9 +150,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       gmres_flop = gmres_flop + n
       gmres_mop  = gmres_mop + 2*n
       temp = 1./gamma(1)
-      v(:,1) = v(:,1) * temp  ! v  = r / gamma
-        !w(i) = v(i,1)
-  !  1            1
+      v(:,:,1) = v(:,:,1) * temp  ! v  = r / gamma
       do j=1,m
           iter = iter+1
       !       -1
@@ -179,7 +166,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           if (ifmgrid) then
               etime = etime - dnekclock()
   !call hpm_stop('gmres')
-              call h1mg_solve(z(1,j),v(1,j),if_hyb)   ! z  = M   w
+              call h1mg_solve(z(1,1,j),v(1,1,j),if_hyb)   ! z  = M   w
   !call hpm_start('gmres')
               etime = etime + dnekclock()
           else                                  !  j
@@ -199,25 +186,25 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
 
           gmres_flop = gmres_flop + 2*n
           gmres_mop  = gmres_mop  + 3*n
-          call ortho        (z(1,j)) ! Orthogonalize wrt null space, if present
+          call ortho        (z(1,1,j)) ! Orthogonalize wrt null space, if present
           etime_p = etime_p + dnekclock()-etime2
       ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
                
           etime = etime - dnekclock()
   !call hpm_stop('gmres')
-          call axhelm (v(:,j+1),z(:,j),h1,h2,1,1)
+          call axhelm (v(:,1,j+1),z(:,1,j),h1,h2,1,1)
           etime = etime + dnekclock()
-          call dssum  (v(:,j+1))
-          v(:,j+1) = v(:,j+1) * reshape(pmask, (/ n /))
+          call dssum  (v(:,1,j+1))
+          v(:,:,j+1) = v(:,:,j+1) * reshape(pmask, (/ lx2*ly2*lz2,lelv /))
   !call hpm_start('gmres')
 
           gmres_mop  = gmres_mop  + 3*n + (j+1)*n
           gmres_flop = gmres_flop + (2*n-1)*j + n
 #ifdef XSMM
-          call stream_vector_compscale(v(:,j+1), wt, r, n)
+          call stream_vector_compscale(v(:,1,j+1), wt, r, n)
 #else
-          r = v(:,j+1) * wt
+          r = v(:,:,j+1) * wt
 #endif
           call dgemv('T',  n, j, &
                      one,  v, n, &
@@ -231,7 +218,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           call dgemv('N', n, j, &
                      mone, v,      n, &
                            h(1,j), 1, &
-                     one,  v(:,j+1), 1)
+                     one,  v(:,1,j+1), 1)
 
       ! apply Givens rotations to new column
           do i=1,j-1
@@ -242,7 +229,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
       !            ______
           gmres_mop  = gmres_mop  + 2*n
           gmres_flop = gmres_flop + 3*n
-          alpha = sum(v(:,j+1)*v(:,j+1)*wt)
+          alpha = sum(v(:,:,j+1)*v(:,:,j+1)*wt)
           call gop(alpha, wk1, '+  ', 1)
           alpha = sqrt(alpha)
 
@@ -271,9 +258,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
           gmres_mop  = gmres_mop  + 2*n
           gmres_flop = gmres_flop + n
           temp = 1./alpha
-          v(:,j+1) = v(:,j+1) * temp  ! v    = w / alpha
-            !w(i) = v(i,j+1)
-      !  j+1
+          v(:,:,j+1) = v(:,:,j+1) * temp  ! v    = w / alpha
       enddo
       900 iconv = 1
       1000 continue

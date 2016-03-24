@@ -22,6 +22,7 @@ if [ "$PPLIST" == "?" ]; then
   echo "  LZ4COMPRESSION lossless compression of output using lz4"
   echo "  LZ4COMMCOMP lossless compression of output using lz4 on compute nodes"
   echo "  XSMM      uses libxsmm for small matrix multiplies"
+  echo "  LIBGS     uses external GS library"
   exit 1
 fi
 
@@ -64,6 +65,7 @@ IFMOAB=false
 IFNEKNEK=false
 IFLZ4=false
 IFLZ4COMMCOMP=false
+IFLIBGS=false
 
 # do some basic checks
 if [ "$CASEDIR" == "$SOURCE_ROOT" ]; then
@@ -368,6 +370,11 @@ echo $PPLIST | grep 'XSMM' >/dev/null
 if [ $? -eq 0 ]; then
    MXM_USER="mxm_std.o mxm_std_sp.o" 
    OPT_FLAGS_STD+=" -DUSE_LIBXSMM "
+fi
+echo $PPLIST | grep 'LIBGS' >/dev/null 
+if [ $? -eq 0 ]; then
+   USR_FLAGS_STD+=" -DASYNC "
+   IFLIBGS=true
 fi
 echo $PPLIST | grep 'K10_MXM' >/dev/null 
 if [ $? -eq 0 ]; then

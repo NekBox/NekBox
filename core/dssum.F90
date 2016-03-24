@@ -6,6 +6,10 @@ module ds
     module procedure dssum_dp, dssum_sp
   end interface
 
+  interface dssum_e_send
+    module procedure dssum_e_send_dp
+  end interface
+
 contains
 
 !-----------------------------------------------------------------------
@@ -164,6 +168,37 @@ subroutine dssum_sp(u)
 
   return
 end subroutine dssum_sp
+!-----------------------------------------------------------------------
+!> \brief Direct stiffness sum
+subroutine dssum_e_send_dp(u)
+  use size_m, only : lx1, ly1, lz1, lelv
+  use kinds, only : DP
+  use ctimer, only : ifsync
+  use parallel, only : gsh_fld
+  use tstep, only : ifield
+  implicit none
+
+  real(DP), intent(inout) :: u(*)
+  integer :: i, n
+
+  if (ifsync) call nekgsync()
+#ifdef LIBGS
+#define ASYNC
+#endif
+
+#ifdef ASYNC
+  n = lx1*ly1*lz1
+  call gs_op_irecv(gsh_fld(ifield), u, 1, 1, 0)
+  do i = 1, lelv
+    call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (i-1)*n, n)
+  enddo
+  call gs_op_wait(gsh_fld(ifield), u, 1, 1, 0)
+#else
+  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
+#endif
+
+  return
+end subroutine dssum_e_send_dp
 
 
 !-----------------------------------------------------------------------

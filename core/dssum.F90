@@ -6,8 +6,21 @@ module ds
     module procedure dssum_dp, dssum_sp
   end interface
 
-  interface dssum_e_send
-    module procedure dssum_e_send_dp
+  interface dssum_irec
+    module procedure dssum_irec_dp
+  end interface
+
+  interface dssum_isend_e
+    module procedure dssum_isend_e_dp
+  end interface
+
+
+  interface dssum_isend
+    module procedure dssum_isend_dp
+  end interface
+
+  interface dssum_wait
+    module procedure dssum_wait_dp
   end interface
 
 contains
@@ -170,10 +183,29 @@ subroutine dssum_sp(u)
 end subroutine dssum_sp
 !-----------------------------------------------------------------------
 !> \brief Direct stiffness sum
-subroutine dssum_e_send_dp(u)
+#ifdef LIBGS
+#define ASYNC
+#endif
+
+subroutine dssum_irec_dp(u)
+  use kinds, only : DP
+  use parallel, only : gsh_fld
+  use tstep, only : ifield
+  implicit none
+
+  real(DP), intent(inout) :: u(*)
+
+#ifdef ASYNC
+  call gs_op_irecv(gsh_fld(ifield), u, 1, 1, 0)
+#endif
+
+  return
+end subroutine dssum_irec_dp
+
+
+subroutine dssum_isend_dp(u)
   use size_m, only : lx1, ly1, lz1, lelv
   use kinds, only : DP
-  use ctimer, only : ifsync
   use parallel, only : gsh_fld
   use tstep, only : ifield
   implicit none
@@ -181,24 +213,54 @@ subroutine dssum_e_send_dp(u)
   real(DP), intent(inout) :: u(*)
   integer :: i, n
 
-  if (ifsync) call nekgsync()
-#ifdef LIBGS
-#define ASYNC
-#endif
-
 #ifdef ASYNC
   n = lx1*ly1*lz1
-  call gs_op_irecv(gsh_fld(ifield), u, 1, 1, 0)
   do i = 1, lelv
     call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (i-1)*n, n)
   enddo
+#endif
+
+  return
+end subroutine dssum_isend_dp
+
+subroutine dssum_isend_e_dp(u,iel)
+  use size_m, only : lx1, ly1, lz1
+  use kinds, only : DP
+  use parallel, only : gsh_fld
+  use tstep, only : ifield
+  implicit none
+
+  real(DP), intent(inout) :: u(*)
+  integer :: iel
+  integer :: i, n
+
+#ifdef ASYNC
+  n = lx1*ly1*lz1
+  call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
+#endif
+
+  return
+end subroutine dssum_isend_e_dp
+
+
+subroutine dssum_wait_dp(u)
+  use kinds, only : DP
+  use ctimer, only : ifsync
+  use parallel, only : gsh_fld
+  use tstep, only : ifield
+  implicit none
+
+  real(DP), intent(inout) :: u(*)
+
+  if (ifsync) call nekgsync()
+#ifdef ASYNC
   call gs_op_wait(gsh_fld(ifield), u, 1, 1, 0)
 #else
   call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
 #endif
 
   return
-end subroutine dssum_e_send_dp
+end subroutine dssum_wait_dp
 
 
 !-----------------------------------------------------------------------

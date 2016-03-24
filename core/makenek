@@ -20,7 +20,7 @@ CC="mpicc "
 #PPLIST="NO_LAPACK"
 
 # plug-in list
-#PLUGIN_LIST=""
+PLUGIN_LIST="LIBGS"
 
 
 # OPTIONAL SETTINGS
@@ -36,7 +36,7 @@ CC="mpicc "
 
 # linking flags
 #USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core"
-USR_LFLAGS="-lblas -llapack -lfftw3"
+USR_LFLAGS="-lblas -llapack -lfftw3 -L${TRAVIS_BUILD_DIR}/gslib -lgs"
 
 
 # generic compiler flags

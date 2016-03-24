@@ -182,8 +182,10 @@ subroutine dssum_e_send_dp(u)
   integer :: i, n
 
   if (ifsync) call nekgsync()
+#ifdef LIBGS
+#define ASYNC
+#endif
 
-!#define ASYNC
 #ifdef ASYNC
   n = lx1*ly1*lz1
   call gs_op_irecv(gsh_fld(ifield), u, 1, 1, 0)

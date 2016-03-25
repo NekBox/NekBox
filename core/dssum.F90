@@ -184,7 +184,7 @@ end subroutine dssum_sp
 !-----------------------------------------------------------------------
 !> \brief Direct stiffness sum
 #ifdef LIBGS
-#define ASYNC
+!#define ASYNC
 #endif
 
 subroutine dssum_irec_dp(u)

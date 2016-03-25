@@ -28,7 +28,7 @@ before_install:
  - sudo apt-get install -y gfortran 
  - git clone https://github.com/maxhutch/nek-tests.git
  - git clone https://github.com/maxhutch/nek-tools.git
- - git clone https://github.com/maxhutch/gslib.git
+ - git clone -b async https://github.com/maxhutch/gslib.git
  - cd gslib
  - make
  - cd ../nek-tests/$(dirname "$TEST_SUITE")

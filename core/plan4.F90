@@ -22,7 +22,7 @@ subroutine plan4()
   use ctimer, only : othr_flop, othr_mop
   use ds, only : dssum
   use geom, only : binvm1, bm1, volvm1
-  use helmholtz, only : hsolve, approx_space, init_approx_space
+  use solver, only : hsolve, approx_space, init_approx_space
   use soln, only : vx, vy, vz, v1mask, v2mask, v3mask
   use soln, only : vtrans, pmask, vmult, pr
   use tstep, only : imesh, nmxh, tolhv

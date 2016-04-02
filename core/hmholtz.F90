@@ -492,7 +492,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use kinds, only : DP
   use size_m, only : nid, nx1, ny1, nz1, nelt, nelv
   use size_m, only : lx1, ly1, lz1, lelt
-  use ds, only : dssum, dssum_irec, dssum_wait, dssum_isend_e
+  use ds, only : dssum, dssum_irec, dssum_wait_e, dssum_isend
   use fdmh1, only : kfldfdm
   use input, only : ifsplit, param, ifprint
   use geom, only : volvm1, voltm1
@@ -641,14 +641,14 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
     etime = etime - dnekclock()
     call axhelm_e (w,p,h1,h2,imsh,isd,i)
     etime = etime + dnekclock()
-    call dssum_isend_e (w(:,1),i)
   enddo
-  call dssum_wait(w(:,1))
+  call dssum_isend (w(:,1))
 
   cggo_flop = cggo_flop + 4*n
   cggo_mop  = cggo_mop  + 5*n
   rho0 = rho; rho = 0._dp
   do i = 1, nel
+    call dssum_wait_e(w(:,1), i)
     w(:,i)   = w(:,i) * mask(:,i)
     rho = rho + sum(w(:,i) * p(:,i) * mult(:,i))
   enddo
@@ -710,15 +710,15 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
       etime = etime - dnekclock()
       call axhelm_e (w,p,h1,h2,imsh,isd,i)
       etime = etime + dnekclock()
-      call dssum_isend_e(w(:,1),i)    
     enddo
+    call dssum_isend(w(:,1))    
 
-    call dssum_wait (w(:,1))
 
     cggo_flop = cggo_flop + 4*n
     cggo_mop  = cggo_mop  + 5*n
     rho0 = rho; rho = 0._dp
     do i = 1, nel
+      call dssum_wait_e (w(:,1),i)
       w(:,i)   = w(:,i) * mask(:,i)
       rho = rho + sum(w(:,i) * p(:,i) * mult(:,i))
     enddo

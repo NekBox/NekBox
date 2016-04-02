@@ -13,7 +13,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use soln, only : pmask, vmult
   use tstep, only : tolps, istep
   use hsmg_routines, only : h1mg_solve
-  use ds, only : dssum, dssum_irec, dssum_wait, dssum_isend_e
+  use ds, only : dssum, dssum_irec, dssum_wait, dssum_isend
 #ifdef XSMM
   use STREAM_UPDATE_KERNELS, only : stream_vector_compscale
 #endif
@@ -123,8 +123,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
             etime = etime - dnekclock()
             call axhelm_e(v(:,1,1),x,h1,h2,1,1,i)
             etime = etime + dnekclock()
-            call dssum_isend_e  (v(:,1,1),i)
           enddo
+          call dssum_isend (v(:,1,1))
           call dssum_wait(v(:,1,1))
           gmres_mop  = gmres_mop  + n
           gmres_flop = gmres_flop + 3*n
@@ -196,8 +196,8 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
             etime = etime - dnekclock()
             call axhelm_e (v(:,1,j+1),z(:,1,j),h1,h2,1,1,i)
             etime = etime + dnekclock()
-            call dssum_isend_e  (v(:,1,j+1),i)
           enddo
+          call dssum_isend  (v(:,1,j+1))
           call dssum_wait(v(:,1,j+1))
 
           gmres_mop  = gmres_mop  + 4*n + (j+1)*n

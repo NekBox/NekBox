@@ -19,6 +19,11 @@ module ds
     module procedure dssum_isend_dp
   end interface
 
+  interface dssum_wait_e
+    module procedure dssum_wait_e_dp
+  end interface
+
+
   interface dssum_wait
     module procedure dssum_wait_dp
   end interface
@@ -217,7 +222,9 @@ subroutine dssum_isend_dp(u)
   n = lx1*ly1*lz1
   do i = 1, lelv
     call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (i-1)*n, n)
-  enddo
+ enddo
+#else
+  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
 #endif
 
   return
@@ -256,11 +263,35 @@ subroutine dssum_wait_dp(u)
 #ifdef ASYNC
   call gs_op_wait(gsh_fld(ifield), u, 1, 1, 0)
 #else
-  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
+!  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
 #endif
 
   return
 end subroutine dssum_wait_dp
+
+subroutine dssum_wait_e_dp(u,iel)
+  use kinds, only : DP
+  use size_m, only : lx1, ly1, lz1, lelv
+  use ctimer, only : ifsync
+  use parallel, only : gsh_fld
+  use tstep, only : ifield
+  implicit none
+
+  real(DP), intent(inout) :: u(*)
+  integer, intent(in) :: iel
+  integer :: n
+
+  if (ifsync) call nekgsync()
+#ifdef ASYNC
+  n = lx1*ly1*lz1
+  call gs_op_wait(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
+#else
+!  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
+#endif
+
+  return
+end subroutine dssum_wait_e_dp
+
 
 
 !-----------------------------------------------------------------------

@@ -97,7 +97,7 @@ module ctimer
 
   integer, save :: icalld = 0
 
-  logical ::         ifsync
+  logical ::         ifsync = .false.
 
   real(DP), save :: time_flop = 0._dp
   integer(i8), save :: total_flop, total_mop
@@ -151,14 +151,21 @@ end subroutine sum_flops
 !! This is used when computing efficiencies in drive2
 subroutine benchmark()
   use parallel, only : nid
+ 
+#ifdef BENCHMARK
   call benchmark_mxm()
-  call benchmark_stream()
   call benchmark_mxm()
   call benchmark_stream()
   call benchmark_allreduce()
   if (nid == 0) write(*,'(2(A,F6.2),A,E11.3)') "GFLOP: ", max_flops/10.**9, &
                                         " GiB/s: ", max_mops * 8 / (2_8 **30), &
                                         " Allreduce: ", allreduce_latency
+#else
+  max_flops = 10.**10         ! 10 GFLOPs
+  max_mops  = (2_8 ** 30) / 8 ! 1 GiB/s
+  allreduce_latency = 1.e-5   ! 10 us
+#endif
+ 
 end subroutine
 
 subroutine benchmark_allreduce()
@@ -232,7 +239,7 @@ subroutine benchmark_mxm()
 
 
   allocate(a(lx1, lx1, lx1), b(lx1, lx1, lx1), c(lx1, lx1))
-  n = (2_8**40)/(lx1**4) / 64
+  n = (10_8**11)/(lx1*lx1*lx1* 3 * ( 2*lx1 - 1))
 
   etime = dnekclock()
   do i = 1, n
@@ -277,8 +284,8 @@ subroutine benchmark_stream()
 
 
   ! just replicate STREAM
-  n = 2**24 / 8 
-  k = 8
+  n = lx1*ly1*lz1*lelt * 16 ! 16 *ntot is the largest working set in typical usage
+  k = max((2**27)/n, 1)
   allocate(a(n), b(n), c(n)) 
   a = 2._dp; b = 0.5_dp; c = 0._dp
 

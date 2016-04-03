@@ -286,7 +286,9 @@ subroutine dssum_wait_e_dp(u,iel)
   n = lx1*ly1*lz1
   call gs_op_wait(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
 #else
-!  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
+  if (iel == 1) then
+    call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
+  endif
 #endif
 
   return

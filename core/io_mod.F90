@@ -23,14 +23,13 @@ subroutine load_ic()
   use parallel, only : nid
   use soln, only : vx, vy, vz, pr, t
   use restart, only : pid0, pid1,fid0
-  use size_m, only : nx1, ny1, nz1, nelt
+  use size_m, only : nx1, ny1, nz1
   use tstep, only : time
-  use input, only : if3d
 
   integer :: nelo !>!< number of i/o elements per io-node
   integer :: word_size_load !>!< number of bytes per word
 
-  integer :: ierr, i, j, sizeout
+  integer :: ierr, i, sizeout
   integer, parameter :: pad_size = 1
   real(DP), allocatable :: padding(:,:,:,:)
   logical :: skip_x

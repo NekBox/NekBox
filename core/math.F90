@@ -204,7 +204,7 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
 
 #endif
 
-  if (h2 /= 0._dp) then
+  if (abs(h2) >= 1.e-14_dp) then
 #ifdef XSMM
     call stream_update_helmholtz(gx, gy, gz, work1, work2, work3, &
                                  u, b, au, h1, h2, nx*ny*nz)
@@ -416,13 +416,10 @@ end subroutine div_diag
 subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   use kinds, only : DP
   use size_m, only : lx1, ly1, lz1, lx2, ly2, lz2, lelv
-  use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, ndim
-  use ctimer, only : icalld, tcdtp, ncdtp, etime1, dnekclock
-  use dxyz, only : dym12, dam12, dcm12, dxtm12, dzm12
-  use geom, only : ifrzer, jacm2, ym2, jacm1
-  use input, only : ifaxis, ifsplit
-  use ixyz, only : iym12, iam12, icm12
-  use geom, only : bm1, bm2
+  use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv
+  use dxyz, only : dym12, dxtm12, dzm12
+  use geom, only : jacm1
+  use geom, only : bm1
   implicit none
 
   integer :: isd
@@ -437,14 +434,7 @@ subroutine cdtp (dtx,x,rm2,sm2,tm2,isd)
   ,             ta2 (lx1,ly1,lz1)
 
   integer :: e
-  integer :: nxyz1, nxyz2, nxy1, nyz2, n1, n2, ny12, i1, i2, iz
-
-#ifndef NOTIMER
-  if (icalld == 0) tcdtp=0.0
-  icalld=icalld+1
-  ncdtp=icalld
-  etime1=dnekclock()
-#endif
+  integer :: nxyz1, nxyz2, nxy1, nyz2, n1, n2, i1, i2, iz
 
   nxyz1 = nx1*ny1*nz1
   nxyz2 = nx2*ny2*nz2

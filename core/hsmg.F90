@@ -148,7 +148,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   integer :: p_msk
 
   real(DP) :: op, om, sigma
-  integer :: nel, l, n, is, im, i1, i
+  integer :: nel, l, n, is, im, i1, i, ntot
 
   real(DP) :: etime
 

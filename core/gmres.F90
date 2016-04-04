@@ -13,7 +13,7 @@ subroutine hmh_gmres(res,h1,h2,wt,iter)
   use soln, only : pmask, vmult
   use tstep, only : tolps, istep
   use hsmg_routines, only : h1mg_solve
-  use ds, only : dssum_irec, dssum_wait, dssum_isend
+  use ds, only : dssum_irec, dssum_wait_e, dssum_isend_e
 #ifdef XSMM
   use STREAM_UPDATE_KERNELS, only : stream_vector_compscale
 #endif

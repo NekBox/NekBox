@@ -1,3 +1,7 @@
+#ifdef LIBGS
+#define ASYNC
+#endif
+
 module ds
 
   public
@@ -63,7 +67,11 @@ subroutine setupds(gs_handle,nx,ny,nz,nel,melg,vertex,glo_num)
 
   ! Initialize gather-scatter code
   ntot      = nx*ny*nz*nel
+#ifdef ASYNC
+  call gs_setup_pick(gs_handle,glo_num,ntot,nekcomm,mp, 1)
+#else
   call gs_setup(gs_handle,glo_num,ntot,nekcomm,mp)
+#endif
 
   !   call gs_chkr(glo_num)
 
@@ -188,10 +196,6 @@ subroutine dssum_sp(u)
 end subroutine dssum_sp
 !-----------------------------------------------------------------------
 !> \brief Direct stiffness sum
-#ifdef LIBGS
-!#define ASYNC
-#endif
-
 subroutine dssum_irec_dp(u)
   use kinds, only : DP
   use parallel, only : gsh_fld
@@ -284,7 +288,7 @@ subroutine dssum_wait_e_dp(u,iel)
   if (ifsync) call nekgsync()
 #ifdef ASYNC
   n = lx1*ly1*lz1
-  call gs_op_wait(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
+  call gs_op_wait_e(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
 #else
   if (iel == 1) then
     call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +

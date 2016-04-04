@@ -131,7 +131,8 @@ end subroutine h1mg_setup
 subroutine h1mg_solve(z,rhs,if_hybrid)  
   use kinds, only : DP, PP
   use size_m, only : lx1, ly1, lz1, lelt
-  use ds, only : dssum
+  use size_m, only : nx1, ny1, nz1, nelt 
+  use ds, only : dssum_irec, dssum_isend_e, dssum_wait_e
   use hsmg, only : mg_h1_lmax, mg_h1_n, p_mg_msk, mg_imask, mg_fld ! Same array space as HSMG
   use tstep, only : nelfld, ifield
   use ctimer, only : th1mg, nh1mg, h1mg_flop, h1mg_mop, dnekclock
@@ -155,6 +156,7 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   etime = dnekclock()
 
   nel   = nelfld(ifield)
+  ntot  = nx1*ny1*nz1
 
   op    =  1.                                     ! Coefficients for h1mg_ax
   om    = -1.
@@ -233,13 +235,17 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   h1mg_flop = h1mg_flop +   n
   h1mg_mop  = h1mg_mop  + 3*n
 
-  do i = 1,n                                      !            l-1
-      e(i) = e(i) + w(i)                           ! z := z + w
+  call dssum_irec(e)
+  do i = 1,nel                                 !            l-1 
+      e((i-1)*ntot+1:i*ntot) = e((i-1)*ntot+1:i*ntot) + w((i-1)*ntot+1:i*ntot) ! z := z + w
+      call dssum_isend_e(e, i)
   enddo
   deallocate(w)
 
-  call dssum(e)
-  z(1:n) = e(1:n) * reshape(vmult, (/n/))
+  do i = 1, nel
+    call dssum_wait_e(e, i)
+    z((i-1)*ntot+1:i*ntot) = e((i-1)*ntot+1:i*ntot) * reshape(vmult(:,:,:,i), (/ntot/))
+  enddo
   deallocate(e)
   !call dsavg(z) ! Emergency hack --- to ensure continuous z!
 

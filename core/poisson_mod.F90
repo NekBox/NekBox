@@ -40,7 +40,6 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   use parallel, only : nekcomm, lglel
   use soln, only : vmult
   use size_m, only : nx1, ny1, nz1
-  use ctimer, only : nscps, tscps, dnekclock
   use ds, only : dssum
   use fft, only : P_FORWARD, P_BACKWARD, W_FORWARD, W_BACKWARD
   use fft, only : fft_r2r
@@ -64,7 +63,6 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
     call init_comm_infrastructure(nekcomm, shape_x)
   endif
 
-  nscps = nscps + 1
 
   ! map onto fine mesh to use dssum
   !> \todo replace this with coarse grid dssum  
@@ -100,7 +98,6 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   allocate(plane_xy(0:shape_x(1)-1, 0:n_x(1)-1, 0:n_x(2)-1) )
 
   call mesh_to_grid(rhs_coarse, plane_xy, shape_x)
-  etime = dnekclock()
 
   ! forward FFT
   rescale = 1._dp
@@ -164,7 +161,6 @@ subroutine spectral_solve(u,rhs)!,h1,mask,mult,imsh,isd)
   rescale = 1._dp / (rescale * sum(bm1(:,:,:,1)))
   plane_xy = plane_xy * rescale
 
-  tscps = tscps + (dnekclock() - etime) 
   ! reorder to local elements
   allocate(soln_coarse(nelm)); soln_coarse = 0._dp
   call grid_to_mesh(plane_xy, soln_coarse, shape_x)

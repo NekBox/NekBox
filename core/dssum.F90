@@ -235,7 +235,7 @@ subroutine dssum_isend_dp(u)
 end subroutine dssum_isend_dp
 
 subroutine dssum_isend_e_dp(u,iel)
-  use size_m, only : lx1, ly1, lz1
+  use size_m, only : lx1, ly1, lz1, nelt
   use kinds, only : DP
   use parallel, only : gsh_fld
   use tstep, only : ifield
@@ -246,8 +246,11 @@ subroutine dssum_isend_e_dp(u,iel)
   integer :: i, n
 
 #ifdef ASYNC
-  n = lx1*ly1*lz1
-  call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
+!  n = lx1*ly1*lz1
+!  call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
+  if (iel == nelt) then
+    call gs_op_isend(gsh_fld(ifield), u, 1, 1, 0)
+  endif
 #endif
 
   return

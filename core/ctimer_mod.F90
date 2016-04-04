@@ -150,9 +150,9 @@ end subroutine sum_flops
 !!
 !! This is used when computing efficiencies in drive2
 subroutine benchmark()
-  use parallel, only : nid
- 
 #ifdef BENCHMARK
+  use parallel, only : nid
+
   call benchmark_mxm()
   call benchmark_mxm()
   call benchmark_stream()
@@ -164,8 +164,7 @@ subroutine benchmark()
   max_flops = 10.**10         ! 10 GFLOPs
   max_mops  = (2_8 ** 30) / 8 ! 1 GiB/s
   allreduce_latency = 1.e-5   ! 10 us
-#endif
- 
+#endif 
 end subroutine
 
 subroutine benchmark_allreduce()
@@ -214,7 +213,7 @@ end subroutine benchmark_allreduce
 subroutine benchmark_mxm()
   use kinds, only : DP
   use parallel, only : nid
-  use size_m, only : lx1, ly1, lz1, lelt
+  use size_m, only : lx1
 #ifdef XSMM
   use iso_c_binding
   use LIBXSMM, only : LIBXSMM_DMMFUNCTION
@@ -226,7 +225,7 @@ subroutine benchmark_mxm()
 
 
   real(DP) :: etime
-  integer(8) :: i, n, k, flops
+  integer(8) :: i, n, flops
   integer :: iz
 
 #ifdef XSMM
@@ -285,7 +284,7 @@ subroutine benchmark_stream()
 
   ! just replicate STREAM
   n = lx1*ly1*lz1*lelt * 16 ! 16 *ntot is the largest working set in typical usage
-  k = max((2**27)/n, 1)
+  k = max(int((2**27)/n), 1)
   allocate(a(n), b(n), c(n)) 
   a = 2._dp; b = 0.5_dp; c = 0._dp
 

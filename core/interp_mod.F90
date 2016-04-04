@@ -30,8 +30,6 @@ contains
 !! The interpolation matrices jgl, jgt are being memoized.
 !!  pjgl is a map from (mx,md) pair to (ip) index of jgl, jgt
 subroutine get_int_ptr (ip, mx, md) ! GLL-->GL pointer
-  use kinds, only : DP
-  use size_m
   implicit none
 
   integer, intent(out) :: ip
@@ -63,8 +61,6 @@ end subroutine get_int_ptr
 !-----------------------------------------------------------------------
 !> \brief Get pointer to GL-GL interpolation dgl() for pair (mx,md)
 subroutine get_dgl_ptr (ip, mx,md)
-  use kinds, only : DP
-  use size_m, only : lxd 
   implicit none
 
 

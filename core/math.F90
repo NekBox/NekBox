@@ -8,7 +8,7 @@ module math
 implicit none
 
 interface tensor_product_multiply
-  module procedure tensor_product_multiply_dp, tensor_product_multiply_sp
+  module procedure tensor_product_multiply_dp, tensor_product_multiply_sp, tensor_product_multiply_mp
 end interface 
 
 contains
@@ -103,6 +103,52 @@ subroutine tensor_product_multiply_sp(u, nu, v, nv, A, Bt, Ct, work1, work2)
   return
 
 end subroutine tensor_product_multiply_sp
+
+subroutine tensor_product_multiply_mp(u, nu, v, nv, A, Bt, Ct, work1, work2)
+  use kinds, only : DP, SP
+#ifdef XSMM
+  use iso_c_binding
+  use LIBXSMM, only : LIBXSMM_DMMFUNCTION
+  use LIBXSMM, only : libxsmm_dispatch, libxsmm_call
+#endif
+
+  implicit none
+  integer, intent(in)   :: nu, nv
+  real(SP), intent(in)  :: u(*)
+  real(DP), intent(out) :: v(*)
+  real(DP), intent(in)  :: A(*), Bt(*), Ct(*)
+  real(DP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
+
+  integer :: i
+#ifdef XSMM
+  integer, save :: last_nu = 0, last_nv = 0
+  TYPE(LIBXSMM_DMMFUNCTION), save :: xmm1, xmm2, xmm3
+
+  if (last_nu /= nu .or. last_nv /= nv) then
+    CALL libxsmm_dispatch(xmm1, nv, nu*nu, nu, alpha=1._dp, beta=0._dp)
+    CALL libxsmm_dispatch(xmm2, nv, nv, nu,    alpha=1._dp, beta=0._dp)
+    CALL libxsmm_dispatch(xmm3, nv*nv, nv, nu, alpha=1._dp, beta=0._dp)
+    last_nu = nu; last_nv = nv;
+  endif
+  work2(0:nu*nu*nu-1) = u(1:nu*nu*nu)
+  call libxsmm_call(xmm1, C_LOC(A), C_LOC(work2), C_LOC(work1))
+  do i=0,nu-1
+      call libxsmm_call(xmm2, C_LOC(work1(nv*nu*i)), C_LOC(Bt), C_LOC(work2(nv*nv*i)))
+  enddo
+  call libxsmm_call(xmm3, C_LOC(work2),C_LOC(Ct), C_LOC(v))
+#else 
+  work2(0:nu*nu*nu-1) = u(1:nu*nu*nu)
+  call mxm(A,nv,work2,nu,work1,nu*nu)
+  do i=0,nu-1
+      call mxm(work1(nv*nu*i),nv,Bt,nu,work2(nv*nv*i),nv)
+  enddo
+  call mxm(work2,nv*nv,Ct,nu,v,nv)
+#endif
+  return
+
+end subroutine tensor_product_multiply_mp
+
+
 
 end module math
 

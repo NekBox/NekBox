@@ -259,7 +259,7 @@ end subroutine mfo_read_header
 !> \brief Read a scalar field
 subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
   use kinds, only : DP, SP
-  use size_m, only : nid, lelt, lxo, nx1
+  use size_m, only : nid, lelt, nx1
   use restart, only : pid0, pid1
   use math, only : tensor_product_multiply
   use interp, only : jgl, jgt, get_int_ptr
@@ -269,12 +269,12 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
   integer, intent(in) :: nel, mx, my, mz, nxi, wdsizo
   real(DP), intent(inout) :: u(mx*my*mz,*)
 
-  real(SP), allocatable :: u4(:)
+  real(SP), allocatable :: u4(:,:)
+  real(DP), allocatable :: u8(:,:)
 #ifdef LZ4COMMCOMP
   real(SP), allocatable :: u4comp(:)
   real(DP), allocatable :: u8comp(:)
 #endif
-  real(DP), allocatable :: u8(:)
   real(DP), allocatable :: w1(:), w2(:)
 
   integer :: nxyz, nxyzi, ntot, idum, ierr, nout, k, mtype
@@ -284,10 +284,6 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
   integer :: i, iptr
 
   call nekgsync() ! clear outstanding message queues.
-  if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
-      if(nid == 0) write(6,*) 'ABORT: lxo too small'
-      call exitt
-  endif
 
   if (nxi /= mx) then
     allocate(w1(nxi*nxi*mx))
@@ -302,14 +298,14 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
   ierr = 0
 
   if (wdsizo == 4) then
-    allocate(u4(2+lxo*lxo*lxo*2*lelt))
+    allocate(u4(nxyzi,nel))
 #ifdef LZ4COMMCOMP
-    allocate(u4comp(2+lxo*lxo*lxo*2*lelt))
+    allocate(u4comp(2+mx*my*mz*2*lelt))
 #endif
   else
-    allocate(u8(1+lxo*lxo*lxo*1*lelt))
+    allocate(u8(nxyzi, nel))
 #ifdef LZ4COMMCOMP
-    allocate(u8comp(1+lxo*lxo*lxo*1*lelt))
+    allocate(u8comp(1+mx*my*mz*1*lelt))
 #endif
   endif
 
@@ -349,13 +345,13 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
         if (wdsizo == 4) then
           do i = 1, nel
           call tensor_product_multiply( &
-                 u4((i-1)*nxi*nxi*nxi+1:), nxi, u(:,i), nx1, &
+                 u4(:,i), nxi, u(:,i), nx1, &
                  jgl(iptr:), jgt(iptr:), jgt(iptr:), w1, w2)
           enddo
         else
           do i = 1, nel
             call tensor_product_multiply( &
-                   u8((i-1)*nxi*nxi*nxi+1:), nxi, u(:,i), nx1, &
+                   u8(:,i), nxi, u(:,i), nx1, &
                    jgl(iptr:), jgt(iptr:), jgt(iptr:), w1, w2)
           enddo
         endif
@@ -421,7 +417,7 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
           call get_int_ptr (iptr,  nxi,nx1)
           do i = 1, nel
             call tensor_product_multiply( &
-                   u4((i-1)*nxi*nxi*nxi+1:), nxi, u(:,i), nx1, &
+                   u4(:,i), nxi, u(:,i), nx1, &
                    jgl(iptr:), jgt(iptr:), jgt(iptr:), w1, w2)
           enddo
         endif
@@ -433,7 +429,7 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
           call get_int_ptr (iptr,  nxi,nx1)
           do i = 1, nel
             call tensor_product_multiply( &
-                   u8((i-1)*nxi*nxi*nxi+1:), nxi, u(:,i), nx1, &
+                   u8(:,i), nxi, u(:,i), nx1, &
                    jgl(iptr:), jgt(iptr:), jgt(iptr:), w1, w2)
           enddo
         endif
@@ -450,8 +446,8 @@ end subroutine mfo_read_scalar
 !-----------------------------------------------------------------------
 !> \brief Read a vector field
 subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo) 
-  use kinds, only : DP, r4
-  use size_m, only : nid, ndim, lxo, lelt, nx1
+  use kinds, only : DP, SP
+  use size_m, only : nid, ndim, lelt, nx1
   use input, only : if3d
   use restart, only : pid0, pid1
   use math, only : tensor_product_multiply
@@ -462,12 +458,12 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
   integer, intent(in) :: mx, my, mz, nxi, wdsizo
   real(DP), intent(inout) :: u(mx*my*mz,*),v(mx*my*mz,*),w(mx*my*mz,*)
 
-  real(r4), allocatable :: u4(:)
+  real(SP), allocatable :: u4(:,:)
+  real(DP), allocatable :: u8(:,:)
 #ifdef LZ4COMMCOMP
   real(r4), allocatable :: u4comp(:)
   real(DP), allocatable :: u8comp(:)
 #endif
-  real(DP), allocatable :: u8(:)
   real(DP), allocatable :: work(:)
 
   integer :: nxyz, nxyzi, nel, idum, ierr
@@ -478,10 +474,6 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
   integer :: i, iptr
 
   call nekgsync() ! clear outstanding message queues.
-  if(mx > lxo .OR. my > lxo .OR. mz > lxo) then
-      if(nid == 0) write(6,*) 'ABORT: lxo too small'
-      call exitt
-  endif
 
   if (nxi /= mx) then
     allocate(work(nxi*nxi*mx + nxi*mx*mx))
@@ -493,14 +485,14 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
   ierr = 0
 
   if (wdsizo == 4) then
-    allocate(u4(2+lxo*lxo*lxo*6*lelt))
+    allocate(u4(nxyzi, 3*nel))
 #ifdef LZ4COMMCOMP
-    allocate(u4comp(2+lxo*lxo*lxo*6*lelt))
+    allocate(u4comp(2+mx*my*mz*6*lelt))
 #endif
   else
-    allocate(u8(1+lxo*lxo*lxo*3*lelt))
+    allocate(u8(nxyzi, 3*nel))
 #ifdef LZ4COMMCOMP
-    allocate(u8comp(1+lxo*lxo*lxo*3*lelt))
+    allocate(u8comp(1+mx*my*mz*3*lelt))
 #endif
   endif
   
@@ -528,29 +520,18 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
 #endif
       endif
 
-      j = 1
       if (nxi == mx) then
       if (wdsizo == 4) then             ! 32-bit output
           do iel = 1,nel
-              call copy4r   (u(1,iel), u4(j),nxyz)
-              j = j + nxyz
-              call copy4r   (v(1,iel), u4(j),nxyz)
-              j = j + nxyz
-              if(if3d) then
-                  call copy4r (w(1, iel), u4(j),nxyz)
-                  j = j + nxyz
-              endif
+              call copy4r (u(1,iel), u4(:,3*iel-2),nxyz)
+              call copy4r (v(1,iel), u4(:,3*iel-1),nxyz)
+              call copy4r (w(1,iel), u4(:,3*iel-0),nxyz)
           enddo
       else
           do iel = 1,nel
-              call copy     (u(1,iel), u8(j),nxyz)
-              j = j + nxyz
-              call copy     (v(1,iel), u8(j),nxyz)
-              j = j + nxyz
-              if(if3d) then
-                  call copy   (w(1,iel), u8(j),nxyz)
-                  j = j + nxyz
-              endif
+              call copy (u(1,iel), u8(:,3*iel-2),nxyz)
+              call copy (v(1,iel), u8(:,3*iel-1),nxyz)
+              call copy (w(1,iel), u8(:,3*iel-0),nxyz)
           enddo
       endif
       else
@@ -558,32 +539,26 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
         if (wdsizo == 4) then             ! 32-bit output
             do iel = 1,nel
                 call tensor_product_multiply( &
-                     u4(j:), nxi, u(:,iel), nx1, &
+                     u4(:,3*iel-2), nxi, u(:,iel), nx1, &
                      jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-                j = j + nxi*nxi*nxi
                 call tensor_product_multiply( &
-                     u4(j:), nxi, v(:,iel), nx1, &
+                     u4(:,3*iel-1), nxi, v(:,iel), nx1, &
                      jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-                j = j + nxi*nxi*nxi
                 call tensor_product_multiply( &
-                     u4(j:), nxi, w(:,iel), nx1, &
+                     u4(:,3*iel-0), nxi, w(:,iel), nx1, &
                      jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-                j = j + nxi*nxi*nxi
             enddo
         else
             do iel = 1,nel
                 call tensor_product_multiply( &
-                     u8(j:), nxi, u(:,iel), nx1, &
+                     u8(:,3*iel-2), nxi, u(:,iel), nx1, &
                      jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-                j = j + nxi*nxi*nxi
                 call tensor_product_multiply( &
-                     u8(j:), nxi, v(:,iel), nx1, &
+                     u8(:,3*iel-1), nxi, v(:,iel), nx1, &
                      jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-                j = j + nxi*nxi*nxi
                 call tensor_product_multiply( &
-                     u8(j:), nxi, w(:,iel), nx1, &
+                     u8(:,3*iel-0), nxi, w(:,iel), nx1, &
                      jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-                j = j + nxi*nxi*nxi
             enddo
         endif
       endif
@@ -625,16 +600,10 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
         if(sizein.ne.3*nxyz*nel*wdsizo) then
           write (6,*) 'Error in compression: ', sizein, nxyz*nel*wdsizo
         endif
-        j = 0
         do iel = 1,nel
-            call copy4r   (u(1,iel), u4(j+1),nxyz)
-            j = j + nxyz
-            call copy4r   (v(1,iel), u4(j+1),nxyz)
-            j = j + nxyz
-            if(if3d) then
-                call copy4r (w(1,iel), u4(j+1),nxyz)
-                j = j + nxyz
-            endif
+            call copy4r (u(1,iel), u4(:,3*iel-2),nxyz)
+            call copy4r (v(1,iel), u4(:,3*iel-1),nxyz)
+            call copy4r (w(1,iel), u4(:,3*iel-0),nxyz)
         enddo
       else
         call crecv(mtype, u8comp, sizeout)
@@ -642,16 +611,10 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
         if(sizein.ne.3*nxyz*nel*wdsizo) then
           write (6,*) 'Error in compression: ', sizein, nxyz*nel*3*wdsizo
         endif
-        j = 0
         do iel = 1,nel
-            call copy     (u(1,iel), u8(j+1),nxyz)
-            j = j + nxyz
-            call copy     (v(1,iel), u8(j+1),nxyz)
-            j = j + nxyz
-            if(if3d) then
-                call copy   (w(1,iel), u8(j+1),nxyz)
-                j = j + nxyz
-            endif
+            call copy (u(1,iel), u8(:,3*iel-2),nxyz)
+            call copy (v(1,iel), u8(:,3*iel-1),nxyz)
+            call copy (w(1,iel), u8(:,3*iel-0),nxyz)
         enddo
       endif
 #else
@@ -661,64 +624,46 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
       if (wdsizo == 4) then             ! 32-bit output
         call crecv(mtype,u4,wdsizo*(nel*nxyzi*ndim)) ! u4 :=: u8
 
-        j = 1
         if (nxi == nx1) then
           do iel = 1,nel
-              call copy4r   (u(1,iel), u4(j),nxyz)
-              j = j + nxyz
-              call copy4r   (v(1,iel), u4(j),nxyz)
-              j = j + nxyz
-              if(if3d) then
-                  call copy4r (w(1,iel), u4(j),nxyz)
-                  j = j + nxyz
-              endif
+              call copy4r (u(1,iel), u4(:,iel*3-2),nxyz)
+              call copy4r (v(1,iel), u4(:,iel*3-1),nxyz)
+              call copy4r (w(1,iel), u4(:,iel*3-0),nxyz)
           enddo
         else
           call get_int_ptr (iptr,  nxi,nx1)
           do iel = 1,nel
             call tensor_product_multiply( &
-                 u4(j:), nxi, u(:,iel), nx1, &
+                 u4(:,iel*3-2), nxi, u(:,iel), nx1, &
                  jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-            j = j + nxi*nxi*nxi
             call tensor_product_multiply( &
-                 u4(j:), nxi, v(:,iel), nx1, &
+                 u4(:,iel*3-1), nxi, v(:,iel), nx1, &
                  jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-            j = j + nxi*nxi*nxi
             call tensor_product_multiply( &
-                 u4(j:), nxi, w(:,iel), nx1, &
+                 u4(:,iel*3-0), nxi, w(:,iel), nx1, &
                  jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-            j = j + nxi*nxi*nxi
           enddo
         endif
       else
         call crecv(mtype,u8,wdsizo*(nel*nxyzi*ndim))     ! u4 :=: u8
-        j = 1
         if (nxi == nx1) then
           do iel = 1,nel
-              call copy     (u(1,iel), u8(j),nxyz)
-              j = j + nxyz
-              call copy     (v(1,iel), u8(j),nxyz)
-              j = j + nxyz
-              if(if3d) then
-                  call copy   (w(1,iel), u8(j),nxyz)
-                  j = j + nxyz
-              endif
+              call copy (u(1,iel), u8(:,iel*3-2),nxyz)
+              call copy (v(1,iel), u8(:,iel*3-1),nxyz)
+              call copy (w(1,iel), u8(:,iel*3-0),nxyz)
           enddo
         else
           call get_int_ptr (iptr,  nxi,nx1)
           do iel = 1,nel
               call tensor_product_multiply( &
-                   u8(j:), nxi, u(:,iel), nx1, &
+                   u8(:,iel*3-2), nxi, u(:,iel), nx1, &
                    jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-              j = j + nxi*nxi*nxi
               call tensor_product_multiply( &
-                   u8(j:), nxi, v(:,iel), nx1, &
+                   u8(:,iel*3-1), nxi, v(:,iel), nx1, &
                    jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-              j = j + nxi*nxi*nxi
               call tensor_product_multiply( &
-                   u8(j:), nxi, w(:,iel), nx1, &
+                   u8(:,iel*3-0), nxi, w(:,iel), nx1, &
                    jgl(iptr:), jgt(iptr:), jgt(iptr:), work, work(1+nxi*nxi*mx:))
-              j = j + nxi*nxi*nxi
           enddo
         endif
       endif

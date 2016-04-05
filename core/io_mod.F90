@@ -66,7 +66,6 @@ subroutine load_ic()
 
   ! read velocities
   call mfo_read_vector(vx, vy, vz, size(vx,4), size(vx,1), size(vx,2), size(vx,3), nx_load, word_size_load) 
-  write(*,*) "Read velocity"
 
   ! read pressure
   call mfo_read_scalar(pr(:,:,:,:), size(pr, 4), size(pr,1), size(pr,2), size(pr,3), nx_load, word_size_load)
@@ -149,6 +148,7 @@ subroutine mfo_read_header(nelo, word_size_file, nxo, time, skip_x)
   use parallel, only : lglel, isize
   use restart, only : nfileo, pid0, pid1
   use restart, only : iHeaderSize
+  use input, only : param
   implicit none
 
   integer, intent(out) :: nelo
@@ -190,8 +190,7 @@ subroutine mfo_read_header(nelo, word_size_file, nxo, time, skip_x)
 
   ierr = 0
   if(nid == pid0) then
-      pad_size = (8 * (2**20) - (iHeaderSize + 4) ) / 4
-      allocate(padding(pad_size)); padding = 0.
+      pad_size = (int(2_8**param(61)) - (iHeaderSize + 4) ) / 4
       call byte_read(hdr,iHeaderSize/4,ierr)
       read(hdr, 1) word_size_file,nxo,nyo,nzo,nelo_file,nelgt,time,istep,fid0,nfileoo &
       ,   (rdcode1(i),i=1,10)
@@ -199,8 +198,11 @@ subroutine mfo_read_header(nelo, word_size_file, nxo, time, skip_x)
       &        1x,i9,1x,i6,1x,i6,1x,10a)
       call byte_read(test_pattern,1,ierr)
       ! pad up to 8MB
-      call byte_read(padding, pad_size, ierr)
-      deallocate(padding)
+      if (pad_size > 0) then
+        allocate(padding(pad_size)); padding = 0.
+        call byte_read(padding, pad_size, ierr)
+        deallocate(padding)
+      endif
   endif
   if (rdcode1(1) == 'X') then
     skip_x = .true.
@@ -228,13 +230,14 @@ subroutine mfo_read_header(nelo, word_size_file, nxo, time, skip_x)
       enddo
 
     ! pad up to 8MB
-    do while (pad_size < 0) 
-      pad_size = pad_size + (8 * (2**20)) / 4
+    do while (pad_size < 0 .and. param(61) > 1) 
+      pad_size = pad_size + (int(2_8**param(61)) ) / 4
     enddo
-    allocate(padding(pad_size)); padding = 0.
-    call byte_read(padding, pad_size, ierr)
-    deallocate(padding)
-
+    if (pad_size > 0) then
+      allocate(padding(pad_size)); padding = 0.
+      call byte_read(padding, pad_size, ierr)
+      deallocate(padding)
+    endif
   else
       mtype = nid
       call crecv(mtype,idum,4)          ! hand-shake

@@ -461,7 +461,7 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
   real(SP), allocatable :: u4(:,:)
   real(DP), allocatable :: u8(:,:)
 #ifdef LZ4COMMCOMP
-  real(r4), allocatable :: u4comp(:)
+  real(SP), allocatable :: u4comp(:)
   real(DP), allocatable :: u8comp(:)
 #endif
   real(DP), allocatable :: work(:)

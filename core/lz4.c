@@ -7,7 +7,7 @@ static LZ4_stream_t* lz4Stream=&lz4Stream_body;
 static LZ4_streamDecode_t lz4StreamDecode_body;
 static LZ4_streamDecode_t* lz4StreamDecode = &lz4StreamDecode_body;
 enum {
-  BLOCK_BYTES = 8*1024
+  BLOCK_BYTES = 1024 * 64
 };
 static char inpBuf[2][BLOCK_BYTES];
 static int inpBufIndex=0;

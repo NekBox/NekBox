@@ -48,7 +48,7 @@ subroutine load_ic()
   ! seek past positions
   if (nid == pid0 .and. skip_x) then
 #ifdef LZ4COMMCOMP
-    allocate(padding(nx1,ny1,nz1,nelt))
+    allocate(padding(nx1,ny1,nz1,nelo))
     do i=1,pid1+1
       call byte_read(sizeout,1,ierr)
       call byte_read(padding,(sizeout+4)/4,ierr)

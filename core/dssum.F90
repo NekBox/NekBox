@@ -227,8 +227,6 @@ subroutine dssum_isend_dp(u)
   do i = 1, lelv
     call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (i-1)*n, n)
  enddo
-#else
-  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
 #endif
 
   return
@@ -246,11 +244,8 @@ subroutine dssum_isend_e_dp(u,iel)
   integer :: i, n
 
 #ifdef ASYNC
-!  n = lx1*ly1*lz1
-!  call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
-  if (iel == nelt) then
-    call gs_op_isend(gsh_fld(ifield), u, 1, 1, 0)
-  endif
+  n = lx1*ly1*lz1
+  call gs_op_isend_e(gsh_fld(ifield), u, 1, 1, 0, (iel-1)*n, n)
 #endif
 
   return
@@ -270,7 +265,7 @@ subroutine dssum_wait_dp(u)
 #ifdef ASYNC
   call gs_op_wait(gsh_fld(ifield), u, 1, 1, 0)
 #else
-!  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
+  call gs_op(gsh_fld(ifield),u,1,1,0)  ! 1 ==> +
 #endif
 
   return

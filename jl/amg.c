@@ -532,8 +532,6 @@ struct crs_data *crs_setup(
   data->gs_top = gs_setup((const slong*)id,n, &data->comm, 1,
     dump?gs_crystal_router:gs_auto, !dump);
 
-  printf("The value of dump is %d\n", dump);
-
   if(dump) {
     amg_dump(n,id,nz,Ai,Aj,A,data);
     gs_free(data->gs_top);

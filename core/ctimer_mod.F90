@@ -1,3 +1,8 @@
+#ifdef XSMM
+#include "stream_update_kernels.f"
+#include "libxsmm.f"
+#endif
+
 module ctimer
   use kinds, only : DP, i8
   implicit none
@@ -171,14 +176,16 @@ subroutine benchmark_allreduce()
   use kinds, only : DP, i8
   use parallel, only : nid
 
-  integer(i8) :: i, n
+  integer(i8) :: i, n, warm
   real(DP) :: a(1) 
   real(DP) :: work(10), etime_builtin, etime_gs, etime
 
-  n = 100
+
+  warm = 100
+  n = 10000
 
   a = 1.
-  do i = 1, n
+  do i = 1, warm
     call nekgsync()
     call gop(a,work,'+  ',1)
     !call gop_gs(a,work,'+  ',1)
@@ -227,6 +234,7 @@ subroutine benchmark_mxm()
   real(DP) :: etime
   integer(8) :: i, n, flops
   integer :: iz
+  real(DP), external :: glamax
 
 #ifdef XSMM
   TYPE(LIBXSMM_DMMFUNCTION), save :: xmm1, xmm2, xmm3
@@ -259,7 +267,7 @@ subroutine benchmark_mxm()
   etime = dnekclock() - etime
   deallocate(a,b,c)
   flops = lx1*lx1*lx1*n * 3 * ( 2*lx1 - 1)
-  max_flops = flops / etime
+  max_flops = flops / glamax(etime, 1)
 
   if (nid == 0) write(*,*) "Got max flop rate of ", max_flops, etime
 
@@ -293,7 +301,7 @@ subroutine benchmark_stream()
   etime = dnekclock_sync() - etime
   foo = .5 * a(1)
 
-  etime_total = 0 
+  etime_total = 0._dp
   do i = 1, k
     etime = dnekclock_sync()
     a(1) = a(1) + etime

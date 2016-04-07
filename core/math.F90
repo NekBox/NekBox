@@ -1,8 +1,3 @@
-#ifdef XSMM
-#include "stream_update_kernels.f"
-#include "libxsmm.f"
-#endif
-
 module math
 
 implicit none

@@ -12,10 +12,12 @@
 
 struct crs_data;
 
+#if 0
 struct crs_data *crs_setup(
   uint n, const ulong *id,
   uint nz, const uint *Ai, const uint *Aj, const double *A,
   uint null_space, const struct comm *comm);
+#endif
 void crs_solve(double *x, struct crs_data *data, double *b);
 void crs_stats(struct crs_data *data);
 void crs_free(struct crs_data *data);

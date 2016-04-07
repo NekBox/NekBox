@@ -14,7 +14,6 @@ static struct crs_data **handle_array = 0;
 static int handle_max = 0;
 static int handle_n = 0;
 
-
 /*--------------------------------------------------------------------------
    FORTRAN Interface to coarse solver
   --------------------------------------------------------------------------*/
@@ -32,6 +31,12 @@ static int handle_n = 0;
 #define fcrs_solve   FORTRAN_NAME(crs_solve_amg,CRS_SOLVE_AMG)
 #define fcrs_stats   FORTRAN_NAME(crs_stats_amg,CRS_STATS_AMG)
 #define fcrs_free    FORTRAN_NAME(crs_free_amg ,CRS_FREE_AMG)
+
+struct crs_data *ccrs_setup(
+  uint n, const ulong *id,
+  uint nz, const uint *Ai, const uint *Aj, const double *A,
+  uint null_space, const struct comm *comm, uint dump);
+
 
 void fcrs_setup(sint *handle, const MPI_Fint *comm, const sint *np,
                 const sint *n, const slong id[], const sint *nz,
@@ -90,6 +95,11 @@ void fcrs_free(sint *handle)
 #define fcrs_stats   FORTRAN_NAME(crs_stats_xxt,CRS_STATS_XXT)
 #define fcrs_free    FORTRAN_NAME(crs_free_xxt ,CRS_FREE_XXT)
 
+struct crs_data *ccrs_setup(
+  uint n, const ulong *id,
+  uint nz, const uint *Ai, const uint *Aj, const double *A,
+  uint null_space, const struct comm *comm);
+
 
 void fcrs_setup(sint *handle, const MPI_Fint *comm, const sint *np,
                 const sint *n, const slong id[], const sint *nz,
@@ -97,9 +107,11 @@ void fcrs_setup(sint *handle, const MPI_Fint *comm, const sint *np,
                 const sint *null_space)
 {
   struct comm c;
+#if 1
   if(handle_n==handle_max)
     handle_max+=handle_max/2+1,
     handle_array=trealloc(struct crs_data*,handle_array,handle_max);
+#endif
   comm_init_check(&c, *comm, *np);
   handle_array[handle_n]=ccrs_setup(*n,(const ulong*)id,
                                     *nz,(const uint*)Ai,(const uint*)Aj,A,

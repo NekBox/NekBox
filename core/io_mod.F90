@@ -48,8 +48,8 @@ subroutine load_ic()
 
   ! seek past positions
   if (nid == pid0 .and. skip_x) then
-#ifdef LZ4COMMCOMP
-    allocate(padding(nx1,ny1,nz1,nelt))
+#ifdef DISABLED_LZ4COMMCOMP
+    allocate(padding(nx1,ny1,nz1,nelo))
     do i=1,pid1+1
       call byte_read(sizeout,1,ierr)
       call byte_read(padding,(sizeout+4)/4,ierr)
@@ -271,14 +271,14 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
 
   real(SP), allocatable :: u4(:,:)
   real(DP), allocatable :: u8(:,:)
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
   real(SP), allocatable :: u4comp(:)
   real(DP), allocatable :: u8comp(:)
 #endif
   real(DP), allocatable :: w1(:), w2(:)
 
   integer :: nxyz, nxyzi, ntot, idum, ierr, nout, k, mtype
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
   integer :: sizein, sizeout, leocomp
 #endif
   integer :: i, iptr
@@ -299,12 +299,12 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
 
   if (wdsizo == 4) then
     allocate(u4(nxyzi,nel))
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
     allocate(u4comp(2+mx*my*mz*2*lelt))
 #endif
   else
     allocate(u8(nxyzi, nel))
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
     allocate(u8comp(1+mx*my*mz*1*lelt))
 #endif
   endif
@@ -313,7 +313,7 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
       idum = nel
       nout = wdsizo/4 * nxyzi * idum
       if(wdsizo == 4 .and. ierr == 0) then
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
         sizein=nout*4
         sizeout=0
         call byte_read(sizeout,1,ierr)
@@ -323,7 +323,7 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
         call byte_read(u4,nout,ierr)          ! u4 :=: u8
 #endif
       elseif(ierr == 0) then
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
         sizein=0
         sizeout=0
         call byte_read(sizeout,1,ierr)
@@ -361,7 +361,7 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
       idum  = 1
       do k=pid0+1,pid1
           mtype = k
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
           call byte_read(sizeout,1,ierr)
           call csend(mtype,sizeout,4,k,0)       ! handshake
           if (wdsizo == 4 .AND. ierr == 0) then
@@ -388,7 +388,7 @@ subroutine mfo_read_scalar(u,nel,mx,my,mz, nxi, wdsizo)
 
   else
       mtype = nid
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
       call crecv(mtype,sizeout,4)            ! hand-shake
       if (wdsizo == 4) then             ! 32-bit output
         call crecv(mtype, u4comp, sizeout)
@@ -460,15 +460,15 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
 
   real(SP), allocatable :: u4(:,:)
   real(DP), allocatable :: u8(:,:)
-#ifdef LZ4COMMCOMP
-  real(r4), allocatable :: u4comp(:)
+#ifdef DISABLED_LZ4COMMCOMP
+  real(SP), allocatable :: u4comp(:)
   real(DP), allocatable :: u8comp(:)
 #endif
   real(DP), allocatable :: work(:)
 
   integer :: nxyz, nxyzi, nel, idum, ierr
   integer :: j, ji, iel, nout, k, mtype
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
   integer :: sizein, sizeout, leocomp
 #endif
   integer :: i, iptr
@@ -486,12 +486,12 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
 
   if (wdsizo == 4) then
     allocate(u4(nxyzi, 3*nel))
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
     allocate(u4comp(2+mx*my*mz*6*lelt))
 #endif
   else
     allocate(u8(nxyzi, 3*nel))
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
     allocate(u8comp(1+mx*my*mz*3*lelt))
 #endif
   endif
@@ -499,7 +499,7 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
   if (nid == pid0) then
       nout = wdsizo/4 * ndim * nel * nxyzi
       if (wdsizo == 4 .and. ierr == 0) then
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
         sizein=0
         sizeout=0
         call byte_read(sizeout,1,ierr)
@@ -509,7 +509,7 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
         call byte_read(u4,nout,ierr)          ! u4 :=: u8
 #endif
       elseif (ierr == 0) then
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
         sizein=0
         sizeout=0
         call byte_read(sizeout,1,ierr)
@@ -566,7 +566,7 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
   ! read in the data of my childs
       do k=pid0+1,pid1
           mtype = k
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
           call byte_read(sizeout,1,ierr)
           call csend(mtype,sizeout,4,k,0)       ! handshake
           if (wdsizo == 4 .AND. ierr == 0) then
@@ -592,7 +592,7 @@ subroutine mfo_read_vector(u,v,w,nel,mx,my,mz,nxi, wdsizo)
       enddo
   else
       mtype = nid
-#ifdef LZ4COMMCOMP
+#ifdef DISABLED_LZ4COMMCOMP
       call crecv(mtype,sizeout,4)            ! hand-shake
       if (wdsizo == 4) then             ! 32-bit output
         call crecv(mtype, u4comp, sizeout)

@@ -1187,8 +1187,8 @@ subroutine runstat
       call sum_flops()
       write(6,*) "Subset is ", time_flop / tttstp
       call print_flops('Subset ', total_flop, total_mop, time_flop)
-      othr_flop = othr_flop + ndsum*(nx1*ny1*nz1 - (nx1-2)*(ny1-2)*(nz1-2))*nelv
-      othr_mop = othr_mop + 2*ndsum*(nx1*ny1*nz1 - (nx1-2)*(ny1-2)*(nz1-2))*nelv
+      total_flop = total_flop + ndsum*(nx1*ny1*nz1 - (nx1-2)*(ny1-2)*(nz1-2))*nelv
+      total_mop  = total_mop  + 2*ndsum*(nx1*ny1*nz1 - (nx1-2)*(ny1-2)*(nz1-2))*nelv
       call print_flops('Total  ', total_flop+othr_flop, total_mop+othr_mop, tttstp)
       write(6,*) ""
 

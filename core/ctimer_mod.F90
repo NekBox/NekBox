@@ -118,6 +118,8 @@ module ctimer
   integer(i8), save :: grst_flop = 0, grst_mop = 0
   integer(i8), save :: othr_flop = 0, othr_mop = 0
 
+  integer(i8), save :: number_cg_iterations = 0
+
 contains
 
 !-----------------------------------------------------------------------

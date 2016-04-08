@@ -1001,6 +1001,7 @@ subroutine runstat
   use ctimer, only : nusrc, tusrc
   use ctimer, only : nqflt, tqflt
   use ctimer, only : othr_flop, othr_mop
+  use ctimer, only : number_cg_iterations
   use size_m, only : nid, nx1, ny1, nz1, nelv
   use parallel, only : np
   implicit none
@@ -1192,6 +1193,8 @@ subroutine runstat
       total_mop  = total_mop  + 2*ndsum*(nx1*ny1*nz1 - (nx1-2)*(ny1-2)*(nz1-2))*nelv
       call print_flops('Total  ', total_flop+othr_flop, total_mop+othr_mop, tttstp)
       write(6,*) ""
+
+      write(6,*) "Time per cg it:" , tcggo / number_cg_iterations
 
 
   !         pcopy=tcopy/tttstp

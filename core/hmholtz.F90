@@ -502,6 +502,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   use STREAM_UPDATE_KERNELS, only : stream_vector_compscale
 #endif
   use ctimer, only : ncggo, tcggo, cggo_flop, cggo_mop, dnekclock
+  use ctimer, only : number_cg_iterations
   implicit none
 
   real(DP), intent(out) :: x(lx1*ly1*lz1,*) !>!< solution vector
@@ -733,6 +734,7 @@ subroutine cggo(x,f,h1,h2,mask,mult,imsh,tin,maxit,isd,binv,name)
   3001 format(2i6,' **ERROR**: Failed in HMHOLTZ: ',a4,1p6E13.4)
   3002 format(i3,i6,' Helmholtz ',a4,1x,l4,':',1p6E13.4)
   9999 continue
+  number_cg_iterations = number_cg_iterations + niter
   niterhm = niter
   ifsolv = .FALSE. 
   tcggo = tcggo + (dnekclock() - etime)

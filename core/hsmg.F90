@@ -232,9 +232,9 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   n  = mg_h1_n(l,mg_fld)
   im = is  ! solve index
   call hsmg_intp(w,e(im),l-1)                     ! w   :=  J e
+  
   h1mg_flop = h1mg_flop +   n
   h1mg_mop  = h1mg_mop  + 3*n
-
   call dssum_irec(e)
   do i = 1,nel                                 !            l-1 
       e((i-1)*ntot+1:i*ntot) = e((i-1)*ntot+1:i*ntot) + w((i-1)*ntot+1:i*ntot) ! z := z + w
@@ -242,6 +242,8 @@ subroutine h1mg_solve(z,rhs,if_hybrid)
   enddo
   deallocate(w)
 
+  h1mg_flop = h1mg_flop +   n
+  h1mg_mop  = h1mg_mop  + 3*n
   do i = 1, nel
     call dssum_wait_e(e, i)
     z((i-1)*ntot+1:i*ntot) = e((i-1)*ntot+1:i*ntot) * reshape(vmult(:,:,:,i), (/ntot/))
@@ -748,10 +750,11 @@ subroutine h1mg_schwarz_part1 (e,r,l)
       enddo
   enddo
 
+  schw_mop = schw_mop + 2*(enx**3 - (enx-2)**3)
   call hsmg_schwarz_dssum(w1(:,1,1,1),l)
 
   schw_flop = schw_flop + 2*nelv * 3 * (enx-2)**2 * 6
-  schw_mop  = schw_mop  + 2*nelv * 3 * (enx-2)**2 * 6
+!  schw_mop  = schw_mop  + 2*nelv * 3 * (enx-2)**2 * 6
 
   allocate(w3(enx,eny,enz),w4(enx,eny,enz))
   do ie=1,nelv
@@ -816,6 +819,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
   enddo
   deallocate(w3,w4)
 
+  schw_mop = schw_mop + 2*(enx**3 - (enx-2)**3)
   call hsmg_schwarz_dssum(w2(:,1,1,1),l)
 
   schw_flop = schw_flop + nelv * (6*2*(enx-2)**2)
@@ -856,6 +860,7 @@ subroutine h1mg_schwarz_part1 (e,r,l)
 
   enddo
 
+  schw_mop = schw_mop + 2*((enx-2)**3 - (enx-4)**3)
   call hsmg_dssum(e,l)                           ! sum border nodes
 
   return
@@ -1143,7 +1148,7 @@ end subroutine hsmg_setup_fast1d_b
 
 !----------------------------------------------------------------------
 !> \brief u = wt .* u
-subroutine hsmg_do_wt(u,wt,nx,ny,nz)
+subroutine hsmg_do_wt_e(u,wt,ie,nx,ny,nz)
   use kinds, only : PP
   use size_m, only : nelv, ndim
   use ctimer, only : h1mg_flop, h1mg_mop
@@ -1152,8 +1157,9 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
   integer :: nx,ny,nz
   real(PP) :: u(nx,ny,nz,nelv)
   real(PP) :: wt(nx,nz,2,ndim,nelv)
+  integer :: ie
         
-  integer :: i, j, k, ie
+  integer :: i, j, k
 
 !   if (nx.eq.2) then
 !      do e=1,nelv
@@ -1165,10 +1171,10 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
 !      call exitti('hsmg_do_wt quit$',nelv)
 !   endif
 
-     h1mg_flop = h1mg_flop + 2*nelv*nz*ny + 2*nelv*nz*(nx-2) + 2*nelv*(ny-2)*(nx-2)
-     h1mg_mop  = h1mg_mop  + 6*nelv*nz*ny + 6*nelv*nz*(nx-2) + 6*nelv*(ny-2)*(nx-2)
+     h1mg_flop = h1mg_flop + 2*nz*ny + 2*nz*(nx-2) + 2*(ny-2)*(nx-2)
+     ! u is already in cache
+     h1mg_mop  = h1mg_mop  + 2*nz*ny + 2*nz*(nx-2) + 2*(ny-2)*(nx-2)
 
-      do ie=1,nelv
           do j=1,ny
               do i=1,nx
                   u(i,j, 1,ie)=u(i,j, 1,ie)*wt(i,j,1,3,ie)
@@ -1191,9 +1197,8 @@ subroutine hsmg_do_wt(u,wt,nx,ny,nz)
                   u(i,j,nz,ie)=u(i,j,nz,ie)*wt(i,j,2,3,ie)
               enddo
           enddo
-      enddo
   return
-end subroutine hsmg_do_wt
+end subroutine hsmg_do_wt_e
 
 !----------------------------------------------------------------------
 subroutine hsmg_setup_rstr_wt(wt,nx,ny,nz,l,w)
@@ -1640,17 +1645,40 @@ subroutine h1mg_rstr(r,l,ifdssum)
   use kinds, only : PP
   use hsmg, only : mg_rstr_wt, mg_rstr_wt_index, mg_nh, mg_nhz, mg_jht
   use hsmg, only : mg_jh, mg_fld
+  use ctimer, only : h1mg_flop, h1mg_mop
+  use math, only : tensor_product_multiply
+  use size_m, only : lx1, nelv
   implicit none
   logical :: ifdssum
   real(PP) :: r(1)
-  integer :: l
+  real(PP) :: work1(0:(lx1+2)**3),work2(0:(lx1+2)**3)
 
-  call hsmg_do_wt(r,mg_rstr_wt(mg_rstr_wt_index(l+1,mg_fld)) &
-  ,mg_nh(l+1),mg_nh(l+1),mg_nhz(l+1))
+  integer :: l, ie, nu3, nv3, iu, iv, nu, nv
 
-  call hsmg_tnsr1(r,mg_nh(l),mg_nh(l+1),mg_jht(1,l),mg_jh(1,l))
+  nv = mg_nh(l)
+  nu = mg_nh(l+1)
+  nu3 = mg_nh(l+1)*mg_nh(l+1)*mg_nh(l+1)
+  nv3 = mg_nh(l)*mg_nh(l)*mg_nh(l)
 
-  if (ifdssum) call hsmg_dssum(r,l)
+  h1mg_flop = h1mg_flop + nelv * nv * (2*nu - 1) * nu * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * (2*nu - 1) * nu
+  h1mg_flop = h1mg_flop + nelv * nv * nv * nv * (2*nu - 1)
+  h1mg_mop = h1mg_mop + nv3 + nu3
+
+  do ie=1,nelv
+    call hsmg_do_wt_e(r,mg_rstr_wt(mg_rstr_wt_index(l+1,mg_fld)) &
+    ,ie,mg_nh(l+1),mg_nh(l+1),mg_nhz(l+1))
+
+    iu = 1 + (ie-1)*nu3
+    iv = 1 + (ie-1)*nv3
+    call tensor_product_multiply(r(iu:iu+nu3-1), mg_nh(l+1), r(iv:iv+nv3-1), &
+         mg_nh(l), mg_jht(:,l), mg_jh(:,l), mg_jh(:,l), work1, work2)
+  enddo
+
+  if (ifdssum) then
+    h1mg_mop = h1mg_mop + 12*(nv**3 - (nv-2)**3)
+    call hsmg_dssum(r,l)
+  endif
 
   return
 end subroutine h1mg_rstr

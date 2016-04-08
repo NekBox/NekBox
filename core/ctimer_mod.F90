@@ -19,6 +19,7 @@ module ctimer
   real(DP), save :: max_flops = 0._dp
   real(DP), save :: allreduce_latency = 0._dp
 
+  real(DP), save :: start_time = 0._dp
   real(DP), save :: tproj  = 0._dp
   real(DP), save :: thconj = 0._dp
   real(DP), save :: taxhm  = 0._dp
@@ -170,6 +171,8 @@ subroutine benchmark()
   max_mops  = (2_8 ** 30) / 8 ! 1 GiB/s
   allreduce_latency = 1.e-5   ! 10 us
 #endif 
+  start_time = dnekclock()
+
 end subroutine
 
 subroutine benchmark_allreduce()

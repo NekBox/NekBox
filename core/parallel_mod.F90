@@ -32,6 +32,10 @@ module parallel
   integer :: proc_pos(3) 
   integer :: proc_shape(3)
 
+  integer, private :: queue_dim_e(30)
+  integer, private :: queue_fac_e(30)
+  integer, private :: queue_div_e(30)
+  integer, private :: num_queue_e
 
   contains
 
@@ -140,6 +144,78 @@ module parallel
       my_nid = my_nid / queue_fac(queue_pos)
     enddo
 
+
+!==========================================
+    my_shape = proc_shape
+    factors = -1
+    np_targ = my_shape(1) * my_shape(2) * my_shape(3)
+    num_fac = 0
+    do while (np_targ > 1)
+      do i = 2, np_targ
+        if ((np_targ / i) * i == np_targ) then
+          num_fac = num_fac + 1
+          factors(num_fac) = i
+          np_targ = np_targ / i
+          exit
+        endif
+      enddo
+    enddo
+
+    num_queue_e = 0
+    num_fac2 = 0
+    do while (num_fac > 0) 
+      largest_idx = 3
+      if (my_shape(2) > my_shape(largest_idx)) largest_idx = 2
+      if (my_shape(1) > my_shape(largest_idx)) largest_idx = 1
+
+      if ((my_shape(largest_idx) / factors(num_fac)) * factors(num_fac) /= my_shape(largest_idx)) then
+          num_fac2 = num_fac2 + 1
+          factors2(num_fac2) = factors(num_fac)
+      else
+          my_shape(largest_idx) = my_shape(largest_idx) / factors(num_fac)
+          num_queue_e = num_queue_e + 1
+          queue_dim_e(num_queue_e) = largest_idx
+          queue_fac_e(num_queue_e) = factors(num_fac)
+          queue_div_e(num_queue_e) = my_shape(largest_idx)
+      endif
+      num_fac = num_fac - 1
+    enddo
+
+    do while (num_fac2 > 0) 
+      largest_idx = 3
+      if (my_shape(2) > my_shape(largest_idx)) largest_idx = 2
+      if (my_shape(1) > my_shape(largest_idx)) largest_idx = 1
+
+      if ((my_shape(largest_idx) / factors2(num_fac2)) * factors2(num_fac2) == my_shape(largest_idx)) then
+          my_shape(largest_idx) = my_shape(largest_idx) / factors2(num_fac2)
+          num_queue_e = num_queue_e + 1
+          queue_dim_e(num_queue_e) = largest_idx
+          queue_fac_e(num_queue_e) = factors2(num_fac2)
+          queue_div_e(num_queue_e) = my_shape(largest_idx)
+      else if ((my_shape(1) / factors2(num_fac2)) * factors2(num_fac2) == my_shape(1)) then
+          my_shape(1) = my_shape(1) / factors2(num_fac2)
+          num_queue_e = num_queue_e + 1
+          queue_dim_e(num_queue_e) = 1
+          queue_fac_e(num_queue_e) = factors2(num_fac2)
+          queue_div_e(num_queue_e) = my_shape(1)
+      else if ((my_shape(2) / factors2(num_fac2)) * factors2(num_fac2) == my_shape(2)) then
+          my_shape(2) = my_shape(2) / factors2(num_fac2)
+          num_queue_e = num_queue_e + 1
+          queue_dim_e(num_queue_e) = 2
+          queue_fac_e(num_queue_e) = factors2(num_fac2)
+          queue_div_e(num_queue_e) = my_shape(2)
+      else if ((my_shape(3) / factors2(num_fac2)) * factors2(num_fac2) == my_shape(3)) then
+          my_shape(1) = my_shape(3) / factors2(num_fac2)
+          num_queue_e = num_queue_e + 1
+          queue_dim_e(num_queue_e) = 3
+          queue_fac_e(num_queue_e) = factors2(num_fac2)
+          queue_div_e(num_queue_e) = my_shape(3)
+      else
+        write(*,*) "Warning: processes don't divide mesh"
+      endif
+      num_fac2 = num_fac2 - 1
+    enddo
+
     if (param(75) < 1) then
     do iel = 1, lelt
       ieg = lglel(iel)
@@ -204,12 +280,18 @@ module parallel
     implicit none
     integer, intent(in) :: ieg
 
-    integer :: ix(3) 
+    integer :: ix(3) , queue_pos
     ix = ieg_to_xyz(ieg)
     ix(1) = mod(ix(1), proc_shape(1))
     ix(2) = mod(ix(2), proc_shape(2))
     ix(3) = mod(ix(3), proc_shape(3))
-    gllel = 1 + ix(1) + ix(2)*proc_shape(1) + ix(3)*proc_shape(1)*proc_shape(2)
+    
+    gllel = 0
+    do queue_pos = 1, num_queue_e
+      gllel = queue_fac_e(queue_pos) * gllel + ix(queue_dim_e(queue_pos)) / queue_div_e(queue_pos)
+      ix(queue_dim_e(queue_pos)) = mod(ix(queue_dim_e(queue_pos)), queue_div_e(queue_pos))
+    enddo
+
     return
   end function gllel
 
@@ -218,11 +300,19 @@ module parallel
     implicit none
     integer, intent(in) :: iel
 
-    integer :: my_pos(3)
+    integer :: my_pos(3), l_pos(3), idx, l, my_shape(3), queue_pos
 
-    my_pos(1) = proc_pos(1) + mod((iel - 1),                               proc_shape(1))
-    my_pos(2) = proc_pos(2) + mod((iel - 1)/(proc_shape(1)),               proc_shape(2))
-    my_pos(3) = proc_pos(3) + mod((iel - 1)/(proc_shape(1)*proc_shape(2)), proc_shape(3))
+    l_pos = 0
+    my_shape = 1
+    idx = iel-1
+    do queue_pos = num_queue_e, 1, -1
+      l = queue_dim_e(queue_pos)
+      l_pos(l) = l_pos(l) + mod(idx, queue_fac_e(queue_pos)) * my_shape(l)
+      my_shape(l) = my_shape(l) * queue_fac_e(queue_pos)
+      idx = idx / queue_fac_e(queue_pos)
+    enddo
+
+    my_pos = proc_pos + l_pos
 
     lglel = xyz_to_ieg(my_pos)
     return

@@ -964,6 +964,7 @@ subroutine runstat
   use ctimer, only : pinvc, pinv3, phmhz, peslv, pdsum, pddsl, pdadd
   use ctimer, only : pvdss, pusbc, pspro, psolv, ppres, pmltd, pcrsl
   use ctimer, only : pcdtp
+  use ctimer, only : start_time
   use ctimer, only : tgop_sync, tgop, teslv, tdsum, tddsl, tdadd, tcrsl, tcdtp
   use ctimer, only : tspro, tsolv, tpres, tprep, tmltd, tinvc, tinv3, thmhz
   use ctimer, only : tadvc, twal, tvdss, tusbc, tttstp, ttime, tsyc
@@ -1133,7 +1134,7 @@ subroutine runstat
   call gop(avg_usbc,wwork,'+  ',1)
   avg_usbc = avg_usbc/np
 
-  tttstp = tttstp + 1e-7
+  tttstp = dnekclock() - start_time 
   if (nid == 0) then
       write(6,'(A)') 'runtime statistics:'
       write(6,*) 'total time',tttstp

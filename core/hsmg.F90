@@ -1650,7 +1650,7 @@ subroutine h1mg_rstr(r,l,ifdssum)
   use size_m, only : lx1, nelv
   implicit none
   logical :: ifdssum
-  real(PP) :: r(1)
+  real(PP) :: r(*)
   real(PP) :: work1(0:(lx1+2)**3),work2(0:(lx1+2)**3)
 
   integer :: l, ie, nu3, nv3, iu, iv, nu, nv

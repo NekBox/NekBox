@@ -1491,7 +1491,7 @@ subroutine hsmg_setup_mg_nx()
   mg_ny(1) = mgnx1
   mg_nz(1) = mgnx1
 
-  mgnx2 = 2*(lx2/4) + 1
+  mgnx2 = 2*(lx2/4) - 1
   if (lx1 == 5)  mgnx2 = 3
 !   if (lx1.eq.6)  mgnx2 = 3
   if (lx1 <= 10) mgnx2 = mgn2(nx1)
@@ -1705,14 +1705,14 @@ subroutine h1mg_setup_mg_nx()
   mg_ny(1) = mgnx1
   mg_nz(1) = mgnx1
 
-  mgnx2 = 2*(lx2/4) + 1
+  mgnx2 = 2*(lx2/4) - 1
   if (lx1 == 5)  mgnx2 = 3
 !   if (lx1.eq.6)  mgnx2 = 3
   if (lx1 <= 10) mgnx2 = mgn2(nx1)
   if (lx1 == 8)  mgnx2 = 4
   if (lx1 == 8)  mgnx2 = 3
 
-  mgnx2 = min(3,mgnx2)  ! This choice seems best (9/24/12)
+!  mgnx2 = min(3,mgnx2)  ! This choice seems best (9/24/12)
 
   mg_nx(2) = mgnx2
   mg_ny(2) = mgnx2

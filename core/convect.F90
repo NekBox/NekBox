@@ -62,7 +62,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   logical :: ifuf,ifcf            ! u and/or c already on fine mesh?
 
   integer, parameter :: ltd=lxd*lyd*lzd
-  real(DP) :: ur(ltd), us(ltd), ut(ltd), tr(ltd,3), uf(ltd)
+  real(DP) :: ur(ltd), us(ltd), ut(ltd), uf(ltd)
 
   integer :: e, iu, ic, ib, i, iptr, iptr2
   integer :: nxyz1, nxyzd, nxyzu, nxyzc
@@ -97,18 +97,18 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
 #endif
 
   conv_mop = conv_mop + nelv*nxyzd*3 + nelv*nxyz1*2
-  conv_flop = conv_flop + (2*nx1-1)*(nx1*nx1*nxd + nx1*nxd*nxd + nxd*nxd*nxd)
-  conv_flop = conv_flop + 3*(2*nxd-1)*nxd*nxd*nxd
-  conv_flop = conv_flop + (2*nxd-1)*(nxd*nxd*nx1 + nxd*nx1*nx1 + nx1*nx1*nx1)
+  conv_flop = conv_flop + (2*nx1-1)*(nx1*nx1*nxd + nx1*nxd*nxd + nxd*nxd*nxd)*nelv
+  conv_flop = conv_flop + 3*(2*nxd-1)*nxd*nxd*nxd*nelv
+  conv_flop = conv_flop + (2*nxd-1)*(nxd*nxd*nx1 + nxd*nx1*nx1 + nx1*nx1*nx1)*nelv
   do e=1,nelv
-    call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
-    call copy(tr(1,2),cy(ic),nxyzd)
-    call copy(tr(1,3),cz(ic),nxyzd)
+!    call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
+!    call copy(tr(1,2),cy(ic),nxyzd)
+!    call copy(tr(1,3),cz(ic),nxyzd)
 
     call tensor_product_multiply(u(iu:iu+nxyzu-1), nx1, uf(:), nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
     call local_grad3(ur,us,ut,uf,nxd-1,dgl(iptr2),dgt(iptr2))
     do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
-        uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
+        uf(i) = cx(ic+i-1)*ur(i)+cy(ic+i-1)*us(i)+cz(ic+i-1)*ut(i)
     enddo
     call tensor_product_multiply(uf(:), nxd, bdu(ib:ib+nxyz1-1), nx1, jgt(iptr:), jgl(iptr:), jgl(iptr:), w1, w2)
 

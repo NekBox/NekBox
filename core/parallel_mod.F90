@@ -291,6 +291,7 @@ module parallel
       gllel = queue_fac_e(queue_pos) * gllel + ix(queue_dim_e(queue_pos)) / queue_div_e(queue_pos)
       ix(queue_dim_e(queue_pos)) = mod(ix(queue_dim_e(queue_pos)), queue_div_e(queue_pos))
     enddo
+    gllel = gllel + 1
 
     return
   end function gllel

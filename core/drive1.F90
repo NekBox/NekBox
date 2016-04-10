@@ -30,7 +30,7 @@ subroutine nek_init(intracomm)
   use zper, only : init_zper
 
   use ctimer, only : etimes, dnekclock, etime1, ifsync, etims0, dnekclock_sync
-  use ctimer, only : benchmark
+  use ctimer, only : benchmark, reset_counters
   use input, only : ifflow, iftran, solver_type, param, coarse_grid_solve
   use soln, only : nid, jp
   use tstep, only : istep, instep, nsteps, fintim, time
@@ -218,6 +218,8 @@ subroutine nek_init(intracomm)
     ENDIF
 
     ifsync = ifsync_ ! restore initial value
+    
+    call reset_counters()
 
     return
     end subroutine nek_init

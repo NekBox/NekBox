@@ -144,6 +144,37 @@ real(DP) function dnekclock_sync()
 END function
 
 !-----------------------------------------------------------------------
+subroutine reset_counters()
+  implicit none
+
+  axhelm_flop = 0
+  axhelm_mop = 0
+  h1mg_flop = 0
+  h1mg_mop = 0
+  schw_flop = 0
+  schw_mop = 0
+  hconj_flop = 0
+  hconj_mop = 0
+  proj_flop = 0
+  proj_mop = 0
+  cggo_flop = 0
+  cggo_mop = 0
+  gmres_flop = 0
+  gmres_mop = 0
+  conv_flop = 0
+  conv_mop = 0
+  grst_flop = 0
+  grst_mop = 0
+  othr_flop = 0
+  othr_mop = 0
+  ndsum = 0
+
+  start_time = dnekclock()
+end subroutine reset_counters
+
+
+
+!-----------------------------------------------------------------------
 subroutine sum_flops()
   implicit none
   total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop + gmres_flop &

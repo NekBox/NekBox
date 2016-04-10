@@ -137,7 +137,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   wl(1:ntot) = r(1:ntot) * vml(1:ntot)
 
   proj_flop = proj_flop + (2*ntot-1)*apx%n_sav
-  proj_mop  = proj_mop + apx%n_sav * (ntot+1)
+  proj_mop  = proj_mop + (apx%n_sav+1) * ntot
   call dgemv('T', ntot, apx%n_sav, &
              one,  apx%projectors(:,1:apx%n_sav), ntot, &
                    wl, 1, &
@@ -187,13 +187,13 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   etime = etime + dnekclock()
 
   proj_flop = proj_flop + ntot
-  proj_mop  = proj_mop + 2*ntot 
+  proj_mop  = proj_mop + 3*ntot 
   wl(1:ntot) = wl(1:ntot) * vmk(1:ntot)
 
   call dssum   (wl)
 
   proj_flop = proj_flop + ntot
-  proj_mop  = proj_mop + 2*ntot 
+  proj_mop  = proj_mop + 3*ntot 
   r(1:ntot) = r(1:ntot) - wl(1:ntot)
 
   !...............................................................

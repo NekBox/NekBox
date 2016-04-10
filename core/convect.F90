@@ -62,7 +62,7 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   logical :: ifuf,ifcf            ! u and/or c already on fine mesh?
 
   integer, parameter :: ltd=lxd*lyd*lzd
-  real(DP) :: ur(ltd), us(ltd), ut(ltd), tr(ltd,3), uf(ltd)
+  real(DP) :: ur(ltd), us(ltd), ut(ltd), uf(ltd)
 
   integer :: e, iu, ic, ib, i, iptr, iptr2
   integer :: nxyz1, nxyzd, nxyzu, nxyzc
@@ -97,9 +97,9 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
 #endif
 
   conv_mop = conv_mop + nelv*nxyzd*3 + nelv*nxyz1*2
-  conv_flop = conv_flop + (2*nx1-1)*(nx1*nx1*nxd + nx1*nxd*nxd + nxd*nxd*nxd)
-  conv_flop = conv_flop + 3*(2*nxd-1)*nxd*nxd*nxd
-  conv_flop = conv_flop + (2*nxd-1)*(nxd*nxd*nx1 + nxd*nx1*nx1 + nx1*nx1*nx1)
+  conv_flop = conv_flop + (2*nx1-1)*(nx1*nx1*nxd + nx1*nxd*nxd + nxd*nxd*nxd)*nelv
+  conv_flop = conv_flop + 3*(2*nxd-1)*nxd*nxd*nxd*nelv
+  conv_flop = conv_flop + (2*nxd-1)*(nxd*nxd*nx1 + nxd*nx1*nx1 + nx1*nx1*nx1)*nelv
   do e=1,nelv
 
     call tensor_product_multiply(u(iu:iu+nxyzu-1), nx1, uf(:), nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)

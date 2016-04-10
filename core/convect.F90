@@ -101,14 +101,11 @@ subroutine convect_new(bdu,u,ifuf,cx,cy,cz,ifcf)
   conv_flop = conv_flop + 3*(2*nxd-1)*nxd*nxd*nxd
   conv_flop = conv_flop + (2*nxd-1)*(nxd*nxd*nx1 + nxd*nx1*nx1 + nx1*nx1*nx1)
   do e=1,nelv
-    call copy(tr(1,1),cx(ic),nxyzd)  ! already in rst form
-    call copy(tr(1,2),cy(ic),nxyzd)
-    call copy(tr(1,3),cz(ic),nxyzd)
 
     call tensor_product_multiply(u(iu:iu+nxyzu-1), nx1, uf(:), nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
     call local_grad3(ur,us,ut,uf,nxd-1,dgl(iptr2),dgt(iptr2))
     do i=1,nxyzd ! mass matrix included, per DFM (4.8.5)
-        uf(i) = tr(i,1)*ur(i)+tr(i,2)*us(i)+tr(i,3)*ut(i)
+        uf(i) = cx(ic+i-1)*ur(i)+cy(ic+i-1)*us(i)+cz(ic+i-1)*ut(i)
     enddo
     call tensor_product_multiply(uf(:), nxd, bdu(ib:ib+nxyz1-1), nx1, jgt(iptr:), jgl(iptr:), jgl(iptr:), w1, w2)
 
@@ -135,6 +132,10 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
   use interp, only : jgl, jgt
   use interp, only : get_int_ptr
   use math, only : tensor_product_multiply
+#ifdef XSMM
+  use STREAM_UPDATE_KERNELS, only : stream_vector_compscale
+#endif
+
   implicit none
 
   integer, parameter :: lxy=lx1*ly1*lz1, ltd=lxd*lyd*lzd
@@ -170,9 +171,9 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
   !      Map coarse velocity to fine mesh (C-->F)
 #ifdef INLINE_INTP
-    call tensor_product_multiply(ux(:,e), nx1, fx, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
-    call tensor_product_multiply(uy(:,e), nx1, fy, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
-    call tensor_product_multiply(uz(:,e), nx1, fz, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
+!    call tensor_product_multiply(ux(:,e), nx1, fx, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
+!    call tensor_product_multiply(uy(:,e), nx1, fy, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
+!    call tensor_product_multiply(uz(:,e), nx1, fz, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
 #else
     call intp_rstd(fx,ux(1,e),nx1,nxd,.true.,0) ! 0 --> forward
     call intp_rstd(fy,uy(1,e),nx1,nxd,.true.,0) ! 0 --> forward
@@ -184,11 +185,24 @@ subroutine set_convect_new(cr,cs,ct,ux,uy,uz)
 
 
     if (if_ortho) then
-      do i=1,nxyzd
-          cr(i,e)=rx(i,1,e)*fx(i)
-          cs(i,e)=rx(i,2,e)*fy(i)
-          ct(i,e)=rx(i,3,e)*fz(i)
-      enddo
+      call tensor_product_multiply(ux(:,e), nx1, fx, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
+#ifdef XSMM
+      call stream_vector_compscale(rx(:,1,e), fx(:), cr(:,e), nxyzd)
+#else 
+      cr(:,e)=rx(:,1,e)*fx(:)
+#endif
+      call tensor_product_multiply(uy(:,e), nx1, fy, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
+#ifdef XSMM
+      call stream_vector_compscale(rx(:,2,e), fy(:), cs(:,e),nxyzd)
+#else 
+      cs(:,e)=rx(:,2,e)*fy(:)
+#endif
+      call tensor_product_multiply(uz(:,e), nx1, fz, nxd, jgl(iptr:), jgt(iptr:), jgt(iptr:), w2, w1)
+#ifdef XSMM
+      call stream_vector_compscale(rx(:,3,e), fz(:), ct(:,e), nxyzd)
+#else
+      ct(:,e)=rx(:,3,e)*fz(:)
+#endif
     else
       do i=1,nxyzd
           cr(i,e)=rx(i,1,e)*fx(i)+rx(i,2,e)*fy(i)+rx(i,3,e)*fz(i)

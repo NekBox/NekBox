@@ -176,11 +176,19 @@ end subroutine reset_counters
 
 !-----------------------------------------------------------------------
 subroutine sum_flops()
+  use kinds, only: PP, DP
   implicit none
   total_flop = axhelm_flop + proj_flop + hconj_flop + cggo_flop + gmres_flop &
              + conv_flop + grst_flop + h1mg_flop + schw_flop
   total_mop = axhelm_mop + proj_mop + hconj_mop + cggo_mop + gmres_mop &
             + conv_mop + grst_mop + h1mg_mop + schw_mop
+
+  if (PP == DP) then
+    total_mop = total_mop + h1mg_mop + schw_mop
+  else
+    total_mop = total_mop + (h1mg_mop + schw_mop)/2
+  endif
+
   time_flop = taxhm + tproj + thconj + tcggo + tgmres + tintp + tgrst + th1mg + tschw
 end subroutine sum_flops
 

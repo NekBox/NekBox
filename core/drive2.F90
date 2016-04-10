@@ -959,7 +959,7 @@ end subroutine time00
 !> \brief print run statistics from ctimer
 subroutine runstat
 #ifndef NOTIMER
-  use kinds, only : DP
+  use kinds, only : DP, PP
   use ctimer, only : ifsync, nadvc, ncdtp, ncrsl, ndadd, nddsl
   use ctimer, only : pinvc, pinv3, phmhz, peslv, pdsum, pddsl, pdadd
   use ctimer, only : pvdss, pusbc, pspro, psolv, ppres, pmltd, pcrsl
@@ -1178,8 +1178,13 @@ subroutine runstat
       write(6,'(A,4A14,A8)') "Section", "GFLOPs", "Peak GFLOPs", "GiB/s", "Peak GiB/s", "Eff."
       call print_flops('cggo   ', cggo_flop, cggo_mop, tcggo)
       call print_flops('gmres  ', gmres_flop, gmres_mop, tgmres)
-      call print_flops('h1mg   ', h1mg_flop, h1mg_mop, th1mg)
-      call print_flops('schw   ', schw_flop, schw_mop, tschw)
+      if (PP == DP) then
+        call print_flops('h1mg   ', h1mg_flop, h1mg_mop, th1mg)
+        call print_flops('schw   ', schw_flop, schw_mop, tschw)
+      else
+        call print_flops('h1mg   ', h1mg_flop, h1mg_mop/2, th1mg)
+        call print_flops('schw   ', schw_flop, schw_mop/2, tschw)
+      endif
       call print_flops('axhm   ', axhelm_flop, axhelm_mop, taxhm)
       !call print_flops('grst   flop/s', grst_flop, grst_mop, tgrst)
       call print_flops('conv   ', conv_flop, conv_mop, tscn)

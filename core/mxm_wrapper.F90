@@ -14,8 +14,8 @@ subroutine mxm(a,n1,b,n2,c,n3)
   implicit none
     
   integer, intent(in) :: n1, n2, n3
-  real(DP), intent(in) :: a(n1,n2),b(n2,n3)
-  real(DP), intent(out) :: c(n1,n3)
+  real(DP), intent(in), target :: a(n1,n2),b(n2,n3)
+  real(DP), intent(out), target :: c(n1,n3)
   integer :: aligned
   integer :: K10_mxm
 
@@ -126,8 +126,8 @@ subroutine mxm_sp(a,n1,b,n2,c,n3)
   implicit none
     
   integer, intent(in) :: n1, n2, n3
-  real(SP), intent(in) :: a(n1,n2),b(n2,n3)
-  real(SP), intent(out) :: c(n1,n3)
+  real(SP), intent(in), target :: a(n1,n2),b(n2,n3)
+  real(SP), intent(out), target :: c(n1,n3)
 
   integer :: i, j, k
 

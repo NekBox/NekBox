@@ -17,7 +17,8 @@
   "top_bound": "W", 
   "conductivity": 1.0e-3, 
   "courant": 0.1, 
-  "num_steps": 101, 
+  "num_steps": 0.0, 
+  "end_time" : 1.0,
   "scale_mesh": [
     1.0, 
     1.0, 

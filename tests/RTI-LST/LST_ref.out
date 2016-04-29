@@ -24,17 +24,17 @@
   /home/maxhutch/src/clean-tests/RTI-LST/ref.rea                                
 
  
- timer accuracy:   9.5367432E-08 sec
+ timer accuracy:   1.9073486E-07 sec
 
  read .rea file
  nelgt/nelgv/lelt:         256         256          64
  lx1  /lx2  /lx3 :           8           8           8
 
  mapping elements to processors
-           1          64          64         256         256  NELV
-           2          64          64         256         256  NELV
-           3          64          64         256         256  NELV
            0          64          64         256         256  NELV
+           2          64          64         256         256  NELV
+           1          64          64         256         256  NELV
+           3          64          64         256         256  NELV
  RANK     0 IEG     129     130     131     132     133     134     135     136
                     137     138     139     140     141     142     143     144
                     145     146     147     148     149     150     151     152
@@ -47,7 +47,7 @@
  done :: mapping elements to processors
   
            0  objects found
- done :: read .rea file   0.11645E-01 sec
+ done :: read .rea file   0.12204E-01 sec
 
  setup mesh topology
    Right-handed check complete for     256 elements. OK.
@@ -56,13 +56,13 @@
  done :: usrsetvert
 
 gs_setup: 6272 unique labels shared
-   pairwise times (avg, min, max): 8.7738e-06 8.70228e-06 8.79765e-06
-   crystal router                : 1.4472e-05 1.44005e-05 1.44958e-05
-   all reduce                    : 3.17097e-05 3.17097e-05 3.17097e-05
+   pairwise times (avg, min, max): 1.14441e-05 1.1301e-05 1.14918e-05
+   crystal router                : 2.6536e-05 2.6083e-05 2.6989e-05
+   all reduce                    : 5.00381e-05 4.97818e-05 5.02825e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 256164 256164 256164
    buffer bytes (avg, min, max): 54656 54656 54656
-   setupds time 6.9029E-03 seconds   0  8       35648         256
+   setupds time 1.1144E-02 seconds   0  8       35648         256
            8  max multiplicity
  done :: setup mesh topology
   
@@ -91,7 +91,7 @@ gs_setup: 6272 unique labels shared
    2      1.000000e-02     p2  VISCOS
    7      1.000000e+00        p7  RHOCP
    8      1.000000e-03  p8  CONDUCT
-  11      101     p11 NSTEPS
+  10      1.000000e+00      p10 FINTIME
   12      1.000000e-02            p12 DT
   18      0.500000E-01    p18 GRID
   19     -1.00000         p19 INTYPE
@@ -179,49 +179,49 @@ gs_setup: 6272 unique labels shared
  done :: usrsetvert
 
 gs_setup: 128 unique labels shared
-   pairwise times (avg, min, max): 1.71661e-06 1.71661e-06 1.71661e-06
-   crystal router                : 1.78814e-06 1.78814e-06 1.78814e-06
-   all reduce                    : 1.64509e-06 1.5974e-06 1.69277e-06
-   used all_to_all method: allreduce
-   handle bytes (avg, min, max): 8660 8660 8660
-   buffer bytes (avg, min, max): 2048 2048 2048
-   setupds time 3.9792E-04 seconds   1  2         320         256
+   pairwise times (avg, min, max): 3.17097e-06 3.09944e-06 3.19481e-06
+   crystal router                : 1.95503e-06 1.90735e-06 2.00272e-06
+   all reduce                    : 2.69413e-06 2.6226e-06 2.71797e-06
+   used all_to_all method: crystal router
+   handle bytes (avg, min, max): 13436 13436 13436
+   buffer bytes (avg, min, max): 2688 2688 2688
+   setupds time 5.5599E-04 seconds   1  2         320         256
    setvert3d:   4        5440        7488        5440        5440
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 1152 unique labels shared
-   pairwise times (avg, min, max): 3.3617e-06 3.29018e-06 3.38554e-06
-   crystal router                : 4.1008e-06 4.1008e-06 4.1008e-06
-   all reduce                    : 8.2016e-06 8.2016e-06 8.2016e-06
+   pairwise times (avg, min, max): 3.71933e-06 3.60012e-06 3.79086e-06
+   crystal router                : 6.44922e-06 6.29425e-06 6.60419e-06
+   all reduce                    : 1.46031e-05 1.44958e-05 1.47104e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 50340 50340 50340
    buffer bytes (avg, min, max): 11136 11136 11136
-   setupds time 1.7600E-03 seconds   2  4        5440         256
+   setupds time 2.6910E-03 seconds   2  4        5440         256
    setvert3d:   4        5440        7488        5440        5440
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 1152 unique labels shared
-   pairwise times (avg, min, max): 3.01003e-06 2.98023e-06 3.09944e-06
-   crystal router                : 3.91006e-06 3.91006e-06 3.91006e-06
-   all reduce                    : 7.98702e-06 7.98702e-06 7.98702e-06
+   pairwise times (avg, min, max): 3.76701e-06 3.69549e-06 3.79086e-06
+   crystal router                : 6.4373e-06 6.38962e-06 6.48499e-06
+   all reduce                    : 1.46151e-05 1.44958e-05 1.46866e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 50340 50340 50340
    buffer bytes (avg, min, max): 11136 11136 11136
-   setupds time 1.7080E-03 seconds   3  4        5440         256
+   setupds time 2.6710E-03 seconds   3  4        5440         256
    setvert3d:   6       17216       33600       17216       17216
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 3200 unique labels shared
-   pairwise times (avg, min, max): 5.93662e-06 5.91278e-06 6.00815e-06
-   crystal router                : 8.41618e-06 8.41618e-06 8.41618e-06
-   all reduce                    : 1.81913e-05 1.81913e-05 1.81913e-05
+   pairwise times (avg, min, max): 7.24792e-06 7.20024e-06 7.29561e-06
+   crystal router                : 1.41621e-05 1.4019e-05 1.43051e-05
+   all reduce                    : 2.76983e-05 2.74897e-05 2.77996e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 133284 133284 133284
    buffer bytes (avg, min, max): 28800 28800 28800
-   setupds time 3.5169E-03 seconds   4  6       17216         256
+   setupds time 5.6920E-03 seconds   4  6       17216         256
  regenerate geometry data           1
  vol_t,vol_v:  0.50000000000004152       0.50000000000004152     
  NOTE: All elements deformed , param(59) ^=0
@@ -234,85 +234,85 @@ gs_setup: 3200 unique labels shared
  done :: usrsetvert
 
 gs_setup: 128 unique labels shared
-   pairwise times (avg, min, max): 1.63913e-06 1.50204e-06 1.71661e-06
-   crystal router                : 1.19209e-06 1.19209e-06 1.19209e-06
-   all reduce                    : 1.81198e-06 1.81198e-06 1.81198e-06
+   pairwise times (avg, min, max): 2.07424e-06 2.00272e-06 2.09808e-06
+   crystal router                : 1.8239e-06 1.69277e-06 1.90735e-06
+   all reduce                    : 2.69413e-06 2.69413e-06 2.69413e-06
    used all_to_all method: crystal router
    handle bytes (avg, min, max): 13436 13436 13436
    buffer bytes (avg, min, max): 2688 2688 2688
-   setupds time 3.9101E-04 seconds   5  2         320         256
+   setupds time 5.3811E-04 seconds   5  2         320         256
    setvert3d:   4        5440        7488        5440        5440
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 1152 unique labels shared
-   pairwise times (avg, min, max): 2.57492e-06 2.5034e-06 2.59876e-06
-   crystal router                : 4.22001e-06 4.22001e-06 4.22001e-06
-   all reduce                    : 7.98106e-06 7.89165e-06 8.01086e-06
+   pairwise times (avg, min, max): 3.05176e-06 3.00407e-06 3.09944e-06
+   crystal router                : 5.81741e-06 5.6982e-06 5.88894e-06
+   all reduce                    : 1.43647e-05 1.42813e-05 1.44958e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 50340 50340 50340
    buffer bytes (avg, min, max): 11136 11136 11136
-   setupds time 1.7691E-03 seconds   6  4        5440         256
+   setupds time 2.6660E-03 seconds   6  4        5440         256
    setvert3d:   4        5440        7488        5440        5440
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 1152 unique labels shared
-   pairwise times (avg, min, max): 2.56896e-06 2.47955e-06 2.59876e-06
-   crystal router                : 3.8147e-06 3.8147e-06 3.8147e-06
-   all reduce                    : 8.01086e-06 8.01086e-06 8.01086e-06
+   pairwise times (avg, min, max): 3.0756e-06 3.00407e-06 3.09944e-06
+   crystal router                : 5.79357e-06 5.79357e-06 5.79357e-06
+   all reduce                    : 1.41382e-05 1.40905e-05 1.41859e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 50340 50340 50340
    buffer bytes (avg, min, max): 11136 11136 11136
-   setupds time 1.6990E-03 seconds   7  4        5440         256
+   setupds time 2.6309E-03 seconds   7  4        5440         256
    setvert3d:   6       17216       33600       17216       17216
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 3200 unique labels shared
-   pairwise times (avg, min, max): 5.60284e-06 5.60284e-06 5.60284e-06
-   crystal router                : 8.46386e-06 8.39233e-06 8.58307e-06
-   all reduce                    : 1.83105e-05 1.83105e-05 1.83105e-05
+   pairwise times (avg, min, max): 7.41482e-06 7.29561e-06 7.48634e-06
+   crystal router                : 1.38879e-05 1.36852e-05 1.40905e-05
+   all reduce                    : 2.76446e-05 2.74897e-05 2.77996e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 133284 133284 133284
    buffer bytes (avg, min, max): 28800 28800 28800
-   setupds time 3.5322E-03 seconds   8  6       17216         256
+   setupds time 5.6608E-03 seconds   8  6       17216         256
    setvert3d:   8       35648       90944       35648       35648
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 6272 unique labels shared
-   pairwise times (avg, min, max): 8.22544e-06 8.10623e-06 8.29697e-06
-   crystal router                : 1.41859e-05 1.41144e-05 1.42097e-05
-   all reduce                    : 3.04461e-05 3.03984e-05 3.04937e-05
+   pairwise times (avg, min, max): 1.08242e-05 1.0705e-05 1.08957e-05
+   crystal router                : 2.59042e-05 2.55108e-05 2.62976e-05
+   all reduce                    : 4.93169e-05 4.90904e-05 4.95911e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 256164 256164 256164
    buffer bytes (avg, min, max): 54656 54656 54656
-   setupds time 6.4099E-03 seconds   9  8       35648         256
+   setupds time 1.0418E-02 seconds   9  8       35648         256
    setvert3d:  10       60736      191808       60736       60736
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 10368 unique labels shared
-   pairwise times (avg, min, max): 1.11282e-05 1.09911e-05 1.12057e-05
-   crystal router                : 2.28822e-05 2.27928e-05 2.2912e-05
-   all reduce                    : 4.47273e-05 4.47035e-05 4.47989e-05
+   pairwise times (avg, min, max): 1.57952e-05 1.54972e-05 1.59979e-05
+   crystal router                : 4.21643e-05 4.14133e-05 4.29153e-05
+   all reduce                    : 8.10862e-05 8.06093e-05 8.16107e-05
    used all_to_all method: pairwise
    handle bytes (avg, min, max): 418980 418980 418980
    buffer bytes (avg, min, max): 88704 88704 88704
-   setupds time 1.0670E-02 seconds  10 10       60736         256
+   setupds time 1.7414E-02 seconds  10 10       60736         256
  setup h1 coarse grid, nx_crs=           2
  call usrsetvert
  done :: usrsetvert
 
 gs_setup: 128 unique labels shared
-   pairwise times (avg, min, max): 1.66297e-06 1.5974e-06 1.71661e-06
-   crystal router                : 1.28746e-06 1.28746e-06 1.28746e-06
-   all reduce                    : 1.7643e-06 1.69277e-06 1.88351e-06
+   pairwise times (avg, min, max): 2.07424e-06 2.00272e-06 2.09808e-06
+   crystal router                : 1.78814e-06 1.78814e-06 1.78814e-06
+   all reduce                    : 2.69413e-06 2.6226e-06 2.71797e-06
    used all_to_all method: crystal router
    handle bytes (avg, min, max): 13436 13436 13436
    buffer bytes (avg, min, max): 2688 2688 2688
- done :: setup h1 coarse grid    9.9380016326904297E-003  sec
+ done :: setup h1 coarse grid    1.5989065170288086E-002  sec
   
  call usrdat3
  done :: usrdat3
@@ -337,7 +337,7 @@ gs_setup: 128 unique labels shared
 
         0  0.0000E+00 done :: Write checkpoint
                               file size =      8.0    MB
-                              avg data-throughput =   885.3MB/s
+                              avg data-throughput =   276.3MB/s
                               io-nodes =     1
 
 Maximum scalar  1.000000000000
@@ -348,7 +348,7 @@ Maximum velocity   0.00000000000   0.00000000000   0.00000000000
 gridpoints unique/tot:         90944       131072
   dofs:                84672                90944
   
- Initialization successfully completed   0.17445     sec
+ Initialization successfully completed   0.28318     sec
 
 Starting time loop ...
 
@@ -380,7 +380,7 @@ Step      1, t= 1.0000000E-02, DT= 1.0000000E-02, C=  0.000 0.0000E+00 0.0000E+0
   1    20 Helmholtz TEMP    F:   2.1473E-14   1.0000E-14   1.0000E-03   1.0000E+02
   1    21 Helmholtz TEMP    F:   4.1417E-15   1.0000E-14   1.0000E-03   1.0000E+02
           1    Hmholtz TEMP:     20   4.1417E-15   3.2410E-01   1.0000E-14
-          1   1.0000E-02  3.0420E-02 Heat done
+          1   1.0000E-02  5.0112E-02 Heat done
    1.0000000000000000E-014  p22            1           1
  New CG1-tolerance (Neumann) =    4.3521509095943838E-012
  New CG1-tolerance (Neumann) =    4.3521509095943838E-012
@@ -403,7 +403,7 @@ Step      1, t= 1.0000000E-02, DT= 1.0000000E-02, C=  0.000 0.0000E+00 0.0000E+0
    17 1.00000E-12 4.40539E-12 4.91017E-03 8.97197E-10       1 Divergence
    18 1.00000E-12 1.27218E-12 4.91017E-03 2.59091E-10       1 Divergence
    19 1.00000E-12 3.08085E-13 4.91017E-03 6.27443E-11       1 Divergence
-        1 PRES gmres:   19  3.0808E-13  1.0000E-12  4.9102E-03  5.1284E-02  8.9925E-02    F
+        1 PRES gmres:   19  3.0808E-13  1.0000E-12  4.9102E-03  8.4780E-02  1.4897E-01    F
    1.0000000000000000E-014  p22            1           1
   1     1 Helmholtz velx    F:   2.3752E-03   1.0000E-14   1.0000E-02   1.0000E+02
   1     2 Helmholtz velx    F:   1.8960E-03   1.0000E-14   1.0000E-02   1.0000E+02
@@ -505,20 +505,20 @@ Step      1, t= 1.0000000E-02, DT= 1.0000000E-02, C=  0.000 0.0000E+00 0.0000E+0
                L1/L2 DIV(V)    :   9.1691E-21   5.7519E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:   9.1691E-21   5.7519E-05
-          1   1.0000E-02  2.2488E-01 Fluid done
+          1   1.0000E-02  3.7233E-01 Fluid done
 filt amp 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0125 0.0500
 filt trn 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 0.9875 0.9500
 Maximum scalar  1.000140268662
 Maximum velocity   0.00004438133   0.00000000000   0.00004999867
  Grep           1   4.9998665775049205E-005
-Step      2, t= 2.0000000E-02, DT= 1.0000000E-02, C=  0.000 3.1453E-01 3.1453E-01
+Step      2, t= 2.0000000E-02, DT= 1.0000000E-02, C=  0.000 5.2125E-01 5.2125E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22            2           1
           2    Hmholtz TEMP:     18   1.3689E-15   4.7303E-01   1.0000E-14
-          2   2.0000E-02  2.6738E-02 Heat done
+          2   2.0000E-02  4.5177E-02 Heat done
    1.0000000000000000E-014  p22            2           1
-        2 PRES gmres:   15  8.8420E-13  1.0000E-12  8.9825E-05  3.9498E-02  6.6420E-02    F
+        2 PRES gmres:   15  8.8420E-13  1.0000E-12  8.9825E-05  6.7084E-02  1.1243E-01    F
    1.0000000000000000E-014  p22            2           1
           2    Hmholtz velx:     35   9.9411E-15   3.5543E-03   1.0000E-14
    1.0000000000000000E-014  p22            2           1
@@ -528,18 +528,18 @@ Step      2, t= 2.0000000E-02, DT= 1.0000000E-02, C=  0.000 3.1453E-01 3.1453E-0
                L1/L2 DIV(V)    :   1.3207E-20   5.7289E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:   1.3207E-20   5.7289E-05
-          2   2.0000E-02  1.8400E-01 Fluid done
+          2   2.0000E-02  3.1265E-01 Fluid done
 Maximum scalar  1.000276896383
 Maximum velocity   0.00008744381   0.00000000000   0.00009727180
  Grep           2   9.7271803253312522E-005
-Step      3, t= 3.0000000E-02, DT= 1.0000000E-02, C=  0.000 5.6411E-01 2.4958E-01
+Step      3, t= 3.0000000E-02, DT= 1.0000000E-02, C=  0.000 9.4367E-01 4.2242E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22            3           1
           3    Hmholtz TEMP:     16   8.2847E-15   5.6305E-01   1.0000E-14
-          3   3.0000E-02  2.4377E-02 Heat done
+          3   3.0000E-02  4.1313E-02 Heat done
    1.0000000000000000E-014  p22            3           1
-        3 PRES gmres:   15  4.1867E-13  1.0000E-12  4.6573E-05  3.9566E-02  6.6494E-02    F
+        3 PRES gmres:   15  4.1867E-13  1.0000E-12  4.6573E-05  6.7007E-02  1.1220E-01    F
    1.0000000000000000E-014  p22            3           1
           3    Hmholtz velx:     33   6.9587E-15   4.1419E-03   1.0000E-14
    1.0000000000000000E-014  p22            3           1
@@ -549,18 +549,18 @@ Step      3, t= 3.0000000E-02, DT= 1.0000000E-02, C=  0.000 5.6411E-01 2.4958E-0
                L1/L2 DIV(V)    :   6.9086E-21   4.2579E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:   6.9086E-21   4.2579E-05
-          3   3.0000E-02  1.7930E-01 Fluid done
+          3   3.0000E-02  3.0463E-01 Fluid done
 Maximum scalar  1.000398990596
 Maximum velocity   0.00012818076   0.00000000000   0.00014397593
  Grep           3   1.4397593230004811E-004
-Step      4, t= 4.0000000E-02, DT= 1.0000000E-02, C=  0.000 8.0216E-01 2.3806E-01
+Step      4, t= 4.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.3466E+00 4.0291E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22            4           1
           4    Hmholtz TEMP:     16   8.0219E-15   5.4794E-01   1.0000E-14
-          4   4.0000E-02  2.4403E-02 Heat done
+          4   4.0000E-02  4.1166E-02 Heat done
    1.0000000000000000E-014  p22            4           1
-        4 PRES gmres:   15  4.0311E-13  1.0000E-12  4.4268E-05  3.9746E-02  6.6553E-02    F
+        4 PRES gmres:   15  4.0311E-13  1.0000E-12  4.4268E-05  6.6992E-02  1.1224E-01    F
    1.0000000000000000E-014  p22            4           1
           4    Hmholtz velx:     33   6.5301E-15   4.0268E-03   1.0000E-14
    1.0000000000000000E-014  p22            4           1
@@ -570,18 +570,18 @@ Step      4, t= 4.0000000E-02, DT= 1.0000000E-02, C=  0.000 8.0216E-01 2.3806E-0
                L1/L2 DIV(V)    :   7.3260E-21   3.2716E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:   7.3260E-21   3.2716E-05
-          4   4.0000E-02  1.7827E-01 Fluid done
+          4   4.0000E-02  3.0227E-01 Fluid done
 Maximum scalar  1.000488375564
 Maximum velocity   0.00016659433   0.00000000000   0.00018961266
  Grep           4   1.8961265632955502E-004
-Step      5, t= 5.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.0392E+00 2.3699E-01
+Step      5, t= 5.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.7465E+00 3.9995E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22            5           1
           5    Hmholtz TEMP:     16   7.7470E-15   5.3271E-01   1.0000E-14
-          5   5.0000E-02  2.4460E-02 Heat done
+          5   5.0000E-02  4.1218E-02 Heat done
    1.0000000000000000E-014  p22            5           1
-        5 PRES gmres:   15  3.3685E-13  1.0000E-12  4.0214E-05  4.0034E-02  6.6977E-02    F
+        5 PRES gmres:   15  3.3685E-13  1.0000E-12  4.0214E-05  6.7062E-02  1.1231E-01    F
    1.0000000000000000E-014  p22            5           1
           5    Hmholtz velx:     33   6.2566E-15   3.9620E-03   1.0000E-14
    1.0000000000000000E-014  p22            5           1
@@ -591,18 +591,18 @@ Step      5, t= 5.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.0392E+00 2.3699E-0
                L1/L2 DIV(V)    :   2.2239E-21   2.7868E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:   2.2239E-21   2.7868E-05
-          5   5.0000E-02  1.7643E-01 Fluid done
+          5   5.0000E-02  2.9844E-01 Fluid done
 Maximum scalar  1.000540785889
 Maximum velocity   0.00020594685   0.00000000000   0.00023384792
  Grep           5   2.3384791621100672E-004
-Step      6, t= 6.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.2745E+00 2.3536E-01
+Step      6, t= 6.0000000E-02, DT= 1.0000000E-02, C=  0.000 2.1429E+00 3.9639E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22            6           1
           6    Hmholtz TEMP:     16   7.4853E-15   5.1830E-01   1.0000E-14
-          6   6.0000E-02  2.4484E-02 Heat done
+          6   6.0000E-02  4.1348E-02 Heat done
    1.0000000000000000E-014  p22            6           1
-        6 PRES gmres:   15  2.9735E-13  1.0000E-12  3.8302E-05  3.9623E-02  6.6491E-02    F
+        6 PRES gmres:   15  2.9735E-13  1.0000E-12  3.8302E-05  6.7068E-02  1.1273E-01    F
    1.0000000000000000E-014  p22            6           1
           6    Hmholtz velx:     33   6.0463E-15   3.8771E-03   1.0000E-14
    1.0000000000000000E-014  p22            6           1
@@ -612,18 +612,18 @@ Step      6, t= 6.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.2745E+00 2.3536E-0
                L1/L2 DIV(V)    :   2.6879E-21   2.4354E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:   2.6879E-21   2.4354E-05
-          6   6.0000E-02  1.7611E-01 Fluid done
+          6   6.0000E-02  2.9853E-01 Fluid done
 Maximum scalar  1.000561313548
 Maximum velocity   0.00024497638   0.00000000000   0.00027701175
  Grep           6   2.7701174514394326E-004
-Step      7, t= 7.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.5097E+00 2.3519E-01
+Step      7, t= 7.0000000E-02, DT= 1.0000000E-02, C=  0.000 2.5394E+00 3.9650E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22            7           1
           7    Hmholtz TEMP:     16   7.2441E-15   5.0491E-01   1.0000E-14
-          7   7.0000E-02  2.4457E-02 Heat done
+          7   7.0000E-02  4.1285E-02 Heat done
    1.0000000000000000E-014  p22            7           1
-        7 PRES gmres:   15  2.9165E-13  1.0000E-12  3.6813E-05  3.9675E-02  6.6586E-02    F
+        7 PRES gmres:   15  2.9165E-13  1.0000E-12  3.6813E-05  6.7062E-02  1.1248E-01    F
    1.0000000000000000E-014  p22            7           1
           7    Hmholtz velx:     33   5.8748E-15   3.7910E-03   1.0000E-14
    1.0000000000000000E-014  p22            7           1
@@ -633,18 +633,18 @@ Step      7, t= 7.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.5097E+00 2.3519E-0
                L1/L2 DIV(V)    :   1.4905E-21   2.0875E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:   1.4905E-21   2.0875E-05
-          7   7.0000E-02  1.7696E-01 Fluid done
+          7   7.0000E-02  2.9841E-01 Fluid done
 Maximum scalar  1.000557278354
 Maximum velocity   0.00028296728   0.00000000000   0.00031925399
  Grep           7   3.1925398915770824E-004
-Step      8, t= 8.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.7461E+00 2.3634E-01
+Step      8, t= 8.0000000E-02, DT= 1.0000000E-02, C=  0.000 2.9357E+00 3.9622E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22            8           1
           8    Hmholtz TEMP:     16   7.0218E-15   4.9242E-01   1.0000E-14
-          8   8.0000E-02  2.4463E-02 Heat done
+          8   8.0000E-02  4.1233E-02 Heat done
    1.0000000000000000E-014  p22            8           1
-        8 PRES gmres:   15  2.8693E-13  1.0000E-12  3.5397E-05  3.9805E-02  6.6655E-02    F
+        8 PRES gmres:   15  2.8693E-13  1.0000E-12  3.5397E-05  6.7061E-02  1.1232E-01    F
    1.0000000000000000E-014  p22            8           1
           8    Hmholtz velx:     33   5.7433E-15   3.7191E-03   1.0000E-14
    1.0000000000000000E-014  p22            8           1
@@ -654,18 +654,18 @@ Step      8, t= 8.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.7461E+00 2.3634E-0
                L1/L2 DIV(V)    :  -6.8550E-22   1.7821E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -6.8550E-22   1.7821E-05
-          8   8.0000E-02  1.7517E-01 Fluid done
+          8   8.0000E-02  2.9640E-01 Fluid done
 Maximum scalar  1.000534842573
 Maximum velocity   0.00031994932   0.00000000000   0.00036055770
  Grep           8   3.6055770412303918E-004
-Step      9, t= 9.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.9805E+00 2.3449E-01
+Step      9, t= 9.0000000E-02, DT= 1.0000000E-02, C=  0.000 3.3299E+00 3.9430E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22            9           1
           9    Hmholtz TEMP:     16   6.8143E-15   4.8070E-01   1.0000E-14
-          9   9.0000E-02  2.4519E-02 Heat done
+          9   9.0000E-02  4.1310E-02 Heat done
    1.0000000000000000E-014  p22            9           1
-        9 PRES gmres:   15  2.7297E-13  1.0000E-12  3.3951E-05  3.9534E-02  6.6570E-02    F
+        9 PRES gmres:   15  2.7297E-13  1.0000E-12  3.3951E-05  6.7002E-02  1.1223E-01    F
    1.0000000000000000E-014  p22            9           1
           9    Hmholtz velx:     33   5.6216E-15   3.6518E-03   1.0000E-14
    1.0000000000000000E-014  p22            9           1
@@ -675,18 +675,18 @@ Step      9, t= 9.0000000E-02, DT= 1.0000000E-02, C=  0.000 1.9805E+00 2.3449E-0
                L1/L2 DIV(V)    :  -9.8369E-21   1.5415E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -9.8369E-21   1.5415E-05
-          9   9.0000E-02  1.7661E-01 Fluid done
+          9   9.0000E-02  2.9673E-01 Fluid done
 Maximum scalar  1.000502619184
 Maximum velocity   0.00035593874   0.00000000000   0.00040096781
  Grep           9   4.0096781255028548E-004
-Step     10, t= 1.0000000E-01, DT= 1.0000000E-02, C=  0.000 2.2166E+00 2.3610E-01
+Step     10, t= 1.0000000E-01, DT= 1.0000000E-02, C=  0.000 3.7249E+00 3.9495E-01
              Solving for heat
  Solving for fluid T T T
    1.0000000000000000E-014  p22           10           1
          10    Hmholtz TEMP:     16   6.6183E-15   4.6966E-01   1.0000E-14
-         10   1.0000E-01  2.4484E-02 Heat done
+         10   1.0000E-01  4.1317E-02 Heat done
    1.0000000000000000E-014  p22           10           1
-       10 PRES gmres:   15  2.6283E-13  1.0000E-12  3.2609E-05  3.9571E-02  6.6588E-02    F
+       10 PRES gmres:   15  2.6283E-13  1.0000E-12  3.2609E-05  6.7106E-02  1.1225E-01    F
    1.0000000000000000E-014  p22           10           1
          10    Hmholtz velx:     33   5.4945E-15   3.5852E-03   1.0000E-14
    1.0000000000000000E-014  p22           10           1
@@ -696,1530 +696,1514 @@ Step     10, t= 1.0000000E-01, DT= 1.0000000E-02, C=  0.000 2.2166E+00 2.3610E-0
                L1/L2 DIV(V)    :  -1.4481E-20   1.3575E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.4481E-20   1.3575E-05
-         10   1.0000E-01  1.7509E-01 Fluid done
+         10   1.0000E-01  2.9628E-01 Fluid done
 Maximum scalar  1.000473187537
 Maximum velocity   0.00039094872   0.00000000000   0.00044055061
  Grep          10   4.4055061064527046E-004
-Step     11, t= 1.1000000E-01, DT= 1.0000000E-02, C=  0.001 2.4512E+00 2.3454E-01
+Step     11, t= 1.1000000E-01, DT= 1.0000000E-02, C=  0.001 4.1191E+00 3.9420E-01
              Solving for heat
  Solving for fluid T T T
          11    Hmholtz TEMP:     16   6.4318E-15   4.5921E-01   1.0000E-14
-         11   1.1000E-01  2.3339E-02 Heat done
-       11 PRES gmres:   15  2.5545E-13  1.0000E-12  3.1390E-05  3.9582E-02  6.6706E-02    F
+         11   1.1000E-01  3.9326E-02 Heat done
+       11 PRES gmres:   15  2.5545E-13  1.0000E-12  3.1390E-05  6.6949E-02  1.1217E-01    F
          11    Hmholtz velx:     33   5.3639E-15   3.5213E-03   1.0000E-14
          11    Hmholtz vely:      3   5.4304E-15   1.1450E-13   1.0000E-14
          11    Hmholtz velz:     33   4.6558E-15   3.0218E-03   1.0000E-14
                L1/L2 DIV(V)    :  -7.5460E-21   1.2168E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -7.5460E-21   1.2168E-05
-         11   1.1000E-01  1.7062E-01 Fluid done
+         11   1.1000E-01  2.8936E-01 Fluid done
 Maximum scalar  1.000446072747
 Maximum velocity   0.00042501062   0.00000000000   0.00047934241
  Grep          11   4.7934240849944586E-004
-Step     12, t= 1.2000000E-01, DT= 1.0000000E-02, C=  0.001 2.6800E+00 2.2886E-01
+Step     12, t= 1.2000000E-01, DT= 1.0000000E-02, C=  0.001 4.5046E+00 3.8554E-01
              Solving for heat
  Solving for fluid T T T
          12    Hmholtz TEMP:     16   6.2534E-15   4.4931E-01   1.0000E-14
-         12   1.2000E-01  2.3303E-02 Heat done
-       12 PRES gmres:   15  2.4768E-13  1.0000E-12  3.0268E-05  3.9877E-02  6.6818E-02    F
+         12   1.2000E-01  3.9279E-02 Heat done
+       12 PRES gmres:   15  2.4768E-13  1.0000E-12  3.0268E-05  6.7067E-02  1.1230E-01    F
          12    Hmholtz velx:     33   5.2298E-15   3.4603E-03   1.0000E-14
          12    Hmholtz vely:      3   4.1635E-15   8.4571E-14   1.0000E-14
          12    Hmholtz velz:     33   4.5757E-15   2.9737E-03   1.0000E-14
                L1/L2 DIV(V)    :  -3.0608E-21   1.1103E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -3.0608E-21   1.1103E-05
-         12   1.2000E-01  1.7092E-01 Fluid done
+         12   1.2000E-01  2.8896E-01 Fluid done
 Maximum scalar  1.000421664661
 Maximum velocity   0.00045816096   0.00000000000   0.00051737154
  Grep          12   5.1737154384813133E-004
-Step     13, t= 1.3000000E-01, DT= 1.0000000E-02, C=  0.001 2.9092E+00 2.2919E-01
+Step     13, t= 1.3000000E-01, DT= 1.0000000E-02, C=  0.001 4.8895E+00 3.8486E-01
              Solving for heat
  Solving for fluid T T T
          13    Hmholtz TEMP:     16   6.0825E-15   4.3991E-01   1.0000E-14
-         13   1.3000E-01  2.3434E-02 Heat done
-       13 PRES gmres:   14  9.9252E-13  1.0000E-12  2.9224E-05  3.7071E-02  6.1969E-02    F
+         13   1.3000E-01  3.9240E-02 Heat done
+       13 PRES gmres:   14  9.9252E-13  1.0000E-12  2.9224E-05  6.2553E-02  1.0411E-01    F
          13    Hmholtz velx:     32   9.9940E-15   3.4011E-03   1.0000E-14
          13    Hmholtz vely:      7   4.5806E-15   1.9966E-12   1.0000E-14
          13    Hmholtz velz:     33   4.4963E-15   2.9268E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.8201E-20   1.0311E-05
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.8201E-20   1.0311E-05
-         13   1.3000E-01  1.6941E-01 Fluid done
+         13   1.3000E-01  2.8665E-01 Fluid done
 Maximum scalar  1.000398880109
 Maximum velocity   0.00049043423   0.00000000000   0.00055467002
  Grep          13   5.5467001826928002E-004
-Step     14, t= 1.4000000E-01, DT= 1.0000000E-02, C=  0.001 3.1369E+00 2.2765E-01
+Step     14, t= 1.4000000E-01, DT= 1.0000000E-02, C=  0.001 5.2720E+00 3.8254E-01
              Solving for heat
  Solving for fluid T T T
          14    Hmholtz TEMP:     16   5.9184E-15   4.3097E-01   1.0000E-14
-         14   1.4000E-01  2.3269E-02 Heat done
-       14 PRES gmres:   14  9.7346E-13  1.0000E-12  2.8249E-05  3.7231E-02  6.1994E-02    F
+         14   1.4000E-01  3.9707E-02 Heat done
+       14 PRES gmres:   14  9.7346E-13  1.0000E-12  2.8249E-05  6.2612E-02  1.0405E-01    F
          14    Hmholtz velx:     32   9.6076E-15   3.3435E-03   1.0000E-14
          14    Hmholtz vely:      4   9.2840E-15   4.8192E-13   1.0000E-14
          14    Hmholtz velz:     32   9.8887E-15   2.8812E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.4559E-20   9.7323E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.4559E-20   9.7323E-06
-         14   1.4000E-01  1.6501E-01 Fluid done
+         14   1.4000E-01  2.7821E-01 Fluid done
 Maximum scalar  1.000377138914
 Maximum velocity   0.00052187087   0.00000000000   0.00059126674
  Grep          14   5.9126673728312172E-004
-Step     15, t= 1.5000000E-01, DT= 1.0000000E-02, C=  0.001 3.3601E+00 2.2321E-01
+Step     15, t= 1.5000000E-01, DT= 1.0000000E-02, C=  0.001 5.6466E+00 3.7452E-01
              Solving for heat
  Solving for fluid T T T
          15    Hmholtz TEMP:     16   5.7606E-15   4.2246E-01   1.0000E-14
-         15   1.5000E-01  2.3309E-02 Heat done
-       15 PRES gmres:   14  9.5561E-13  1.0000E-12  2.7337E-05  3.7117E-02  6.1917E-02    F
+         15   1.5000E-01  3.9271E-02 Heat done
+       15 PRES gmres:   14  9.5561E-13  1.0000E-12  2.7337E-05  6.2534E-02  1.0396E-01    F
          15    Hmholtz velx:     32   9.2264E-15   3.2875E-03   1.0000E-14
          15    Hmholtz vely:      4   4.7418E-15   2.5667E-13   1.0000E-14
          15    Hmholtz velz:     32   9.7164E-15   2.8366E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.1960E-20   9.3140E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.1960E-20   9.3140E-06
-         15   1.5000E-01  1.6477E-01 Fluid done
+         15   1.5000E-01  2.7861E-01 Fluid done
 Maximum scalar  1.000356050744
 Maximum velocity   0.00055255550   0.00000000000   0.00062718629
  Grep          15   6.2718628747594177E-004
-Step     16, t= 1.6000000E-01, DT= 1.0000000E-02, C=  0.001 3.5831E+00 2.2301E-01
+Step     16, t= 1.6000000E-01, DT= 1.0000000E-02, C=  0.001 6.0213E+00 3.7471E-01
              Solving for heat
  Solving for fluid T T T
          16    Hmholtz TEMP:     16   5.6086E-15   4.1434E-01   1.0000E-14
-         16   1.6000E-01  2.3293E-02 Heat done
-       16 PRES gmres:   14  9.3768E-13  1.0000E-12  2.6482E-05  3.6922E-02  6.1853E-02    F
+         16   1.6000E-01  3.9282E-02 Heat done
+       16 PRES gmres:   14  9.3768E-13  1.0000E-12  2.6482E-05  6.2594E-02  1.0426E-01    F
          16    Hmholtz velx:     32   8.8519E-15   3.2330E-03   1.0000E-14
          16    Hmholtz vely:      4   6.8133E-15   3.7660E-13   1.0000E-14
          16    Hmholtz velz:     32   9.5437E-15   2.7929E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.6338E-20   9.0120E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.6338E-20   9.0120E-06
-         16   1.6000E-01  1.6443E-01 Fluid done
+         16   1.6000E-01  2.7899E-01 Fluid done
 Maximum scalar  1.000335555303
 Maximum velocity   0.00058323381   0.00000000000   0.00066245150
  Grep          16   6.6245149557136182E-004
-Step     17, t= 1.7000000E-01, DT= 1.0000000E-02, C=  0.001 3.8057E+00 2.2262E-01
+Step     17, t= 1.7000000E-01, DT= 1.0000000E-02, C=  0.001 6.3962E+00 3.7490E-01
              Solving for heat
  Solving for fluid T T T
          17    Hmholtz TEMP:     16   5.4622E-15   4.0658E-01   1.0000E-14
-         17   1.7000E-01  2.3357E-02 Heat done
-       17 PRES gmres:   14  9.2008E-13  1.0000E-12  2.5678E-05  3.6977E-02  6.1888E-02    F
+         17   1.7000E-01  3.9232E-02 Heat done
+       17 PRES gmres:   14  9.2008E-13  1.0000E-12  2.5678E-05  6.2641E-02  1.0422E-01    F
          17    Hmholtz velx:     32   8.4853E-15   3.1798E-03   1.0000E-14
          17    Hmholtz vely:      3   6.9116E-15   1.2689E-13   1.0000E-14
          17    Hmholtz velz:     32   9.3717E-15   2.7501E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.5987E-20   8.7917E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.5987E-20   8.7917E-06
-         17   1.7000E-01  1.6330E-01 Fluid done
+         17   1.7000E-01  2.7712E-01 Fluid done
 Maximum scalar  1.000315503919
 Maximum velocity   0.00061587212   0.00000000000   0.00069708378
  Grep          17   6.9708378220032711E-004
-Step     18, t= 1.8000000E-01, DT= 1.0000000E-02, C=  0.001 4.0275E+00 2.2174E-01
+Step     18, t= 1.8000000E-01, DT= 1.0000000E-02, C=  0.001 6.7690E+00 3.7286E-01
              Solving for heat
  Solving for fluid T T T
          18    Hmholtz TEMP:     16   5.3210E-15   3.9917E-01   1.0000E-14
-         18   1.8000E-01  2.3320E-02 Heat done
-       18 PRES gmres:   14  9.0316E-13  1.0000E-12  2.4920E-05  3.7107E-02  6.1883E-02    F
+         18   1.8000E-01  3.9246E-02 Heat done
+       18 PRES gmres:   14  9.0316E-13  1.0000E-12  2.4920E-05  6.2627E-02  1.0411E-01    F
          18    Hmholtz velx:     32   8.1281E-15   3.1278E-03   1.0000E-14
          18    Hmholtz vely:      4   4.5205E-15   2.8945E-13   1.0000E-14
          18    Hmholtz velz:     32   9.2015E-15   2.7081E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.4138E-20   8.6264E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.4138E-20   8.6264E-06
-         18   1.8000E-01  1.6503E-01 Fluid done
+         18   1.8000E-01  2.7866E-01 Fluid done
 Maximum scalar  1.000296500294
 Maximum velocity   0.00064796056   0.00000000000   0.00073110281
  Grep          18   7.3110281058753510E-004
-Step     19, t= 1.9000000E-01, DT= 1.0000000E-02, C=  0.001 4.2507E+00 2.2318E-01
+Step     19, t= 1.9000000E-01, DT= 1.0000000E-02, C=  0.001 7.1436E+00 3.7456E-01
              Solving for heat
  Solving for fluid T T T
          19    Hmholtz TEMP:     16   5.1848E-15   3.9207E-01   1.0000E-14
-         19   1.9000E-01  2.3387E-02 Heat done
-       19 PRES gmres:   14  8.8676E-13  1.0000E-12  2.4203E-05  3.6875E-02  6.1764E-02    F
+         19   1.9000E-01  3.9309E-02 Heat done
+       19 PRES gmres:   14  8.8676E-13  1.0000E-12  2.4203E-05  6.2926E-02  1.0450E-01    F
          19    Hmholtz velx:     32   7.7816E-15   3.0770E-03   1.0000E-14
          19    Hmholtz vely:      3   6.0573E-15   9.3342E-14   1.0000E-14
          19    Hmholtz velz:     32   9.0333E-15   2.6670E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.6546E-20   8.4965E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.6546E-20   8.4965E-06
-         19   1.9000E-01  1.6352E-01 Fluid done
+         19   1.9000E-01  2.7656E-01 Fluid done
 Maximum scalar  1.000277609196
 Maximum velocity   0.00067950241   0.00000000000   0.00076452677
  Grep          19   7.6452677379318401E-004
-Step     20, t= 2.0000000E-01, DT= 1.0000000E-02, C=  0.001 4.4725E+00 2.2181E-01
+Step     20, t= 2.0000000E-01, DT= 1.0000000E-02, C=  0.001 7.5161E+00 3.7255E-01
              Solving for heat
  Solving for fluid T T T
          20    Hmholtz TEMP:     16   5.0534E-15   3.8526E-01   1.0000E-14
-         20   2.0000E-01  2.3280E-02 Heat done
-       20 PRES gmres:   14  8.7067E-13  1.0000E-12  2.3526E-05  3.7112E-02  6.1853E-02    F
+         20   2.0000E-01  3.9191E-02 Heat done
+       20 PRES gmres:   14  8.7067E-13  1.0000E-12  2.3526E-05  6.2553E-02  1.0394E-01    F
          20    Hmholtz velx:     32   7.4475E-15   3.0273E-03   1.0000E-14
          20    Hmholtz vely:      4   4.0769E-15   2.3375E-13   1.0000E-14
          20    Hmholtz velz:     32   8.8677E-15   2.6267E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.6554E-20   8.3877E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.6554E-20   8.3877E-06
-         20   2.0000E-01  1.6458E-01 Fluid done
+         20   2.0000E-01  2.7810E-01 Fluid done
 Maximum scalar  1.000259386184
 Maximum velocity   0.00071050245   0.00000000000   0.00079737271
  Grep          20   7.9737270768712339E-004
-Step     21, t= 2.1000000E-01, DT= 1.0000000E-02, C=  0.001 4.6954E+00 2.2289E-01
+Step     21, t= 2.1000000E-01, DT= 1.0000000E-02, C=  0.001 7.8900E+00 3.7390E-01
              Solving for heat
  Solving for fluid T T T
          21    Hmholtz TEMP:     16   4.9264E-15   3.7873E-01   1.0000E-14
-         21   2.1000E-01  2.3310E-02 Heat done
-       21 PRES gmres:   14  8.5491E-13  1.0000E-12  2.2883E-05  3.7036E-02  6.1807E-02    F
+         21   2.1000E-01  3.9288E-02 Heat done
+       21 PRES gmres:   14  8.5491E-13  1.0000E-12  2.2883E-05  6.2548E-02  1.0416E-01    F
          21    Hmholtz velx:     32   7.1267E-15   2.9786E-03   1.0000E-14
          21    Hmholtz vely:      3   8.2286E-15   1.3229E-13   1.0000E-14
          21    Hmholtz velz:     32   8.7051E-15   2.5871E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.0335E-20   8.2903E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.0335E-20   8.2903E-06
-         21   2.1000E-01  1.6363E-01 Fluid done
+         21   2.1000E-01  2.7621E-01 Fluid done
 Maximum scalar  1.000241563747
 Maximum velocity   0.00074096663   0.00000000000   0.00082965659
  Grep          21   8.2965658774842362E-004
-Step     22, t= 2.2000000E-01, DT= 1.0000000E-02, C=  0.001 4.9173E+00 2.2198E-01
+Step     22, t= 2.2000000E-01, DT= 1.0000000E-02, C=  0.001 8.2622E+00 3.7220E-01
              Solving for heat
  Solving for fluid T T T
          22    Hmholtz TEMP:     16   4.8039E-15   3.7246E-01   1.0000E-14
-         22   2.2000E-01  2.3237E-02 Heat done
-       22 PRES gmres:   14  8.3954E-13  1.0000E-12  2.2273E-05  3.6957E-02  6.1870E-02    F
+         22   2.2000E-01  3.9240E-02 Heat done
+       22 PRES gmres:   14  8.3954E-13  1.0000E-12  2.2273E-05  6.2532E-02  1.0409E-01    F
          22    Hmholtz velx:     32   6.8202E-15   2.9310E-03   1.0000E-14
          22    Hmholtz vely:      3   7.2325E-15   1.4474E-13   1.0000E-14
          22    Hmholtz velz:     32   8.5458E-15   2.5483E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.8412E-20   8.1975E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.8412E-20   8.1975E-06
-         22   2.2000E-01  1.6526E-01 Fluid done
+         22   2.2000E-01  2.7613E-01 Fluid done
 Maximum scalar  1.000226389433
 Maximum velocity   0.00077090188   0.00000000000   0.00086139342
  Grep          22   8.6139342001764112E-004
-Step     23, t= 2.3000000E-01, DT= 1.0000000E-02, C=  0.001 5.1409E+00 2.2355E-01
+Step     23, t= 2.3000000E-01, DT= 1.0000000E-02, C=  0.001 8.6380E+00 3.7581E-01
              Solving for heat
  Solving for fluid T T T
          23    Hmholtz TEMP:     16   4.6856E-15   3.6643E-01   1.0000E-14
-         23   2.3000E-01  2.3279E-02 Heat done
-       23 PRES gmres:   14  8.2456E-13  1.0000E-12  2.1693E-05  3.6978E-02  6.1767E-02    F
+         23   2.3000E-01  3.9304E-02 Heat done
+       23 PRES gmres:   14  8.2456E-13  1.0000E-12  2.1693E-05  6.2559E-02  1.0406E-01    F
          23    Hmholtz velx:     32   6.5286E-15   2.8843E-03   1.0000E-14
          23    Hmholtz vely:      3   6.6885E-15   1.1936E-13   1.0000E-14
          23    Hmholtz velz:     32   8.3900E-15   2.5101E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.1794E-20   8.1048E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.1794E-20   8.1048E-06
-         23   2.3000E-01  1.6320E-01 Fluid done
+         23   2.3000E-01  2.7629E-01 Fluid done
 Maximum scalar  1.000213535430
 Maximum velocity   0.00080031589   0.00000000000   0.00089259736
  Grep          23   8.9259736145583441E-004
-Step     24, t= 2.4000000E-01, DT= 1.0000000E-02, C=  0.001 5.3623E+00 2.2142E-01
+Step     24, t= 2.4000000E-01, DT= 1.0000000E-02, C=  0.001 9.0102E+00 3.7217E-01
              Solving for heat
  Solving for fluid T T T
          24    Hmholtz TEMP:     16   4.5713E-15   3.6062E-01   1.0000E-14
-         24   2.4000E-01  2.3301E-02 Heat done
-       24 PRES gmres:   14  8.0988E-13  1.0000E-12  2.1141E-05  3.6879E-02  6.1939E-02    F
+         24   2.4000E-01  3.9265E-02 Heat done
+       24 PRES gmres:   14  8.0988E-13  1.0000E-12  2.1141E-05  6.2585E-02  1.0403E-01    F
          24    Hmholtz velx:     32   6.2526E-15   2.8386E-03   1.0000E-14
          24    Hmholtz vely:      3   5.6416E-15   1.0208E-13   1.0000E-14
          24    Hmholtz velz:     32   8.2376E-15   2.4726E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.8787E-20   8.0095E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.8787E-20   8.0095E-06
-         24   2.4000E-01  1.6372E-01 Fluid done
+         24   2.4000E-01  2.7631E-01 Fluid done
 Maximum scalar  1.000200684335
 Maximum velocity   0.00082921691   0.00000000000   0.00092328181
  Grep          24   9.2328181418053481E-004
-Step     25, t= 2.5000000E-01, DT= 1.0000000E-02, C=  0.001 5.5842E+00 2.2189E-01
+Step     25, t= 2.5000000E-01, DT= 1.0000000E-02, C=  0.001 9.3826E+00 3.7235E-01
              Solving for heat
  Solving for fluid T T T
          25    Hmholtz TEMP:     16   4.4609E-15   3.5503E-01   1.0000E-14
-         25   2.5000E-01  2.3296E-02 Heat done
-       25 PRES gmres:   14  7.9549E-13  1.0000E-12  2.0614E-05  3.7002E-02  6.1826E-02    F
+         25   2.5000E-01  3.9331E-02 Heat done
+       25 PRES gmres:   14  7.9549E-13  1.0000E-12  2.0614E-05  6.2579E-02  1.0408E-01    F
          25    Hmholtz velx:     32   5.9922E-15   2.7938E-03   1.0000E-14
          25    Hmholtz vely:      3   6.7030E-15   1.3148E-13   1.0000E-14
          25    Hmholtz velz:     32   8.0889E-15   2.4358E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.1985E-20   7.9100E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.1985E-20   7.9100E-06
-         25   2.5000E-01  1.6321E-01 Fluid done
+         25   2.5000E-01  2.7654E-01 Fluid done
 Maximum scalar  1.000188123981
 Maximum velocity   0.00085761363   0.00000000000   0.00095345950
  Grep          25   9.5345949755577428E-004
-Step     26, t= 2.6000000E-01, DT= 1.0000000E-02, C=  0.001 5.8056E+00 2.2138E-01
+Step     26, t= 2.6000000E-01, DT= 1.0000000E-02, C=  0.001 9.7550E+00 3.7246E-01
              Solving for heat
  Solving for fluid T T T
          26    Hmholtz TEMP:     16   4.3543E-15   3.4964E-01   1.0000E-14
-         26   2.6000E-01  2.3258E-02 Heat done
-       26 PRES gmres:   14  7.8143E-13  1.0000E-12  2.0112E-05  3.7030E-02  6.1920E-02    F
+         26   2.6000E-01  3.9226E-02 Heat done
+       26 PRES gmres:   14  7.8143E-13  1.0000E-12  2.0112E-05  6.2650E-02  1.0423E-01    F
          26    Hmholtz velx:     32   5.7474E-15   2.7498E-03   1.0000E-14
          26    Hmholtz vely:      2   9.9669E-15   6.5262E-14   1.0000E-14
          26    Hmholtz velz:     32   7.9438E-15   2.3996E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.7531E-20   7.8055E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.7531E-20   7.8055E-06
-         26   2.6000E-01  1.6220E-01 Fluid done
+         26   2.6000E-01  2.7469E-01 Fluid done
 Maximum scalar  1.000176130803
 Maximum velocity   0.00088551505   0.00000000000   0.00098314251
  Grep          26   9.8314251476903491E-004
-Step     27, t= 2.7000000E-01, DT= 1.0000000E-02, C=  0.001 6.0261E+00 2.2050E-01
+Step     27, t= 2.7000000E-01, DT= 1.0000000E-02, C=  0.001 1.0126E+01 3.7057E-01
              Solving for heat
  Solving for fluid T T T
          27    Hmholtz TEMP:     16   4.2513E-15   3.4444E-01   1.0000E-14
-         27   2.7000E-01  2.3339E-02 Heat done
-       27 PRES gmres:   14  7.6768E-13  1.0000E-12  1.9631E-05  3.7324E-02  6.2588E-02    F
+         27   2.7000E-01  3.9287E-02 Heat done
+       27 PRES gmres:   14  7.6768E-13  1.0000E-12  1.9631E-05  6.2521E-02  1.0416E-01    F
          27    Hmholtz velx:     32   5.5180E-15   2.7067E-03   1.0000E-14
          27    Hmholtz vely:      3   5.9955E-15   9.6638E-14   1.0000E-14
          27    Hmholtz velz:     32   7.8021E-15   2.3641E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.6933E-20   7.6957E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.6933E-20   7.6957E-06
-         27   2.7000E-01  1.6403E-01 Fluid done
+         27   2.7000E-01  2.7644E-01 Fluid done
 Maximum scalar  1.000164277721
 Maximum velocity   0.00091293039   0.00000000000   0.00101234241
  Grep          27   1.0123424125337065E-003
-Step     28, t= 2.8000000E-01, DT= 1.0000000E-02, C=  0.001 6.2485E+00 2.2238E-01
+Step     28, t= 2.8000000E-01, DT= 1.0000000E-02, C=  0.001 1.0498E+01 3.7247E-01
              Solving for heat
  Solving for fluid T T T
          28    Hmholtz TEMP:     16   4.1519E-15   3.3942E-01   1.0000E-14
-         28   2.8000E-01  2.3413E-02 Heat done
-       28 PRES gmres:   14  7.5420E-13  1.0000E-12  1.9172E-05  3.7006E-02  6.1820E-02    F
+         28   2.8000E-01  3.9381E-02 Heat done
+       28 PRES gmres:   14  7.5420E-13  1.0000E-12  1.9172E-05  6.2510E-02  1.0405E-01    F
          28    Hmholtz velx:     32   5.3037E-15   2.6645E-03   1.0000E-14
          28    Hmholtz vely:      2   9.3617E-15   5.3231E-14   1.0000E-14
          28    Hmholtz velz:     32   7.6639E-15   2.3292E-03   1.0000E-14
                L1/L2 DIV(V)    :  -3.3974E-20   7.5807E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -3.3974E-20   7.5807E-06
-         28   2.8000E-01  1.6215E-01 Fluid done
+         28   2.8000E-01  2.7428E-01 Fluid done
 Maximum scalar  1.000152824250
 Maximum velocity   0.00093986900   0.00000000000   0.00104107023
  Grep          28   1.0410702319850966E-003
-Step     29, t= 2.9000000E-01, DT= 1.0000000E-02, C=  0.001 6.4690E+00 2.2050E-01
+Step     29, t= 2.9000000E-01, DT= 1.0000000E-02, C=  0.001 1.0868E+01 3.7031E-01
              Solving for heat
  Solving for fluid T T T
          29    Hmholtz TEMP:     16   4.0558E-15   3.3457E-01   1.0000E-14
-         29   2.9000E-01  2.3291E-02 Heat done
-       29 PRES gmres:   14  7.4100E-13  1.0000E-12  1.8732E-05  3.7078E-02  6.1944E-02    F
+         29   2.9000E-01  3.9406E-02 Heat done
+       29 PRES gmres:   14  7.4100E-13  1.0000E-12  1.8732E-05  6.2629E-02  1.0415E-01    F
          29    Hmholtz velx:     32   5.1040E-15   2.6230E-03   1.0000E-14
          29    Hmholtz vely:      3   5.9590E-15   9.1745E-14   1.0000E-14
          29    Hmholtz velz:     32   7.5290E-15   2.2948E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.5367E-20   7.4609E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.5367E-20   7.4609E-06
-         29   2.9000E-01  1.6330E-01 Fluid done
+         29   2.9000E-01  2.7634E-01 Fluid done
 Maximum scalar  1.000141770612
 Maximum velocity   0.00096634032   0.00000000000   0.00106933655
  Grep          29   1.0693365531135135E-003
-Step     30, t= 3.0000000E-01, DT= 1.0000000E-02, C=  0.001 6.6905E+00 2.2152E-01
+Step     30, t= 3.0000000E-01, DT= 1.0000000E-02, C=  0.001 1.1241E+01 3.7238E-01
              Solving for heat
  Solving for fluid T T T
          30    Hmholtz TEMP:     16   3.9630E-15   3.2987E-01   1.0000E-14
-         30   3.0000E-01  2.3310E-02 Heat done
-       30 PRES gmres:   14  7.2808E-13  1.0000E-12  1.8310E-05  3.6901E-02  6.1856E-02    F
+         30   3.0000E-01  3.9393E-02 Heat done
+       30 PRES gmres:   14  7.2808E-13  1.0000E-12  1.8310E-05  6.2545E-02  1.0395E-01    F
          30    Hmholtz velx:     32   4.9182E-15   2.5824E-03   1.0000E-14
          30    Hmholtz vely:      3   4.2162E-15   6.4613E-14   1.0000E-14
          30    Hmholtz velz:     32   7.3973E-15   2.2610E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.8864E-20   7.3367E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.8864E-20   7.3367E-06
-         30   3.0000E-01  1.6345E-01 Fluid done
+         30   3.0000E-01  2.7678E-01 Fluid done
 Maximum scalar  1.000130222393
 Maximum velocity   0.00099238335   0.00000000000   0.00109715153
  Grep          30   1.0971515341584503E-003
-Step     31, t= 3.1000000E-01, DT= 1.0000000E-02, C=  0.001 6.9121E+00 2.2162E-01
+Step     31, t= 3.1000000E-01, DT= 1.0000000E-02, C=  0.001 1.1614E+01 3.7294E-01
              Solving for heat
  Solving for fluid T T T
          31    Hmholtz TEMP:     16   3.8733E-15   3.2533E-01   1.0000E-14
-         31   3.1000E-01  2.3277E-02 Heat done
-       31 PRES gmres:   14  7.1543E-13  1.0000E-12  1.7905E-05  3.7251E-02  6.2065E-02    F
+         31   3.1000E-01  3.9291E-02 Heat done
+       31 PRES gmres:   14  7.1543E-13  1.0000E-12  1.7905E-05  6.2566E-02  1.0420E-01    F
          31    Hmholtz velx:     32   4.7458E-15   2.5425E-03   1.0000E-14
          31    Hmholtz vely:      2   9.7271E-15   6.0015E-14   1.0000E-14
          31    Hmholtz velz:     32   7.2688E-15   2.2279E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.7335E-20   7.2086E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.7335E-20   7.2086E-06
-         31   3.1000E-01  1.6366E-01 Fluid done
+         31   3.1000E-01  2.7441E-01 Fluid done
 Maximum scalar  1.000117184583
 Maximum velocity   0.00101798702   0.00000000000   0.00112452495
  Grep          31   1.1245249462880861E-003
-Step     32, t= 3.2000000E-01, DT= 1.0000000E-02, C=  0.001 7.1347E+00 2.2261E-01
+Step     32, t= 3.2000000E-01, DT= 1.0000000E-02, C=  0.001 1.1984E+01 3.7028E-01
              Solving for heat
  Solving for fluid T T T
          32    Hmholtz TEMP:     16   3.7866E-15   3.2094E-01   1.0000E-14
-         32   3.2000E-01  2.3272E-02 Heat done
-       32 PRES gmres:   14  7.0304E-13  1.0000E-12  1.7516E-05  3.6881E-02  6.1739E-02    F
+         32   3.2000E-01  3.9300E-02 Heat done
+       32 PRES gmres:   14  7.0304E-13  1.0000E-12  1.7516E-05  6.2626E-02  1.0416E-01    F
          32    Hmholtz velx:     32   4.5858E-15   2.5034E-03   1.0000E-14
          32    Hmholtz vely:      3   4.2523E-15   5.2243E-14   1.0000E-14
          32    Hmholtz velz:     32   7.1433E-15   2.1952E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.3795E-20   7.0773E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.3795E-20   7.0773E-06
-         32   3.2000E-01  1.6333E-01 Fluid done
+         32   3.2000E-01  2.7690E-01 Fluid done
 Maximum scalar  1.000102675143
 Maximum velocity   0.00104380188   0.00000000000   0.00115146620
  Grep          32   1.1514662041607867E-003
-Step     33, t= 3.3000000E-01, DT= 1.0000000E-02, C=  0.001 7.3562E+00 2.2154E-01
+Step     33, t= 3.3000000E-01, DT= 1.0000000E-02, C=  0.001 1.2357E+01 3.7279E-01
              Solving for heat
  Solving for fluid T T T
          33    Hmholtz TEMP:     16   3.7028E-15   3.1668E-01   1.0000E-14
-         33   3.3000E-01  2.3301E-02 Heat done
-       33 PRES gmres:   14  6.9089E-13  1.0000E-12  1.7142E-05  3.7058E-02  6.1832E-02    F
+         33   3.3000E-01  3.9281E-02 Heat done
+       33 PRES gmres:   14  6.9089E-13  1.0000E-12  1.7142E-05  6.2566E-02  1.0403E-01    F
          33    Hmholtz velx:     32   4.4377E-15   2.4651E-03   1.0000E-14
          33    Hmholtz vely:      2   9.7013E-15   5.4788E-14   1.0000E-14
          33    Hmholtz velz:     32   7.0208E-15   2.1631E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.6762E-20   6.9434E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.6762E-20   6.9434E-06
-         33   3.3000E-01  1.6209E-01 Fluid done
+         33   3.3000E-01  2.7423E-01 Fluid done
 Maximum scalar  1.000095589289
 Maximum velocity   0.00107008777   0.00000000000   0.00117798439
  Grep          33   1.1779843930133412E-003
-Step     34, t= 3.4000000E-01, DT= 1.0000000E-02, C=  0.001 7.5766E+00 2.2039E-01
+Step     34, t= 3.4000000E-01, DT= 1.0000000E-02, C=  0.001 1.2727E+01 3.7020E-01
              Solving for heat
  Solving for fluid T T T
          34    Hmholtz TEMP:     16   3.6219E-15   3.1255E-01   1.0000E-14
-         34   3.4000E-01  2.3341E-02 Heat done
-       34 PRES gmres:   14  6.7900E-13  1.0000E-12  1.6783E-05  3.7020E-02  6.1868E-02    F
+         34   3.4000E-01  3.9229E-02 Heat done
+       34 PRES gmres:   14  6.7900E-13  1.0000E-12  1.6783E-05  6.2547E-02  1.0403E-01    F
          34    Hmholtz velx:     31   9.9473E-15   2.4274E-03   1.0000E-14
          34    Hmholtz vely:      3   4.3302E-15   6.1868E-14   1.0000E-14
          34    Hmholtz velz:     32   6.9011E-15   2.1316E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.6507E-20   6.8073E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.6507E-20   6.8073E-06
-         34   3.4000E-01  1.6219E-01 Fluid done
+         34   3.4000E-01  2.7469E-01 Fluid done
 Maximum scalar  1.000088985400
 Maximum velocity   0.00109596643   0.00000000000   0.00120408829
  Grep          34   1.2040882927064481E-003
-Step     35, t= 3.5000000E-01, DT= 1.0000000E-02, C=  0.002 7.7970E+00 2.2041E-01
+Step     35, t= 3.5000000E-01, DT= 1.0000000E-02, C=  0.002 1.3097E+01 3.7047E-01
              Solving for heat
  Solving for fluid T T T
          35    Hmholtz TEMP:     16   3.5436E-15   3.0855E-01   1.0000E-14
-         35   3.5000E-01  2.3481E-02 Heat done
-       35 PRES gmres:   14  6.6736E-13  1.0000E-12  1.6437E-05  3.7052E-02  6.1882E-02    F
+         35   3.5000E-01  3.9238E-02 Heat done
+       35 PRES gmres:   14  6.6736E-13  1.0000E-12  1.6437E-05  6.2508E-02  1.0396E-01    F
          35    Hmholtz velx:     31   9.7117E-15   2.3905E-03   1.0000E-14
          35    Hmholtz vely:      2   8.2352E-15   4.4510E-14   1.0000E-14
          35    Hmholtz velz:     32   6.7841E-15   2.1006E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.9190E-20   6.6697E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.9190E-20   6.6697E-06
-         35   3.5000E-01  1.6108E-01 Fluid done
+         35   3.5000E-01  2.7242E-01 Fluid done
 Maximum scalar  1.000082341733
 Maximum velocity   0.00112144418   0.00000000000   0.00122978640
  Grep          35   1.2297863990999305E-003
-Step     36, t= 3.6000000E-01, DT= 1.0000000E-02, C=  0.002 8.0169E+00 2.1984E-01
+Step     36, t= 3.6000000E-01, DT= 1.0000000E-02, C=  0.002 1.3466E+01 3.6840E-01
              Solving for heat
  Solving for fluid T T T
          36    Hmholtz TEMP:     16   3.4680E-15   3.0466E-01   1.0000E-14
-         36   3.6000E-01  2.3277E-02 Heat done
-       36 PRES gmres:   14  6.5595E-13  1.0000E-12  1.6104E-05  3.7514E-02  6.2346E-02    F
+         36   3.6000E-01  3.9342E-02 Heat done
+       36 PRES gmres:   14  6.5595E-13  1.0000E-12  1.6104E-05  6.2617E-02  1.0416E-01    F
          36    Hmholtz velx:     31   9.4917E-15   2.3542E-03   1.0000E-14
          36    Hmholtz vely:      2   9.2386E-15   4.6023E-14   1.0000E-14
          36    Hmholtz velz:     32   6.6697E-15   2.0701E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.4867E-20   6.5311E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.4867E-20   6.5311E-06
-         36   3.6000E-01  1.6160E-01 Fluid done
+         36   3.6000E-01  2.7243E-01 Fluid done
 Maximum scalar  1.000074804137
 Maximum velocity   0.00114652742   0.00000000000   0.00125508694
  Grep          36   1.2550869431151948E-003
-Step     37, t= 3.7000000E-01, DT= 1.0000000E-02, C=  0.002 8.2368E+00 2.1988E-01
+Step     37, t= 3.7000000E-01, DT= 1.0000000E-02, C=  0.002 1.3834E+01 3.6832E-01
              Solving for heat
  Solving for fluid T T T
          37    Hmholtz TEMP:     16   3.3948E-15   3.0089E-01   1.0000E-14
-         37   3.7000E-01  2.3347E-02 Heat done
-       37 PRES gmres:   14  6.4477E-13  1.0000E-12  1.5783E-05  3.6984E-02  6.1793E-02    F
+         37   3.7000E-01  3.9210E-02 Heat done
+       37 PRES gmres:   14  6.4477E-13  1.0000E-12  1.5783E-05  6.2610E-02  1.0413E-01    F
          37    Hmholtz velx:     31   9.2859E-15   2.3186E-03   1.0000E-14
          37    Hmholtz vely:      2   8.7386E-15   4.0942E-14   1.0000E-14
          37    Hmholtz velz:     32   6.5579E-15   2.0401E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.5306E-20   6.3919E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.5306E-20   6.3919E-06
-         37   3.7000E-01  1.6103E-01 Fluid done
+         37   3.7000E-01  2.7235E-01 Fluid done
 Maximum scalar  1.000066242318
 Maximum velocity   0.00117122266   0.00000000000   0.00127999791
  Grep          37   1.2799979077794093E-003
-Step     38, t= 3.8000000E-01, DT= 1.0000000E-02, C=  0.002 8.4560E+00 2.1922E-01
+Step     38, t= 3.8000000E-01, DT= 1.0000000E-02, C=  0.002 1.4202E+01 3.6825E-01
              Solving for heat
  Solving for fluid T T T
          38    Hmholtz TEMP:     16   3.3240E-15   2.9723E-01   1.0000E-14
-         38   3.8000E-01  2.3294E-02 Heat done
-       38 PRES gmres:   14  6.3383E-13  1.0000E-12  1.5473E-05  3.7000E-02  6.1817E-02    F
+         38   3.8000E-01  3.9314E-02 Heat done
+       38 PRES gmres:   14  6.3383E-13  1.0000E-12  1.5473E-05  6.2977E-02  1.0457E-01    F
          38    Hmholtz velx:     31   9.0928E-15   2.2837E-03   1.0000E-14
          38    Hmholtz vely:      3   4.2089E-15   5.0572E-14   1.0000E-14
          38    Hmholtz velz:     32   6.4485E-15   2.0106E-03   1.0000E-14
                L1/L2 DIV(V)    :  -3.6696E-20   6.2526E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -3.6696E-20   6.2526E-06
-         38   3.8000E-01  1.6209E-01 Fluid done
+         38   3.8000E-01  2.7456E-01 Fluid done
 Maximum scalar  1.000056644717
 Maximum velocity   0.00119553641   0.00000000000   0.00130452704
  Grep          38   1.3045270434933350E-003
-Step     39, t= 3.9000000E-01, DT= 1.0000000E-02, C=  0.002 8.6763E+00 2.2032E-01
+Step     39, t= 3.9000000E-01, DT= 1.0000000E-02, C=  0.002 1.4573E+01 3.7056E-01
              Solving for heat
  Solving for fluid T T T
          39    Hmholtz TEMP:     16   3.2556E-15   2.9367E-01   1.0000E-14
-         39   3.9000E-01  2.3250E-02 Heat done
-       39 PRES gmres:   14  6.2311E-13  1.0000E-12  1.5173E-05  3.6988E-02  6.1791E-02    F
+         39   3.9000E-01  3.9293E-02 Heat done
+       39 PRES gmres:   14  6.2311E-13  1.0000E-12  1.5173E-05  6.2579E-02  1.0414E-01    F
          39    Hmholtz velx:     31   8.9110E-15   2.2494E-03   1.0000E-14
          39    Hmholtz vely:      2   8.1439E-15   4.2763E-14   1.0000E-14
          39    Hmholtz velz:     32   6.3415E-15   1.9816E-03   1.0000E-14
                L1/L2 DIV(V)    :  -3.7745E-20   6.1135E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -3.7745E-20   6.1135E-06
-         39   3.9000E-01  1.6111E-01 Fluid done
+         39   3.9000E-01  2.7212E-01 Fluid done
 Maximum scalar  1.000051246277
 Maximum velocity   0.00121947521   0.00000000000   0.00132868188
  Grep          39   1.3286818817431758E-003
-Step     40, t= 4.0000000E-01, DT= 1.0000000E-02, C=  0.002 8.8955E+00 2.1921E-01
+Step     40, t= 4.0000000E-01, DT= 1.0000000E-02, C=  0.002 1.4941E+01 3.6820E-01
              Solving for heat
  Solving for fluid T T T
          40    Hmholtz TEMP:     16   3.1894E-15   2.9021E-01   1.0000E-14
-         40   4.0000E-01  2.3323E-02 Heat done
-       40 PRES gmres:   14  6.1261E-13  1.0000E-12  1.4885E-05  3.7016E-02  6.1788E-02    F
+         40   4.0000E-01  3.9307E-02 Heat done
+       40 PRES gmres:   14  6.1261E-13  1.0000E-12  1.4885E-05  6.2551E-02  1.0410E-01    F
          40    Hmholtz velx:     31   8.7393E-15   2.2158E-03   1.0000E-14
          40    Hmholtz vely:      2   7.9274E-15   3.9054E-14   1.0000E-14
          40    Hmholtz velz:     32   6.2369E-15   1.9531E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.2929E-20   5.9750E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.2929E-20   5.9750E-06
-         40   4.0000E-01  1.6098E-01 Fluid done
+         40   4.0000E-01  2.7281E-01 Fluid done
 Maximum scalar  1.000048914188
 Maximum velocity   0.00124304560   0.00000000000   0.00135246975
  Grep          40   1.3524697474506635E-003
-Step     41, t= 4.1000000E-01, DT= 1.0000000E-02, C=  0.002 9.1148E+00 2.1927E-01
+Step     41, t= 4.1000000E-01, DT= 1.0000000E-02, C=  0.002 1.5310E+01 3.6883E-01
              Solving for heat
  Solving for fluid T T T
          41    Hmholtz TEMP:     16   3.1253E-15   2.8684E-01   1.0000E-14
-         41   4.1000E-01  2.3281E-02 Heat done
-       41 PRES gmres:   14  6.0233E-13  1.0000E-12  1.4605E-05  3.6913E-02  6.1766E-02    F
+         41   4.1000E-01  3.9713E-02 Heat done
+       41 PRES gmres:   14  6.0233E-13  1.0000E-12  1.4605E-05  6.2560E-02  1.0406E-01    F
          41    Hmholtz velx:     31   8.5765E-15   2.1827E-03   1.0000E-14
          41    Hmholtz vely:      2   7.8810E-15   3.6701E-14   1.0000E-14
          41    Hmholtz velz:     32   6.1344E-15   1.9251E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.7173E-20   5.8374E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.7173E-20   5.8374E-06
-         41   4.1000E-01  1.6092E-01 Fluid done
+         41   4.1000E-01  2.7271E-01 Fluid done
 Maximum scalar  1.000046644200
 Maximum velocity   0.00126625405   0.00000000000   0.00137589777
  Grep          41   1.3758977701255122E-003
-Step     42, t= 4.2000000E-01, DT= 1.0000000E-02, C=  0.002 9.3339E+00 2.1916E-01
+Step     42, t= 4.2000000E-01, DT= 1.0000000E-02, C=  0.002 1.5679E+01 3.6893E-01
              Solving for heat
  Solving for fluid T T T
          42    Hmholtz TEMP:     16   3.0633E-15   2.8356E-01   1.0000E-14
-         42   4.2000E-01  2.3271E-02 Heat done
-       42 PRES gmres:   14  5.9226E-13  1.0000E-12  1.4335E-05  3.6915E-02  6.1794E-02    F
+         42   4.2000E-01  3.9251E-02 Heat done
+       42 PRES gmres:   14  5.9226E-13  1.0000E-12  1.4335E-05  6.2563E-02  1.0412E-01    F
          42    Hmholtz velx:     31   8.4213E-15   2.1503E-03   1.0000E-14
          42    Hmholtz vely:      2   8.2970E-15   3.9761E-14   1.0000E-14
          42    Hmholtz velz:     32   6.0342E-15   1.8975E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.5247E-20   5.7011E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.5247E-20   5.7011E-06
-         42   4.2000E-01  1.6107E-01 Fluid done
+         42   4.2000E-01  2.7263E-01 Fluid done
 Maximum scalar  1.000044208626
 Maximum velocity   0.00128910866   0.00000000000   0.00139897289
  Grep          42   1.3989728939609698E-003
-Step     43, t= 4.3000000E-01, DT= 1.0000000E-02, C=  0.002 9.5532E+00 2.1926E-01
+Step     43, t= 4.3000000E-01, DT= 1.0000000E-02, C=  0.002 1.6047E+01 3.6854E-01
              Solving for heat
  Solving for fluid T T T
          43    Hmholtz TEMP:     16   3.0033E-15   2.8037E-01   1.0000E-14
-         43   4.3000E-01  2.3265E-02 Heat done
-       43 PRES gmres:   14  5.8240E-13  1.0000E-12  1.4074E-05  3.7010E-02  6.1777E-02    F
+         43   4.3000E-01  3.9254E-02 Heat done
+       43 PRES gmres:   14  5.8240E-13  1.0000E-12  1.4074E-05  6.2514E-02  1.0414E-01    F
          43    Hmholtz velx:     31   8.2724E-15   2.1185E-03   1.0000E-14
          43    Hmholtz vely:      2   8.5785E-15   4.0423E-14   1.0000E-14
          43    Hmholtz velz:     32   5.9360E-15   1.8704E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.6690E-20   5.5661E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.6690E-20   5.5661E-06
-         43   4.3000E-01  1.6080E-01 Fluid done
+         43   4.3000E-01  2.7319E-01 Fluid done
 Maximum scalar  1.000041753137
 Maximum velocity   0.00131164044   0.00000000000   0.00142170189
  Grep          43   1.4217018869980352E-003
-Step     44, t= 4.4000000E-01, DT= 1.0000000E-02, C=  0.002 9.7724E+00 2.1921E-01
+Step     44, t= 4.4000000E-01, DT= 1.0000000E-02, C=  0.002 1.6416E+01 3.6899E-01
              Solving for heat
  Solving for fluid T T T
          44    Hmholtz TEMP:     16   2.9452E-15   2.7726E-01   1.0000E-14
-         44   4.4000E-01  2.3347E-02 Heat done
-       44 PRES gmres:   14  5.7274E-13  1.0000E-12  1.3821E-05  3.6993E-02  6.2004E-02    F
+         44   4.4000E-01  3.9309E-02 Heat done
+       44 PRES gmres:   14  5.7274E-13  1.0000E-12  1.3821E-05  6.2645E-02  1.0415E-01    F
          44    Hmholtz velx:     31   8.1276E-15   2.0873E-03   1.0000E-14
          44    Hmholtz vely:      2   7.8109E-15   3.6544E-14   1.0000E-14
          44    Hmholtz velz:     32   5.8400E-15   1.8438E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.0903E-20   5.4328E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.0903E-20   5.4328E-06
-         44   4.4000E-01  1.6123E-01 Fluid done
+         44   4.4000E-01  2.7217E-01 Fluid done
 Maximum scalar  1.000039253547
 Maximum velocity   0.00133382945   0.00000000000   0.00144409135
  Grep          44   1.4440913494683538E-003
-Step     45, t= 4.5000000E-01, DT= 1.0000000E-02, C=  0.002 9.9919E+00 2.1947E-01
+Step     45, t= 4.5000000E-01, DT= 1.0000000E-02, C=  0.002 1.6785E+01 3.6807E-01
              Solving for heat
  Solving for fluid T T T
          45    Hmholtz TEMP:     16   2.8889E-15   2.7423E-01   1.0000E-14
-         45   4.5000E-01  2.3349E-02 Heat done
-       45 PRES gmres:   14  5.6329E-13  1.0000E-12  1.3576E-05  3.7079E-02  6.1857E-02    F
+         45   4.5000E-01  3.9424E-02 Heat done
+       45 PRES gmres:   14  5.6329E-13  1.0000E-12  1.3576E-05  6.2518E-02  1.0411E-01    F
          45    Hmholtz velx:     31   7.9833E-15   2.0566E-03   1.0000E-14
          45    Hmholtz vely:      2   7.7344E-15   3.3752E-14   1.0000E-14
          45    Hmholtz velz:     32   5.7459E-15   1.8176E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.0885E-20   5.3012E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.0885E-20   5.3012E-06
-         45   4.5000E-01  1.6116E-01 Fluid done
+         45   4.5000E-01  2.7222E-01 Fluid done
 Maximum scalar  1.000036728491
 Maximum velocity   0.00135568191   0.00000000000   0.00146614772
  Grep          45   1.4661477214105566E-003
-Step     46, t= 4.6000000E-01, DT= 1.0000000E-02, C=  0.002 1.0211E+01 2.1942E-01
+Step     46, t= 4.6000000E-01, DT= 1.0000000E-02, C=  0.002 1.7153E+01 3.6829E-01
              Solving for heat
  Solving for fluid T T T
          46    Hmholtz TEMP:     16   2.8344E-15   2.7128E-01   1.0000E-14
-         46   4.6000E-01  2.3263E-02 Heat done
-       46 PRES gmres:   14  5.5403E-13  1.0000E-12  1.3338E-05  3.7015E-02  6.1860E-02    F
+         46   4.6000E-01  3.9382E-02 Heat done
+       46 PRES gmres:   14  5.5403E-13  1.0000E-12  1.3338E-05  6.2890E-02  1.0434E-01    F
          46    Hmholtz velx:     31   7.8314E-15   2.0265E-03   1.0000E-14
          46    Hmholtz vely:      2   7.7254E-15   3.4578E-14   1.0000E-14
          46    Hmholtz velz:     32   5.6538E-15   1.7918E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.2150E-20   5.1716E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.2150E-20   5.1716E-06
-         46   4.6000E-01  1.6101E-01 Fluid done
+         46   4.6000E-01  2.7238E-01 Fluid done
 Maximum scalar  1.000034237683
 Maximum velocity   0.00137720396   0.00000000000   0.00148787729
  Grep          46   1.4878772896423241E-003
-Step     47, t= 4.7000000E-01, DT= 1.0000000E-02, C=  0.002 1.0431E+01 2.1930E-01
+Step     47, t= 4.7000000E-01, DT= 1.0000000E-02, C=  0.002 1.7521E+01 3.6841E-01
              Solving for heat
  Solving for fluid T T T
          47    Hmholtz TEMP:     16   2.7816E-15   2.6841E-01   1.0000E-14
-         47   4.7000E-01  2.3339E-02 Heat done
-       47 PRES gmres:   14  5.4497E-13  1.0000E-12  1.3108E-05  3.6872E-02  6.1779E-02    F
+         47   4.7000E-01  3.9481E-02 Heat done
+       47 PRES gmres:   14  5.4497E-13  1.0000E-12  1.3108E-05  6.2559E-02  1.0408E-01    F
          47    Hmholtz velx:     31   7.6491E-15   1.9969E-03   1.0000E-14
          47    Hmholtz vely:      2   7.9025E-15   3.5761E-14   1.0000E-14
          47    Hmholtz velz:     32   5.5636E-15   1.7665E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.8613E-20   5.0442E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.8613E-20   5.0442E-06
-         47   4.7000E-01  1.6109E-01 Fluid done
+         47   4.7000E-01  2.7225E-01 Fluid done
 Maximum scalar  1.000031660324
 Maximum velocity   0.00139840163   0.00000000000   0.00150928619
  Grep          47   1.5092861941608336E-003
-Step     48, t= 4.8000000E-01, DT= 1.0000000E-02, C=  0.002 1.0650E+01 2.1927E-01
+Step     48, t= 4.8000000E-01, DT= 1.0000000E-02, C=  0.002 1.7890E+01 3.6846E-01
              Solving for heat
  Solving for fluid T T T
          48    Hmholtz TEMP:     16   2.7305E-15   2.6560E-01   1.0000E-14
-         48   4.8000E-01  2.3313E-02 Heat done
-       48 PRES gmres:   14  5.3610E-13  1.0000E-12  1.2885E-05  3.6887E-02  6.1764E-02    F
+         48   4.8000E-01  3.9219E-02 Heat done
+       48 PRES gmres:   14  5.3610E-13  1.0000E-12  1.2885E-05  6.2613E-02  1.0419E-01    F
          48    Hmholtz velx:     31   7.3670E-15   1.9679E-03   1.0000E-14
          48    Hmholtz vely:      2   7.5776E-15   3.4876E-14   1.0000E-14
          48    Hmholtz velz:     32   5.4752E-15   1.7416E-03   1.0000E-14
                L1/L2 DIV(V)    :  -6.9628E-20   4.9189E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -6.9628E-20   4.9189E-06
-         48   4.8000E-01  1.6082E-01 Fluid done
+         48   4.8000E-01  2.7229E-01 Fluid done
 Maximum scalar  1.000028681735
 Maximum velocity   0.00141928089   0.00000000000   0.00153038043
  Grep          48   1.5303804340355035E-003
-Step     49, t= 4.9000000E-01, DT= 1.0000000E-02, C=  0.002 1.0869E+01 2.1902E-01
+Step     49, t= 4.9000000E-01, DT= 1.0000000E-02, C=  0.002 1.8258E+01 3.6817E-01
              Solving for heat
  Solving for fluid T T T
          49    Hmholtz TEMP:     16   2.6810E-15   2.6286E-01   1.0000E-14
-         49   4.9000E-01  2.3296E-02 Heat done
-       49 PRES gmres:   14  5.2741E-13  1.0000E-12  1.2668E-05  3.7038E-02  6.1821E-02    F
+         49   4.9000E-01  3.9308E-02 Heat done
+       49 PRES gmres:   14  5.2741E-13  1.0000E-12  1.2668E-05  6.2640E-02  1.0413E-01    F
          49    Hmholtz velx:     31   6.8240E-15   1.9394E-03   1.0000E-14
          49    Hmholtz vely:      2   7.0873E-15   3.1527E-14   1.0000E-14
          49    Hmholtz velz:     32   5.3887E-15   1.7171E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.5815E-20   4.7958E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.5815E-20   4.7958E-06
-         49   4.9000E-01  1.6118E-01 Fluid done
+         49   4.9000E-01  2.7241E-01 Fluid done
 Maximum scalar  1.000025257226
 Maximum velocity   0.00143984760   0.00000000000   0.00155116587
  Grep          49   1.5511658728485870E-003
-Step     50, t= 5.0000000E-01, DT= 1.0000000E-02, C=  0.002 1.1088E+01 2.1934E-01
+Step     50, t= 5.0000000E-01, DT= 1.0000000E-02, C=  0.002 1.8627E+01 3.6873E-01
              Solving for heat
  Solving for fluid T T T
          50    Hmholtz TEMP:     16   2.6330E-15   2.6018E-01   1.0000E-14
-         50   5.0000E-01  2.4465E-02 Heat done
-       50 PRES gmres:   14  5.1891E-13  1.0000E-12  1.2458E-05  3.7000E-02  6.1834E-02    F
+         50   5.0000E-01  3.9336E-02 Heat done
+       50 PRES gmres:   14  5.1891E-13  1.0000E-12  1.2458E-05  6.2482E-02  1.0394E-01    F
          50    Hmholtz velx:     31   6.2085E-15   1.9114E-03   1.0000E-14
          50    Hmholtz vely:      2   7.1800E-15   3.1221E-14   1.0000E-14
          50    Hmholtz velz:     32   5.3039E-15   1.6930E-03   1.0000E-14
                L1/L2 DIV(V)    :  -6.8381E-20   4.6752E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -6.8381E-20   4.6752E-06
-         50   5.0000E-01  1.6109E-01 Fluid done
+         50   5.0000E-01  2.7254E-01 Fluid done
 Maximum scalar  1.000021370563
 Maximum velocity   0.00146010752   0.00000000000   0.00157164824
  Grep          50   1.5716482437321817E-003
-Step     51, t= 5.1000000E-01, DT= 1.0000000E-02, C=  0.002 1.1308E+01 2.2011E-01
+Step     51, t= 5.1000000E-01, DT= 1.0000000E-02, C=  0.002 1.8995E+01 3.6864E-01
              Solving for heat
  Solving for fluid T T T
          51    Hmholtz TEMP:     16   2.5866E-15   2.5757E-01   1.0000E-14
-         51   5.1000E-01  2.3282E-02 Heat done
-       51 PRES gmres:   14  5.1059E-13  1.0000E-12  1.2254E-05  3.7060E-02  6.1954E-02    F
+         51   5.1000E-01  3.9340E-02 Heat done
+       51 PRES gmres:   14  5.1059E-13  1.0000E-12  1.2254E-05  6.2570E-02  1.0410E-01    F
          51    Hmholtz velx:     31   6.4494E-15   1.8839E-03   1.0000E-14
          51    Hmholtz vely:      2   7.0361E-15   3.1803E-14   1.0000E-14
          51    Hmholtz velz:     32   5.2209E-15   1.6693E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.7330E-20   4.5569E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.7330E-20   4.5569E-06
-         51   5.1000E-01  1.6118E-01 Fluid done
+         51   5.1000E-01  2.7291E-01 Fluid done
 Maximum scalar  1.000017004959
 Maximum velocity   0.00148006631   0.00000000000   0.00159183315
  Grep          51   1.5918331540445126E-003
-Step     52, t= 5.2000000E-01, DT= 1.0000000E-02, C=  0.002 1.1528E+01 2.1939E-01
+Step     52, t= 5.2000000E-01, DT= 1.0000000E-02, C=  0.002 1.9364E+01 3.6880E-01
              Solving for heat
  Solving for fluid T T T
          52    Hmholtz TEMP:     16   2.5415E-15   2.5502E-01   1.0000E-14
-         52   5.2000E-01  2.3474E-02 Heat done
-       52 PRES gmres:   14  5.0244E-13  1.0000E-12  1.2055E-05  3.6997E-02  6.1760E-02    F
+         52   5.2000E-01  3.9303E-02 Heat done
+       52 PRES gmres:   14  5.0244E-13  1.0000E-12  1.2055E-05  6.2536E-02  1.0411E-01    F
          52    Hmholtz velx:     31   6.8354E-15   1.8569E-03   1.0000E-14
          52    Hmholtz vely:      2   7.0483E-15   3.1902E-14   1.0000E-14
          52    Hmholtz velz:     32   5.1395E-15   1.6461E-03   1.0000E-14
                L1/L2 DIV(V)    :  -4.0413E-20   4.4411E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -4.0413E-20   4.4411E-06
-         52   5.2000E-01  1.6102E-01 Fluid done
+         52   5.2000E-01  2.7280E-01 Fluid done
 Maximum scalar  1.000012143042
 Maximum velocity   0.00149972952   0.00000000000   0.00161172609
  Grep          52   1.6117260897232646E-003
-Step     53, t= 5.3000000E-01, DT= 1.0000000E-02, C=  0.002 1.1747E+01 2.1938E-01
+Step     53, t= 5.3000000E-01, DT= 1.0000000E-02, C=  0.002 1.9733E+01 3.6883E-01
              Solving for heat
  Solving for fluid T T T
          53    Hmholtz TEMP:     16   2.4979E-15   2.5253E-01   1.0000E-14
-         53   5.3000E-01  2.3285E-02 Heat done
-       53 PRES gmres:   14  4.9447E-13  1.0000E-12  1.1862E-05  3.6962E-02  6.1940E-02    F
+         53   5.3000E-01  3.9315E-02 Heat done
+       53 PRES gmres:   14  4.9447E-13  1.0000E-12  1.1862E-05  6.2646E-02  1.0418E-01    F
          53    Hmholtz velx:     31   6.9546E-15   1.8304E-03   1.0000E-14
          53    Hmholtz vely:      2   6.5910E-15   3.0468E-14   1.0000E-14
          53    Hmholtz velz:     32   5.0598E-15   1.6232E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.7807E-20   4.3277E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.7807E-20   4.3277E-06
-         53   5.3000E-01  1.6107E-01 Fluid done
+         53   5.3000E-01  2.7249E-01 Fluid done
 Maximum scalar  1.000008323969
 Maximum velocity   0.00151910262   0.00000000000   0.00163133242
  Grep          53   1.6313324193490259E-003
-Step     54, t= 5.4000000E-01, DT= 1.0000000E-02, C=  0.002 1.1966E+01 2.1921E-01
+Step     54, t= 5.4000000E-01, DT= 1.0000000E-02, C=  0.002 2.0101E+01 3.6859E-01
              Solving for heat
  Solving for fluid T T T
          54    Hmholtz TEMP:     16   2.4555E-15   2.5010E-01   1.0000E-14
-         54   5.4000E-01  2.3258E-02 Heat done
-       54 PRES gmres:   14  4.8666E-13  1.0000E-12  1.1675E-05  3.6926E-02  6.1829E-02    F
+         54   5.4000E-01  3.9333E-02 Heat done
+       54 PRES gmres:   14  4.8666E-13  1.0000E-12  1.1675E-05  6.2549E-02  1.0406E-01    F
          54    Hmholtz velx:     31   6.9458E-15   1.8043E-03   1.0000E-14
          54    Hmholtz vely:      2   6.5387E-15   2.8312E-14   1.0000E-14
          54    Hmholtz velz:     32   4.9817E-15   1.6007E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.0553E-19   4.2168E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.0553E-19   4.2168E-06
-         54   5.4000E-01  1.6176E-01 Fluid done
+         54   5.4000E-01  2.7271E-01 Fluid done
 Maximum scalar  1.000007986431
 Maximum velocity   0.00153819097   0.00000000000   0.00165065740
  Grep          54   1.6506573979479509E-003
-Step     55, t= 5.5000000E-01, DT= 1.0000000E-02, C=  0.002 1.2186E+01 2.2004E-01
+Step     55, t= 5.5000000E-01, DT= 1.0000000E-02, C=  0.002 2.0470E+01 3.6870E-01
              Solving for heat
  Solving for fluid T T T
          55    Hmholtz TEMP:     16   2.4145E-15   2.4772E-01   1.0000E-14
-         55   5.5000E-01  2.3257E-02 Heat done
-       55 PRES gmres:   14  4.7903E-13  1.0000E-12  1.1492E-05  3.6980E-02  6.1935E-02    F
+         55   5.5000E-01  3.9274E-02 Heat done
+       55 PRES gmres:   14  4.7903E-13  1.0000E-12  1.1492E-05  6.2479E-02  1.0402E-01    F
          55    Hmholtz velx:     31   6.8912E-15   1.7788E-03   1.0000E-14
          55    Hmholtz vely:      2   6.5041E-15   2.9285E-14   1.0000E-14
          55    Hmholtz velz:     32   4.9051E-15   1.5786E-03   1.0000E-14
                L1/L2 DIV(V)    :  -7.6209E-20   4.1084E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -7.6209E-20   4.1084E-06
-         55   5.5000E-01  1.6092E-01 Fluid done
+         55   5.5000E-01  2.7206E-01 Fluid done
 Maximum scalar  1.000007588936
 Maximum velocity   0.00155699982   0.00000000000   0.00166970617
  Grep          55   1.6697061705593578E-003
-Step     56, t= 5.6000000E-01, DT= 1.0000000E-02, C=  0.002 1.2405E+01 2.1906E-01
+Step     56, t= 5.6000000E-01, DT= 1.0000000E-02, C=  0.002 2.0838E+01 3.6806E-01
              Solving for heat
  Solving for fluid T T T
          56    Hmholtz TEMP:     16   2.3748E-15   2.4539E-01   1.0000E-14
-         56   5.6000E-01  2.3309E-02 Heat done
-       56 PRES gmres:   14  4.7155E-13  1.0000E-12  1.1315E-05  3.6966E-02  6.1796E-02    F
+         56   5.6000E-01  3.9262E-02 Heat done
+       56 PRES gmres:   14  4.7155E-13  1.0000E-12  1.1315E-05  6.2557E-02  1.0408E-01    F
          56    Hmholtz velx:     31   6.8198E-15   1.7537E-03   1.0000E-14
          56    Hmholtz vely:      2   6.3191E-15   2.8449E-14   1.0000E-14
          56    Hmholtz velz:     32   4.8302E-15   1.5569E-03   1.0000E-14
                L1/L2 DIV(V)    :  -2.5948E-20   4.0025E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -2.5948E-20   4.0025E-06
-         56   5.6000E-01  1.6081E-01 Fluid done
+         56   5.6000E-01  2.7219E-01 Fluid done
 Maximum scalar  1.000007154275
 Maximum velocity   0.00157553433   0.00000000000   0.00168848378
  Grep          56   1.6884837755909965E-003
-Step     57, t= 5.7000000E-01, DT= 1.0000000E-02, C=  0.002 1.2624E+01 2.1902E-01
+Step     57, t= 5.7000000E-01, DT= 1.0000000E-02, C=  0.002 2.1206E+01 3.6808E-01
              Solving for heat
  Solving for fluid T T T
          57    Hmholtz TEMP:     16   2.3363E-15   2.4311E-01   1.0000E-14
-         57   5.7000E-01  2.3272E-02 Heat done
-       57 PRES gmres:   14  4.6423E-13  1.0000E-12  1.1142E-05  3.6972E-02  6.1720E-02    F
+         57   5.7000E-01  3.9402E-02 Heat done
+       57 PRES gmres:   14  4.6423E-13  1.0000E-12  1.1142E-05  6.2586E-02  1.0456E-01    F
          57    Hmholtz velx:     31   6.7421E-15   1.7290E-03   1.0000E-14
          57    Hmholtz vely:      2   6.2202E-15   2.9142E-14   1.0000E-14
          57    Hmholtz velz:     32   4.7567E-15   1.5355E-03   1.0000E-14
                L1/L2 DIV(V)    :  -9.3776E-20   3.8991E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -9.3776E-20   3.8991E-06
-         57   5.7000E-01  1.6085E-01 Fluid done
+         57   5.7000E-01  2.7347E-01 Fluid done
 Maximum scalar  1.000006685122
 Maximum velocity   0.00159379955   0.00000000000   0.00170699515
  Grep          57   1.7069951479820413E-003
-Step     58, t= 5.8000000E-01, DT= 1.0000000E-02, C=  0.002 1.2843E+01 2.1901E-01
+Step     58, t= 5.8000000E-01, DT= 1.0000000E-02, C=  0.002 2.1576E+01 3.6948E-01
              Solving for heat
  Solving for fluid T T T
          58    Hmholtz TEMP:     16   2.2990E-15   2.4088E-01   1.0000E-14
-         58   5.8000E-01  2.3376E-02 Heat done
-       58 PRES gmres:   14  4.5707E-13  1.0000E-12  1.0974E-05  3.7043E-02  6.1849E-02    F
+         58   5.8000E-01  3.9362E-02 Heat done
+       58 PRES gmres:   14  4.5707E-13  1.0000E-12  1.0974E-05  6.2626E-02  1.0420E-01    F
          58    Hmholtz velx:     31   6.6625E-15   1.7048E-03   1.0000E-14
          58    Hmholtz vely:      2   5.8796E-15   2.6431E-14   1.0000E-14
          58    Hmholtz velz:     32   4.6846E-15   1.5145E-03   1.0000E-14
                L1/L2 DIV(V)    :  -9.9452E-20   3.7982E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -9.9452E-20   3.7982E-06
-         58   5.8000E-01  1.6107E-01 Fluid done
+         58   5.8000E-01  2.7240E-01 Fluid done
 Maximum scalar  1.000006369078
 Maximum velocity   0.00161180045   0.00000000000   0.00172524512
  Grep          58   1.7252451221915423E-003
-Step     59, t= 5.9000000E-01, DT= 1.0000000E-02, C=  0.002 1.3063E+01 2.1949E-01
+Step     59, t= 5.9000000E-01, DT= 1.0000000E-02, C=  0.002 2.1944E+01 3.6843E-01
              Solving for heat
  Solving for fluid T T T
          59    Hmholtz TEMP:     16   2.2628E-15   2.3870E-01   1.0000E-14
-         59   5.9000E-01  2.3300E-02 Heat done
-       59 PRES gmres:   14  4.5006E-13  1.0000E-12  1.0810E-05  3.6921E-02  6.1823E-02    F
+         59   5.9000E-01  3.9302E-02 Heat done
+       59 PRES gmres:   14  4.5006E-13  1.0000E-12  1.0810E-05  6.2821E-02  1.0427E-01    F
          59    Hmholtz velx:     31   6.5825E-15   1.6810E-03   1.0000E-14
          59    Hmholtz vely:      2   6.0587E-15   2.6948E-14   1.0000E-14
          59    Hmholtz velz:     32   4.6141E-15   1.4939E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.8308E-20   3.6997E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.8308E-20   3.6997E-06
-         59   5.9000E-01  1.6085E-01 Fluid done
+         59   5.9000E-01  2.7286E-01 Fluid done
 Maximum scalar  1.000006592718
 Maximum velocity   0.00162985483   0.00000000000   0.00174323844
  Grep          59   1.7432384350280928E-003
-Step     60, t= 6.0000000E-01, DT= 1.0000000E-02, C=  0.002 1.3282E+01 2.1918E-01
+Step     60, t= 6.0000000E-01, DT= 1.0000000E-02, C=  0.002 2.2313E+01 3.6877E-01
              Solving for heat
  Solving for fluid T T T
          60    Hmholtz TEMP:     16   2.2277E-15   2.3657E-01   1.0000E-14
-         60   6.0000E-01  2.3244E-02 Heat done
-       60 PRES gmres:   14  4.4320E-13  1.0000E-12  1.0650E-05  3.6860E-02  6.1795E-02    F
+         60   6.0000E-01  3.9593E-02 Heat done
+       60 PRES gmres:   14  4.4320E-13  1.0000E-12  1.0650E-05  6.2569E-02  1.0415E-01    F
          60    Hmholtz velx:     31   6.5032E-15   1.6576E-03   1.0000E-14
          60    Hmholtz vely:      2   5.7038E-15   2.6049E-14   1.0000E-14
          60    Hmholtz velz:     32   4.5449E-15   1.4736E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.2216E-19   3.6036E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.2216E-19   3.6036E-06
-         60   6.0000E-01  1.6086E-01 Fluid done
+         60   6.0000E-01  2.7220E-01 Fluid done
 Maximum scalar  1.000006817362
 Maximum velocity   0.00164773050   0.00000000000   0.00176097973
  Grep          60   1.7609797283346731E-003
-Step     61, t= 6.1000000E-01, DT= 1.0000000E-02, C=  0.002 1.3501E+01 2.1920E-01
+Step     61, t= 6.1000000E-01, DT= 1.0000000E-02, C=  0.002 2.2681E+01 3.6847E-01
              Solving for heat
  Solving for fluid T T T
          61    Hmholtz TEMP:     16   2.1938E-15   2.3448E-01   1.0000E-14
-         61   6.1000E-01  2.3225E-02 Heat done
-       61 PRES gmres:   14  4.3649E-13  1.0000E-12  1.0494E-05  3.7129E-02  6.1931E-02    F
+         61   6.1000E-01  3.9277E-02 Heat done
+       61 PRES gmres:   14  4.3649E-13  1.0000E-12  1.0494E-05  6.2527E-02  1.0402E-01    F
          61    Hmholtz velx:     31   6.4247E-15   1.6347E-03   1.0000E-14
          61    Hmholtz vely:      2   5.7346E-15   2.6631E-14   1.0000E-14
          61    Hmholtz velz:     32   4.4771E-15   1.4536E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.2439E-20   3.5099E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.2439E-20   3.5099E-06
-         61   6.1000E-01  1.6102E-01 Fluid done
+         61   6.1000E-01  2.7220E-01 Fluid done
 Maximum scalar  1.000007042019
 Maximum velocity   0.00166535529   0.00000000000   0.00177847355
  Grep          61   1.7784735515412636E-003
-Step     62, t= 6.2000000E-01, DT= 1.0000000E-02, C=  0.002 1.3720E+01 2.1914E-01
+Step     62, t= 6.2000000E-01, DT= 1.0000000E-02, C=  0.002 2.3050E+01 3.6817E-01
              Solving for heat
  Solving for fluid T T T
          62    Hmholtz TEMP:     16   2.1609E-15   2.3243E-01   1.0000E-14
-         62   6.2000E-01  2.3285E-02 Heat done
-       62 PRES gmres:   14  4.2991E-13  1.0000E-12  1.0343E-05  3.7023E-02  6.1753E-02    F
+         62   6.2000E-01  3.9270E-02 Heat done
+       62 PRES gmres:   14  4.2991E-13  1.0000E-12  1.0343E-05  6.2573E-02  1.0406E-01    F
          62    Hmholtz velx:     31   6.3475E-15   1.6121E-03   1.0000E-14
          62    Hmholtz vely:      2   5.4389E-15   2.5603E-14   1.0000E-14
          62    Hmholtz velz:     32   4.4106E-15   1.4340E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.2680E-20   3.4186E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.2680E-20   3.4186E-06
-         62   6.2000E-01  1.6096E-01 Fluid done
+         62   6.2000E-01  2.7278E-01 Fluid done
 Maximum scalar  1.000007265594
 Maximum velocity   0.00168273365   0.00000000000   0.00179572436
  Grep          62   1.7957243640955181E-003
-Step     63, t= 6.3000000E-01, DT= 1.0000000E-02, C=  0.002 1.3940E+01 2.1911E-01
+Step     63, t= 6.3000000E-01, DT= 1.0000000E-02, C=  0.002 2.3418E+01 3.6876E-01
              Solving for heat
  Solving for fluid T T T
          63    Hmholtz TEMP:     16   2.1290E-15   2.3042E-01   1.0000E-14
-         63   6.3000E-01  2.3264E-02 Heat done
-       63 PRES gmres:   14  4.2348E-13  1.0000E-12  1.0195E-05  3.7095E-02  6.1848E-02    F
+         63   6.3000E-01  3.9300E-02 Heat done
+       63 PRES gmres:   14  4.2348E-13  1.0000E-12  1.0195E-05  6.2562E-02  1.0411E-01    F
          63    Hmholtz velx:     31   6.2714E-15   1.5900E-03   1.0000E-14
          63    Hmholtz vely:      2   5.5162E-15   2.4492E-14   1.0000E-14
          63    Hmholtz velz:     32   4.3455E-15   1.4147E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.2815E-19   3.3295E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.2815E-19   3.3295E-06
-         63   6.3000E-01  1.6993E-01 Fluid done
+         63   6.3000E-01  2.7198E-01 Fluid done
 Maximum scalar  1.000007486898
 Maximum velocity   0.00169986994   0.00000000000   0.00181273654
  Grep          63   1.8127365377828451E-003
-Step     64, t= 6.4000000E-01, DT= 1.0000000E-02, C=  0.002 1.4168E+01 2.2799E-01
+Step     64, t= 6.4000000E-01, DT= 1.0000000E-02, C=  0.002 2.3786E+01 3.6790E-01
              Solving for heat
  Solving for fluid T T T
          64    Hmholtz TEMP:     16   2.0981E-15   2.2846E-01   1.0000E-14
-         64   6.4000E-01  2.4133E-02 Heat done
-       64 PRES gmres:   14  4.1718E-13  1.0000E-12  1.0050E-05  3.7111E-02  6.1899E-02    F
+         64   6.4000E-01  3.9236E-02 Heat done
+       64 PRES gmres:   14  4.1718E-13  1.0000E-12  1.0050E-05  6.2576E-02  1.0411E-01    F
          64    Hmholtz velx:     31   6.1967E-15   1.5682E-03   1.0000E-14
          64    Hmholtz vely:      2   5.3619E-15   2.4663E-14   1.0000E-14
          64    Hmholtz velz:     32   4.2816E-15   1.3958E-03   1.0000E-14
                L1/L2 DIV(V)    :  -9.3418E-20   3.2428E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -9.3418E-20   3.2428E-06
-         64   6.4000E-01  1.6112E-01 Fluid done
+         64   6.4000E-01  2.7249E-01 Fluid done
 Maximum scalar  1.000007704655
 Maximum velocity   0.00171676846   0.00000000000   0.00182951436
  Grep          64   1.8295143589432590E-003
-Step     65, t= 6.5000000E-01, DT= 1.0000000E-02, C=  0.002 1.4388E+01 2.2023E-01
+Step     65, t= 6.5000000E-01, DT= 1.0000000E-02, C=  0.002 2.4155E+01 3.6843E-01
              Solving for heat
  Solving for fluid T T T
          65    Hmholtz TEMP:     16   2.0683E-15   2.2653E-01   1.0000E-14
-         65   6.5000E-01  2.3388E-02 Heat done
-       65 PRES gmres:   14  4.1102E-13  1.0000E-12  9.9097E-06  3.7101E-02  6.1915E-02    F
+         65   6.5000E-01  3.9210E-02 Heat done
+       65 PRES gmres:   14  4.1102E-13  1.0000E-12  9.9097E-06  6.2570E-02  1.0445E-01    F
          65    Hmholtz velx:     31   6.1231E-15   1.5469E-03   1.0000E-14
          65    Hmholtz vely:      2   5.1682E-15   2.3844E-14   1.0000E-14
          65    Hmholtz velz:     32   4.2190E-15   1.3772E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.9258E-20   3.1583E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.9258E-20   3.1583E-06
-         65   6.5000E-01  1.6115E-01 Fluid done
+         65   6.5000E-01  2.7267E-01 Fluid done
 Maximum scalar  1.000007917501
 Maximum velocity   0.00173343341   0.00000000000   0.00184607671
  Grep          65   1.8460767068685803E-003
-Step     66, t= 6.6000000E-01, DT= 1.0000000E-02, C=  0.002 1.4607E+01 2.1943E-01
+Step     66, t= 6.6000000E-01, DT= 1.0000000E-02, C=  0.002 2.4523E+01 3.6845E-01
              Solving for heat
  Solving for fluid T T T
          66    Hmholtz TEMP:     16   2.0393E-15   2.2464E-01   1.0000E-14
-         66   6.6000E-01  2.3249E-02 Heat done
-       66 PRES gmres:   14  4.0498E-13  1.0000E-12  9.7722E-06  3.6962E-02  6.1977E-02    F
+         66   6.6000E-01  3.9293E-02 Heat done
+       66 PRES gmres:   14  4.0498E-13  1.0000E-12  9.7722E-06  6.2586E-02  1.0408E-01    F
          66    Hmholtz velx:     31   6.0508E-15   1.5259E-03   1.0000E-14
          66    Hmholtz vely:      2   5.1111E-15   2.4669E-14   1.0000E-14
          66    Hmholtz velz:     32   4.1576E-15   1.3589E-03   1.0000E-14
                L1/L2 DIV(V)    :  -7.8569E-20   3.0760E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -7.8569E-20   3.0760E-06
-         66   6.6000E-01  1.6105E-01 Fluid done
+         66   6.6000E-01  2.7259E-01 Fluid done
 Maximum scalar  1.000008123997
 Maximum velocity   0.00174986894   0.00000000000   0.00186243183
  Grep          66   1.8624318266323040E-003
-Step     67, t= 6.7000000E-01, DT= 1.0000000E-02, C=  0.002 1.4826E+01 2.1921E-01
+Step     67, t= 6.7000000E-01, DT= 1.0000000E-02, C=  0.002 2.4892E+01 3.6845E-01
              Solving for heat
  Solving for fluid T T T
          67    Hmholtz TEMP:     16   2.0113E-15   2.2279E-01   1.0000E-14
-         67   6.7000E-01  2.3424E-02 Heat done
-       67 PRES gmres:   14  3.9908E-13  1.0000E-12  9.6381E-06  3.6884E-02  6.1863E-02    F
+         67   6.7000E-01  3.9341E-02 Heat done
+       67 PRES gmres:   14  3.9908E-13  1.0000E-12  9.6381E-06  6.2519E-02  1.0416E-01    F
          67    Hmholtz velx:     31   5.9798E-15   1.5053E-03   1.0000E-14
          67    Hmholtz vely:      2   4.9424E-15   2.2677E-14   1.0000E-14
          67    Hmholtz velz:     32   4.0975E-15   1.3409E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.1638E-19   2.9959E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.1638E-19   2.9959E-06
-         67   6.7000E-01  1.6099E-01 Fluid done
+         67   6.7000E-01  2.7229E-01 Fluid done
 Maximum scalar  1.000008322628
 Maximum velocity   0.00176607911   0.00000000000   0.00187856476
  Grep          67   1.8785647592849705E-003
-Step     68, t= 6.8000000E-01, DT= 1.0000000E-02, C=  0.002 1.5046E+01 2.1930E-01
+Step     68, t= 6.8000000E-01, DT= 1.0000000E-02, C=  0.002 2.5260E+01 3.6831E-01
              Solving for heat
  Solving for fluid T T T
          68    Hmholtz TEMP:     16   1.9842E-15   2.2097E-01   1.0000E-14
-         68   6.8000E-01  2.3323E-02 Heat done
-       68 PRES gmres:   14  3.9329E-13  1.0000E-12  9.5071E-06  3.6954E-02  6.1803E-02    F
+         68   6.8000E-01  3.9395E-02 Heat done
+       68 PRES gmres:   14  3.9329E-13  1.0000E-12  9.5071E-06  6.2523E-02  1.0409E-01    F
          68    Hmholtz velx:     31   5.9099E-15   1.4850E-03   1.0000E-14
          68    Hmholtz vely:      2   5.0574E-15   2.3196E-14   1.0000E-14
          68    Hmholtz velz:     31   9.9320E-15   1.3232E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.0931E-19   2.9179E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.0931E-19   2.9179E-06
-         68   6.8000E-01  1.5968E-01 Fluid done
+         68   6.8000E-01  2.7031E-01 Fluid done
 Maximum scalar  1.000008511812
 Maximum velocity   0.00178206790   0.00000000000   0.00189447946
  Grep          68   1.8944794619125921E-003
-Step     69, t= 6.9000000E-01, DT= 1.0000000E-02, C=  0.002 1.5264E+01 2.1787E-01
+Step     69, t= 6.9000000E-01, DT= 1.0000000E-02, C=  0.002 2.5626E+01 3.6641E-01
              Solving for heat
  Solving for fluid T T T
          69    Hmholtz TEMP:     16   1.9579E-15   2.1919E-01   1.0000E-14
-         69   6.9000E-01  2.3339E-02 Heat done
-       69 PRES gmres:   14  3.8763E-13  1.0000E-12  9.3791E-06  3.7025E-02  6.1830E-02    F
+         69   6.9000E-01  3.9205E-02 Heat done
+       69 PRES gmres:   14  3.8763E-13  1.0000E-12  9.3791E-06  6.2477E-02  1.0402E-01    F
          69    Hmholtz velx:     31   5.8411E-15   1.4651E-03   1.0000E-14
          69    Hmholtz vely:      2   4.6723E-15   2.1892E-14   1.0000E-14
          69    Hmholtz velz:     31   9.7925E-15   1.3058E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.3435E-19   2.8419E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.3435E-19   2.8419E-06
-         69   6.9000E-01  1.5980E-01 Fluid done
+         69   6.9000E-01  2.7067E-01 Fluid done
 Maximum scalar  1.000008689897
 Maximum velocity   0.00179783923   0.00000000000   0.00191017982
  Grep          69   1.9101798166244936E-003
-Step     70, t= 7.0000000E-01, DT= 1.0000000E-02, C=  0.002 1.5482E+01 2.1808E-01
+Step     70, t= 7.0000000E-01, DT= 1.0000000E-02, C=  0.002 2.5993E+01 3.6657E-01
              Solving for heat
  Solving for fluid T T T
          70    Hmholtz TEMP:     16   1.9325E-15   2.1744E-01   1.0000E-14
-         70   7.0000E-01  2.3257E-02 Heat done
-       70 PRES gmres:   14  3.8209E-13  1.0000E-12  9.2542E-06  3.7103E-02  6.1947E-02    F
+         70   7.0000E-01  3.9338E-02 Heat done
+       70 PRES gmres:   14  3.8209E-13  1.0000E-12  9.2542E-06  6.2535E-02  1.0419E-01    F
          70    Hmholtz velx:     31   5.7735E-15   1.4456E-03   1.0000E-14
          70    Hmholtz vely:      2   4.6997E-15   2.2788E-14   1.0000E-14
          70    Hmholtz velz:     31   9.6557E-15   1.2887E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.1749E-19   2.7680E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.1749E-19   2.7680E-06
-         70   7.0000E-01  1.5989E-01 Fluid done
+         70   7.0000E-01  2.7062E-01 Fluid done
 Maximum scalar  1.000008855171
 Maximum velocity   0.00181339694   0.00000000000   0.00192566963
  Grep          70   1.9256696322557715E-003
-Step     71, t= 7.1000000E-01, DT= 1.0000000E-02, C=  0.002 1.5700E+01 2.1812E-01
+Step     71, t= 7.1000000E-01, DT= 1.0000000E-02, C=  0.002 2.6360E+01 3.6663E-01
              Solving for heat
  Solving for fluid T T T
          71    Hmholtz TEMP:     16   1.9079E-15   2.1572E-01   1.0000E-14
-         71   7.1000E-01  2.3330E-02 Heat done
-       71 PRES gmres:   14  3.7667E-13  1.0000E-12  9.1320E-06  3.7025E-02  6.1866E-02    F
+         71   7.1000E-01  3.9241E-02 Heat done
+       71 PRES gmres:   14  3.7667E-13  1.0000E-12  9.1320E-06  6.2574E-02  1.0401E-01    F
          71    Hmholtz velx:     31   5.7070E-15   1.4264E-03   1.0000E-14
          71    Hmholtz vely:      2   4.4992E-15   2.1699E-14   1.0000E-14
          71    Hmholtz velz:     31   9.5215E-15   1.2719E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.0125E-19   2.6961E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.0125E-19   2.6961E-06
-         71   7.1000E-01  1.5992E-01 Fluid done
+         71   7.1000E-01  2.7032E-01 Fluid done
 Maximum scalar  1.000009005860
 Maximum velocity   0.00182874481   0.00000000000   0.00194095265
  Grep          71   1.9409526460097172E-003
-Step     72, t= 7.2000000E-01, DT= 1.0000000E-02, C=  0.002 1.5918E+01 2.1813E-01
+Step     72, t= 7.2000000E-01, DT= 1.0000000E-02, C=  0.002 2.6726E+01 3.6627E-01
              Solving for heat
  Solving for fluid T T T
          72    Hmholtz TEMP:     16   1.8841E-15   2.1404E-01   1.0000E-14
-         72   7.2000E-01  2.3276E-02 Heat done
-       72 PRES gmres:   14  3.7135E-13  1.0000E-12  9.0127E-06  3.6928E-02  6.1903E-02    F
+         72   7.2000E-01  3.9294E-02 Heat done
+       72 PRES gmres:   14  3.7135E-13  1.0000E-12  9.0127E-06  6.2484E-02  1.0398E-01    F
          72    Hmholtz velx:     31   5.6415E-15   1.4075E-03   1.0000E-14
          72    Hmholtz vely:      2   4.6378E-15   2.1346E-14   1.0000E-14
          72    Hmholtz velz:     31   9.3898E-15   1.2554E-03   1.0000E-14
                L1/L2 DIV(V)    :  -6.1231E-20   2.6260E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -6.1231E-20   2.6260E-06
-         72   7.2000E-01  1.6030E-01 Fluid done
+         72   7.2000E-01  2.7015E-01 Fluid done
 Maximum scalar  1.000009140133
 Maximum velocity   0.00184388652   0.00000000000   0.00195603253
  Grep          72   1.9560325250448174E-003
-Step     73, t= 7.3000000E-01, DT= 1.0000000E-02, C=  0.002 1.6136E+01 2.1848E-01
+Step     73, t= 7.3000000E-01, DT= 1.0000000E-02, C=  0.002 2.7092E+01 3.6614E-01
              Solving for heat
  Solving for fluid T T T
          73    Hmholtz TEMP:     16   1.8611E-15   2.1239E-01   1.0000E-14
-         73   7.3000E-01  2.3315E-02 Heat done
-       73 PRES gmres:   14  3.6616E-13  1.0000E-12  8.8960E-06  3.6997E-02  6.1773E-02    F
+         73   7.3000E-01  3.9255E-02 Heat done
+       73 PRES gmres:   14  3.6616E-13  1.0000E-12  8.8960E-06  6.2538E-02  1.0406E-01    F
          73    Hmholtz velx:     31   5.5771E-15   1.3890E-03   1.0000E-14
          73    Hmholtz vely:      2   4.3949E-15   2.0860E-14   1.0000E-14
          73    Hmholtz velz:     31   9.2605E-15   1.2392E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.0511E-19   2.5579E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.0511E-19   2.5579E-06
-         73   7.3000E-01  1.5987E-01 Fluid done
+         73   7.3000E-01  2.7071E-01 Fluid done
 Maximum scalar  1.000009256100
 Maximum velocity   0.00185882573   0.00000000000   0.00197091287
  Grep          73   1.9709128680093905E-003
-Step     74, t= 7.4000000E-01, DT= 1.0000000E-02, C=  0.002 1.6354E+01 2.1802E-01
+Step     74, t= 7.4000000E-01, DT= 1.0000000E-02, C=  0.002 2.7458E+01 3.6656E-01
              Solving for heat
  Solving for fluid T T T
          74    Hmholtz TEMP:     16   1.8388E-15   2.1076E-01   1.0000E-14
-         74   7.4000E-01  2.3275E-02 Heat done
-       74 PRES gmres:   14  3.6107E-13  1.0000E-12  8.7819E-06  3.6998E-02  6.1908E-02    F
+         74   7.4000E-01  3.9261E-02 Heat done
+       74 PRES gmres:   14  3.6107E-13  1.0000E-12  8.7819E-06  6.2581E-02  1.0422E-01    F
          74    Hmholtz velx:     31   5.5137E-15   1.3708E-03   1.0000E-14
          74    Hmholtz vely:      2   4.2683E-15   2.0597E-14   1.0000E-14
          74    Hmholtz velz:     31   9.1337E-15   1.2233E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.1653E-19   2.4916E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.1653E-19   2.4916E-06
-         74   7.4000E-01  1.5985E-01 Fluid done
+         74   7.4000E-01  2.7028E-01 Fluid done
 Maximum scalar  1.000009351818
 Maximum velocity   0.00187356600   0.00000000000   0.00198559721
  Grep          74   1.9855972065268902E-003
-Step     75, t= 7.5000000E-01, DT= 1.0000000E-02, C=  0.002 1.6573E+01 2.1811E-01
+Step     75, t= 7.5000000E-01, DT= 1.0000000E-02, C=  0.002 2.7825E+01 3.6613E-01
              Solving for heat
  Solving for fluid T T T
          75    Hmholtz TEMP:     16   1.8172E-15   2.0917E-01   1.0000E-14
-         75   7.5000E-01  2.3306E-02 Heat done
-       75 PRES gmres:   14  3.5608E-13  1.0000E-12  8.6704E-06  3.7062E-02  6.1876E-02    F
+         75   7.5000E-01  3.9291E-02 Heat done
+       75 PRES gmres:   14  3.5608E-13  1.0000E-12  8.6704E-06  6.2607E-02  1.0421E-01    F
          75    Hmholtz velx:     31   5.4513E-15   1.3529E-03   1.0000E-14
          75    Hmholtz vely:      2   4.1977E-15   2.0971E-14   1.0000E-14
          75    Hmholtz velz:     31   9.0092E-15   1.2076E-03   1.0000E-14
                L1/L2 DIV(V)    :  -9.7638E-20   2.4271E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -9.7638E-20   2.4271E-06
-         75   7.5000E-01  1.5985E-01 Fluid done
+         75   7.5000E-01  2.7073E-01 Fluid done
 Maximum scalar  1.000009425288
 Maximum velocity   0.00188811082   0.00000000000   0.00200008901
  Grep          75   2.0000890066346642E-003
-Step     76, t= 7.6000000E-01, DT= 1.0000000E-02, C=  0.002 1.6791E+01 2.1807E-01
+Step     76, t= 7.6000000E-01, DT= 1.0000000E-02, C=  0.002 2.8191E+01 3.6665E-01
              Solving for heat
  Solving for fluid T T T
          76    Hmholtz TEMP:     16   1.7963E-15   2.0760E-01   1.0000E-14
-         76   7.6000E-01  2.3299E-02 Heat done
-       76 PRES gmres:   14  3.5121E-13  1.0000E-12  8.5612E-06  3.7082E-02  6.2060E-02    F
+         76   7.6000E-01  3.9311E-02 Heat done
+       76 PRES gmres:   14  3.5121E-13  1.0000E-12  8.5612E-06  6.2574E-02  1.0466E-01    F
          76    Hmholtz velx:     31   5.3899E-15   1.3353E-03   1.0000E-14
          76    Hmholtz vely:      2   4.1673E-15   1.9719E-14   1.0000E-14
          76    Hmholtz velz:     31   8.8870E-15   1.1922E-03   1.0000E-14
                L1/L2 DIV(V)    :  -7.1301E-20   2.3643E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -7.1301E-20   2.3643E-06
-         76   7.6000E-01  1.6004E-01 Fluid done
+         76   7.6000E-01  2.7088E-01 Fluid done
 Maximum scalar  1.000009474456
 Maximum velocity   0.00190246364   0.00000000000   0.00201439167
  Grep          76   2.0143916701787054E-003
-Step     77, t= 7.7000000E-01, DT= 1.0000000E-02, C=  0.003 1.7009E+01 2.1824E-01
+Step     77, t= 7.7000000E-01, DT= 1.0000000E-02, C=  0.003 2.8558E+01 3.6688E-01
              Solving for heat
  Solving for fluid T T T
          77    Hmholtz TEMP:     16   1.7761E-15   2.0606E-01   1.0000E-14
-         77   7.7000E-01  2.3327E-02 Heat done
-       77 PRES gmres:   14  3.4643E-13  1.0000E-12  8.4545E-06  3.7691E-02  6.2632E-02    F
+         77   7.7000E-01  3.9264E-02 Heat done
+       77 PRES gmres:   14  3.4643E-13  1.0000E-12  8.4545E-06  6.2499E-02  1.0402E-01    F
          77    Hmholtz velx:     31   5.3294E-15   1.3181E-03   1.0000E-14
          77    Hmholtz vely:      2   4.1767E-15   1.9915E-14   1.0000E-14
          77    Hmholtz velz:     31   8.7671E-15   1.1771E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.0373E-19   2.3033E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.0373E-19   2.3033E-06
-         77   7.7000E-01  1.6091E-01 Fluid done
+         77   7.7000E-01  2.7040E-01 Fluid done
 Maximum scalar  1.000009497216
 Maximum velocity   0.00191662784   0.00000000000   0.00202850854
  Grep          77   2.0285085361667170E-003
-Step     78, t= 7.8000000E-01, DT= 1.0000000E-02, C=  0.003 1.7228E+01 2.1908E-01
+Step     78, t= 7.8000000E-01, DT= 1.0000000E-02, C=  0.003 2.8924E+01 3.6632E-01
              Solving for heat
  Solving for fluid T T T
          78    Hmholtz TEMP:     16   1.7564E-15   2.0455E-01   1.0000E-14
-         78   7.8000E-01  2.3414E-02 Heat done
-       78 PRES gmres:   14  3.4176E-13  1.0000E-12  8.3500E-06  3.7055E-02  6.1896E-02    F
+         78   7.8000E-01  3.9392E-02 Heat done
+       78 PRES gmres:   14  3.4176E-13  1.0000E-12  8.3500E-06  6.2589E-02  1.0413E-01    F
          78    Hmholtz velx:     31   5.2698E-15   1.3011E-03   1.0000E-14
          78    Hmholtz vely:      2   3.8760E-15   1.8864E-14   1.0000E-14
          78    Hmholtz velz:     31   8.6494E-15   1.1622E-03   1.0000E-14
                L1/L2 DIV(V)    :  -7.8521E-20   2.2438E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -7.8521E-20   2.2438E-06
-         78   7.8000E-01  1.5986E-01 Fluid done
+         78   7.8000E-01  2.7110E-01 Fluid done
 Maximum scalar  1.000009491405
 Maximum velocity   0.00193060672   0.00000000000   0.00204244288
  Grep          78   2.0424428820816076E-003
-Step     79, t= 7.9000000E-01, DT= 1.0000000E-02, C=  0.003 1.7446E+01 2.1791E-01
+Step     79, t= 7.9000000E-01, DT= 1.0000000E-02, C=  0.003 2.9292E+01 3.6723E-01
              Solving for heat
  Solving for fluid T T T
          79    Hmholtz TEMP:     16   1.7374E-15   2.0306E-01   1.0000E-14
-         79   7.9000E-01  2.3340E-02 Heat done
-       79 PRES gmres:   14  3.3718E-13  1.0000E-12  8.2478E-06  3.6908E-02  6.1844E-02    F
+         79   7.9000E-01  3.9678E-02 Heat done
+       79 PRES gmres:   14  3.3718E-13  1.0000E-12  8.2478E-06  6.2548E-02  1.0399E-01    F
          79    Hmholtz velx:     31   5.2111E-15   1.2845E-03   1.0000E-14
          79    Hmholtz vely:      2   3.8837E-15   1.9687E-14   1.0000E-14
          79    Hmholtz velz:     31   8.5339E-15   1.1476E-03   1.0000E-14
                L1/L2 DIV(V)    :  -7.5033E-20   2.1861E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -7.5033E-20   2.1861E-06
-         79   7.9000E-01  1.5980E-01 Fluid done
+         79   7.9000E-01  2.7020E-01 Fluid done
 Maximum scalar  1.000009454807
 Maximum velocity   0.00194440354   0.00000000000   0.00205619793
  Grep          79   2.0561979251573831E-003
-Step     80, t= 8.0000000E-01, DT= 1.0000000E-02, C=  0.003 1.7664E+01 2.1804E-01
+Step     80, t= 8.0000000E-01, DT= 1.0000000E-02, C=  0.003 2.9658E+01 3.6654E-01
              Solving for heat
  Solving for fluid T T T
          80    Hmholtz TEMP:     16   1.7189E-15   2.0160E-01   1.0000E-14
-         80   8.0000E-01  2.3287E-02 Heat done
-       80 PRES gmres:   14  3.3270E-13  1.0000E-12  8.1477E-06  3.7000E-02  6.1788E-02    F
+         80   8.0000E-01  3.9239E-02 Heat done
+       80 PRES gmres:   14  3.3270E-13  1.0000E-12  8.1477E-06  6.2567E-02  1.0420E-01    F
          80    Hmholtz velx:     31   5.1534E-15   1.2681E-03   1.0000E-14
          80    Hmholtz vely:      2   3.7708E-15   1.8666E-14   1.0000E-14
          80    Hmholtz velz:     31   8.4205E-15   1.1332E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.6080E-20   2.1298E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.6080E-20   2.1298E-06
-         80   8.0000E-01  1.6006E-01 Fluid done
+         80   8.0000E-01  2.7022E-01 Fluid done
 Maximum scalar  1.000009385149
 Maximum velocity   0.00195802149   0.00000000000   0.00206977682
  Grep          80   2.0697768236192515E-003
-Step     81, t= 8.1000000E-01, DT= 1.0000000E-02, C=  0.003 1.7882E+01 2.1827E-01
+Step     81, t= 8.1000000E-01, DT= 1.0000000E-02, C=  0.003 3.0024E+01 3.6604E-01
              Solving for heat
  Solving for fluid T T T
          81    Hmholtz TEMP:     16   1.7010E-15   2.0016E-01   1.0000E-14
-         81   8.1000E-01  2.3263E-02 Heat done
-       81 PRES gmres:   14  3.2832E-13  1.0000E-12  8.0497E-06  3.6980E-02  6.1917E-02    F
+         81   8.1000E-01  3.9290E-02 Heat done
+       81 PRES gmres:   14  3.2832E-13  1.0000E-12  8.0497E-06  6.2535E-02  1.0398E-01    F
          81    Hmholtz velx:     31   5.0965E-15   1.2520E-03   1.0000E-14
          81    Hmholtz vely:      2   3.8891E-15   1.8638E-14   1.0000E-14
          81    Hmholtz velz:     31   8.3092E-15   1.1191E-03   1.0000E-14
                L1/L2 DIV(V)    :  -5.1675E-20   2.0752E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.1675E-20   2.0752E-06
-         81   8.1000E-01  1.5996E-01 Fluid done
+         81   8.1000E-01  2.7055E-01 Fluid done
 Maximum scalar  1.000009280103
 Maximum velocity   0.00197146371   0.00000000000   0.00208318268
  Grep          81   2.0831826778895880E-003
-Step     82, t= 8.2000000E-01, DT= 1.0000000E-02, C=  0.003 1.8100E+01 2.1813E-01
+Step     82, t= 8.2000000E-01, DT= 1.0000000E-02, C=  0.003 3.0391E+01 3.6646E-01
              Solving for heat
  Solving for fluid T T T
          82    Hmholtz TEMP:     16   1.6835E-15   1.9875E-01   1.0000E-14
-         82   8.2000E-01  2.3272E-02 Heat done
-       82 PRES gmres:   14  3.2403E-13  1.0000E-12  7.9537E-06  3.6982E-02  6.1765E-02    F
+         82   8.2000E-01  3.9279E-02 Heat done
+       82 PRES gmres:   14  3.2403E-13  1.0000E-12  7.9537E-06  6.2612E-02  1.0403E-01    F
          82    Hmholtz velx:     31   5.0404E-15   1.2362E-03   1.0000E-14
          82    Hmholtz vely:      2   3.6289E-15   1.7879E-14   1.0000E-14
          82    Hmholtz velz:     31   8.1999E-15   1.1052E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.1868E-19   2.0220E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.1868E-19   2.0220E-06
-         82   8.2000E-01  1.5982E-01 Fluid done
+         82   8.2000E-01  2.7017E-01 Fluid done
 Maximum scalar  1.000009137280
 Maximum velocity   0.00198473328   0.00000000000   0.00209641853
  Grep          82   2.0964185317613277E-003
-Step     83, t= 8.3000000E-01, DT= 1.0000000E-02, C=  0.003 1.8318E+01 2.1810E-01
+Step     83, t= 8.3000000E-01, DT= 1.0000000E-02, C=  0.003 3.0757E+01 3.6605E-01
              Solving for heat
  Solving for fluid T T T
          83    Hmholtz TEMP:     16   1.6666E-15   1.9736E-01   1.0000E-14
-         83   8.3000E-01  2.3286E-02 Heat done
-       83 PRES gmres:   14  3.1983E-13  1.0000E-12  7.8598E-06  3.6870E-02  6.1784E-02    F
+         83   8.3000E-01  3.9323E-02 Heat done
+       83 PRES gmres:   14  3.1983E-13  1.0000E-12  7.8598E-06  6.2554E-02  1.0400E-01    F
          83    Hmholtz velx:     31   4.9852E-15   1.2207E-03   1.0000E-14
          83    Hmholtz vely:      1   9.8495E-15   1.8001E-14   1.0000E-14
          83    Hmholtz velz:     31   8.0927E-15   1.0916E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.3187E-19   1.9702E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.3187E-19   1.9702E-06
-         83   8.3000E-01  1.5862E-01 Fluid done
+         83   8.3000E-01  2.6835E-01 Fluid done
 Maximum scalar  1.000008954236
 Maximum velocity   0.00199783321   0.00000000000   0.00210948737
  Grep          83   2.1094873735402054E-003
-Step     84, t= 8.4000000E-01, DT= 1.0000000E-02, C=  0.003 1.8535E+01 2.1679E-01
+Step     84, t= 8.4000000E-01, DT= 1.0000000E-02, C=  0.003 3.1121E+01 3.6441E-01
              Solving for heat
  Solving for fluid T T T
          84    Hmholtz TEMP:     16   1.6500E-15   1.9599E-01   1.0000E-14
-         84   8.4000E-01  2.3380E-02 Heat done
-       84 PRES gmres:   14  3.1572E-13  1.0000E-12  7.7677E-06  3.6970E-02  6.1770E-02    F
+         84   8.4000E-01  3.9350E-02 Heat done
+       84 PRES gmres:   14  3.1572E-13  1.0000E-12  7.7677E-06  6.2573E-02  1.0411E-01    F
          84    Hmholtz velx:     31   4.9308E-15   1.2054E-03   1.0000E-14
          84    Hmholtz vely:      1   7.1180E-15   1.8805E-14   1.0000E-14
          84    Hmholtz velz:     31   7.9874E-15   1.0782E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.0207E-19   1.9199E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.0207E-19   1.9199E-06
-         84   8.4000E-01  1.5862E-01 Fluid done
+         84   8.4000E-01  2.6861E-01 Fluid done
 Maximum scalar  1.000008728464
 Maximum velocity   0.00201076648   0.00000000000   0.00212239214
  Grep          84   2.1223921371571800E-003
-Step     85, t= 8.5000000E-01, DT= 1.0000000E-02, C=  0.003 1.8752E+01 2.1688E-01
+Step     85, t= 8.5000000E-01, DT= 1.0000000E-02, C=  0.003 3.1486E+01 3.6458E-01
              Solving for heat
  Solving for fluid T T T
          85    Hmholtz TEMP:     16   1.6339E-15   1.9465E-01   1.0000E-14
-         85   8.5000E-01  2.3272E-02 Heat done
-       85 PRES gmres:   14  3.1170E-13  1.0000E-12  7.6775E-06  3.7024E-02  6.1945E-02    F
+         85   8.5000E-01  3.9322E-02 Heat done
+       85 PRES gmres:   14  3.1170E-13  1.0000E-12  7.6775E-06  6.2583E-02  1.0411E-01    F
          85    Hmholtz velx:     31   4.8773E-15   1.1904E-03   1.0000E-14
          85    Hmholtz vely:      1   8.7243E-15   1.8087E-14   1.0000E-14
          85    Hmholtz velz:     31   7.8840E-15   1.0650E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.3157E-19   1.8709E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.3157E-19   1.8709E-06
-         85   8.5000E-01  1.5874E-01 Fluid done
+         85   8.5000E-01  2.6853E-01 Fluid done
 Maximum scalar  1.000008459549
 Maximum velocity   0.00202353600   0.00000000000   0.00213513570
  Grep          85   2.1351357032522631E-003
-Step     86, t= 8.6000000E-01, DT= 1.0000000E-02, C=  0.003 1.8969E+01 2.1691E-01
+Step     86, t= 8.6000000E-01, DT= 1.0000000E-02, C=  0.003 3.1850E+01 3.6442E-01
              Solving for heat
  Solving for fluid T T T
          86    Hmholtz TEMP:     16   1.6182E-15   1.9333E-01   1.0000E-14
-         86   8.6000E-01  2.3274E-02 Heat done
-       86 PRES gmres:   14  3.0777E-13  1.0000E-12  7.5892E-06  3.7079E-02  6.1863E-02    F
+         86   8.6000E-01  3.9448E-02 Heat done
+       86 PRES gmres:   14  3.0777E-13  1.0000E-12  7.5892E-06  6.2607E-02  1.0421E-01    F
          86    Hmholtz velx:     31   4.8245E-15   1.1757E-03   1.0000E-14
          86    Hmholtz vely:      1   8.0165E-15   1.8065E-14   1.0000E-14
          86    Hmholtz velz:     31   7.7825E-15   1.0521E-03   1.0000E-14
                L1/L2 DIV(V)    :  -7.0306E-20   1.8233E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -7.0306E-20   1.8233E-06
-         86   8.6000E-01  1.5885E-01 Fluid done
+         86   8.6000E-01  2.6894E-01 Fluid done
 Maximum scalar  1.000008183816
 Maximum velocity   0.00203614463   0.00000000000   0.00214772090
  Grep          86   2.1477209002309806E-003
-Step     87, t= 8.7000000E-01, DT= 1.0000000E-02, C=  0.003 1.9186E+01 2.1698E-01
+Step     87, t= 8.7000000E-01, DT= 1.0000000E-02, C=  0.003 3.2215E+01 3.6494E-01
              Solving for heat
  Solving for fluid T T T
          87    Hmholtz TEMP:     16   1.6029E-15   1.9202E-01   1.0000E-14
-         87   8.7000E-01  2.3316E-02 Heat done
-       87 PRES gmres:   14  3.0392E-13  1.0000E-12  7.5026E-06  3.6958E-02  6.1897E-02    F
+         87   8.7000E-01  3.9239E-02 Heat done
+       87 PRES gmres:   14  3.0392E-13  1.0000E-12  7.5026E-06  6.3204E-02  1.0466E-01    F
          87    Hmholtz velx:     30   9.9310E-15   1.1612E-03   1.0000E-14
          87    Hmholtz vely:      1   8.9173E-15   1.7485E-14   1.0000E-14
          87    Hmholtz velz:     31   7.6828E-15   1.0394E-03   1.0000E-14
                L1/L2 DIV(V)    :  -9.5927E-20   1.7769E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -9.5927E-20   1.7769E-06
-         87   8.7000E-01  1.5743E-01 Fluid done
+         87   8.7000E-01  2.6725E-01 Fluid done
 Maximum scalar  1.000007920018
 Maximum velocity   0.00204859517   0.00000000000   0.00216015051
  Grep          87   2.1601505052944452E-003
-Step     88, t= 8.8000000E-01, DT= 1.0000000E-02, C=  0.003 1.9402E+01 2.1557E-01
+Step     88, t= 8.8000000E-01, DT= 1.0000000E-02, C=  0.003 3.2578E+01 3.6308E-01
              Solving for heat
  Solving for fluid T T T
          88    Hmholtz TEMP:     16   1.5879E-15   1.9074E-01   1.0000E-14
-         88   8.8000E-01  2.3288E-02 Heat done
-       88 PRES gmres:   14  3.0015E-13  1.0000E-12  7.4177E-06  3.7073E-02  6.1857E-02    F
+         88   8.8000E-01  3.9309E-02 Heat done
+       88 PRES gmres:   14  3.0015E-13  1.0000E-12  7.4177E-06  6.2605E-02  1.0428E-01    F
          88    Hmholtz velx:     30   9.8211E-15   1.1470E-03   1.0000E-14
          88    Hmholtz vely:      1   8.5137E-15   1.8549E-14   1.0000E-14
          88    Hmholtz velz:     31   7.5849E-15   1.0269E-03   1.0000E-14
                L1/L2 DIV(V)    :  -1.1864E-19   1.7319E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.1864E-19   1.7319E-06
-         88   8.8000E-01  1.5816E-01 Fluid done
+         88   8.8000E-01  2.6623E-01 Fluid done
 Maximum scalar  1.000007658706
 Maximum velocity   0.00206089039   0.00000000000   0.00217242725
  Grep          88   2.1724272454441531E-003
-Step     89, t= 8.9000000E-01, DT= 1.0000000E-02, C=  0.003 1.9618E+01 2.1623E-01
+Step     89, t= 8.9000000E-01, DT= 1.0000000E-02, C=  0.003 3.2940E+01 3.6214E-01
              Solving for heat
  Solving for fluid T T T
          89    Hmholtz TEMP:     16   1.5732E-15   1.8948E-01   1.0000E-14
-         89   8.9000E-01  2.3312E-02 Heat done
-       89 PRES gmres:   14  2.9646E-13  1.0000E-12  7.3344E-06  3.6911E-02  6.1861E-02    F
+         89   8.9000E-01  3.9294E-02 Heat done
+       89 PRES gmres:   14  2.9646E-13  1.0000E-12  7.3344E-06  6.2578E-02  1.0418E-01    F
          89    Hmholtz velx:     30   9.7129E-15   1.1331E-03   1.0000E-14
          89    Hmholtz vely:      1   9.5817E-15   1.8007E-14   1.0000E-14
          89    Hmholtz velz:     31   7.4889E-15   1.0146E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.1854E-20   1.6880E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.1854E-20   1.6880E-06
-         89   8.9000E-01  1.5745E-01 Fluid done
+         89   8.9000E-01  2.6662E-01 Fluid done
 Maximum scalar  1.000007402049
 Maximum velocity   0.00207303300   0.00000000000   0.00218455380
  Grep          89   2.1845537984623207E-003
-Step     90, t= 9.0000000E-01, DT= 1.0000000E-02, C=  0.003 1.9833E+01 2.1560E-01
+Step     90, t= 9.0000000E-01, DT= 1.0000000E-02, C=  0.003 3.3303E+01 3.6258E-01
              Solving for heat
  Solving for fluid T T T
          90    Hmholtz TEMP:     16   1.5588E-15   1.8824E-01   1.0000E-14
-         90   9.0000E-01  2.3405E-02 Heat done
-       90 PRES gmres:   14  2.9286E-13  1.0000E-12  7.2529E-06  3.6948E-02  6.1807E-02    F
+         90   9.0000E-01  3.9448E-02 Heat done
+       90 PRES gmres:   14  2.9286E-13  1.0000E-12  7.2529E-06  6.2523E-02  1.0399E-01    F
          90    Hmholtz velx:     30   9.6064E-15   1.1193E-03   1.0000E-14
          90    Hmholtz vely:      1   9.1161E-15   1.8635E-14   1.0000E-14
          90    Hmholtz velz:     31   7.3945E-15   1.0025E-03   1.0000E-14
                L1/L2 DIV(V)    :  -8.0433E-20   1.6454E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.0433E-20   1.6454E-06
-         90   9.0000E-01  1.5742E-01 Fluid done
+         90   9.0000E-01  2.6638E-01 Fluid done
 Maximum scalar  1.000007151056
 Maximum velocity   0.00208502564   0.00000000000   0.00219653279
  Grep          90   2.1965327938688814E-003
-Step     91, t= 9.1000000E-01, DT= 1.0000000E-02, C=  0.003 2.0049E+01 2.1562E-01
+Step     91, t= 9.1000000E-01, DT= 1.0000000E-02, C=  0.003 3.3665E+01 3.6235E-01
              Solving for heat
  Solving for fluid T T T
          91    Hmholtz TEMP:     16   1.5447E-15   1.8702E-01   1.0000E-14
-         91   9.1000E-01  2.3358E-02 Heat done
-       91 PRES gmres:   14  2.8934E-13  1.0000E-12  7.1728E-06  3.7377E-02  6.2207E-02    F
+         91   9.1000E-01  3.9205E-02 Heat done
+       91 PRES gmres:   14  2.8934E-13  1.0000E-12  7.1728E-06  6.2510E-02  1.0409E-01    F
          91    Hmholtz velx:     30   9.5016E-15   1.1059E-03   1.0000E-14
          91    Hmholtz vely:      1   9.8109E-15   1.8124E-14   1.0000E-14
          91    Hmholtz velz:     31   7.3019E-15   9.9063E-04   1.0000E-14
                L1/L2 DIV(V)    :  -6.8002E-20   1.6039E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -6.8002E-20   1.6039E-06
-         91   9.1000E-01  1.5774E-01 Fluid done
+         91   9.1000E-01  2.6602E-01 Fluid done
 Maximum scalar  1.000006912080
 Maximum velocity   0.00209687095   0.00000000000   0.00220836681
  Grep          91   2.2083668138557560E-003
-Step     92, t= 9.2000000E-01, DT= 1.0000000E-02, C=  0.003 2.0265E+01 2.1595E-01
+Step     92, t= 9.2000000E-01, DT= 1.0000000E-02, C=  0.003 3.4027E+01 3.6199E-01
              Solving for heat
  Solving for fluid T T T
          92    Hmholtz TEMP:     16   1.5309E-15   1.8581E-01   1.0000E-14
-         92   9.2000E-01  2.3363E-02 Heat done
-       92 PRES gmres:   14  2.8589E-13  1.0000E-12  7.0944E-06  3.6988E-02  6.1799E-02    F
+         92   9.2000E-01  3.9256E-02 Heat done
+       92 PRES gmres:   14  2.8589E-13  1.0000E-12  7.0944E-06  6.2546E-02  1.0423E-01    F
          92    Hmholtz velx:     30   9.3983E-15   1.0926E-03   1.0000E-14
          92    Hmholtz vely:      1   8.9739E-15   1.8719E-14   1.0000E-14
          92    Hmholtz velz:     31   7.2109E-15   9.7896E-04   1.0000E-14
                L1/L2 DIV(V)    :  -1.1494E-19   1.5635E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.1494E-19   1.5635E-06
-         92   9.2000E-01  1.5747E-01 Fluid done
+         92   9.2000E-01  2.6689E-01 Fluid done
 Maximum scalar  1.000006669299
 Maximum velocity   0.00210857147   0.00000000000   0.00222005839
  Grep          92   2.2200583941992926E-003
-Step     93, t= 9.3000000E-01, DT= 1.0000000E-02, C=  0.003 2.0481E+01 2.1568E-01
+Step     93, t= 9.3000000E-01, DT= 1.0000000E-02, C=  0.003 3.4390E+01 3.6281E-01
              Solving for heat
  Solving for fluid T T T
          93    Hmholtz TEMP:     16   1.5173E-15   1.8463E-01   1.0000E-14
-         93   9.3000E-01  2.3329E-02 Heat done
-       93 PRES gmres:   14  2.8252E-13  1.0000E-12  7.0174E-06  3.7157E-02  6.1988E-02    F
+         93   9.3000E-01  3.9453E-02 Heat done
+       93 PRES gmres:   14  2.8252E-13  1.0000E-12  7.0174E-06  6.2625E-02  1.0417E-01    F
          93    Hmholtz velx:     30   9.2968E-15   1.0796E-03   1.0000E-14
          93    Hmholtz vely:      1   9.5945E-15   1.9042E-14   1.0000E-14
          93    Hmholtz velz:     31   7.1216E-15   9.6750E-04   1.0000E-14
                L1/L2 DIV(V)    :  -8.3766E-20   1.5242E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.3766E-20   1.5242E-06
-         93   9.3000E-01  1.5774E-01 Fluid done
+         93   9.3000E-01  2.6694E-01 Fluid done
 Maximum scalar  1.000006430085
 Maximum velocity   0.00212012972   0.00000000000   0.00223161003
  Grep          93   2.2316100251516245E-003
-Step     94, t= 9.4000000E-01, DT= 1.0000000E-02, C=  0.003 2.0697E+01 2.1591E-01
+Step     94, t= 9.4000000E-01, DT= 1.0000000E-02, C=  0.003 3.4753E+01 3.6307E-01
              Solving for heat
  Solving for fluid T T T
          94    Hmholtz TEMP:     16   1.5039E-15   1.8346E-01   1.0000E-14
-         94   9.4000E-01  2.3295E-02 Heat done
-       94 PRES gmres:   14  2.7922E-13  1.0000E-12  6.9419E-06  3.6992E-02  6.1813E-02    F
+         94   9.4000E-01  3.9285E-02 Heat done
+       94 PRES gmres:   14  2.7922E-13  1.0000E-12  6.9419E-06  6.2570E-02  1.0407E-01    F
          94    Hmholtz velx:     30   9.1968E-15   1.0668E-03   1.0000E-14
          94    Hmholtz vely:      1   9.0049E-15   1.8458E-14   1.0000E-14
          94    Hmholtz velz:     31   7.0338E-15   9.5624E-04   1.0000E-14
                L1/L2 DIV(V)    :  -1.1824E-19   1.4860E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.1824E-19   1.4860E-06
-         94   9.4000E-01  1.5766E-01 Fluid done
+         94   9.4000E-01  2.6598E-01 Fluid done
 Maximum scalar  1.000006195884
 Maximum velocity   0.00213154819   0.00000000000   0.00224302415
  Grep          94   2.2430241523116331E-003
-Step     95, t= 9.5000000E-01, DT= 1.0000000E-02, C=  0.003 2.0912E+01 2.1591E-01
+Step     95, t= 9.5000000E-01, DT= 1.0000000E-02, C=  0.003 3.5115E+01 3.6189E-01
              Solving for heat
  Solving for fluid T T T
          95    Hmholtz TEMP:     16   1.4908E-15   1.8231E-01   1.0000E-14
-         95   9.5000E-01  2.3314E-02 Heat done
-       95 PRES gmres:   14  2.7600E-13  1.0000E-12  6.8678E-06  3.6981E-02  6.1853E-02    F
+         95   9.5000E-01  3.9298E-02 Heat done
+       95 PRES gmres:   14  2.7600E-13  1.0000E-12  6.8678E-06  6.2585E-02  1.0412E-01    F
          95    Hmholtz velx:     30   9.0983E-15   1.0542E-03   1.0000E-14
          95    Hmholtz vely:      1   9.3162E-15   1.9431E-14   1.0000E-14
          95    Hmholtz velz:     31   6.9477E-15   9.4517E-04   1.0000E-14
                L1/L2 DIV(V)    :  -1.0210E-19   1.4489E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -1.0210E-19   1.4489E-06
-         95   9.5000E-01  1.5752E-01 Fluid done
+         95   9.5000E-01  2.6723E-01 Fluid done
 Maximum scalar  1.000005960116
 Maximum velocity   0.00214282930   0.00000000000   0.00225430318
  Grep          95   2.2543031774762143E-003
-Step     96, t= 9.6000000E-01, DT= 1.0000000E-02, C=  0.003 2.1128E+01 2.1578E-01
+Step     96, t= 9.6000000E-01, DT= 1.0000000E-02, C=  0.003 3.5478E+01 3.6323E-01
              Solving for heat
  Solving for fluid T T T
          96    Hmholtz TEMP:     16   1.4779E-15   1.8118E-01   1.0000E-14
-         96   9.6000E-01  2.3313E-02 Heat done
-       96 PRES gmres:   14  2.7285E-13  1.0000E-12  6.7951E-06  3.7100E-02  6.2220E-02    F
+         96   9.6000E-01  3.9211E-02 Heat done
+       96 PRES gmres:   14  2.7285E-13  1.0000E-12  6.7951E-06  6.2558E-02  1.0401E-01    F
          96    Hmholtz velx:     30   9.0014E-15   1.0419E-03   1.0000E-14
          96    Hmholtz vely:      1   8.3936E-15   1.7966E-14   1.0000E-14
          96    Hmholtz velz:     31   6.8631E-15   9.3429E-04   1.0000E-14
                L1/L2 DIV(V)    :  -8.8214E-20   1.4127E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.8214E-20   1.4127E-06
-         96   9.6000E-01  1.5794E-01 Fluid done
+         96   9.6000E-01  2.6624E-01 Fluid done
 Maximum scalar  1.000005726006
 Maximum velocity   0.00215397543   0.00000000000   0.00226544946
  Grep          96   2.2654494594724424E-003
-Step     97, t= 9.7000000E-01, DT= 1.0000000E-02, C=  0.003 2.1344E+01 2.1607E-01
+Step     97, t= 9.7000000E-01, DT= 1.0000000E-02, C=  0.003 3.5841E+01 3.6221E-01
              Solving for heat
  Solving for fluid T T T
          97    Hmholtz TEMP:     16   1.4652E-15   1.8006E-01   1.0000E-14
-         97   9.7000E-01  2.3285E-02 Heat done
-       97 PRES gmres:   14  2.6977E-13  1.0000E-12  6.7238E-06  3.7165E-02  6.2001E-02    F
+         97   9.7000E-01  3.9302E-02 Heat done
+       97 PRES gmres:   14  2.6977E-13  1.0000E-12  6.7238E-06  6.2653E-02  1.0426E-01    F
          97    Hmholtz velx:     30   8.9061E-15   1.0298E-03   1.0000E-14
          97    Hmholtz vely:      1   8.7232E-15   2.0438E-14   1.0000E-14
          97    Hmholtz velz:     31   6.7800E-15   9.2359E-04   1.0000E-14
                L1/L2 DIV(V)    :  -5.6937E-20   1.3775E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -5.6937E-20   1.3775E-06
-         97   9.7000E-01  1.5758E-01 Fluid done
+         97   9.7000E-01  2.6634E-01 Fluid done
 Maximum scalar  1.000005503442
 Maximum velocity   0.00216498893   0.00000000000   0.00227646531
  Grep          97   2.2764653149712705E-003
-Step     98, t= 9.8000000E-01, DT= 1.0000000E-02, C=  0.003 2.1560E+01 2.1570E-01
+Step     98, t= 9.8000000E-01, DT= 1.0000000E-02, C=  0.003 3.6203E+01 3.6226E-01
              Solving for heat
  Solving for fluid T T T
          98    Hmholtz TEMP:     16   1.4527E-15   1.7896E-01   1.0000E-14
-         98   9.8000E-01  2.3283E-02 Heat done
-       98 PRES gmres:   14  2.6676E-13  1.0000E-12  6.6538E-06  3.7051E-02  6.1888E-02    F
+         98   9.8000E-01  3.9315E-02 Heat done
+       98 PRES gmres:   14  2.6676E-13  1.0000E-12  6.6538E-06  6.2942E-02  1.0444E-01    F
          98    Hmholtz velx:     30   8.8123E-15   1.0178E-03   1.0000E-14
          98    Hmholtz vely:      1   8.1729E-15   1.8046E-14   1.0000E-14
          98    Hmholtz velz:     31   6.6984E-15   9.1309E-04   1.0000E-14
                L1/L2 DIV(V)    :  -8.8191E-20   1.3433E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -8.8191E-20   1.3433E-06
-         98   9.8000E-01  1.5746E-01 Fluid done
+         98   9.8000E-01  2.6680E-01 Fluid done
 Maximum scalar  1.000005273994
 Maximum velocity   0.00217587210   0.00000000000   0.00228735302
  Grep          98   2.2873530192833295E-003
-Step     99, t= 9.9000000E-01, DT= 1.0000000E-02, C=  0.003 2.1776E+01 2.1576E-01
+Step     99, t= 9.9000000E-01, DT= 1.0000000E-02, C=  0.003 3.6566E+01 3.6287E-01
              Solving for heat
  Solving for fluid T T T
          99    Hmholtz TEMP:     16   1.4403E-15   1.7787E-01   1.0000E-14
-         99   9.9000E-01  2.3320E-02 Heat done
-       99 PRES gmres:   14  2.6382E-13  1.0000E-12  6.5850E-06  3.7053E-02  6.1864E-02    F
+         99   9.9000E-01  3.9302E-02 Heat done
+       99 PRES gmres:   14  2.6382E-13  1.0000E-12  6.5850E-06  6.2572E-02  1.0410E-01    F
          99    Hmholtz velx:     30   8.7199E-15   1.0061E-03   1.0000E-14
          99    Hmholtz vely:      1   8.5641E-15   2.0715E-14   1.0000E-14
          99    Hmholtz velz:     31   6.6182E-15   9.0276E-04   1.0000E-14
                L1/L2 DIV(V)    :  -6.4188E-20   1.3099E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
                L1/L2 DIV(V)-QTL:  -6.4188E-20   1.3099E-06
-         99   9.9000E-01  1.5756E-01 Fluid done
+         99   9.9000E-01  2.6625E-01 Fluid done
 Maximum scalar  1.000005047590
 Maximum velocity   0.00218662720   0.00000000000   0.00229811481
  Grep          99   2.2981148071373569E-003
-Step    100, t= 1.0000000E+00, DT= 1.0000000E-02, C=  0.003 2.1992E+01 2.1578E-01
+ Final time step =    9.9999999999993427E-003
              Solving for heat
  Solving for fluid T T T
         100    Hmholtz TEMP:     16   1.4282E-15   1.7680E-01   1.0000E-14
-        100   1.0000E+00  2.3354E-02 Heat done
-      100 PRES gmres:   14  2.6095E-13  1.0000E-12  6.5175E-06  3.7104E-02  6.1883E-02    F
+        100   1.0000E+00  3.9359E-02 Heat done
+      100 PRES gmres:   14  2.6095E-13  1.0000E-12  6.5175E-06  6.2562E-02  1.0410E-01    F
         100    Hmholtz velx:     30   8.6290E-15   9.9460E-04   1.0000E-14
-        100    Hmholtz vely:      1   7.6748E-15   1.8005E-14   1.0000E-14
+        100    Hmholtz vely:      1   7.6750E-15   1.8006E-14   1.0000E-14
         100    Hmholtz velz:     31   6.5395E-15   8.9261E-04   1.0000E-14
-               L1/L2 DIV(V)    :  -7.0441E-20   1.2775E-06
+               L1/L2 DIV(V)    :  -1.1138E-19   1.2775E-06
                L1/L2 QTL       :   0.0000E+00   0.0000E+00
-               L1/L2 DIV(V)-QTL:  -7.0441E-20   1.2775E-06
-        100   1.0000E+00  1.5831E-01 Fluid done
+               L1/L2 DIV(V)-QTL:  -1.1138E-19   1.2775E-06
+        100   1.0000E+00  2.6620E-01 Fluid done
 Maximum scalar  1.000004829944
 Maximum velocity   0.00219725645   0.00000000000   0.00230875287
- Grep         100   2.3087528734418066E-003
-Step    101, t= 1.0100000E+00, DT= 1.0000000E-02, C=  0.003 2.2208E+01 2.1654E-01
-             Solving for heat
- Solving for fluid T T T
-        101    Hmholtz TEMP:     16   1.4162E-15   1.7575E-01   1.0000E-14
-        101   1.0100E+00  2.3261E-02 Heat done
-      101 PRES gmres:   14  2.5814E-13  1.0000E-12  6.4513E-06  3.7097E-02  6.1871E-02    F
-        101    Hmholtz velx:     30   8.5395E-15   9.8329E-04   1.0000E-14
-        101    Hmholtz vely:      1   7.9999E-15   2.0887E-14   1.0000E-14
-        101    Hmholtz velz:     31   6.4621E-15   8.8264E-04   1.0000E-14
-               L1/L2 DIV(V)    :  -1.2993E-19   1.2460E-06
-               L1/L2 QTL       :   0.0000E+00   0.0000E+00
-               L1/L2 DIV(V)-QTL:  -1.2993E-19   1.2460E-06
-        101   1.0100E+00  1.5754E-01 Fluid done
-Maximum scalar  1.000004611143
-Maximum velocity   0.00220776202   0.00000000000   0.00231926937
- Grep         101   2.3192693740300900E-003
+ Grep         100   2.3087528734418053E-003
  call outfld: ifpsco: F
 
-      101  1.0100E+00 Write checkpoint:
-       0     101 OPEN: ref0.f00002
+      100  1.0000E+00 Write checkpoint:
+       0     100 OPEN: ref0.f00002
 
-      101  1.0100E+00 done :: Write checkpoint
+      100  1.0000E+00 done :: Write checkpoint
                               file size =      8.0    MB
-                              avg data-throughput =   873.7MB/s
+                              avg data-throughput =   357.3MB/s
                               io-nodes =     1
 
 
 end of time-step loop
 
 runtime statistics:
- total time   22.430151085717775     
- tgop time       27397  0.16182899475097656        7.2147973561363984E-003
- inv3 time         202   1.6040325164794922E-002   7.1512336691340766E-004
- invc time       39491   9.3410491943359375E-002   4.1645056953199828E-003
- mltd time         303  0.22679686546325684        1.0111250013276459E-002
- cdtp time         303  0.12672233581542969        5.6496425428056597E-003
+ total time   37.308142046792604     
+ tgop time       27136  0.16648197174072266        4.4623495732357219E-003
+ inv3 time         200   2.6169300079345703E-002   7.0143670104299628E-004
+ invc time       39100  0.11717057228088379        3.1406166550434528E-003
+ mltd time         300  0.36639094352722168        9.8206697901945094E-003
+ cdtp time         300  0.19407534599304199        5.2019568744438921E-003
  eslv time           0   0.0000000000000000        0.0000000000000000     
- pres time         101   7.3479330539703369       0.32759177706337772     
- crsl time        1430   2.9860734939575195E-002   1.3312765850511273E-003
- crsl min    2.9860734939575195E-002
- crsl max    3.1394004821777344E-002
- crsl avg    3.0585885047912598E-002
- hmhz time         505   16.814900636672974       0.74965614687186533     
- spro time         102   2.9851198196411133E-002   1.3308514098872323E-003
- usbc time         605  0.15934991836547852        7.1042730722818605E-003
- usbc min   0.15896868705749512     
- usbc max   0.16301727294921875     
- usb  avg   0.16022485494613647     
- axhm time       11178   9.0174586772918701       0.40202398293401009     
- advc time         404   1.1490345001220703        5.1227229621904291E-002
- vdss time         304   5.9666872024536133E-002   2.6601190422889552E-003
- vdss min    5.9666872024536133E-002
- vdss max    9.3605518341064453E-002
- vdss avg    6.9139659404754639E-002
- dsum time       12162  0.87568283081054688        3.9040433899178287E-002
- dsum min   0.87568283081054688     
- dsum max    1.4827127456665039     
- dsum avg    1.0430129170417786     
- dadd time           0  0.54544162750244141        2.4317340771268684E-002
+ pres time         100   12.187479972839355       0.32667078295010188     
+ crsl time        1416   3.9718151092529297E-002   1.0645974018945788E-003
+ crsl min    3.9718151092529297E-002
+ crsl max    7.3308706283569336E-002
+ crsl avg    5.6532680988311768E-002
+ hmhz time         500   28.255962848663330       0.75736719382123474     
+ spro time         101   3.6211967468261719E-002   9.7061835517951972E-004
+ usbc time         599  0.23818778991699219        6.3843380251488368E-003
+ usbc min   0.23818778991699219     
+ usbc max   0.30510044097900391     
+ usb  avg   0.27204978466033936     
+ axhm time       11072   15.153579711914062       0.40617352890176484     
+ advc time         400   1.9399654865264893        5.1998448062445635E-002
+ vdss time         301  0.10143256187438965        2.7187781623424436E-003
+ vdss min   0.10143256187438965     
+ vdss max   0.50274515151977539     
+ vdss avg   0.30247396230697632     
+ dsum time       12046   1.4508986473083496        3.8889598026312970E-002
+ dsum min    1.4508986473083496     
+ dsum max    7.8143198490142822     
+ dsum avg    4.6340646147727966     
+ dadd time           0  0.92389512062072754        2.4763900584005502E-002
  ddsl time           0   0.0000000000000000        0.0000000000000000     
  solv time           0   0.0000000000000000        0.0000000000000000     
- prep time         102   1.8527269363403320E-002   8.2599842027815927E-004
+ prep time         101   3.3220052719116211E-002   8.9042366884555576E-004
 
 #  nid       tusbc       tdadd       tcrsl       tvdss       tdsum        tgop    qqq    F
-           0  1.5935E-01  5.4544E-01  2.9861E-02  5.9667E-02  8.7568E-01  1.6183E-01 qqq
-           1  1.5897E-01  5.6093E-01  3.1394E-02  6.3449E-02  9.3022E-01  2.8294E-01 qqq
-           2  1.5956E-01  5.4091E-01  3.0641E-02  5.9837E-02  8.8343E-01  2.0400E-01 qqq
-           3  1.6302E-01  7.1027E-01  3.0448E-02  9.3606E-02  1.4827E+00  4.1437E-01 qqq
+           0  2.3819E-01  9.2390E-01  3.9718E-02  1.0143E-01  1.4509E+00  1.6648E-01 qqq
+           1  2.4099E-01  9.2746E-01  3.9912E-02  1.0482E-01  1.4694E+00  2.5816E-01 qqq
+           2  3.0392E-01  3.0126E+00  7.3309E-02  5.0275E-01  7.8143E+00  5.9478E+00 qqq
+           3  3.0510E-01  3.0135E+00  7.3192E-02  5.0090E-01  7.8016E+00  5.9645E+00 qqq
   
 call exitt: dying ...
   
 backtrace(): obtained 5 stack frames.
-./nek5000(print_stack_+0x18) [0x511918]
-./nek5000(exitt_+0x1e9) [0x5f04b9]
-./nek5000(main+0x39) [0x41c2d9]
-/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf5) [0x2b61b0545b45]
-./nek5000() [0x41c309]
+./nek5000(print_stack_+0x18) [0x510188]
+./nek5000(exitt_+0x1e9) [0x5e1129]
+./nek5000(main+0x39) [0x41af29]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf5) [0x2b04a47ceb45]
+./nek5000() [0x41af59]
   
-total elapsed time             :   2.26088E+01 sec
-total solver time incl. I/O    :   2.24302E+01 sec
-time/timestep                  :   2.22081E-01 sec
-CPU seconds/timestep/gridpt    :   9.76780E-06 sec
+total elapsed time             :   3.75974E+01 sec
+total solver time incl. I/O    :   3.73081E+01 sec
+time/timestep                  :   3.73081E-01 sec
+CPU seconds/timestep/gridpt    :   1.64093E-05 sec
 

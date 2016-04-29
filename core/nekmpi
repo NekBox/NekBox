@@ -1,13 +1,7 @@
 #!/bin/sh
-
-# Check if we need to change dirs
-if [ -n "$3" ]
-  then
-  cd $3
-fi
 echo $1        >  SESSION.NAME
 echo `pwd`'/' >>  SESSION.NAME
-ls
+echo $3       >> SESSION.NAME
 touch $1.rea
 rm -f logfile
 rm -f ioinfo

@@ -9,9 +9,8 @@
 module io
   implicit none
  
-  character(132) :: load_name = 'NONE' !>!< name of output to load
 
-  public load_ic, load_name
+  public load_ic
   private
 
 contains
@@ -34,22 +33,22 @@ subroutine load_ic()
   integer, parameter :: pad_size = 1
   real(DP), allocatable :: padding(:,:,:,:)
   logical :: skip_x
+  character(132) :: load_name = 'NONE' !>!< name of output to load
 
-  if (load_name == 'NONE') then
-    call get_restart_name(load_name)
-  endif
 
+  call get_restart_name(3, load_name)
   call load_frame(load_name)
 
 end subroutine load_ic
 
-subroutine get_restart_name(fname)
+subroutine get_restart_name(findex, fname)
   use kinds, only : DP
   use input, only : ifreguo, series, param
   use restart, only : nfileo, ifdiro
   use string, only : ltrunc
   implicit none
 
+  integer, intent(in) :: findex
   character(132) ::  fname 
   character(1) ::   fnam1(132)
 
@@ -80,6 +79,9 @@ subroutine get_restart_name(fname)
       k = k+1
   endif
 
+  call chcopy(fnam1(k), 'ckp', 3)
+  k = k + 3
+
   len=ltrunc(series,132)                           !  Add SESSION
   call chcopy(fnam1(k),series,len)
   k = k+len
@@ -97,7 +99,7 @@ subroutine get_restart_name(fname)
   call chcopy(fnam1(k+1),'f',1)
   k = k + 2
 
-  write(str,4) int(param(69))                                 !  Add nfld number
+  write(str,4) findex                                 !  Add nfld number
   4 format(i5.5)
   call chcopy(fnam1(k),str,5)
   k = k + 5

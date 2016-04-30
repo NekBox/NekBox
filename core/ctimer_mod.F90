@@ -271,7 +271,7 @@ subroutine benchmark_mxm()
   use LIBXSMM, only : libxsmm_dispatch, libxsmm_call
 #endif
 
-  real(DP), allocatable :: a(:,:,:), b(:,:,:), c(:,:)
+  real(DP), allocatable, target :: a(:,:,:), b(:,:,:), c(:,:)
   !DIR$ ATTRIBUTES ALIGN:64 :: a, b, c
 
 

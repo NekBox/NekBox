@@ -21,7 +21,7 @@ module dxyz
     ,DAM12, DATM12 &
     ,DAM3,  DATM3
 
-  real(DP), allocatable :: WDDX(:,:), WDDYT(:,:), WDDZT(:,:) 
+  real(DP), allocatable, target :: WDDX(:,:), WDDYT(:,:), WDDZT(:,:) 
 
   contains
 

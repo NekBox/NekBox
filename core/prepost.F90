@@ -8,7 +8,7 @@ subroutine prepost(ifdoin,prefin)
   use ctimer, only : nprep, dnekclock, tprep, icalld
   use input, only : schfle, ifschclob, ifpsco
   use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump
-  use soln, only : pr
+  use soln, only : vx, vy, vz, pr, t
   implicit none
 
   logical :: ifdoin
@@ -112,7 +112,7 @@ subroutine prepost(ifdoin,prefin)
 
 
   if (ifdoit) then
-    call outfld(prefix, pr)
+    call outfld(prefix, vx, vy, vz, pr, t)
   endif
 
   if (lastep == 1 .AND. nid == 0) close(unit=26)
@@ -128,9 +128,9 @@ end subroutine prepost
 
 !-----------------------------------------------------------------------
 !> \brief output .fld file
-subroutine outfld(prefix, pm1)
+subroutine outfld(prefix, vx, vy, vz, pr, t)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, nid
+  use size_m, only : lx1, ly1, lz1, lelv, ldimt, nid
   use input, only : param
   use tstep, only : istep, time
   implicit none
@@ -139,7 +139,11 @@ subroutine outfld(prefix, pm1)
 
   character(3), intent(in) ::    prefix
 
-  real(DP), intent(in) ::  pm1    (lx1,ly1,lz1,lelv)
+  real(DP), intent(in) :: vx (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: vy (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: vz (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: t  (lx1, ly1, lz1, lelv, ldimt)
+  real(DP), intent(in) :: pr (lx1,ly1,lz1,lelv)  ! mapped pressure
 
   real(DP) :: p66
 
@@ -151,7 +155,7 @@ subroutine outfld(prefix, pm1)
 
   p66 = abs(param(66))
   if (p66 == 6) then
-      call mfo_outfld(prefix, pm1)
+      call mfo_outfld(prefix, vx, vy, vz, pr, t)
       call nekgsync                ! avoid race condition w/ outfld
       return
   endif
@@ -225,7 +229,7 @@ end function i_find_prefix
 
 !-----------------------------------------------------------------------
 !> \brief mult-file output
-subroutine mfo_outfld(prefix, pm1) 
+subroutine mfo_outfld(prefix, vx, vy, vz, pr, t) 
   use kinds, only : DP, i8
   use ctimer, only : dnekclock_sync
   use size_m, only : lx1, ly1, lz1, lelv, ldimt, lxo
@@ -235,13 +239,17 @@ subroutine mfo_outfld(prefix, pm1)
   use geom, only : xm1, ym1, zm1
   use input, only : ifxyo, ifxyo_, ifreguo, if3d, ifvo, ifpo, ifto, ifpsco
   use parallel, only : isize, nelgt, lsize
-  use soln, only : vx, vy, vz, t
   use tstep, only : istep, time
   implicit none
 
   character(3), intent(in) :: prefix
 
-  real(DP), intent(in) :: pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
+
+  real(DP), intent(in) :: vx (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: vy (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: vz (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: t  (lx1, ly1, lz1, lelv, ldimt)
+  real(DP), intent(in) :: pr (lx1,ly1,lz1,lelv)  ! mapped pressure
 
   integer(i8) :: offs0,offs,stride,strideB,nxyzo8
   logical :: ifxyo_s
@@ -331,7 +339,7 @@ subroutine mfo_outfld(prefix, pm1)
           call mfo_outs(ur1,nout,nxo,nyo,nzo)
 #endif
       else
-          call mfo_outs(pm1,nout,nxo,nyo,nzo)
+          call mfo_outs(pr,nout,nxo,nyo,nzo)
       endif
       ioflds = ioflds + 1
   endif
@@ -388,7 +396,7 @@ subroutine mfo_outfld(prefix, pm1)
       if (ifpo ) then
           offs = offs0 + ioflds*stride + strideB
           call byte_set_view(offs,ifh_mbyte)
-          call mfo_mdatas(pm1,nout)
+          call mfo_mdatas(pr,nout)
           ioflds = ioflds + 1
       endif
       if (ifto ) then
@@ -690,97 +698,10 @@ subroutine outpost(v1,v2,v3,vp,vt,name3)
   real(DP) :: v1(*),v2(*),v3(*),vp(*),vt(*)
   character(3) :: name3
 
-  integer :: itmp
-  itmp=0
-  if (ifto) itmp=1
-  call outpost2(v1,v2,v3,vp,vt,itmp,name3)
+  call outfld(name3, v1, v2, v3, vp, vt)
 
   return
 end subroutine outpost
-
-!-----------------------------------------------------------------------
-subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, lelv, ldimt
-  use size_m, only : lx2, ly2, lz2
-  use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, nelt
-  use ctimer, only : tprep, dnekclock
-  use input, only : ifto, ifpsco
-  use soln, only : vx, vy, vz, pr, t
-  implicit none
-
-  integer, parameter :: ltot1=lx1*ly1*lz1*lelt
-  integer, parameter :: ltot2=lx2*ly2*lz2*lelv
-  real(DP), allocatable :: w1(:), w2(:), w3(:), wp(:), wt(:,:)
-  real(DP) :: v1(1),v2(1),v3(1),vp(1),vt(ltot1,1)
-  character(3) :: name3
-  logical :: if_save(ldimt)
-  real(DP) :: etime
-
-  integer :: ntot1, ntot1t, ntot2, nfldt, i
-  allocate(w1(ltot1),w2(ltot1),w3(ltot1),wp(ltot2),wt(ltot1,ldimt))
-
-  etime = dnekclock()
-
-  ntot1  = nx1*ny1*nz1*nelv
-  ntot1t = nx1*ny1*nz1*nelt
-  ntot2  = nx2*ny2*nz2*nelv
-
-  if(nfldt > ldimt) then
-      write(6,*) 'ABORT: outpost data too large (nfldt>ldimt)!'
-      call exitt
-  endif
-
-! store solution
-  call copy(w1,vx,ntot1)
-  call copy(w2,vy,ntot1)
-  call copy(w3,vz,ntot1)
-  call copy(wp,pr,ntot2)
-  do i = 1,nfldt
-      call copy(wt(1,i),t(1,1,1,1,i),ntot1t)
-  enddo
-
-! swap with data to dump
-  call copy(vx,v1,ntot1)
-  call copy(vy,v2,ntot1)
-  call copy(vz,v3,ntot1)
-  call copy(pr,vp,ntot2)
-  do i = 1,nfldt
-      call copy(t(1,1,1,1,i),vt(1,i),ntot1t)
-  enddo
-
-! dump data
-  if_save(1) = ifto
-  ifto = .FALSE. 
-  if(nfldt > 0) ifto = .TRUE. 
-  do i = 1,ldimt-1
-      if_save(i+1) = ifpsco(i)
-      ifpsco(i) = .FALSE. 
-      if(i+1 <= nfldt) ifpsco(i) = .TRUE. 
-  enddo
-
-  etime =  etime - dnekclock()
-  call prepost( .TRUE. ,name3)
-  etime =  etime + dnekclock()
-
-  ifto = if_save(1)
-  do i = 1,ldimt-1
-      ifpsco(i) = if_save(i+1)
-  enddo
-
-! restore solution data
-  call copy(vx,w1,ntot1)
-  call copy(vy,w2,ntot1)
-  call copy(vz,w3,ntot1)
-  call copy(pr,wp,ntot2)
-  do i = 1,nfldt
-      call copy(t(1,1,1,1,i),wt(1,i),ntot1t)
-  enddo
-
-  tprep = tprep + (dnekclock() - etime)
-
-  return
-end subroutine outpost2
 
 !-----------------------------------------------------------------------
 subroutine mfo_mdatav(u,v,w,nel)

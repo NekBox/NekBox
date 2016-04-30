@@ -39,41 +39,7 @@ subroutine load_ic()
     call get_restart_name(load_name)
   endif
 
-  if (nid == pid0) then
-    call mbyte_open(load_name, fid0, ierr)
-  endif
-
-  ! read and seek past header 
-  call mfo_read_header(nelo, word_size_load, nx_load, time, skip_x)
-
-  ! seek past positions
-  if (nid == pid0 .and. skip_x) then
-#ifdef DISABLED_LZ4COMMCOMP
-    allocate(padding(nx1,ny1,nz1,nelo))
-    do i=1,pid1+1
-      call byte_read(sizeout,1,ierr)
-      call byte_read(padding,(sizeout+4)/4,ierr)
-    enddo
-#else
-    allocate(padding(nx_load, nx_load, nx_load, pad_size))
-    do i = 1, nelo, pad_size
-      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
-      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
-      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
-    enddo
-#endif
-  endif
-
-  ! read velocities
-  call mfo_read_vector(vx, vy, vz, size(vx,4), size(vx,1), size(vx,2), size(vx,3), nx_load, word_size_load) 
-
-  ! read pressure
-  call mfo_read_scalar(pr(:,:,:,:), size(pr, 4), size(pr,1), size(pr,2), size(pr,3), nx_load, word_size_load)
-  call mfo_read_scalar(t(:,:,:,:,1), size(t, 4), size(t,1), size(t,2), size(t,3), nx_load, word_size_load)
-
-  if (nid == pid0) then
-    call byte_close(ierr)
-  endif
+  call load_frame(load_name)
 
 end subroutine load_ic
 
@@ -139,6 +105,63 @@ subroutine get_restart_name(fname)
   call chcopy(fname(1:132),fnam1(1),k-1)
 
 end subroutine get_restart_name
+
+subroutine load_frame(frame_name)
+  use kinds, only : DP
+  use parallel, only : nid
+  use soln, only : vx, vy, vz, pr, t
+  use restart, only : pid0, pid1,fid0
+  use size_m, only : nx1, ny1, nz1
+  use tstep, only : time
+
+  character(132), intent(in) :: frame_name !>!< name of frame to load
+
+  integer :: nelo !>!< number of i/o elements per io-node
+  integer :: word_size_load !>!< number of bytes per word
+  integer :: nx_load !>!< order of load
+
+  integer :: ierr, i, sizeout
+  integer, parameter :: pad_size = 1
+  real(DP), allocatable :: padding(:,:,:,:)
+  logical :: skip_x
+
+  if (nid == pid0) then
+    call mbyte_open(frame_name, fid0, ierr)
+  endif
+
+  ! read and seek past header 
+  call mfo_read_header(nelo, word_size_load, nx_load, time, skip_x)
+
+  ! seek past positions
+  if (nid == pid0 .and. skip_x) then
+#ifdef DISABLED_LZ4COMMCOMP
+    allocate(padding(nx1,ny1,nz1,nelo))
+    do i=1,pid1+1
+      call byte_read(sizeout,1,ierr)
+      call byte_read(padding,(sizeout+4)/4,ierr)
+    enddo
+#else
+    allocate(padding(nx_load, nx_load, nx_load, pad_size))
+    do i = 1, nelo, pad_size
+      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+      call byte_read(padding, word_size_load * size(padding) / 4, ierr)
+    enddo
+#endif
+  endif
+
+  ! read velocities
+  call mfo_read_vector(vx, vy, vz, size(vx,4), size(vx,1), size(vx,2), size(vx,3), nx_load, word_size_load) 
+
+  ! read pressure
+  call mfo_read_scalar(pr(:,:,:,:), size(pr, 4), size(pr,1), size(pr,2), size(pr,3), nx_load, word_size_load)
+  call mfo_read_scalar(t(:,:,:,:,1), size(t, 4), size(t,1), size(t,2), size(t,3), nx_load, word_size_load)
+
+  if (nid == pid0) then
+    call byte_close(ierr)
+  endif
+
+end subroutine load_frame
 
 !-----------------------------------------------------------------------
 !> \brief Read header and return number of elements and word size

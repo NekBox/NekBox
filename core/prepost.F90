@@ -1519,14 +1519,14 @@ subroutine mfo_outs(u,nel,mx,my,mz)
           call crecv(mtype,leocomp,4)
 
           if (wdsizo == 4 .AND. ierr == 0) then
-            call crecv(mtype,u4,len)
             nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
             call byte_write(leocomp,1,ierr)
+            call crecv(mtype,u4,leocomp)
             call byte_write(u4,nout,ierr) ! write also first byte as it does not contain nel
           elseif(ierr == 0) then
-            call crecv(mtype,u8,len)
             nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
             call byte_write(leocomp,1,ierr)
+            call crecv(mtype,u8,leocomp)
             call byte_write(u8,nout,ierr)
           endif
 #else
@@ -1689,14 +1689,14 @@ subroutine mfo_outv(u,v,w,nel,mx,my,mz)
           call crecv(mtype,leocomp,4)
 
           if (wdsizo == 4 .AND. ierr == 0) then
-            call crecv(mtype,u4,len)
             nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
             call byte_write(leocomp,1,ierr)
+            call crecv(mtype,u4,leocomp)
             call byte_write(u4,nout,ierr) ! write also first byte as it does not contain nel
           elseif(ierr == 0) then
-            call crecv(mtype,u8,len)
             nout = (leocomp+4)/4 ! bytes devided by size of float (SP)
             call byte_write(leocomp,1,ierr)
+            call crecv(mtype,u8,leocomp)
             call byte_write(u8,nout,ierr)
           endif
 #else

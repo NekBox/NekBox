@@ -21,10 +21,10 @@ subroutine tensor_product_multiply_dp(u, nu, v, nv, A, Bt, Ct, work1, work2)
 
   implicit none
   integer, intent(in)   :: nu, nv
-  real(DP), intent(in)  :: u(*)
-  real(DP), intent(out) :: v(*)
-  real(DP), intent(in)  :: A(*), Bt(*), Ct(*)
-  real(DP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
+  real(DP), intent(in), target  :: u(*)
+  real(DP), intent(out), target :: v(*)
+  real(DP), intent(in), target  :: A(*), Bt(*), Ct(*)
+  real(DP), intent(out), target :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
 
   integer :: i
 #ifdef XSMM
@@ -67,10 +67,10 @@ subroutine tensor_product_multiply_sp(u, nu, v, nv, A, Bt, Ct, work1, work2)
 
   implicit none
   integer, intent(in)   :: nu, nv
-  real(SP), intent(in)  :: u(*)
-  real(SP), intent(out) :: v(*)
-  real(SP), intent(in)  :: A(*), Bt(*), Ct(*)
-  real(SP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
+  real(SP), intent(in), target  :: u(*)
+  real(SP), intent(out), target :: v(*)
+  real(SP), intent(in), target  :: A(*), Bt(*), Ct(*)
+  real(SP), intent(out), target :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
 
   integer :: i
 #ifdef XSMM
@@ -109,10 +109,10 @@ subroutine tensor_product_multiply_mp(u, nu, v, nv, A, Bt, Ct, work1, work2)
 
   implicit none
   integer, intent(in)   :: nu, nv
-  real(SP), intent(in)  :: u(*)
-  real(DP), intent(out) :: v(*)
-  real(DP), intent(in)  :: A(*), Bt(*), Ct(*)
-  real(DP), intent(out) :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
+  real(SP), intent(in), target  :: u(*)
+  real(DP), intent(out), target :: v(*)
+  real(DP), intent(in), target  :: A(*), Bt(*), Ct(*)
+  real(DP), intent(out), target :: work1(0:nu*nu*nv-1), work2(0:nu*nv*nv-1) ! scratch
 
   integer :: i
 #ifdef XSMM
@@ -159,9 +159,9 @@ subroutine local_grad3(ur,us,ut,u,N,D,Dt)
 
   implicit none
   integer :: N
-  real(DP) :: ur(0:N,0:N,0:N),us(0:N,0:N,0:N),ut(0:N,0:N,0:N)
-  real(DP) :: u (0:N,0:N,0:N)
-  real(DP) :: D (0:N,0:N),Dt(0:N,0:N)
+  real(DP), target :: ur(0:N,0:N,0:N),us(0:N,0:N,0:N),ut(0:N,0:N,0:N)
+  real(DP), target :: u (0:N,0:N,0:N)
+  real(DP), target :: D (0:N,0:N),Dt(0:N,0:N)
 
   integer :: m1, m2, k
 #ifdef XSMM
@@ -214,8 +214,8 @@ subroutine helmholtz(h1, h2, nx, ny, nz, &
 
   real(DP), intent(in) :: h1, h2
   integer, intent(in) :: nx, ny, nz
-  real(DP), intent(in), dimension(nx, ny, nz) :: u, gx, gy, gz, b
-  real(DP), intent(out), dimension(nx, ny, nz) :: au, work1, work2, work3
+  real(DP), intent(in), dimension(nx, ny, nz), target :: u, gx, gy, gz, b
+  real(DP), intent(out), dimension(nx, ny, nz), target :: au, work1, work2, work3
 
   integer :: iz
 #ifdef XSMM

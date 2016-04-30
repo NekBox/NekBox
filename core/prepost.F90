@@ -9,6 +9,7 @@ subroutine prepost(ifdoin,prefin)
   use input, only : schfle, ifschclob, ifpsco
   use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump
   use soln, only : vx, vy, vz, pr, t
+  use soln, only : vxlag, vylag, vzlag, tlag
   implicit none
 
   logical :: ifdoin
@@ -19,21 +20,20 @@ subroutine prepost(ifdoin,prefin)
 
   character(3) :: prefix
 
+  logical :: ifout, ifcheckpoint
+
   logical, save :: ifdoit = .FALSE.
 
   logical :: ifhis
 
   integer, save :: maxstep = 999999999
   integer :: ierr, iiidmp, idummy
+  integer :: i, nlag
   real(DP) :: timdump
 
   if (iostep < 0 .OR. timeio < 0) return
 
-  nprep=nprep + 1
-
-#ifndef NOTIMER
-  etime=dnekclock()
-#endif
+  ifout = .false.; ifcheckpoint = .false.
 
 !   Trigger history output only if prefix = 'his'   pff 8/18/05
   ifhis  = .FALSE. 
@@ -41,87 +41,46 @@ subroutine prepost(ifdoin,prefin)
   if (prefin == 'his') ifhis  = .TRUE. 
   if (prefix == 'his') prefix = '   '
 
-  if(icalld == 1) then
-      ierr = 0
-      if (nid == 0) then
-          write(6,*) 'schfile:',schfle
-          if (ifschclob) then
-              open(unit=26,file=schfle,err=44,form='formatted')
-          else
-              open(unit=26,file=schfle,err=44,form='formatted', &
-              status='new')
-          endif
-          goto 45
-          44 ierr = 1
-      endif
-      45 continue
-      call err_chk(ierr,'.sch file already exists. Use IFSCHCLOB=F to &
-     & disable this check BUT BEWARE!!!!!!$')
+  if(istep >= nsteps) then
+    lastep=1
   endif
-
-  if(istep >= nsteps) lastep=1
+  if (lastep == 1) then
+    ifcheckpoint = .true.
+  endif
 
   timdump=0
   if(timeio /= 0.0)then
       if(time >= (ntdump + 1) * timeio) then
           timdump=1.
           ntdump=ntdump+1
+          ifout = .true.
       endif
   endif
 
+  ! write because of iostep
   if (istep > 0 .AND. iostep > 0) then
-      if(mod(istep,iostep) == 0) ifdoit= .TRUE. 
+      if(mod(istep,iostep) == 0) ifout = .true.
   endif
 
 
-! check for io request in file 'ioinfo'
-  iiidmp=0
-  if (nid == 0 .AND. (mod(istep,10) == 0 .OR. istep < 200)) then
-      open(unit=87,file='ioinfo',status='old',err=88)
-      read(87,*,end=87,err=87) idummy
-      if (iiidmp == 0) iiidmp=idummy
-      if (idummy /= 0) then  ! overwrite last i/o request
-          rewind(87)
-          write(87,86)
-          86 format(' 0')
-      endif
-      87 continue
-      close(unit=87)
-      88 continue
-      if (iiidmp /= 0) write(6,*) 'Output:',iiidmp
-  endif
-
-  tdmp(1)=iiidmp
-  call gop(tdmp,tdmp(3),'+  ',1)
-  iiidmp= int(tdmp(1))
-  if (iiidmp < 0) maxstep=abs(iiidmp)
-  if (istep >= maxstep .OR. iiidmp == -2) lastep=1
-  if (iiidmp == -2) then
-#ifndef NOTIMER
-  tprep=tprep+(dnekclock()-etime)
-#endif
-    return
-  endif
-  if (iiidmp < 0) iiidmp = 0
-
-  if (ifdoin) ifdoit= .TRUE. 
-  if (iiidmp /= 0 .OR. lastep == 1 .OR. timdump == 1.) ifdoit= .TRUE. 
-
+  if (ifdoin) ifout= .TRUE. 
 
   if (ifdoit .AND. nid == 0)write(6,*)'call outfld: ifpsco:',ifpsco(1)
 
 
-  if (ifdoit) then
+  if (ifout) then
     call outfld(prefix, vx, vy, vz, pr, t)
   endif
 
-  if (lastep == 1 .AND. nid == 0) close(unit=26)
+  if (ifcheckpoint) then
+    nlag = size(vxlag, 5)
+    do i = nlag, 1, -1
+      call outfld('ckp', vxlag(:,:,:,:,i), vylag(:,:,:,:,i), vzlag(:,:,:,:,i), pr, tlag(:,:,:,:,:,i))
+    enddo
+    call outfld('ckp', vx, vy, vz, pr, t)
+    call outfld(prefix, vx, vy, vz, pr, t)
+  endif
 
-#ifndef NOTIMER
-  tprep=tprep+(dnekclock()-etime)
-#endif
-
-  ifdoit= .FALSE. 
   return
 
 end subroutine prepost

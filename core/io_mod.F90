@@ -8,9 +8,10 @@
 !! interfaces.
 module io
   implicit none
- 
 
-  public load_ic
+  integer :: istep_offset = 0 
+
+  public load_ic, istep_offset
   private
 
 contains
@@ -23,7 +24,7 @@ subroutine load_ic()
   use soln, only : vx, vy, vz, pr, t
   use restart, only : pid0, pid1,fid0
   use size_m, only : nx1, ny1, nz1
-  use tstep, only : time
+  use tstep, only : time, istep, dtlag, ifield, nab
 
   integer :: nelo !>!< number of i/o elements per io-node
   integer :: word_size_load !>!< number of bytes per word
@@ -32,12 +33,37 @@ subroutine load_ic()
   integer :: ierr, i, sizeout
   integer, parameter :: pad_size = 1
   real(DP), allocatable :: padding(:,:,:,:)
+  real(DP) :: time_old
   logical :: skip_x
   character(132) :: load_name = 'NONE' !>!< name of output to load
 
-
+  call get_restart_name(1, load_name)
+  call load_frame(load_name)
+  call setup_convect (2)
+  ifield = 2
+  call makeq
+  call lagscal
+  ifield = 1
+  call makef
+  call lagvel
+  time_old = time
+  call get_restart_name(2, load_name)
+  call load_frame(load_name)
+  dtlag(3) = time - time_old
+  dtlag(2) = time - time_old
+  call setup_convect (2)
+  ifield = 2
+  call makeq
+  call lagscal
+  ifield = 1
+  call makef
+  call lagvel
+  time_old = time
   call get_restart_name(3, load_name)
   call load_frame(load_name)
+  call setup_convect (2)
+  dtlag(1) = time - time_old
+  istep_offset = 2
 
 end subroutine load_ic
 

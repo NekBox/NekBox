@@ -7,7 +7,7 @@ subroutine prepost(ifdoin,prefin)
   use size_m, only : lx1, ly1, lz1, lelv, nid
   use ctimer, only : nprep, dnekclock, tprep, icalld
   use input, only : schfle, ifschclob, ifpsco
-  use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump
+  use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump, dtlag
   use soln, only : vx, vy, vz, pr, t
   use soln, only : vxlag, vylag, vzlag, tlag
   implicit none
@@ -17,6 +17,7 @@ subroutine prepost(ifdoin,prefin)
 
   real(DP) :: tdmp(4)
   real(DP) :: etime
+  real(DP) :: this_time
 
   character(3) :: prefix
 
@@ -73,10 +74,13 @@ subroutine prepost(ifdoin,prefin)
   endif
 
   if (ifcheckpoint) then
+    this_time = time
     nlag = size(vxlag, 5)
     do i = nlag, 1, -1
-      call outfld('ckp', vxlag(:,:,:,:,i), vylag(:,:,:,:,i), vzlag(:,:,:,:,i), pr, tlag(:,:,:,:,:,i))
+      time = this_time - sum(dtlag(1:i))
+      call outfld('ckp', vxlag(:,:,:,:,i), vylag(:,:,:,:,i), vzlag(:,:,:,:,i), pr, tlag(:,:,:,:,i,1))
     enddo
+    time = this_time
     call outfld('ckp', vx, vy, vz, pr, t)
     call outfld(prefix, vx, vy, vz, pr, t)
   endif

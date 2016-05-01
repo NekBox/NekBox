@@ -313,8 +313,6 @@ subroutine setvar
 
 !     Initialize order of time-stepping scheme (BD)
 !     Initialize time step array.
-  NBD    = 0
-  dtlag = 0._dp
 
 !     Useful constants
   one = 1.

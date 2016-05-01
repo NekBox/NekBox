@@ -4,15 +4,15 @@
   "front_bound": "P", 
   "top_bound": "SYM", 
   "conductivity": 1.99e-03, 
-  "courant": 0.3, 
+  "courant": 0.5, 
   "density": 1.0, 
-  "num_steps": 100.0, 
+  "num_steps": 0.0, 
   "scale_mesh": [
     1.0, 
     1.0, 
     1.0
   ], 
-  "viscosity": 1e-02, 
+  "viscosity": 1e-01, 
   "back_bound": "P", 
   "left_bound": "P", 
   "root_mesh": [
@@ -26,26 +26,26 @@
     1.0,
     1.0
   ], 
-  "dt": -1.0000000E-04, 
+  "dt": 1.0, 
   "right_bound": "P", 
   "dim": 3, 
   "io_time": 1.0, 
   "shape_mesh": [
-    16, 
-    16, 
-    2
+    4, 
+    4, 
+    1
   ], 
-  "end_time": 0.0, 
+  "end_time": 0.02, 
   "uservp": 0, 
   "rho_cp": 1.0,
-  "order": 16,
-  "dealiasing_order" : 24,
+  "order": 32,
+  "dealiasing_order" : 48,
   "io_files" : 1.0,
   "restart" : 0.0,
   "tolrel" : 0.0,
   "tolabs" : 0.0,
-  "toldiv" : 1.0e-8,
-  "tolhelm" : 1.0e-8,
+  "toldiv" : 1.0e-14,
+  "tolhelm" : 1.0e-14,
   "npres" :  4,
   "wait_pres": 2.0,
   "wait_vel": 2.0,
@@ -61,6 +61,6 @@
   "dt_initial" : 0.0,
   "torder" : 3.0,
   "u0" : 1.0,
-  "v0" : 0.3, 
+  "v0" : 0.9, 
   "io_pad" : 23
 }

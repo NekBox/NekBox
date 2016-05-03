@@ -476,6 +476,7 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   use kinds, only : DP
   use input, only : ifreguo, ifxyo_, series, param
   use restart, only : max_rst, nfileo, ifdiro, fid0
+  use size_m, only : lorder
   use string, only : ltrunc
   implicit none
 
@@ -499,7 +500,10 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   real(DP) :: rfileo
 
   if (.not. init) then
-    nopen = int(param(69))
+    nopen(1,:) = int(param(69))
+    if (param(70) > 0) then
+      nopen(2,:) = int(param(70)) + max(2, lorder-1)
+    endif
     init = .true.
   endif
 

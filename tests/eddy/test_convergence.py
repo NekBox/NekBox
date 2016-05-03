@@ -3,6 +3,7 @@ from nekpy.dask.subgraph import series
 from nekpy.dask import run_all
 from nekpy.dask.tasks import configure
 from nekpy.dask.utils import work_name, outer_product
+from nekpy.tools.log import grep_log
 from os.path import join, dirname
 from os import getcwd
 import numpy as np
@@ -12,13 +13,6 @@ with open(join(dirname(__file__), "eddy_uv_f90.tusr"), "r") as f:
     tusr = f.read()
 
 base_dir = join(getcwd(), "scratch")
-
-def get_xerr(lines):
-    res = []
-    for line in lines:
-        if "X err" in line:
-            res.append(float(line.split()[2]))
-    return np.array(res)[10:]
 
 def test_single():
     with open(join(dirname(__file__), "eddy_uv.json")) as f:
@@ -33,7 +27,7 @@ def test_single():
     with open(join(workdir, "{}-0.stdout".format(config["name"]))) as f:
         test = f.readlines()    
 
-    errs = get_xerr(test)
+    errs = grep_log(test, "X err", pos=2)[10:]
     assert np.max(np.abs(errs)) < 2.0e-08
 
     return
@@ -58,7 +52,7 @@ def test_bdf2():
     for config in configs:
         with open(join(config["workdir"], "{}-0.stdout".format(config["name"]))) as f:
             test = f.readlines()    
-        errs[config["courant"]] =  np.max(np.abs(get_xerr(test)))
+        errs[config["courant"]] =  np.max(np.abs(grep_log(test, "X err", pos=2)[10:]))
 
     assert errs[.5] / errs[.25] > 3
     assert errs[.5] / errs[.25] < 6
@@ -87,7 +81,7 @@ def test_bdf3():
     for config in configs:
         with open(join(config["workdir"], "{}-0.stdout".format(config["name"]))) as f:
             test = f.readlines()    
-        errs[config["courant"]] =  np.max(np.abs(get_xerr(test)))
+        errs[config["courant"]] =  np.max(np.abs(grep_log(test, "X err", pos=2)[10:]))
 
     assert errs[.5] / errs[.25] > 6
     assert errs[.5] / errs[.25] < 12
@@ -116,7 +110,7 @@ def test_bdf4():
     for config in configs:
         with open(join(config["workdir"], "{}-0.stdout".format(config["name"]))) as f:
             test = f.readlines()    
-        errs[config["courant"]] =  np.max(np.abs(get_xerr(test)))
+        errs[config["courant"]] =  np.max(np.abs(grep_log(test, "X err", pos=2)[10:]))
 
     assert errs[.5] / errs[.25] > 12
     assert errs[.5] / errs[.25] < 24

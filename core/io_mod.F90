@@ -39,7 +39,7 @@ subroutine load_ic()
   logical :: skip_x
   character(132) :: load_name = 'NONE' !>!< name of output to load
 
-  restart_base = int(param(69))
+  restart_base = int(param(70))
   nlag = max(2, lorder-1)
 
   time_old = 0._dp
@@ -56,7 +56,7 @@ subroutine load_ic()
     call makef
     call lagvel
   enddo
-  call get_restart_name(3, load_name)
+  call get_restart_name(restart_base+nlag, load_name)
   call load_frame(load_name)
   call setup_convect (2)
   dtlag(1) = time - time_old

@@ -42,4 +42,4 @@ install:
  - pip install git+https://github.com/maxhutch/nekpy --upgrade
 
 script: 
- - py.test -v -m -s "not pr"  nek-tests/$TEST_SUITE
+ - py.test -v -s -m "not pr"  nek-tests/$TEST_SUITE

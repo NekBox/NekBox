@@ -14,6 +14,9 @@ with open(join(dirname(__file__), "eddy_uv_f90.tusr"), "r") as f:
 
 base_dir = join(getcwd(), "scratch")
 
+def test_dummy():
+    assert 1 = 1
+
 @pytest.mark.pr
 def test_bdf3():
     with open(join(dirname(__file__), "eddy_uv.json")) as f:

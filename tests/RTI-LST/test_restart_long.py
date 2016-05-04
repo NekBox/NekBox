@@ -13,6 +13,9 @@ base_dir = join(getcwd(), "scratch")
 with open(join(dirname(__file__), "LST_f90.tusr"), "r") as f:
     tusr = f.read()
 
+def test_dummy():
+    assert 1 = 1
+
 @pytest.mark.pr
 def test_restart_long():
     with open(join(dirname(__file__), "LST.json")) as f:

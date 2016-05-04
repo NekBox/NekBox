@@ -48,4 +48,4 @@ install:
  - pip install git+https://github.com/maxhutch/nekpy --upgrade
 
 script: 
- - py.test -v -s -m "not pr"  nek-tests/$TEST_SUITE
+ - if [ $TRAVIS_PULL_REQUEST -eq "false" ]; then py.test -v -m "not pr" nek-tests/$TEST_SUITE; else py.test -v nek-tests/$TEST_SUITE; fi

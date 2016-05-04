@@ -46,10 +46,12 @@ def old_test(name):
 
     return
 
+@pytest.mark.pr
 def test_periodic():
     old_test("LST")
     return
 
+@pytest.mark.pr
 def test_fft():
     old_test("LST_fft")
     return

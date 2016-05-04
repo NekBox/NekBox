@@ -47,16 +47,16 @@ def old_test(name):
     return
 
 @pytest.mark.pr
-def test_fft():
-    old_test("LST_fft")
+def test_periodic():
+    old_test("LST")
     return
 
 @pytest.mark.pr
-def test_asym():
-    old_test("LST_asym")
+def test_sym():
+    old_test("LST_sym")
     return
 
-def test_nonuniform():
-    old_test("LST_nonuniform")
+def test_sym_half():
+    old_test("LST_sym_half")
     return
 

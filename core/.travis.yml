@@ -2,13 +2,18 @@ language: fortran
 
 env:
  - TEST_SUITE=RTI-LST/test_RTI.py
+ - TEST_SUITE=RTI-LST/test_bound.py
  - TEST_SUITE=RTI-LST/test_restart.py
+ - TEST_SUITE=RTI-LST/test_restart_long.py
  - TEST_SUITE=lid/test_lid.py
  - TEST_SUITE=iturb/test_iturb.py
  - TEST_SUITE=Hill/test_Hill.py
  - TEST_SUITE=duct/test_duct.py
  - TEST_SUITE=corner/test_corner.py
- - TEST_SUITE=eddy/test_convergence.py
+ - TEST_SUITE=eddy/test_eddy.py
+ - TEST_SUITE=eddy/test_bdf2.py
+ - TEST_SUITE=eddy/test_bdf3.py
+ - TEST_SUITE=eddy/test_bdf4.py
 
 before_install: 
  - mkdir -p $HOME/NekBox

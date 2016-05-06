@@ -46,17 +46,7 @@ def old_test(name):
 
     return
 
-@pytest.mark.pr
-def test_fft():
-    old_test("LST_fft")
-    return
-
-@pytest.mark.pr
 def test_asym():
     old_test("LST_asym")
-    return
-
-def test_nonuniform():
-    old_test("LST_nonuniform")
     return
 

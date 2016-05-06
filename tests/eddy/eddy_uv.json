@@ -44,7 +44,7 @@
   "restart" : 0.0,
   "tolrel" : 0.0,
   "tolabs" : 0.0,
-  "toldiv" : 1.0e-14,
+  "toldiv" : 1.0e-13,
   "tolhelm" : 1.0e-14,
   "npres" :  4,
   "wait_pres": 2.0,

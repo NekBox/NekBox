@@ -1,7 +1,6 @@
 language: fortran
 
 env:
- - TEST_SUITE=RTI-LST/test_RTI.py
  - TEST_SUITE=RTI-LST/test_fft.py
  - TEST_SUITE=RTI-LST/test_asym.py
  - TEST_SUITE=RTI-LST/test_nonuniform.py

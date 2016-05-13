@@ -5,7 +5,7 @@ module tstep
   implicit none
 
   real(DP) :: TIME,TIMEF,FINTIM,TIMEIO &
-    ,DT,DTLAG(10),DTINIT,DTINVM,COURNO,CTARG &
+    ,DT,DTINIT,DTINVM,COURNO,CTARG &
     ,AB(10),BD(10),ABMSH(10) &
     ,AVDIFF(LDIMT1),AVTRAN(LDIMT1),VOLFLD(0:LDIMT1) &
     ,TOLREL,TOLABS,TOLHDF,TOLPDF,TOLEV,TOLNL,PRELAX &
@@ -17,12 +17,15 @@ module tstep
 
   real(DP) :: re_cell = 0._dp !>!< Cell Reynolds number
 
-  integer :: IFIELD,IMESH,ISTEP,NSTEPS,IOSTEP,LASTEP,IOCOMM &
+  integer :: IFIELD,IMESH,NSTEPS,IOSTEP,LASTEP,IOCOMM &
     ,INSTEP &
-    ,NAB,NBD,NBDINP,NTAUBD &
+    ,NAB,NBDINP,NTAUBD &
     ,NMXH,NMXP,NMXE,NMXNL,NINTER &
     ,NELFLD(0:LDIMT1) &
     ,nconv,nconv_max, ntdump
+
+  integer :: istep = 1, NBD=0
+  real(DP) :: DTLAG(10) = 0._dp
 
   real(DP) :: PI, BETAG, GTHETA
   LOGICAL :: IFPRNT,if_full_pres

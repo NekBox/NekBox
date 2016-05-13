@@ -8,10 +8,10 @@
 !! interfaces.
 module io
   implicit none
- 
-  character(132) :: load_name = 'NONE' !>!< name of output to load
 
-  public load_ic, load_name
+  integer :: istep_offset = 0 
+
+  public load_ic, istep_offset
   private
 
 contains
@@ -23,8 +23,122 @@ subroutine load_ic()
   use parallel, only : nid
   use soln, only : vx, vy, vz, pr, t
   use restart, only : pid0, pid1,fid0
+  use size_m, only : nx1, ny1, nz1, lorder
+  use tstep, only : time, istep, dtlag, ifield, nab
+  use input, only : param
+
+  integer :: nelo !>!< number of i/o elements per io-node
+  integer :: word_size_load !>!< number of bytes per word
+  integer :: nx_load !>!< order of load
+
+  integer :: ierr, i, sizeout
+  integer, parameter :: pad_size = 1
+  real(DP), allocatable :: padding(:,:,:,:)
+  real(DP) :: time_old
+  integer :: restart_base, nlag
+  logical :: skip_x
+  character(132) :: load_name = 'NONE' !>!< name of output to load
+
+  restart_base = int(param(70))
+  nlag = max(2, lorder-1)
+
+  time_old = 0._dp
+  do i = 0, nlag-1
+    call get_restart_name(restart_base+i, load_name)
+    call load_frame(load_name)
+    dtlag(nlag+1-i) = time - time_old
+    time_old = time
+    call setup_convect (2)
+    ifield = 2
+    call makeq
+    call lagscal
+    ifield = 1
+    call makef
+    call lagvel
+  enddo
+  call get_restart_name(restart_base+nlag, load_name)
+  call load_frame(load_name)
+  call setup_convect (2)
+  dtlag(1) = time - time_old
+  istep_offset = nlag
+end subroutine load_ic
+
+subroutine get_restart_name(findex, fname)
+  use kinds, only : DP
+  use input, only : ifreguo, series, param
+  use restart, only : nfileo, ifdiro
+  use string, only : ltrunc
+  implicit none
+
+  integer, intent(in) :: findex
+  character(132) ::  fname 
+  character(1) ::   fnam1(132)
+
+  character(6), save ::  six = "??????"
+  character(6) :: str
+
+  character(1), save :: slash = '/', dot = '.'
+
+  integer :: k, len, ndigit
+  integer, external :: i_find_prefix, mod1
+  real(DP) :: rfileo
+
+  fname = ''
+
+#ifdef MPIIO
+  rfileo = 1
+#else
+  rfileo = nfileo
+#endif
+  ndigit = int(log10(rfileo) + 1)
+
+  k = 1
+  if (ifdiro) then                                  !  Add directory
+      call chcopy(fnam1(1),'A',1)
+      call chcopy(fnam1(2),six,ndigit)  ! put ???? in string
+      k = 2 + ndigit
+      call chcopy(fnam1(k),slash,1)
+      k = k+1
+  endif
+
+  call chcopy(fnam1(k), 'ckp', 3)
+  k = k + 3
+
+  len=ltrunc(series,132)                           !  Add SESSION
+  call chcopy(fnam1(k),series,len)
+  k = k+len
+
+  if (ifreguo) then
+      len=4
+      call chcopy(fnam1(k),'_reg',len)
+      k = k+len
+  endif
+
+  call chcopy(fnam1(k),six,ndigit)                  !  Add file-id holder
+  k = k + ndigit
+
+  call chcopy(fnam1(k  ),dot,1)                     !  Add .f appendix
+  call chcopy(fnam1(k+1),'f',1)
+  k = k + 2
+
+  write(str,4) findex                                 !  Add nfld number
+  4 format(i5.5)
+  call chcopy(fnam1(k),str,5)
+  k = k + 5
+
+  call chcopy(fname(1:132),fnam1(1),k-1)
+
+end subroutine get_restart_name
+
+subroutine load_frame(frame_name)
+  use kinds, only : DP
+  use parallel, only : nid
+  use soln, only : vx, vy, vz, pr, t
+  use restart, only : pid0, pid1,fid0
   use size_m, only : nx1, ny1, nz1
   use tstep, only : time
+
+  character(132), intent(in) :: frame_name !>!< name of frame to load
 
   integer :: nelo !>!< number of i/o elements per io-node
   integer :: word_size_load !>!< number of bytes per word
@@ -35,12 +149,8 @@ subroutine load_ic()
   real(DP), allocatable :: padding(:,:,:,:)
   logical :: skip_x
 
-  if (load_name == 'NONE') then
-    call get_restart_name(load_name)
-  endif
-
   if (nid == pid0) then
-    call mbyte_open(load_name, fid0, ierr)
+    call mbyte_open(frame_name, fid0, ierr)
   endif
 
   ! read and seek past header 
@@ -75,70 +185,7 @@ subroutine load_ic()
     call byte_close(ierr)
   endif
 
-end subroutine load_ic
-
-subroutine get_restart_name(fname)
-  use kinds, only : DP
-  use input, only : ifreguo, series, param
-  use restart, only : nfileo, ifdiro
-  use string, only : ltrunc
-  implicit none
-
-  character(132) ::  fname 
-  character(1) ::   fnam1(132)
-
-  character(6), save ::  six = "??????"
-  character(6) :: str
-
-  character(1), save :: slash = '/', dot = '.'
-
-  integer :: k, len, ndigit
-  integer, external :: i_find_prefix, mod1
-  real(DP) :: rfileo
-
-  fname = ''
-
-#ifdef MPIIO
-  rfileo = 1
-#else
-  rfileo = nfileo
-#endif
-  ndigit = int(log10(rfileo) + 1)
-
-  k = 1
-  if (ifdiro) then                                  !  Add directory
-      call chcopy(fnam1(1),'A',1)
-      call chcopy(fnam1(2),six,ndigit)  ! put ???? in string
-      k = 2 + ndigit
-      call chcopy(fnam1(k),slash,1)
-      k = k+1
-  endif
-
-  len=ltrunc(series,132)                           !  Add SESSION
-  call chcopy(fnam1(k),series,len)
-  k = k+len
-
-  if (ifreguo) then
-      len=4
-      call chcopy(fnam1(k),'_reg',len)
-      k = k+len
-  endif
-
-  call chcopy(fnam1(k),six,ndigit)                  !  Add file-id holder
-  k = k + ndigit
-
-  call chcopy(fnam1(k  ),dot,1)                     !  Add .f appendix
-  call chcopy(fnam1(k+1),'f',1)
-  k = k + 2
-
-  write(str,4) int(param(69))                                 !  Add nfld number
-  4 format(i5.5)
-  call chcopy(fnam1(k),str,5)
-  k = k + 5
-
-  call chcopy(fname(1:132),fnam1(1),k-1)
-
-end subroutine get_restart_name
+end subroutine load_frame
 
 !-----------------------------------------------------------------------
 !> \brief Read header and return number of elements and word size

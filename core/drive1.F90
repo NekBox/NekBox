@@ -230,6 +230,7 @@ subroutine nek_init(intracomm)
 subroutine nek_solve
   use ctimer, only : ifsync
   use tstep, only : instep, nid, istep, nsteps, lastep
+  use io, only : istep_offset
   implicit none
 
 !  real*4 :: papi_mflops
@@ -258,7 +259,7 @@ subroutine nek_solve
   istep  = 0
   msteps = 1
 
-  do kstep=1,nsteps,msteps
+  do kstep=1+istep_offset,nsteps,msteps
       call nek__multi_advance(kstep,msteps)
       call userchk
       call prepost ( .FALSE. ,'his')

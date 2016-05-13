@@ -36,7 +36,7 @@ PPLIST="LIBGS"
 
 # linking flags
 #USR_LFLAGS="-lmkl_intel_lp64  -lmkl_sequential -lmkl_core"
-USR_LFLAGS="-lblas -llapack -lfftw3 -L${TRAVIS_BUILD_DIR}/gslib -lgs"
+USR_LFLAGS="-lblas -llapack -lfftw3 -L${HOME}/gslib -lgs"
 
 
 # generic compiler flags

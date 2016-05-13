@@ -7,7 +7,9 @@ subroutine prepost(ifdoin,prefin)
   use size_m, only : lx1, ly1, lz1, lelv, nid
   use ctimer, only : nprep, dnekclock, tprep, icalld
   use input, only : schfle, ifschclob, ifpsco
-  use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump
+  use tstep, only : iostep, timeio, istep, nsteps, lastep, time, ntdump, dtlag
+  use soln, only : vx, vy, vz, pr, t
+  use soln, only : vxlag, vylag, vzlag, tlag
   implicit none
 
   logical :: ifdoin
@@ -15,26 +17,24 @@ subroutine prepost(ifdoin,prefin)
 
   real(DP) :: tdmp(4)
   real(DP) :: etime
+  real(DP) :: this_time
 
   character(3) :: prefix
 
-  logical, save :: ifdoit = .FALSE.
+  logical :: ifout, ifcheckpoint
 
-  real(DP), allocatable ::  pm1(:,:,:,:)
+  logical, save :: ifdoit = .FALSE.
 
   logical :: ifhis
 
   integer, save :: maxstep = 999999999
   integer :: ierr, iiidmp, idummy
+  integer :: i, nlag
   real(DP) :: timdump
 
   if (iostep < 0 .OR. timeio < 0) return
 
-  nprep=nprep + 1
-
-#ifndef NOTIMER
-  etime=dnekclock()
-#endif
+  ifout = .false.; ifcheckpoint = .false.
 
 !   Trigger history output only if prefix = 'his'   pff 8/18/05
   ifhis  = .FALSE. 
@@ -42,218 +42,58 @@ subroutine prepost(ifdoin,prefin)
   if (prefin == 'his') ifhis  = .TRUE. 
   if (prefix == 'his') prefix = '   '
 
-  if(icalld == 1) then
-      ierr = 0
-      if (nid == 0) then
-          write(6,*) 'schfile:',schfle
-          if (ifschclob) then
-              open(unit=26,file=schfle,err=44,form='formatted')
-          else
-              open(unit=26,file=schfle,err=44,form='formatted', &
-              status='new')
-          endif
-          goto 45
-          44 ierr = 1
-      endif
-      45 continue
-      call err_chk(ierr,'.sch file already exists. Use IFSCHCLOB=F to &
-     & disable this check BUT BEWARE!!!!!!$')
+  if(istep >= nsteps) then
+    lastep=1
   endif
-
-  if(istep >= nsteps) lastep=1
+  if (lastep == 1) then
+    ifcheckpoint = .true.
+  endif
 
   timdump=0
   if(timeio /= 0.0)then
       if(time >= (ntdump + 1) * timeio) then
           timdump=1.
           ntdump=ntdump+1
+          ifout = .true.
       endif
   endif
 
+  ! write because of iostep
   if (istep > 0 .AND. iostep > 0) then
-      if(mod(istep,iostep) == 0) ifdoit= .TRUE. 
+      if(mod(istep,iostep) == 0) ifout = .true.
   endif
 
 
-! check for io request in file 'ioinfo'
-  iiidmp=0
-  if (nid == 0 .AND. (mod(istep,10) == 0 .OR. istep < 200)) then
-      open(unit=87,file='ioinfo',status='old',err=88)
-      read(87,*,end=87,err=87) idummy
-      if (iiidmp == 0) iiidmp=idummy
-      if (idummy /= 0) then  ! overwrite last i/o request
-          rewind(87)
-          write(87,86)
-          86 format(' 0')
-      endif
-      87 continue
-      close(unit=87)
-      88 continue
-      if (iiidmp /= 0) write(6,*) 'Output:',iiidmp
-  endif
-
-  tdmp(1)=iiidmp
-  call gop(tdmp,tdmp(3),'+  ',1)
-  iiidmp= int(tdmp(1))
-  if (iiidmp < 0) maxstep=abs(iiidmp)
-  if (istep >= maxstep .OR. iiidmp == -2) lastep=1
-  if (iiidmp == -2) then
-#ifndef NOTIMER
-  tprep=tprep+(dnekclock()-etime)
-#endif
-    return
-  endif
-  if (iiidmp < 0) iiidmp = 0
-
-  if (ifdoin) ifdoit= .TRUE. 
-  if (iiidmp /= 0 .OR. lastep == 1 .OR. timdump == 1.) ifdoit= .TRUE. 
-
+  if (ifdoin) ifout= .TRUE. 
 
   if (ifdoit .AND. nid == 0)write(6,*)'call outfld: ifpsco:',ifpsco(1)
 
 
-  if (ifdoit) then
-    allocate(pm1(lx1,ly1,lz1,lelv))
-    call prepost_map(0, pm1) ! map pr and axisymm. arrays
-    !call outhis(ifhis, pm1)
-    call outfld(prefix, pm1)
-    call prepost_map(1, pm1) ! map back axisymm. arrays
+  if (ifout) then
+    call outfld(prefix, vx, vy, vz, pr, t)
   endif
 
-  if (lastep == 1 .AND. nid == 0) close(unit=26)
+  if (ifcheckpoint) then
+    this_time = time
+    nlag = size(vxlag, 5)
+    do i = nlag, 1, -1
+      time = this_time - sum(dtlag(1:i))
+      call outfld('ckp', vxlag(:,:,:,:,i), vylag(:,:,:,:,i), vzlag(:,:,:,:,i), pr, tlag(:,:,:,:,i,1))
+    enddo
+    time = this_time
+    call outfld('ckp', vx, vy, vz, pr, t)
+    call outfld(prefix, vx, vy, vz, pr, t)
+  endif
 
-#ifndef NOTIMER
-  tprep=tprep+(dnekclock()-etime)
-#endif
-
-  ifdoit= .FALSE. 
   return
 
 end subroutine prepost
 
 !-----------------------------------------------------------------------
-!> \brief Store results for later postprocessing
-subroutine prepost_map(isave, pm1) ! isave=0-->fwd, isave=1-->bkwd
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, ly2, lz2
-  use size_m, only : nx1, ny1, nz1, nelv, nx2, ny2, nz2
-  use input, only : ifaxis, ifsplit
-  use ixyz, only : ixm21, iytm21, iztm21
-  use soln, only : pr
-  use tstep, only : if_full_pres
-  implicit none
-
-  integer, intent(in) :: isave
-  real(DP), intent(out) ::  pm1    (lx1,ly1,lz1,lelv)
-
-!   Work arrays and temporary arrays
-  real(DP) :: pa(lx1,ly2,lz2),pb(lx1,ly1,lz2)
-  integer :: e
-  integer :: ntot1, nyz2, nxy1, nxyz, nxyz2, iz
-
-  if (isave == 0) then ! map to GLL grid
-
-      if (ifaxis) then
-        write(*,*) "Oops: ifaxis"
-#if 0
-          ntotm1 = nx1*ny1*nelt
-          call copy (yax,ym1,ntotm1)
-          do 5 e=1,nelt
-              if (ifrzer(e)) then
-                  call mxm  (ym1(1,1,1,e),nx1,iatjl1,ny1,pb,ny1)
-                  call copy (ym1(1,1,1,e),pb,nx1*ny1)
-              endif
-          5 END DO
-          if (ifflow) then
-              ntotm1 = nx1*ny1*nelv
-              ntotm2 = nx2*ny2*nelv
-              call copy (vxax,vx,ntotm1)
-              call copy (vyax,vy,ntotm1)
-              call copy (prax,pr,ntotm2)
-              do 10 e=1,nelv
-                  if (ifrzer(e)) then
-                      call mxm  (vx(1,1,1,e),nx1,iatjl1,ny1,pb,ny1)
-                      call copy (vx(1,1,1,e),pb,nx1*ny1)
-                      call mxm  (vy(1,1,1,e),nx1,iatjl1,ny1,pb,ny1)
-                      call copy (vy(1,1,1,e),pb,nx1*ny1)
-                      call mxm  (pr(1,1,1,e),nx2,iatjl2,ny2,pb,ny2)
-                      call copy (pr(1,1,1,e),pb,nx2*ny2)
-                  endif
-              10 END DO
-          endif
-          if (ifheat) then
-              ntotm1 = nx1*ny1*nelt
-              do 15 ifldt=1,npscal+1
-                  call copy (tax(1,1,1,ifldt),t(1,1,1,1,ifldt),ntotm1)
-              15 END DO
-              do 30 e=1,nelt
-                  if (ifrzer(e)) then
-                      do 25 ifldt=1,npscal+1
-                          call mxm  (t(1,1,1,e,ifldt),nx1,iatjl1,ny1, &
-                          pb,ny1)
-                          call copy (t(1,1,1,e,ifldt),pb,nx1*ny1)
-                      25 END DO
-                  endif
-              30 END DO
-          endif
-#endif
-      endif
-  !        Map the pressure onto the velocity mesh
-  
-      ntot1 = nx1*ny1*nz1*nelv
-      nyz2  = ny2*nz2
-      nxy1  = nx1*ny1
-      nxyz  = nx1*ny1*nz1
-      nxyz2 = nx2*ny2*nz2
-  
-      if (ifsplit) then
-          call copy(pm1,pr,ntot1)
-      elseif (if_full_pres) then
-          pm1 = 0._dp
-          do e=1,nelv
-              call copy(pm1(1,1,1,e),pr(1,1,1,e),nxyz2)
-          enddo
-      else
-          do 1000 e=1,nelv
-              call mxm (ixm21,nx1,pr(1,1,1,e),nx2,pa(1,1,1),nyz2)
-              do 100 iz=1,nz2
-                  call mxm (pa(1,1,iz),nx1,iytm21,ny2,pb(1,1,iz),ny1)
-              100 END DO
-              call mxm (pb(1,1,1),nxy1,iztm21,nz2,pm1(1,1,1,e),nz1)
-          1000 END DO
-      endif
-
-  else       ! map back
-      if (ifaxis) then
-        write(*,*) "Oops: ifaxis"
-#if 0
-          ntot1 = nx1*ny1*nelt
-          call copy (ym1,yax,ntot1)
-          if (ifflow) then
-              ntot1 = nx1*ny1*nelv
-              ntot2 = nx2*ny2*nelv
-              call copy (vx,vxax,ntot1)
-              call copy (vy,vyax,ntot1)
-              call copy (pr,prax,ntot2)
-          endif
-          if (ifheat) then
-              ntot1 = nx1*ny1*nelt
-              do 3000 ifldt=1,npscal+1
-                  call copy (t(1,1,1,1,ifldt),tax(1,1,1,ifldt),ntot1)
-              3000 END DO
-          endif
-#endif
-      endif
-
-  endif
-  return
-end subroutine prepost_map
-
-!-----------------------------------------------------------------------
 !> \brief output .fld file
-subroutine outfld(prefix, pm1)
+subroutine outfld(prefix, vx, vy, vz, pr, t)
   use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv, nid
+  use size_m, only : lx1, ly1, lz1, lelv, ldimt, nid
   use input, only : param
   use tstep, only : istep, time
   implicit none
@@ -262,7 +102,11 @@ subroutine outfld(prefix, pm1)
 
   character(3), intent(in) ::    prefix
 
-  real(DP), intent(in) ::  pm1    (lx1,ly1,lz1,lelv)
+  real(DP), intent(in) :: vx (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: vy (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: vz (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: t  (lx1, ly1, lz1, lelv, ldimt)
+  real(DP), intent(in) :: pr (lx1,ly1,lz1,lelv)  ! mapped pressure
 
   real(DP) :: p66
 
@@ -274,363 +118,13 @@ subroutine outfld(prefix, pm1)
 
   p66 = abs(param(66))
   if (p66 == 6) then
-      call mfo_outfld(prefix, pm1)
+      call mfo_outfld(prefix, vx, vy, vz, pr, t)
       call nekgsync                ! avoid race condition w/ outfld
       return
   endif
 
-  write(*,*) "Oops: p66 /= 6"
-#if 0
-  ifxyo_s = ifxyo              ! Save ifxyo
-
-  iprefix = i_find_prefix(prefix,99)
-
-  ierr = 0
-  if (nid == 0) then
-
-  !       Open new file for each dump on /cfs
-      nopen(iprefix)=nopen(iprefix)+1
-
-      if (prefix == '   ' .AND. nopen(iprefix) == 1) ifxyo = .TRUE. ! 1st file
-
-      if (prefix == 'rst' .AND. max_rst > 0) &
-      nopen(iprefix) = mod1(nopen(iprefix),max_rst) ! restart
-
-      call file2(nopen(iprefix),prefix)
-      if (p66 < 1.0) then
-          open(unit=24,file=fldfle,form='formatted',status='unknown')
-      else
-          fldfilei = 0
-          len = ltrunc   (fldfle,131)
-          call chcopy    (fldfile2,fldfle,len)
-          call byte_open (fldfile2,ierr)
-      !          write header as character string
-          call blank(fhdfle,132)
-      endif
-  endif
-  call bcast(ifxyo,lsize)
-  if(p66 >= 1.0) &
-  call err_chk(ierr,'Error opening file in outfld. Abort. $')
-
-!   Figure out what goes in EXCODE
-  CALL BLANK(EXCODE,30)
-  NDUMPS=NDUMPS+1
-  i=1
-  if (mod(p66,1.0) == 0.0) then !old header format
-      IF(IFXYO) then
-          EXCODE(1)='X'
-          EXCODE(2)=' '
-          EXCODE(3)='Y'
-          EXCODE(4)=' '
-          i = 5
-          IF(IF3D) THEN
-              EXCODE(i)  ='Z'
-              EXCODE(i+1)=' '
-              i = i + 2
-          ENDIF
-      ENDIF
-      IF(IFVO) then
-          EXCODE(i)  ='U'
-          EXCODE(i+1)=' '
-          i = i + 2
-      ENDIF
-      IF(IFPO) THEN
-          EXCODE(i)='P'
-          EXCODE(i+1)=' '
-          i = i + 2
-      ENDIF
-      IF(IFTO) THEN
-          EXCODE(i)='T '
-          EXCODE(i+1)=' '
-          i = i + 1
-      ENDIF
-      do iip=1,ldimt1
-          if (ifpsco(iip)) then
-              write(excode(iip+I)  ,'(i1)') iip
-              write(excode(iip+I+1),'(a1)') ' '
-              i = i + 1
-          endif
-      enddo
-  else
-  ! ew header format
-      IF (IFXYO) THEN
-          EXCODE(i)='X'
-          i = i + 1
-      ENDIF
-      IF (IFVO) THEN
-          EXCODE(i)='U'
-          i = i + 1
-      ENDIF
-      IF (IFPO) THEN
-          EXCODE(i)='P'
-          i = i + 1
-      ENDIF
-      IF (IFTO) THEN
-          EXCODE(i)='T'
-          i = i + 1
-      ENDIF
-      IF (LDIMT > 1) THEN
-          NPSCALO = 0
-          do k = 1,ldimt-1
-              if(ifpsco(k)) NPSCALO = NPSCALO + 1
-          enddo
-          IF (NPSCALO > 0) THEN
-              EXCODE(i) = 'S'
-              WRITE(EXCODE(i+1),'(I1)') NPSCALO/10
-              WRITE(EXCODE(i+2),'(I1)') NPSCALO-(NPSCALO/10)*10
-          ENDIF
-      ENDIF
-  endif
-       
-
-!   Dump header
-  ierr = 0
-  if (nid == 0) call dump_header(excode,p66,ierr)
-  call err_chk(ierr,'Error dumping header in outfld. Abort. $')
-
-  call get_id(id)
-
-  nxyz  = nx1*ny1*nz1
-
-  ierr = 0
-  do ieg=1,nelgt
-
-      jnid = gllnid(ieg)
-      ie   = gllel (ieg)
-
-      if (nid == 0) then
-          if (jnid == 0) then
-              call fill_tmp(tdump,id,ie)
-          else
-              mtype=2000+ieg
-              len=4*id*nxyz
-              dum1=0.
-              call csend (mtype,dum1,wdsize,jnid,nullpid)
-              call crecv (mtype,tdump,len)
-          endif
-          if(ierr == 0) call out_tmp(id,p66,ierr)
-      elseif (nid == jnid) then
-          call fill_tmp(tdump,id,ie)
-          dum1=0.
-
-          mtype=2000+ieg
-          len=4*id*nxyz
-          call crecv (mtype,dum1,wdsize)
-          call csend (mtype,tdump,len,node0,nullpid)
-      endif
-  enddo
-  call err_chk(ierr,'Error writing file in outfld. Abort. $')
-
-  ifxyo = ifxyo_s           ! restore ifxyo
-
-  if (nid == 0) call close_fld(p66,ierr)
-  call err_chk(ierr,'Error closing file in outfld. Abort. $')
-#endif
-
   return
 end subroutine outfld
-
-!-----------------------------------------------------------------------
-!> \brief output time history info.
-subroutine outhis(ifhis, pm1)
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelv
-  use size_m, only : nx1, ny1, nz1, nelv, nid
-  use geom, only : xm1, ym1, zm1
-  use input, only : param, nhis, hcode, lochis, if3d, qinteg
-  use parallel, only : gllnid, gllel, np, wdsize, node0, nullpid
-  use soln, only : jp, vx, vy, vz, t
-  use tstep, only : istep, dt, time
-  implicit none
-
-  real(DP) :: pm1    (lx1,ly1,lz1,lelv)
-
-  real(DP) :: hdump(25)
-  real(DP) :: xpart(10),ypart(10),zpart(10)
-  logical :: ifhis
-
-  integer, save :: icalld = 0
-  integer :: iohis, nvar, ih, ii, ihisps, mtype, len, iobj, isk, iq
-  integer :: ipart, i, iel, k, j, ip, kp, ielp, ix, iy, iz, ieg, jnid, ie
-  real(DP) :: rmin, x, y, z, r, one
-  real(DP), external :: glmax
-
-  iohis=1
-  if (param(52) >= 1) iohis = int(param(52))
-  if (mod(istep,iohis) == 0 .AND. ifhis) then
-      if (nhis > 0) then
-          IPART=0
-          DO 2100 I=1,NHIS
-              IF(HCODE(10,I) == 'P')then       ! Do particle paths
-                  if (ipart <= 10) ipart=ipart+1
-                  if (istep == 0) then          ! Particle has original coordinates
-                  !               Restarts?
-                      XPART(IPART)= &
-                      XM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
-                      YPART(IPART)= &
-                      YM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
-                      ZPART(IPART)= &
-                      ZM1(LOCHIS(1,I),LOCHIS(2,I),LOCHIS(3,I),LOCHIS(4,I))
-                  ELSE
-                  !               Kludge: Find Closest point
-                      RMIN=1.0E7
-                      ip = 1; jp = 1; kp = 1; ielp = 1
-                      DO IEL=1,NELV
-                          DO K=1,NZ1
-                              DO J=1,NY1
-                                  DO II=1,NX1
-                                      X = XM1(II,J,K,IEL)
-                                      Y = YM1(II,J,K,IEL)
-                                      Z = ZM1(II,J,K,IEL)
-                                      R=SQRT( (X-XPART(IPART))**2 + (Y-YPART(IPART))**2 &
-                                      +       (Z-ZPART(IPART))**2 )
-                                      IF(R < RMIN) then
-                                          RMIN=R
-                                          IP=II
-                                          JP=J
-                                          KP=K
-                                          IELP=IEL
-                                      ENDIF
-                                  enddo
-                              enddo
-                          enddo
-                      END DO
-                      XPART(IPART) = XPART(IPART) + DT * VX(IP,JP,KP,IELP)
-                      YPART(IPART) = YPART(IPART) + DT * VY(IP,JP,KP,IELP)
-                      ZPART(IPART) = ZPART(IPART) + DT * VZ(IP,JP,KP,IELP)
-                  ENDIF
-              !            Dump particle data for history point first
-              !            Particle data is Time, x,y,z.
-                  WRITE(26,'(4G14.6,A10)')TIME,XPART(IPART),YPART(IPART) &
-                  ,ZPART(IPART),'  Particle'
-              ENDIF
-          !         Figure out which fields to dump
-              NVAR=0
-              IF(HCODE(10,I) == 'H')then
-              !           Do histories
-              
-              
-                  IX =LOCHIS(1,I)
-                  IY =LOCHIS(2,I)
-                  IZ =LOCHIS(3,I)
-                  IEG=LOCHIS(4,I)
-                  JNID=GLLNID(IEG)
-                  IE  =GLLEL(IEG)
-              
-              !------------------------------------------------------------------------
-              !           On first call, write out XYZ location of history points
-              
-                  if (icalld == 0) then
-                      one = glmax((/one/),1)           ! Force synch.  pff 04/16/04
-                      IF (NID == JNID) then
-                          IF (NP > 1 .AND. .NOT. IF3D) &
-                          WRITE(6,22) NID,I,IX,IY,ie,IEG &
-                          ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE)
-                          IF (NP > 1 .AND. IF3D) &
-                          WRITE(6,23) NID,I,IX,IY,IZ,ie,IEG,XM1(IX,IY,IZ,IE) &
-                          ,YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE)
-                          IF (NP == 1 .AND. .NOT. IF3D) &
-                          WRITE(6,32) I,IX,IY,ie,IEG &
-                          ,XM1(IX,IY,IZ,IE),YM1(IX,IY,IZ,IE)
-                          IF (NP == 1 .AND. IF3D) &
-                          WRITE(6,33) I,IX,IY,IZ,ie,IEG,XM1(IX,IY,IZ,IE) &
-                          ,YM1(IX,IY,IZ,IE),ZM1(IX,IY,IZ,IE)
-                          22 FORMAT(i6,' History point:',I3,' at (',2(I2,','), &
-                          &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
-                          23 FORMAT(i6,' History point:',I3,' at (',3(I2,','), &
-                          &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
-                          32 FORMAT(2X,' History point:',I3,' at (',2(I2,','), &
-                          &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
-                          33 FORMAT(2X,' History point:',I3,' at (',3(I2,','), &
-                          &          2(I4,','),'); X,Y,Z = (',G12.4,',',G12.4,',',G12.4,').')
-                      ENDIF
-                  ENDIF
-              !------------------------------------------------------------------------
-              
-                  IF(HCODE(1,I) == 'U')then
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=VX(IX,IY,IZ,IE)
-                  elseif(HCODE(1,I) == 'X')then
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=XM1(IX,IY,IZ,IE)
-                  ENDIF
-                  IF(HCODE(2,I) == 'V')then
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=VY(IX,IY,IZ,IE)
-                  elseif(HCODE(2,I) == 'Y')then
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=YM1(IX,IY,IZ,IE)
-                  ENDIF
-                  IF(HCODE(3,I) == 'W')then
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=VZ(IX,IY,IZ,IE)
-                  elseif(HCODE(3,I) == 'Z')then
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=ZM1(IX,IY,IZ,IE)
-                  ENDIF
-                  IF(HCODE(4,I) == 'P')then
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=PM1(IX,IY,IZ,IE)
-                  ENDIF
-                  IF(HCODE(5,I) == 'T')then
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=T (IX,IY,IZ,IE,1)
-                  ENDIF
-                  IF(HCODE(6,I) /= ' ' .AND. HCODE(6,I) /= '0') then
-                      READ(HCODE(6,I),'(I1)',ERR=13)IHISPS
-                      13 CONTINUE
-                  !              Passive scalar data here
-                      NVAR=NVAR+1
-                      HDUMP(NVAR)=T (IX,IY,IZ,IE,IHISPS+1)
-                  ENDIF
-              
-              !--------------------------------------------------------------
-              !           Dump out the NVAR values for this history point
-              !--------------------------------------------------------------
-                  MTYPE=2200+I
-                  LEN=WDSIZE*NVAR
-              
-              !           If point on this processor, send data to node 0
-                  IF (NVAR > 0 .AND. NID /= 0 .AND. JNID == NID) &
-                  call csend (mtype,hdump,len,node0,nullpid)
-              
-              !           If processor 0, recv data (unless point resides on node0).
-                  IF (NVAR > 0 .AND. NID == 0 .AND. JNID /= NID) &
-                  call crecv (mtype,hdump,len)
-              
-                  IF (NVAR > 0 .AND. NID == 0) &
-                  WRITE(26,'(1p6e16.8)')TIME,(HDUMP(II),II=1,NVAR)
-              
-              !--------------------------------------------------------------
-              !         End of history points
-              !--------------------------------------------------------------
-              ENDIF
-          2100 END DO
-      !        Now do Integrated quantities (Drag, Lift, Flux, etc.)
-      !        Find out which groups are to be dumped
-!max            IF (IFINTQ) CALL INTGLQ
-          DO 2200 IH=1,NHIS
-              IF(HCODE(10,IH) == 'I') then
-                  IOBJ=LOCHIS(1,IH)
-                  ISK=0
-                  DO 2205 IQ=1,3
-                      IF (HCODE(IQ,IH) /= ' ') ISK=ISK + 1
-                  2205 END DO
-                  DO 2207 IQ=5,6
-                      IF (HCODE(IQ,IH) /= ' ') ISK=ISK + 1
-                  2207 END DO
-                  IF (NID == 0) &
-                  WRITE(26,'(1p6e16.8)')TIME,(QINTEG(II,IOBJ),II=1,ISK)
-              ENDIF
-          2200 END DO
-      ENDIF
-
-  endif
-
-  icalld = icalld+1
-
-  return
-end subroutine outhis
 
 !=======================================================================
 subroutine copyX4(a,b,n)
@@ -698,7 +192,7 @@ end function i_find_prefix
 
 !-----------------------------------------------------------------------
 !> \brief mult-file output
-subroutine mfo_outfld(prefix, pm1) 
+subroutine mfo_outfld(prefix, vx, vy, vz, pr, t) 
   use kinds, only : DP, i8
   use ctimer, only : dnekclock_sync
   use size_m, only : lx1, ly1, lz1, lelv, ldimt, lxo
@@ -708,13 +202,17 @@ subroutine mfo_outfld(prefix, pm1)
   use geom, only : xm1, ym1, zm1
   use input, only : ifxyo, ifxyo_, ifreguo, if3d, ifvo, ifpo, ifto, ifpsco
   use parallel, only : isize, nelgt, lsize
-  use soln, only : vx, vy, vz, t
   use tstep, only : istep, time
   implicit none
 
   character(3), intent(in) :: prefix
 
-  real(DP), intent(in) :: pm1 (lx1,ly1,lz1,lelv)  ! mapped pressure
+
+  real(DP), intent(in) :: vx (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: vy (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: vz (lx1, ly1, lz1, lelv)
+  real(DP), intent(in) :: t  (lx1, ly1, lz1, lelv, ldimt)
+  real(DP), intent(in) :: pr (lx1,ly1,lz1,lelv)  ! mapped pressure
 
   integer(i8) :: offs0,offs,stride,strideB,nxyzo8
   logical :: ifxyo_s
@@ -804,7 +302,7 @@ subroutine mfo_outfld(prefix, pm1)
           call mfo_outs(ur1,nout,nxo,nyo,nzo)
 #endif
       else
-          call mfo_outs(pm1,nout,nxo,nyo,nzo)
+          call mfo_outs(pr,nout,nxo,nyo,nzo)
       endif
       ioflds = ioflds + 1
   endif
@@ -861,7 +359,7 @@ subroutine mfo_outfld(prefix, pm1)
       if (ifpo ) then
           offs = offs0 + ioflds*stride + strideB
           call byte_set_view(offs,ifh_mbyte)
-          call mfo_mdatas(pm1,nout)
+          call mfo_mdatas(pr,nout)
           ioflds = ioflds + 1
       endif
       if (ifto ) then
@@ -978,6 +476,7 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   use kinds, only : DP
   use input, only : ifreguo, ifxyo_, series, param
   use restart, only : max_rst, nfileo, ifdiro, fid0
+  use size_m, only : lorder
   use string, only : ltrunc
   implicit none
 
@@ -1001,7 +500,10 @@ subroutine mfo_open_files(prefix,ierr) ! open files
   real(DP) :: rfileo
 
   if (.not. init) then
-    nopen = int(param(69))
+    nopen(1,:) = int(param(69))
+    if (param(70) > 0) then
+      nopen(2,:) = int(param(70)) + max(2, lorder-1)
+    endif
     init = .true.
   endif
 
@@ -1163,97 +665,10 @@ subroutine outpost(v1,v2,v3,vp,vt,name3)
   real(DP) :: v1(*),v2(*),v3(*),vp(*),vt(*)
   character(3) :: name3
 
-  integer :: itmp
-  itmp=0
-  if (ifto) itmp=1
-  call outpost2(v1,v2,v3,vp,vt,itmp,name3)
+  call outfld(name3, v1, v2, v3, vp, vt)
 
   return
 end subroutine outpost
-
-!-----------------------------------------------------------------------
-subroutine outpost2(v1,v2,v3,vp,vt,nfldt,name3)
-  use kinds, only : DP
-  use size_m, only : lx1, ly1, lz1, lelt, lelv, ldimt
-  use size_m, only : lx2, ly2, lz2
-  use size_m, only : nx1, ny1, nz1, nx2, ny2, nz2, nelv, nelt
-  use ctimer, only : tprep, dnekclock
-  use input, only : ifto, ifpsco
-  use soln, only : vx, vy, vz, pr, t
-  implicit none
-
-  integer, parameter :: ltot1=lx1*ly1*lz1*lelt
-  integer, parameter :: ltot2=lx2*ly2*lz2*lelv
-  real(DP), allocatable :: w1(:), w2(:), w3(:), wp(:), wt(:,:)
-  real(DP) :: v1(1),v2(1),v3(1),vp(1),vt(ltot1,1)
-  character(3) :: name3
-  logical :: if_save(ldimt)
-  real(DP) :: etime
-
-  integer :: ntot1, ntot1t, ntot2, nfldt, i
-  allocate(w1(ltot1),w2(ltot1),w3(ltot1),wp(ltot2),wt(ltot1,ldimt))
-
-  etime = dnekclock()
-
-  ntot1  = nx1*ny1*nz1*nelv
-  ntot1t = nx1*ny1*nz1*nelt
-  ntot2  = nx2*ny2*nz2*nelv
-
-  if(nfldt > ldimt) then
-      write(6,*) 'ABORT: outpost data too large (nfldt>ldimt)!'
-      call exitt
-  endif
-
-! store solution
-  call copy(w1,vx,ntot1)
-  call copy(w2,vy,ntot1)
-  call copy(w3,vz,ntot1)
-  call copy(wp,pr,ntot2)
-  do i = 1,nfldt
-      call copy(wt(1,i),t(1,1,1,1,i),ntot1t)
-  enddo
-
-! swap with data to dump
-  call copy(vx,v1,ntot1)
-  call copy(vy,v2,ntot1)
-  call copy(vz,v3,ntot1)
-  call copy(pr,vp,ntot2)
-  do i = 1,nfldt
-      call copy(t(1,1,1,1,i),vt(1,i),ntot1t)
-  enddo
-
-! dump data
-  if_save(1) = ifto
-  ifto = .FALSE. 
-  if(nfldt > 0) ifto = .TRUE. 
-  do i = 1,ldimt-1
-      if_save(i+1) = ifpsco(i)
-      ifpsco(i) = .FALSE. 
-      if(i+1 <= nfldt) ifpsco(i) = .TRUE. 
-  enddo
-
-  etime =  etime - dnekclock()
-  call prepost( .TRUE. ,name3)
-  etime =  etime + dnekclock()
-
-  ifto = if_save(1)
-  do i = 1,ldimt-1
-      ifpsco(i) = if_save(i+1)
-  enddo
-
-! restore solution data
-  call copy(vx,w1,ntot1)
-  call copy(vy,w2,ntot1)
-  call copy(vz,w3,ntot1)
-  call copy(pr,wp,ntot2)
-  do i = 1,nfldt
-      call copy(t(1,1,1,1,i),wt(1,i),ntot1t)
-  enddo
-
-  tprep = tprep + (dnekclock() - etime)
-
-  return
-end subroutine outpost2
 
 !-----------------------------------------------------------------------
 subroutine mfo_mdatav(u,v,w,nel)

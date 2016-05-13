@@ -1,27 +1,26 @@
 language: fortran
 
 env:
- - TEST_SUITE=RTI-LST/LST
- - TEST_SUITE=lid/lid
- - TEST_SUITE=iturb/iturb
- - TEST_SUITE=Hill/Hill
- - TEST_SUITE=duct/duct
- - TEST_SUITE=corner/corner
- - TEST_SUITE=RTI-LST/LST_fft
- - TEST_SUITE=RTI-LST/LST_asym
- - TEST_SUITE=RTI-LST/LST_nonuniform
- - TEST_SUITE=RTI-LST/LST_all
- - TEST_SUITE=RTI-LST/LST_sym
- - TEST_SUITE=RTI-LST/LST_sym_half
- - TEST_SUITE=RTI-LST/LST_sym_half_amg
- - TEST_SUITE=Hill/Hill_amg
- - TEST_SUITE=lid/lid_amg
- - TEST_SUITE=iturb/iturb_amg
- - TEST_SUITE=iturb/iturb_courant
- - TEST_SUITE=duct/duct_dir
+ - TEST_SUITE=RTI-LST/test_fft.py
+ - TEST_SUITE=RTI-LST/test_asym.py
+ - TEST_SUITE=RTI-LST/test_nonuniform.py
+ - TEST_SUITE=RTI-LST/test_bound.py
+ - TEST_SUITE=RTI-LST/test_restart.py
+ - TEST_SUITE=RTI-LST/test_restart_long.py
+ - TEST_SUITE=lid/test_lid.py
+ - TEST_SUITE=iturb/test_iturb.py
+ - TEST_SUITE=Hill/test_Hill.py
+ - TEST_SUITE=duct/test_duct.py
+ - TEST_SUITE=corner/test_corner.py
+ - TEST_SUITE=eddy/test_eddy.py
+ - TEST_SUITE=eddy/test_bdf2.py
+ - TEST_SUITE=eddy/test_bdf3.py
+ - TEST_SUITE=eddy/test_bdf4.py
 
 before_install: 
- - export ROOT_DIR=`pwd`
+ - mkdir -p $HOME/NekBox
+ - mv * $HOME/NekBox
+ - cd $HOME
  - sudo apt-get update -qq
  - sudo apt-get install -y mpich2 libmpich2-dev 
  - sudo apt-get install -y liblapack-dev
@@ -29,10 +28,11 @@ before_install:
  - sudo apt-get install -y gfortran 
  - git clone https://github.com/maxhutch/nek-tests.git
  - git clone https://github.com/maxhutch/nek-tools.git
+ - git clone https://github.com/maxhutch/nek-analyze.git
  - git clone -b async https://github.com/maxhutch/gslib.git
  - cd gslib
  - make
- - cd ../nek-tests/$(dirname "$TEST_SUITE")
+ - cd $HOME 
 
 install:
  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
@@ -44,14 +44,10 @@ install:
  - conda info -a
  - conda create -q -n test-environment python=3.4 numpy
  - source activate test-environment
-
-before_script: 
- - python ../../nek-tools/genrun/genrun.py -u *_f90.tusr -d $(basename "$TEST_SUITE").json --makenek=../../makenek test_f90
+ - conda install pytest chest cloudpickle
+ - pip install graphviz mapcombine
+ - pip install git+https://github.com/maxhutch/dask --upgrade
+ - pip install git+https://github.com/maxhutch/nekpy --upgrade
 
 script: 
- - set -o pipefail
- - sh ../../nekmpi test_f90 4 |tee test_f90.out
- - grep "Max" test_f90.out > f90.grp
- - grep "Max" $(basename "$TEST_SUITE")_ref.out > f77.grp
- - python3 ../ndiff.py f90.grp f77.grp
-
+ - if [[ "$TRAVIS_PULL_REQUEST" -eq "false" ]]; then echo "not a pr"; py.test -v -s -m "not pr" nek-tests/$TEST_SUITE; else echo "this is a pr" $TRAVIS_PULL_REQUEST; py.test -s -v nek-tests/$TEST_SUITE; fi

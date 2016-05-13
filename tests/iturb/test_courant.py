@@ -46,7 +46,6 @@ def old_test(name):
 
     return
 
-def test_simple():
-    old_test("iturb")
+def test_courant():
+    old_test("iturb_courant")
     return
-

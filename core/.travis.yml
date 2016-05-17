@@ -1,5 +1,10 @@
 language: fortran
 
+sudo: required
+
+services:
+  - docker
+
 env:
  - TEST_SUITE=RTI-LST/test_fft.py
  - TEST_SUITE=RTI-LST/test_asym.py
@@ -19,36 +24,13 @@ env:
  - TEST_SUITE=eddy/test_bdf4.py
 
 before_install: 
- - mkdir -p $HOME/NekBox
- - mv * $HOME/NekBox
- - cd $HOME
- - sudo apt-get update -qq
- - sudo apt-get install -y mpich2 libmpich2-dev 
- - sudo apt-get install -y liblapack-dev
- - sudo apt-get install -y fftw3-dev
- - sudo apt-get install -y gfortran 
- - git clone https://github.com/maxhutch/nek-tests.git
- - git clone https://github.com/maxhutch/nek-tools.git
- - git clone https://github.com/maxhutch/nek-analyze.git
- - git clone -b async https://github.com/maxhutch/gslib.git
- - cd gslib
- - make
- - cd $HOME 
-
-install:
- - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
- - bash miniconda.sh -b -p $HOME/miniconda
- - export PATH="$HOME/miniconda/bin:$PATH"
- - hash -r
- - conda config --set always_yes yes --set changeps1 no
- - conda update -q conda
- - conda info -a
- - conda create -q -n test-environment python=3.4 numpy
- - source activate test-environment
- - conda install pytest chest cloudpickle
- - pip install graphviz mapcombine
- - pip install git+https://github.com/maxhutch/dask --upgrade
- - pip install git+https://github.com/maxhutch/nekpy --upgrade
+ - docker pull maxhutch/nekbox-tester
 
 script: 
- - if [[ "$TRAVIS_PULL_REQUEST" -eq "false" ]]; then echo "not a pr"; py.test -v -s -m "not pr" nek-tests/$TEST_SUITE; else echo "this is a pr" $TRAVIS_PULL_REQUEST; py.test -s -v nek-tests/$TEST_SUITE; fi
+ - if [[ "$TRAVIS_PULL_REQUEST" -eq "false" ]]; then \
+     echo "not a pr"; \
+     docker run -v `pwd`:/home/nek/NekBox maxhutch/nekbox-tester -m "not pr" $TEST_SUITE; \ 
+   else \
+     echo "this is a pr" $TRAVIS_PULL_REQUEST; \
+     docker run -v `pwd`:/home/nek/NekBox maxhutch/nekbox-tester             $TEST_SUITE; \ 
+   fi

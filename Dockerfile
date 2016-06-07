@@ -14,8 +14,6 @@ RUN apt-get clean && apt-get update && apt-get install -y --fix-missing \
 && rm -rf /var/lib/apt/lists/*
 
 # Switch to user-space
-RUN useradd -ms /bin/bash nek
-USER nek
 ENV HOME /home/nek
 
 # Pull in gslib
@@ -39,16 +37,13 @@ RUN pip install git+https://github.com/maxhutch/dask --upgrade
 RUN pip install git+https://github.com/maxhutch/nekpy --upgrade
 
 # The tests and tools
-RUN git clone https://github.com/maxhutch/nek-tests.git
 RUN git clone https://github.com/maxhutch/nek-tools.git
 RUN git clone https://github.com/maxhutch/nek-analyze.git 
 
 # Pull in the sources
 WORKDIR /home/nek/NekBox
 ADD . . 
-
-# Move into the test directory
-WORKDIR /home/nek/nek-tests
+WORKDIR /home/nek/NekBox/tests
 
 # Run some tests
 ENTRYPOINT ["py.test", "-v", "-s"] 

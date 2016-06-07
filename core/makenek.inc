@@ -93,8 +93,8 @@ if [ ! -f size_mod.F90 ]; then
    exit 1
 fi
 
-if [ ! -f $SOURCE_ROOT/makefile.template ]; then
-  echo "FATAL ERROR: Cannot find $SOURCE_ROOT/makefile.template!"
+if [ ! -f $SOURCE_ROOT/core/makefile.template ]; then
+  echo "FATAL ERROR: Cannot find $SOURCE_ROOT/core/makefile.template!"
   exit 1
 fi
 
@@ -446,7 +446,8 @@ sed -e "s:^F77[ ]*=.*:F77\:=$F77:" \
 -e "s/^IFLIBGS[ ]*=.*/IFLIBGS:=$IFLIBGS/" \
 -e "s:^USR[ ]*=.*:USR\:=$USR:" \
 -e "s:^USR_LFLAGS[ ]*=.*:USR_LFLAGS\:=$USR_LFLAGS:" \
--e "s:^S[ ]*=.*:S\:=${SOURCE_ROOT}:" $SOURCE_ROOT/makefile.template >.makefile
+-e "s:^J[ ]*=.*:J\:=${SOURCE_ROOT}/jl:" \
+-e "s:^S[ ]*=.*:S\:=${SOURCE_ROOT}/core:" $SOURCE_ROOT/core/makefile.template >.makefile
 
 echo $G | grep '\-g' 1>/dev/null
 if [ $? -eq 0 ]; then

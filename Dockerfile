@@ -1,7 +1,7 @@
 FROM debian:jessie
 
 # Setup build environment
-RUN apt-get update && apt-get install -y \
+RUN apt-get clean && apt-get update && apt-get install -y --fix-missing \
   bzip2 \
   fftw3-dev \
   gfortran \

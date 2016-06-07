@@ -24,7 +24,7 @@ env:
  - TEST_SUITE=eddy/test_bdf4.py
 
 before_install: 
- - docker pull maxhutch/nekbox-tester
+ - docker pull nek5000/nekbox-tester
 
 script: 
  - if [[ "$TRAVIS_PULL_REQUEST" -eq "false" ]]; then docker run -v `pwd`:/home/nek/NekBox maxhutch/nekbox-tester -m "not pr" $TEST_SUITE; else docker run -v `pwd`:/home/nek/NekBox maxhutch/nekbox-tester $TEST_SUITE; fi

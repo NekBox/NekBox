@@ -27,4 +27,4 @@ before_install:
  - docker pull maxhutch/nekbox-tester
 
 script: 
- - if [[ "$TRAVIS_PULL_REQUEST" -eq "false" ]]; then docker run -v `pwd`:/home/nek/NekBox maxhutch/nekbox-tester -m "not pr" tests/$TEST_SUITE; else docker run -v `pwd`:/home/nek/NekBox maxhutch/nekbox-tester $TEST_SUITE; fi
+ - if [[ "$TRAVIS_PULL_REQUEST" -eq "false" ]]; then docker run -v `pwd`:/home/nek/NekBox maxhutch/nekbox-tester -m "not pr" $TEST_SUITE; else docker run -v `pwd`:/home/nek/NekBox maxhutch/nekbox-tester $TEST_SUITE; fi

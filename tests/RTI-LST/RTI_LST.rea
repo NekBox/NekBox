@@ -1,0 +1,156 @@
+ ****** PARAMETERS *****
+    2.610000     NEKTON VERSION
+            3 DIMENSIONAL RUN
+          103 PARAMETERS FOLLOW
+   1.0       p1  DENSITY
+   8.9e-07     p2  VISCOS
+   0.
+   0.
+   0.
+   0.
+   1.0        p7  RHOCP
+   1.27142857142e-07  p8  CONDUCT
+   0.
+   0.      p10 FINTIME
+   200.     p11 NSTEPS
+   1.0            p12 DT
+   0.              p13 IOCOMM
+   0.0       p14 IOTIME
+   50.0       p15 IOSTEP
+   0.              p16 PSSOLVER
+   0.
+   0.500000E-01    p18 GRID
+  -1.00000         p19 INTYPE
+   7.0000          p20 NORDER
+   0.0        p21 DIVERGENCE
+   0.0       p22 HELMHOLTZ
+   0.0               p23 NPSCAL
+   1.e-8        p24 TOLREL
+   1.e-8        p25 TOLABS
+   0.2       p26 COURANT/NTAU
+   3.00000         p27 TORDER
+   0.              p28 TORDER: mesh velocity (0: p28=p27)
+   0.              p29 magnetic visc if > 0, = -1/Rm if < 0
+   0        p30 > 0 ==> properties set in uservp()
+   0.              p31 NPERT: #perturbation modes
+   0.              p32 #BCs in re2 file, if > 0
+   0.
+   0.
+   0.
+   0.
+   0.
+   0.
+   0.
+   0.
+   0.              p41 1-->multiplicative SEMG
+   0.              p42 0=gmres/1=pcg
+   0.              p43 0=semg/1=schwarz
+   0.              p44 0=E-based/1=A-based prec.
+   0.              p45 Relaxation factor for DTFS
+   0.              p46 reserved
+   0.              p47 vnu: mesh matieral prop
+   1.000000         p48 0=XXT, 1=SCPS
+   0.000000  p49 max FFT procs
+   0.
+   0.
+   0.              p52 IOHIS
+   0.
+   0.              p54 1,2,3-->fixed flow rate dir=x,y,z
+   0.              p55 vol.flow rate (p54>0) or Ubar (p54<0)
+   0.
+   0.
+   0.
+   0.              p59 !=0 --> full Jac. eval. for each el.
+   0.              p60 !=0 --> init. velocity to small nonzero
+   23.000000   p61 log_2(pad size): number of bytes to pad output fields to
+   0.              p62 >0 --> force byte_swap for output
+   0.              p63 =8 --> force 8-byte output
+   0.              p64 =1 --> perturbation restart
+   1.000000    p65 #iofiles (eg, 0 or 64); <0 --> sep. dirs
+   6.              p66 output : <0=ascii, else binary
+   6.              p67 restart: <0=ascii, else binary
+   1000.           p68 iastep: freq for avg_all
+   0.000000     p69 restart? > 0 means restart, outputting at frame p69+1
+   0.
+   0.
+   0.
+   0.
+   0.              p74 verbose Helmholtz
+   0.
+   0.
+   0.
+   0.
+   0.
+   0.
+   0.
+   0.
+   0.
+   1.e-5            p84 !=0 --> sets initial timestep if p12>0
+   0.               p85 dt ratio if p84 !=0, for timesteps>0
+   0.               p86 reserved
+   0.
+   0.
+   0.
+   0.
+   0.
+   8.000000         p92 Number of previous velocity solns saved
+   8.000000        p93 Number of previous pressure solns saved
+   10.00000          p94 start projecting velocity after p94 step
+   10.00000          p95 start projecting pressure after p95 step
+   0.
+   0.
+   0.
+   4.00000          p99   dealiasing: <0--> off/3--> old/4--> new
+   0.
+   1.0000           p101   No. of additional filter modes
+   1.00000          p102   Dump out divergence at each time step
+   -.050             p103   weight of stabilizing filter (.01)
+            0  SCALAR DATA FOLLOW (CONDUCT; RHOCP)
+            5  LOGICAL SWITCHES FOLLOW
+  T     IFFLOW
+  T     IFTRAN
+  T T   IFADVC (one entry per field)
+  F     IFCHAR
+  T     IFHEAT
+   8.00000   8.00000  -0.500000   -4.00000     XFAC,YFAC,XZERO,YZERO
+ **MESH DATA** 6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8
+         256  3         256           NEL,NDIM,NELV
+ 0.000000E+00  1.562500E-02 8
+ 0.000000E+00  1.562500E-02 8
+-3.906250E-03  3.906250E-03 4
+P   P   P   P   W   W  
+P   P   P   P   I   I  
+ **TAIL OPTS**
+            0 PRESOLVE/RESTART OPTIONS  *****
+            7         INITIAL CONDITIONS *****
+C Default
+C Default
+C Default
+C Default
+C Default
+C Default
+C Default
+  ***** DRIVE FORCE DATA ***** BODY FORCE, FLOW, Q
+            4                 Lines of Drive force data follow
+C
+C
+C
+C
+  ***** Variable Property Data ***** Overrrides Parameter data.
+            1 Lines follow.
+            0 PACKETS OF DATA FOLLOW
+  ***** HISTORY AND INTEGRAL DATA *****
+            0   POINTS.  Hcode, I,J,H,IEL
+  ***** OUTPUT FIELD SPECIFICATION *****
+            6 SPECIFICATIONS FOLLOW
+  T      COORDINATES
+  T      VELOCITY
+  T      PRESSURE
+  T      TEMPERATURE
+  F      TEMPERATURE GRADIENT
+            0      PASSIVE SCALARS
+  ***** OBJECT SPECIFICATION *****
+       0 Surface Objects
+       0 Volume  Objects
+       0 Edge    Objects
+       0 Point   Objects

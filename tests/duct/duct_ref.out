@@ -1,0 +1,934 @@
+/----------------------------------------------------------\\
+|      _   __ ______ __ __  ______  ____    ____    ____   |
+|     / | / // ____// //_/ / ____/ / __ \\ / __ \\ / __ \\ |
+|    /  |/ // __/  / ,<   /___ \\  / / / // / / // / / /   |
+|   / /|  // /___ / /| | ____/ / / /_/ // /_/ // /_/ /     |
+|  /_/ |_//_____//_/ |_|/_____/  \\____/ \\____/ \\____/   |
+|                                                          |
+|----------------------------------------------------------|
+|                                                          |
+| NEK5000:  Open Source Spectral Element Solver            |
+| COPYRIGHT (c) 2008-2010 UCHICAGO ARGONNE, LLC            |
+| Version:  1.0rc1 / SVN  r1094                            |
+| Web:      http://nek5000.mcs.anl.gov                     |
+|                                                          |
+\\----------------------------------------------------------/
+                                                              
+
+ Number of processors:           4
+ REAL    wdsize      :           8
+ INTEGER wdsize      :           4
+
+
+  Beginning session:
+  /home/maxhutch/src/clean-tests/duct/ref.rea                                   
+
+ 
+ timer accuracy:   0.0000000E+00 sec
+
+ read .rea file
+ nelgt/nelgv/lelt:         512         512         128
+ lx1  /lx2  /lx3 :           8           8           8
+
+ mapping elements to processors
+           0         128         128         512         512  NELV
+           1         128         128         512         512  NELV
+           2         128         128         512         512  NELV
+           3         128         128         512         512  NELV
+ RANK     0 IEG     257     258     259     260     261     262     263     264
+                    265     266     267     268     269     270     271     272
+                    273     274     275     276     277     278     279     280
+                    281     282     283     284     285     286     287     288
+                    321     322     323     324     325     326     327     328
+                    329     330     331     332     333     334     335     336
+                    337     338     339     340     341     342     343     344
+                    345     346     347     348     349     350     351     352
+                    385     386     387     388     389     390     391     392
+                    393     394     395     396     397     398     399     400
+                    401     402     403     404     405     406     407     408
+                    409     410     411     412     413     414     415     416
+                    449     450     451     452     453     454     455     456
+                    457     458     459     460     461     462     463     464
+                    465     466     467     468     469     470     471     472
+                    473     474     475     476     477     478     479     480
+ element load imbalance:            0         128         128
+ done :: mapping elements to processors
+  
+           0  objects found
+ done :: read .rea file   0.19059E-01 sec
+
+ setup mesh topology
+   Right-handed check complete for     512 elements. OK.
+   setvert3d:   8       74601      185193       74601       74601
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 6441 unique labels shared
+   pairwise times (avg, min, max): 1.17779e-05 1.17064e-05 1.18971e-05
+   crystal router                : 2.57969e-05 2.53916e-05 2.62022e-05
+   all reduce                    : 5.01156e-05 4.98056e-05 5.03778e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 446164 446164 446164
+   buffer bytes (avg, min, max): 53808 53808 53808
+   setupds time 1.6455E-02 seconds   0  8       74601         512
+           8  max multiplicity
+ done :: setup mesh topology
+  
+ call usrdat
+ done :: usrdat
+
+ generate geometry data
+ vol_t,vol_v:  0.99999999999958589       0.99999999999958589     
+ done :: generate geometry data
+  
+ call usrdat2
+ done :: usrdat2
+
+ regenerate geometry data           1
+ vol_t,vol_v:  0.99999999999958589       0.99999999999958589     
+ done :: regenerate geometry data           1
+  
+ verify mesh topology
+   0.0000000000000000        1.0000000000000000       Xrange
+   0.0000000000000000        1.0000000000000000       Yrange
+   0.0000000000000000        1.0000000000000000       Zrange
+ done :: verify mesh topology
+  
+ 103   Parameters from file:/home/maxhutch/src/clean-tests/duct/ref.rea
+   1      1.000000e+00       p1  DENSITY
+   2      1.000000e-02     p2  VISCOS
+   7      1.000000e+00        p7  RHOCP
+   8      1.000000e-03  p8  CONDUCT
+  11      21     p11 NSTEPS
+  12      1.000000e-04            p12 DT
+  18      0.500000E-01    p18 GRID
+  19     -1.00000         p19 INTYPE
+  20      7.0000          p20 NORDER
+  21      1.000000e-10        p21 DIVERGENCE
+  22      1.000000e-10       p22 HELMHOLTZ
+  25      1.000000e-04        p25 TOLABS
+  26      1.000000e-01       p26 COURANT/NTAU
+  27      3.000000        p27 TORDER
+  28      0.              p28 TORDER: mesh velocity (0: p28=p27)
+  61      23.000000      p61 log_2(pad size): number of bytes to pad output fields to
+  63      8.000000              p63 =8 --> force 8-byte output
+  65      1.000000    p65 #iofiles (eg, 0 or 64); <0 --> sep. dirs
+  66      6.              p66 output : <0=ascii, else binary
+  67      6.              p67 restart: <0=ascii, else binary
+  68      1000.           p68 iastep: freq for avg_all
+  92      2.000000         p92 Number of previous velocity solns saved
+  93      8.000000        p93 Number of previous pressure solns saved
+  94      2000.000000     p94 start projecting velocity after p94 step
+  95      2000.000000    p95 start projecting pressure after p95 step
+  99      4.00000          p99   dealiasing: <0--> off/3--> old/4--> new
+ 101      1.000000           p101   No. of additional filter modes
+ 102      1.00000          p102   Dump out divergence at each time step
+ 103      0.050000    p103   weight of stabilizing filter (.01)
+  
+ IFTRAN   = T
+ IFFLOW   = T
+ IFHEAT   = T
+ IFSPLIT  = T
+ IFLOMACH = F
+ IFUSERVP = F
+ IFUSERMV = F
+ IFSTRS   = F
+ IFCHAR   = F
+ IFCYCLIC = F
+ IFAXIS   = F
+ IFMVBD   = F
+ IFMELT   = F
+ IFMODEL  = F
+ IFKEPS   = F
+ IFMOAB   = F
+ IFNEKNEK = F
+ IFSYNC   = T
+   
+ IFVCOR   = F
+ IFINTQ   = F
+ IFCWUZ   = F
+ IFSWALL  = F
+ IFGEOM   = F
+ IFSURT   = F
+ IFWCNO   = F
+ IFCMT    = F
+ IFVISC   = F
+ IFFLTR   = F
+   
+ IFTMSH for field           1    =  F
+ IFADVC for field           1    =  T
+ IFNONL for field           1    =  F
+   
+ IFTMSH for field           2    =  F
+ IFADVC for field           2    =  T
+ IFNONL for field           2    =  F
+   
+ Dealiasing enabled, lxd=          12
+  
+ Estimated eigenvalues
+ EIGAA =    9.8696044010893580     
+ EIGGA =    250570.36973075676     
+ EIGAE =    9.8696044010893580     
+ EIGAS =    8.3333333333333329E-002
+ EIGGE =    250570.36973075676     
+ EIGGS =    2.0000000000000000     
+  
+ verify mesh topology
+   0.0000000000000000        1.0000000000000000       Xrange
+   0.0000000000000000        1.0000000000000000       Yrange
+   0.0000000000000000        1.0000000000000000       Zrange
+ done :: verify mesh topology
+  
+  E-solver strategy:  0 itr
+ mg_nx:           1           3           7
+ mg_ny:           1           3           7
+ mg_nz:           1           3           7
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 153 unique labels shared
+   pairwise times (avg, min, max): 3.93391e-06 3.91006e-06 4.00543e-06
+   crystal router                : 1.81198e-06 1.81198e-06 1.81198e-06
+   all reduce                    : 3.00407e-06 3.00407e-06 3.00407e-06
+   used all_to_all method: crystal router
+   handle bytes (avg, min, max): 19228 19228 19228
+   buffer bytes (avg, min, max): 3168 3168 3168
+   setupds time 6.1893E-04 seconds   1  2         729         512
+   setvert3d:   4       11529       15625       11529       11529
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 1225 unique labels shared
+   pairwise times (avg, min, max): 3.0756e-06 3.00407e-06 3.09944e-06
+   crystal router                : 6.55651e-06 6.50883e-06 6.60419e-06
+   all reduce                    : 1.51634e-05 1.50919e-05 1.52826e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 86228 86228 86228
+   buffer bytes (avg, min, max): 10800 10800 10800
+   setupds time 4.2140E-03 seconds   2  4       11529         512
+   setvert3d:   4       11529       15625       11529       11529
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 1225 unique labels shared
+   pairwise times (avg, min, max): 3.19481e-06 3.19481e-06 3.19481e-06
+   crystal router                : 6.06775e-06 5.88894e-06 6.19888e-06
+   all reduce                    : 1.46151e-05 1.45197e-05 1.47104e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 86228 86228 86228
+   buffer bytes (avg, min, max): 10800 10800 10800
+   setupds time 4.1492E-03 seconds   3  4       11529         512
+   setvert3d:   6       36153       68921       36153       36153
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 3321 unique labels shared
+   pairwise times (avg, min, max): 7.03335e-06 6.91414e-06 7.10487e-06
+   crystal router                : 1.39832e-05 1.37806e-05 1.41859e-05
+   all reduce                    : 2.92301e-05 2.91109e-05 2.93016e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 230868 230868 230868
+   buffer bytes (avg, min, max): 28208 28208 28208
+   setupds time 8.3010E-03 seconds   4  6       36153         512
+ regenerate geometry data           1
+ vol_t,vol_v:  0.99999999999958589       0.99999999999958589     
+ NOTE: All elements deformed , param(59) ^=0
+ done :: regenerate geometry data           1
+  
+ h1_mg_nx:           1           3           7
+ h1_mg_ny:           1           3           7
+ h1_mg_nz:           1           3           7
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 153 unique labels shared
+   pairwise times (avg, min, max): 2.36034e-06 2.31266e-06 2.40803e-06
+   crystal router                : 1.97887e-06 1.90735e-06 2.00272e-06
+   all reduce                    : 2.8789e-06 2.7895e-06 2.90871e-06
+   used all_to_all method: crystal router
+   handle bytes (avg, min, max): 19228 19228 19228
+   buffer bytes (avg, min, max): 3168 3168 3168
+   setupds time 5.9795E-04 seconds   5  2         729         512
+   setvert3d:   4       11529       15625       11529       11529
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 1225 unique labels shared
+   pairwise times (avg, min, max): 3.21865e-06 3.19481e-06 3.29018e-06
+   crystal router                : 5.96046e-06 5.91278e-06 6.00815e-06
+   all reduce                    : 1.48177e-05 1.46866e-05 1.49012e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 86228 86228 86228
+   buffer bytes (avg, min, max): 10800 10800 10800
+   setupds time 4.1819E-03 seconds   6  4       11529         512
+   setvert3d:   4       11529       15625       11529       11529
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 1225 unique labels shared
+   pairwise times (avg, min, max): 3.12328e-06 3.09944e-06 3.19481e-06
+   crystal router                : 5.96046e-06 5.91278e-06 6.00815e-06
+   all reduce                    : 1.45912e-05 1.44958e-05 1.46866e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 86228 86228 86228
+   buffer bytes (avg, min, max): 10800 10800 10800
+   setupds time 4.1280E-03 seconds   7  4       11529         512
+   setvert3d:   6       36153       68921       36153       36153
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 3321 unique labels shared
+   pairwise times (avg, min, max): 7.10487e-06 7.00951e-06 7.20024e-06
+   crystal router                : 1.41144e-05 1.41144e-05 1.41144e-05
+   all reduce                    : 2.84553e-05 2.83957e-05 2.85149e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 230868 230868 230868
+   buffer bytes (avg, min, max): 28208 28208 28208
+   setupds time 8.2381E-03 seconds   8  6       36153         512
+   setvert3d:   8       74601      185193       74601       74601
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 6441 unique labels shared
+   pairwise times (avg, min, max): 1.06812e-05 1.06096e-05 1.0705e-05
+   crystal router                : 2.60472e-05 2.56062e-05 2.64883e-05
+   all reduce                    : 4.98593e-05 4.96149e-05 5.01156e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 446164 446164 446164
+   buffer bytes (avg, min, max): 53808 53808 53808
+   setupds time 1.5628E-02 seconds   9  8       74601         512
+   setvert3d:  10      126873      389017      126873      126873
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 10585 unique labels shared
+   pairwise times (avg, min, max): 1.56581e-05 1.53065e-05 1.58072e-05
+   crystal router                : 4.21882e-05 4.14848e-05 4.28915e-05
+   all reduce                    : 8.42571e-05 8.38995e-05 8.46148e-05
+   used all_to_all method: pairwise
+   handle bytes (avg, min, max): 732116 732116 732116
+   buffer bytes (avg, min, max): 87600 87600 87600
+   setupds time 2.7063E-02 seconds  10 10      126873         512
+ setup h1 coarse grid, nx_crs=           2
+ call usrsetvert
+ done :: usrsetvert
+
+gs_setup: 153 unique labels shared
+   pairwise times (avg, min, max): 2.40803e-06 2.40803e-06 2.40803e-06
+   crystal router                : 1.81198e-06 1.81198e-06 1.81198e-06
+   all reduce                    : 2.8491e-06 2.7895e-06 2.90871e-06
+   used all_to_all method: crystal router
+   handle bytes (avg, min, max): 19228 19228 19228
+   buffer bytes (avg, min, max): 3168 3168 3168
+ done :: setup h1 coarse grid    3.1419038772583008E-002  sec
+  
+ call usrdat3
+ done :: usrdat3
+
+ set initial conditions
+ nekuic (1) for ifld            1
+ nekuic (1) for ifld            2
+ call nekuic for ifld            2
+ call nekuic for vel  
+ xyz min     0.0000       0.0000       0.0000    
+ uvwpt min   0.0000       0.0000       0.0000       0.0000       1.0000    
+ xyz max     1.0000       1.0000       1.0000    
+ uvwpt max   0.0000       0.0000      0.68732E-01   0.0000       1.5205    
+ done :: set initial conditions
+  
+ call userchk
+ schfile:/home/maxhutch/src/clean-tests/duct/ref.sch                                                                                         
+ call outfld: ifpsco: F
+
+        0  0.0000E+00 Write checkpoint:
+       0       0 OPEN: ref0.f00001
+
+        0  0.0000E+00 done :: Write checkpoint
+                              file size =      16.    MB
+                              avg data-throughput =   736.5MB/s
+                              io-nodes =     1
+
+Maximum scalar  1.520499877813
+Maximum velocity   0.00000000000   0.00000000000   0.06873232847
+ done :: userchk
+
+gridpoints unique/tot:        185193       262144
+  dofs:               169400               181944
+  
+ Initialization successfully completed   0.46121     sec
+
+Starting time loop ...
+
+     DT/DTCFL/DTFS/DTINIT   0.100E-03   0.500E-03   0.000E+00   0.100E-03
+Step      1, t= 1.0000000E-04, DT= 1.0000000E-04, C=  0.001 0.0000E+00 0.0000E+00
+             Solving for heat
+  Temperature/Passive scalar solution
+   1.0000000000000000E-010  p22            1           1
+  1     1 Helmholtz TEMP    F:   1.5143E-02   1.0000E-10   1.0000E-03   1.0000E+04
+  1     2 Helmholtz TEMP    F:   5.3864E-05   1.0000E-10   1.0000E-03   1.0000E+04
+  1     3 Helmholtz TEMP    F:   1.7878E-07   1.0000E-10   1.0000E-03   1.0000E+04
+  1     4 Helmholtz TEMP    F:   7.9469E-10   1.0000E-10   1.0000E-03   1.0000E+04
+  1     5 Helmholtz TEMP    F:   3.9679E-12   1.0000E-10   1.0000E-03   1.0000E+04
+          1    Hmholtz TEMP:      4   3.9679E-12   1.5143E-02   1.0000E-10
+          1   1.0000E-04  7.5583E-02 Heat done
+ Solving for fluid T T T
+   138.88888888888789     
+   138.88888888888755     
+  -2.1090198404834754E-013
+  -3.3665382680416217E-016
+   1.0000000000000000E-010  p22            1           1
+    1 1.00000E-10 3.39377E-01 4.44870E-01 7.62868E-01       1 Divergence
+    2 1.00000E-10 2.53571E-01 4.44870E-01 5.69988E-01       1 Divergence
+    3 1.00000E-10 7.89990E-02 4.44870E-01 1.77578E-01       1 Divergence
+    4 1.00000E-10 1.94663E-02 4.44870E-01 4.37573E-02       1 Divergence
+    5 1.00000E-10 6.31537E-03 4.44870E-01 1.41960E-02       1 Divergence
+    6 1.00000E-10 1.71346E-03 4.44870E-01 3.85160E-03       1 Divergence
+    7 1.00000E-10 5.95050E-04 4.44870E-01 1.33758E-03       1 Divergence
+    8 1.00000E-10 2.14075E-04 4.44870E-01 4.81207E-04       1 Divergence
+    9 1.00000E-10 6.63903E-05 4.44870E-01 1.49235E-04       1 Divergence
+   10 1.00000E-10 2.12100E-05 4.44870E-01 4.76767E-05       1 Divergence
+   11 1.00000E-10 5.76502E-06 4.44870E-01 1.29589E-05       1 Divergence
+   12 1.00000E-10 1.66666E-06 4.44870E-01 3.74640E-06       1 Divergence
+   13 1.00000E-10 4.89551E-07 4.44870E-01 1.10043E-06       1 Divergence
+   14 1.00000E-10 1.43249E-07 4.44870E-01 3.22002E-07       1 Divergence
+   15 1.00000E-10 4.45903E-08 4.44870E-01 1.00232E-07       1 Divergence
+   16 1.00000E-10 1.31270E-08 4.44870E-01 2.95076E-08       1 Divergence
+   17 1.00000E-10 4.00516E-09 4.44870E-01 9.00298E-09       1 Divergence
+   18 1.00000E-10 1.12571E-09 4.44870E-01 2.53042E-09       1 Divergence
+   19 1.00000E-10 3.40859E-10 4.44870E-01 7.66199E-10       1 Divergence
+   20 1.00000E-10 1.02240E-10 4.44870E-01 2.29821E-10       1 Divergence
+   21 1.00000E-10 3.82824E-11 4.44870E-01 8.60529E-11       1 Divergence
+        1 PRES gmres:   21  3.8282E-11  1.0000E-10  4.4487E-01  1.9180E-01  3.3960E-01    F
+   1.0000000000000000E-010  p22            1           1
+  1     1 Helmholtz VELX    F:   4.9457E+00   1.0000E-10   1.0000E-02   1.0000E+04
+  1     2 Helmholtz VELX    F:   9.4220E-02   1.0000E-10   1.0000E-02   1.0000E+04
+  1     3 Helmholtz VELX    F:   2.5588E-03   1.0000E-10   1.0000E-02   1.0000E+04
+  1     4 Helmholtz VELX    F:   9.8361E-05   1.0000E-10   1.0000E-02   1.0000E+04
+  1     5 Helmholtz VELX    F:   3.2378E-06   1.0000E-10   1.0000E-02   1.0000E+04
+  1     6 Helmholtz VELX    F:   1.7638E-07   1.0000E-10   1.0000E-02   1.0000E+04
+  1     7 Helmholtz VELX    F:   3.6108E-09   1.0000E-10   1.0000E-02   1.0000E+04
+  1     8 Helmholtz VELX    F:   1.5628E-10   1.0000E-10   1.0000E-02   1.0000E+04
+  1     9 Helmholtz VELX    F:   4.1229E-12   1.0000E-10   1.0000E-02   1.0000E+04
+          1    Hmholtz VELX:      8   4.1229E-12   4.9457E+00   1.0000E-10
+   1.0000000000000000E-010  p22            1           1
+  1     1 Helmholtz VELY    F:   2.0816E+00   1.0000E-10   1.0000E-02   1.0000E+04
+  1     2 Helmholtz VELY    F:   3.8093E-02   1.0000E-10   1.0000E-02   1.0000E+04
+  1     3 Helmholtz VELY    F:   1.0068E-03   1.0000E-10   1.0000E-02   1.0000E+04
+  1     4 Helmholtz VELY    F:   3.8613E-05   1.0000E-10   1.0000E-02   1.0000E+04
+  1     5 Helmholtz VELY    F:   1.2248E-06   1.0000E-10   1.0000E-02   1.0000E+04
+  1     6 Helmholtz VELY    F:   6.8030E-08   1.0000E-10   1.0000E-02   1.0000E+04
+  1     7 Helmholtz VELY    F:   1.4313E-09   1.0000E-10   1.0000E-02   1.0000E+04
+  1     8 Helmholtz VELY    F:   6.2949E-11   1.0000E-10   1.0000E-02   1.0000E+04
+          1    Hmholtz VELY:      7   6.2949E-11   2.0816E+00   1.0000E-10
+   1.0000000000000000E-010  p22            1           1
+  1     1 Helmholtz VELZ    F:   1.4765E+01   1.0000E-10   1.0000E-02   1.0000E+04
+  1     2 Helmholtz VELZ    F:   2.9089E-01   1.0000E-10   1.0000E-02   1.0000E+04
+  1     3 Helmholtz VELZ    F:   8.1846E-03   1.0000E-10   1.0000E-02   1.0000E+04
+  1     4 Helmholtz VELZ    F:   3.2073E-04   1.0000E-10   1.0000E-02   1.0000E+04
+  1     5 Helmholtz VELZ    F:   1.0901E-05   1.0000E-10   1.0000E-02   1.0000E+04
+  1     6 Helmholtz VELZ    F:   5.7910E-07   1.0000E-10   1.0000E-02   1.0000E+04
+  1     7 Helmholtz VELZ    F:   1.2164E-08   1.0000E-10   1.0000E-02   1.0000E+04
+  1     8 Helmholtz VELZ    F:   4.6490E-10   1.0000E-10   1.0000E-02   1.0000E+04
+  1     9 Helmholtz VELZ    F:   1.0523E-11   1.0000E-10   1.0000E-02   1.0000E+04
+          1    Hmholtz VELZ:      8   1.0523E-11   1.4765E+01   1.0000E-10
+               L1/L2 DIV(V)    :   1.3081E-05   5.1906E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   1.3081E-05   5.1906E-03
+          1   1.0000E-04  6.0202E-01 Fluid done
+filt amp 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0125 0.0500
+filt trn 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 0.9875 0.9500
+Maximum scalar  1.520480304063
+Maximum velocity   0.00748747263   0.00180200478   0.06725200719
+ Problem calculating new DT Discriminant=  -668.27789193734202     
+Step      2, t= 2.0000000E-04, DT= 1.0000000E-04, C=  0.001 7.1657E-01 7.1657E-01
+             Solving for heat
+   1.0000000000000000E-010  p22            2           1
+          2    Hmholtz TEMP:      4   1.1813E-12   2.2570E-02   1.0000E-10
+          2   2.0000E-04  5.7637E-02 Heat done
+ Solving for fluid T T T
+   208.33333333332990     
+   7.7342402230937135E-014
+   208.33333333333098     
+  -1.1580471824534921E-013
+   1.0000000000000000E-010  p22            2           1
+        2 PRES gmres:   21  5.6314E-11  1.0000E-10  6.9416E-01  1.3315E-01  2.3036E-01    F
+   1.0000000000000000E-010  p22            2           1
+          2    Hmholtz VELX:      6   1.5343E-11   1.8471E-01   1.0000E-10
+   1.0000000000000000E-010  p22            2           1
+          2    Hmholtz VELY:      6   5.3038E-12   5.3548E-02   1.0000E-10
+   1.0000000000000000E-010  p22            2           1
+          2    Hmholtz VELZ:      7   2.7444E-12   4.1203E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -4.9693E-06   3.3690E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -4.9693E-06   3.3690E-03
+          2   2.0000E-04  4.0687E-01 Fluid done
+Maximum scalar  1.520460818052
+Maximum velocity   0.00791326701   0.00179859141   0.06722504804
+Step      3, t= 3.0000000E-04, DT= 1.0000000E-04, C=  0.001 1.2107E+00 4.9410E-01
+             Solving for heat
+   1.0000000000000000E-010  p22            3           1
+          3    Hmholtz TEMP:      4   6.4380E-13   2.7416E-02   1.0000E-10
+          3   3.0000E-04  5.0510E-02 Heat done
+ Solving for fluid T T T
+   254.62962962963147     
+   1.6965944572627442E-013
+  -6.9364246334593926E-014
+   254.62962962963198     
+   1.0000000000000000E-010  p22            3           1
+        3 PRES gmres:   20  8.0680E-11  1.0000E-10  3.7376E-01  1.5794E-01  2.7030E-01    F
+   1.0000000000000000E-010  p22            3           1
+          3    Hmholtz VELX:      6   6.1097E-12   1.1948E-01   1.0000E-10
+   1.0000000000000000E-010  p22            3           1
+          3    Hmholtz VELY:      5   5.7435E-11   4.1411E-02   1.0000E-10
+   1.0000000000000000E-010  p22            3           1
+          3    Hmholtz VELZ:      6   3.0373E-11   3.2192E-01   1.0000E-10
+               L1/L2 DIV(V)    :   2.5208E-06   2.0951E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:   2.5208E-06   2.0951E-03
+          3   3.0000E-04  4.5782E-01 Fluid done
+Maximum scalar  1.520441442636
+Maximum velocity   0.00749456540   0.00175445172   0.06727203212
+Step      4, t= 4.0000000E-04, DT= 1.0000000E-04, C=  0.001 1.7523E+00 5.4159E-01
+             Solving for heat
+   1.0000000000000000E-010  p22            4           1
+          4    Hmholtz TEMP:      4   6.3788E-13   2.7268E-02   1.0000E-10
+          4   4.0000E-04  5.2405E-02 Heat done
+ Solving for fluid T T T
+   254.62962962962985     
+  -7.1416417430410911E-014
+  -8.0085955499620970E-014
+   254.62962962962925     
+   1.0000000000000000E-010  p22            4           1
+        4 PRES gmres:   20  3.1575E-11  1.0000E-10  1.2578E-01  1.5852E-01  2.7471E-01    F
+   1.0000000000000000E-010  p22            4           1
+          4    Hmholtz VELX:      6   3.1264E-12   6.7870E-02   1.0000E-10
+   1.0000000000000000E-010  p22            4           1
+          4    Hmholtz VELY:      5   4.2010E-11   2.8413E-02   1.0000E-10
+   1.0000000000000000E-010  p22            4           1
+          4    Hmholtz VELZ:      6   2.3853E-11   2.5160E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -5.9999E-08   1.2603E-03
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -5.9999E-08   1.2603E-03
+          4   4.0000E-04  4.7819E-01 Fluid done
+Maximum scalar  1.520422191433
+Maximum velocity   0.00727624383   0.00172707749   0.06730654782
+Step      5, t= 5.0000000E-04, DT= 1.0000000E-04, C=  0.001 2.3178E+00 5.6554E-01
+             Solving for heat
+   1.0000000000000000E-010  p22            5           1
+          5    Hmholtz TEMP:      4   6.3213E-13   2.7123E-02   1.0000E-10
+          5   5.0000E-04  5.7966E-02 Heat done
+ Solving for fluid T T T
+   254.62962962962803     
+   4.2896501094278109E-014
+  -5.0899097067523156E-014
+   254.62962962962834     
+   1.0000000000000000E-010  p22            5           1
+        5 PRES gmres:   18  3.2344E-11  1.0000E-10  1.8010E-02  1.6117E-01  2.7709E-01    F
+   1.0000000000000000E-010  p22            5           1
+          5    Hmholtz VELX:      5   8.1728E-11   5.8957E-02   1.0000E-10
+   1.0000000000000000E-010  p22            5           1
+          5    Hmholtz VELY:      5   3.0975E-11   2.6790E-02   1.0000E-10
+   1.0000000000000000E-010  p22            5           1
+          5    Hmholtz VELZ:      6   2.0839E-11   2.1094E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.9728E-07   8.0909E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.9728E-07   8.0909E-04
+          5   5.0000E-04  4.8778E-01 Fluid done
+Maximum scalar  1.520403067877
+Maximum velocity   0.00710164362   0.00169763987   0.06733851768
+Step      6, t= 6.0000000E-04, DT= 1.0000000E-04, C=  0.001 2.9005E+00 5.8267E-01
+             Solving for heat
+   1.0000000000000000E-010  p22            6           1
+          6    Hmholtz TEMP:      4   6.2662E-13   2.6982E-02   1.0000E-10
+          6   6.0000E-04  5.9120E-02 Heat done
+ Solving for fluid T T T
+  -9.1140512878716491E-014
+  -1.2939277081025881E-013
+   254.62962962962825     
+   254.62962962963002     
+   1.0000000000000000E-010  p22            6           1
+        6 PRES gmres:   16  7.1698E-11  1.0000E-10  9.1276E-03  1.4363E-01  2.4286E-01    F
+   1.0000000000000000E-010  p22            6           1
+          6    Hmholtz VELX:      5   7.6831E-11   5.4533E-02   1.0000E-10
+   1.0000000000000000E-010  p22            6           1
+          6    Hmholtz VELY:      5   2.8079E-11   2.4725E-02   1.0000E-10
+   1.0000000000000000E-010  p22            6           1
+          6    Hmholtz VELZ:      6   1.8929E-11   1.8693E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.5313E-07   5.6231E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.5313E-07   5.6231E-04
+          6   6.0000E-04  4.5378E-01 Fluid done
+Maximum scalar  1.520384070766
+Maximum velocity   0.00692430836   0.00166961329   0.06736529068
+Step      7, t= 7.0000000E-04, DT= 1.0000000E-04, C=  0.001 3.4500E+00 5.4949E-01
+             Solving for heat
+   1.0000000000000000E-010  p22            7           1
+          7    Hmholtz TEMP:      4   6.2129E-13   2.6845E-02   1.0000E-10
+          7   7.0000E-04  5.7207E-02 Heat done
+ Solving for fluid T T T
+  -1.3884003420284704E-013
+  -4.2694411546651539E-014
+   254.62962962962962     
+   254.62962962963053     
+   1.0000000000000000E-010  p22            7           1
+        7 PRES gmres:   15  5.8378E-11  1.0000E-10  4.7714E-03  1.3468E-01  2.2620E-01    F
+   1.0000000000000000E-010  p22            7           1
+          7    Hmholtz VELX:      5   8.0745E-11   5.0250E-02   1.0000E-10
+   1.0000000000000000E-010  p22            7           1
+          7    Hmholtz VELY:      5   2.6149E-11   2.3020E-02   1.0000E-10
+   1.0000000000000000E-010  p22            7           1
+          7    Hmholtz VELZ:      6   1.7357E-11   1.7026E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.4929E-07   4.1187E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.4929E-07   4.1187E-04
+          7   7.0000E-04  4.3657E-01 Fluid done
+Maximum scalar  1.520365197814
+Maximum velocity   0.00675908457   0.00167637742   0.06738722240
+Step      8, t= 8.0000000E-04, DT= 1.0000000E-04, C=  0.001 3.9799E+00 5.2998E-01
+             Solving for heat
+   1.0000000000000000E-010  p22            8           1
+          8    Hmholtz TEMP:      4   6.1610E-13   2.6713E-02   1.0000E-10
+          8   8.0000E-04  5.7302E-02 Heat done
+ Solving for fluid T T T
+  -8.1692673411079906E-014
+   2.1340326797076713E-014
+   254.62962962962644     
+   254.62962962962692     
+   1.0000000000000000E-010  p22            8           1
+        8 PRES gmres:   15  3.8236E-11  1.0000E-10  2.9625E-03  1.3466E-01  2.2628E-01    F
+   1.0000000000000000E-010  p22            8           1
+          8    Hmholtz VELX:      5   7.6820E-11   4.6888E-02   1.0000E-10
+   1.0000000000000000E-010  p22            8           1
+          8    Hmholtz VELY:      5   2.4402E-11   2.1693E-02   1.0000E-10
+   1.0000000000000000E-010  p22            8           1
+          8    Hmholtz VELZ:      6   1.5976E-11   1.5715E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.4296E-07   3.1080E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.4296E-07   3.1080E-04
+          8   8.0000E-04  4.3678E-01 Fluid done
+Maximum scalar  1.520346446921
+Maximum velocity   0.00660969639   0.00168577352   0.06740506972
+Step      9, t= 9.0000000E-04, DT= 1.0000000E-04, C=  0.001 4.5103E+00 5.3033E-01
+             Solving for heat
+   1.0000000000000000E-010  p22            9           1
+          9    Hmholtz TEMP:      4   6.1101E-13   2.6584E-02   1.0000E-10
+          9   9.0000E-04  5.7183E-02 Heat done
+ Solving for fluid T T T
+  -9.1292550437612033E-014
+   5.5018601572429451E-015
+   254.62962962962507     
+   254.62962962962561     
+   1.0000000000000000E-010  p22            9           1
+        9 PRES gmres:   14  8.5549E-11  1.0000E-10  2.1021E-03  1.2749E-01  2.1267E-01    F
+   1.0000000000000000E-010  p22            9           1
+          9    Hmholtz VELX:      5   7.0626E-11   4.4278E-02   1.0000E-10
+   1.0000000000000000E-010  p22            9           1
+          9    Hmholtz VELY:      5   2.2932E-11   2.0599E-02   1.0000E-10
+   1.0000000000000000E-010  p22            9           1
+          9    Hmholtz VELZ:      6   1.4724E-11   1.4611E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.3634E-07   2.3883E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.3634E-07   2.3883E-04
+          9   9.0000E-04  4.2279E-01 Fluid done
+Maximum scalar  1.520327816340
+Maximum velocity   0.00647195090   0.00169396921   0.06741941939
+Step     10, t= 1.0000000E-03, DT= 1.0000000E-04, C=  0.001 5.0265E+00 5.1619E-01
+             Solving for heat
+   1.0000000000000000E-010  p22           10           1
+         10    Hmholtz TEMP:      4   6.0601E-13   2.6458E-02   1.0000E-10
+         10   1.0000E-03  5.7165E-02 Heat done
+ Solving for fluid T T T
+  -1.7674111559765583E-013
+  -1.2135202807295946E-014
+   254.62962962962740     
+   254.62962962962493     
+   1.0000000000000000E-010  p22           10           1
+       10 PRES gmres:   14  6.1525E-11  1.0000E-10  1.5685E-03  1.2567E-01  2.0965E-01    F
+   1.0000000000000000E-010  p22           10           1
+         10    Hmholtz VELX:      5   6.4512E-11   4.2101E-02   1.0000E-10
+   1.0000000000000000E-010  p22           10           1
+         10    Hmholtz VELY:      5   2.1661E-11   1.9658E-02   1.0000E-10
+   1.0000000000000000E-010  p22           10           1
+         10    Hmholtz VELZ:      6   1.3584E-11   1.3652E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.3036E-07   1.8647E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.3036E-07   1.8647E-04
+         10   1.0000E-03  4.2016E-01 Fluid done
+Maximum scalar  1.520309304533
+Maximum velocity   0.00634317260   0.00170111376   0.06743072555
+Step     11, t= 1.1000000E-03, DT= 1.0000000E-04, C=  0.001 5.5400E+00 5.1355E-01
+             Solving for heat
+         11    Hmholtz TEMP:      4   6.0109E-13   2.6335E-02   1.0000E-10
+         11   1.1000E-03  5.3516E-02 Heat done
+ Solving for fluid T T T
+   254.62962962962985     
+   6.8075681262837435E-014
+  -5.1184523877341806E-015
+   254.62962962963087     
+       11 PRES gmres:   14  4.6812E-11  1.0000E-10  1.1785E-03  1.2571E-01  2.1084E-01    F
+         11    Hmholtz VELX:      5   5.9383E-11   4.0207E-02   1.0000E-10
+         11    Hmholtz VELY:      5   2.0532E-11   1.8830E-02   1.0000E-10
+         11    Hmholtz VELZ:      6   1.2545E-11   1.2808E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.2494E-07   1.4822E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.2494E-07   1.4822E-04
+         11   1.1000E-03  4.0374E-01 Fluid done
+Maximum scalar  1.520290910064
+Maximum velocity   0.00622235789   0.00170732007   0.06743935609
+Step     12, t= 1.2000000E-03, DT= 1.0000000E-04, C=  0.001 6.0333E+00 4.9332E-01
+             Solving for heat
+         12    Hmholtz TEMP:      4   5.9624E-13   2.6213E-02   1.0000E-10
+         12   1.2000E-03  5.3995E-02 Heat done
+ Solving for fluid T T T
+   254.62962962963050     
+  -6.8858262164121836E-014
+   6.6832415092065172E-014
+   254.62962962962922     
+       12 PRES gmres:   14  3.6058E-11  1.0000E-10  8.9734E-04  1.2496E-01  2.0987E-01    F
+         12    Hmholtz VELX:      5   5.5280E-11   3.8537E-02   1.0000E-10
+         12    Hmholtz VELY:      5   1.9520E-11   1.8094E-02   1.0000E-10
+         12    Hmholtz VELZ:      6   1.1596E-11   1.2061E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.2009E-07   1.2025E-04
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.2009E-07   1.2025E-04
+         12   1.2000E-03  4.0884E-01 Fluid done
+Maximum scalar  1.520272631543
+Maximum velocity   0.00610871697   0.00171268256   0.06744562622
+Step     13, t= 1.3000000E-03, DT= 1.0000000E-04, C=  0.001 6.5326E+00 4.9928E-01
+             Solving for heat
+         13    Hmholtz TEMP:      4   5.9147E-13   2.6092E-02   1.0000E-10
+         13   1.3000E-03  5.4820E-02 Heat done
+ Solving for fluid T T T
+  -1.4257577824807691E-013
+   254.62962962963030     
+   1.1021535534949016E-015
+   254.62962962963030     
+       13 PRES gmres:   13  9.9271E-11  1.0000E-10  6.9932E-04  1.1682E-01  1.9427E-01    F
+         13    Hmholtz VELX:      5   5.1959E-11   3.7056E-02   1.0000E-10
+         13    Hmholtz VELY:      5   1.8603E-11   1.7435E-02   1.0000E-10
+         13    Hmholtz VELZ:      6   1.0728E-11   1.1397E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.1579E-07   9.9779E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.1579E-07   9.9779E-05
+         13   1.3000E-03  3.9068E-01 Fluid done
+Maximum scalar  1.520254467614
+Maximum velocity   0.00600144647   0.00171728361   0.06744981472
+Step     14, t= 1.4000000E-03, DT= 1.0000000E-04, C=  0.001 7.0149E+00 4.8226E-01
+             Solving for heat
+         14    Hmholtz TEMP:      4   5.8677E-13   2.5973E-02   1.0000E-10
+         14   1.4000E-03  5.4708E-02 Heat done
+ Solving for fluid T T T
+   3.6504149270356087E-014
+   254.62962962962993     
+   1.8481282520929115E-013
+   254.62962962962939     
+       14 PRES gmres:   13  7.8902E-11  1.0000E-10  5.5648E-04  1.1676E-01  1.9435E-01    F
+         14    Hmholtz VELX:      5   4.9248E-11   3.5731E-02   1.0000E-10
+         14    Hmholtz VELY:      5   1.7769E-11   1.6843E-02   1.0000E-10
+         14    Hmholtz VELZ:      6   9.9316E-12   1.0805E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.1200E-07   8.4818E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.1200E-07   8.4818E-05
+         14   1.4000E-03  3.9071E-01 Fluid done
+Maximum scalar  1.520236416956
+Maximum velocity   0.00589985918   0.00172119641   0.06745216990
+Step     15, t= 1.5000000E-03, DT= 1.0000000E-04, C=  0.001 7.4969E+00 4.8199E-01
+             Solving for heat
+         15    Hmholtz TEMP:      4   5.8213E-13   2.5854E-02   1.0000E-10
+         15   1.5000E-03  5.4685E-02 Heat done
+ Solving for fluid T T T
+   254.62962962962831     
+  -2.5813895463632890E-013
+  -6.1741470734567785E-014
+   254.62962962962783     
+       15 PRES gmres:   13  6.3916E-11  1.0000E-10  4.5020E-04  1.1724E-01  1.9485E-01    F
+         15    Hmholtz VELX:      5   4.7036E-11   3.4538E-02   1.0000E-10
+         15    Hmholtz VELY:      5   1.7006E-11   1.6307E-02   1.0000E-10
+         15    Hmholtz VELZ:      6   9.2010E-12   1.0276E-01   1.0000E-10
+               L1/L2 DIV(V)    :  -1.0866E-07   7.3913E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.0866E-07   7.3913E-05
+         15   1.5000E-03  3.9131E-01 Fluid done
+Maximum scalar  1.520218478284
+Maximum velocity   0.00580339224   0.00172448603   0.06745291246
+Step     16, t= 1.6000000E-03, DT= 1.0000000E-04, C=  0.001 7.9794E+00 4.8254E-01
+             Solving for heat
+         16    Hmholtz TEMP:      4   5.7756E-13   2.5736E-02   1.0000E-10
+         16   1.6000E-03  5.4847E-02 Heat done
+ Solving for fluid T T T
+  -1.4489209604592380E-013
+   5.0168557173514996E-014
+   254.62962962963033     
+   254.62962962962806     
+       16 PRES gmres:   13  5.2680E-11  1.0000E-10  3.6948E-04  1.1824E-01  2.0011E-01    F
+         16    Hmholtz VELX:      5   4.5205E-11   3.3455E-02   1.0000E-10
+         16    Hmholtz VELY:      5   1.6303E-11   1.5819E-02   1.0000E-10
+         16    Hmholtz VELZ:      6   8.5303E-12   9.8012E-02   1.0000E-10
+               L1/L2 DIV(V)    :  -1.0567E-07   6.5989E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.0567E-07   6.5989E-05
+         16   1.6000E-03  3.9621E-01 Fluid done
+Maximum scalar  1.520200650348
+Maximum velocity   0.00574963366   0.00172721031   0.06745224112
+Step     17, t= 1.7000000E-03, DT= 1.0000000E-04, C=  0.001 8.4673E+00 4.8788E-01
+             Solving for heat
+         17    Hmholtz TEMP:      4   5.7305E-13   2.5619E-02   1.0000E-10
+         17   1.7000E-03  5.4067E-02 Heat done
+ Solving for fluid T T T
+   254.62962962962743     
+  -1.6133660395198973E-013
+   9.7399955227637624E-014
+   254.62962962962757     
+       17 PRES gmres:   13  4.4070E-11  1.0000E-10  3.0719E-04  1.1604E-01  1.9381E-01    F
+         17    Hmholtz VELX:      5   4.3642E-11   3.2466E-02   1.0000E-10
+         17    Hmholtz VELY:      5   1.5654E-11   1.5372E-02   1.0000E-10
+         17    Hmholtz VELZ:      6   7.9144E-12   9.3741E-02   1.0000E-10
+               L1/L2 DIV(V)    :  -1.0297E-07   6.0232E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.0297E-07   6.0232E-05
+         17   1.7000E-03  3.8969E-01 Fluid done
+Maximum scalar  1.520182931930
+Maximum velocity   0.00576151702   0.00172942061   0.06745032604
+Step     18, t= 1.8000000E-03, DT= 1.0000000E-04, C=  0.001 8.9472E+00 4.7994E-01
+             Solving for heat
+         18    Hmholtz TEMP:      4   5.6860E-13   2.5503E-02   1.0000E-10
+         18   1.8000E-03  5.3976E-02 Heat done
+ Solving for fluid T T T
+   254.62962962962908     
+   1.2122925201727284E-013
+   1.4863291753110111E-013
+   254.62962962962914     
+       18 PRES gmres:   13  3.7353E-11  1.0000E-10  2.5842E-04  1.1590E-01  1.9334E-01    F
+         18    Hmholtz VELX:      5   4.2260E-11   3.1559E-02   1.0000E-10
+         18    Hmholtz VELY:      5   1.5051E-11   1.4961E-02   1.0000E-10
+         18    Hmholtz VELZ:      6   7.3487E-12   8.9886E-02   1.0000E-10
+               L1/L2 DIV(V)    :  -1.0045E-07   5.6020E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -1.0045E-07   5.6020E-05
+         18   1.8000E-03  3.8632E-01 Fluid done
+Maximum scalar  1.520165321845
+Maximum velocity   0.00577119816   0.00173116268   0.06744731878
+Step     19, t= 1.9000000E-03, DT= 1.0000000E-04, C=  0.001 9.4247E+00 4.7753E-01
+             Solving for heat
+         19    Hmholtz TEMP:      4   5.6420E-13   2.5387E-02   1.0000E-10
+         19   1.9000E-03  5.4003E-02 Heat done
+ Solving for fluid T T T
+   254.62962962962823     
+   2.1905261405734265E-013
+  -2.5906387707050186E-013
+   254.62962962962882     
+       19 PRES gmres:   12  9.5392E-11  1.0000E-10  2.1979E-04  1.0736E-01  1.7801E-01    F
+         19    Hmholtz VELX:      5   4.1004E-11   3.0720E-02   1.0000E-10
+         19    Hmholtz VELY:      5   1.4489E-11   1.4580E-02   1.0000E-10
+         19    Hmholtz VELZ:      6   6.8289E-12   8.6394E-02   1.0000E-10
+               L1/L2 DIV(V)    :  -9.8066E-08   5.2889E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -9.8066E-08   5.2889E-05
+         19   1.9000E-03  3.7348E-01 Fluid done
+Maximum scalar  1.520147818937
+Maximum velocity   0.00577890203   0.00173247736   0.06744335384
+Step     20, t= 2.0000000E-03, DT= 1.0000000E-04, C=  0.001 9.8883E+00 4.6359E-01
+             Solving for heat
+         20    Hmholtz TEMP:      4   5.5986E-13   2.5271E-02   1.0000E-10
+         20   2.0000E-03  5.4076E-02 Heat done
+ Solving for fluid T T T
+   254.62962962962871     
+   1.7960451350539799E-013
+   3.2925973378820472E-013
+   254.62962962962663     
+       20 PRES gmres:   12  8.2598E-11  1.0000E-10  1.8890E-04  1.0740E-01  1.7824E-01    F
+         20    Hmholtz VELX:      5   3.9843E-11   2.9942E-02   1.0000E-10
+         20    Hmholtz VELY:      5   1.3964E-11   1.4225E-02   1.0000E-10
+         20    Hmholtz VELZ:      6   6.3511E-12   8.3221E-02   1.0000E-10
+               L1/L2 DIV(V)    :  -9.5748E-08   5.0499E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -9.5748E-08   5.0499E-05
+         20   2.0000E-03  3.7130E-01 Fluid done
+Maximum scalar  1.520130422078
+Maximum velocity   0.00578482303   0.00173340126   0.06743855007
+Step     21, t= 2.1000000E-03, DT= 1.0000000E-04, C=  0.001 1.0350E+01 4.6183E-01
+             Solving for heat
+         21    Hmholtz TEMP:      4   5.5557E-13   2.5156E-02   1.0000E-10
+         21   2.1000E-03  5.4050E-02 Heat done
+ Solving for fluid T T T
+  -3.3392061979756811E-014
+   254.62962962962987     
+  -1.3269167233696398E-013
+   254.62962962963175     
+       21 PRES gmres:   12  7.2576E-11  1.0000E-10  1.6402E-04  1.0731E-01  1.7799E-01    F
+         21    Hmholtz VELX:      5   3.8760E-11   2.9217E-02   1.0000E-10
+         21    Hmholtz VELY:      5   1.3471E-11   1.3894E-02   1.0000E-10
+         21    Hmholtz VELZ:      6   5.9119E-12   8.0327E-02   1.0000E-10
+               L1/L2 DIV(V)    :  -9.3461E-08   4.8610E-05
+               L1/L2 QTL       :   0.0000E+00   0.0000E+00
+               L1/L2 DIV(V)-QTL:  -9.3461E-08   4.8610E-05
+         21   2.1000E-03  3.7151E-01 Fluid done
+Maximum scalar  1.520113130202
+Maximum velocity   0.00578913075   0.00173396730   0.06743301251
+ call outfld: ifpsco: F
+
+       21  2.1000E-03 Write checkpoint:
+       0      21 OPEN: ref0.f00002
+
+       21  2.1000E-03 done :: Write checkpoint
+                              file size =      16.    MB
+                              avg data-throughput =   729.6MB/s
+                              io-nodes =     1
+
+
+end of time-step loop
+
+runtime statistics:
+ total time   10.824594120843505     
+ tgop time        2887  0.50903820991516113        4.7026078228187128E-002
+ inv3 time          42   9.3469619750976562E-003   8.6349306687623828E-004
+ invc time       16275   4.9164056777954102E-002   4.5418845481961590E-003
+ mltd time          63  0.12970042228698730        1.1982012520657949E-002
+ cdtp time          63   7.1891546249389648E-002   6.6415004060944418E-003
+ eslv time           0   0.0000000000000000        0.0000000000000000     
+ pres time          21   5.3914434909820557       0.49807350102859360     
+ crsl time         316   1.8826484680175781E-002   1.7392323878383654E-003
+ crsl min    1.6826391220092773E-002
+ crsl max    2.2327423095703125E-002
+ crsl avg    1.9947528839111328E-002
+ hmhz time         105   7.1519992351531982       0.66071754333786326     
+ spro time          22   1.7657995223999023E-002   1.6312847416604130E-003
+ usbc time         125  0.25028419494628906        2.3121808739632051E-002
+ usbc min   0.17072606086730957     
+ usbc max   0.42020106315612793     
+ usb  avg   0.31301301717758179     
+ axhm time        1060   2.4081501960754395       0.22247025331309001     
+ advc time          84  0.77328991889953613        7.1438236876753922E-002
+ vdss time          64   8.9803457260131836E-002   8.2962424509949121E-003
+ vdss min    5.2704811096191406E-002
+ vdss max   0.14263129234313965     
+ vdss avg   0.10578125715255737     
+ dsum time        1313  0.69893145561218262        6.4568837206222973E-002
+ dsum min   0.34789490699768066     
+ dsum max    1.0470263957977295     
+ dsum avg   0.74484717845916748     
+ dadd time           0  0.70571088790893555        6.5195136189914071E-002
+ ddsl time           0   0.0000000000000000        0.0000000000000000     
+ solv time           0   0.0000000000000000        0.0000000000000000     
+ prep time          22   2.6811122894287109E-002   2.4768709657815658E-003
+
+#  nid       tusbc       tdadd       tcrsl       tvdss       tdsum        tgop    qqq    F
+           0  2.5028E-01  7.0571E-01  1.8826E-02  8.9803E-02  6.9893E-01  5.0904E-01 qqq
+           1  4.2020E-01  9.3053E-01  2.2327E-02  1.4263E-01  1.0470E+00  8.9740E-01 qqq
+           2  1.7073E-01  4.2961E-01  1.6826E-02  5.2705E-02  3.4789E-01  1.4046E-01 qqq
+           3  4.1084E-01  8.3072E-01  2.1810E-02  1.3799E-01  8.8554E-01  6.7230E-01 qqq
+  
+call exitt: dying ...
+  
+backtrace(): obtained 5 stack frames.
+./nek5000(print_stack_+0x18) [0x504d78]
+./nek5000(exitt_+0x1e9) [0x5d4b79]
+./nek5000(main+0x39) [0x41ad69]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf5) [0x2af4b94e1b45]
+./nek5000() [0x41ad99]
+  
+total elapsed time             :   1.12987E+01 sec
+total solver time incl. I/O    :   1.08246E+01 sec
+time/timestep                  :   5.15457E-01 sec
+CPU seconds/timestep/gridpt    :   1.11334E-05 sec
+

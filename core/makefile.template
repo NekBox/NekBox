@@ -3,7 +3,7 @@ LIBNAME=libnek5000.a
 CASENAME=
 CASEDIR=
 S=
-J:=$S/jl
+J=
 OPT_INCDIR:=./
 OBJDIR=obj
 IFMPI= 
@@ -159,19 +159,19 @@ L2 = $(G) $(OPT_FLAGS_STD)
 L3 = $(G) $(OPT_FLAGS_STD)
 L4 = $(L3)
 
-FL0   = $(L0) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR)
-FL2i4 = $(L0)      $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR)
-FL2   = $(L2) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR)
-FL3   = $(L3) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR)
-FL4   = $(L4) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR)
+FL0   = $(L0) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR) 
+FL2i4 = $(L0)      $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR) 
+FL2   = $(L2) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR) 
+FL3   = $(L3) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR) 
+FL4   = $(L4) $(P) $(PPS_F) -I$(CASEDIR) -I$S -I$(OPT_INCDIR) 
 
 F90 = $(F77) $(CHECKS)
 
-cFL0   = $(L0) $(PPS_C) 
-cFL2   = $(L2) $(PPS_C) 
-cFL3   = $(L3) $(PPS_C) 
-cFL4   = $(L4) $(PPS_C) 
-
+cFL0   = $(L0) $(PPS_C) -I$J
+cFL2   = $(L2) $(PPS_C) -I$J
+cFL3   = $(L3) $(PPS_C) -I$J
+cFL4   = $(L4) $(PPS_C) -I$J
+                        
 ################################################################################
 all : nek5000
 

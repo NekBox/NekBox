@@ -81,7 +81,7 @@ if [ -d $2 ] && [ $# -eq 2 ]; then
   echo "change source code directory to: ", $SOURCE_ROOT
 fi
 # do some checks and create makefile
-source $SOURCE_ROOT/makenek.inc
+source $SOURCE_ROOT/core/makenek.inc
 # compile
 make -f makefile 2>&1 | tee compiler.out
 if [ -e nek5000 ]; then

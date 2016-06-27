@@ -24,6 +24,7 @@ module solver
   !! Should not be modified outside this module, so more of a handle
   type approx_space
     real(DP), allocatable :: projectors(:,:) !>!< past solutions that span approx. space
+    real(DP), allocatable :: outputs(:,:)    !>!< operator value corresponding to projectors 
     integer :: n_max !>!< Maximum number of projectors
     integer :: n_sav !>!< Actual number of projectors
     integer :: next !>!< Next projector slot to fill in  
@@ -148,12 +149,6 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   ! Mix the overlaps to get the orthogonal projection
   ! and take the inverse by dividing by \lambda 
   ! \todo sort the sums for more precision
-  do i = 1, apx%n_sav
-    qsum = 0._qp
-    do j = 1, apx%n_sav
-      qsum = qsum + evecs(j,i) * ws(j)
-    enddo 
-  enddo
   do i = 1, apx%n_sav
     qsum = 0._qp
     do j = 1, apx%n_sav

@@ -14,7 +14,11 @@ RUN apt-get clean && apt-get update && apt-get install -y --fix-missing \
 && rm -rf /var/lib/apt/lists/*
 
 # Switch to user-space
+RUN adduser --disabled-password --gecos '' nek
+RUN adduser nek sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 ENV HOME /home/nek
+USER nek
 
 # Pull in gslib
 WORKDIR /home/nek
@@ -37,7 +41,6 @@ RUN pip install git+https://github.com/maxhutch/dask --upgrade
 RUN pip install git+https://github.com/maxhutch/nekpy --upgrade
 
 # The tests and tools
-RUN git clone https://github.com/maxhutch/nek-tools.git
 RUN git clone https://github.com/maxhutch/nek-analyze.git 
 
 # Pull in the sources

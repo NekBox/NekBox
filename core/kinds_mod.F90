@@ -8,4 +8,5 @@ module kinds
   integer, parameter :: i4 = 4
   integer, parameter :: r4 = 4
   real(DP), parameter :: DP_eps = 1.d-15
+  integer, parameter :: strlen = 160
 end module kinds

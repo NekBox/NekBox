@@ -19,6 +19,7 @@ module solver
 
   public :: hsolve, approx_space, init_approx_space
   private :: projh, gensh, hconj, updrhsh, hmhzpf
+  private :: single_proj, double_proj
 
   !> Type to hold the approximation space.
   !! Should not be modified outside this module, so more of a handle
@@ -32,18 +33,24 @@ module solver
 
     !> Reduced rep of the matrix operator in the approximation space
     real(DP), allocatable :: H_red(:,:) 
+    integer :: proj_type
   end type approx_space
+
+  integer, parameter :: single_proj = 1
+  integer, parameter :: double_proj = 2
 
 contains
 
 !> \brief Initialize approximation space object
 !!
 !! Simple assigns and allocations
-subroutine init_approx_space(apx, n_max, ntot)
+subroutine init_approx_space(apx, n_max, ntot, proj_type)
   use kinds, only : DP
   implicit none
   type(approx_space), intent(out) :: apx
   integer, intent(in) :: n_max, ntot
+  character(len=*), intent(in) :: proj_type
+
   apx%n_max = n_max
   apx%n_sav = 0
   apx%next  = 0
@@ -51,6 +58,15 @@ subroutine init_approx_space(apx, n_max, ntot)
   apx%projectors = 0._dp
   apx%H_red      = 0._dp
   apx%dt         = 0._dp
+
+  select case (proj_type)
+    case ("single")
+      apx%proj_type = single_proj
+    case ("double")
+      apx%proj_type = double_proj
+    case DEFAULT
+      apx%proj_type = double_proj
+  end select 
 end subroutine init_approx_space
 
 !> \brief Project out the part of the residual in the approx space.

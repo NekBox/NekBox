@@ -36,7 +36,7 @@ subroutine cdscal (igeom)
 
   if (.not. allocated(t_apx%projectors)) then
     t_proj_space = int(param(92))
-    call init_approx_space(t_apx, t_proj_space, ntot)
+    call init_approx_space(t_apx, t_proj_space, ntot, "single")
   endif
 
 

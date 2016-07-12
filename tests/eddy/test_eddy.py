@@ -19,6 +19,10 @@ def test_single():
         base = json.load(f)
     base["prefix"] = "test_single"
 
+    base["toldiv"]  = 1.0e-7
+    base["tolhelm"] = 1.0e-7
+ 
+
     workdir = join(base_dir, base["prefix"])
     config = configure(base, {'name': base["prefix"]}, workdir)
     res = series(config, tusr)

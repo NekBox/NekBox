@@ -24,15 +24,15 @@ module solver
   !> Type to hold the approximation space.
   !! Should not be modified outside this module, so more of a handle
   type approx_space
-    real(DP), allocatable :: projectors(:,:) !>!< past solutions that span approx. space
-    real(DP), allocatable :: outputs(:,:)    !>!< operator value corresponding to projectors 
+    real(DP), allocatable :: x(:,:) !>!< past solutions that span approx. space
+    real(DP), allocatable :: Ax(:,:)    !>!< operator value corresponding to projectors 
     integer :: n_max !>!< Maximum number of projectors
     integer :: n_sav !>!< Actual number of projectors
     integer :: next !>!< Next projector slot to fill in  
     real(DP) :: dt !>!< dt used in building H
 
     !> Reduced rep of the matrix operator in the approximation space
-    real(DP), allocatable :: H_red(:,:) 
+    real(DP), allocatable :: A_red(:,:) 
     integer :: proj_type
   end type approx_space
 
@@ -54,10 +54,6 @@ subroutine init_approx_space(apx, n_max, ntot, proj_type)
   apx%n_max = n_max
   apx%n_sav = 0
   apx%next  = 0
-  allocate(apx%projectors(ntot, 0:n_max), apx%H_red(n_max, n_max))
-  apx%projectors = 0._dp
-  apx%H_red      = 0._dp
-  apx%dt         = 0._dp
 
   select case (proj_type)
     case ("single")
@@ -65,8 +61,20 @@ subroutine init_approx_space(apx, n_max, ntot, proj_type)
     case ("double")
       apx%proj_type = double_proj
     case DEFAULT
+      write(*,*) "Oops"
       apx%proj_type = double_proj
   end select 
+
+  allocate(apx%x(ntot, 0:n_max), apx%A_red(n_max, n_max))
+  apx%x     = 0._dp
+  apx%A_red = 0._dp
+  apx%dt    = 0._dp
+
+  if (apx%proj_type == double_proj) then
+    allocate(apx%Ax(ntot, 0:n_max))
+    apx%Ax     = 0._dp
+  endif
+
 end subroutine init_approx_space
 
 !> \brief Project out the part of the residual in the approx space.
@@ -111,7 +119,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   etime = dnekclock() 
 
   if (apx%n_sav == 0) then
-    apx%projectors(:,0) = 0._dp
+    apx%x(:,0) = 0._dp
     return
   endif
 
@@ -140,7 +148,7 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
     write(*,*) "wl isn't big enough to be dsyev's work"
 
   allocate(evecs(apx%n_sav, apx%n_sav), ev(apx%n_sav))
-  evecs = apx%H_red(1:apx%n_sav,1:apx%n_sav)
+  evecs = apx%A_red(1:apx%n_sav,1:apx%n_sav)
   call dsyev('V', 'U', apx%n_sav, &
              evecs, apx%n_sav, &
              ev, &
@@ -155,10 +163,17 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
 
   proj_flop = proj_flop + (2*ntot-1)*apx%n_sav
   proj_mop  = proj_mop + (apx%n_sav+1) * ntot
-  call dgemv('T', ntot, apx%n_sav, &
-             one,  apx%projectors(:,1:apx%n_sav), ntot, &
-                   wl, 1, &
-             zero, ws, 1)
+  if (apx%proj_type == single_proj) then
+    call dgemv('T', ntot, apx%n_sav, &
+               one,  apx%x(:,1:apx%n_sav), ntot, &
+                     wl, 1, &
+               zero, ws, 1)
+  else if (apx%proj_type == double_proj) then
+    call dgemv('T', ntot, apx%n_sav, &
+               one,  apx%Ax(:,1:apx%n_sav), ntot, &
+                     wl, 1, &
+               zero, ws, 1)
+  endif
   call gop(ws, ws(1+apx%n_sav), '+  ', apx%n_sav)
 
   !...............................................................
@@ -186,15 +201,15 @@ subroutine projh(r,h1,h2,bi,vml,vmk, apx, wl,ws,name4)
   proj_flop = proj_flop + ntot*(2*apx%n_sav-1)
   proj_mop  = proj_mop + (apx%n_sav+1) * ntot
   call dgemv('N', ntot, apx%n_sav, &
-             one,  apx%projectors(:,1:apx%n_sav), ntot, &
+             one,  apx%x(:,1:apx%n_sav), ntot, &
                    ws, 1, &
-             zero, apx%projectors(:,0), 1)
+             zero, apx%x(:,0), 1)
 
   !...............................................................
   ! Compute the new residual explicitly
   ! This fixes any numerical precision issues in previous sections
   etime = etime - dnekclock()
-  call axhelm  (wl,apx%projectors(:,0),h1,h2,1,1)
+  call axhelm  (wl,apx%x(:,0),h1,h2,1,1)
   etime = etime + dnekclock()
 
   proj_flop = proj_flop + ntot
@@ -246,12 +261,12 @@ subroutine gensh(v1,h1,h2,vml,vmk,apx,ws)
   type(approx_space), intent(inout) :: apx !>!< current approximation space
 
   integer :: ntot
-  ntot = size(apx%projectors,1)
+  ntot = size(apx%x,1)
   othr_mop = othr_mop + 5*ntot
   othr_flop = othr_flop + ntot
 
   ! Reconstruct solution 
-  v1(1:ntot) = v1(1:ntot) + apx%projectors(:,0)
+  v1(1:ntot) = v1(1:ntot) + apx%x(:,0)
 
   ! If the new vector is in the space already, don't re-add it.
   if (niterhm < 1) return      
@@ -259,7 +274,7 @@ subroutine gensh(v1,h1,h2,vml,vmk,apx,ws)
   ! Add the solution to the approximation space
   apx%n_sav = min(apx%n_sav + 1, apx%n_max)
   apx%next  = mod(apx%next, apx%n_max) + 1
-  apx%projectors(:,apx%next) = v1(1:ntot)
+  apx%x(:,apx%next) = v1(1:ntot)
 
   ! Update the approximation space
   call hconj(apx,apx%next,h1,h2,vml,vmk,ws)
@@ -287,35 +302,51 @@ subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
   real(DP), parameter :: one = 1._dp, zero = 0._dp
   real(DP) :: etime
 
-  ntot= size(apx%projectors, 1)
+  ntot= size(apx%x, 1)
   nhconj = nhconj + 1
 
   ! Compute H| projectors(:,k) >
-  call axhelm  (apx%projectors(:,0),apx%projectors(:,k),h1,h2,1,1)
+  if (apx%proj_type == single_proj) then
+    call axhelm  (apx%x(:,0),  apx%x(:,k),h1,h2,1,1)
+    etime = dnekclock()
+    apx%x(:,0) = apx%x(:,0) * vmk(1:ntot)
+    call dssum   (apx%x(:,0))
+    apx%x(:,0) = apx%x(:,0) * vml(1:ntot)
+  else if (apx%proj_type == double_proj) then
+    call axhelm  (apx%Ax(:,k), apx%x(:,k),h1,h2,1,1)
+    etime = dnekclock()
+    apx%Ax(:,k) = apx%Ax(:,k) * vmk(1:ntot)
+    call dssum   (apx%Ax(:,k))
+    apx%Ax(:,k) = apx%Ax(:,k) * vml(1:ntot)
+  endif
 
-  etime = dnekclock()
 
   hconj_flop = hconj_flop + ntot
   hconj_mop  = hconj_flop + 3*ntot
-  apx%projectors(:,0) = apx%projectors(:,0) * vmk(1:ntot)
-  call dssum   (apx%projectors(:,0))
 
   hconj_flop = hconj_flop + ntot
   hconj_mop  = hconj_flop + 3*ntot
-  apx%projectors(:,0) = apx%projectors(:,0) * vml(1:ntot)
 
   ! Compute < projectors(:,i) | H | projectors(:,k) > for i \in [1,n_sav]
   hconj_flop = hconj_flop + apx%n_sav*(2*ntot-1)
   hconj_mop  = hconj_mop + apx%n_sav * (ntot +1)
-  call dgemv('T', ntot, apx%n_sav, &
-             one,  apx%projectors(1,1), ntot, &
-                   apx%projectors(1,0), 1, &
-             zero, apx%H_red(1,k), 1)
-  call gop(apx%H_red(:,k), ws, '+  ', apx%n_sav)
+
+  if (apx%proj_type == single_proj) then
+    call dgemv('T', ntot, apx%n_sav, &
+               one,  apx%x(1,1), ntot, &
+                     apx%x(1,0), 1, &
+               zero, apx%A_red(1,k), 1)
+  else if (apx%proj_type == double_proj) then
+    call dgemv('T', ntot, apx%n_sav, &
+               one,  apx%Ax(1,1), ntot, &
+                     apx%Ax(1,k), 1, &
+               zero, apx%A_red(1,k), 1)
+  endif
+  call gop(apx%A_red(:,k), ws, '+  ', apx%n_sav)
 
   ! Re-symmetrize
   do i = 1, apx%n_sav
-    apx%H_red(k,i) = apx%H_red(i,k)
+    apx%A_red(k,i) = apx%A_red(i,k)
   enddo
   thconj = thconj + (dnekclock() - etime)
 

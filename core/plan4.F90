@@ -58,16 +58,16 @@ subroutine plan4()
   v_proj_size = int(param(92))
   laxt = int(param(93))
 
-  if (.not. allocated(p_apx%projectors)) then
+  if (.not. allocated(p_apx%x)) then
     call init_approx_space(p_apx, laxt, ktot, "double")
   endif
-  if (.not. allocated(vx_apx%projectors)) then
+  if (.not. allocated(vx_apx%x)) then
     call init_approx_space(vx_apx, v_proj_size, ktot, "single")
   endif
-  if (.not. allocated(vy_apx%projectors)) then
+  if (.not. allocated(vy_apx%x)) then
     call init_approx_space(vy_apx, v_proj_size, ktot, "single")
   endif
-  if (.not. allocated(vz_apx%projectors)) then
+  if (.not. allocated(vz_apx%x)) then
     call init_approx_space(vz_apx, v_proj_size, ktot, "single")
   endif
 

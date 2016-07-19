@@ -39,10 +39,10 @@ module solver
   type approx_space
     real(DP), allocatable :: x(:,:)  !>!< past solutions that span approx. space
     real(DP), allocatable :: Ax(:,:) !>!< operator value corresponding to projectors 
-    integer :: n_max !>!< Maximum number of projectors
-    integer :: n_sav !>!< Actual number of projectors
-    integer :: next  !>!< Next projector slot to fill in  
-    real(DP) :: dt   !>!< dt used in building H
+    integer  :: n_max !>!< Maximum number of projectors
+    integer  :: n_sav !>!< Actual number of projectors
+    integer  :: next  !>!< Next projector slot to fill in  
+    real(DP) :: hash  !>!< hashed identity of operator 
 
     !> Reduced rep of the matrix operator in the approximation space
     real(DP), allocatable :: A_red(:,:) 
@@ -71,8 +71,8 @@ subroutine init_approx_space(apx, n_max, k_tot, proj_type)
   apx%n_sav = 0
   apx%next  = 0
  
-  ! Start with no time-step
-  apx%dt    = -1._dp
+  ! Start with dummy hash value (real hashes are positive) 
+  apx%hash  = -1._dp
 
   ! Select the projector type based on the string proj_type
   select case (proj_type)
@@ -386,18 +386,16 @@ subroutine updrhsh(apx,h1,h2,vml,vmk,ws)
   logical :: ifupdate
   logical, save :: ifnewdt = .false.
   integer :: n_sav, k
+  real(DP) :: hash
 
   ! First, we have to decide if the dt has changed.
   ifupdate = .FALSE. 
-  if (abs(dt-apx%dt) > 1.e-9) then
-      apx%dt   = dt
-      ifnewdt  = .TRUE. 
-      ifupdate = .TRUE. 
-  elseif (ifnewdt) then
-      ifnewdt = .FALSE. 
+
+  hash = abs(h1(2)) + abs(h2(2))
+  if (abs((hash - apx%hash)/apx%hash) > 1.e-6) then
+    ifupdate = .TRUE.
+    apx%hash = hash
   endif
-  if (ifvarp(ifield)) ifupdate = .TRUE. 
-  if (iflomach)       ifupdate = .TRUE. 
 
   ! If it has, recompute apx%H_red column by column
   if (ifupdate) then  

@@ -391,7 +391,7 @@ subroutine updrhsh(apx,h1,h2,vml,vmk,ws)
   ! First, we have to decide if the dt has changed.
   ifupdate = .FALSE. 
 
-  hash = abs(h1(2)) + abs(h2(2))
+  hash = abs(h1(1)) + abs(h2(1))
   if (abs((hash - apx%hash)/apx%hash) > 1.e-6) then
     ifupdate = .TRUE.
     apx%hash = hash

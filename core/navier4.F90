@@ -11,6 +11,19 @@
 !! are generally taken to be past solutions to the same Helmholtz
 !! problem, and the oldest solution is replaced with the current solution
 !! at the end of hsolve.
+!!
+!! There are two projection schemes available:
+!!  1) Projection is performed with <x|A^-1|x>, where A is the operator
+!!     being approximated and |x> are the previous solutions
+!!  2) Projection is performed with <x|A^-1|y>, where A is the operator
+!!     being approximatex, |x> are the previous solutions, and |y>
+!!     are the previous right hand sides.  
+!!  The (2) method is more accurate and will reduce the number of solver
+!!  iterations more than (1). However, (1) uses half the memory and,
+!!  when A nice (what kind of nice?), (1) has very similar performance.
+!!  We recommend (1), which is proj_type = "single", for the Helmholtz
+!!  solves and (2), which is proj_type = "double", for the Poisson 
+!!  solves.
 !-----------------------------------------------------------------------
 module solver
   use kinds, only : DP
@@ -24,18 +37,19 @@ module solver
   !> Type to hold the approximation space.
   !! Should not be modified outside this module, so more of a handle
   type approx_space
-    real(DP), allocatable :: x(:,:) !>!< past solutions that span approx. space
-    real(DP), allocatable :: Ax(:,:)    !>!< operator value corresponding to projectors 
+    real(DP), allocatable :: x(:,:)  !>!< past solutions that span approx. space
+    real(DP), allocatable :: Ax(:,:) !>!< operator value corresponding to projectors 
     integer :: n_max !>!< Maximum number of projectors
     integer :: n_sav !>!< Actual number of projectors
-    integer :: next !>!< Next projector slot to fill in  
-    real(DP) :: dt !>!< dt used in building H
+    integer :: next  !>!< Next projector slot to fill in  
+    real(DP) :: dt   !>!< dt used in building H
 
     !> Reduced rep of the matrix operator in the approximation space
     real(DP), allocatable :: A_red(:,:) 
-    integer :: proj_type
+    integer :: proj_type !>!< Type of projection to use
   end type approx_space
 
+  !> Keys for different projection types
   integer, parameter :: single_proj = 1
   integer, parameter :: double_proj = 2
 
@@ -44,17 +58,23 @@ contains
 !> \brief Initialize approximation space object
 !!
 !! Simple assigns and allocations
-subroutine init_approx_space(apx, n_max, ntot, proj_type)
+subroutine init_approx_space(apx, n_max, k_tot, proj_type)
   use kinds, only : DP
   implicit none
-  type(approx_space), intent(out) :: apx
-  integer, intent(in) :: n_max, ntot
-  character(len=*), intent(in) :: proj_type
+  type(approx_space), intent(out) :: apx !>!< Space to initialize
+  integer, intent(in) :: n_max !>!< maximum number of projectors
+  integer, intent(in) :: k_tot !>!< length of each projector
+  character(len=*), intent(in) :: proj_type !>!< which type of projection to use
 
+  ! Store up to n_max projectors, but there aren't any yet.
   apx%n_max = n_max
   apx%n_sav = 0
   apx%next  = 0
+ 
+  ! Start with no time-step
+  apx%dt    = -1._dp
 
+  ! Select the projector type based on the string proj_type
   select case (proj_type)
     case ("single")
       apx%proj_type = single_proj
@@ -65,13 +85,14 @@ subroutine init_approx_space(apx, n_max, ntot, proj_type)
       apx%proj_type = double_proj
   end select 
 
-  allocate(apx%x(ntot, 0:n_max), apx%A_red(n_max, n_max))
+  ! Allocate space for the projectors and reduced operator; set to zero
+  allocate(apx%x(k_tot, 0:n_max), apx%A_red(n_max, n_max))
   apx%x     = 0._dp
   apx%A_red = 0._dp
-  apx%dt    = 0._dp
 
+  ! If using two sized projectors, allocate and zero buffer for Ax
   if (apx%proj_type == double_proj) then
-    allocate(apx%Ax(ntot, 0:n_max))
+    allocate(apx%Ax(k_tot, n_max))
     apx%Ax     = 0._dp
   endif
 
@@ -306,6 +327,8 @@ subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
   nhconj = nhconj + 1
 
   ! Compute H| projectors(:,k) >
+  hconj_flop = hconj_flop + 2*ntot
+  hconj_mop  = hconj_flop + 6**ntot
   if (apx%proj_type == single_proj) then
     call axhelm  (apx%x(:,0),  apx%x(:,k),h1,h2,1,1)
     etime = dnekclock()
@@ -320,17 +343,9 @@ subroutine hconj(apx,k,h1,h2,vml,vmk,ws)
     apx%Ax(:,k) = apx%Ax(:,k) * vml(1:ntot)
   endif
 
-
-  hconj_flop = hconj_flop + ntot
-  hconj_mop  = hconj_flop + 3*ntot
-
-  hconj_flop = hconj_flop + ntot
-  hconj_mop  = hconj_flop + 3*ntot
-
   ! Compute < projectors(:,i) | H | projectors(:,k) > for i \in [1,n_sav]
   hconj_flop = hconj_flop + apx%n_sav*(2*ntot-1)
   hconj_mop  = hconj_mop + apx%n_sav * (ntot +1)
-
   if (apx%proj_type == single_proj) then
     call dgemv('T', ntot, apx%n_sav, &
                one,  apx%x(1,1), ntot, &
@@ -509,6 +524,7 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
 
   if (ifstdh) then
+    ! Just do the solve
     etime = etime - dnekclock()
     call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
     etime = etime + dnekclock()
@@ -517,18 +533,23 @@ subroutine hsolve(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd &
 
       nel = nelfld(ifield)
 
+      ! Cleanup the residual
       othr_mop = othr_mop + 3*lx1*ly1*lz1*nel
       othr_flop = othr_flop + lx1*ly1*lz1*nel
       call dssum  (r(:,1,1,1))
       r(:,:,:,1:nel) = r(:,:,:,1:nel) * vmk(:,:,:,1:nel)
 
+      ! Project out the previous solutions
       allocate(w2(2+2*apx%n_max))
       allocate(w1(lx1*ly1*lz1*lelv))
       etime = etime - dnekclock()
       call projh  (r,h1,h2,bi,vml,vmk,apx,w1,w2,name)
       deallocate(w1)
 
+      ! Solve the projected problem
       call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
+
+      ! Combine the projected and unprojected parts
       call gensh  (u,h1,h2,vml,vmk,apx,w2)
       etime = etime + dnekclock()
 

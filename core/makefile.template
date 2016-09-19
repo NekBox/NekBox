@@ -181,7 +181,7 @@ all : nek5000 $(DEP_FILE)
 # create fortran dependencies ##################################################
 $(DEP_FILE):
 	@echo "Making dependencies!"
-	$S/fort_depend.py -w -o ./$(DEP_FILE) -b $(OBJDIR) -f $S/*.F90 *.F90
+	python $S/fort_depend.py -w -o ./$(DEP_FILE) -b $(OBJDIR) -f $S/*.F90 *.F90
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEP_FILE)

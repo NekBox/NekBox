@@ -814,7 +814,7 @@ subroutine heat (igeom)
   use kinds, only : DP
   use size_m, only : nid, nfield
   use ctimer, only : dnekclock
-  use input, only : ifcvode, ifsplit, iftmsh
+  use input, only : ifcvode, ifsplit, iftmsh, param
   use tstep, only : ifield, imesh, istep, time
 
   implicit none
@@ -840,8 +840,10 @@ subroutine heat (igeom)
           intype        = -1
           if ( .NOT. iftmsh(ifield)) imesh = 1
           if (     iftmsh(ifield)) imesh = 2
-          call unorm
-          call settolt
+          if (param(22) == 0.0) then
+            call unorm
+            call settolt
+          endif
           call cdscal (1)
       enddo
   
@@ -854,8 +856,10 @@ subroutine heat (igeom)
           intype        = -1
           if ( .NOT. iftmsh(ifield)) imesh = 1
           if (     iftmsh(ifield)) imesh = 2
-          call unorm
-          call settolt
+          if (param(22) == 0.0) then
+            call unorm
+            call settolt
+          endif
           call cdscal (2)
       enddo
 

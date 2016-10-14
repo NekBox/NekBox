@@ -31,11 +31,11 @@ def test_restart():
     tests = grep_log(test, "Maximum scalar")
     refs  = grep_log(ref,  "Maximum scalar")
     max_scalar_diff = np.max(np.abs(tests[-1]-refs[-1]))
-    assert max_scalar_diff < 1.e-9
+    assert max_scalar_diff < 1.e-16
 
     tests = grep_log(test, "Maximum velocity")
     refs  = grep_log(ref, "Maximum velocity")
     max_velocity_diff = np.max(np.abs(tests[-1]-refs[-1]))
-    assert max_velocity_diff < 1.e-9
+    assert max_velocity_diff < 1.e-16
 
     return

@@ -34,9 +34,9 @@ subroutine cdscal (igeom)
   ntot   = nx1*ny1*nz1*nel
   nheat2 = nheat2 + 1
 
-  if (.not. allocated(t_apx%projectors)) then
+  if (.not. allocated(t_apx%x)) then
     t_proj_space = int(param(92))
-    call init_approx_space(t_apx, t_proj_space, ntot)
+    call init_approx_space(t_apx, t_proj_space, ntot, "single")
   endif
 
 

@@ -814,7 +814,7 @@ subroutine heat (igeom)
   use kinds, only : DP
   use size_m, only : nid, nfield
   use ctimer, only : dnekclock
-  use input, only : ifcvode, ifsplit, iftmsh
+  use input, only : ifcvode, ifsplit, iftmsh, param
   use tstep, only : ifield, imesh, istep, time
 
   implicit none
